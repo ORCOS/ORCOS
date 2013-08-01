@@ -1,0 +1,188 @@
+
+/**
+ * \defgroup comm Communication
+ * 
+
+\section commframework Communication Framework
+
+Following an overview of the sections on this page.
+
+\subsection Overview
+\li \ref design "Design of the Framework"
+\li \ref usage "Using the Communication Framework in Threads"
+\li \ref protocols "Protocols"
+\li \ref implement "Implementation Details"
+\li \ref arpwork "ARP and the Workerthread"
+
+
+\subsection design Design of the Framework
+
+The communication framework of ORCOS includes inter-node communication on the one hand and inter-process communication on the other hand. Therefore the system defines an abstract communication interface in the socket class. Two processes or nodes communicate with each other by using this abstract socket. This framework was designed with emphasis on configurability and interoperability with different systems as well as transparency. The following diagram gives an overview of the components involved in communication processes.
+ \image html Socket_components.png
+    
+ The component of the communication framework a process interacts with is the socket component. Therefore it is the interface for processes on the current node or on remote nodes. The socket components use different protocols in order to communication with the outside world. Each socket can be explicitly configured (at runtime) to define which protocol stack ( transportprotocol + addressprotocol) shall be used. In order to provide transparent communications the framework may be extended to use some sort of service discovery routines. The current implementation does not provide service discovery and is only capable of handling communications with explicit well known addresses. 
+ 
+\subsection usage Using the Communication Framework in Threads
+
+<h3>Setting up a socket</h3>
+
+In order to communicate with threads some initialization has to be done. This initialization is the same whether the communication shall be local or remote. The following code snippet shows how to setup a thread in order to use a socket for communication.
+
+
+\code
+add_devaddr("dev/comm/serial0",55555,(char*) 1); 
+		
+char* mysocketbuffer = (char*) malloc(500); 
+	  
+int mysock = socket(55555,SOCK_DGRAM,55556,mysocketbuffer,500); 
+	
+sockaddr* addr = (sockaddr*) malloc(sizeof(sockaddr));
+
+short dest_addr = 0;  
+char* service_name = "Service1"; 
+	 
+addr->name_data = 	service_name; 		
+addr->port_data = 	(char*) 80; 		
+addr->sa_data = 	(char*) &dest_addr;  	
+	
+bind(mysock,addr); 
+
+\endcode
+
+
+The first thing that should be done is to setup the address the node will be known as in the network by calling the add_devaddr syscall.
+This will tell the address protocol (specified as the second parameter by its id) that the device specified by the first parameter will have the address given as the third parameter. Thus the command <CODE> add_devaddr("dev/comm/serial0",55555,(char*) 1); </CODE> in this example will tell the address protocol 55555 (SimpleAdressProtocol) to identify itself with address 1 when communicating over the serial device. It is possible to add more than one address to a device and protocol, although there exists a limitation which is protocol specific. The address specified also has to conform to the domain of the protocol. See the documentation of the protocol you want to use to see which addresses are allowed and how to pass them to the protocol. (REMARK: Setting up a device address may not be neccessary if the communication is local only since target sockets will be available using the localhost address then.)
+
+The next thing to be done is the allocation of a memory buffer the socket can operate on. This is done using the <CODE>malloc()</CODE> method. The buffer needs to be big enough since the socket will use the buffer for wrapping protocols around a message and storing received messages. If you don't allocate a memory buffer for the socket the socket may create a buffer on its own.
+
+The socket object a thread will work on is created by the <CODE>socket()</CODE> method. This method creates a new socket object using the protocol stack specified as parameters. You can also pass the pointer to the created memory buffer and the size. If you leave out the parameters the socket will create a buffer with standard size. The return value of this call is the id of the socket. This id needs to be passed to all syscalls that work on an existing socket as there are for example <CODE> bind(), sendto() .. </CODE>. 
+
+After the socket creation the socket and the protocol stack of the socket need to be initialized (bound to some address). Therefore a <CODE>sock_addr</CODE> structure needs to be created and passed to the socket using the <CODE>bind()</CODE> method. Depending on the protocols used the bind call will result in different behaviours. Commonly the port the socket will be available on is set by the port_data attribute. 
+
+See the ORCOS.hh documentation to get exact information on the syscalls used and the parameters that need to be provided.
+
+<h3> Using an existing socket </h3>
+
+After a socket has been created the socket may be used to send and/or receive messages. The current implementation only supports connectionless communications in DATAGRAM mode. Using the socket in connection oriented and/or stream mode is intended but not available at the moment. 
+
+Sending can be done by calling the <CODE> sendto() </CODE> method. The following code snippet shows how to send and receive messages using a socket.
+
+\code
+
+sendto(mysock,"test",5,addr);
+			
+char* msgptr;
+int msglen = recv(mysock,&msgptr,MSG_WAIT);
+
+\endcode
+
+The sendto method needs the id of the socket to be used for sending and a message (pointer to an array of bytes) as well as the destination address. Then the socket will use its protocol stack in order to send the message to the destination address. If the address is not known yet the communication framework will initiate a routine in order to lookup the address. At the moment the ARP protocol is used for this purpose by the SimpleAddressProtocol whenever a destination address is unknown (as a proof of concept). Different address protocols may implement their own lookup procedure (for example using gateways a.s.o).
+
+Receiving messages is done by the <CODE> recv() </CODE> method. The recv method expects the id of the socket we want to receive messages from. The second parameter is the address of a pointer to the message which is used as a return value and thus set by the socket. If a message is available the pointer will be set to the address of the message received. It will point to some location inside the buffer the socket will use for message storage and is thus open to manipulations. This of course induces the chance of manipulating all other packets used by the socket inside this buffer. However manipulations can only be done by threads of the same task whenever the system is operating with virtual memory. The third parameter specifies some flags for the method call. The possible flags are:
+
+MSG_PEEK : Get the next message but leave it inside the socket so other threads may get it as well (currently not implemented but intended) <BR>
+MSG_WAIT : Make this call a blocking call if no message is available
+
+All flags can be logically or'ed and specified as parameters. If there is more than one thread trying to receive from the same empty socket using the MSG_WAIT flag the first socket will only be blocked in the current implementation. 
+
+\subsection protocols Protocols
+
+ORCOS is capable of handling a high amount of protocols which can be explicitly configured to be existend or non-existend in the kernel. Fundamently there exist at least two types of protocols that are needed for communication : Transportprotocols and Addressprotocols. This concept follows the design of the ISO/OSI modell. The first four layers of the ISO/OSI modell can be seen in the picture below. Layer one and two are implemented inside the device driver of the communication device used or inside the hardware.
+
+\image html comm_layer.png
+
+In ORCOS the Transportprotocols resemble the Transport Layer, Addressprotocols the Network Layer. Both are needed for local and remote communication but can be freely chosen from the available protocols in the system as long as both communication peers use the same transport and addressprotocol. Howto setup a socket to use a transport- and addressprotocol has already been introduced above, but in order to use these protocols the kernel needes to be compiled with these protocols built in. Therefore the kernel consists of a class ProtocolPool which creates all protocol objects at system startup and is used as a central storage and access point for these protocols. The protocols which shall be available are configured using the define tags of the Orcos \ref Configuration .  The following SCLConfig.xml part demonstrates the usage :
+
+\code
+	<!-- ADDRESS PROTOCOLS -->
+	<Define>
+		<Name>NUM_ADDRESS_PROTOCOLS</Name>
+		<Value>2</Value>
+	</Define>
+
+	<!-- Simple Address Protocol -->
+	<Define>
+		<Name>USE_SIMPLE_ADDRESS_PROTOCOL</Name>
+		<Value>1</Value>
+	</Define>
+	
+	<!-- Address Resolution Protocol RFC 826 -->
+	<Define>
+		<Name>USE_ARP</Name>
+		<Value>1</Value>
+	</Define>
+
+	<!-- Address Resolution Protocol -->
+	<Define>
+		<Name>USE_ARP</Name>
+		<Value>1</Value>
+	</Define>
+
+	<!-- TRANSPORT PROTOCOLS -->
+	<Define>
+		<Name>NUM_TRANSPORT_PROTOCOLS</Name>
+		<Value>1</Value>
+	</Define>
+
+	<Define>
+		<Name>USE_SIMPLE_TRANSPORT_PROTOCOL</Name>
+		<Value>1</Value>
+	</Define>
+\endcode
+
+Each protocol can be configured to be existend by setting the value to 1 in its define tag. If the value is set to 0 the protocol will not be compiled and linked. Important are the defines  NUM_ADDRESS_PROTOCOLS and NUM_TRANSPORT_PROTOCOLS and their values. These values need to be set to the amount of protocols that will be existend inside the system. 
+
+A special protocol that is used inside the system is the ARP protocol. This is just a proof of concept for the part of service discovery which is not implemented inside ORCOS kernel at the moment.
+
+<h3> Adding new protocols </h3>
+
+In order to add a new protocol to the system one needs to inherit the base class of that protocol type. This is TransportProtocol for any new transportprotocol and AddressProtocol for any new addressprotocol. Each of these base classes define a some methods that need to be implemented. Have a look at the documentation of the base classes to see what methods are needed. After that the ProtocolPool class needs to be modified so that the protocols can actually be available inside the system. Therefor the header files includes need to be extended like this way :
+
+\code
+#if  USE_YOUR_NEW_PROTOCOL
+#include "comm/yourprotocol.hh"      
+#endif
+\endcode
+
+whereas the names should be chosen apropriatly. As one can see this preprocessor statements are used to configure the system (files).
+The protocolpool implementation also needs to be changed inside the constructor :
+
+\code
+#if USE_YOUR_NEW_PROTOCOL
+this->transportprotocols->addTail((DatabaseItem*) new YourProtocol());
+#endif
+\endcode
+
+if your protocol is a transportprotocol respectivly. Otherwise the object has to be added to the addressprotocol database of the ProtocolPool. (See ProtocolPool.cc).
+
+
+
+
+\subsection implement Implementation Details 
+
+This section will give a short insight into the implementation.
+
+<h3> Sending </h3>
+
+Generally the process of sending can be described by the following activity diagram. This diagram shows the activity of sending a message to a "known" host, whereas known host means that its address insode the domain of the node is known.  This is different if one thinks of transparent communication where the hosts address is not know but a name identifying it.
+
+\image html Sockets_Activity.png
+  
+
+Whenever a message needs to be send the message is first passed to the transportprotocol which will then put its header infront of the message. The new message will then be processed by the addressprotocol which will decide whether the destination address is known or not. In the first case the message can directly be passed to the device driver which will then send the message using the hardware device. However if the destination is unknown the addressprotocol will initate the lookup process. In the diagram shown above the ARP protocol is used for this process which finishes the send request after the address has been resolved. How this works will be described in section \ref arpwork .
+
+
+In case of a successful communication process the sequence of calls is described as follows: 
+\image html Sockets.png
+  
+  
+  
+\subsection arpwork ARP and the Workerthread
+
+
+As stated above ORCOS uses a special protocol to resolve the mac-address of a host or to find a specific host in its local network. This is done by using the ARP class and its method lookup. Whenever a address lookup is issued the arp will send a broadcast message over all communication devices to find the host. After sending the message the calling thread will be blocked and can only be unblocked again when the address has been resolved or a timeout occured.  On the other hand the system may receive an arp packet and the hardware device will issue an interrupt. These packets are not processed directly but are scheduled as an ExternalDeviceJob by the WorkerTask. This task will then assign the job to some WorkerThread that will be executed regarding the scheduling policy of the system and thus may not interfere with realtime threads directly. The WorkerThread will then process the packet and call the arp or any other protocol. This of course creates issues regarding virtual memory since the workerthread needs to access memory spaces of other tasks depending on the packet recieved. E.g: Whenever the workerthread processes an arp packet the arp protocol may react on the packet and finish pending send requests that relied on the address of the host which the packet was reveiced from. This in turn requires the WorkerThread to run with the pid of that specific task that issued the send request. Therefore some architecture dependend functions are used that are implemented inside the assemblerFunctions.hh file.
+
+The actual implementation of the ARP protocol also uses a WorkerThread to send the arp packet again if no ARPReply has been received for a certain amount of time. Therefore a TimedFunctionCallJob will be registered at the WorkerTask. Future implementations may enhance this by using the planed PeriodicFunctionCallJob. See also the documentation of workerthreads in \ref process.
+ * */
+
+

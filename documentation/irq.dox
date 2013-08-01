@@ -1,0 +1,127 @@
+
+/*!
+
+\defgroup irq IRQ-Processing
+
+IRQ-Processing is done via the special HAL-class InterruptHandler (note: which is not a GenericDeviceDriver). The architecture specific implementation of the
+InterruptHandler is responsible for the correct initilization of the interrupt-vector the architecture may have and installing appropriate callback
+functions that get called upon arrival of an IRQ. In the current implementation for the Virtex2 Board the InterruptHandler is configured to be a part
+of the Board.
+
+There is no possibility for devices to register directly at the InterruptHandler for callbacks on special IRQs. This is prevented because of several reasons:
+
+1. This would allow devices to circumvent the scheduling decisions of the scheduler. 
+
+2. The registered callbacks would run in kernel-mode
+
+3. Different platforms offer different IRQ-types. It is hard to unify them to a abstraction that a HAL could offer.
+
+Because of this reasons an implementation of the InterruptHandler has to able to handle Timer-IRQs at a minimum. The Timer IRQs have to be delegated to the specific HAL
+Timer Device which will then forward the call to the systems dispatcher/scheduler.
+ Of course other IRQs can be handled as well, but are not required. A second important function of the IRQ-Handler is to dispatch syscall IRQs to the
+syscall manager.
+If a device needs to be notified about IRQs, our WorkerThread concept allows this. Basically it enables the schedulability of IRQs and ensures that IRQs are
+processed at their correct priority.
+
+\section irq2 Handling of IRQs for the Virtex2 board
+
+Upon arrival of an IRQ the Processor interrupts it's current work and jumps to a location on the IRQ-vector-table that is specific to the IRQ number
+that just arrived. The space this table offers is very limited. There is only room for a few assembler instructions. Because of this we are processing IRQs
+in several stages:
+
+Stage 1: In the very limited space the IRQ vector table offers for each IRQ, in a tiny assembler function only the IRQ number gets saved and thereafter
+immediatly a jump is performed to
+
+Stage 2: a 2nd assembler function which saves the context (registers...) of the current running thread on the stack and then calls the apropriate C
+interrupt handling function inside the file handleInterrupts.cc. E.g a Timer interrupt will be forwarded to the C method handleTimerIRQ() which then takes further action.
+
+
+For example, below is the tiny function for stage 1 that gets installed at every location of the IRQ-vector-table
+\code
+
+.globl IRQ0x1000
+IRQ0x1000:
+	ba 	IRQhandleTimer
+	
+IRQhandleTimer:
+	// enable VM, should be available BEFORE working with the stack
+#ifdef HAS_MemoryManager_HatLayerCfd
+    mtspr    SPRG5, r3
+    mfmsr	 r3
+    ori		 r3,r3,0x30
+    mtmsr 	 r3
+    sync
+    isync
+    mfspr    r3, SPRG5
+#endif
+
+	SAVE_CONTEXT
+	mr			r3,sp
+
+#if USE_SAFE_KERNEL_STACKS
+	mtspr		SPRG4,sp
+	bl			useSafeKernelStacks
+#endif
+
+	addi		sp,sp,-172
+
+#if USE_SAFE_KERNEL_STACKS
+	mfspr		r4,SPRG5
+	mfspr		r3,SPRG4
+#endif
+
+	// CALL INTERRUPT HANDLING FUNCTION
+	ba			FUNC_NAME(handleTimerIRQ)
+
+
+\endcode
+
+Similar functions are implemented for other kinds of interrupts. All functions (for example for
+performing the context save) can be found in arch/PPC40x/PPC405InterruptHandlerHooks.S.
+
+After processing of stage 1 the C code function ios called which is e.g for the timer:
+\code
+extern "C" void handleTimerIRQ(void* sp_int, void* myKernelStackBucketIndex)
+{
+
+
+#if ENABLE_NESTED_INTERRUPTS
+    if ( !pCurrentRunningThread->executinginthandler ) {
+        // Store the Stack pointer addresses into the thread TCB since we got interrupted
+        pCurrentRunningThread->setIRQStackPointerAddr( (void*) sp_int );
+#if USE_SAFE_KERNEL_STACKS
+        // store the used stack bucket index
+        pCurrentRunningThread->setKernelStackBucketIndex((int)myKernelStackBucketIndex);
+#endif
+    }
+    else {
+        // we have been interrupted while executing the interrupt handler
+        // set the stack pointer of the nested interrupt handler
+        pCurrentRunningThread->setNestedIRQStackPointerAddr( (void*) sp_int );
+    }
+#else
+    // No nested interrupts are enabled so just store the addresses
+    // Store the Stack pointer addresses into the thread CB since we got interrupted
+    pCurrentRunningThread->setIRQStackPointerAddr((void*)sp_int);
+#if USE_SAFE_KERNEL_STACKS
+    // store the used stack bucket index
+    pCurrentRunningThread->setKernelStackBucketIndex((int)myKernelStackBucketIndex);
+#endif
+#endif
+
+#ifdef HAS_Board_WatchdogCfd
+        theOS->getBoard()->getWatchdog()->kick();
+#endif
+
+
+    // call Timer
+    theTimer->tick();
+}
+
+\endcode
+
+
+
+*/
+
+

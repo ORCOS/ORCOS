@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
+	xs:schemaLocation="http://orcos.cs.uni-paderborn.de/SCL http://orcos.cs.uni-paderborn.de/SCL/scl2.xsd">
+
+	<Options>
+		<Logging>
+			<Log Prefix="KERNEL" Level="FATAL"/>
+			<Log Prefix="MEM" Level="FATAL"/>
+			<Log Prefix="PROCESS" Level="FATAL"/>
+			<Log Prefix="SCHEDULER" Level="FATAL"/>
+			<Log Prefix="SYNCHRO" Level="FATAL"/>
+			<Log Prefix="SYSCALLS" Level="FATAL"/>
+			<Log Prefix="DB" Level="FATAL"/>
+			<Log Prefix="HAL" Level="FATAL"/>
+			<Log Prefix="ARCH" Level="FATAL"/>
+			<Log Prefix="FILESYSTEM" Level="FATAL"/>
+			<Log Prefix="COMM" Level="FATAL"/>
+		</Logging>
+	</Options>
+
+<Tasks>
+	<Task>
+		<Start>0x60000</Start>
+		<End>0x6FFFF</End>
+		<Heap>0x68000</Heap>
+		<Vma>0x50000</Vma>
+		<Path>TestData/RTTask1/</Path>
+		
+		<PriorityOptions>
+             <InitialPriority>1234</InitialPriority>
+             <Phase>123</Phase>
+             <RealTimeOptions>
+	            <Period>2</Period>
+	            <Deadline>3</Deadline>
+	            <ExecutionTime>4</ExecutionTime>
+             </RealTimeOptions>
+        </PriorityOptions> 
+               
+               
+	</Task>
+  	
+  	
+</Tasks>
+	
+	<SCL>
+		<Skeleton>
+			<Name>GenericSuperClassTest</Name>
+			<Superclass>dyn/Configurable</Superclass>
+			<Template>
+				<Parameter>Type1</Parameter>
+				<Parameter>Type2</Parameter>
+				<Parameter>Type3</Parameter>
+			</Template>
+		</Skeleton>
+		
+		<Skeleton>
+			<Name>GenericTester</Name>
+			<Member>
+				<Name>Normal</Name>
+				<Class>my/class</Class>
+				
+			</Member>
+			<Member>
+				<Name>Generic</Name>
+				<Class>my/GenericClass</Class>
+				<Template>
+					<Parameter>Type1</Parameter>
+					<Parameter>Type2</Parameter>
+					<Parameter>Type3</Parameter>
+				</Template>
+			</Member>
+		</Skeleton>
+		
+		
+		<Skeleton>
+			<Name>ResourceMutex</Name>
+			<Member>
+				<Name>Scheduler</Name>
+				<Class>scheduler/RoundRobinThreadScheduler</Class>
+			</Member>
+		</Skeleton>
+	
+	
+		<Skeleton>
+			<Name>SimpleMutex</Name>
+			<Member>
+				<Name>Scheduler</Name>
+				<Class>scheduler/RoundRobinThreadScheduler</Class>
+			</Member>
+		</Skeleton>
+	
+		<Skeleton>
+			<Name>Semaphore</Name>
+			<Member>
+				<Name>Scheduler</Name>
+				<Class>scheduler/RoundRobinThreadScheduler</Class>
+			</Member>
+		</Skeleton>
+	
+		<Skeleton>
+			<Name>Thread</Name>
+			<Superclass>process/Thread</Superclass>
+		</Skeleton>
+	
+	
+		<Skeleton>
+			<Name>TheTimer</Name>
+			<Superclass>arch/PPC40x/PPC405ProgrammableIntervalTimer</Superclass>
+		</Skeleton>
+	
+		<Skeleton>
+			<Name>TheClock</Name>
+			<Superclass>arch/PPC40x/PPC405Clock</Superclass>
+		</Skeleton>
+	
+		<Skeleton>
+			<Name>MemoryManager</Name>
+			<Superclass>mem/LinearMemManager</Superclass>
+			<Member>
+				<Name>Seg</Name>
+				<Class>mem/MemResource</Class>
+			</Member>
+			<Member>
+				<Name>HatLayer</Name>
+				<Class>mem/HatLayer</Class>
+				<None>true</None>
+			</Member>
+		</Skeleton>
+	
+	
+		<Skeleton>
+			<Name>Board</Name>
+			<Superclass>hal/Board</Superclass>
+			<Member>
+				<Name>Processor</Name>
+				<Class>arch/PPC40x/PPC405FXProcessor</Class>
+			</Member>
+			<Member>
+				<Name>Watchdog</Name>
+				<Class>arch/PPC40x/PPC405Watchdog</Class>
+				<Constructor>&amp;watchdog</Constructor>
+			</Member>
+			<Member>
+				<Name>UART</Name>
+				<Class>arch/PPC40x/Virtex2/OPB_UART_Lite</Class>
+				<Constructor>"serial0",OPB_UART_LITE_BASE</Constructor>
+			</Member>
+			<Member>
+				<Name>LED</Name>
+				<Class>arch/PPC40x/Virtex2/LED</Class>
+				<Constructor>"led0"</Constructor>
+			</Member>
+			<Member>
+				<Name>InterruptHandler</Name>
+				<Class>arch/PPC40x/PPC405InterruptHandler</Class>
+			</Member>
+		</Skeleton>
+	
+	
+		<Skeleton>
+			<Name>Kernel</Name>
+			<Superclass>kernel/Kernel</Superclass>
+			<Member>
+				<Name>Board</Name>
+				<Class>arch/PPC40x/Virtex2/Virtex2Board</Class>
+			</Member>
+			<Member>
+				<Name>Logger</Name>
+				<Class>debug/Logger</Class>
+			</Member>
+			<Member>
+				<Name>Clock</Name>
+				<Class>arch/PPC40x/PPC405Clock</Class>
+				<Constructor>"clock"</Constructor>
+			</Member>
+		</Skeleton>
+	
+	
+		<!--  DEFINES -->
+		<Define>
+			<Name>OPB_UART_LITE_BASE</Name>
+			<Value>0x80000800</Value>
+		</Define>
+	
+		<Define>
+			<Name>ENABLE_NESTED_INTERRUPTS</Name>
+			<Value>1</Value>
+		</Define>
+	
+	
+		<Define>
+			<Name>ENABLE_SLEEP_SYSCALL</Name>
+			<Value>0</Value>
+		</Define>
+	
+		<!-- ADDRESS PROTOCOLS -->
+		<Define>
+			<Name>NUM_ADDRESS_PROTOCOLS</Name>
+			<Value>1</Value>
+		</Define>
+	
+		<Define>
+			<Name>USE_SIMPLE_ADDRESS_PROTOCOL</Name>
+			<Value>1</Value>
+		</Define>
+	
+		<!-- TRANSPORT PROTOCOLS -->
+		<Define>
+			<Name>NUM_TRANSPORT_PROTOCOLS</Name>
+			<Value>1</Value>
+		</Define>
+	
+		<Define>
+			<Name>USE_SIMPLE_TRANSPORT_PROTOCOL</Name>
+			<Value>1</Value>
+		</Define>
+		
+		<!-- Address Resolution Protocol -->
+		<Define>
+			<Name>USE_ARP</Name>
+			<Value>1</Value>
+		</Define>
+	
+		<!-- PROCFS -->
+		<Define>
+			<Name>HAS_PROCFS_ENABLED</Name>
+			<Value>1</Value>
+		</Define>
+	
+</SCL>
+</Configuration>
+

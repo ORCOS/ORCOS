@@ -1,0 +1,4 @@
+cd /cygdrive/c/bdi
+put ../../../tasks/remotecommtask1/remotecommtask1.elf
+put output/kernel.elf
+quit

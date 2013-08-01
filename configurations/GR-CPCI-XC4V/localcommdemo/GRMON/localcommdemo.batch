@@ -1,0 +1,4 @@
+load localcommtask1.elf
+load localcommtask2.elf
+load kernel.elf
+tm both

@@ -1,0 +1,5 @@
+cd /cygdrive/c/xmd
+put ../../../tasks/FFTTask/FFTTask.elf
+put output/kernel.elf
+put xmd.ini
+quit

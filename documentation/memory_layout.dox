@@ -1,0 +1,32 @@
+
+
+/*!
+ *  \page mem_layout Memory Layout of ORCOS
+  
+This memory layout of ORCOS can easily be described by an example as seen in the picture below.
+
+\image html orcos_mem_layout.png
+
+Although the memory layout of the kernel can be explicitly specified for every configuration using the linkerscript file (kernel.ld) the memory layout always needs to follow
+the following rules:
+1. Interrupt Handlers and kernel code are mapped 1:1 at the beginning of the memory.
+2. Kernel data (.data,.bss,.sbss, heap and stacks) directly follow the text area in another page which will be mapped 1:1 as well.
+3. Tasks can be put everywhere behind these two regions but must not overlap each other which also holds for the pages they reside in. ( Be aware the in paged systems a page can only start at a multiple of its own page size!)
+ 
+The memory layout as seen in the picture describes a system with two tasks. The ORCOS kernel's .text section (the executable code of the kernel) is placed somewhere at the beginning of the memory according to the linkerscript. 
+Have a look at the \ref makefiles section to see how and where to setup the location of the kernel's .text section. 
+The tasks are mapped into the subsequent section of the RAM according to the configuration of the system (see Task section in \ref Configuration). 
+
+Each task should always have the same memory footprint in preparation for the functionality of process migration which is intended to be added to the system in the future.
+The task's memory area always consists of the sections tasktable, .text and its data . 
+The tasktable contains all information needed by the system to run the given task. 
+The .text section contains all executable code and static variables as seen above. 
+Every task gets its own  memory manager (see \ref memmanager) which is responsible for the memory management strategy inside the task's heap. The memory manager itself lies inside the kernel heap.
+
+The heap contains all objects created by any thread of the task at runtime as well as the stack of every thread which is needed for execution and for context changes since the context of a thread is always stored on the thread's stack whenever an interrupt (context change) occurs.
+
+ */
+
+
+
+

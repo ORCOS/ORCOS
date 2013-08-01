@@ -1,0 +1,107 @@
+
+/**
+\defgroup realtime Realtime
+
+
+\section task_example Writing a Realtime Task for ORCOS
+Writing a realtime Task for ORCOS is very similar to the writing of a 'normal' task. The only difference is, that the 
+task_main(void) method changes to task_main(int). The additionaly argument is the instance (giving the task information
+about how often it already has run). Let's look at a small example:
+\code
+extern "C" int task_main(int instance)
+{	
+	int cd_id = fopen("dev/led0");
+	fputc(instance, cd_id);
+	fclose(cd_id);		
+}
+\endcode
+In this example the RT-Task will write it's instance to the LED resource, so the current instance is displayed as 
+a binary number on the board's LED. It's important to note that this example includes almost no realtime specific information. 
+The deadline, the period, etc. are not mentioned at all. This information is independently configured using SCL and will 
+be explained in the following section.
+
+\section tc Task Configuration
+Realtime tasks and their properties (period, deadline, etc.) have to be configured by SCL. A detailed description of the whole
+configuration process can be found \ref tasks "here". In this section we will look at an example configuration for the simple
+realtime task presented in the previous section.
+\code
+	<Task>
+		<Start>0x40000</Start>
+		<End>0x4FFFF</End>
+		<Heap>0x48000</Heap>
+		<Path>../../tasks/RTTask1/</Path>
+		<PriorityOptions>
+			<InitialPriority>0</InitialPriority>
+			<Phase>2000000</Phase>
+			<RealTimeOptions>
+				<Period>500000</Period>			
+				<Deadline>100000</Deadline>
+				<ExecutionTime>0</ExecutionTime>
+			</RealTimeOptions>		
+		</PriorityOptions>
+	</Task>
+\endcode
+The start-address end-address heap start-address as well as the path to the task itself are all options that have to 
+be configured for every thread. Since our example is supposed to be a realtime thread (which be definition is also a priority
+thread) these basic configurable options are extended by the priority and realtime options. Since all times in ORCOS are
+measured in microseconds the above example configures the task to start with a phase of 2 seconds, be periodically 
+called every half second and to have a deadline of one tenth of a second for every execution. The maximum execution time is
+set to zero, which signals ORCOS that it is unknown to the user. There is one restriction with this configuration that might 
+be useful to know about: Technical reasons limit the configuration of time here to 32 bit numbers, even though ORCOS will
+use 64 bit internally. 32 bit is only sufficient to save roughly 70 minutes at a microsecond resolution. This should be fine 
+for almost all normal realtime applications, if a higher number is needed the relating real time thread currently will have
+to be created during runtime, at which point 64 bit integers can be used without problems.
+
+
+\section osc OS Configuration
+ORCOS can be configured to support realtime functionality. To achieve this, the 
+RealTimeThread class has to be configured as well as one of the realtime schedulers,
+EarliestDeadlineFirstThreadScheduler or RateMonotonicThreadScheduler. 
+It is important to note that the EDF and RM schedulers should only be configured to be used by the dispatcher, 
+they shouldn't (and fortunately can't due to SCL restrictions) be configured for other 
+components, like the \ref synchro for example. For these components the basic 
+PriorityThreadScheduler should be used in a realtime configuration. Therefore a realtime SCL configuration might look
+like this:
+\code
+	<Skeleton>
+		<Name>Thread</Name>
+		<Superclass>process/RealTimeThread</Superclass>
+	</Skeleton>
+	 
+	<Skeleton>
+		<Name>Mutex</Name>
+		<Member>
+			<Name>Scheduler</Name>
+			<Class>scheduler/PriorityThreadScheduler</Class>
+		</Member>
+	</Skeleton>
+	
+	<Skeleton>
+	 <Name>SingleCPUDispatcher</Name>
+	 <Member>
+		<Name>Scheduler</Name>
+		<Class>scheduler/EarliestDeadlineFirstThreadScheduler</Class>
+	</Member>		 		
+	</Skeleton>
+\endcode
+All other parts of the operating system which can be configured using SCL (for example the various syscalls) can be freely
+configured. Naturally a timer device has to exist though, since otherwise there is no way to check if deadlines are met and
+periods kept. 
+
+
+\section dia Inner Working of ORCOS - Rescheduling of Periodic Threads
+sThe following sequence diagram shows a scenario where a realtime thread is created at runtime. It runs till it ends, at which
+point the thread_exit syscall is called automatically. This syscall in turn causes the RealTimeThread::terminate() method to 
+be called which resets the stack pointer (so that the thread starts at the beginning again at the next context switch) and puts 
+itself to sleep for the time remaining until the next period of the thread is due.
+\image html RealtimeSequenz.png
+  
+
+
+\section osb Error Cases and Limitations
+If a deadline is missed this information will be logged (if a logger is configured, which normally will not be 
+the case for realtime configurations) and the system will go on trying to meet the next deadlines. 
+Currently no scheduability tests are run at all. The scheduler will assume that the given
+tasks are scheduable and act accordingly. 
+
+*/

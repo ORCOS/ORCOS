@@ -1,0 +1,400 @@
+#ifndef GROUPMEMMANAGER_H_
+#define GROUPMEMMANAGER_H_
+
+/**
+ * \defgroup memmanager Memory Management
+ * 
+
+\section memmodule Memory Management module
+  
+  This page describes the memory management in ORCOS.
+ 
+\subsection Overview
+\li \ref design "Design of Memory Management"
+
+\li \ref initnovm "Initialization of Memory Management without Virtual Memory"
+
+\li \ref initvm "Initialization of Memory Management with Virtual Memory"
+
+\li \ref strats "Using different Memory Management Strategies"
+
+\li \ref example "Example: Virtual Memory for the PPC 405"
+
+\li \ref probs "Porting and implementation problems due to memory"
+
+\li \ref mmconfig "Configuring the memory management of ORCOS by SCL"  
+
+\subsection design Design of Memory Management
+  
+  The design of the memory management module of ORCOS can be seen in the following class diagram:
+
+ \image html MemManClass.png
+
+The MemManager Class is an abstract superclass for all implemented Memory Managers to be used in ORCOS.
+So every Memory Manager has to provide the methods given by the MemManager class. Additionally every Memory Manager
+has two components: a MemResource (which must always be there and provides information like the start address or the size of
+the managed memory chunk) and a HatLayer (which represents an interface to the use of virtual memory). Especially the HatLayer 
+component is of interest: if such a HatLayer is configured by SCL as a member of the Memory Manager, then ORCOS will run with virtual
+memory (therefore a HatLayer should only be configured if it is really the intention of the user to use virtual memory). The HatLayer member
+should be configured by choosing the appropriate HatLayer implementation for the given hardware architecture (an example for such an implementation 
+is given in section \ref example "Example: Virtual Memory for the PPC 405"). Otherwise, if the ORCOS system should run without virtual memory, the 
+<NONE> element of the HatLayer member should be set in the SCL configuration to the value true.
+
+Before we go into details about how the memory management in ORCOS works, a short view should be taken on the memory layout in ORCOS. A description of 
+this has already been given in \ref mem_layout . 
+
+\subsection initnovm Initialization of Memory Management without Virtual Memory
+
+We assume that we have started our ORCOS system which should run with some defined tasks and without virtual memory. After passing our assembler startup routine,
+the system branches to the kernelmain method. At this moment we have only a memory layout like in the image above, but neither a Kernel nor a Memory Manager. But the memory layout gives
+us some information about the place of the heap of the kernel: it starts with the linker symbol _heap_start and ends with _heap_end. This heap should be managed by a memory manager, so the first thing
+that we do is to create a new memory manager object (by our SCL configuration we choose a concrete implementation) and place it at the beginning of the kernel heap (at _heap_start). From now on, every time we want to allocate 
+or release memory of this kernel heap, we will use this memory manager object. The next step is then the creation of an instance of the Kernel which is also placed in the kernel heap. We use the alloc method of our
+Memory Manager. Of course, our Kernel needs a Memory Manager to manage its heap - therefore we give to it a pointer to the created Memory Manager controlling the kernel heap.      
+
+This is done in the kernelmain method by the following code
+
+\code
+
+MemoryManagerCfdCl* physMM = new(&_heap_start) MemoryManagerCfdCl(&_heap_end,0);
+	
+theOS = (Kernel*) physMM->alloc(sizeof(Kernel),false);
+theOS->setMemManager(physMM);
+
+\endcode
+
+which is also given here as a sequence diagram:
+
+\image html MemManInitKernNoVM.png
+
+Now as we have a kernel instance with a memory manager, we start the initialization procedure of the Kernel. Thus we call the initialize method of the Kernel class.
+In this method we also have to do the second step concerning memory management: the creation and placing of a memory manager for every single task. From the task_table structure we get
+the necessary information about the number of tasks and its placement. So we can execute for every task the following code: 
+
+\code
+
+taskTable* task_info = (taskTable*) *(&tasktable  + i);	
+		
+MemoryManagerCfdCl* task_memManager = new((void*)task_info->task_heap_start) MemoryManagerCfdCl((void*)task_info->task_heap_end,tid);
+
+Task* task = new Task(task_memManager,task_info);
+\endcode
+
+Firstly, we set task_info to the starting address of the i-th task. At this position we find for every task a taskTable object containing the start and end address of the task's heap.
+With this information we create a new memory manager and place it at the start address of the task's heap (given by task_info->task_heap_start). A pointer to this memory manager is then given
+to the new created Task object (which represents in the Kernel the Task Control Block).
+
+Now we are finished: we have both a memory manager for the kernel heap and a memory manager for every task heap.
+
+\subsection initvm Initialization of Memory Management with Virtual Memory
+
+Now we want to introduce virtual memory into our system. We assume that we have configured by SCL a HatLayer member of the Memory Manager for
+the given hardware achitecture. The startup routine has been executed again and we are now in the kernelmain method.     
+
+Note: using virtual memory in ORCOS implies some implementation details for a concrete HatLayer that must be considered, see section probs "Porting and implementation problems due to memory" 
+
+<h3> Initialization of the Kernel Memory Manager</h3>
+The first thing we want to do is the creation of a memory manager controlling the kernel heap and the creation of a Kernel instance.
+But as we want to have virtual memory this becomes now a little bit more complicated. The following code will do this work: 
+
+\code
+MemoryManager_HatLayerCfdCl::initialize();
+
+MemoryManagerCfdCl* physMM = new(&_heap_start) MemoryManagerCfdCl(&_heap_end,0);
+
+MemoryManager_HatLayerCfdT hat = (MemoryManager_HatLayerCfdT) physMM->getHatLayer();
+	
+logMM = (MemoryManagerCfdCl*) hat->getLogicalAddress(physMM);
+	
+physMM->mapAllKernelAddressesToVirtual();
+	
+
+hat->enableHAT();
+	
+theOS = (Kernel*) logMM->alloc(sizeof(Kernel),false);
+theOS->setMemManager(logMM);
+\endcode
+
+and this sequence diagram illustrates the execution of this code
+
+\image html MemManInitKernVM.png
+
+So we can see that the first step is the initialization of the HatLayer. What really is done in this method is hardware-dependent - it should be assured
+that the used hardware is in a state that no unwanted side effects occur (e.g. for the PPC405 all TLB entries are set to not valid).
+It should also be noted that we deal with two pointers to Memory Managers: physMM and logMM. Here, physMM represents the newly created memory management object with its physical address,
+logMM represents the later logical address of this object. So the Memory Manager for the kernel heap is created and placed at position _heap_start in the memory. Note, that with the creation of the
+memory manager the corresponding HatLayer is also created (and some address mapping is performed in its constructor, see section example "Example: Virtual Memory for the PPC 405" or section probs "Porting and implementation problems due to memory" ).
+Then the pointer variable hat is set to the address of the HatLayer (Note: to its physical address!). Now we can execute the next two steps: the logMM pointer is set to the logical address of the memory manager via the <CODE>getLogicalAddress()</CODE> method and
+all addresses used in the memory manager are changed to their corresponding logical addresses by the <CODE>mapAllKernelAddressesToVirtual()</CODE> method. The next thing to do is the enabling of virtual memory which is done by the <CODE>enableHAT</CODE> method (Note: here we need the hat pointer as 
+the pointer to the HatLayer inside the Memory Manager object has already been changed to its logical address). There are some more important things which have to be considered for implementing this method - refer to section probs "Porting and implementation problems due to memory". After this we are running
+with virtual memory and can proceed in the same way like without virtual memory (with the small difference that we use logMM instead of physMM to access the memory manager object).
+  
+<h3> Initialization of the Task Memory Managers</h3>
+We are now in the initialize method of the Kernel class. And again we want to create and place the Memory Manager for every Task in our system. But we have a problem that first has to be overcome: it is not assured that there already exists a mapping from
+the physical memory space dedicated to the tasks to a logical address space (especially there exists no such entry with the PID 0(= the kernel) as there should be later only mappings for the tasks with a corresponding PID). And as we are running with virtual memory we 
+cannot access this memory space without a mapping! Therefore a mapping with PID 0 is created from the starting address of the first task to the kernel heap start which includes the memory space of all tasks. For the creation of such a mapping the <CODE>map()</CODE> method of the 
+HatLayer is used. The following code does this work:
+
+\code
+long* tasktablePos = (long*)this->getMemManager()->getHatLayer()->getLogicalAddress(&tasktable);
+long num_tasks = (long)*tasktablePos;
+    
+void* phys_start_addr = (void*) *(tasktablePos + 1);
+void* log_start_addr = (void*)0x50000000;
+int needed_size =  (long)this->getMemManager()->getHatLayer()->getPhysicalAddress((void*)LOG_KERNEL_HEAP_START) - (long)phys_start_addr;
+this->getMemManager()->getHatLayer()->map(log_start_addr,phys_start_addr,needed_size,7);
+\endcode
+
+and is illustrated also in the following sequence diagram:
+
+\image html MemManInitTaskVM1.png
+
+Now we have to execute the following code in this section for every task:
+
+Firstly, we create a memory manager controlling the memory of the i-th task and place it at the beginning of the task's heap. As in the case without virtual memory
+we get the necessary information about the task's heap start and end from the <CODE>taskTable</CODE> object at the beginning of the task's memory space. As the addresses provided by this object
+are physical addresses we have to change them to logical ones before we can use them. Then we can create the memory manager object and place it correctly. Note, that we use the mapping we have
+created in the code segment before to change the physical addresses of the task's memory space to logical ones (that we can access running with PID 0). Thus the memory manager object's internal 
+addresses are also logical ones corresponding to this mapping! This is important as we will see later. 
+The following code does this work: 
+\code
+taskTable* task_info = (taskTable*) *(tasktablePos + i);
+task_info = (taskTable*) this->getMemManager()->getHatLayer()->getLogicalAddress((void*)task_info);
+		
+void* startTaskHeap = this->getMemManager()->getHatLayer()->getLogicalAddress((void*)task_info->task_heap_start);
+void* endTaskHeap = this->getMemManager()->getHatLayer()->getLogicalAddress((void*)task_info->task_heap_end);
+MemoryManagerCfdCl* task_memManager = new(startTaskHeap) MemoryManagerCfdCl(endTaskHeap,tid);
+\endcode
+
+and is illustrated by this sequence diagram:
+
+\image html MemManInitTaskVM2.png
+
+Later, we want to access a task's memory space running of course under its PID. Therefore we need a mapping which allows us to do this. Such a
+mapping can now be created over the task's memory space by using the HatLayer of the task's memory manager. We also create a Task Control Block for the Kernel with a
+pointer to the task's memory manager. But we are not yet done! The pointer to the task's memory manager and all its internal addresses are logical ones but correspond to 
+the mapping with the PID 0. We want to use this memory manager when we are running under the PID of the task. So we have to change these logical addresses. So we do nearly the same as
+we have already done with the Kernel memory manager: we get a new pointer to the task's memory manager via the <CODE>getLogicalAddress()</CODE> method of the HatLayer and change all internal
+addresses of the memory manager by using the <CODE>mapAllTaskAddressesToVirtual()</CODE> method. The last thing we have to do then is to set the memory manager pointer of the task to the new
+logical address.
+The following code performs this operations: 
+\code
+int s = (int)task_info->task_heap_end - (int)task_info->task_start_addr;
+task_memManager->getHatLayer()->map((void*)LOG_TASK_SPACE_START,(void*)task_info->task_start_addr,s,7);
+		
+		
+Task* task = new Task(task_memManager,task_info);
+		
+			
+MemoryManagerCfdCl* logTask_memManager = (MemoryManagerCfdCl*)task_memManager->getHatLayer()->getLogicalAddress((void*)task_info->task_heap_start);
+		
+task_memManager->mapAllTaskAddressesToVirtual(this->getMemManager()->getHatLayer());
+		
+task->setMemManager(logTask_memManager);
+\endcode
+
+and is also illustrated in this sequence diagram:
+
+\image html MemManInitTaskVM3.png
+
+When this has been done for all tasks we only have to delete the mapping over the tasks with PID 0 we have created before: this is done by using the 
+HatLayer's <CODE>unmap()</CODE> method.
+
+
+\subsection strats Using different Memory Management Strategies
+
+ORCOS allows the user to choose any implemented memory manager by SCL configuration to be used in the system. Such an implementation must be the extension of the MemManager superclass.
+Any memory manager that provides the methods defined there can then be applied. The system will then only use the <CODE>alloc</CODE> and <CODE>free</CODE> method of the configured memory manager to allocate
+or release memory. This is also achieved by overwriting the new and delete operator of C++ with these methods.
+
+This version of ORCOS provides two different Memory Managers:
+
+The LinearMemManager only allows the allocation of memory. Once memory is allocated, it is never released.
+
+The SequentialFitMemManager allows also the release of allocated memory. Therefore every memory chunk gets a header with management information.
+
+For more details, see the corresponding class descriptions.  
+
+
+\subsection example Example: Virtual Memory for the PPC 405
+
+As this version of ORCOS has been implemented for the PowerPC405 an implementation of a HatLayer for this hardware architecture is also provided: this implementation is given
+in the PPC405HatLayer class.
+
+So a short overview over the memory management unit of the PPC405 is given now: it consists of 64 TLBs, where every TLB can contain a mapping entry over an address space from 1 KB up to 16 MB. For memory protection
+access rights can be given (read, write, execute) and there exists also a mechanism for zone protection (see the PPC405 user manual).
+
+This implementation follows a supermapping approach. Additionally, it can be run in real time: therefore only 64 different TLB entries can be used, there exists no replacement strategies. So it is assured that (if the 
+task implementation is also correct) that no TLB miss can occur.
+So the following mapping entries are kept in the TLB:
+
+\li one TLB entry over the task code and the global variables (mapping is done with logical address = physical address)
+
+\li one TLB entry for memory-mapped I/O (in this case also logical address = physical address)
+
+\li one or more TLB entries for the kernel heap (depending on size of the kernel heap, the logical start address of the heap can be configured)
+
+\li one TLB entry for every task (logical start address can be configured by SCL. Note, that this start address is the same for all tasks!)
+
+The first three entries are created in the constructor of the PPC405HatLayer.
+
+As a representation for a TLB entry a special data structure is used, given in the PPC405TlbEntry class.
+The PPC405HatLayer communicates with the hardware via an interface given by the PPC405MMU. It provides methods to write TLB entries,
+read TLB entries and search a TLB entry for a given logical address.
+
+For management purposes the PPC405HatLayer uses four Bitmaps. Two are static variables of the class: they represent the 64 TLB entries and indicate if an entry is free
+or already used. The two other Bitmaps indicate for every PPC405HatLayer instance which of the entries has been written by this special instance.   
+
+For more details, see the class description and the source code documentation.
+
+
+\subsection probs Porting and implementation problems due to memory 
+
+This section should give an overview about errors that can occur after porting or implementing new components for the memory management module.
+These errors described here are caused by problems with the memory. So it should be checked if these outlined problems are correctly resolved, as they 
+can lead to a incorrect behaviour of the whole system.
+
+<h5>The Thread Stack</h5>
+The following problem is due to the thread stack. Every time a thread is created, memory is allocated from the task's heap as stack of the thread. If ORCOS is ported to a new hardware,
+the value of the RESERVED_BYTES_FOR_STACKFRAME-define in Thread.hh should be checked. This is for the following reason: the thread stack is in the task's heap - directly after it the normal heap continues.
+When the Thread is started for the first time, the startThread method is called. At its end the method branches to the start address of the Thread code. For a compiler this could seem like a normal function call - 
+thus it does some operations on the stack. Depending on the architecture a stack frame can be used and some information is left at an address under the stack pointer (assuming the stack pointer moves upwards). But at
+the point when the startThread finishes, this stack pointer address is the lowest bound of the stack addresses and the addresses under it belong to the normal heap. Therefore some bytes after every thread stack should be reserved 
+to prevent the overwriting of an object which has been created in memory directly after the thread stack.   
+
+<h5>Alignment</h5>
+Some instructions of the target hardware need the data they're operating on to be aligned in memory (e.g. at an 4 byte bound). It has to be assured, that these data is aligned. Therefore every memory manager in ORCOS 
+should provide the possibility to allocate aligned memory. There exists already the <CODE>align()</CODE> method to find the next aligned address for a given address. The following defines in the const.hh can be used for 
+alignment:
+\li ALIGN - normally set to 1, indicates Alignment 
+\li NO_ALIGN - normally set t0 0, indicates No Alignment
+\li ALIGN_CEIL - if set to 1, the next higher aligned address is chosen by the align method, else the next lower one
+\li ALIGN_VAL - to which byte bounds should the memory be aligned (p.e. 4 bytes)
+
+Thus, setting ALIGN_VAL to 1 would disable all alignments, the same would happen for setting ALIGN to 0. Setting NO_ALIGN to 1 would force the memory manager to align every allocated memory.
+If allocated memory should be aligned is signaled to the memory manager by a bool parameter of the alloc method. The normal new operator assumes no alignment, if it is required, a true value should be given to it as parameter.
+  
+
+<h5>Enabling and disabling virtual memory</h5> 
+Firstly, as during the communication virtual memory is disabled and enabled again, it must be assured, that this is really done correctly (setting correct bits of the register etc.).
+Secondly, in the enableHAT and the disableHAT, at least the following mappings should be performed: change the current stack pointer and the old stack pointer (before the function call) to its logical/physical addresses.
+Otherwise there will be an error when trying to return from this function. 
+
+<h5>The HATLayer's initialize method</h5>
+It should be assured that the hardware is in a state, that no unwanted side effects can occur. So for the PPC405HatLayer for example all TLB entries are invalidated.
+
+<h5>Constructor of the HATLayer</h5>
+Some necessary mappings should always take place here (only for the HATLayer with PID 0): a mapping for the kernel code and global variables and at least for some of the kernel heap (and of course for the part of the memory containing the stack)!
+Task mappings are performed in the initialization routine of the Kernel. 
+
+<h5>Mapping of Kernel Code and Interrupt Routines</h5>
+It is recommended that the Kernel code (and its global variables containing also the tasktable structure) are mapped with logical address = physical address. Especially the interrupt routines should be handled in this way.
+Otherwise it must be assured manually that the necessary code and variables can be accessed (which should be quite different if not even impossible). 
+
+<h5>Mapping of the internal Memory Manager addresses</h5>
+It should be checked that in the <CODE>mapAllKernelAddressesToVirtual()</CODE> and in the <CODE>mapAllTaskAddressesToVirtual()</CODE> methods ALL internal addresses of the memory manager are mapped to the logical addresses.
+A forgotten or incorrect translated address can cause big trouble later. 
+
+
+\subsection mmconfig Configuring the memory management of ORCOS by SCL
+
+The memory management module of ORCOS can be configured by SCL. The user can choose the concrete memory management strategy and decide if virtual memory is used or not.
+Here is a possible configuration example:
+
+\code
+
+<Tasks>
+    <Task>
+		<Start>0x40000</Start>
+		<End>0x4FFFF</End>
+		<Heap>0x48000</Heap>
+		<Vma>0x50000</Vma>
+		<Path>../../tasks/task1/</Path>
+	</Task>
+
+    <Task>
+		<Start>0x50000</Start>
+		<End>0x5FFFF</End>
+		<Heap>0x58000</Heap>
+		<Vma>0x50000</Vma>
+		<Path>../../tasks/task2/</Path>
+	</Task>
+</Tasks>
+
+ ...
+
+<Skeleton>
+	<Name>MemoryManager</Name>
+	<Superclass>mem/LinearMemManager</Superclass>
+	<Member>
+		<Name>Seg</Name>
+		<Class>mem/MemResource</Class>
+	</Member>
+	<Member>
+		<Name>HatLayer</Name>
+		<Class>arch/PPC40x/PPC405HatLayer</Class>
+	</Member>
+</Skeleton>
+
+ ...
+
+<Define>
+    <Name>LOG_KERNEL_HEAP_START</Name>
+    <Value>0x4000000</Value>
+</Define>
+    
+<Define>
+    <Name>LOG_TASK_SPACE_START</Name>
+    <Value>0x50000</Value>
+</Define>
+\endcode
+
+Via the MemoryManager Skeleton the concrete memory manager implementation is chosen. If virtual memory should not be used, then
+a <NONE> element should be added to the HatLayer member and set to true. If virtual memory is required the following rule should be met:
+The value of any <Vma> element in the Task configuration should be equal to the value of the LOG_TASK_SPACE_START-define (in this example 0x50000).
+The LOG_KERNEL_HEAP_START-define gives the logical start address of the kernel heap.
+
+For the <CODE>SequentialFitMemManager</CODE> there exists another option:
+
+\code
+<Skeleton>
+	<Name>MemoryManager</Name>
+	<Superclass>mem/SequentialFitMemManager</Superclass>
+	<Member>
+		<Name>Seg</Name>
+		<Class>mem/MemResource</Class>
+	</Member>
+	<Member>
+		<Name>HatLayer</Name>
+		<Class>arch/PPC40x/PPC405HatLayer</Class>
+		<None>true</None>
+	</Member>
+	<Member>
+		<Name>FirstFit</Name>
+		<Class></Class>
+		<None>true</None>
+	</Member>
+	<Member>
+		<Name>NextFit</Name>
+		<Class></Class>
+		<None>true</None>
+	</Member>
+	<Member>
+		<Name>BestFit</Name>
+		<Class></Class>
+	</Member>
+	<Member>
+		<Name>WorstFit</Name>
+		<Class></Class>
+		<None>true</None>
+	</Member>
+		 
+</Skeleton>
+\endcode 
+
+Here the policy to choose a fitting memory chunk can be configured. In this example, BestFit is chosen.
+If two policies are chosen at the same time, a compile error will occur. If no policy is chosen, the FirstFit will be used as default.
+
+ */
+
+#endif /*GROUPMEMMANAGER_H_*/

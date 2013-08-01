@@ -1,0 +1,142 @@
+
+/**
+ * \defgroup devicedrivers Device Drivers
+ 
+ Device Drivers give the kernel access to the hardware. The kernel can only access the hardware through the HAL which has to provide the device drivers
+ that are needed for the configuration you have chosen.
+ 
+ All Device Drivers have to inherit GenericDeviceDriver to make sure they implement a unified interface used by the kernel. For performance issues
+ and to keep the memory footprint small the device drivers are later configured through the SCLConfig.xml to architecture specific implementations.
+ Because of this you only use virtual functions in the device drivers you may develop. There is no other suitable option to avoid usage of virtual
+ functions.
+ 
+ Because the Device Drivers are configured by SCL to the implementing classes only SCL defines are used inside the source code. They need to be
+ configured first in the SCLConfig.xml to be usable.
+ 
+ The following image shows the Device Driver architecture used in ORCOS
+
+ * \image html KlassendiagrammDeviceDriver.png
+ 
+ Firstly you can see that every Device Driver inherits from Resource, which gives synchronization features for accessing the device. The GenericDeviceDriver then implements 
+ a common interface which is further described in the GenericDeviceDriver description. All hardware devices have to implement
+ GenericDeviceDriver.
+ Classes like CharacterDeviceDriver provide abstraction to character-devices. For example the debug output requires a CharacterDevice for
+ outputting the debug messages, thus any driver that implements CharacterDeviceDriver is suitable.
+ Other devices like the Timer do not match this interface and are therefore implemented autonomous from abstractions like the CharacterDeviceDriver.
+ 
+ Secondly all GenericDeviceDrivers are abstracted into the Board class. The Board class represents the target board the operating system will run on.
+ So all devices are referenced through the board class. Additionally the Board class provides functionalities that are not implemented in
+ the GenericDeviceDriver interface: The Processor class itself, because there is no need to probe for a processor first, and the InterruptHandler class.
+ Of course there are cases where there is no need to have interrupts handled, but ORCOS relies highly on interrupts (when it comes to scheduling,
+ for example) and thus the interrupt handler is an essential part for the operating system.
+ 
+ If the DeviceDriver has a name assigned, it is also accessible from the device filesystem.
+ 
+ \section DDDevelopment Device Driver Development by example
+ In this section the development process of a device driver, how it is configured by XML and how it is later used in the operating system is shown. The LED
+ device driver for the Virtex2 development board is used as an example.
+ 
+ First we have to decide from what base class provided in the HAL our new driver should inherit. The LED of the Virtex2 board consists of LED arrary of 8 independend LEDs.
+ That makes it very easy to have the LED display a byte in its binary fashion. So we can actually write a complete byte or character to the LED display
+ its suitiable to implement the LED display as a character device driver.
+ 
+ \subsection dddstep1 Implementation of the driver class
+ We start by implementing the architecture specific driver. We decided already that we want our new driver to be a CharacterDeviceDriver, so - following 
+ our example developing the LED driver for the PowerPC CPU on a Virtex2 development board -  we create new header and source files in the arch/PPC40x/Virtex2
+ folder.
+ 
+ The basic class defintion of our new LED driver from LED.hh is shown below
+ \code 
+ 
+#include <hal/CharacterDeviceDriver.hh>
+class LED : public CharacterDeviceDriver {
+private:
+	char leds;
+public:
+	LED(const char* name);
+	~LED();
+	
+	void LedOn (int4 ledNumber);
+	void LedOff(int4 ledNumber);
+	ErrorT writeByte (char byte);
+	ErrorT readByte  (char* byte);
+	ErrorT readBytes (const char *bytes, int4 length);
+	ErrorT writeBytes(const char *bytes, int4 length);
+}; 
+
+\endcode
+
+You can see the include of the base class header from the HAL there and see that LED inherits CharacterDeviceDriver and implements because of this the
+read- and writeBytes functions a CharacterDeviceDriver has to implement. A special case is the constructor: It can take the name this device can have
+in the dev-filesystem of ORCOS, if it is configured. In this example the class is named LED, which will be later as well the name we will use to access
+the device after the SCL configure step. But you are not forced to use the same name for the classname and the name you will later use to access the device.
+
+You would now implement all methods of the LED driver in its source file specific to your hardware.
+
+\subsection ddstep2 Update the SCLDependencies.XML
+To be able to use your new driver in a configuration, you first have to make the driver known to our configure-system. For the LED you would fill in:
+\code
+
+  <Skeleton>
+    <Name>Board</Name>
+    .....
+    <Member>
+      <Name>LED</Name>
+      <Classes>
+        <Class>arch/PPC40x/Virtex2/LED</Class>
+        <Class>arch/PPC40x/RAPTOR/LED</Class>
+      </Classes>
+    </Member>
+  </Skeleton>
+    
+\endcode
+
+Which tells that the Board has a member called LED which has up to now two possible implementing classes. This prevents that you cannot configure later your
+system to use a LED without a Board. Secondly it describes all possible configurations that the LED can have. There are currently two ports of the LED driver: 
+for the Raptor and Virtex2 Board. By specifying the two classes here you ensure that you can't configure the LED to be implemented by another class.
+
+\subsection ddstep3 Configure your SCLConfig.XML
+You could actually use your driver already without using the XML configure system by including the appropriate classes directly from your arch-directory.
+But that would be bad practice as you would miss the great configuration features of ORCOS that allow you to easily develop, port and configure the operating
+system.
+
+Because our new LED driver is a part of the Virtex2-Board, we configure the (in this example already existing) Board class to have a new member.
+So we would add
+
+\code
+
+	<Skeleton>
+		<Name>Board</Name>
+		<Superclass>hal/Board</Superclass>
+		....
+		<Member>
+			<Name>LED</Name>
+			<Class>arch/PPC40x/Virtex2/LED</Class>
+			<Constructor>"led0"</Constructor>
+		</Member>
+		....
+		
+
+\endcode
+
+This configures an abstract device with the name LED to be implemented by the arch/PPC40x/Virtex2/LED class. Note that you can use another name for LED here,
+it is not necessary that you use the same name than the name of the implementing class.
+You find further information about how to use the configuration system in the Configuration-Chapter of this document. After this configuration step preprocessor
+defines describing the LED are generated. You should use this defines in your own sources when you want to use your new driver for accessing the device.
+
+For example, you can access your LED now with calling
+
+\code
+
+	// LED Interface
+	#ifdef HAS_Board_LEDCfd
+		LEDCfd = new NEW_Board_LEDCfd;
+		LEDCfd->writeByte(0xff);
+	#endif
+
+\endcode
+
+Please be sure that you use the #ifded preprocessor statements around your device usage for optional components.
+
+ **/
+

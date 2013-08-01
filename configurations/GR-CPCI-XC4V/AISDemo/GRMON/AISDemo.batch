@@ -1,0 +1,3 @@
+load AISDemoServer.elf
+load AISServer.elf
+tm both

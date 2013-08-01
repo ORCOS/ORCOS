@@ -1,0 +1,54 @@
+
+/**
+ * \defgroup process Processes in ORCOS
+  
+  \section gen General Description 
+
+This page describes the concept of processes in ORCOS. First of all a process in ORCOS is identified by a task and its executing units are threads. Depending on the configuration of the system ORCOS will use different classes (but all derived from the base class Thread) for the thread management. The thread base class contains all needed information on a thread which is needed for the execution of a thread. Derived classes such as the RealTimeThread class extends these information with realtime specific attributes as there are e.g. deadline and execution time. Whenever the system uses a realtime specific scheduler the usage of the RealTimeThread class is absolutly required.
+
+A special type of task/thread is the WorkerTask/WorkerThread class. These are tasks and threads which belong to the kernel and are introduced in order to take over some work that either arrives undeterministcally (e.g. IO) or needs to be executed at a specific time. The concept of the workerthread allows these activties to be scheduled like any other thread. (<em>References: Giorgio C. Buttazzo, Hard Realtime Computing Systems, 1.3.3 Approach C; other OS </em>).
+
+\section states States of a thread
+
+As threads are the executing entities inside the OS a thread can be in different states. 
+
+\image html zustand.png
+
+Initially every thread is inside the state New. When a thread becomes ready to run (e.g. calling thread_run()) the state of the thread becomes the Ready/New state in which the thread is known to the scheduler and thus may be scheduled. The first time the thread is executed the state then changes into the Ready state. The concept of distinguishing between Ready/New and Ready is important for the dispatcher since executing a thread the very first time induces some additional work since there is no context to be restored. This concept also allows our OS to easily implement periodic threads by just changing the state of the thread to the Ready/New state.
+
+Whenever a thread has entered the Ready state the thread definitly possesses a context and thus has run at least once. Ready threads may be running at the moment or may be waiting for the cpu. 
+
+A thread may also be blocked and stopped at any time which in turn changes the state of the thread again. 
+For a better runtime performance and a smaller size there do not exist explicit states as seen in the diagram above but a Bitmap which uses flags to indicate which state or combination of states is/are currently active.
+
+\section Workerthreads
+
+As stated above ORCOS implements the concept of workerthreads. Usually there exists only one workertask which holds multiple workerthreads. Every thread of course has its own stack for execution which can be configured by its size. The more workerthreads are used inside the OS (configurable) the more memory space is needed for the OS to work. Thus it is important to use enough workerthreads to fullfill all job requests at runtime but as few workerthreads as possible to ensure a small memory footprint. The decision is up to the person who configures the OS to meet these requirements.
+
+\subsection foa Field of application
+
+A workerthread may be used for the following activities :
+
+\li Asynchronus IO interrupts of hardware devices
+
+Some hardware devices raise hardware interrupts whenever there is some IO operation on that device. This may for example be a received byte on the serial device. Such devices often only possess a very limited buffer and thus the buffer hast to be emptied so that no byte gets lost due to a full buffer and the received bytes need to be processed. Since the arrival time of such interrupts is not known and the routine for processing the interrupt may be very big these activities are scheduled by the use of the workerthread in ORCOS. Therefore realtimethreads with higher priority are only interrupted for a very short time, namly the time needed for the activiation of the workerthread and the overall predictability of the system is guaranteed.
+
+\li Timed Calls to Functions
+
+Some methods inside the kernel need to be called after a certain amount of time. But since there may exist higher priority realtime threads these function calls need to be scheduled in order to guarantee predictability and/or to eliminate priority inversion. This can be done by using the TimedFunctionCallJob. The function to be called is given by an objectpointer to an object of a class that inherits the CallableObject class and overwrites the callbackFunc() method. This method will then be called after the given timeintervall.
+
+\li Periodic Calls to Functions
+
+An extension to the timed function call is the periodic function call. A workerthread can be assigned to a periodic function call job and thus call the callbackFunc() method of a CallableObject periodically with a special period. A WorkerThread of this type behaves like any other periodic thread with the exception that the job can be stopped and thus the workerthread can then be used for any other job again.  See the ARP class for an example of this job.
+
+\subsection euc Example Use Case
+
+Consider the following example:
+
+
+\image html workerthread.png
+
+
+Your System is supposed to be a hard realtime system. You got e.g 3 realtime threads that are scheduled for execution. Thread 2 has the highest priority followd by thread 2 and with lowest priority thread 1. Thread 3 is now waiting for some data to arrive from an external hardware device (e.g harddisk, ethernet) and is thus blocked. Now thread number 2 arrives and of course is directly executed. However while it is executing the data for thread 2 arrives and thus the hardware rises an interrupt. Since our system provides workerthreads the interrupt handler for this data is not directly called; instead a workerthread is enabled to take over that job. This workerthread is scheduled and gets a slightly higher priority than thread 3 which is waiting for the data (interrupt).  The system then resumes thread 2 which will run until completion and not until then the workerthread gets executed to do what ever is needed to do with the data from that device. This situation is depicted in the picture above. By the use of this concept it is guaranteed that the predictability of the system is conserved since the amount of interruptions using this concept can be estimated (the worst case). So if you are dealing with realtime threads and you got external interrupts be sure that you use workerthreads inside your configuration!
+
+*/

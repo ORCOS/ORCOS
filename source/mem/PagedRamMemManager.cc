@@ -1,0 +1,106 @@
+/*
+ * PagedRamMemManager.cc
+ *
+ *  Created on: 27.07.2013
+ *      Author: dbaldin
+ */
+
+#include "PagedRamMemManager.hh"
+#include "inc/error.hh"
+#include <kernel/Kernel.hh>
+
+extern void* __KERNELEND;
+
+//IMPORTANT: keep page size synced with chosen HAT layer page size
+// TODO: get this value from the HAT layer implementation as define
+#define PAGESIZE 0x100000  // 1 MB
+
+// TODO: change to (RAM_SIZE / PAGESIZE ) -1
+#define NUM_PAGES 500
+
+// map of used memory pages by tasks .. starting at the page after __KERNELEND
+// this map must be big enough to cover all possible locations of tasks inside the memory
+static char   UsedPageTable[ NUM_PAGES ];
+static unint4 MemStart;
+
+PagedRamMemManager::PagedRamMemManager() {
+	// mark all pages as unused
+
+	for (int i = 0; i< NUM_PAGES; i++) {
+		UsedPageTable[i] = 0;
+	}
+
+	MemStart = (unint4) alignCeil((char*) &__KERNELEND,PAGESIZE);
+}
+
+PagedRamMemManager::~PagedRamMemManager() {
+	// TODO Auto-generated destructor stub
+}
+
+
+ErrorT PagedRamMemManager::markAsUsed(unint4 start, unint4 end, int pid) {
+
+	unint4 start_page =  (unint4) alignFloor((char*) start,PAGESIZE);
+    unint4 end_page   =  (unint4) alignFloor((char*) end,PAGESIZE);
+
+	int pe_start = (start_page - MemStart) / PAGESIZE;
+	int pe_end   = (end_page - MemStart) / PAGESIZE;
+
+    // mark the pages as used
+    for (int i = pe_start; i <= pe_end; i++) UsedPageTable[i] = pid;
+
+    return cOk;
+}
+
+ErrorT PagedRamMemManager::free(unint4 start, unint4 end) {
+	unint4 start_page =  (unint4) alignFloor((char*) start,PAGESIZE);
+	unint4 end_page   =  (unint4) alignFloor((char*) end,PAGESIZE);
+
+	int pe_start = (start_page - MemStart) / PAGESIZE;
+	int pe_end   = (end_page - MemStart) / PAGESIZE;
+
+    // mark the pages as used
+    for (int i = pe_start; i <= pe_end; i++) UsedPageTable[i] = 0;
+
+    return cOk;
+}
+
+ErrorT PagedRamMemManager::freeAll(int pid) {
+	for (int i = 0; i< NUM_PAGES; i++) {
+		if (UsedPageTable[i] == pid) UsedPageTable[i] = 0;
+	}
+
+	return cOk;
+}
+
+void* PagedRamMemManager::alloc(size_t size, int pid) {
+	unint4 area_size  = 0;
+	int area_start = -1; // current consecutive free virtual memory area
+	int i;
+
+	for (i = 0; i < NUM_PAGES; i++)
+	{
+		// check if area used
+		if ( UsedPageTable[i] != 0) {
+			area_start = -1;
+			area_size = 0;
+		} else {
+			if (area_start == -1) {  // area free and no area started yet
+				area_start = MemStart + i*PAGESIZE;
+				area_size = PAGESIZE;
+			} else {
+				area_size += PAGESIZE;
+				if (area_size >= size) break;  // found a area to be mapped
+			}
+		}
+	}
+
+	if (area_start == -1) return 0;
+
+	// mark as used
+	markAsUsed(area_start, area_start + size, pid);
+
+	return (void*) area_start;
+}
+
+

@@ -1,0 +1,14 @@
+mem 0x0 0x3ff0000 ro
+set remote hardware-breakpoint-limit 4
+set backtrace limit 1
+set breakpoint auto-hw
+
+# special register
+define srrd
+monitor srrd
+end
+
+# general register
+define rrd
+monitor rrd
+end

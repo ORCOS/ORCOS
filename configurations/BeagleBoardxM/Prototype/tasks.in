@@ -1,0 +1,3 @@
+TASKS=(./tasks/shell_task/ )
+TASKS_START=(0x81100000 )
+TASK_END=(0x8117FFFF )

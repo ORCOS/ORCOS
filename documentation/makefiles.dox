@@ -1,0 +1,76 @@
+/**
+\page makefiles Makefiles
+<h1>Makefiles</h1>
+
+The makefiles' task is to compile and link a single configuration of the ORCOS operating system for a specific hardware.
+Additionally it is possible to run the makefiles of all included tasks, with proper linking directives for the given hardware and
+configuration. <br>
+The main principle behind the make system is to avoid redundancy. Therefore there are a number of different files needed, which 
+configure different modules of the operating system or the used tasks. Usually there is one <b>Makefile</b> for each configuration, which 
+includes the singular <b>kernel.mk</b> and a <b>arch.mk</b> belonging to the chosen target architecture.
+ 
+<h2>Files</h2>
+<h3>configuration's Makefile</h3>
+
+The make process starts with Makefile in the configuration directory. It defines which compiler to use, which SCL file to 
+process (usually the one lying in the same configuration directory), where to store the output (including the intermediate object 
+files) and where to find the makefiles <b>kernel.mk</b> and <b>arch.mk</b>. <br>
+The configuration's Makefile should not contain make targets to link and compile the operating system or the tasks. But it may have 
+additional targets, e.g. to load the finished binary to the hardware via a special hardware, or to call <i>strip</i> to remove 
+debug information. <p>
+So far the configuration's Makefile does not distinct between settings for a special configuration 
+(like the choice of architecture) and settings for a specific build environment (i.e. the exact path to the cross compiler on 
+the host machine).<p>
+There is an example Makefile in the <b>configuration_template</b> directory.
+
+<h3>kernel.mk</h3>
+The kernel.mk file contains all logic to compile and link the ORCOS operating system. Ideally, there should only be need to 
+modification to make changes to the system as a whole. <br>
+The makefiles contain the KOBJ list of all object files, derived from architecture independent source files, needed to link 
+the operating system. It automatically seeks and compiles the necessary .cc, .c and .S files. The CFLAGS, CPFLAGS and 
+GCC_ASFLAGS macros contain the parameters to compile and assemble these files.
+Kernel.mk strongly depends on the macros ARCH_VPATH, ARCH_OBJS, LINKERSCRIPT and ARCH_INCLUDES, usually given in the arch.mk. 
+It also assumes, that the locations of the needed binutils and the SCL macro are properly set in the configuration's Makefile.
+<h3>arch.mk</h3>
+Arch.mk contains all architecture dependent configuration:
+<ul>
+  <li>LINKERSCRIPT is the path of the linker script.</li>
+  <li>ARCH_OBJS is a list of object files, derived by the architecture dependent source code.</li>
+  <li>ARCH_VPATH is a list of directories, where to look for architecture dependent source code.</li>
+  <li>ARCH_INCLUDES is a list of directories, where to look for architecture dependent header files.</li>
+</ul>
+
+<h3>tasks' Makefiles</h3>
+Every task has its own makefile. These are automatically called with "make tasks". They have to reside in the tasks' directory 
+given in the SCLConfig file. With "make tasks_clean" every task is called with the target "clean". <br>
+In the <b>task_template</b> there is an example Makefile for a task.
+<h2>Make targets</h2>
+There are a number of make targets, all of which have to called with "make <target>" in the configurations directory.
+
+<ul>
+  <li><i>all</i> compiles the operating system.</li>
+  <li><i>clean</i> deletes every intermediate output.</li>
+  <li><i>lib</i> compiles the "library" object file, needed by the tasks to be linked.</li>
+  <li><i>scl</i> evaluates the SCLConfig file. (This target is implicitly included in the other targets)</li>
+  <li><i>tasks</i> calls the makefiles of all tasks given in the SCLConfig file.</li>
+  <li><i>tasks_clean</i> calls "make clean" on all makefiles given in the SCLConfig file.</li>
+</ul>
+
+<h2>Changes</h2>
+Changing the operating system sometimes make it necessary to change the makefile:
+<h3>Adding a architecture dependent file to the kernel</h3>
+Change the arch.mk file of the relevant architecture:
+<ul>
+<li>Add an object file to the ARCH_OBJS list with the same name as the source file (filename.o for filename.cc, filename.c or filename.S).</li>
+<li>If not already specified, list the directory containing the file in ARCH_VPATHS<li>
+<li>If a header file is added and not already specified, add the path of the header file to ARCH_INCLUDES</li>
+</ul>
+<h3>Adding an architecture independent file to the kernel</h3>
+Change the kernel.mk file in the source directory:
+<ul>
+<li>Add an object file to the KOBJ list with the same name as the source file (filename.o for filename.cc, filename.c or filename.S).</li>
+<li>If not already specified, list the directory containing the file in KERNEL_VPATH<li>
+<li>If a header file is added and not already specified, add the path of the relevant FLAGS-macro.</li>
+</ul>
+
+*/

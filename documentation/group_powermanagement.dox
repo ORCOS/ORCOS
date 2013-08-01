@@ -1,0 +1,25 @@
+
+/**
+ * \defgroup pwrmgmt Power Management
+ * \section PowerManagement Power Management
+ *
+ * The PowerManagement Framework consists mainly of a class called PowerManager. This class
+ * is meant to be called on different events that may affect the system's power management.
+ * The developing board used for ORCOS only supported sending the CPU to HALT mode, to save
+ * energy. So the PowerManger class has up to now only one event function: <CODE>enterIdleThread</CODE>.
+ *
+ * As the name suggests this method is called every time the kernel would enter the idle thread. The
+ * PowerManager then prepares the system to enter CPU HALT mode. For example the watchdog is disabled, if 
+ * this is possible (not all hardware platforms support this) and then finally sends the CPU to HALT 
+ * state by calling the idle() method of the PPC405 implementation of the processor to save power.
+ *
+ * On the next timer event, the CPU is woken up, and the Scheduler dispatches the next task.
+ * More sophisticated features for power saving were not supported by the underlying architecture.
+ *
+ * So currently this implementation of Power Management is only a template for future expansion.
+ * In future releases there might be a way to disable single parts of the whole system(-board) by
+ * adding more functions the the PowerManager class and calling them from inside the kernel,
+ * when these events occur.
+ *
+ **/
+

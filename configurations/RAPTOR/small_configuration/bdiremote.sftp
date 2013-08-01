@@ -1,0 +1,4 @@
+cd /cygdrive/c/BDI
+put ../../../tasks/task2/task2.elf
+put output/kernel.elf
+quit

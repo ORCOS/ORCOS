@@ -1,0 +1,56 @@
+#ifndef INSTALLATION_H_
+#define INSTALLATION_H_
+
+/*!
+ *  \page sourcetreeoverview Overview of the source tree
+ *  This page should give you an overview of the ORCOS source tree structure.
+
+* \htmlonly
+ * <table cellspacing="0">
+ *   <tr>
+ *    <td style="border-left: 1px dotted #000;  border-right: 1px dotted #000; border-top: 1px dotted #000; border-bottom: 1px dotted #000; padding:2px;">
+configurations
+ *   </td>
+ *   <td  style="border-right: 1px dotted #000; border-top: 1px dotted #000;  border-bottom: 1px dotted #000; padding:2px;"> 
+ This folder contains different configurations for several hardware architectures.
+ *   </td>
+ *  </tr>
+ *   <tr>
+ *    <td style="width:200px; border-left: 1px dotted #000; border-right: 1px dotted #000; border-bottom: 1px dotted #000; padding:2px;">
+documentation
+ *   </td>
+ *   <td  style="border-right: 1px dotted #000; border-bottom: 1px dotted #000; padding:2px;"> 
+ This folder contains all files needed for creating the doxygen documentation.
+ *   </td>
+ *  </tr>
+  *   <tr>
+ *    <td style="width:200px; border-left: 1px dotted #000; border-right: 1px dotted #000; border-bottom: 1px dotted #000; padding:2px;">
+source
+ *   </td>
+ *   <td  style="border-right: 1px dotted #000; border-bottom: 1px dotted #000; padding:2px;"> 
+ This folder contains the source code of orcos. It is separated into the main components of the os whereas all hardware specific code is located in the arch directory.
+ *   </td>
+ *  </tr>
+ *   <tr>
+ *    <td style="width:200px; border-left: 1px dotted #000; border-right: 1px dotted #000; border-bottom: 1px dotted #000; padding:2px;">
+tasks
+ *   </td>
+ *   <td  style="border-right: 1px dotted #000; border-bottom: 1px dotted #000; padding:2px;"> 
+ This folder contains the sources for the tasks that could run on ORCOS.
+ *   </td>
+ *  </tr>
+ *   <tr>
+ *    <td style="border-left: 1px dotted #000; border-right: 1px dotted #000; border-bottom: 1px dotted #000; padding:2px;">
+tools
+ *   </td>
+ *   <td  style="width:400px; border-right: 1px dotted #000; border-bottom: 1px dotted #000; padding:2px;"> 
+ This folder contains several tools around the ORCOS system. Next to the Java tool for SCL handling it contains the BDICommand and some scripts. 
+ *   </td>
+ *  </tr>
+ * </table>
+ * </center>
+ * \endhtmlonly
+ * 
+ */
+
+#endif /*INSTALLATION_H_*/

@@ -1,0 +1,6 @@
+cpu ac 0
+load ShmCommTask1.elf
+load node1.elf
+ep 0x40004000
+stack 0x40ffffff
+tm both

@@ -1,0 +1,3 @@
+load task2.elf
+load kernel.elf
+tm both

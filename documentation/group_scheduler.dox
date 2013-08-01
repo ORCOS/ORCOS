@@ -1,0 +1,36 @@
+#ifndef GROUPSCHEDULER_H_
+#define GROUPSCHEDULER_H_
+
+/**
+ * \defgroup scheduler Scheduling
+ * 
+ * 
+ * This page describes scheduling in ORCOS.
+ *
+ * There exist two different ways of scheduling in ORCOS. On the one hand scheduling is used by the kernel's dispatcher
+ * to decide which thread may execute next, on the other hand other classes have access to scheduling too, if they 
+ * need it. Such scheduling is used for example in the synchronization component (<CODE>Mutex</CODE> and <CODE>Semaphore</CODE> classes). The
+ * requirements for the two types of scheduling slightly differ, and so not all schedulers should be used for both 
+ * purposes. For example the EDF scheduling strategy assigns priorities dynamically, which really should only happen if 
+ * the scheduler is used by the dispatcher.
+ *
+ *
+ * In the following the use of a scheduler in the dispatcher is illustrated. The biggest difference to the use of a scheduler
+ * in another class is, that the getNextTimerEvent() method of the scheduler is used to set the time of the next interrupt (which
+ * will cause the dispatcher to be run again). This makes it possible for the scheduler to determine the time of the next 
+ * interrupt according to its scheduling strategy. The EDF scheduler for example will only set an interrupt if a thread with a 
+ * higher priority is going to be ready to run, since a thread with lower priority cannot preempt the currently running thread 
+ * anyway (and if an interrupt would have been set, unnecessary context switches would ensue). The first sequence diagram describes 
+ * how the scheduler is triggered after the timer device produces a timer interrupt and later on sets the next timer interrupt. In
+ * the second sequence diagram no timer interrupt is set by the scheduler (for example, because there is no further thread ready
+ * to run), which will leave the decision up to the dispatcher.
+ *
+ * Scenario 1: Scheduler decides next timer event.
+ * \image html Scheduler1.png
+ * 
+ * Scenario 2: Scheduler can't decide next timer event, dispatcher takes over this functionality. 
+ * \image html Scheduler2.png
+ *
+ */
+
+#endif /*GROUPSCHEDULER_H_*/

@@ -1,0 +1,379 @@
+#ifndef SCL2_
+#define SCL2_
+
+/**
+ \page Configuration Configuration System
+ 
+\section overview Overview
+With the ORCOS configuration system the developer is able to configure the whole system within a 
+single configuration file. Several options that control parts of the behaviour of the system could
+be configured as well as a list of tasks that should be loaded onto the target device.
+Next to that the Skeleton Customization Language allows a developer to define which 
+implementation of a class or which type a member should have. 
+With this construction kit you can design and compile systems for several needs.
+
+
+\section ORCOSconfigurationsystem ORCOS configuration system
+The main part of the ORCOS configuration system is the SCLConfig.xml 
+which is located in each configuration directory.
+This XML file is read by the scl2.jar tool and several files are created
+which are needed for the further build process. 
+Currently the <Options> tag in SCLConfig.xml only includes the logger
+configuration which generates the logger_config.hh. The <Tasks> tag contains all tasks
+that should be built automatically and loaded onto the target device.
+The scl2.jar constructs the tasktable.S and some shell scripts that are used by the Makefile.
+The last and biggest part of the configuration is the <SCL> tag.
+There you can change which classes and parts of the system should be built and used.  
+
+\section build_process Build process
+
+By starting the makefile at first the scl2.jar is called which starts the ORCOS configuration system.
+First the SCLConfig.xml is validated against the scl2.xsd xml-schema.
+If it is valid its SCL configuration will be checked against a dependency list of valid scl-configurations.
+Therefore the central SCLdependencies.xml is first checked against its scl2deps.xsd xml-schema
+and afterwards each entry in the SCLConfig.xml's SCL part is checked against these dependencies.
+If an error occurred the build process would stop here. Otherwise the SCLConfig.hh, logger_config.hh, tasktable.S and some shell scripts are generated and the compilation starts.
+
+\section sclconfigxml SCLConfig.xml
+
+The SCLConfig.xml file consists of several parts. 
+
+\subsection options Options
+Currently only the logging could be configured. For each Prefix you have to choose its Level. You can choose from (finest to coarsest) <EM>FATAL, ERROR, WARN, INFO, DEBUG, TRACE</EM>.
+You can simply add new prefixes and use them in the Logger's log method Logger::log.
+
+
+\code 
+<Options>
+<Logging>
+	<Log Prefix="KERNEL" Level="FATAL"/>
+		...
+	</Logging>
+</Options>
+\endcode
+
+
+
+\subsection tasks Tasks
+The tasks tag configures which tasks should be compiled and loaded onto the target device.
+
+ 
+\code 
+<Task>
+	<Start>0x40000</Start>
+	<End>0x4FFFF</End>
+	<Heap>0x48000</Heap>
+	<Path>../../tasks/task1/</Path>
+	<PriorityOptions>
+		<InitialPriority>0</InitialPriority>
+		<Phase>0</Phase>
+		<RealTimeOptions>
+			<Period>10000</Period>		
+			<Deadline>50000</Deadline>
+			<ExecutionTime>0</ExecutionTime>
+		</RealTimeOptions>
+  	</PriorityOptions>
+</Task>
+\endcode
+
+
+A task block has the four mandatory attributes <b>Start</b>, <b>End</b>, <b>Heap</b> and <b>Path</b>. Additionally there may
+be an element <b>Vma</b> and a sub element <b>PriorityOptions</b>.<br>
+<br>
+<table border=1 width=500>
+	<tr>
+		<td>Start</td><td>The load memory address, where the task starts.</td>
+	</tr>
+	<tr>
+		<td>End</td><td>The load memory address, where the task ends.</td>
+    </tr>
+	<tr>	
+		<td>Heap</td><td>The load memory address, where the task's heap starts. There should be enough room between the start of the task and the start of the heap to contain the binary 
+		plus a few bytes for the tasktable entry.
+		</td>
+	</tr>
+	<tr>	
+		<td>Path</td><td>The directory containing the task's makefile.</td>
+	</tr>
+	<tr>	
+		<td>Vma</td><td>The virtual memory address, where the task starts. If omitted the virtual memory adress will be set to the load memory adress.</td> 
+	</tr>
+	
+	<tr>	
+		<td>PriorityOptions</td><td>If this optional element is defined, and the thread class is configured as priority thread or realtime thread further options are used.</td> 
+	</tr>
+	<tr>	
+		<td>InitialPriority</td><td>This element defines the initial priority of a thread. [0 .. (unint4)]. Depending on the configured scheduler the priority could be assigned by the scheduler. In this case this parameter will be overwritten by the scheduler.</td> 
+	</tr>
+	<tr>	
+		<td>Phase</td><td>The phase parameter describes the amount of time (in microseconds) after thread creation, when the thread should be started for the first time.</td> 
+	</tr>
+	<tr>	
+		<td>RealTimeOptions</td><td> If the thread is configured as a realtime thread, the following realtime specific options are used.</td> 
+	</tr>
+	<tr>	
+		<td>Period</td><td>Specifies the period (in microseconds) of the thread.</td> 
+	</tr>
+	<tr>	
+		<td>Deadline</td><td>Specifies the relative deadline of a thread relative to its period.</td> 
+	</tr>
+	<tr>	
+		<td>ExecutionTime</td><td>This should be the worst case execution time of the thread. If the execution time of a thread is unknown, it should be set to 0.</td> 
+	</tr>
+</table>
+<br>
+
+\subsection scl2 Skeleton Customization Language 2.0
+The most important part is the SCLConfig.xml's SCL tag.
+There you can configure each Skeleton, its members and system-wide defines.
+Possible Configurations for the skeletons and their members could be found in the global SCLdependencies.xml file.
+ 
+The following examples show all possible combinations and their output in the SCLConfig.hh.
+
+\subsubsection empty_skeleton Empty Skeleton
+\code
+	<Skeleton>
+		<Name>ResourceMutex</Name>
+	</Skeleton>
+\endcode
+
+Will result in an empty entry.
+
+
+\subsubsection skeleton_without_members Skeleton without members
+\code
+<Skeleton>
+	<Name>Thread</Name>
+	<Superclass>process/Thread</Superclass>
+</Skeleton><
+\endcode
+
+will result in:
+
+\code
+//configuration of class Thread
+#define ThreadCfd_hh <process/Thread.hh>
+#define ThreadCfdCl Thread
+\endcode
+
+\subsubsection skeleton_with_member Skeleton with member
+
+\code
+<Skeleton>
+	<Name>SimpleMutex</Name>
+	<Member>
+		<Name>Scheduler</Name>
+		<Class>scheduler/RoundRobinThreadScheduler</Class>
+	</Member>
+</Skeleton>
+\endcode
+	
+will result in
+
+\code
+// configuration of class SimpleMutex
+		
+// configuration of member Scheduler of class SimpleMutex
+#define SimpleMutex_Scheduler_hh <scheduler/RoundRobinThreadScheduler.hh>
+#define SimpleMutex_SchedulerCfdCl RoundRobinThreadScheduler
+#define SimpleMutex_SchedulerCfdT RoundRobinThreadScheduler*
+#define HAS_SimpleMutex_SchedulerCfd 1
+#define DEF_SimpleMutex_SchedulerCfd \ 
+private: \ 
+	RoundRobinThreadScheduler* SchedulerCfd; \ 
+	public: \ 
+	void setScheduler(RoundRobinThreadScheduler* o) {SchedulerCfd = o;} \ 
+	RoundRobinThreadScheduler* getScheduler() { return (RoundRobinThreadScheduler*) SchedulerCfd; }
+	#define NEW_SimpleMutex_SchedulerCfd SimpleMutex_SchedulerCfdCl()
+\endcode
+
+
+\subsubsection skeleton_none Skeleton with None-member
+
+By setting the none parameter of an member, the member will not exist in the compiled binary.
+The class is set, so that the type of the member class is known to the compiler (which is needed
+to compile even though the member itself will never be used if it isn't configured).
+\code
+<Skeleton>
+	<Name>MemoryManager</Name>
+	<Superclass>mem/LinearMemManager</Superclass>
+	<Member>
+		<Name>HatLayer</Name>
+		<Class>mem/HatLayer</Class>
+		<None>true</None>
+	</Member>
+</Skeleton>
+\endcode
+	
+will result in	
+	
+\code
+// configuration of class MemoryManager
+#define MemoryManagerCfd_hh <mem/LinearMemManager.hh>
+#define MemoryManagerCfdCl LinearMemManager
+
+// configuration of member HatLayer of class MemoryManager
+#define MemoryManager_HatLayer_hh <mem/HatLayer.hh>
+#define MemoryManager_HatLayerCfdCl HatLayer
+#define MemoryManager_HatLayerCfdT HatLayer*
+#define DEF_MemoryManager_HatLayerCfd \ 
+public: \ 
+void setHatLayer(HatLayer* o) { } \ 
+HatLayer* getHatLayer() { return 0; }
+\endcode  
+
+
+\subsubsection skeleton_with_constructor Skeleton with member and constructor
+
+\code
+<Skeleton>
+	<Name>Board</Name>
+	<Superclass>hal/Board</Superclass>
+	<Member>
+		<Name>UART</Name>
+		<Class>arch/PPC40x/Virtex2/OPB_UART_Lite</Class>
+		<Constructor>"serial0",OPB_UART_LITE_BASE</Constructor>
+	</Member>
+</Skeleton>
+\endcode
+
+will result in
+
+\code
+// configuration of class Board
+#define BoardCfd_hh <hal/Board.hh>
+#define BoardCfdCl Board
+		
+// configuration of member UART of class Board
+#define Board_UART_hh <arch/PPC40x/Virtex2/OPB_UART_Lite.hh>
+#define Board_UARTCfdCl OPB_UART_Lite
+#define Board_UARTCfdT OPB_UART_Lite*
+#define HAS_Board_UARTCfd 1
+#define DEF_Board_UARTCfd \ 
+private: \
+OPB_UART_Lite* UARTCfd; \ 
+public: \
+void setUART(OPB_UART_Lite* o) {UARTCfd = o;} \ 
+OPB_UART_Lite* getUART() { return (OPB_UART_Lite*) UARTCfd; }
+#define NEW_Board_UARTCfd Board_UARTCfdCl("serial0",OPB_UART_LITE_BASE)
+
+\endcode
+
+\subsubsection skeleton_with_template Templated Skeleton
+SCL is also capable of handling template classes. For doing so, just add the <Template> tag and one or more <Parameters> and the appropriate code will be generated. 
+\code
+<Skeleton>
+	<Name>GenericSuperClassTest</Name>
+	<Superclass>dyn/Configurable</Superclass>
+	<Template>
+		<Parameter>Type1</Parameter>
+		<Parameter>Type2</Parameter>
+		<Parameter>Type3</Parameter>
+	</Template>
+</Skeleton>
+\endcode
+
+will result in
+
+\code
+// configuration of class GenericSuperClassTest
+#define GenericSuperClassTestCfd_hh <dyn/Configurable.hh>
+#define GenericSuperClassTestCfdCl Configurable<Type1, Type2, Type3>
+
+\endcode
+
+
+\subsubsection skeleton_with_templated_member  Skeleton with templated member
+
+Not only the Class itself, but also the classes members could be templated.
+\code
+<Skeleton>
+	<Name>GenericTester</Name>
+	<Member>
+		<Name>Normal</Name>
+		<Class>my/class</Class>
+		
+	</Member>
+	<Member>
+		<Name>Generic</Name>
+		<Class>my/GenericClass</Class>
+		<Template>
+			<Parameter>Type1</Parameter>
+			<Parameter>Type2</Parameter>
+			<Parameter>Type3</Parameter>
+		</Template>
+	</Member>
+</Skeleton>
+\endcode
+
+will result in
+
+\code
+// configuration of class GenericTester
+
+// configuration of member Normal of class GenericTester
+#define GenericTester_Normal_hh <my/class.hh>
+#define GenericTester_NormalCfdCl class
+#define GenericTester_NormalCfdT class*
+#define HAS_GenericTester_NormalCfd 1
+#define DEF_GenericTester_NormalCfd \
+private: \
+    class* NormalCfd; \
+public: \
+    void setNormal(class* o) {NormalCfd = o;} \
+    class* getNormal() { return (class*) NormalCfd; }
+#define NEW_GenericTester_NormalCfd GenericTester_NormalCfdCl()
+
+// configuration of member Generic of class GenericTester
+#define GenericTester_Generic_hh <my/GenericClass.hh>
+#define GenericTester_GenericCfdCl GenericClass<Type1, Type2, Type3>
+#define GenericTester_GenericCfdT GenericClass*
+#define HAS_GenericTester_GenericCfd 1
+#define DEF_GenericTester_GenericCfd \
+private: \
+    GenericClass<Type1, Type2, Type3> GenericCfd; \
+public: \
+    void setGeneric(GenericClass* o) {GenericCfd = o;} \
+    GenericClass* getGeneric() { return (GenericClass*) GenericCfd; }
+#define NEW_GenericTester_GenericCfd GenericTester_GenericCfdCl()
+	
+\endcode
+
+
+\subsection define Define
+A define tags like
+ 
+\code
+<Define>
+	<Name>OPB_UART_LITE_BASE</Name>
+	<Value>0x80000800</Value>
+</Define>
+\endcode
+
+will result in
+
+\code
+#define OPB_UART_LITE_BASE 0x80000800
+\endcode		
+
+\section SCLdependenciesxml SCLdependencies.xml
+The SCLdependencies.xml maintains a list of possible configurations that could be made in the SCLConfig.xml file. This list is central for the whole source of ORCOS 
+and should contain all possible configurations (also for each hardware architecture). As a developer you have to maintain this list by hand.
+
+\code
+<Skeleton>
+  <Name>SingleCPUDispatcher</Name>
+  <Member>
+    <Name>Scheduler</Name>
+    <Classes>
+      <Class>scheduler/RoundRobinThreadScheduler</Class>
+      <Class>scheduler/PriorityThreadScheduler</Class>
+      <Class>scheduler/RateMonotonicThreadScheduler</Class>
+      <Class>scheduler/EarliestDeadlineFirstThreadScheduler</Class>
+    </Classes>
+  </Member>
+</Skeleton>
+\endcode
+This example shows all valid configurations of the member Scheduler. These lists of the SCLdependencies.xml also give the list of possible configurations in the Eclipse SCL configuration plugin.
+*/
+#endif /*SCL2_*/

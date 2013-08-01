@@ -1,0 +1,166 @@
+#ifndef MAINPAGE_H_
+#define MAINPAGE_H_
+
+/*! \mainpage ORCOS Documentation
+ *
+ * 
+ * \htmlonly
+ * <center>
+ * \endhtmlonly
+ *
+ * \image html orcos_title.jpg
+ *  
+ * \section intro_sec Introduction
+ *
+ * \htmlonly
+ * </center>
+ * \endhtmlonly
+ * 
+ *
+ * Welcome to the doxygen documentation of the project group ORCOS. This documentation consists
+ * not only of the source code documentation of the source files but provides additionally information
+ * about the design decisions of every component.
+ *
+ * The design pages are linked below. If you want to view the source code documentation use the
+ * tree on the left. For a general introduction and how to get started with ORCOS we advise you to
+ * visit our Wiki at http://orcos.cs.uni-paderborn.de/orcos
+ *
+ *
+ * \htmlonly
+ * <center>
+ * \endhtmlonly
+ * 
+ * \section a Available documents
+ * 
+ * \htmlonly
+ * <table cellspacing="0">
+ *   <tr>
+ *    <td style="border-left: 1px dotted #000;  border-right: 1px dotted #000; border-top: 1px dotted #000; border-bottom: 1px dotted #000; padding:2px;">
+ * \endhtmlonly
+ * \ref Design "Design" \n
+ *  \htmlonly
+ *   </td>
+ *   <td  style="border-right: 1px dotted #000; border-top: 1px dotted #000;  border-bottom: 1px dotted #000; padding:2px;"> 
+ *    A survey of the design of ORCOS and the point to get started.
+ *   </td>
+ *  </tr>
+ *   <tr>
+ *    <td style="width:200px; border-left: 1px dotted #000; border-right: 1px dotted #000; border-bottom: 1px dotted #000; padding:2px;">
+ * \endhtmlonly
+ * \ref Configuration "Configuration" \n
+ * \htmlonly
+ *   </td>
+ *   <td  style="border-right: 1px dotted #000; border-bottom: 1px dotted #000; padding:2px;"> 
+ *    Information about the XML configuration system we use to configure an application.
+ *   </td>
+ *  </tr>
+ *   <tr>
+ *    <td style="width:200px; border-left: 1px dotted #000; border-right: 1px dotted #000; border-bottom: 1px dotted #000; padding:2px;">
+ * \endhtmlonly
+ * \ref ToolChain_buildprocess "ToolChain and Buildprocess" \n
+ * \htmlonly
+ *   </td>
+ *   <td  style="border-right: 1px dotted #000; border-bottom: 1px dotted #000; padding:2px;"> 
+ *    Information about the buildprocess and the toolchain that is used.
+ *   </td>
+ *  </tr>
+ *   <tr>
+ *    <td style="border-left: 1px dotted #000; border-right: 1px dotted #000; border-bottom: 1px dotted #000; padding:2px;">
+ * \endhtmlonly
+ * \ref Taskdevelopment "Task development" \n
+ * \htmlonly
+ *   </td>
+ *   <td  style="width:400px; border-right: 1px dotted #000; border-bottom: 1px dotted #000; padding:2px;"> 
+ *    This part gives an overview of the syscall API that allows a task to communicate with the system or other tasks.
+ *   </td>
+ *  </tr>
+ *   <tr>
+ *    <td style="border-left: 1px dotted #000; border-right: 1px dotted #000; border-bottom: 1px dotted #000; padding:2px;">
+ * \endhtmlonly
+ * \ref Porting "Porting" \n
+ * \htmlonly
+ *   </td>
+ *   <td  style="width:400px; border-right: 1px dotted #000; border-bottom: 1px dotted #000; padding:2px;"> 
+ *    How to port ORCOS to another hardware platform than the PowerPC.
+ *   </td>
+ *   </tr>
+ *   <tr>
+ *    <td style="border-left: 1px dotted #000; border-right: 1px dotted #000; border-bottom: 1px dotted #000; padding:2px;">
+ * \endhtmlonly
+ * \ref debug "Debugging" \n
+ * \htmlonly
+ *  </td>
+ *   <td  style="border-right: 1px dotted #000; border-bottom: 1px dotted #000; padding:2px;"> 
+ *    Configuration options of the debug interface.
+ *   </td>
+ *  </tr>
+ *  <tr>
+ *    <td style="border-left: 1px dotted #000; border-right: 1px dotted #000; border-bottom: 1px dotted #000; padding:2px;">
+ * \endhtmlonly
+ * \ref errorhandle "Error Handling in ORCOS" \n
+ * \htmlonly
+ *  </td>
+ *   <td  style="border-right: 1px dotted #000; border-bottom: 1px dotted #000; padding:2px;"> 
+ *    How internal software errors in the Kernel can be identified and handled. 
+ *   </td>
+ *  </tr>
+ *  <tr>
+ *    <td style="border-left: 1px dotted #000; border-right: 1px dotted #000; border-bottom: 1px dotted #000; padding:2px;">
+ * \endhtmlonly
+ * \ref realtime "Realtime handling in ORCOS" \n
+ * \htmlonly
+ *  </td>
+ *   <td  style="border-right: 1px dotted #000; border-bottom: 1px dotted #000; padding:2px;"> 
+ *    Document about realtime capabilities of ORCOS and its configuration.
+ *   </td>
+ *  </tr>
+ *  <tr>
+ *    <td style="border-left: 1px dotted #000; border-right: 1px dotted #000; border-bottom: 1px dotted #000; padding:2px;">
+ * \endhtmlonly
+ * \ref startup "System startup" \n
+ * \htmlonly
+ *  </td>
+ *   <td  style="border-right: 1px dotted #000; border-bottom: 1px dotted #000; padding:2px;"> 
+ *    A document describing the startup process of ORCOS.
+ *   </td>
+ *  </tr>
+ *  <tr>
+ *    <td style="border-left: 1px dotted #000; border-right: 1px dotted #000; border-bottom: 1px dotted #000; padding:2px;">
+ * \endhtmlonly
+ * \ref irq "IRQ-Processing" \n
+ * \htmlonly
+ *  </td>
+ *   <td  style="border-right: 1px dotted #000; border-bottom: 1px dotted #000; padding:2px;"> 
+ *    How IRQs are processed.
+ *   </td>
+ *  </tr>
+ *  <tr>
+ *    <td style="border-left: 1px dotted #000; border-right: 1px dotted #000; border-bottom: 1px dotted #000; padding:2px;">
+ * \endhtmlonly
+  * \ref synchro "Synchronization and Semaphores" \n
+ * \htmlonly
+ *  </td>
+ *   <td  style="border-right: 1px dotted #000; border-bottom: 1px dotted #000; padding:2px;"> 
+ *    A document describing our kernel's support for  basic synchronization of resource access through semaphores.
+ *   </td>
+ *  </tr>
+ *  <tr>
+ *    <td style="border-left: 1px dotted #000; border-right: 1px dotted #000; border-bottom: 1px dotted #000; padding:2px;">
+ * \endhtmlonly
+ * \ref sourcetreeoverview "Overview of the source tree" \n
+ * \htmlonly
+ *  </td>
+ *   <td  style="border-right: 1px dotted #000; border-bottom: 1px dotted #000; padding:2px;"> 
+ *    An overview of the ORCOS source tree structure.
+ *   </td>
+ *  </tr>
+ * </table>
+ * </center>
+ * \endhtmlonly
+ * 
+ * \author Orcos PG Team
+ * \version 1.0
+ */
+
+
+#endif /*MAINPAGE_H_*/

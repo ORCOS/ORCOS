@@ -1,0 +1,27 @@
+/*!
+ *  \page Taskdevelopment Task development
+ *
+\section taskDir Task Directory
+The task's directory contains the files needed to implement a specific task, which is to be included in one more more configurations, by 
+specifying the task's path in the SCLConfig.xml file. You can copy the task_template directory, which gives examples for the three needed files 
+task_main.cc, template.ld and Makefile. If you copy it from the svn, be sure not to copy the .svn-directory. 
+
+\subsection makefile Makefile
+The task's Makefile is run by the configuration's Makefile. In order to be found, it has to lie in the directory given in the SCLConfig.xml file.
+It will either be run without parameter, to compile the task or with the "clean" target, to remove the remnants of prior builds.
+
+\subsection template.ld template.ld
+The template.ld is a template for linker file, in which the concrete values for the addresses where the task is loaded, are missing. Instead of 
+that there are the keywords TASK_START, TASK_VMA, TASK_HEAP, TASK_END are used (see \ref configuration). Make will replace them with the actual 
+values, taken from the SCLConfig file.
+
+\subsection task_main.cc task_main.cc
+The Makefile assumes, that task_main.cc contains the source code of the task. There has to be a entry point "task_main", where the execution of the 
+task starts. 
+
+\subsection orcosapi ORCOS API
+The only possibility to communicate with other tasks or with the operating system is to use the system call API.
+See the ORCOS.hh for a list of available functions.
+ * 
+ */
+

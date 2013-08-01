@@ -1,0 +1,105 @@
+<project name="realtime01" default="kernel" basedir=".">
+	
+<description>
+ORCOS Realtime Demo
+</description>
+
+<property file="build.properties"/>
+	
+<target name="init">
+	<tstamp/>
+	<mkdir dir="${build.dir}"/>
+	<mkdir dir="${dist.dir}"/>
+</target>
+		
+<target name="SCL" depends="init">
+	<echo>java -jar ${SCL.jar} ${SCLConfig.xml} ${SCL.xsd} --check-deps ${SCLdepencies.xml} ${SCLdepencies.xsd}</echo>
+	<java jar="${SCL.jar}"
+		fork="true"
+		failonerror="true"
+	    maxmemory="128m">
+		<arg line="${SCLConfig.xml} ${SCL.xsd} --check-deps ${SCLdepencies.xml} ${SCLdepencies.xsd}"/>
+	</java>
+</target>
+	
+<target name="c" description="Compile the ORCOS Kernel" depends="SCL">
+	<apply executable="${compiler.c++}" dest="${basedir}/build" failonerror="true">
+		<arg line="-I${kernel.dir}/inc -I. -I${kernel.dir} -I${arch.dir} -I${arch.dir}/RAPTOR"/>
+		<arg line="-Wall -g -fno-exceptions -fno-rtti -msoft-float -fno-stack-protector -Wuninitialized -Woverloaded-virtual -c -Os"/>
+		<arg value="-o"/>
+		<targetfile/>
+		<srcfile/>
+		<fileset dir="${kernel.dir}" casesensitive="yes">
+			<include name="**/*.cc"/>
+			<include name="**/*.c"/>
+			<exclude name="arch/PPC40x/Virtex2/**/*.*"/>
+			<exclude name="scheduler/EarliestDeadlineFirstThreadScheduler_TBS.cc"/>
+			<exclude name="scheduler/SingleThreadScheduler.cc"/>
+		</fileset>
+		<chainedmapper>
+		<mapper type="glob" from="*.cc" to="*.o"/>
+		<flattenmapper/>
+		</chainedmapper>
+	</apply>
+</target>
+	
+<target name="asm" description="Compile the ORCOS Kernel" depends="SCL">
+	<apply executable="${compiler.c}" dest="${basedir}/build" failonerror="true">
+		<arg line="-I${kernel.dir}/inc -I. -I${kernel.dir} -I${arch.dir} -I${arch.dir}/RAPTOR"/>
+		<arg line="-Wall -g -fno-exceptions  -fno-rtti -msoft-float -Xassembler -m405 -c"/>
+		<arg value="-o"/>
+		<targetfile/>
+		<srcfile/>
+		<fileset dir="${kernel.dir}" casesensitive="yes">
+			<include name="**/*.S"/>
+			<exclude name="arch/PPC40x/Virtex2/**/*.*"/>
+		</fileset>
+		<chainedmapper>
+		<mapper type="glob" from="*.S" to="*.o"/>
+		<flattenmapper/>
+		</chainedmapper>
+	</apply>
+</target>
+	
+<target name="tasktable" description="Compile the ORCOS Kernel" depends="SCL">
+	<apply executable="${compiler.c}" dest="${basedir}/build" failonerror="true">
+		<arg line="-I${kernel.dir}/inc -I. -I${kernel.dir} -I${arch.dir} -I${arch.dir}/RAPTOR"/>
+		<arg line="-Wall -g -fno-exceptions  -fno-rtti -msoft-float -Xassembler -m405 -c"/>
+		<arg value="-o"/>
+		<targetfile/>
+		<srcfile/>
+		<fileset dir="${basedir}" casesensitive="yes">
+			<include name="**/tasktable.S"/>
+		</fileset>
+		<chainedmapper>
+		<mapper type="glob" from="*.S" to="*.o"/>
+		<flattenmapper/>
+		</chainedmapper>
+	</apply>
+</target>
+
+<target name="liborcos" description="Compile the ORCOS Kernel" depends="c,asm">
+	<apply executable="${compiler.ar}" failonerror="true" parallel="true">
+		<arg line="qc ${build.dir}/liborcos.a"/>
+		<fileset dir="${build.dir}" casesensitive="yes">
+			<include name="**/*.o"/>
+		</fileset>
+	</apply>
+</target>
+		
+<target name="kernel" description="Compile the ORCOS Kernel" depends="liborcos,tasktable">
+	<exec executable="${compiler.ld}" failonerror="true">
+		<arg line="-L${build.dir} output/_startup.o output/tasktable.o -lorcos -o dist/kernel.elf --entry=startORCOS --script=${linkerscript}"/>
+	</exec>
+	<exec executable="${compiler.size}" failonerror="false">
+		<arg line="dist/kernel.elf"/>
+	</exec>
+</target>
+
+<target name="clean" description="clean up" >
+	<!-- Delete the ${build} and ${dist} directory trees -->
+	<delete dir="${build.dir}"/>
+	<delete dir="${dist.dir}"/>
+</target>
+
+</project>

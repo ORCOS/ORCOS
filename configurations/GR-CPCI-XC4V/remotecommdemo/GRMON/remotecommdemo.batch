@@ -1,0 +1,3 @@
+load remotecommtask1.elf
+load kernel.elf
+tm both

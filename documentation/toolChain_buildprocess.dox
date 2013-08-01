@@ -1,0 +1,34 @@
+/*!
+
+\page ToolChain_buildprocess ToolChain and Buildprocess
+\section Makefiles
+One part of the build process is the usage of makefiles. Have a look here 
+to see the documentation of the \ref makefiles used within the ORCOS build process.
+
+ORCOS utilizes a broad array of technology to achieve its design goals.
+Therefore there are some prerequisites for the machines, on which you want to build it.
+
+\subsection java Java
+
+You need Java 1.5, for the interpretation of the SCLConfig.xml files.
+
+\subsection GCC GCC
+
+ORCOS is developed with a GCC 4.2.2 for the powerpc-eabi architecture.
+The newlib libc must be compiled into the GCC to be found.
+The GCC were used with the GNU Binutils 2.18. 
+
+\subsection make Make
+
+The Makefiles are written for GNU Make, and suppose to be run under a POSIX environment.
+
+\subsection utitliesforLoading Utilities for loading
+
+In order to load the ORCOS to the PowerPc-Hardware, some additional tools are used.
+The BDILoad tool uses Python to communicate with the BDI. 
+Loading via Xilinx only uses the tool 'xmd'.
+
+
+ */
+ 
+#endif /*INSTALLATION_H_*/

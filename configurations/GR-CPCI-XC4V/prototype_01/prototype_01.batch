@@ -1,0 +1,5 @@
+load task1.elf
+load task2.elf
+load debugtask.elf
+load kernel.elf
+tm both

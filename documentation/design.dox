@@ -1,0 +1,182 @@
+#ifndef DESIGN_H_
+#define DESIGN_H_
+
+/*!
+ *  \page Design ORCOS Design
+ * 
+ This page provides a brief survey of the design of the ORCOS kernel. It contains
+ information about the purpose of every kernel-component from a very high view. To get
+ further details about each component click on the links in the components' description.
+ 
+ The Kernel itself is distributed into several modules as shown in the picture below. The modules
+ are separated from each other and can be configured individually through our XML \ref configuration.
+Click on a module to get more detailed information about it. 
+
+ 
+ * \htmlonly
+ 
+ <script type="text/javascript">
+<!--
+function MM_findObj(n, d) { //v4.01
+  var p,i,x;  if(!d) d=document; if((p=n.indexOf("?"))>0&&parent.frames.length) {
+    d=parent.frames[n.substring(p+1)].document; n=n.substring(0,p);}
+  if(!(x=d[n])&&d.all) x=d.all[n]; for (i=0;!x&&i<d.forms.length;i++) x=d.forms[i][n];
+  for(i=0;!x&&d.layers&&i<d.layers.length;i++) x=MM_findObj(n,d.layers[i].document);
+  if(!x && d.getElementById) x=d.getElementById(n); return x;
+}
+
+function MM_showHideLayers() { //v6.0
+  var i,p,v,obj,args=MM_showHideLayers.arguments;
+  for (i=0; i<(args.length-2); i+=3) if ((obj=MM_findObj(args[i]))!=null) { v=args[i+2];
+    if (obj.style) { obj=obj.style; v=(v=='show')?'visible':(v=='hide')?'hidden':v; }
+    obj.visibility=v; }
+}
+//-->
+
+</script>
+
+<div style="text-align:center; margin-left:auto; margin-right:auto; width:80%;">
+<div style="position:relative; width:728px;">
+
+	<div style="z-index: 1;" id="maplayer">  
+	<img src="design.png" style="border:0px; " width="728" height="369" alt="design" usemap="#designin" />
+		<map name="designin" id="designin">
+					<!-- America -->
+					<area shape="rect" coords="399,124,509,171" 
+					href="d4/d9c/group__comm.html" alt="Communication" title="Communication Module" 
+					onmouseover="MM_showHideLayers('comm','','show')" />
+					
+					<area shape="rect" coords="399,54,509,101" 
+					href="df/d61/group__syscall.html" alt="SyscallManager" title="Syscall Module" 
+					onmouseover="MM_showHideLayers('syscall','','show')" />
+				
+					<area shape="rect" coords="246,270,356,317" 
+					href="d6/da4/group__filesystem.html" alt="Filemanager" title="Filesystem Module" 
+					onmouseover="MM_showHideLayers('filemanager','','show')" />
+			
+					<area shape="rect" coords="246,199,356,246" 
+					href="d7/d08/group__memmanager.html" alt="Memory Manager" title="Memory Management Module" 
+					onmouseover="MM_showHideLayers('mem','','show')" />
+					
+					<area shape="rect" coords="246,124,356,171" 
+					href="d6/dcb/group__scheduler.html" alt="Scheduler" title="Scheduling Module" 
+					onmouseover="MM_showHideLayers('scheduler','','show')" />
+		</map>    
+	</div>
+
+	<map name="commout" id="commout">
+	<area shape="rect" coords="0,0,110,48" 
+					href="d4/d9c/group__comm.html" alt="Communication" title="Communication Module" 
+					onmouseout="MM_showHideLayers('comm','','hide')" />
+	</map>
+	
+	<map name="syscallout" id="syscallout">
+	<area shape="rect" coords="0,0,110,48" 
+					href="df/d61/group__syscall.html" alt="SyscallManager" title="Syscall Module" 
+					onmouseout="MM_showHideLayers('syscall','','hide')" />
+	</map>
+	
+	<map name="fileout" id="fileout">
+	<area shape="rect" coords="0,0,110,48" 
+					href="d6/da4/group__filesystem.html" alt="Filemanager" title="Filesystem Module" 
+					onmouseout="MM_showHideLayers('filemanager','','hide')" />
+	</map>
+	
+	<map name="memout" id="memout">
+	<area shape="rect" coords="0,0,110,48" 
+					href="d7/d08/group__memmanager.html" alt="Memory Manager" title="Memory Management Module" 
+					onmouseout="MM_showHideLayers('mem','','hide')" />
+	</map>
+	
+	<map name="schedulerout" id="schedulerout">
+	<area shape="rect" coords="0,0,110,48" 
+					href="d6/dcb/group__scheduler.html" alt="Scheduler" title="Scheduling Module" 
+					onmouseout="MM_showHideLayers('scheduler','','hide')" />
+	</map>
+	
+	<div style="position:absolute; left:399px; top:123px; z-index:5; visibility: hidden;" id="comm"> 
+    <img src="comm.png" width="110" height="48" style="border:0px;" alt="comm" usemap="#commout"/> 
+    </div>
+	
+	<div style="position:absolute; left:399px; top:53px; z-index:5; visibility: hidden;" id="syscall"> 
+    <img src="syscall.png" width="110" height="48" style="border:0px;" alt="comm" usemap="#syscallout"/> 
+    </div>
+	
+	<div style="position:absolute; left:246px; top:269px; z-index:5; visibility: hidden;" id="filemanager"> 
+    <img src="filemanager.png" width="110" height="48" style="border:0px;" alt="comm" usemap="#fileout"/> 
+    </div>
+	
+	<div style="position:absolute; left:246px; top:198px; z-index:5; visibility: hidden;" id="mem"> 
+    <img src="memory.png" width="110" height="48" style="border:0px;" alt="comm" usemap="#memout"/> 
+    </div>
+	
+	<div style="position:absolute; left:246px; top:123px; z-index:5; visibility: hidden;" id="scheduler"> 
+    <img src="scheduler.png" width="110" height="48" style="border:0px;" alt="comm" usemap="#schedulerout"/> 
+    </div>
+	
+</div>
+</div>
+
+ 
+   \endhtmlonly
+ * 
+ *	 \section mem Memory Management
+ *
+ *   The memory management component is one of the main components of the ORCOS kernel which is always needed. This module has to be always present in a system's configuratin.
+ ORCOS follows the rule of separating the kernel and every task's memory from each other. Thus the Kernel has its own 
+ *   memory space as well as the tasks. Each task has its own memory manager which is responsible for
+ *   the task's memory management strategy. By the use of virtual memory (which ORCOS is capable of, if the platform supports it) this
+ *   feature improves the security of the whole system. To get a more detailed description on the used memory layout take a look here:  \ref mem_layout , for a detailed description of the Memory Management module here: \ref memmodule.
+ *
+ *   \section sys Syscalls
+ *
+ *   Since ORCOS is designed as a hybrid microkernel there exists no direct communication between the tasks and the kernel as   
+ *   there is e.g. in object oriented operating systems. Therefore if a task needs to communicate with the kernel this is done  
+ *   by using the syscall API provided by the OS.
+ *   Using one of these methods defined in the syscall API (see file: ORCOS.hh) the kernel will be triggered
+ * 	 using a hardware interrupt. The desired functionality is executed through the SyscallManager which 
+ *	 is triggered whenever a syscall interrupt occurs. Also have a look here (\ref syscall) to get more details on the \ref syscall framework.
+ *
+ *	 \section filemanager Filesystem
+ *
+ *	 The ORCOS filesystem is pretty much inspired by the Unix filesystem. All devices 
+ *   are accessible by a unique path (e.g dev/comm/serial0 ). Whenever a resource is created 
+ *	 it will automatically register itself at the Filemanager so that processes may access these
+ *   resources later on. See the Resource inheritance graph to find out what kind of resources
+ *	 are supported by ORCOS. Also have a look here : \ref filesystem .
+ *
+* 	\section processes Processes
+*
+*	Processes are tasks in ORCOS that can have multiple executing entities called threads.
+ ORCOS uses multiple thread classes for different configurations. In order to guarantee 
+ predictability ORCOS supports the concept of workerthreads. Take a look here \ref process to 
+ find out more about the implemented process concepts.
+*
+ *      \section hal HAL
+ The ORCOS kernel does not operate directly on the hardware in order to maintain portability to
+ other hardware platforms, which is a key component in the ORCOS design. Thus the kernel delegates calls to the hardware through an interface
+ independent from the real hardware platform, which then delegates the calls to the real present hardware.
+ This software layer is called Hardware Abstraction Layer (HAL). To learn more about the hardware
+ abstraction, how to write device drivers and how the hardware can be accessed from userspace tasks click here: \ref devicedrivers .
+ *
+ *  \section pwrMan Power Management
+ *  Because \ref PowerManagement is very important for small and tiny devices ORCOS has built-in Power Management to control the
+ *  power consumption of devices that support throttling or other power states through their device drivers. The Power Management design and its interface is 
+ *  described in the \ref PowerManagement module.
+ *
+ *
+ *	\section schedul Scheduler
+ *	
+ *      One of the most important components of the system is the scheduling component. ORCOS distinguishes between two steps inside this component : dispatching and scheduling. Citing Giorgio C. Buttazzo these steps are described as: <em>The set of rules that, at any time, determines the order in which the 'threads' are executed is called a scheduling algorithm. The specific operation of allocating the CPU to a 'thread' selected by the scheduling algorithm is referred to as dispatching</em>.
+ *	The Scheduling strategies are implemented inside the \ref scheduler Module. Look there for information
+ *	about which scheduling strategies are supported.
+ *
+ *	\section comm Communication
+ *
+ *	The communication module is used to allow processes or the kernel to communicate
+ *	with the outside world. Therefore a very adaptable socket design was implemented
+ * 	using a completly configurable protocol stack in order to allow the system to communicate
+ *	with any other system using the same protocol. Take a look at the \ref commframework for detailed information.
+ */
+
+#endif /*DESIGN_H_*/

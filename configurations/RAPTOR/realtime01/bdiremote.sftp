@@ -1,0 +1,4 @@
+cd /cygdrive/c/BDI
+put ../../../tasks/FFTTask/FFTTask.elf
+put output/kernel.elf
+quit

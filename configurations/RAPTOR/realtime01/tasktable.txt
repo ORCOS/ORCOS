@@ -1,0 +1,23 @@
+    [apply] Current OS is Mac OS X
+    [apply] tasktable.S added as tasktable.o is outdated.
+    [apply] Executing '/usr/local/xgcc-ppc/bin/xgcc-ppc-gcc-4.3.3' with arguments:
+'-Wall'
+'-g'
+'-I/Users/morpheus/eclipse/ORCOS/configurations/RAPTOR/realtime01/../../..//source//inc'
+'-I.'
+'-I/Users/morpheus/eclipse/ORCOS/configurations/RAPTOR/realtime01/../../..//source/'
+'-I/Users/morpheus/eclipse/ORCOS/configurations/RAPTOR/realtime01/../../..//source//arch/PPC40x/'
+'-I/Users/morpheus/eclipse/ORCOS/configurations/RAPTOR/realtime01/../../..//source//arch/PPC40x//RAPTOR'
+'-fno-exceptions'
+'-fno-rtti'
+'-msoft-float'
+'-Xassembler'
+'-m405'
+'-c'
+'-o'
+'/Users/morpheus/eclipse/ORCOS/configurations/RAPTOR/realtime01/build/tasktable.o'
+'/Users/morpheus/eclipse/ORCOS/configurations/RAPTOR/realtime01/tasktable.S'
+
+The ' characters around the executable and arguments are
+not part of the command.
+    [apply] Applied /usr/local/xgcc-ppc/bin/xgcc-ppc-gcc-4.3.3 to 1 file and 0 directories.

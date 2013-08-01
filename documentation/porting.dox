@@ -1,0 +1,77 @@
+#ifndef PORTING_H_
+#define PORTING_H_
+
+/*!
+ *  \page Porting Porting ORCOS
+ * 
+ *  This page describes how to port the OS to another architecture. 
+ *
+ * \section assemFuncs Step 1: 
+ *
+ * When you start with porting ORCOS to another hardware platform you should first take a look at the files assemblerFunctions.hh and assemblerFunctions.cc .
+ * There are methods and define expressions that must be reimplemented for the new hardware.
+ * 
+ * We now give an overview about these methods and defines which are necessary for a running ORCOS:
+ * 
+ *  <h5> Define expressions </h5>
+ * \li SET_RETURN_VALUE(sp_int,retval): sets the return value for a system call, executed after finishing a system call and before restoring the context of the thread who should run
+ * \li GET_SYSCALL_NUM(sp_int,syscallnum): called at the start of handleSyscall(), used to identify the system call that caused the interrupt
+ * \li SYSCALLGETPARAMS1(int_sp,param1), ... : gets the parameters which have been delivered with the system call - there exists define expressions for up to 5 system call parameters 
+ * \li SYSCALL(ret,syscallnumber): used in the syscall() method of syscall.cc - the real system call is done here!
+ * \li SETPID(pid): the PID is set (p.e. the PID register for the PPC 405)
+ * \li SETSTACKPTR(stack_addr): sets the stack pointer to the given address
+ * \li _enableInterrupts(): the interrupts are enabled (VERY IMPORTANT)
+ * \li _disableInterrupts(): the interrupts are disabled (VERY IMPORTANT)
+ *
+ * <h5> Methods </h5>
+ * \li testandset(): providing a test and set functionality, needed for synchronization (Mutex)
+ * \li restoreContext(): this method is called when an interrupt has been handled and a thread (who has already been running before) should be executed again. Therefore the context of the thread has to be restored (set correct process ID, set correct stack pointer)
+ * \li startThread(): this method is called for every thread when this thread is executed for the first time. Therefore some more operations have to be performed than in restoreContext(). These operations include: setting the process ID, the stack pointer, the address of the start routine, arguments for the Thread (if needed) and some management operations (p.e. enabling special interrupts, swapping from kernel mode to user mode ...). Note, that the startThread method is placed in the startThread.cc file! 
+ *
+ * Additionally it is of course necessary to write a new startup routine(like the one given in _startup.S for the PPC 405) for the target architecture.
+ * \section writeNewHal Step 2: Implementation of a new HAL 
+ *
+ * The next thing you have to do when porting ORCOS to another hardware platform is to implement a new
+ * HAL. All communication with the hardware is done through the HAL. Because ORCOS is highly configurable, your
+ * new HAL needs only to implement the features you are going to use later for your application and kernel configuration.
+ *
+ * For example: If you plan to not use a watchdog timer, you don't need to implement the corresponding HAL class of the watchdog.
+ *
+ *
+ * \subsection implementationPrinciple Principles of implementation
+ *
+ * The kernel uses an abstract device driver architecture to communicate through the HAL with the real hardware. The
+ * abstract device driver class can be found in the HAL directory. As you can see on the class diagram all hardware drivers
+ * implement the GenericDeviceDriver. This is the basic interface a hardware driver has to implement. All more hardware specific
+ * drivers should derive from the GenericDeviceDriver.
+ *
+ * Only the classes in the HAL directory are usable from the kernel or user tasks. If the hardware is not fully accessible through the generic
+ * device driver interface you have to provide a new specific class in the HAL directory for it.
+ * When implementing a HAL class for your hardware you simply derive from the corresponding HAL class (for example GenericDeviceDriver, CharacterDeviceDriver,
+ * TimerDevice, etc.) and place your implementation in the arch-directory tree.
+ *
+ * From within your implementation of the architecture specific HAL you may use all functions the kernel provides.
+ *
+ * sidenote: The kernel does not use the HAL classes directly for communication with the hardware. The classes are only needed to provide a common
+ * interface to the implementing classes. On code level the kernel uses placeholders for the architecture specific classes. These placeholders
+ * are configured through XML and replaced through SCL with calls to the hardware specific classes. So it is possible to write hardware independed
+ * source code which uses hardware depended device classes.  
+ *
+ * \subsection exampleImplementation Example Implementation
+ * Assume, you want to port to a new hardware and you want to use the scheduler of ORCOS later. The scheduler relies on a timer and an interrupt
+ * handler which processes to timer events.
+ * So it should be clear that you need to supply a implementation of the TimerDevice and InterruptHandler for your hardware. You would simply
+ * place hardware specific classes that derive from InterruptHandler and TimerDevice from the HAL-directory in your architecture specific directory
+ * in the arch-directory tree.
+ *
+ * \section adjustSCLConfig Step 3: Adjust the SCLConfig.xml
+ * To make the kernel and all your tasks use of your HAL classes you need to adjust the SCLConfig.xml file of your kernel configuration to map
+ * all the HAL Classes that are used to the correct architecture specific classes.
+ *
+ * \section adjustMakefile Step 4: Adjust the Makefile
+ * If you are done with the new HAL you have to adjust the Makefile to actually have your classes build and linked to the executable of the kernel. 
+ */
+
+
+
+#endif /*PORTING_H_*/

@@ -1,0 +1,12 @@
+/io.o
+/libgloss.o
+/liborcos_newlib.a
+/liborcos.a
+/mem.o
+/Mutex.o
+/net.o
+/pthread.o
+/signal.o
+/static.o
+/string.o
+/threads.o

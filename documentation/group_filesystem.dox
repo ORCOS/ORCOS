@@ -1,0 +1,34 @@
+
+/**
+ * \defgroup filesystem Filesystem
+  
+The filesystem of ORCOS is very similar to the Unix filesystem.
+All entries of the filesystem can be accessed by a unique path like e.g. "dev/led0".
+Basically everything that is a Resource can be registered inside the filesystem.
+Some classes like CharacterDeviceDriver and CommDeviceDriver also 
+register themselves automatically at the system's Filemanager. The Filemanager implements the filesystem
+structure and thus may be exchanged by any possible filesystem. The current implementation
+supports a Unix filesystem but with very limited functionality. See the class SimpleFileManager
+for the current implementation of the ORCOS filesystem.
+
+<h3> Registering Resources </h3>
+There are two different ways of adding resources to the filesystem.
+On the one hand if the resource is a device driver the resource needs to be registered 
+by the Filemanager's registerResource() method. Depending on the implementation of the 
+filemanager this will put the resource into the appropriate directory. 
+
+If the resource is something else the resource can directly be added 
+to the directory the resource shall be available under. Therefore 
+the method getDirectory() can be used to get the directory. If the 
+resource is some device driver do \b not use this method since the 
+location of the resouce will be very imporant for the system to work correctly.
+
+<h3> Access to resources on the filesystem </h3>
+All accesses to the resources on the filesystem inside a thread are done with the fopen() syscall. It returns
+a file handle that can be used to access the device. When opening the device its
+access is exclusively granted to you. This is important if you use more than one thread
+because there is a possibility to introduce deadlocks when acquiring more than one device.
+All devices are automatically secured by a mutex.
+
+
+*/

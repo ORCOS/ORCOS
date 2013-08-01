@@ -1,0 +1,5 @@
+cd /cygdrive/c/xmd
+put ../../../tasks/task2/task2.elf
+put output/kernel.elf
+put xmd.ini
+quit

@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Dependencies xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:schemaLocation="http://orcos.cs.uni-paderborn.de/SCL http://orcos.cs.uni-paderborn.de/SCL/scl2deps.xsd">
+  	
+  	<Skeleton>
+  		<Name>ResourceMutex</Name>
+	    
+  	 	<Member>
+	      <Name>Scheduler</Name>
+	      <Classes>
+	       	<Class>scheduler/RoundRobinThreadScheduler</Class>
+	      </Classes>
+	     </Member>	
+  	</Skeleton>
+  	
+  		<Skeleton>
+  		<Name>SimpleMutex</Name>
+  	 	<Member>
+	      <Name>Scheduler</Name>
+	      <Classes>
+	       	<Class>scheduler/RoundRobinThreadScheduler</Class>
+	      </Classes>
+	     </Member>	
+  	</Skeleton>
+  	
+  	
+  	<Skeleton>
+		<Name>Semaphore</Name>
+		<Member>
+			<Name>Scheduler</Name>
+			<Classes>
+				<Class>scheduler/RoundRobinThreadScheduler</Class>
+			</Classes>
+		</Member>
+	</Skeleton>
+
+	<Skeleton>
+		<Name>Thread</Name>
+		<Superclasses>
+			<Superclass>process/Thread</Superclass>
+			<Superclass>process/PriorityThread</Superclass>
+		</Superclasses>
+	</Skeleton>
+
+
+	<Skeleton>
+		<Name>TheTimer</Name>
+		<Superclasses>
+			<Superclass>arch/PPC40x/PPC405ProgrammableIntervalTimer</Superclass>
+		</Superclasses>
+	</Skeleton>
+
+
+	<Skeleton>
+		<Name>MemoryManager</Name>
+		<Superclasses>
+			<Superclass>mem/LinearMemManager</Superclass>
+		</Superclasses>
+		<Member>
+			<Name>Seg</Name>
+			<Classes>
+				<Class>mem/MemResource</Class>
+			</Classes>
+		</Member>
+		<Member>
+			<Name>HatLayer</Name>
+			<Classes>
+				<Class>mem/HatLayer</Class>
+			</Classes>
+		</Member>
+	</Skeleton>
+
+
+	<Skeleton>
+		<Name>Board</Name>
+		<Superclasses>
+			<Superclass>hal/Board</Superclass>
+		</Superclasses>
+		<Member>
+			<Name>Processor</Name>
+			<Classes>
+				<Class>arch/PPC40x/PPC405FXProcessor</Class>
+			</Classes>
+		</Member>
+		<Member>
+			<Name>Watchdog</Name>
+			<Classes>
+				<Class>arch/PPC40x/PPC405Watchdog</Class>
+			</Classes>
+		</Member>
+		<Member>
+			<Name>UART</Name>
+			<Classes>
+				<Class>arch/PPC40x/Virtex2/OPB_UART_Lite</Class>
+			</Classes>
+		</Member>
+		<Member>
+			<Name>LED</Name>
+			<Classes>
+				<Class>arch/PPC40x/Virtex2/LED</Class>
+			</Classes>
+		</Member>
+		<Member>
+			<Name>InterruptHandler</Name>
+			<Classes>
+				<Class>arch/PPC40x/PPC405InterruptHandler</Class>
+			</Classes>
+		</Member>
+	</Skeleton>
+
+	<Skeleton>
+		<Name>Kernel</Name>
+		<Superclasses>
+			<Superclass>kernel/Kernel</Superclass>
+		</Superclasses>
+		<Member>
+			<Name>Board</Name>
+			<Classes>
+				<Class>arch/PPC40x/Virtex2/Virtex2Board</Class>
+			</Classes>
+		</Member>
+		<Member>
+			<Name>Logger</Name>
+			<Classes>
+				<Class>debug/Logger</Class>
+			</Classes>
+		</Member>
+	</Skeleton>	
+ </Dependencies>

@@ -1,0 +1,48 @@
+#ifndef SYNCHRONIZATION_
+#define SYNCHRONIZATION_
+
+/**
+ * \defgroup synchro Synchronization
+ * 
+ * 
+ * 
+ * The following classes are part of the ORCOS synchronization component:
+ * - Mutex
+ * - Semaphore
+ * 
+ * 
+ * Both the Mutex class and the Semaphore class present the same interface. Most important are 
+ * the acquire() and release() methods.  If the mutex is in use or the semaphore is full when acquire()
+ * is called, the calling thread will be blocked and scheduled by the respective synchronization class.
+ * When its turn comes around it will be unblocked again. Optionally both synchronization classes will
+ * take care of resource management. To use this feature, the respective resource has to be given as 
+ * an argument during a call to acquire(). The following activity diagram thoroughly presents the internal 
+ * operation of the Mutex class. For a better overview about the relation between classes that
+ * are part of the resource acquiring process the sequence diagrams further down are
+ * recommended.
+ * 
+ *  \image html RM-Activity.png
+ *  
+ * The following sequence diagram shows the typical way resources are acquired and released in
+ * a very abstract and simplified way. A more detailed sequence diagram follows.
+ * \image html RM-Sequenz-Simple.png
+ * 
+ * The following three sequence diagrams describe in detail the resource acquire / release 
+ * process. The described scenario is as follows: 
+ *	- Thread 1 acquires a free resource
+ *	- Thread 2 also tries to acquire this resource but fails because it is already in use
+ *	- Thread 1 releases the resource
+ *	- Now the resource is acquired by Thread 2
+ *
+ * Part 1: Thread 1 acquires the resource
+ * \image html RM-Sequenz-Complex.png
+ *
+ * Part 2: Thread 2 tries to acquire, but fails.
+ * \image html RM-Sequenz-Complex2.png
+ *
+ * Part 3: Thread 1 releases the resource again, which is acquired by Thread 2
+ * \image html RM-Sequenz-Complex3.png 
+ *
+ * */
+
+#endif /*SYNCHRONIZATION_*/

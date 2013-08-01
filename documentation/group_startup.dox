@@ -1,0 +1,30 @@
+
+/**
+ * \defgroup startup System Startup
+ * 
+ * This is the sequence diagram of ORCOS startup progress. 
+ *
+ * \image html ORCOS-Startup-Sequence.png
+ * 
+ * The first grey highlighted units are the essential kernel components which
+ * have to be instanced before ORCOS can begin working. The second group of 
+ * components are the hardware-dependent parts of the minimal configuration. 
+ *
+ * The first lifeline (with the actor-symbol) represents the assembler 
+ * start routine (in _startup.S) which clears timers, irqs, bss section 
+ * and the stackpointer. After this the assembler startup code branches to 
+ * the kernelmain()-function (in kernelmain.c). 
+ *
+ * The kernelmain()-function creates the memory manager for virtual or non-virtual memory.
+ * The next step is to allocate memory for the instance of the kernel. 
+ * After this the Kernel::initialize() is called which sets up the Kernel-Object.  
+ * 
+ * The Kernel::initialize() call now creates SingleCPUDispatcher, IdleThread, SyscallManager and SimpleFileManager.
+ * Then the system clock is set up and Tasktables (A) and MemoryManagers for the configured tasks are created.
+ * 
+ * Now the WorkerTask (see <a href="../../da/dd7/group__process.html">Processes in ORCOS</a> for further details) is created and added to TaskTable.
+ * The next step initializes the Board and the encapsulated DeviceDrivers including the InterruptHandler (B) to handle Timer and external Interrupts.
+ * Afterwards the ProtocolPool, the Logger and the TaskManager are instantiated, and then the Scheduler starts with scheduling.
+ *
+ **/
+

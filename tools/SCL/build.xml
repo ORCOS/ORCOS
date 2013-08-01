@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+
+<project name="SCL2" default="all" basedir=".">
+
+	<path id="cp">
+		<pathelement location="lib/jdom.jar"/>		
+	</path>
+	
+	<!-- ================================= 
+          target: compile              
+         ================================= -->
+    <target name="compile" depends="clean">
+    	
+    	<unjar src="lib/jdom.jar" dest="bin" />
+    	<javac srcdir="src" destdir="bin" target="1.5" source="1.5" classpathref="cp" />
+     	
+    	<copy todir="bin">
+    	        	    <fileset dir="src" excludes=".svn" />
+    	</copy>
+    	
+    	
+    	<jar destfile="dist/scl2.jar" basedir="bin">
+    		<manifest>
+    		   <attribute name="Main-class" value="de.upb.cs.orcos.xml.SCLReader"/>
+    		</manifest>
+    	</jar>
+    	
+    	<copy todir="dist">
+    	     <fileset file="scl2.xsd"/>
+    		 <fileset file="scl2deps.xsd"/>
+    	</copy>
+    	
+    </target>
+
+	<target name="clean">
+		<delete dir="bin"/>
+	   	<delete file="dist/scl2.xsd"/>
+		<delete file="dist/scl2deps.xsd"/>
+	    <delete file="dist/scl2.jar"/>
+    	<mkdir dir="bin"/>
+    	
+   	</target>
+
+	
+	<!-- ================================= 
+	          target: all              
+	         ================================= -->
+	<target name="all" depends="clean,compile">
+
+		<echo>Done!</echo>
+
+	</target>
+
+
+</project>
+
+

@@ -1,0 +1,4 @@
+load AISDemoClient.elf
+load AISClient.elf
+ep 0x420004000
+tm both

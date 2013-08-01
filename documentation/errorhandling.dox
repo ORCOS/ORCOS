@@ -1,0 +1,28 @@
+/*!
+
+ \page errorhandle Error handling in ORCOS
+
+ This page describes the possibilities of ORCOS to handle internal software errors in the Kernel. In contrast to interrupts these these software errors don't cause a direct handling but can lead later (if not recognized and processed) to malfunction of the system.
+ Examples for such errors could be: an array index overflow, an element in a database is not found or an request for memory allocation cannot be satisfied.
+ 
+ Therefore ORCOS introduces error codes to distinguish between different errors. These error codes are especially in many cases used as return values for method calls to inform about the success of an operation.
+ Using this error code the method caller should be able to identify and react to the occuring problem.
+ 
+ But sometimes the module where the error occurs itself is not capable of fixing the problem on its own and the problem has to be communicated. Then a global handler is needed which can delegate this problem to the needed module. In ORCOS this is achieved by the global handleError() method (with two versions: one gets as parameter only the error code, the other one gets additionally the thread causing the error).
+ 
+ <h3>Actual Implementation and principles of error codes</h3>
+ 
+ The actual implementation and the error codes(given as define expressions) used so far in our system can be found in the files error.hh and error.cc . So far the handleError() method only prints debug information if called with an error code.
+ It is up to later implementations to change this to achieve a more sophisticated behaviour.
+ 
+ It is also possible to introduce different new error codes. 
+ The following guidelines should be followed when expanding and working with error codes:
+ 
+ \li the value 0 is given to the define cOk, this indicates a correct operation
+ \li defines with values smaller than zero indicate errors, defines with values bigger than zero indicate warnings
+ \li for error codes that should be used globally the absolut value of their define should be bigger than 1000. The following global error codes are already defined in our system and we recommend to use them: cError indicates an occuring error which is not specified (or there is no need to use a specific error code) and cNotImplemented is used for methods which are not implemented (as an example, look at the free() method of the LinearMemManager class).
+ \li other error codes are defined for the specific modules, the following (absolut) values V are already used: 0 < V < 100 (Scheduling), 100 <= V < 200 (Memory Management), 200 <= V < 300 (Synchronization), 300 <= V < 400 (Process Management), 400 <= V < 500 (Communication), 500 <= V < 600 (Database), 600 <= V < 700 (HAL), 700 <= V < 800 (Architecture).       
+
+ If new values are introduced or the distribution should be changed, this should also be documented in the error.hh .
+  
+*/

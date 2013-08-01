@@ -1,0 +1,5 @@
+Currently (partially) supported modules:
+
+/ARM/ARMv4T/ARMv7/omap3530/BeagleBoardUART
+
+all other will produce compile errors

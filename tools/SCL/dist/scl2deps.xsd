@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+    <xs:element name="Dependencies">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="Skeleton" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:element ref="Defines" maxOccurs="unbounded" minOccurs="0"/>
+                </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+        
+    <xs:element name="Skeleton">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="Name" type="xs:string" maxOccurs="1"  minOccurs="1" />
+                <xs:element ref="Superclasses" maxOccurs="1" minOccurs="0" />
+                <xs:element ref="Member" maxOccurs="unbounded" minOccurs="0" />
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    
+    <xs:element name="Member">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="Name" type="xs:string" maxOccurs="1"  minOccurs="1" />
+                <xs:element ref="Classes" maxOccurs="1" minOccurs="1" />
+                <xs:element name="Userspace" type="xs:boolean" maxOccurs="1" minOccurs="0" />
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+        
+        
+    <xs:complexType name="ExtendedClass">
+         <xs:simpleContent>
+          <xs:extension base="xs:string">
+           <xs:attribute name="requires" type="xs:string"/>
+          </xs:extension>
+         </xs:simpleContent>
+        </xs:complexType>
+    
+
+    <xs:complexType name="ExtendedSuperClass">
+         <xs:simpleContent>
+          <xs:extension base="xs:string">
+           <xs:attribute name="provides" type="xs:string"/>
+          </xs:extension>
+         </xs:simpleContent>
+        </xs:complexType>
+
+    
+    <xs:element name="Classes">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="Class" type="ExtendedClass" maxOccurs="unbounded" minOccurs="1"  />           
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    
+    <xs:element name="Superclasses">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="Superclass" type="ExtendedSuperClass" maxOccurs="unbounded" minOccurs="1" />
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    
+    <xs:element name="Defines">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="Define" maxOccurs="unbounded" minOccurs="0" />
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    
+    <xs:element name="Define">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="Name" type="xs:string" maxOccurs="1"  minOccurs="1" />
+                <xs:element name="Description" type="xs:string" maxOccurs="1" minOccurs="1" />
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    
+</xs:schema>

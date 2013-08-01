@@ -1,0 +1,614 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Dependencies>
+
+  <!-- #################################################### 
+  						Mutex Skeleton
+	   #################################################### -->
+
+  <Skeleton>
+    <Name>Mutex</Name>
+    <Member>
+      <Name>Scheduler</Name>
+      <Classes>
+        <Class>scheduler/RoundRobinThreadScheduler</Class>
+        <Class>scheduler/PriorityThreadScheduler</Class>
+      </Classes>
+    </Member>
+  </Skeleton>
+  
+      <!-- #################################################### 
+  						Semaphore Skeleton
+	   #################################################### -->
+  
+  <Skeleton>
+    <Name>Semaphore</Name>
+    <Member>
+      <Name>Scheduler</Name>
+      <Classes>
+        <Class>scheduler/RoundRobinThreadScheduler</Class>
+        <Class>scheduler/PriorityThreadScheduler</Class>
+      </Classes>
+    </Member>
+  </Skeleton>
+  
+    <!-- #################################################### 
+  						Dispatcher Skeleton
+	   #################################################### -->
+  
+  
+  <Skeleton>
+    <Name>SingleCPUDispatcher</Name>
+    <Member>
+      <Name>Scheduler</Name>
+      <Classes>
+        <Class>scheduler/RoundRobinThreadScheduler</Class>
+        <Class>scheduler/PriorityThreadScheduler</Class>
+        <Class>scheduler/RateMonotonicThreadScheduler</Class>
+        <Class>scheduler/EarliestDeadlineFirstThreadScheduler</Class>
+        <Class>scheduler/EarliestDeadlineFirstThreadScheduler_TBS</Class>
+      </Classes>
+    </Member>
+  </Skeleton>
+  
+     <!-- #################################################### 
+  						Thread Skeleton
+	   #################################################### -->
+  
+  <Skeleton>
+    <Name>Thread</Name>
+    <Superclasses>
+      <Superclass>process/Thread</Superclass>
+      <Superclass>process/PriorityThread</Superclass>
+      <Superclass>process/RealTimeThread</Superclass>
+    </Superclasses>
+  </Skeleton>
+
+  
+   <!-- #################################################### 
+  						MemoryManager Skeleton
+	   #################################################### -->
+  
+  <Skeleton>
+    <Name>MemoryManager</Name>
+    <Superclasses>
+      <Superclass>mem/LinearMemManager</Superclass>
+      <Superclass>mem/SequentialFitMemManager</Superclass>
+    </Superclasses>
+    <Member>
+      <Name>Seg</Name>
+      <Classes>
+        <Class>mem/MemResource</Class>
+      </Classes>
+    </Member>
+    <Member>
+      <Name>HatLayer</Name>
+      <Classes>
+        <Class>hal/HatLayer</Class>
+        <Class requires="PPC405">arch/PPC40x/PPC405HatLayer</Class>
+        <Class requires="Leon3">arch/Leon3/Leon3HatLayer</Class>
+        <Class requires="CortexA8">arch/ARM/ARMv4T/ARMv7/ARMv7HatLayer</Class>
+      </Classes>
+    </Member>
+    <Member>
+      <Name>FirstFit</Name>
+      <Classes>
+        <Class></Class>
+      </Classes>
+    </Member>
+    <Member>
+      <Name>NextFit</Name>
+      <Classes>
+        <Class></Class>
+      </Classes>
+    </Member>
+    <Member>
+      <Name>BestFit</Name>
+      <Classes>
+        <Class></Class>
+      </Classes>
+    </Member>
+    <Member>
+      <Name>WorstFit</Name>
+      <Classes>
+        <Class></Class>
+      </Classes>
+    </Member>
+  </Skeleton>
+  
+  
+  <!-- #################################################### 
+  						Board Skeleton
+	   #################################################### -->
+  
+  <Skeleton>
+    <Name>Board</Name>
+    <Superclasses>
+       <Superclass provides="PPC405,Virtex2,FPGA">arch/PPC40x/Virtex2/Virtex2Board</Superclass>
+       <Superclass provides="PPC405,RAPTOR,FPGA">arch/PPC40x/RAPTOR/RaptorBoard</Superclass>
+       <Superclass provides="SPARC,Leon3,Virtex4">arch/Leon3/GR-CPCI-XC4V/Virtex4Board</Superclass>
+       <Superclass provides="ARMv4,ARMv7,CortexA8,OMAP3530,BeagleBoard">arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoard/BeagleBoard</Superclass>
+       <Superclass provides="ARMv4,ARMv7,CortexA8,OMAP3530,BeBot">arch/ARM/ARMv4T/ARMv7/Omap3530/BeBot/BeBot</Superclass>
+       <Superclass provides="ARMv4,ARMv7,CortexA8,OMAP3530,BeagleBoard,BeagleBoardxM">arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardxM/BeagleBoardxM</Superclass>
+    </Superclasses>
+    <Member>
+      <Name>Timer</Name>
+      <Classes>
+        <Class requires="PPC405">arch/PPC40x/PPC405ProgrammableIntervalTimer</Class>
+        <Class requires="PPC405">arch/PPC40x/PPC405FixedIntervalTimer</Class>
+        <Class requires="Leon3">arch/Leon3/Leon3IntervalTimer</Class>
+        <Class requires="OMAP3530">arch/ARM/ARMv4T/ARMv4TFixedIntervalTimer</Class>
+        <Class requires="OMAP3530">arch/ARM/ARMv4T/ARMv4TProgrammableIntervalTimer</Class>
+        <Class requires="OMAP3530">arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardGPTimer1</Class>
+      </Classes>
+    </Member>
+    <Member>
+      <Name>Clock</Name>
+        <Classes>
+          <Class requires="PPC405">arch/PPC40x/PPC405Clock</Class>
+          <Class requires="Leon3">arch/Leon3/Leon3Clock</Class>
+          <Class requires="OMAP3530">arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530Clock</Class>
+        </Classes>
+    </Member>
+    <Member>
+      <Name>Processor</Name>
+      <Classes>
+        <Class requires="PPC405">arch/PPC40x/PPC405FXProcessor</Class>
+        <Class requires="Leon3">arch/Leon3/Leon3Processor</Class>
+        <Class requires="CortexA8">arch/ARM/ARMv4T/ARMv4TProcessor</Class>
+      </Classes>
+    </Member>
+    <Member>
+      <Name>Watchdog</Name>
+      <Classes>
+        <Class requires="PPC405">arch/PPC40x/PPC405Watchdog</Class>
+        <Class>arch/none/DummyWatchdog</Class>
+      </Classes>
+    </Member>
+    <Member>
+      <Name>UART</Name>
+      <Classes>
+        <Class requires="Virtex2">arch/PPC40x/Virtex2/OPB_UART_Lite</Class>
+        <Class requires="RAPTOR">arch/PPC40x/RAPTOR/OPB_UART_Lite</Class>
+        <Class requires="RAPTOR">arch/PPC40x/RAPTOR/UART16550</Class>
+        <Class requires="Leon3">arch/Leon3/GR-CPCI-XC4V/LEON_UART</Class>
+        <Class requires="OMAP3530">arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardUART</Class>
+        <Class requires="OMAP3530">arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530i2c</Class>
+        <Class requires="OMAP3530">arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardUARTforHCI</Class>
+        <Class requires="RAPTOR">arch/PPC40x/RAPTOR/QEMU_UART</Class>
+        <Class>arch/none/DummyCharDriver</Class>
+      </Classes>
+    </Member>
+    <Member>
+      <Name>UART2</Name>
+      <Classes>
+        <Class requires="Virtex2">arch/PPC40x/Virtex2/OPB_UART_Lite</Class>
+        <Class requires="RAPTOR">arch/PPC40x/RAPTOR/OPB_UART_Lite</Class>
+        <Class requires="RAPTOR">arch/PPC40x/RAPTOR/UART16550</Class>
+        <Class requires="Leon3">arch/Leon3/GR-CPCI-XC4V/LEON_UART</Class>
+        <Class requires="OMAP3530">arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardUART</Class>
+        <Class requires="OMAP3530">arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardUARTforHCI</Class>
+        <Class requires="OMAP3530">arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530i2c</Class>
+        <Class requires="RAPTOR">arch/PPC40x/RAPTOR/QEMU_UART</Class>
+        <Class>arch/none/DummyCharDriver</Class>
+      </Classes>
+    </Member>
+    <Member>
+      <Name>USB_HC</Name>
+      <Classes>
+        <Class requires="OMAP3530">arch/ARM/ARMv4T/ARMv7/Omap3530/HighSpeedUSBHostController</Class>
+        <Class>arch/none/DummyClass</Class>
+      </Classes>
+    </Member> 
+    <Member>
+      <Name>HCI</Name>
+      <Classes>
+        <Class requires="BeBot">arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardUARTforHCI</Class>
+        <Class>arch/none/DummyCharDriver</Class>
+      </Classes>
+    </Member>    
+    <Member>
+      <Name>ETH</Name>
+      <Classes>
+        <Class requires="RAPTOR">arch/PPC40x/RAPTOR/PLB_EMAC0</Class>
+        <Class requires="Leon3">arch/Leon3/GR-CPCI-XC4V/Leon3_GRETH</Class>
+        <Class>arch/none/DummyCommDriver</Class>
+      </Classes>
+    </Member>
+    <Member>
+      <Name>SHM</Name>
+      <Classes>
+        <Class requires="Leon3">arch/Leon3/ShmDriver/ShmDriver</Class>
+        <Class>arch/none/DummyCommDriver</Class>
+      </Classes>
+    </Member>
+    <Member>
+      <Name>LED</Name>
+      <Classes>
+        <Class requires="Virtex2">arch/PPC40x/Virtex2/LED</Class>
+        <Class requires="RAPTOR">arch/PPC40x/RAPTOR/LED</Class>
+        <Class requires="Leon3">arch/Leon3/GR-CPCI-XC4V/LED</Class>
+        <Class requires="Bebot">arch/ARM/ARMv4T/ARMv7/Omap3530/BeBot/Omap3530_BebotLED</Class>
+        <Class>arch/none/DummyCharDriver</Class>
+      </Classes>
+    </Member>
+    <Member>
+      <Name>InterruptHandler</Name>
+      <Classes>
+        <Class requires="PPC405">arch/PPC40x/PPC405InterruptHandler</Class>
+        <Class requires="Leon3">arch/Leon3/GR-CPCI-XC4V/Leon3InterruptHandler</Class>
+        <Class requires="OMAP3530">arch/ARM/ARMv4T/ARMv4TInterruptHandler</Class>
+      </Classes>
+    </Member>
+    <Member>
+      <Name>InterruptController</Name>
+      <Classes>
+        <Class requires="RAPTOR">arch/PPC40x/RAPTOR/OPB_Interrupt_Controller</Class>
+        <Class requires="RAPTOR">arch/PPC40x/RAPTOR/UIC_Interrupt_Controller</Class>
+        <Class requires="Leon3">arch/Leon3/GR-CPCI-XC4V/Leon3_IRQMP</Class>
+        <Class requires="OMAP3530">arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardInterruptController</Class>
+      </Classes>
+    </Member>
+  </Skeleton>
+  
+     <!-- #################################################### 
+  						Kernel Skeleton
+	   #################################################### -->
+  
+  <Skeleton>
+    <Name>Kernel</Name>
+    <Superclasses>
+      <Superclass>kernel/Kernel</Superclass>
+    </Superclasses>
+    <Member>
+      <Name>Logger</Name>
+      <Classes>
+        <Class>debug/Logger</Class>
+        <Class>debug/ETHLogger</Class>
+      </Classes>
+    </Member>
+    <Member>
+      <Name>PowerManager</Name>
+      <Classes>
+        <Class>hal/PowerManager</Class>
+      </Classes>
+    </Member>
+    <Member>
+      <Name>TaskManager</Name>
+      <Classes>
+        <Class>process/TaskManager</Class>
+      </Classes>
+    </Member>
+    <Member>
+      <Name>MigrationManager</Name>
+      <Classes>
+        <Class>migration/MigrationManager</Class>
+      </Classes>
+    </Member>
+    <Member>
+      <Name>ServiceDiscovery</Name>
+      <Classes>
+        <Class>comm/servicediscovery/SNServiceDiscovery</Class>
+      </Classes>
+    </Member>
+  </Skeleton>
+  
+     <!-- #################################################### 
+  						Protocols Skeleton
+	   #################################################### -->
+  <Skeleton>
+    <Name>Protocols</Name>
+    <Member>
+      <Name>Transportprotocols</Name>
+      <Classes>
+        <Class>SimpleTransportProtocol</Class>
+        <Class>UDP</Class>        
+      </Classes>
+    </Member>
+    <Member>
+      <Name>Addressprotocols</Name>
+      <Classes>
+        <Class>SimpleAddressprotocol</Class>
+        <Class>IPv4Addressprotocol</Class>
+        <Class>ARP</Class>        
+      </Classes>
+    </Member>
+  </Skeleton>
+  
+     <!-- #################################################### 
+  						SyscallManager Skeleton
+	   #################################################### -->
+  
+   <Skeleton>
+    <Name>SyscallManager</Name>
+    <Superclasses>
+      <Superclass>syscalls/SyscallManager</Superclass>
+    </Superclasses>
+    <Member>
+      <Name>sleepSyscall</Name>
+      <Classes>
+        <Class></Class>
+      </Classes>
+    </Member>
+    <Member>
+      <Name>thread_createSyscall</Name>
+      <Classes>
+        <Class></Class>
+      </Classes>
+    </Member>
+    <Member>
+      <Name>thread_runSyscall</Name>
+      <Classes>
+        <Class></Class>
+      </Classes>
+    </Member>
+    <Member>
+      <Name>thread_selfSyscall</Name>
+      <Classes>
+        <Class></Class>
+      </Classes>
+    </Member>
+    <Member>
+      <Name>thread_yieldSyscall</Name>
+      <Classes>
+        <Class></Class>
+      </Classes>
+    </Member>
+    <Member>
+      <Name>signal_waitSyscall</Name>
+      <Classes>
+        <Class></Class>
+      </Classes>
+    </Member>
+    <Member>
+      <Name>signal_signalSyscall</Name>
+      <Classes>
+        <Class></Class>
+      </Classes>
+    </Member>
+    <Member>
+      <Name>fputcSyscall</Name>
+      <Classes>
+        <Class></Class>
+      </Classes>
+    </Member>
+    <Member>
+      <Name>fgetcSyscall</Name>
+      <Classes>
+        <Class></Class>
+      </Classes>
+    </Member>
+    <Member>
+      <Name>fcreateSyscall</Name>
+      <Classes>
+        <Class></Class>
+      </Classes>
+    </Member>
+    <Member>
+      <Name>fopenSyscall</Name>
+      <Classes>
+        <Class></Class>
+      </Classes>
+    </Member>
+    <Member>
+      <Name>fcloseSyscall</Name>
+      <Classes>
+        <Class></Class>
+      </Classes>
+    </Member>
+    <Member>
+      <Name>fwriteSyscall</Name>
+      <Classes>
+        <Class></Class>
+      </Classes>
+    </Member>
+    <Member>
+      <Name>freadSyscall</Name>
+      <Classes>
+        <Class></Class>
+      </Classes>
+    </Member>
+    <Member>
+      <Name>newSyscall</Name>
+      <Classes>
+        <Class></Class>
+      </Classes>
+    </Member>
+    <Member>
+      <Name>deleteSyscall</Name>
+      <Classes>
+        <Class></Class>
+      </Classes>
+    </Member>
+    <Member>
+      <Name>socketSyscall</Name>
+      <Classes>
+        <Class></Class>
+      </Classes>
+    </Member>
+    <Member>
+      <Name>connectSyscall</Name>
+      <Classes>
+        <Class></Class>
+      </Classes>
+    </Member>
+    <Member>
+      <Name>listenSyscall</Name>
+      <Classes>
+        <Class></Class>
+      </Classes>
+    </Member>
+    <Member>
+      <Name>bindSyscall</Name>
+      <Classes>
+        <Class></Class>
+      </Classes>
+    </Member>
+    <Member>
+      <Name>sendtoSyscall</Name>
+      <Classes>
+        <Class></Class>
+      </Classes>
+    </Member>
+    <Member>
+      <Name>recvSyscall</Name>
+      <Classes>
+        <Class></Class>
+      </Classes>
+    </Member>
+    <Member>
+      <Name>add_devaddrSyscall</Name>
+      <Classes>
+        <Class></Class>
+      </Classes>
+    </Member>
+    <Member>
+      <Name>task_stopSyscall</Name>
+      <Classes>
+        <Class></Class>
+      </Classes>
+    </Member>
+    <Member>
+      <Name>task_resumeSyscall</Name>
+      <Classes>
+        <Class></Class>
+      </Classes>
+    </Member>
+    </Skeleton>
+    
+    <Defines>
+        <Define>
+            <Name>ENABLE_NESTED_INTERRUPTS</Name>
+            <Description>Allows interrupts to occur while the kernel is handling an user interrupt e.g a syscall. Strongly recommended for Real-Time Systems!</Description>
+        </Define>
+        
+        <Define>
+            <Name>HAS_PROCFS_ENABLED</Name>
+            <Description>Enables the debug device /proc/info which can be read to get information on the running system.</Description>
+        </Define>
+        
+         <Define>
+            <Name>USE_WORKERTASK</Name>
+            <Description>Enables the use of the workertask which allows the scheduling of interrupts. Important for Real-Time Systems. Use in combination with NUM_WORKERTHREADS.</Description>
+        </Define>
+        
+        <Define>
+            <Name>NUM_WORKERTHREADS</Name>
+            <Description>The amount of workerthreads that shall be available. Keep as small as small as possible since every workerthread needs its own stack but as big enough to handle all interrupts and periodic or timed functionalities (e.g ARP resending a.s.o.). </Description>
+        </Define>
+        
+         <Define>
+            <Name>LOG_TASK_SPACE_START</Name>
+            <Description>The logical (virtual) address the memory space a tasks starts at. (Only used if HAT_LAYER is available) </Description>
+        </Define>
+        
+        <Define>
+            <Name>NUM_ADDRESS_PROTOCOLS</Name>
+            <Description>Do not modify. Its automatically modified if you change the protocols inside the Protocols Section. </Description>
+        </Define>
+        
+         <Define>
+            <Name>NUM_TRANSPORT_PROTOCOLS</Name>
+            <Description>Do not modify. Its automatically modified if you change the protocols inside the Protocols Section. </Description>
+        </Define>
+        
+         <Define>
+            <Name>USE_SIMPLEADDRESSPROTOCOL</Name>
+            <Description>Do not modify. Its automatically modified if you change the protocols inside the Protocols Section. </Description>
+        </Define>
+        
+         <Define>
+            <Name>USE_ARP</Name>
+            <Description>Do not modify. Its automatically modified if you change the protocols inside the Protocols Section. </Description>
+        </Define>
+        
+        <Define>
+            <Name>USE_SIMPLETRANSPORTPROTOCOL</Name>
+            <Description>Do not modify. Its automatically modified if you change the protocols inside the Protocols Section. </Description>
+        </Define>
+
+        <Define>
+            <Name>MMIO_START_ADDRESS</Name>
+            <Description>The start address of the memory mapped I/O. (Only used if HAT_LAYER is available)</Description>
+        </Define>
+        
+        <Define>
+            <Name>MMIO_AREA_LENGTH</Name>
+            <Description>The length of the MMIO area. All MMIO devices have to fit into this area! (Only used if HAT_LAYER is available)</Description>
+        </Define>
+        
+         <Define>
+            <Name>ICACHE_ENABLE</Name>
+            <Description>Enables the instruction cache (harvard architectures).</Description>
+        </Define>
+        
+        <Define>
+            <Name>DCACHE_ENABLE</Name>
+            <Description>Enables the data cache (harvard architectures).</Description>
+        </Define>
+        
+        <Define>
+            <Name>DEFAULT_USER_STACK_SIZE</Name>
+            <Description>The default size in bytes of a stack for a newly created thread.</Description>
+        </Define>
+        
+        <Define>
+            <Name>STACK_GROWS_DOWNWARDS</Name>
+            <Description>Indicates whether the stack pointer is decremented or incremented on this architecture.</Description>
+        </Define>
+        
+        <Define>
+            <Name>RESERVED_BYTES_FOR_STACKFRAME</Name>
+            <Description>The minimal size of a stack frame.</Description>
+        </Define>
+        
+        <Define>
+            <Name>CLEAR_THREAD_STACKS</Name>
+            <Description>Enables the clearing of the stack memory area whenever a thread is created. (Slows down the system a little bit) </Description>
+        </Define>
+        
+        <Define>
+            <Name>WORKERTHREAD_STACK_SIZE</Name>
+            <Description>The stack size for a workerthread. </Description>
+        </Define>
+        
+        <Define>
+            <Name>WORKERTHREAD_UART_PRIORITY_PARAM</Name>
+            <Description>The priority (parameter) for a workerthread handling an UART interrupt.</Description>
+        </Define>
+        
+        <Define>
+            <Name>WORKERTHREAD_ETH_PRIORITY_PARAM</Name>
+            <Description>The priority (parameter) for a workerthread handling an ETH interrupt.</Description>
+        </Define>
+        
+        <Define>
+            <Name>USE_SAFE_KERNEL_STACKS</Name>
+            <Description>Enabling this feature will cause every thread executing in kernel space (e.g whenever a syscall is handled) to use a new stack unaccessable from user space so no stack sniffing can be done.</Description>
+        </Define>
+        
+        <Define>
+            <Name>KERNEL_STACK_SIZE</Name>
+            <Description>If USE_SAFE_KERNEL_STACKS is set this define sets the size of the kernel stacks.</Description>
+        </Define>
+        
+        <Define>
+            <Name>__DEBUG__</Name>
+            <Description>Allows general debug messages. Will enable the ASSERT() statements.</Description>
+        </Define>
+        
+         <Define>
+            <Name>__EARLY_SERIAL_SUPPORT__</Name>
+            <Description>Will cause the serial device to be initialized first which allows debug or logging messages to be printed earlier.</Description>
+        </Define>
+        
+        <Define>
+            <Name>QEMU_HACK</Name>
+            <Description>Use other assembler instructions for QEMU on PPC to enable interrupts</Description>
+        </Define>
+        <Define>
+            <Name>SHM_START</Name>
+            <Description>Start of shared memory area used for multiprocessor communication</Description>
+        </Define>
+    </Defines>
+</Dependencies>
+

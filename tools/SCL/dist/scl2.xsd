@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	
+	<xs:element name="Configuration">
+		<xs:complexType>
+			<xs:sequence>
+			<!-- The correct order of Task/Skeleton/Define have to be strictly kept in the xml file! -->
+				<xs:element ref="Options" maxOccurs="unbounded" minOccurs="0"/> 
+				<xs:element ref="Tasks" maxOccurs="1" minOccurs="0"/> 
+				<xs:element ref="SCL" maxOccurs="1" minOccurs="0"/>
+				
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	
+	
+	<xs:element name="Options">
+		<xs:complexType>
+	    	<xs:sequence>		
+	    	<xs:element ref="Logging" maxOccurs="1" minOccurs="0" />
+	    	</xs:sequence>
+	    </xs:complexType>
+	</xs:element>
+	
+	<xs:element name="Tasks">
+		<xs:complexType>
+	    	<xs:sequence>		
+	    	<xs:element ref="Task" maxOccurs="unbounded" minOccurs="0" />
+	    	</xs:sequence>
+	    </xs:complexType>
+	</xs:element>
+	
+	<xs:element name="SCL">
+		<xs:complexType>
+	    	<xs:sequence>		
+	    		<xs:element ref="Skeleton" maxOccurs="unbounded" minOccurs="0"/>
+				<xs:element ref="Define" maxOccurs="unbounded" minOccurs="0"/>
+	    	</xs:sequence>
+	    </xs:complexType>
+	</xs:element>
+	
+	
+	<xs:element name="Logging">
+		<xs:complexType>
+	    	<xs:sequence>		
+	    		<xs:element ref="Log" maxOccurs="unbounded" minOccurs="0"/>
+	    	</xs:sequence>
+	    </xs:complexType>
+	</xs:element>
+	
+	<xs:element name="Log">
+		<xs:complexType>
+	    	<xs:attribute name="Prefix" type="xs:string"/>
+	    	<xs:attribute name="Level" type="LogLevel"/>
+	    </xs:complexType>
+	</xs:element>
+	
+	<xs:element name="RealTimeOptions">
+		<xs:complexType>
+			<xs:sequence>		
+		    	<xs:element name="Period" type="xs:string" maxOccurs="1" minOccurs="1"/>
+		    	<xs:element name="Deadline" type="xs:string" maxOccurs="1" minOccurs="1"/>
+		    	<xs:element name="ExecutionTime" type="xs:string" maxOccurs="1" minOccurs="1"/>
+	    	</xs:sequence>
+	    </xs:complexType>
+	</xs:element>
+	
+	<xs:element name="PriorityOptions">
+		<xs:complexType>
+			<xs:sequence>		
+		       	<xs:element name="InitialPriority" type="xs:string" maxOccurs="1" minOccurs="1" />
+	    		<xs:element name="Phase" type="xs:string" maxOccurs="1" minOccurs="1" />
+	    		<xs:element ref="RealTimeOptions" maxOccurs="1" minOccurs="0"/>
+	    	</xs:sequence>
+	    </xs:complexType>
+	</xs:element>
+	
+	
+	<xs:simpleType name="LogLevel">
+	 	<xs:restriction base="xs:string">
+	   		<xs:enumeration value="FATAL"/>
+	   		<xs:enumeration value="ERROR"/>
+	   		<xs:enumeration value="WARN"/>
+	   		<xs:enumeration value="INFO"/>
+	   		<xs:enumeration value="DEBUG"/>
+	   		<xs:enumeration value="TRACE"/>
+	    </xs:restriction>
+	</xs:simpleType>
+
+	<xs:element name="Task">
+		<xs:complexType>
+	    	<xs:sequence>		
+	    		<xs:element name="Start" type="xs:string" maxOccurs="1"	minOccurs="1" />
+	    		<xs:element name="End" type="xs:string" maxOccurs="1"	minOccurs="1" />
+	    		<xs:element name="Heap" type="xs:string" maxOccurs="1"	minOccurs="1" />
+	    		<xs:element name="Path" type="xs:string" maxOccurs="1"	minOccurs="1" />
+				<xs:element ref="PriorityOptions" maxOccurs="1" minOccurs="0"/>	
+				<xs:element name="Vma" type="xs:string" maxOccurs="1" minOccurs="0" />
+	    	</xs:sequence>
+	    </xs:complexType>
+	</xs:element>
+	
+	 <xs:element name="Define">
+		<xs:complexType>
+	    	<xs:sequence>
+	    		<xs:element name="Name" type="xs:string" maxOccurs="1"	minOccurs="1" />
+	    		<xs:element name="Value" type="xs:string" maxOccurs="1" minOccurs="1" />
+	    	</xs:sequence>
+	    </xs:complexType>
+	</xs:element>
+	
+	<xs:element name="Skeleton">
+		<xs:complexType>
+	    	<xs:sequence>		
+	    		<xs:element name="Name" type="xs:string" maxOccurs="1"	minOccurs="1" />
+	    		<xs:element name="Superclass" type="xs:string" maxOccurs="1" minOccurs="0" />
+	    		<xs:element ref="Member" maxOccurs="unbounded" minOccurs="0" />
+	    		<xs:element ref="Template" maxOccurs="1" minOccurs="0"/>
+	    	</xs:sequence>
+	    </xs:complexType>
+	</xs:element>
+	
+	<xs:element name="Member">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="Name" type="xs:string" maxOccurs="1" minOccurs="1" />
+				<xs:element name="Class" type="xs:string" maxOccurs="1" minOccurs="1" />
+				<xs:element name="Device" type="xs:string" maxOccurs="1" minOccurs="0" />
+				<xs:element name="Address" type="xs:string" maxOccurs="1" minOccurs="0" />
+				<xs:element name="Length" type="xs:string" maxOccurs="1" minOccurs="0" />
+				<xs:element name="UniqueID" type="xs:string" maxOccurs="1" minOccurs="0" />
+				<xs:element name="IP4Addr" type="xs:string" maxOccurs="1" minOccurs="0" />
+				<xs:element name="IP4NetMask" type="xs:string" maxOccurs="1" minOccurs="0" />				
+				<xs:element name="None" type="xs:boolean" maxOccurs="1" minOccurs="0" />
+				<xs:element name="UserSpace" type="xs:boolean" maxOccurs="1" minOccurs="0" />
+				<xs:element name="PhyLoadAddress" type="xs:string" maxOccurs="1" minOccurs="0" />
+				<xs:element ref="Template" maxOccurs="1" minOccurs="0"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	
+	
+	<xs:element name="Template">
+		<xs:complexType>
+	    	<xs:sequence>		
+	    		<xs:element name="Parameter" type="xs:string" maxOccurs="unbounded"	minOccurs="1" />
+	    	</xs:sequence>
+	    </xs:complexType>
+	</xs:element>
+	
+	
+
+</xs:schema>

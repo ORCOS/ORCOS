@@ -1,0 +1,5 @@
+cd /cygdrive/c/xmd
+put ../../../tasks/remotecommtask1/remotecommtask1.elf
+put output/kernel.elf
+put xmd.ini
+quit

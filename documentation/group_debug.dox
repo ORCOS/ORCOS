@@ -1,0 +1,84 @@
+#ifndef DEBUGFACILITIES_H_
+#define DEBUGFACILITIES_H_
+
+/**
+ * \defgroup debug Debug
+ * 
+ * \section debugging Debugging
+ * This page describes the debug facilities of ORCOS.
+ 
+ORCOS features several facilities to help the developer to create new tasks and keep control over the system.
+Next to the possibility to use hardware debuggers like the BDI 2000 or the Xilinx Platform Cable (see https://orcos.cs.uni-paderborn.de/www/wiki/gettingstarted for details),
+ORCOS itself provides a logging framework and a serial console.
+
+\subsection serialConsole Serial Console
+By default the Logger outputs its messages to the serial port of a target developing board.
+You can view the output if you connect the developing board's serial port to the serial port of
+your computer and use a terminal program like Hyperterminal of Microsoft Windows to view the
+messages the Logger is writing to the serial port.
+
+Additionally we provide a special debugtask. It provides access to the kernel's debugging interfaces
+(which are available through our filesystem) by emulating a command line interface through the
+terminal. Currently the command set is very small, but could be easily expanded. See the source
+of the debugtask for details how the commands are implemented.
+
+For now we provide only two basic commands:
+
+    \b top - shows a list of all running tasks and their threads and the memory usage of the kernel and each thread.
+    
+    \b task - with this command you can stop/resume tasks on the device. Usage: "task stop processId" and "task resume processId'
+
+
+To get this running, you have to load and run the debugtask on your target device and have
+a character device present on your developing board, which the task can use for its in- and output.
+
+\subsection loggingFramework Logging Framework   
+If the logger is activated in the SCLConfig.xml you can send logs to the serial line.
+The logger could be activated with this part of the SCLConfig.xml
+
+\code
+
+<Skeleton>
+	<Name>Kernel</Name>
+	<Superclass>kernel/Kernel</Superclass>
+	...
+	<Member>
+		<Name>Logger</Name>
+		<Class>debug/Logger</Class>
+	</Member>
+	...
+</Skeleton>
+\endcode
+
+and could be deactivated with
+
+\code
+<Skeleton>
+	<Name>Kernel</Name>
+	<Superclass>kernel/Kernel</Superclass>
+	...
+	<Member>
+		<Name>Logger</Name>
+		<Class>debug/Logger</Class>
+		<None>true</None>
+	</Member>
+	...
+</Skeleton>
+\endcode
+
+
+
+In the SCLConfig.xml file you have to provide several Prefix and Level parameters. These values are
+used with each call of Logger:log(). They determine which messages are passed out to the serial line,
+so you can limit the level of the log messages and their origin by component you will get outputted.
+
+
+\code
+#ifdef HAS_Kernel_LoggerCfd		
+	theOS->getLogger()->log(PREFIX,LEVEL,"Your message with printf support %i %c ...", arglist );
+#endif
+\endcode
+
+*/
+
+#endif /*DEBUGFACILITIES_H_*/

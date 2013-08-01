@@ -1,0 +1,28 @@
+#ifndef GROUPSCHEDULER_H_
+#define GROUPSCHEDULER_H_
+
+/**
+ * \defgroup syscall Syscalls
+ * 
+ * 
+ This page explains the syscall framework implemented. 
+ 
+ Threads can only use kernel functionalities by issuing a syscall interrupt. Therefore ORCOS provides the programmer with an API that takes over all syscall related functions.
+ See ORCOS.hh for the list of methods available inside the ORCOS API. 
+ 
+ \subsection h How it works
+ 
+ Since raising a syscall interrupt is highly hardware dependent the syscall related assembler code can be found in the assemblerFunctions.hh file for the specific architecture.
+ Generally the concept works as follows. Whenever a thread uses a specific API method the parameters of that call will be stored at specific locations on the stack (See syscall() method
+ in syscall.cc). After that a syscall interrupt will be raised and the kernel will take control. This involves storing the context of the thread and calling the appropriate interrupt handler.
+ The SyscallManager will then be called and the parameters as well as the syscall number, which identifies a syscall, will be loaded from the stack of the thread that issued the syscall.
+   
+ \image html Syscall1.png
+ 
+ The syscall process is illustrated above. Hereby it is important to know that the syscall call drawn in red is no direct funtion call on the Interrupthandler. Moreover it is a sequence of
+ assembler instructions that are needed to react on the software interrupt which in the end ends up calling the Interrupthandler.   
+ 
+ *
+ */
+
+#endif /*GROUPSCHEDULER_H_*/

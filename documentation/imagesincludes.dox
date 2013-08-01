@@ -1,0 +1,15 @@
+ 
+ /*!
+ * \page ImageIncludes Image Includes
+ *
+ * This page is used to force doxygen to copy the images specified here into the documenatation
+ * directory. This is needed if images are used inside htmlonly blocks for example.
+ *
+ * \image html design.png
+ * \image html comm.png
+ * \image html syscall.png
+ * \image html scheduler.png
+ * \image html filemanager.png
+ * \image html memory.png
+ *
+ */

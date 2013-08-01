@@ -1,0 +1,44 @@
+#ifndef MAINPAGE_H_
+#define MAINPAGE_H_
+
+/*! \mainpage IRTOS Railway System Documentation
+ *
+ * 
+ * \htmlonly
+ * <center>
+ * \endhtmlonly
+ *  
+ * \image html title.jpg
+ 
+ * \section intro_sec Introduction
+ *
+ * \htmlonly
+ * </center>
+ * \endhtmlonly
+ * 
+ *
+ * Welcome to the doxygen class documentation of the IRTOS Lab Railway System (http://orcos.cs.uni-paderborn.de/irtos/html/). This documentation contains
+ * information on the Communication Classes used to communicate with the Lenz Digital Plus LI100 Main Station.
+ * The implementation here is based on our operating system ORCOS developed at the University of Paderborn (Design of parallel Systems).
+ * For a general introduction and how to get started with ORCOS we advise you to
+ * visit our Wiki at http://orcos.cs.uni-paderborn.de/orcos first.
+ *
+ * Currently there only exists a Ethenet based communication class \ref ETHLI100 which uses the XnTCP microcontroller to translate between TCP and Lenz XPressNet Packets.
+ * Using the methods provided by this class all relevant functionality for programming
+ * the Digital Railway System is covered.The \ref Train class allows a nice abstraction for every Train used by the railway system and covers funtionalities to
+ * program the trains. Although every TrainControlUnit (e.g. ETHLI100) allows the programming of trains as well, the class Train can be used for a more natural representation.
+ *
+ * \htmlonly
+ * <center>
+ * \endhtmlonly
+ * 
+ * \section refman Reference Manual
+ *
+ * This documentation can be downloaded as a automatically generated reference manual at http://orcos.cs.uni-paderborn.de/irtos/refman.pdf .
+ * 
+ * \author Daniel Baldin
+ * \version 1.0
+ */
+
+
+#endif /*MAINPAGE_H_*/

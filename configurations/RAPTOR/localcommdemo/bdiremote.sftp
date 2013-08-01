@@ -1,0 +1,5 @@
+cd /cygdrive/c/bdi
+put ../../../tasks/localcommtask1/localcommtask1.elf
+put ../../../tasks/localcommtask2/localcommtask2.elf
+put output/kernel.elf
+quit
