@@ -195,6 +195,48 @@
         <Class>arch/ARM/ARMv4T/ARMv7/Omap3530/HighSpeedUSBHostController</Class>
         <None>false</None>
       </Member>
+      <Member>
+        <Name>GPIO1</Name>
+        <Class>arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO</Class>
+        <Device>"gpio1"</Device>
+        <Address>0x48310000</Address>
+        <None>false</None>
+      </Member>
+      <Member>
+        <Name>GPIO2</Name>
+        <Class>arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO</Class>
+        <Device>"gpio2"</Device>
+        <Address>0x49050000</Address>
+        <None>false</None>
+      </Member>
+      <Member>
+        <Name>GPIO3</Name>
+        <Class>arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO</Class>
+        <Device>"gpio3"</Device>
+        <Address>0x49052000</Address>
+        <None>false</None>
+      </Member>
+      <Member>
+        <Name>GPIO4</Name>
+        <Class>arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO</Class>
+        <Device>"gpio4"</Device>
+        <Address>0x49054000</Address>
+        <None>false</None>
+      </Member>
+      <Member>
+        <Name>GPIO5</Name>
+        <Class>arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO</Class>
+        <Device>"gpio5"</Device>
+        <Address>0x49056000</Address>
+        <None>false</None>
+      </Member>
+      <Member>
+        <Name>GPIO6</Name>
+        <Class>arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO</Class>
+        <Device>"gpio6"</Device>
+        <Address>0x49058000</Address>
+        <None>false</None>
+      </Member>
     </Skeleton>
     <!-- ************************************
     			Skeleton Kernel

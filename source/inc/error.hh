@@ -76,6 +76,8 @@ class ThreadCfdCl;
 
 #define cStackUnderflow (int) -1004;
 
+#define cWrongAlignment (int) -1005;
+
 // The following values with |C(s)| < 1000 are used inside the specific
 // components. Each component has 100 possible |C(s)|.
 //-----------------------------------------------------

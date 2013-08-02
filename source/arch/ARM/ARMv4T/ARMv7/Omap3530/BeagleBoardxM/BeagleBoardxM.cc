@@ -1141,7 +1141,7 @@ BeagleBoardxM::BeagleBoardxM() {
  	 // enable all functional and interface clocks
 	// OUTW(0x48005000,0xFFFFFFFF);
  	// enable gpio 5+6 functional clock and uart3
- 	 OUTW(0x48005000,0x30800);
+ 	OUTW(0x48005000,0x30800);
 	 //OUTW(0x48005010,0xFFFFFFFF);
  	OUTW(0x48005010,0x30800);
 
@@ -1369,6 +1369,30 @@ BeagleBoardxM::BeagleBoardxM() {
 
 #ifdef HAS_Board_ETHCfd
     ETHCfd = new NEW_Board_ETHCfd;
+#endif
+
+#ifdef HAS_Board_GPIO1Cfd
+    GPIO1Cfd = new NEW_Board_GPIO1Cfd;
+#endif
+
+#ifdef HAS_Board_GPIO2Cfd
+    GPIO2Cfd = new NEW_Board_GPIO2Cfd;
+#endif
+
+#ifdef HAS_Board_GPIO3Cfd
+    GPIO3Cfd = new NEW_Board_GPIO3Cfd;
+#endif
+
+#ifdef HAS_Board_GPIO4Cfd
+    GPIO4Cfd = new NEW_Board_GPIO4Cfd;
+#endif
+
+#ifdef HAS_Board_GPIO5Cfd
+    GPIO5Cfd = new NEW_Board_GPIO5Cfd;
+#endif
+
+#ifdef HAS_Board_GPIO6Cfd
+    GPIO6Cfd = new NEW_Board_GPIO6Cfd;
 #endif
 
 #ifdef HAS_Board_UART3Cfd

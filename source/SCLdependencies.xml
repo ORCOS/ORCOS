@@ -192,8 +192,50 @@
         <Class>arch/none/DummyCharDriver</Class>
       </Classes>
     </Member>
+     <Member>
+      <Name>GPIO1</Name>
+      <Classes>
+        <Class requires="OMAP3530">arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO</Class>
+        <Class>arch/none/DummyCharDriver</Class>
+      </Classes>
+    </Member> 
     <Member>
-      <Name>USB_HC</Name>
+      <Name>GPIO2</Name>
+      <Classes>
+        <Class requires="OMAP3530">arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO</Class>
+        <Class>arch/none/DummyCharDriver</Class>
+      </Classes>
+    </Member> 
+     <Member>
+      <Name>GPIO3</Name>
+      <Classes>
+        <Class requires="OMAP3530">arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO</Class>
+        <Class>arch/none/DummyCharDriver</Class>
+      </Classes>
+    </Member> 
+     <Member>
+      <Name>GPIO4</Name>
+      <Classes>
+        <Class requires="OMAP3530">arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO</Class>
+        <Class>arch/none/DummyCharDriver</Class>
+      </Classes>
+    </Member>  
+    <Member>
+      <Name>GPIO5</Name>
+      <Classes>
+        <Class requires="OMAP3530">arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO</Class>
+        <Class>arch/none/DummyCharDriver</Class>
+      </Classes>
+    </Member> 
+     <Member>
+      <Name>GPIO6</Name>
+      <Classes>
+        <Class requires="OMAP3530">arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO</Class>
+        <Class>arch/none/DummyCharDriver</Class>
+      </Classes>
+    </Member>  
+    <Member>   
+     <Name>USB_HC</Name>
       <Classes>
         <Class requires="OMAP3530">arch/ARM/ARMv4T/ARMv7/Omap3530/HighSpeedUSBHostController</Class>
         <Class>arch/none/DummyClass</Class>

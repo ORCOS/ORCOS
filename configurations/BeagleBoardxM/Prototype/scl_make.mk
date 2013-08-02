@@ -1,0 +1,16 @@
+ARCH_OBJ +=ARMv4TProcessor.o
+ARCH_OBJ +=BeagleBoardGPTimer1.o
+ARCH_OBJ +=Omap3530Clock.o
+ARCH_OBJ +=BeagleBoardUART.o
+ARCH_OBJ +=ARMv4TInterruptHandler.o
+ARCH_OBJ +=BeagleBoardInterruptController.o
+ARCH_OBJ +=Omap3530i2c.o
+ARCH_OBJ +=HighSpeedUSBHostController.o
+ARCH_OBJ +=OmapGPIO.o
+ARCH_OBJ +=OmapGPIO.o
+ARCH_OBJ +=OmapGPIO.o
+ARCH_OBJ +=OmapGPIO.o
+ARCH_OBJ +=OmapGPIO.o
+ARCH_OBJ +=OmapGPIO.o
+TASKS = ./tasks/shell_task/ 
+ARCH_DIR = $(KERNEL_DIR)arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardxM/

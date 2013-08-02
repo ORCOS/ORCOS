@@ -32,6 +32,14 @@
 #include Board_Timer_hh
 #include Board_Clock_hh
 #include Board_USB_HC_hh
+#include Board_GPIO1_hh
+#include Board_GPIO2_hh
+#include Board_GPIO3_hh
+#include Board_GPIO4_hh
+#include Board_GPIO5_hh
+#include Board_GPIO6_hh
+
+
 //#include Board_ETH_hh
 #include "BeagleBoardDSS.hh"
 /*!
@@ -43,6 +51,12 @@ class BeagleBoardxM {
     DEF_Board_UARTCfd
     DEF_Board_LEDCfd
     DEF_Board_UART2Cfd
+    DEF_Board_GPIO1Cfd
+    DEF_Board_GPIO2Cfd
+    DEF_Board_GPIO3Cfd
+    DEF_Board_GPIO4Cfd
+    DEF_Board_GPIO5Cfd
+    DEF_Board_GPIO6Cfd
     DEF_Board_InterruptControllerCfd
     DEF_Board_TimerCfd
     DEF_Board_ClockCfd
