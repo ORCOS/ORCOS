@@ -48,9 +48,8 @@ typedef struct {
 // Minimum payload needed for a chunk when splitting
 #define MINIMUM_PAYLOAD 8
 
-// if no placement policy is chosen in SCL configuration => Default is FirstFit
-#if (!defined(HAS_MemoryManager_FirstFitCfd)) && (!defined(HAS_MemoryManager_NextFitCfd)) && (!defined(HAS_MemoryManager_BestFitCfd)) && (!defined(HAS_MemoryManager_WorstFitCfd))
-#define HAS_MemoryManager_FirstFitCfd 1
+#ifndef MEM_LAST_FIT
+#define MEM_LAST_FIT 1
 #endif
 
 /*!
@@ -149,9 +148,9 @@ private:
      */
     void* getFittingChunk( size_t, bool, unint4 );
 
-#ifdef HAS_MemoryManager_NextFitCfd
+#if MEM_LAST_FIT == 1
     //! Pointer to the memory chunk which has been lastly allocated - only used for NextFit-Policy
-    int4* lastAllocatedChunk;
+    unint4* lastAllocatedChunk;
 #endif
 protected:
 
