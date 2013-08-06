@@ -1106,43 +1106,27 @@ BeagleBoardxM::BeagleBoardxM() {
  	OUTW(0x48004004,0x00000017);
  	// uboot: 0x48004004: 00000017
 
- 	//unint4 mpu_m = 200;
- 	//unint4 mpu_m = 300;
- 	//unint4 mpu_n = 12;
- 	//unint4 cm_clksel1_pll_mpu_val = mpu_n | mpu_m << 8 | 1 << 19;
+ 	unint4 mpu_m = 600;
+ 	unint4 mpu_n = 12;
+ 	unint4 mpu_clk_src = 2;
+
+ 	// mpu dpll = ((core_clk / (mpu_clk_src)) * mpu_m) / mpu_n
+ 	unint4 cm_clksel1_pll_mpu_val = mpu_n | mpu_m << 8 | mpu_clk_src << 19;
 
  	// set mpu (dpll1) divider
- 	//OUTW(0x48004940,cm_clksel1_pll_mpu_val);
- 	OUTW(0x48004940,0x0012580c);
- 	// uboot: 0x48004940: 0012580c
+ 	OUTW(0x48004940,cm_clksel1_pll_mpu_val);
+ 	//OUTW(0x48004940,0x0012580c);
 
 	OUTW(0x48004944,1);
-	// uboot: 1
 
 	// lock mpu
  	OUTW(0x48004904,0x00000037);
- 	// uboot: 37
-
- 	//OUTW(0x48004940,0x12580c);
- 	// lock mpu
-
- 	// set GPT clock sources to sys_clk = 26 mhz
- 	//OUTW(0x48005040,0xff);
-
 
  	// set GPT clock sources to 32K_FCLK
- 	//OUTW(0x48005040,0x0);
  	OUTW(0x48005040,0xff);
- 	// uboot: 0x48005040: 000000ff
 
-
-
-
- 	 // enable all functional and interface clocks
-	// OUTW(0x48005000,0xFFFFFFFF);
- 	// enable gpio 5+6 functional clock and uart3
+ 	// independently of configuration: enable gpio 5+6 functional clock and uart3
  	OUTW(0x48005000,0x30800);
-	 //OUTW(0x48005010,0xFFFFFFFF);
  	OUTW(0x48005010,0x30800);
 
 // created first so we can very early write to the serial console
@@ -1240,6 +1224,8 @@ BeagleBoardxM::BeagleBoardxM() {
  	LOG(ARCH,INFO,(ARCH,INFO,"BeagleBoardxM: CORE_CLOCK        = %d kHz ", core_clock));
  	LOG(ARCH,DEBUG,(ARCH,DEBUG,"BeagleBoardxM:                     [m2 = %d]",m2_dpll3));
 
+ 	unint mpu_dpll_clock = ((core_clock / mpu_clk_src) * mpu_m) / mpu_n;
+ 	LOG(ARCH,INFO,(ARCH,INFO,"BeagleBoardxM: MPU_DPLL_CLOCK    = %d kHz [%0x]", mpu_dpll_clock,cm_clksel1_pll_mpu_val));
 
  	unint4 m_dpll4 = (INW(CM_CLKSEL2_PLL) >> 8) & 0x7ff;
  	unint4 n_dpll4 = INW(CM_CLKSEL2_PLL) & 0x7f;

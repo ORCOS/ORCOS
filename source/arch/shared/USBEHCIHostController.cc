@@ -74,7 +74,7 @@ char* bmTransferTypeStr[4] = {
 };
 
 
-unint2 USBDevice::addr_counter = 1;
+unint1 USBDevice::addr_counter = 1;
 
 extern Board_ClockCfdCl* theClock;
 
@@ -148,7 +148,6 @@ ErrorT USB_EHCI_Host_Controller::Init() {
 	LOG(ARCH,INFO,(ARCH,INFO,"    Park Mode Support       : %d",GETBITS(hccparams,2,2) ));
 	LOG(ARCH,INFO,(ARCH,INFO,"    Programmable Frame List : %x",GETBITS(hccparams,1,1) ));
 	LOG(ARCH,INFO,(ARCH,INFO,"    Supports 64bit Address  : %x",GETBITS(hccparams,0,0) ));
-
 
 
 	// setup the asynclist and periodic frame list
@@ -231,8 +230,8 @@ ErrorT USB_EHCI_Host_Controller::Init() {
 	}
 
 	// give ports a chance to power on
-	timeout = 1000000;
-	while (timeout) {timeout--;}
+	timeout = 20;
+	while (timeout) {timeout--; kwait(1);}
 
 	// wait for ports to get connected..
 	// register those connected as we can communicate over them!
@@ -279,7 +278,7 @@ ErrorT USB_EHCI_Host_Controller::Init() {
 
 				LOG(ARCH,INFO,(ARCH,INFO,"USB_EHCI_Host_Controller::Init() [PORT %d] HS-Device (480 Mbit/s) enabled..", i));
 				ports[i].status = portsc;
-				ports[i].root_device = new USBDevice(this,0,i);
+				ports[i].root_device = new USBDevice(this,0,i,2);
 
 				OUTW(operational_register_base + USBSTS_OFFSET, 0x4);
 				// try to enumerate the port
@@ -337,10 +336,9 @@ int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1
 
 	// get some memory for first qtd and last qtd
 	volatile qTD* qtd  		=  (qTD*) theOS->getMemManager()->alloc(32,1,32);
-	volatile qTD* qtd_last; //  =  (qTD*) theOS->getMemManager()->alloc(32,1,32);
+	volatile qTD* qtd_last;
 
 	memset((void*) qtd,32,0);
-	//memset((void*) qtd_last,32,0);
 
 	unint4 length = 4096;
 	if (data_len < length) length = data_len;
@@ -383,12 +381,10 @@ int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1
 
 		QT_LINK(qtd_last,qtd2);
 
-
 		qtd_last = qtd2;
 
 		data += current_len;
 		length -= current_len;
-
 	}
 
 	qh->qh_curtd = QT_NEXT_TERMINATE;
@@ -400,21 +396,23 @@ int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1
 	qh->qh_overlay.qt_next = (unint4) qtd;
 	OUTW(this->async_qh_reg,(unint4) qh);
 
+	// activate the schedule
 	unint4 usb_cmd = INW(operational_register_base + USBCMD_OFFSET);
 	SETBITS(usb_cmd,5,5,1);
 	OUTW(operational_register_base + USBCMD_OFFSET, usb_cmd);
 
+	// wait until activated
 	volatile unint4 timeout = 1000000;
 	while (( (INW(operational_register_base + USBCMD_OFFSET) & 0x20) == 0) && timeout) {timeout--;};
-
 
 	if (timeout == 0) {
 		LOG(ARCH,ERROR,(ARCH,ERROR,"USB_EHCI_Host_Controller::send() Async Schedule did not get activated.."));
 		return -1;
 	}
 
-	timeout = 1000000;
-	while (( QT_TOKEN_GET_STATUS(qtd_last->qt_token) == 0x80 ) && timeout) {timeout--;};
+	// wait for completion of usb transaction
+	timeout = 20;
+	while (( QT_TOKEN_GET_STATUS(qtd_last->qt_token) == 0x80 ) && timeout) {timeout--; kwait(1);};
 
 	usb_cmd = INW(operational_register_base + USBCMD_OFFSET);
 	SETBITS(usb_cmd,5,5,0);
@@ -428,9 +426,6 @@ int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1
 	unint4 num = 0;
 	if (data_len > 0) num = data_len - QT_TOKEN_GET_TOTALBYTES(qtd->qt_token);
 
-	//theOS->getMemManager()->free((void*)qtd_last);
-	//theOS->getMemManager()->free((void*)qtd3);
-
 	// stop execution of this queue head
 	if (timeout == 0 || ( (QT_TOKEN_GET_STATUS(qtd_last->qt_token) & 0x7c )!= 0x0))  {
 		LOG(ARCH,ERROR,(ARCH,ERROR,"USB_EHCI_Host_Controller::send() error on bulk packet.."));
@@ -439,23 +434,22 @@ int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1
 		printf("qtd      status: %x\r", qtd->qt_token);
 		printf("qtd_last status: %x\r", qtd_last->qt_token);
 
-
-		qtd_last = qtd;
-		while (qtd_last->qt_next != QT_NEXT_TERMINATE) {
-			volatile qTD *qtemp =  qtd_last;
-			qtd_last = (qTD*) (((unint4)qtd_last->qt_next) & ~0x1f);
-			delete qtemp;
-		}
-
-		theOS->getMemManager()->free((void*)qtd_last);
-
 		// debug the asynchronous list
-		memdump((unint4) qh,8);
+		//memdump((unint4) qh,8);
 		//return as we can not use this port
-		return -1;
+		num = -1;
 	}
 
-	theOS->getMemManager()->free((void*)qtd);
+	// freeup the allocated qtds
+	// TODO: not working currently..
+	/*qtd_last = qtd;
+	while (qtd_last->qt_next != QT_NEXT_TERMINATE) {
+		volatile qTD *qtemp =  qtd_last;
+		qtd_last = (qTD*) (((unint4)qtd_last->qt_next) & ~0x1f);
+		delete qtemp;
+	}*/
+
+	theOS->getMemManager()->free((void*)qtd_last);
 
 	// on success toggle dt bit
 	dev->endpoints[endpoint].data_toggle = toggle ^ 1;
@@ -466,8 +460,6 @@ int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1
 
 
 int USB_EHCI_Host_Controller::sendUSBControlMsg(USBDevice *dev, unint1 endpoint, unint1 *control_msg,unint1 direction, unint1 data_len, unint1 *data) {
-
-
 
 	// finally link the queue head to the qtd chain
 	volatile QH* qh = (QH*) dev->endpoints[endpoint].queue_head;
@@ -624,15 +616,16 @@ ErrorT USB_EHCI_Host_Controller::enumerateDevice(USBDevice *dev) {
 		volatile unint4 timeout = 100000;
 		while (timeout) {timeout--;};
 
-		 portsc = INW(operational_register_base + PORTSC1_OFFSET + 4*dev->port);
+		portsc = INW(operational_register_base + PORTSC1_OFFSET + 4*dev->port);
 		SETBITS(portsc,8,8,0); // start port reset
 		OUTW(operational_register_base + PORTSC1_OFFSET + 4*dev->port,portsc);
 
+		// TODO: check for timeout
 		while ( !(INW(operational_register_base + PORTSC1_OFFSET + 4*dev->port) & (1 << 2)) ) {};
 
 	} else {
 		// parent must be a hub
-		// send a port reset feature request
+		// TODO: send a port reset feature request
 	}
 
 	LOG(ARCH,INFO,(ARCH,INFO,"USB_EHCI_Host_Controller: Setting Device Address: %d",dev->addr_counter));
@@ -651,19 +644,22 @@ ErrorT USB_EHCI_Host_Controller::enumerateDevice(USBDevice *dev) {
 	}
 
 	// give some time to the device to change its address
-	volatile unint4 timeout = 100000;
-	while (timeout) {timeout--;};
+	volatile unint4 timeout = 10;
+	while (timeout) {timeout--; kwait(1);};
 
 	memset(&recv_buf,0,0x40);
-
 	unint1 msg3[8] = USB_DESCRIPTOR_REQUEST(CONFIGURATION_DESCRIPTOR);
 	error = this->sendUSBControlMsg(dev,0,(unint1*) &msg3,USB_DIR_IN,0x40,(unint1*) &recv_buf);
+	if (error < 0) return cError;
 
 	ConfigurationDescriptor* cConf = (ConfigurationDescriptor*) &recv_buf;
+	unint4 total_length = cConf->wtotalLength;
+
 	LOG(ARCH,DEBUG,(ARCH,DEBUG,"USB_EHCI_Host_Controller: Configuration %d [%x]:",cConf->bConfigurationValue, cConf->bmAttributes));
 	LOG(ARCH,DEBUG,(ARCH,DEBUG,"USB_EHCI_Host_Controller:   NumInterfaces: %d maxPower: %d mA",cConf->bNumInterfaces, cConf->bMaxPower*2));
-
 	InterfaceDescriptor* iDescr = (InterfaceDescriptor*) (cConf+1);
+
+	unint4 bytes_read = sizeof(ConfigurationDescriptor);
 
 	// store interface descriptor for driver
 	memcpy(&dev->if_descr,iDescr,sizeof(InterfaceDescriptor));
@@ -673,25 +669,46 @@ ErrorT USB_EHCI_Host_Controller::enumerateDevice(USBDevice *dev) {
 	LOG(ARCH,DEBUG,(ARCH,DEBUG,"USB_EHCI_Host_Controller:  Class: %s", bDeviceClassStr[iDescr->bInterfaceClass]));
 	LOG(ARCH,DEBUG,(ARCH,DEBUG,"USB_EHCI_Host_Controller:  Subclass: %x Protocol: %x", iDescr->bInterfaceSubClass, iDescr->bInterfaceProtocol));
 
-	EndpointDescriptor *descr = (EndpointDescriptor*) (iDescr+1);
+	bytes_read += iDescr->bLength;
+
+	EndpointDescriptor *descr = (EndpointDescriptor*) (iDescr +1);
+
+	// some devices place some custom descriptors in between? stupid devices
+	while (descr->btype != 5 && bytes_read < total_length) {
+		LOG(ARCH,WARN,(ARCH,WARN,"USB_EHCI_Host_Controller: Ignoring unknown descriptor type: %x ",descr->btype));
+		bytes_read += descr->bLength;
+		descr = (EndpointDescriptor*) (((unint4)descr) + descr->bLength);
+	}
 
 	dev->numEndpoints = iDescr->bNumEndpoints;
 
+	// get all endpoints
 	for (int i = 0; i < iDescr->bNumEndpoints; i++ ) {
+
+		// saftey check.. some usb devices might not send enough data ..
+		if ( bytes_read > total_length) {
+			LOG(ARCH,WARN,(ARCH,WARN,"USB_EHCI_Host_Controller: break: bytes_read: %d, total: %d ",bytes_read, total_length));
+			break;
+		}
+
 		memcpy(&dev->endpoints[i+1].descriptor, descr, sizeof(EndpointDescriptor));
 
 		if (descr->btype != 0x5) {
-			LOG(ARCH,ERROR,(ARCH,ERROR,"USB_EHCI_Host_Controller: Endpoint Descriptor failure.. bType != 0x5 :",i+1));
+			LOG(ARCH,ERROR,(ARCH,ERROR,"USB_EHCI_Host_Controller: Endpoint Descriptor failure.. bType != 0x5: %x",i+1,descr->btype));
+			memdump((unint4) &dev->endpoints[i+1].descriptor,3);
 			return cError;
 		}
-
 
 		// set transferdirection
 		if (((descr->bEndpointAddress & 0x80) >> 7) == 0) dev->endpoints[i+1].direction = Out;
 		else dev->endpoints[i+1].direction = In;
 
-		dev->endpoints[i+1].max_packet_size = descr->wMaxPacketSize;
+		if (descr->bLength > 5)
+			dev->endpoints[i+1].max_packet_size = descr->wMaxPacketSize;
+
 		dev->endpoints[i+1].address			= descr->bEndpointAddress & 0xf;
+
+		LOG(ARCH,ERROR,(ARCH,ERROR,"USB_EHCI_Host_Controller: Endpoint Adress: %d, Dir: %d",dev->endpoints[i+1].address,dev->endpoints[i+1].direction));
 
 		//if (dev->endpoints[i+1].max_packet_size  < 0x40) dev->endpoints[i+1].max_packet_size  = 40;
 
@@ -706,9 +723,11 @@ ErrorT USB_EHCI_Host_Controller::enumerateDevice(USBDevice *dev) {
 			}
 		}
 
-
-		descr += 1;
+		bytes_read += descr->bLength;
+		descr = (EndpointDescriptor*) (((unint4)descr) + descr->bLength);
 	}
+
+	// Done Enumeration. Now set the configuration
 
 	unint1 msg4[8] = USB_SETCONFIGURATION_REQUEST(1);
 	error = this->sendUSBControlMsg(dev,0,(unint1*) &msg4);
@@ -886,13 +905,17 @@ void USB_EHCI_Host_Controller::handleInterrupt() {
  *					USB HUB Implementation
  *
  **********************************************************************/
+
+/*!
+ * Hub Enumeration Method. Starts the Enumeration Process on a newly connected
+ * Hub. State changes are check (20 ms delay) and devices activated if found.
+ */
 ErrorT USBHub::enumerate() {
 
 	// be sure we are comunicating to a hub.
 	if (dev->dev_descr.bDeviceClass != 0x9) return cError;
 
 	// first get the hub descriptor to see how many ports we need to activate and check for connected device
-
 	memset(&recv_buf,0,0x40);
 
 	unint1 msg[8] = USB_GETHUB_DESCRIPTOR();
@@ -925,24 +948,15 @@ ErrorT USBHub::enumerate() {
 
 	OUTW(controller->operational_register_base + USBSTS_OFFSET, 0x3f);
 
-	// give USBSTS register some time to clear the bits
-
-	//while ( (INW(controller->operational_register_base + USBSTS_OFFSET) & 0x3) == 0) {};
-
 	// activate interrupts
 	dev->activateEndpoint(1);
-
 
 	// try to directly enumerate the hub as it may already have connected devices
 	// this is a performance optimization as we do not need to wait for the actual
 	// interrupt to happen
-
 	// give the interrupt request some time to occur
-	// TODO: use real timebase (use usb default reaction time ~20 ms
-	// TODO: use a define for this as we might not want this behaviour.
-
-	volatile unint4 timeout = 200000;
-	while (timeout) {timeout--;};
+	volatile unint4 timeout = 50;
+	while (timeout) {timeout--; kwait(1);};
 
 	if (dev->endpoints[1].recv_buffer[0] != 0) {
 		this->handleStatusChange();
@@ -953,7 +967,11 @@ ErrorT USBHub::enumerate() {
 	return cOk;
 }
 
-
+/*!
+ * Generic Handler for Hub Port State Changes.
+ *
+ * Detects newly connected devices. Cleans up devices on disconnect.
+ */
 void USBHub::handleStatusChange() {
 	ErrorT error;
 
@@ -1026,16 +1044,38 @@ void USBHub::handleStatusChange() {
 
 					LOG(ARCH,INFO,(ARCH,INFO,"USBHub: Port enabled.. Enumerating "));
 
-					if (!(recv_buf[1] & (1<<2))) {
-						LOG(ARCH,ERROR,(ARCH,ERROR,"USBHub: LO/FS Device attached.. not supported. %x %x ",recv_buf[0],recv_buf[1]));
-
-						// TODO add support for FS/LS devices as e.g. mouse a.s.o
-						this->portDevices[i] = 0;
-
-						return;
+					unint1 speed = 2;
+					if (recv_buf[1] & ( 1 << 1)) {
+						speed = 1;
+						LOG(ARCH,INFO,(ARCH,INFO,"USBHub: Low-Speed Device attached."));
+					}
+					else
+					if (recv_buf[1] & ( 1 << 2)) {
+						speed = 2;
+						LOG(ARCH,INFO,(ARCH,INFO,"USBHub: High-Speed Device attached."));
+					}
+					else {
+						speed = 0;
+						LOG(ARCH,INFO,(ARCH,INFO,"USBHub: Full-Speed Device attached."));
 					}
 
-					USBDevice *newdev 		= new USBDevice(controller,dev,i);  // deletion 10 lines down
+					// check if there is a device present which is just resetting
+					if (this->portDevices[i] != 0) {
+						LOG(ARCH,INFO,(ARCH,INFO,"USBHub: Deactivating Device.."));
+
+						// did we create a device on this port?
+						if (this->portDevices[i] != 0) {
+							this->portDevices[i]->deactivate();
+
+							// remove from registered devices list
+							controller->unregisterDevice(portDevices[i]->driver);
+
+							delete portDevices[i];
+							this->portDevices[i] = 0;
+						}
+					}
+
+					USBDevice *newdev 		= new USBDevice(controller,dev,i,speed);  // deletion 10 lines down
 					this->portDevices[i]	= newdev;
 
 					// try to enumerate the port
@@ -1044,7 +1084,6 @@ void USBHub::handleStatusChange() {
 				} else {
 					LOG(ARCH,INFO,(ARCH,INFO,"USBHub: Device detached..",i));
 
-					// TODO: test deletion process
 
 					if (this->portDevices[i] != 0) {
 						LOG(ARCH,INFO,(ARCH,INFO,"USBHub: Deactivating Device.."));
@@ -1125,6 +1164,9 @@ USBHub::~USBHub() {
 }
 
 
+/*!
+ * Interrupt Handler for USB Hubs.
+ */
 ErrorT USBHub::handleInterrupt() {
 
 	QH* qh 		= dev->endpoints[1].queue_head;
@@ -1139,7 +1181,6 @@ ErrorT USBHub::handleInterrupt() {
 
 		// reactivate the interrupt transfer so we get interrupted again
 		dev->activateEndpoint(1);
-
 
 		return cOk;
 	}
@@ -1244,30 +1285,30 @@ ErrorT USBDevice::activateEndpoint(int num) {
 	endpoints[num].queue_head = queue_head_new;
 	memset((void*) queue_head_new,48,0);
 
-	// allow 1 packet per microframe
-	queue_head_new->qh_endpt2 = QH_ENDPT2_MULT(1);
-
-	// TODO add multiple speed support
+	// hs : QH_ENDPT1_EPS_HS
 	queue_head_new->qh_endpt1 = QH_ENDPT1_DEVADDR(this->addr) | QH_ENDPT1_MAXPKTLEN(endpoints[num].max_packet_size)
-								| QH_ENDPT1_EPS(QH_ENDPT1_EPS_HS) | QH_ENDPT1_ENDPT(endpoints[num].address) | QH_ENDPT1_DTC(QH_ENDPT1_DTC_DT_FROM_QTD);
+								| QH_ENDPT1_EPS(this->speed) | QH_ENDPT1_ENDPT(endpoints[num].address) | QH_ENDPT1_DTC(QH_ENDPT1_DTC_DT_FROM_QTD);
+
+	// allow 1 packet per microframe
+	if (this->speed == 2)
+		queue_head_new->qh_endpt2 = QH_ENDPT2_MULT(1);
+	else {
+		queue_head_new->qh_endpt2 = QH_ENDPT2_MULT(1) | QH_ENDPT2_HUBADDR(this->parent->addr) | QH_ENDPT2_PORTNUM(this->port);
+		if ( num == 0)
+			queue_head_new->qh_endpt1 |= QH_ENDPT1_C(1);
+	}
+
+
+
 	// deactivate qtd transfer
 	queue_head_new->qh_overlay.qt_next = 0xdead0000;
 
 
 	if (this->endpoints[num].type != Interrupt) {
-		// QH* qh_current = (QH*) INW(this->controller->async_qh_reg);
+		// let this new queue head be the head of the async list
+		queue_head_new->qh_endpt1 |= QH_ENDPT1_H(1);
+		queue_head_new->qh_link = QH_LINK_TYPE_QH | ((unint4) queue_head_new);
 
-		//if (qh_current == 0) {
-				// let this new queue head be the head of the async list
-			queue_head_new->qh_endpt1 |= QH_ENDPT1_H(1);
-			queue_head_new->qh_link = QH_LINK_TYPE_QH | ((unint4) queue_head_new);
-
-	/*		OUTW(this->controller->async_qh_reg,(unint4) queue_head_new);	 // set host controller queue head to this
-		} else {
-			// insert into list. add directly behind qh
-			queue_head_new->qh_link = qh_current->qh_link;
-			qh_current->qh_link = QH_LINK_TYPE_QH | ((unint4) queue_head_new);
-		}*/
 	} else {
 		// Interrupt Endpoint
 		// generate one qtd for the polling transfer
@@ -1306,7 +1347,7 @@ ErrorT USBDevice::activateEndpoint(int num) {
 
 }
 
-USBDevice::USBDevice(USB_EHCI_Host_Controller *controller, USBDevice *parent, unint1 port) {
+USBDevice::USBDevice(USB_EHCI_Host_Controller *controller, USBDevice *parent, unint1 port, unint1 speed) {
 
 	this->controller 	= controller;
 	this->parent 		= parent;
@@ -1314,6 +1355,7 @@ USBDevice::USBDevice(USB_EHCI_Host_Controller *controller, USBDevice *parent, un
 	this->dev_priv 		= 0;
 	this->numEndpoints	= 0;
 	this->driver		= 0;
+	this->speed 		= speed;
 
 	// new devices need can only be access by control port 0 first
 	// an address needs to be set after successfull configuration
@@ -1327,11 +1369,15 @@ USBDevice::USBDevice(USB_EHCI_Host_Controller *controller, USBDevice *parent, un
 		endpoints[i].status_toggle	= 1;
 		endpoints[i].type 			= UnknownTT;
 		endpoints[i].direction 		= UnknownDir;
-		endpoints[i].max_packet_size = 0x40;
+		if (speed == 1)
+			endpoints[i].max_packet_size = 8;
+		else
+			endpoints[i].max_packet_size = 64;
 	}
 
 	endpoints[0].type 		= Control;
 	endpoints[0].direction 	= Both;
+	endpoints[0].address	= 0;
 
 
 	if (this->activateEndpoint(0) != cOk) {

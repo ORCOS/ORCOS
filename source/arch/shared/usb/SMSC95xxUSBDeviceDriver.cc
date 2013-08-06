@@ -990,10 +990,10 @@ ErrorT SMSC95xxUSBDeviceDriver::handleInterrupt() {
 
 	ErrorT ret = cError;
 
-	QH* qh = dev->endpoints[this->int_ep].queue_head;
-	qTD* qtd2  = (qTD*) qh->qh_curtd;
+	volatile QH* qh = dev->endpoints[this->int_ep].queue_head;
+	volatile qTD* qtd2  = (qTD*) qh->qh_curtd;
 
-	if ( ((unint4)qtd2 != QT_NEXT_TERMINATE) && (QT_TOKEN_GET_STATUS(qh->qh_overlay.qt_token) != 0x80)) {
+	if ( ((unint4)qtd2 > QT_NEXT_TERMINATE) && (QT_TOKEN_GET_STATUS(qh->qh_overlay.qt_token) != 0x80)) {
 		unint4 interrupt_sts = *((unint4*) &dev->endpoints[this->int_ep].recv_buffer[0]);
 
 
@@ -1027,7 +1027,7 @@ ErrorT SMSC95xxUSBDeviceDriver::handleInterrupt() {
 	qh = dev->endpoints[this->bulkin_ep].queue_head;
 	qtd2  = (qTD*) qh->qh_curtd;
 
-	if ( ((unint4)qtd2 != QT_NEXT_TERMINATE) && (QT_TOKEN_GET_STATUS(qh->qh_overlay.qt_token) != 0x80)) {
+	if ( ((unint4)qtd2 > QT_NEXT_TERMINATE) && (QT_TOKEN_GET_STATUS(qh->qh_overlay.qt_token) != 0x80)) {
 		LOG(ARCH,TRACE,(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: Packet received: status %x",QT_TOKEN_GET_STATUS(qh->qh_overlay.qt_token)));
 
 

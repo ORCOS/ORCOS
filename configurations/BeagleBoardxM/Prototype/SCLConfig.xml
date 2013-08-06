@@ -10,7 +10,7 @@
       <Log Prefix="SYSCALLS" Level="WARN" />
       <Log Prefix="DB" Level="WARN" />
       <Log Prefix="HAL" Level="WARN" />
-      <Log Prefix="ARCH" Level="INFO" />
+      <Log Prefix="ARCH" Level="DEBUG" />
       <Log Prefix="FILESYSTEM" Level="INFO" />
       <Log Prefix="COMM" Level="INFO" />
     </Logging>

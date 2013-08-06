@@ -34,6 +34,8 @@ typedef struct {
 #define SCSI_INQUIRY		0x12
 #define SCSI_INQUIRY_LEN	36U
 
+#define SCSI_UNIT_READY 	0x0
+
 #define CBW_SET_LUN(cbw,lun) cbw[13] = lun
 
 static char cbwInquiry[31] __attribute__((aligned(4))) = {
@@ -49,6 +51,19 @@ SCSI_INQUIRY,
 0x0, 0x0, 0x0
 };
 
+static char cbwTestUnitReady[31] __attribute__((aligned(4))) = {
+'U','S','B','C',    			// CBW Signature
+0x12,0x34,0x56,0x78,   			// CBW Tag
+0x1,0x0,0x0,0x0, 				// CBW Data Transfer Length
+USB_BULK_IN_FLAG, 0x0, 6,		// Data DIR, CBW LUN, CB Length
+// CB
+SCSI_UNIT_READY,
+0x0, 0x0, 0x0, 0x0,
+0x0, 0x0, 0x0, 0x0,
+0x0 ,0x0, 0x0, 0x0,
+0x0, 0x0, 0x0
+};
+
 
 MassStorageSCSIUSBDeviceDriver::MassStorageSCSIUSBDeviceDriver(USBDevice* dev)
 :  USBDeviceDriver(), BlockDeviceDriver("sd0")
@@ -59,7 +74,12 @@ MassStorageSCSIUSBDeviceDriver::MassStorageSCSIUSBDeviceDriver(USBDevice* dev)
 	this->int_ep 		= 0;
 	this->sector_size 	= 512;
 	this->myLUN 		= 0;
+
+	// TODO: rename this device from sd0 to sd0+num sds
+
 	LOG(ARCH,INFO,(ARCH,INFO,"MassStorageSCSIUSBDeviceDriver: new Device attached.."));
+
+
 
 }
 
@@ -220,9 +240,9 @@ ErrorT MassStorageSCSIUSBDeviceDriver::initialize() {
 	dev->dev_priv = 0;
 
 	// perform an initial reset recovery
-	if (ResetRecovery() < 0) return cError;
+	//if (ResetRecovery() < 0) return cError;
 
-	LOG(ARCH,INFO,(ARCH,INFO,"MassStorageSCSIUSBDeviceDriver: reset successful.."));
+	//LOG(ARCH,INFO,(ARCH,INFO,"MassStorageSCSIUSBDeviceDriver: reset successful.."));
 
 	// try getting the number of logical units
 	unint4 lun = 1;
@@ -240,6 +260,15 @@ ErrorT MassStorageSCSIUSBDeviceDriver::initialize() {
 
 	// if lun > 1 we should setup multiple logical units inside the dev directory
 	this->myLUN = lun - 1;
+	memset(&this->scsi_info,0,sizeof(InquiryData));
+
+	/*error = performTransaction(cbwTestUnitReady,(char*)&this->scsi_info,0x1);
+	memdump((unint4) &this->scsi_info,4);
+	if (error < 0) {
+			LOG(ARCH,ERROR,(ARCH,ERROR,"MassStorageSCSIUSBDeviceDriver: testing unit ready failed.."));
+			return cError;
+	}*/
+
 
 	// create additional logical unit representations
 	for (unint1 i=1; i< lun; i++) {
@@ -251,7 +280,7 @@ ErrorT MassStorageSCSIUSBDeviceDriver::initialize() {
 		new MassStorageSCSIUSBDeviceDriver(this,i,name);
 	}
 
-	memset(&this->scsi_info,0,sizeof(InquiryData));
+
 	error = performTransaction(cbwInquiry,(char*)&this->scsi_info,SCSI_INQUIRY_LEN);
 	if (error < 0) {
 		LOG(ARCH,ERROR,(ARCH,ERROR,"MassStorageSCSIUSBDeviceDriver: device inquiry failed.."));
@@ -284,7 +313,6 @@ ErrorT MassStorageSCSIUSBDeviceDriver::readBlock(unint4 blockNum, char* buffer, 
 	// num blocks = (length / 512) +1;
 	//int num_blocks = (length >> 9) +1;
 	unint4 length = blocks << 9;
-
 
 	// initialize read command
 	// needs to be done this way for dma on physical address to work

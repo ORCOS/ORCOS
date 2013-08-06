@@ -320,11 +320,11 @@ private:
 public:
   // constructs a new USB device
   // a queue head is created inside the asynchronous list for this device
-  USBDevice(USB_EHCI_Host_Controller *controller, USBDevice *parent, unint1 port);
+  USBDevice(USB_EHCI_Host_Controller *controller, USBDevice *parent, unint1 port, unint1 speed);
 
   ~USBDevice();
 
-  static unint2 		addr_counter;
+  static unint1 		addr_counter;
 
   // the device descriptor received
   DeviceDescriptor 		dev_descr;
@@ -333,13 +333,16 @@ public:
   InterfaceDescriptor 	if_descr;
 
   // the associated device address
-  unint2 				addr;
+  unint1 				addr;
 
   // number of endpoints this device provides
   unint1 				numEndpoints;
 
   // port this device is connected on at the parent usb device
   unint1 				port;
+
+  // the speed of this device, 0 = full, 1 = low, 2 = high
+  unint1 				speed;
 
   // we support a maximum of five endpoints per device (4 + 1 control)
   DeviceEndpoint 		endpoints[5];
