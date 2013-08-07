@@ -34,6 +34,9 @@ typedef struct {
 #define SCSI_INQUIRY		0x12
 #define SCSI_INQUIRY_LEN	36U
 
+#define SCSI_WRITE10		0x2A
+#define SCSI_WRITE10_VERIFY	0x2E
+
 #define SCSI_UNIT_READY 	0x0
 
 #define CBW_SET_LUN(cbw,lun) cbw[13] = lun
@@ -66,7 +69,7 @@ SCSI_UNIT_READY,
 
 
 MassStorageSCSIUSBDeviceDriver::MassStorageSCSIUSBDeviceDriver(USBDevice* dev)
-:  USBDeviceDriver(), BlockDeviceDriver("sd0")
+:  USBDeviceDriver(), BlockDeviceDriver("sdx")
 {
 	this->dev 			= dev;
 	this->bulkin_ep 	= 0;
@@ -74,12 +77,19 @@ MassStorageSCSIUSBDeviceDriver::MassStorageSCSIUSBDeviceDriver(USBDevice* dev)
 	this->int_ep 		= 0;
 	this->sector_size 	= 512;
 	this->myLUN 		= 0;
+	this->next 			= 0;
 
-	// TODO: rename this device from sd0 to sd0+num sds
+	int num = (int) BlockDeviceDriver::freeBlockDeviceIDs->removeHead();
+	char* new_name = (char*) theOS->getMemManager()->alloc(4);
+	new_name[0] = 's';
+	new_name[1] = 'd';
+	new_name[2] = '0' + num;
+	new_name[3] = 0;
+
+	this->name = new_name;
 
 	LOG(ARCH,INFO,(ARCH,INFO,"MassStorageSCSIUSBDeviceDriver: new Device attached.."));
-
-
+	LOG(ARCH,INFO,(ARCH,INFO,"MassStorageSCSIUSBDeviceDriver: created LUN 0 as '%s'",name));
 
 }
 
@@ -92,13 +102,14 @@ MassStorageSCSIUSBDeviceDriver::MassStorageSCSIUSBDeviceDriver(MassStorageSCSIUS
 	this->int_ep 		= 0;
 	this->myLUN 		= lun;
 	this->sector_size 	= 512;
+	this->next 			= 0;
 
 	LOG(ARCH,INFO,(ARCH,INFO,"MassStorageSCSIUSBDeviceDriver: created LUN %d as '%s'",lun,name));
 
 	memset(&this->scsi_info,0,sizeof(InquiryData));
 	int	error = performTransaction(cbwInquiry,(char*)&this->scsi_info,SCSI_INQUIRY_LEN);
 	if (error < 0) {
-		LOG(ARCH,ERROR,(ARCH,ERROR,"MassStorageSCSIUSBDeviceDriver: device inquiry failed.."));
+		LOG(ARCH,ERROR,(ARCH,ERROR,"MassStorageSCSIUSBDeviceDriver: device inquiry failed. Ignoring LUN %d.",this->myLUN));
 	} else {
 		theOS->getPartitionManager()->registerBlockDevice(this);
 	}
@@ -183,19 +194,19 @@ ErrorT MassStorageSCSIUSBDeviceDriver::ResetRecovery() {
 
 	msg2[4] = this->bulkin_ep;
 	error = dev->controller->sendUSBControlMsg(dev,0,(unint1*) &msg2);
-	if (error < 0) {
+	/*if (error < 0) {
 		LOG(ARCH,ERROR,(ARCH,ERROR,"MassStorageSCSIUSBDeviceDriver: could not remove STALL at EP_IN."));
 		return cError;
-	}
+	}*/
 	dev->endpoints[this->bulkout_ep].data_toggle = 0;
 
 	msg2[4] = this->bulkout_ep;
 
 	error = dev->controller->sendUSBControlMsg(dev,0,(unint1*) &msg2);
-	if (error < 0) {
+	/*if (error < 0) {
 		LOG(ARCH,ERROR,(ARCH,ERROR,"MassStorageSCSIUSBDeviceDriver: could not remove STALL at EP_OUT."));
 		return cError;
-	}
+	}*/
 	dev->endpoints[this->bulkin_ep].data_toggle = 0;
 
 	return cOk;
@@ -211,8 +222,6 @@ ErrorT MassStorageSCSIUSBDeviceDriver::initialize() {
 	for (int i = 1; i <= dev->numEndpoints; i++) {
 		if (dev->endpoints[i].type == Bulk) {
 			// active it
-
-			//dev->endpoints[i].max_packet_size = 64;
 			if (dev->endpoints[i].direction == Out) {
 				this->bulkout_ep = i; //dev->endpoints[i].address;
 				bulkoutep = true;
@@ -225,7 +234,7 @@ ErrorT MassStorageSCSIUSBDeviceDriver::initialize() {
 			dev->activateEndpoint(i);
 
 		} else if(dev->endpoints[i].type == Interrupt)  {
-			int_ep =  dev->endpoints[i].address;;
+			int_ep =  i; //dev->endpoints[i].address;;
 			dev->endpoints[i].poll_frequency = 200;
 			intep = true;
 		}
@@ -239,11 +248,6 @@ ErrorT MassStorageSCSIUSBDeviceDriver::initialize() {
 
 	dev->dev_priv = 0;
 
-	// perform an initial reset recovery
-	//if (ResetRecovery() < 0) return cError;
-
-	//LOG(ARCH,INFO,(ARCH,INFO,"MassStorageSCSIUSBDeviceDriver: reset successful.."));
-
 	// try getting the number of logical units
 	unint4 lun = 1;
 	unint1 msg2[8] = {0xa1,0xfe,0x00, 0x00, 0x00, 0x00, 0x01, 0x00};
@@ -254,12 +258,10 @@ ErrorT MassStorageSCSIUSBDeviceDriver::initialize() {
 		return cError;
 	}
 
-	if ((lun >= 0) && (lun <=3)) lun++;
-	else lun = 1;
-	LOG(ARCH,DEBUG,(ARCH,DEBUG,"MassStorageSCSIUSBDeviceDriver: Device LUN: %d",lun));
+	lun += 1;
+	LOG(ARCH,DEBUG,(ARCH,DEBUG,"MassStorageSCSIUSBDeviceDriver: Device LUNs: %d",lun));
 
-	// if lun > 1 we should setup multiple logical units inside the dev directory
-	this->myLUN = lun - 1;
+	this->myLUN = 0;
 	memset(&this->scsi_info,0,sizeof(InquiryData));
 
 	/*error = performTransaction(cbwTestUnitReady,(char*)&this->scsi_info,0x1);
@@ -269,24 +271,30 @@ ErrorT MassStorageSCSIUSBDeviceDriver::initialize() {
 			return cError;
 	}*/
 
+	MassStorageSCSIUSBDeviceDriver *current = this;
 
 	// create additional logical unit representations
 	for (unint1 i=1; i< lun; i++) {
+
 		char* name = (char*) theOS->getMemManager()->alloc(4);
+		int num = (int) BlockDeviceDriver::freeBlockDeviceIDs->removeHead();
 		name[0] = 's';
 		name[1] = 'd';
-		name[2] = '0' + i;
+		name[2] = '0' + num;
 		name[3] = 0;
-		new MassStorageSCSIUSBDeviceDriver(this,i,name);
+		MassStorageSCSIUSBDeviceDriver *next = new MassStorageSCSIUSBDeviceDriver(this,i,name);
+		// link the created LUNs MSDs so we can delete them again
+		current->next = next;
+		current = next;
 	}
-
 
 	error = performTransaction(cbwInquiry,(char*)&this->scsi_info,SCSI_INQUIRY_LEN);
 	if (error < 0) {
-		LOG(ARCH,ERROR,(ARCH,ERROR,"MassStorageSCSIUSBDeviceDriver: device inquiry failed.."));
+		LOG(ARCH,ERROR,(ARCH,ERROR,"MassStorageSCSIUSBDeviceDriver: device inquiry failed. Ignoring LUN %d.",this->myLUN));
 		return cError;
 	}
 
+	// we only register if inquiry succeeds
 	theOS->getPartitionManager()->registerBlockDevice(this);
 
 
@@ -305,7 +313,7 @@ static char cbwRead10[36] = {
 		0, 0x0, 0x0, 0,
 		0x0 ,0x0, 0x0, 0x0,
 		0x0, 0x0, 0x0
-		};;
+		};
 
 ErrorT MassStorageSCSIUSBDeviceDriver::readBlock(unint4 blockNum, char* buffer, unint4 blocks) {
 
@@ -325,8 +333,7 @@ ErrorT MassStorageSCSIUSBDeviceDriver::readBlock(unint4 blockNum, char* buffer, 
 	cbwRead10[18] = (unint1) ((blockNum & 0xff0000) >> 16);
 	cbwRead10[19] = (unint1)((blockNum & 0xff00) >> 8);
 	cbwRead10[20] =	(unint1) (blockNum & 0xff);
-	cbwRead10[23] = (unint1) blocks;
-
+	cbwRead10[23] = (unint1) blocks;	// maximum of 255 blocks
 
 	int error = performTransaction(cbwRead10,buffer,length);
 	if (error < 0) {
@@ -337,6 +344,52 @@ ErrorT MassStorageSCSIUSBDeviceDriver::readBlock(unint4 blockNum, char* buffer, 
 	return cOk;
 }
 
+static char cbwWrite10[36] = {
+		'U','S','B','C',    			// CBW Signature
+		0x11,0x34,0x56,0x10,   			// CBW Tag
+		0,0,0,0,
+		USB_BULK_IN_FLAG, 0x0, 10,		// Data DIR, CBW LUN, CB Length
+		// CB
+		SCSI_WRITE10,
+		0x0,0,0, 0,
+		0, 0x0, 0x0, 0,
+		0x0 ,0x0, 0x0, 0x0,
+		0x0, 0x0, 0x0
+		};
+ErrorT MassStorageSCSIUSBDeviceDriver::writeBlock(unint4 blockNum, char* buffer,
+		unint4 blocks, bool verify) {
+
+	if (verify) {
+		cbwWrite10[15] = SCSI_WRITE10_VERIFY;
+	} else
+		cbwWrite10[15] = SCSI_WRITE10;
+
+	// block size = 512
+	// num blocks = (length / 512) +1;
+	//int num_blocks = (length >> 9) +1;
+	unint4 length = blocks << 9;
+
+	// initialize read command
+	// needs to be done this way for dma on physical address to work
+	cbwWrite10[8]  = (unint1)(length & 0xff);
+	cbwWrite10[9]  = (unint1) ((length & 0xff00) >> 8);
+	cbwWrite10[10] = (unint1) ((length & 0xff0000) >> 16);
+	cbwWrite10[11] = (unint1) ((length & 0xff000000) >> 24); 			// CBW Data Transfer Length
+
+	cbwWrite10[17] = (unint1) ((blockNum & 0xff000000) >> 24);
+	cbwWrite10[18] = (unint1) ((blockNum & 0xff0000) >> 16);
+	cbwWrite10[19] = (unint1)((blockNum & 0xff00) >> 8);
+	cbwWrite10[20] = (unint1) (blockNum & 0xff);
+	cbwWrite10[23] = (unint1) blocks;
+
+	int error = performTransaction(cbwWrite10,buffer,length);
+	if (error < 0) {
+		LOG(ARCH,ERROR,(ARCH,ERROR,"MassStorageSCSIUSBDeviceDriver: writing device blocks failed %d. length: %d.",error,length));
+		return cError;
+	}
+
+	return cOk;
+}
 
 ErrorT MassStorageSCSIUSBDeviceDriver::handleInterrupt() {
 
@@ -349,14 +402,18 @@ ErrorT MassStorageSCSIUSBDeviceDriver::handleInterrupt() {
 MassStorageSCSIUSBDeviceDriver::~MassStorageSCSIUSBDeviceDriver() {
 
 	// remove all instances (all luns) from the partition mananger
-	LOG(ARCH,INFO,(ARCH,INFO,"MassStorageSCSIUSBDeviceDriver: removing all LUNs.."));
-	// TODO delete other LUN instances
+	LOG(ARCH,INFO,(ARCH,INFO,"MassStorageSCSIUSBDeviceDriver: removing BlockDevice '%s', LUN: %d.",this->name,this->myLUN));
 
 	// unregister this device
 	theOS->getPartitionManager()->unregisterBlockDevice(this);
 
 	// remove driver from dev directory
 	theOS->getFileManager()->getDirectory("/dev")->remove(this);
+
+	if (this->next != 0)
+		delete this->next;
+
+	BlockDeviceDriver::freeBlockDeviceIDs->addHead((DatabaseItem*) this->myLUN);
 }
 
 

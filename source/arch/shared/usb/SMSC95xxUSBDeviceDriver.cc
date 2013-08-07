@@ -921,10 +921,10 @@ ErrorT SMSC95xxUSBDeviceDriver::initialize() {
 			// active it
 
 			if (dev->endpoints[i].direction == Out) {
-				bulkout_ep =  dev->endpoints[i].address;
+				bulkout_ep =  i; //dev->endpoints[i].address;
 				bulkoutep = true;
 			} else {
-				bulkin_ep =  dev->endpoints[i].address;
+				bulkin_ep =  i; //dev->endpoints[i].address;
 				bulkinep = true;
 				// internally handle RX transfer as interrupt requests
 				dev->endpoints[bulkin_ep].type = Interrupt;
@@ -934,7 +934,7 @@ ErrorT SMSC95xxUSBDeviceDriver::initialize() {
 			dev->activateEndpoint(i);
 
 		} else if(dev->endpoints[i].type == Interrupt)  {
-			int_ep =  dev->endpoints[i].address;
+			int_ep =  i; //dev->endpoints[i].address;
 			dev->endpoints[i].poll_frequency = 200;
 			intep = true;
 		}

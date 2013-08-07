@@ -195,7 +195,7 @@ ErrorT USB_EHCI_Host_Controller::Init() {
 
 	// now initialize the aperiodic and periodic frame space
 	// set all frame list entries to invalid
-	memset(this->memory_base,frame_list_size*4,0);
+	memset(this->memory_base,0,frame_list_size*4);
 
 	// initialize the working queues
 	OUTW(operational_register_base + PERIODICLISTBASE_OFFSET,(unint4) this->memory_base);
@@ -338,7 +338,7 @@ int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1
 	volatile qTD* qtd  		=  (qTD*) theOS->getMemManager()->alloc(32,1,32);
 	volatile qTD* qtd_last;
 
-	memset((void*) qtd,32,0);
+	memset((void*) qtd,0,32);
 
 	unint4 length = 4096;
 	if (data_len < length) length = data_len;
@@ -367,7 +367,7 @@ int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1
 	// create a chain of qtds for the data to be transferred
 	while (length > 0) {
 		qTD *qtd2 = (qTD*) theOS->getMemManager()->alloc(32,1,32);
-		memset((void*) qtd2,32,0);
+		memset((void*) qtd2,0,32);
 
 		toggle = toggle ^ 1;
 
@@ -396,14 +396,16 @@ int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1
 	qh->qh_overlay.qt_next = (unint4) qtd;
 	OUTW(this->async_qh_reg,(unint4) qh);
 
+	OUTW(operational_register_base + USBSTS_OFFSET, 0x3a);
+
 	// activate the schedule
 	unint4 usb_cmd = INW(operational_register_base + USBCMD_OFFSET);
 	SETBITS(usb_cmd,5,5,1);
 	OUTW(operational_register_base + USBCMD_OFFSET, usb_cmd);
 
 	// wait until activated
-	volatile unint4 timeout = 1000000;
-	while (( (INW(operational_register_base + USBCMD_OFFSET) & 0x20) == 0) && timeout) {timeout--;};
+	volatile unint4 timeout = 100000;
+	while (( (INW(operational_register_base + USBSTS_OFFSET) & 0x8000) == 0) && timeout) {timeout--;};
 
 	if (timeout == 0) {
 		LOG(ARCH,ERROR,(ARCH,ERROR,"USB_EHCI_Host_Controller::send() Async Schedule did not get activated.."));
@@ -478,9 +480,9 @@ int USB_EHCI_Host_Controller::sendUSBControlMsg(USBDevice *dev, unint1 endpoint,
 
 	volatile qTD* lastqtd = qtd2;
 
-	memset((void*) qtd,32,0);
-	memset((void*) qtd2,32,0);
-	memset((void*) qtd3,32,0);
+	memset((void*) qtd, 0,32);
+	memset((void*) qtd2,0,32);
+	memset((void*) qtd3,0,32);
 
 	// SETUP TOKEN
 	QT_LINK(qtd,qtd2);
@@ -522,13 +524,15 @@ int USB_EHCI_Host_Controller::sendUSBControlMsg(USBDevice *dev, unint1 endpoint,
 	unint4 reg = INW(operational_register_base + ASYNCLISTADDR_OFFSET);
 	LOG(ARCH,TRACE,(ARCH,TRACE,"USB_EHCI_Host_Controller::send() qhlist @ 0x%x",reg));
 
+	// clear status bits
+	OUTW(operational_register_base + USBSTS_OFFSET, 0x3a);
 
 	unint4 usb_cmd = INW(operational_register_base + USBCMD_OFFSET);
 	SETBITS(usb_cmd,5,5,1);
 	OUTW(operational_register_base + USBCMD_OFFSET, usb_cmd);
 
 	volatile unint4 timeout = 1000000;
-	while (( (INW(operational_register_base + USBCMD_OFFSET) & 0x20) == 0) && timeout) {timeout--;};
+	while (( (INW(operational_register_base + USBSTS_OFFSET) & 0x8000) == 0) && timeout) {timeout--;};
 
 
 	if (timeout == 0) {
@@ -1225,23 +1229,21 @@ ErrorT USBDevice::deactivate() {
 	for (int i = 0; i <= this->numEndpoints; i++) {
 
 		// remove the allocated queue heads
-		QH* qh 		= endpoints[i].queue_head;
-		qTD* qtd2 	= endpoints[i].q_int_transfer;
-
 		if (endpoints[i].type == Interrupt) {
 			LOG(ARCH,INFO,(ARCH,INFO,"USB_Device: Stopping Periodic Transfer for Endpoint %d.",i));
 
-			this->controller->removefromPeriodic(qh,endpoints[i].poll_frequency);
-			// delete its allocated receive buffer
-			delete endpoints[i].recv_buffer;
+			this->controller->removefromPeriodic(endpoints[i].queue_head,endpoints[i].poll_frequency);
 		}
+
+		// delete its allocated receive buffer
+		if (endpoints[i].recv_buffer) delete endpoints[i].recv_buffer;
+		if (endpoints[i].queue_head != 0) 	delete endpoints[i].queue_head;
+		if (endpoints[i].q_int_transfer != 0) 	delete endpoints[i].q_int_transfer;
 
 		// can only be removed if the associated device driver is removed from controller
 		endpoints[i].queue_head = 0;
 		endpoints[i].q_int_transfer = 0;
 
-		if (qh != 0) 	delete qh;
-		if (qtd2 != 0) 	delete qtd2;
 
 	}
 
@@ -1283,7 +1285,7 @@ ErrorT USBDevice::activateEndpoint(int num) {
 	QH* queue_head_new =  (QH*) theOS->getMemManager()->alloc(48,1,32);	// delete @ USBDevice::deactivate
 	// store address and clear area
 	endpoints[num].queue_head = queue_head_new;
-	memset((void*) queue_head_new,48,0);
+	memset((void*) queue_head_new,0,48);
 
 	// hs : QH_ENDPT1_EPS_HS
 	queue_head_new->qh_endpt1 = QH_ENDPT1_DEVADDR(this->addr) | QH_ENDPT1_MAXPKTLEN(endpoints[num].max_packet_size)

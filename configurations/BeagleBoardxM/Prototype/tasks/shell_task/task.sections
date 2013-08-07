@@ -5,31 +5,31 @@ Sections:
 Idx Name          Size      VMA       LMA       File off  Algn
   0 .CB           00000034  00100000  81100000  00008000  2**0
                   CONTENTS, ALLOC, LOAD, DATA
-  1 .text         00002778  00100038  81100038  00008038  2**3
+  1 .text         00002768  00100038  81100038  00008038  2**3
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  2 .rodata       00000590  001027b0  811027b0  0000a7b0  2**2
+  2 .rodata       00000574  001027a0  811027a0  0000a7a0  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  3 .data         00000064  00102d40  81102d40  0000ad40  2**2
+  3 .data         00000064  00102d14  81102d14  0000ad14  2**2
                   CONTENTS, ALLOC, LOAD, DATA
-  4 .bss          00000d08  00102da4  81102da4  0000ada4  2**2
+  4 .bss          00000d08  00102d78  81102d78  0000ad78  2**2
                   ALLOC
-  5 .debug_info   00002f82  00000000  00000000  0000ada4  2**0
+  5 .debug_info   00002f62  00000000  00000000  0000ad78  2**0
                   CONTENTS, READONLY, DEBUGGING
-  6 .debug_abbrev 00000966  00000000  00000000  0000dd26  2**0
+  6 .debug_abbrev 00000966  00000000  00000000  0000dcda  2**0
                   CONTENTS, READONLY, DEBUGGING
-  7 .debug_loc    00001727  00000000  00000000  0000e68c  2**0
+  7 .debug_loc    0000174a  00000000  00000000  0000e640  2**0
                   CONTENTS, READONLY, DEBUGGING
-  8 .debug_aranges 000002b8  00000000  00000000  0000fdb8  2**3
+  8 .debug_aranges 000002b8  00000000  00000000  0000fd90  2**3
                   CONTENTS, READONLY, DEBUGGING
-  9 .debug_ranges 000004a0  00000000  00000000  00010070  2**0
+  9 .debug_ranges 000004a0  00000000  00000000  00010048  2**0
                   CONTENTS, READONLY, DEBUGGING
- 10 .debug_line   00000d79  00000000  00000000  00010510  2**0
+ 10 .debug_line   00000d78  00000000  00000000  000104e8  2**0
                   CONTENTS, READONLY, DEBUGGING
- 11 .debug_str    000008e2  00000000  00000000  00011289  2**0
+ 11 .debug_str    000008e2  00000000  00000000  00011260  2**0
                   CONTENTS, READONLY, DEBUGGING
- 12 .comment      00000011  00000000  00000000  00011b6b  2**0
+ 12 .comment      00000011  00000000  00000000  00011b42  2**0
                   CONTENTS, READONLY
- 13 .ARM.attributes 00000028  00000000  00000000  00011b7c  2**0
+ 13 .ARM.attributes 00000028  00000000  00000000  00011b53  2**0
                   CONTENTS, READONLY
- 14 .debug_frame  00000738  00000000  00000000  00011ba4  2**2
+ 14 .debug_frame  00000738  00000000  00000000  00011b7c  2**2
                   CONTENTS, READONLY, DEBUGGING

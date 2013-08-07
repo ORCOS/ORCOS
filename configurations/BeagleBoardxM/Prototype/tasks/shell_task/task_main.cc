@@ -277,7 +277,7 @@ void handleCommand(int socket, int command_length) {
 		//printf("handle: %d\r\n", handle);
 		if (handle >= 0) {
 			// success
-			printf("opening %s successfull\r\n",current_dir);
+			//printf("opening %s successfull\r\n",current_dir);
 
 			if ((mydirhandle != 0) && (mydirhandle != handle )) fclose(mydirhandle);
 

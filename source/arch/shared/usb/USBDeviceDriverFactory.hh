@@ -19,7 +19,7 @@ class USBDevice;
 class USBDeviceDriver {
 
 public:
-	USBDeviceDriver () {};
+	USBDeviceDriver () {dev_priv = 0;};
 
 	virtual ~USBDeviceDriver() {};
 

@@ -39,7 +39,6 @@ class Resource : public DatabaseItem {
 protected:
 
 	// making the name protected allows classes to change their name
-
     //! name identifiying this resource
     const char* name;
 

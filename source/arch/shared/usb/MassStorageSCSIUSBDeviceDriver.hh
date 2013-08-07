@@ -48,10 +48,12 @@ public:
 	int 		int_ep;
 
 	InquiryData scsi_info;
-	// TODO overload character device driver methods to allow raw block access to the device
 
 	// my logical unit number
 	int			 myLUN;
+
+	// next LUN msd of the same usb device
+	MassStorageSCSIUSBDeviceDriver *next;
 
 public:
   MassStorageSCSIUSBDeviceDriver(USBDevice* dev);
@@ -69,7 +71,25 @@ public:
 
   ErrorT 	handleInterrupt();
 
-  ErrorT 	readBlock(unint4 blockNum, char* buffer, unint4 length);
+  /*!
+   * Static block size of 512 bytes for MassStorageDevices
+   */
+  unint4 	getBlockSize() { return 512; }
+
+  // TODO overload character device driver methods to allow raw block access to the device
+
+  /*!
+   * \brief Reads 'blocks' blocks from block number 'blockNum' of this Logical Unit into
+   * 		the buffer.
+   */
+  ErrorT 	readBlock(unint4 blockNum, char* buffer, unint4 blocks);
+
+  /*!
+   * \brief Tries to write 'blocks' blocks to block number 'blockNum' of this Logical Unit from
+   * 		the buffer. If verify is set to true the written bytes are verifyed on the device.
+   */
+  ErrorT 	writeBlock(unint4 blockNum, char* buffer, unint4 blocks, bool verify = false);
+
 
   ErrorT 	ResetRecovery();
 };

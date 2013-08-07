@@ -9,6 +9,7 @@
 #include <kernel/Kernel.hh>
 
 extern Kernel* theOS;
+ArrayDatabase *BlockDeviceDriver::freeBlockDeviceIDs;
 
 BlockDeviceDriver::BlockDeviceDriver(char* name) :  GenericDeviceDriver(cBlockDevice, true, name) {
 
