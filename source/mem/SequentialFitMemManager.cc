@@ -77,15 +77,12 @@ void SequentialFitMemManager::merge( unint4* chunk ) {
 	current_ch->state = FREE;
 	memset(chunk, 0, ((unint4)current_ch->next_chunk - (unint4)chunk) - sizeof(Chunk_Header));
 
-	// try to merge
-
-	// TODO: merge
-
 	// policy: try merging it with the previous chunk first
 	// if not existend merge with next if it is free
 	// if that fails just mark this chunk as free
+	// however, this will increase the used mem as the header stays reserved
 
-	/*if (current_ch->prev_chunk != 0) {
+	if (current_ch->prev_chunk != 0) {
 		Chunk_Header *prev_ch	=  (Chunk_Header*) (current_ch->prev_chunk - sizeof(Chunk_Header));
 		// change the size
 		if (prev_ch->state == FREE) {
@@ -97,8 +94,31 @@ void SequentialFitMemManager::merge( unint4* chunk ) {
 				Chunk_Header *next_ch	=  (Chunk_Header*) (current_ch->next_chunk - sizeof(Chunk_Header));
 				next_ch->prev_chunk = current_ch->prev_chunk;
 			}
+
+			current_ch = prev_ch;
 		}
-	}*/
+	}
+
+	if (current_ch->next_chunk != 0) {
+		Chunk_Header *next_ch	=  (Chunk_Header*) (current_ch->next_chunk - sizeof(Chunk_Header));
+
+		// change the size
+		if (next_ch->state == FREE) {
+			unint4 current_chunk = (unint4) current_ch + sizeof(Chunk_Header);
+
+			current_ch->next_chunk = next_ch->next_chunk;
+			current_ch->size 		+= (((unint4) next_ch - (unint4) current_ch) - current_ch->size) + next_ch->size;
+
+			next_ch->prev_chunk = current_chunk;
+
+			if (next_ch->next_chunk != 0) {
+				Chunk_Header *next_next_ch	=  (Chunk_Header*) (next_ch->next_chunk - sizeof(Chunk_Header));
+				next_next_ch->prev_chunk = current_chunk;
+			}
+
+		}
+
+	}
 
 }
 
@@ -200,27 +220,11 @@ void* SequentialFitMemManager::getFittingChunk( size_t size, bool aligned, unint
 		if (((unint4) current_ch->next_chunk != 0) && ((unint4) current_ch->next_chunk <= (unint4) current_chunk)) {
 			printf("Error in chunk list...");
 
-			int tid = 0;
+			// return 0 for tasks to show them allocation failed ..
 			if (pCurrentRunningTask != 0)
-				tid = pCurrentRunningTask->getId();
-
-			int asid = -1;
-			unint4 tbb0 = 0;
-			unint4 paget =	((unint4)(&__PageTableSec_start)) + tid*0x4000;
-
-			asm (
-				"MRC p15,0,%0,c13,c0,1;" // ; Read CP15 Context ID Register
-				"MRC p15,0,%1,c2,c0,0;" // ; Read CP15 Translation Table Base Register 0
-				: "=&r" (asid), "=&r" (tbb0)
-				:
-				:
-			);
-
-			LOG(ARCH,ERROR,(ARCH,ERROR,"ASID: %d, TBB0: 0x%x, Task PT: 0x%x",asid,tbb0,paget));
-
-			theOS->getHatLayer()->dumpPageTable(tid);
-			// TODO: Handle by removing the task !
-			while(1);
+				return 0;
+			else
+				while (1) {};
 		}
 
 		current_chunk = (unint4*) current_ch->next_chunk;
@@ -261,9 +265,6 @@ void* SequentialFitMemManager::alloc( size_t size, bool aligned, unint4 align_va
 
     unint4* addr = (unint4*) getFittingChunk( size, aligned, align_val );
 
-    //printf("alloc: 0x%x [%d]\r",addr,size);
-
-
     if (( ((unint4)addr) & (align_val-1)) != 0)
     {
     	printf("Error in alignment...");
@@ -272,6 +273,7 @@ void* SequentialFitMemManager::alloc( size_t size, bool aligned, unint4 align_va
 
     if ( addr ) {
         split( addr, size );
+       // printf("MEM_ALLOC: %x (%d)\r",(unint4) addr, size);
         return addr;
     } else {
     	printf("No more memory left .. serious error .. halting..\r");
@@ -285,9 +287,10 @@ void* SequentialFitMemManager::alloc( size_t size, bool aligned, unint4 align_va
 }
 
 ErrorT SequentialFitMemManager::free( void* chunk ) {
+   	//printf("MEM_FREE : %x\r",(unint4) chunk);
 
     if ( !isValidChunkAddress( (unint4*) chunk ) ) {
-    	//printf("Trying to free invalid address %x",(unint4) chunk);
+    	printf("Trying to free invalid address %x\r",(unint4) chunk);
         return cNoValidChunkAddress;
     }
 

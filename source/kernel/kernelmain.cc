@@ -64,6 +64,8 @@ extern "C"void kernelmain()
         addr = (void*) (((unint4) addr) + 4);
     }
 
+    theOS = 0;
+
     // create MM working directly with the real physical addresses
     MemoryManagerCfdCl* memMan = new(&_heap_start) MemoryManagerCfdCl(&_heap_start  +  sizeof(MemoryManagerCfdCl) ,&_heap_end);
 

@@ -55,7 +55,8 @@ DOSPartition::DOSPartition(BlockDeviceDriver *bdev, dos_partition_t *mypartition
 
 DOSPartition::~DOSPartition() {
 
-	delete this->name;
+	// this->name is deleted by Resource
+	//delete this->name;
 
 }
 

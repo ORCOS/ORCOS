@@ -1236,7 +1236,7 @@ ErrorT USBDevice::deactivate() {
 		}
 
 		// delete its allocated receive buffer
-		if (endpoints[i].recv_buffer) delete endpoints[i].recv_buffer;
+		if (endpoints[i].recv_buffer != 0) delete endpoints[i].recv_buffer;
 		if (endpoints[i].queue_head != 0) 	delete endpoints[i].queue_head;
 		if (endpoints[i].q_int_transfer != 0) 	delete endpoints[i].q_int_transfer;
 

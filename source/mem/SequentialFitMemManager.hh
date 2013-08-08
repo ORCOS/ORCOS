@@ -48,8 +48,12 @@ typedef struct {
 // Minimum payload needed for a chunk when splitting
 #define MINIMUM_PAYLOAD 8
 
+// MEM_LAST_FIT will start searching at the last freed object for chunks to allocated
+// this is faster than starting to search from the beginning
+// however: this will lead to a higher number of chunks, thus, increasing the number
+// of reserved (used) bytes not allocateable for the user.
 #ifndef MEM_LAST_FIT
-#define MEM_LAST_FIT 1
+#define MEM_LAST_FIT 0
 #endif
 
 /*!
