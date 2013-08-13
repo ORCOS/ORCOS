@@ -112,6 +112,12 @@ unint4 FATFileSystem::getFATTableEntry(unint4 clusterNum) {
 
 unint4 FATFileSystem::getNextSector(unint4 currentSector, unint4 &currentCluster) {
 
+	/*if (this->myFatType == FAT16) {
+		if (currentCluster == 0) {
+			if (currentSector == myFAT_BPB.BPB_RootEntCnt) return EOC;
+		}
+	}*/
+
 	// check if next sector would lie inside another cluster
 	// if so follow cluster chain
 	if ( (currentSector / myFAT_BPB.BPB_SecPerClus) != ((currentSector+1) / myFAT_BPB.BPB_SecPerClus)) {
@@ -223,7 +229,7 @@ ErrorT FATFileSystem::initialize() {
 			LOG(ARCH,INFO,(ARCH,INFO,"FATFileSystem: Volume: '%s' ID: %x",name,myFATxx_BPB.myFAT16_BPB.BS_VolID));
 
 			unint4 FirstRootDirSecNum = myFAT_BPB.BPB_RsvdSecCnt + (myFAT_BPB.BPB_NumFATs * myFAT_BPB.BPB_FATSz16);
-			rootDir = new FATDirectory(this,2,name,FirstRootDirSecNum);
+			rootDir = new FATDirectory(this,0,name,FirstRootDirSecNum);
 			mntdir->add(rootDir);
 
 			LOG(ARCH,INFO,(ARCH,INFO,"FATFileSystem: FAT Filesystem mounted to '/mnt/%s/'.",name));

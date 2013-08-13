@@ -403,8 +403,10 @@ int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1
 	// be sure the register contains the correct value
 	// thats why we set it multiple times here
 	OUTW(operational_register_base + ASYNCLISTADDR_OFFSET,(unint4) qh);
-	OUTW(operational_register_base + ASYNCLISTADDR_OFFSET,(unint4) qh);
-	OUTW(operational_register_base + ASYNCLISTADDR_OFFSET,(unint4) qh);
+	while (INW(operational_register_base + ASYNCLISTADDR_OFFSET) != (unint4)qh) {
+		OUTW(operational_register_base + ASYNCLISTADDR_OFFSET,(unint4) qh);
+	}
+
 
 	// be sure schedule is activated
 	unint4 usb_cmd = INW(operational_register_base + USBCMD_OFFSET);
@@ -498,8 +500,9 @@ int USB_EHCI_Host_Controller::sendUSBControlMsg(USBDevice *dev, unint1 endpoint,
 	qh->qh_overlay.qt_next = (unint4) qtd;
 
 	OUTW(operational_register_base + ASYNCLISTADDR_OFFSET,(unint4) qh);
-	OUTW(operational_register_base + ASYNCLISTADDR_OFFSET,(unint4) qh);
-	OUTW(operational_register_base + ASYNCLISTADDR_OFFSET,(unint4) qh);
+	while (INW(operational_register_base + ASYNCLISTADDR_OFFSET) != (unint4)qh) {
+		OUTW(operational_register_base + ASYNCLISTADDR_OFFSET,(unint4) qh);
+	}
 
 	unint4 usb_cmd = INW(operational_register_base + USBCMD_OFFSET);
 	SETBITS(usb_cmd,5,5,1);
