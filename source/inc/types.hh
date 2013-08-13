@@ -186,19 +186,21 @@ typedef struct {
     long task_heap_end;     	// first physical addr that doesnt!! belong to this heap
     long task_data_end;     	// the first logical address that is no data of the task any more (.text | .data  | .bss ...)
     long task_thread_exit_addr; // logical addr of the thread_exit method inside the task
-} taskTable;
-
-
-/*!
- * \brief structure containing necessary information for RT threads (period,deadline,execution time, phase, initial priority)
- */
-struct RTThreadAttrs {
     unint4 initialPriority;
     unint4 phase;
     unint4 period;
     unint4 deadline;
     unint4 executionTime;
-};
+} taskTable;
+
+
+/*!
+ * \brief CRC32 optional task header. Contains the CRC32 of the task area + taskTable.
+ */
+typedef struct {
+	unint4 next_header;
+	unint4 taskCRC32;
+} taskCRCHeader;
 
 typedef enum {
     cDirectory 		= 1 << 0,

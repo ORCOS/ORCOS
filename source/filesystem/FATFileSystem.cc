@@ -30,14 +30,12 @@ FATFileSystem::FATFileSystem(Partition* myPartition) : FileSystemBase(myPartitio
 
 		if (myFAT_BPB.BPB_BytsPerSec <= myPartition->getSectorSize() ) {
 
-			// TODO: check the other fields as well for sanity..
 			// right now we trust the rest of the table and do checks on demand
-			memcpy(&this->myFAT32_BPB,&buffer[36],sizeof(FAT32_BPB));
+			FAT32_BPB* myFAT32BPB = (FAT32_BPB*) &buffer[36];
+			FAT16_BPB* myFAT16BPB = (FAT16_BPB*) &buffer[36];
+
 
 			RootDirSectors = (((myFAT_BPB.BPB_RootEntCnt * 32) + (myFAT_BPB.BPB_BytsPerSec - 1)) / myFAT_BPB.BPB_BytsPerSec);
-
-			FirstDataSector = myFAT_BPB.BPB_RsvdSecCnt + (myFAT_BPB.BPB_NumFATs * myFAT32_BPB.BPB_FATSz32) + RootDirSectors;
-			LOG(ARCH,INFO,(ARCH,INFO,"FATFileSystem: Data Sector: %d",FirstDataSector));
 
 			// getting the first sector of a cluster N:
 			// FirstSectorofCluster = ((N – 2) * BPB_SecPerClus) + FirstDataSector;
@@ -46,13 +44,17 @@ FATFileSystem::FATFileSystem(Partition* myPartition) : FileSystemBase(myPartitio
 			if (myFAT_BPB.BPB_FATSz16 != 0)
 				FATSz = myFAT_BPB.BPB_FATSz16;
 			 else
-				FATSz = myFAT32_BPB.BPB_FATSz32;
+				FATSz = myFAT32BPB->BPB_FATSz32;
 
 			unint4 TotSec;
 			if (myFAT_BPB.BPB_TotSec16 != 0)
 				TotSec = myFAT_BPB.BPB_TotSec16;
 			 else
 				TotSec = myFAT_BPB.BPB_TotSec32;
+
+
+			FirstDataSector = myFAT_BPB.BPB_RsvdSecCnt + (myFAT_BPB.BPB_NumFATs * FATSz) + RootDirSectors;
+			LOG(ARCH,INFO,(ARCH,INFO,"FATFileSystem: First FAT Data Sector: %d",FirstDataSector));
 
 
 			DataSec = TotSec - (myFAT_BPB.BPB_RsvdSecCnt + (myFAT_BPB.BPB_NumFATs * FATSz) + RootDirSectors);
@@ -64,11 +66,14 @@ FATFileSystem::FATFileSystem(Partition* myPartition) : FileSystemBase(myPartitio
 				LOG(ARCH,WARN,(ARCH,WARN,"FATFileSystem: FAT12 not supported.. not mounting FS"));
 			} else if (CountOfClusters < 65525 ) {
 				this->myFatType = FAT16;
-				LOG(ARCH,WARN,(ARCH,WARN,"FATFileSystem: FAT16 not supported.. not mounting FS"));
+				this->isValid = true;
+				memcpy(&myFATxx_BPB,&buffer[36],sizeof(FAT16_BPB));
+				LOG(ARCH,INFO,(ARCH,INFO,"FATFileSystem: found valid FAT16 with %d sectors",myFAT_BPB.BPB_TotSec16));
 			}
 			else {
 				this->myFatType = FAT32;
 				this->isValid = true;
+				memcpy(&myFATxx_BPB,&buffer[36],sizeof(FAT32_BPB));
 				LOG(ARCH,INFO,(ARCH,INFO,"FATFileSystem: found valid FAT32 with %d sectors",myFAT_BPB.BPB_TotSec32));
 			}
 
@@ -162,10 +167,14 @@ FATFileSystem::~FATFileSystem() {
 ErrorT FATFileSystem::initialize() {
 
 	if (this->isValid) {
+
+		// get orcos mount directory
+		Directory* mntdir = theOS->getFileManager()->getDirectory("/mnt/");
+
 		if (myFatType == FAT32) {
 
 			// get FSInfo
-			unint4 fsinfo_lba = myFAT32_BPB.BPB_FSInfo * ( myFAT_BPB.BPB_BytsPerSec / this->myPartition->getSectorSize());
+			unint4 fsinfo_lba = myFATxx_BPB.myFAT32_BPB.BPB_FSInfo * ( myFAT_BPB.BPB_BytsPerSec / this->myPartition->getSectorSize());
 			int error = myPartition->readSectors(fsinfo_lba,buffer,1);
 			if (error < 0) return cError;
 
@@ -179,9 +188,6 @@ ErrorT FATFileSystem::initialize() {
 
 			LOG(ARCH,INFO,(ARCH,INFO,"FATFileSystem: Free Clusters: %x",fsinfo->FSI_FreeCount));
 
-			// get orcos mount directory
-			Directory* mntdir = theOS->getFileManager()->getDirectory("/mnt/");
-
 
 			if (mntdir == 0) {
 				LOG(ARCH,ERROR,(ARCH,ERROR,"FATFileSystem: no mount directory '/mnt/' found. Not mounting"));
@@ -190,21 +196,41 @@ ErrorT FATFileSystem::initialize() {
 
 			char *name = (char*) theOS->getMemManager()->alloc(12);
 			name[11] = 0;
-			memcpy(name,myFAT32_BPB.BS_VolLab,11);
+			memcpy(name,myFATxx_BPB.myFAT32_BPB.BS_VolLab,11);
 
 			FAT_SHORTNAME_STRIP(name,10);
 
-			LOG(ARCH,INFO,(ARCH,INFO,"FATFileSystem: Volume: '%s' ID: %x",name,myFAT32_BPB.BS_VolID));
-
+			LOG(ARCH,INFO,(ARCH,INFO,"FATFileSystem: Volume: '%s' ID: %x",name,myFATxx_BPB.myFAT32_BPB.BS_VolID));
 
 			// add root directory to system
-			rootDir = new FATDirectory(this,myFAT32_BPB.BPB_RootClus,name);
+			rootDir = new FATDirectory(this,myFATxx_BPB.myFAT32_BPB.BPB_RootClus,name);
+
 			mntdir->add(rootDir);
 
 			LOG(ARCH,INFO,(ARCH,INFO,"FATFileSystem: FAT Filesystem mounted to '/mnt/%s/'.",name));
 
 			// go on and mount this fs
 			return cOk;
+		} else {
+			// FAT 16
+
+			char *name = (char*) theOS->getMemManager()->alloc(12);
+			name[11] = 0;
+			memcpy(name,myFATxx_BPB.myFAT16_BPB.BS_VolLab,11);
+
+			FAT_SHORTNAME_STRIP(name,10);
+
+			LOG(ARCH,INFO,(ARCH,INFO,"FATFileSystem: Volume: '%s' ID: %x",name,myFATxx_BPB.myFAT16_BPB.BS_VolID));
+
+			unint4 FirstRootDirSecNum = myFAT_BPB.BPB_RsvdSecCnt + (myFAT_BPB.BPB_NumFATs * myFAT_BPB.BPB_FATSz16);
+			rootDir = new FATDirectory(this,2,name,FirstRootDirSecNum);
+			mntdir->add(rootDir);
+
+			LOG(ARCH,INFO,(ARCH,INFO,"FATFileSystem: FAT Filesystem mounted to '/mnt/%s/'.",name));
+
+			// go on and mount this fs
+			return cOk;
+
 		}
 
 	}
@@ -216,11 +242,21 @@ ErrorT FATFileSystem::initialize() {
 FATDirectory::FATDirectory(FATFileSystem* parentFileSystem, unint4 cluster_num,
 		const char* name) : Directory(name) {
 
-	this->myFS = parentFileSystem;
+	this->myFS 			= parentFileSystem;
 	this->mycluster_num = cluster_num;
-	this->populated = false;
-
+	this->populated 	= false;
+	this->sector 		= myFS->ClusterToSector(mycluster_num);
 }
+
+FATDirectory::FATDirectory(FATFileSystem* parentFileSystem, unint4 cluster_num,
+		const char* name, unint4 sector) : Directory(name) {
+
+	this->myFS 			= parentFileSystem;
+	this->mycluster_num = cluster_num;
+	this->populated 	= false;
+	this->sector 		= sector;
+}
+
 
 ErrorT FATDirectory::readBytes(char* bytes, unint4& length) {
 
@@ -234,7 +270,7 @@ void FATDirectory::populateDirectory() {
 	unint4 currentCluster = mycluster_num;
 	// cluster number to sector number conversion
 	// get root sector number
-	unint4 sector_number = myFS->ClusterToSector(mycluster_num);
+	unint4 sector_number = this->sector;
 
 	int error = myFS->myPartition->readSectors(sector_number,buffer,1);
 	if (error < 0) return;
@@ -304,6 +340,7 @@ void FATDirectory::populateDirectory() {
 		if (num >= entries_per_sector) {
 			// load next sector
 			sector_number = this->myFS->getNextSector(sector_number,currentCluster);
+			if (sector_number == EOC) break;
 
 			error = myFS->myPartition->readSectors(sector_number,buffer,1);
 			if (error < 0) return;

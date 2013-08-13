@@ -129,6 +129,7 @@ void ARMv7HatLayer::mapKernel(BitmapT protection, int pid, bool nonGlobal) {
 	this->createPT( (void*) 0x49000000, (void*) 0x49000000, 0xFFFFF, 3, 0, pid, true, nonGlobal );
 	this->createPT( (void*) 0x48000000, (void*) 0x48000000, 0xFFFFF, 3, 0, pid, true, nonGlobal );
 
+
 }
 
 void* ARMv7HatLayer::createPT(void* logBaseAddr, void* physBaseAddr, size_t size, BitmapT protection, byte zsel, int pid,

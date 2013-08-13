@@ -38,7 +38,7 @@ RealTimeThread::RealTimeThread( void* startRoutinePointer, void* exitRoutinePoin
             newThread ) {
     if ( RTThreadAttributes != 0 ) {
         // set the parameters and convert them from µs to cylces
-        RTThreadAttrs* attr = static_cast< RTThreadAttrs* > ( RTThreadAttributes );
+    	taskTable* attr = static_cast< taskTable* > ( RTThreadAttributes );
         this->relativeDeadline = attr->deadline * (CLOCK_RATE / 1000000);
         this->executionTime = attr->executionTime * (CLOCK_RATE / 1000000);
         this->period = attr->period * (CLOCK_RATE / 1000000);

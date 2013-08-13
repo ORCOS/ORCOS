@@ -229,6 +229,7 @@ ErrorT USB_EHCI_Host_Controller::Init() {
 		}
 	}
 
+
 	// give ports a chance to power on
 	timeout = 20;
 	while (timeout) {timeout--; kwait(1);}
@@ -328,6 +329,8 @@ ErrorT USB_EHCI_Host_Controller::Init() {
 
 static unint1 recv_buf[256];
 
+volatile static qTD qtds[4] __attribute__((aligned(32)));
+
 int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1 direction, unint2 data_len, unint1 *data) {
 
 	// finally link the queue head to the qtd chain
@@ -335,10 +338,8 @@ int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1
 	if (qh == 0) return cError;
 
 	// get some memory for first qtd and last qtd
-	volatile qTD* qtd  		=  (qTD*) theOS->getMemManager()->alloc(32,1,32);
+	volatile qTD* qtd  		=  &qtds[0]; //(qTD*) theOS->getMemManager()->alloc(32,1,32);
 	volatile qTD* qtd_last;
-
-	memset((void*) qtd,0,32);
 
 	unint4 length = 4096;
 	if (data_len < length) length = data_len;
@@ -363,11 +364,12 @@ int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1
 
 	data += current_len;
 	length -= current_len;
+	unint4 num_qtds = 1;
 
 	// create a chain of qtds for the data to be transferred
 	while (length > 0) {
-		qTD *qtd2 = (qTD*) theOS->getMemManager()->alloc(32,1,32);
-		memset((void*) qtd2,0,32);
+		volatile qTD *qtd2 = &qtds[num_qtds]; //(qTD*) theOS->getMemManager()->alloc(32,1,32);
+		num_qtds++;
 
 		toggle = toggle ^ 1;
 
@@ -387,42 +389,31 @@ int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1
 		length -= current_len;
 	}
 
-	qh->qh_curtd = QT_NEXT_TERMINATE;
+	OUTW(operational_register_base + USBSTS_OFFSET, 0x3a);
+
+	qh->qh_curtd = 0;
 	qh->qh_overlay.qt_token = 0;
 	qh->qh_overlay.qt_altnext = QT_NEXT_TERMINATE;
 
 	// execute!
 	// set next qtd in qh overlay to activate transfer
 	qh->qh_overlay.qt_next = (unint4) qtd;
-	OUTW(this->async_qh_reg,(unint4) qh);
 
-	OUTW(operational_register_base + USBSTS_OFFSET, 0x3a);
+	// asynchronous access to the asynclist register ..
+	// be sure the register contains the correct value
+	// thats why we set it multiple times here
+	OUTW(operational_register_base + ASYNCLISTADDR_OFFSET,(unint4) qh);
+	OUTW(operational_register_base + ASYNCLISTADDR_OFFSET,(unint4) qh);
+	OUTW(operational_register_base + ASYNCLISTADDR_OFFSET,(unint4) qh);
 
-	// activate the schedule
+	// be sure schedule is activated
 	unint4 usb_cmd = INW(operational_register_base + USBCMD_OFFSET);
 	SETBITS(usb_cmd,5,5,1);
 	OUTW(operational_register_base + USBCMD_OFFSET, usb_cmd);
 
-	// wait until activated
-	volatile unint4 timeout = 100000;
-	while (( (INW(operational_register_base + USBSTS_OFFSET) & 0x8000) == 0) && timeout) {timeout--;};
-
-	if (timeout == 0) {
-		LOG(ARCH,ERROR,(ARCH,ERROR,"USB_EHCI_Host_Controller::send() Async Schedule did not get activated.."));
-		return -1;
-	}
-
 	// wait for completion of usb transaction
-	timeout = 20;
-	while (( QT_TOKEN_GET_STATUS(qtd_last->qt_token) == 0x80 ) && timeout) {timeout--; kwait(1);};
-
-	usb_cmd = INW(operational_register_base + USBCMD_OFFSET);
-	SETBITS(usb_cmd,5,5,0);
-	OUTW(operational_register_base + USBCMD_OFFSET, usb_cmd);
-
-	// invalidate qtd transfer anyway
-	qh->qh_overlay.qt_next = 0xdead0000;
-	OUTW(this->async_qh_reg,0);
+	volatile unint4 timeout = 20;
+	while (( QT_TOKEN_GET_STATUS(qtd_last->qt_token) == 0x80 ) && timeout) {timeout--;  kwait(1);};
 
 	// get number of bytes transferred
 	unint4 num = 0;
@@ -433,25 +424,18 @@ int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1
 		LOG(ARCH,ERROR,(ARCH,ERROR,"USB_EHCI_Host_Controller::send() error on bulk packet.."));
 
 		printf("timeout: %d\n\r",timeout);
-		printf("qtd      status: %x\r", qtd->qt_token);
-		printf("qtd_last status: %x\r", qtd_last->qt_token);
+		printf("qtd\t(%08x)\tstatus: %x\r", qtd,qtd->qt_token);
+		printf("qtd_last\t(%08x)\tstatus: %x\r", qtd_last,qtd_last->qt_token);
+		printf("AsyncListAddr: 0x%x\r",INW(operational_register_base + ASYNCLISTADDR_OFFSET));
 
+		memdump((unint4) qtd,4);
 		// debug the asynchronous list
-		//memdump((unint4) qh,8);
+		memdump((unint4) qh,8);
 		//return as we can not use this port
 		num = -1;
 	}
 
-	// freeup the allocated qtds
-	// TODO: not working currently..
-	/*qtd_last = qtd;
-	while (qtd_last->qt_next != QT_NEXT_TERMINATE) {
-		volatile qTD *qtemp =  qtd_last;
-		qtd_last = (qTD*) (((unint4)qtd_last->qt_next) & ~0x1f);
-		delete qtemp;
-	}*/
-
-	theOS->getMemManager()->free((void*)qtd_last);
+	qh->qh_overlay.qt_next = 0xdead0000;
 
 	// on success toggle dt bit
 	dev->endpoints[endpoint].data_toggle = toggle ^ 1;
@@ -468,21 +452,11 @@ int USB_EHCI_Host_Controller::sendUSBControlMsg(USBDevice *dev, unint1 endpoint,
 	if (qh == 0) return cError;
 
 	// get some memory for qtds
-	volatile qTD* qtd  =  (qTD*) theOS->getMemManager()->alloc(32,1,32);
-	volatile qTD* qtd2 =  (qTD*) theOS->getMemManager()->alloc(32,1,32);
-	volatile qTD* qtd3 =  (qTD*) theOS->getMemManager()->alloc(32,1,32);
-
-	if (qtd == 0 || qtd2 == 0 || qtd3 == 0) {
-		LOG(ARCH,ERROR,(ARCH,ERROR,"USB_EHCI_Host_Controller::send() Allocating QTDs for transfer failed.."));
-		return -1;
-	}
-
+	volatile qTD* qtd  =  &qtds[0];
+	volatile qTD* qtd2 =  &qtds[1];
+	volatile qTD* qtd3 =  &qtds[2];
 
 	volatile qTD* lastqtd = qtd2;
-
-	memset((void*) qtd, 0,32);
-	memset((void*) qtd2,0,32);
-	memset((void*) qtd3,0,32);
 
 	// SETUP TOKEN
 	QT_LINK(qtd,qtd2);
@@ -492,7 +466,6 @@ int USB_EHCI_Host_Controller::sendUSBControlMsg(USBDevice *dev, unint1 endpoint,
 	qtd->qt_token 		= QT_TOKEN_DT(0) | QT_TOKEN_CERR(3) | QT_TOKEN_IOC(0) | QT_TOKEN_PID(QT_TOKEN_PID_SETUP)
 				 			 | QT_TOKEN_STATUS_ACTIVE | QT_TOKEN_TOTALBYTES(8);
 	qtd->qt_buffer[0] 	= (unint4) control_msg; // set control message to send
-
 
 	unint1 dir = QT_TOKEN_PID_IN;
 	if (direction == USB_DIR_OUT) dir = QT_TOKEN_PID_OUT;
@@ -513,44 +486,27 @@ int USB_EHCI_Host_Controller::sendUSBControlMsg(USBDevice *dev, unint1 endpoint,
 		lastqtd = qtd3;
 	}
 
+	// clear status bits
+	OUTW(operational_register_base + USBSTS_OFFSET, 0x3a);
+
+	qh->qh_curtd = 0;
+	qh->qh_overlay.qt_token = 0;
+	qh->qh_overlay.qt_altnext = QT_NEXT_TERMINATE;
+
+	// execute!
 	// set next qtd in qh overlay to activate transfer
 	qh->qh_overlay.qt_next = (unint4) qtd;
 
-
-	OUTW(this->async_qh_reg,(unint4) qh);
-
-	// wait for completion!
-	LOG(ARCH,TRACE,(ARCH,TRACE,"USB_EHCI_Host_Controller::send() Enabling asynchronous list.."));
-	unint4 reg = INW(operational_register_base + ASYNCLISTADDR_OFFSET);
-	LOG(ARCH,TRACE,(ARCH,TRACE,"USB_EHCI_Host_Controller::send() qhlist @ 0x%x",reg));
-
-	// clear status bits
-	OUTW(operational_register_base + USBSTS_OFFSET, 0x3a);
+	OUTW(operational_register_base + ASYNCLISTADDR_OFFSET,(unint4) qh);
+	OUTW(operational_register_base + ASYNCLISTADDR_OFFSET,(unint4) qh);
+	OUTW(operational_register_base + ASYNCLISTADDR_OFFSET,(unint4) qh);
 
 	unint4 usb_cmd = INW(operational_register_base + USBCMD_OFFSET);
 	SETBITS(usb_cmd,5,5,1);
 	OUTW(operational_register_base + USBCMD_OFFSET, usb_cmd);
 
-	volatile unint4 timeout = 1000000;
-	while (( (INW(operational_register_base + USBSTS_OFFSET) & 0x8000) == 0) && timeout) {timeout--;};
-
-
-	if (timeout == 0) {
-		LOG(ARCH,ERROR,(ARCH,ERROR,"USB_EHCI_Host_Controller::send() Async Schedule did not get activated.."));
-		return -1;
-	}
-
-	timeout = 50;
+	volatile unint4 timeout = 200;
 	while (( QT_TOKEN_GET_STATUS(lastqtd->qt_token) == 0x80  ) && timeout) {timeout--; kwait(1);};
-
-
-	usb_cmd = INW(operational_register_base + USBCMD_OFFSET);
-	SETBITS(usb_cmd,5,5,0);
-	OUTW(operational_register_base + USBCMD_OFFSET, usb_cmd);
-
-	// invalidate qtd transfer anyway
-	qh->qh_overlay.qt_next = 0xdead0000;
-	OUTW(this->async_qh_reg,0);
 
 	// get number of bytes transferred
 	unint4 num = 0;
@@ -563,15 +519,14 @@ int USB_EHCI_Host_Controller::sendUSBControlMsg(USBDevice *dev, unint1 endpoint,
 		printf("qt1 status: %x\n\r", qtd->qt_token);
 		printf("qt2 status: %x\n\r", qtd2->qt_token);
 		printf("qt3 status: %x\n\r", qtd3->qt_token);
+		printf("AsyncListAddr: 0x%x\r",INW(operational_register_base + ASYNCLISTADDR_OFFSET));
 		memdump((unint4) qh,8);
 		//return as we can not use this port
 		num = -1;
 	}
 
-	theOS->getMemManager()->free((void*)qtd);
-	theOS->getMemManager()->free((void*)qtd2);
-	theOS->getMemManager()->free((void*)qtd3);
-
+	// invalidate qtd transfer anyway
+	qh->qh_overlay.qt_next = 0xdead0000;
 
 	return num;
 }

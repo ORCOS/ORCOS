@@ -26,94 +26,95 @@
 extern Kernel* theOS;
 extern Task* pCurrentRunningTask;
 
-void SequentialFitMemManager::split( unint4* chunk, size_t size ) {
+void SequentialFitMemManager::split( Chunk_Header* chunk, size_t size ) {
 
 	// be sure the next address is at least 4 bytes aligned
 	// chunk is aligned and SZ_HEADER is a multiple of 4 so this works
 	size = (size_t) alignCeil((char*)size,4);
 
-    Chunk_Header *current_ch	=  (Chunk_Header*) ((unint4) chunk - sizeof(Chunk_Header));
+    //Chunk_Header *current_ch	=  (Chunk_Header*) ((unint4) chunk - sizeof(Chunk_Header));
 
-    if ( current_ch->size >= (size + sizeof(Chunk_Header) + MINIMUM_PAYLOAD) ) {
+    if ( chunk->size >= (size + sizeof(Chunk_Header) + MINIMUM_PAYLOAD) ) {
     	// split this chunk!
 
         // the new chunk containing the remaining unused memory of the payload is created
-        unint4* newchunk 		= (unint4*) ( (unint4) chunk + sizeof(Chunk_Header) + size );
-        Chunk_Header *next_ch 	= (Chunk_Header*) ((unint4) newchunk - sizeof(Chunk_Header));
+        Chunk_Header* next_ch 		= (Chunk_Header*) ( (unint4) chunk + size + sizeof(Chunk_Header) );
+
+        // update the following chunk to set the prev pointer to the new chunk
+        if (chunk->next_chunk != 0) {
+        	chunk->next_chunk->prev_chunk = next_ch;
+        }
 
         // Set its Header
-        next_ch->next_chunk 	= current_ch->next_chunk;
-        next_ch->prev_chunk 	= (unint4) chunk;
+        next_ch->next_chunk 	= chunk->next_chunk;
+        next_ch->prev_chunk 	= chunk;
         next_ch->state 			= FREE;
-        next_ch->size 			= current_ch->size - size - sizeof(Chunk_Header);
+        next_ch->size 			= chunk->size - size - sizeof(Chunk_Header);
 
         if (((unint4) next_ch->next_chunk <= (unint4) next_ch) && (next_ch->next_chunk != 0)) {
 				//printf("Error in chunk list...");
 				while(1);
         }
 
-        current_ch->next_chunk 	= (unint4) newchunk;
-        current_ch->state 		= OCCUPIED;
-        current_ch->size 		= ((unint4) newchunk - (unint4) chunk) - sizeof(Chunk_Header);
+        chunk->next_chunk 	=  next_ch;
+        chunk->state 		= OCCUPIED;
+      //  chunk->size 		= ((unint4) next_ch - (unint4) chunk) - sizeof(Chunk_Header);
+        chunk->size 		= size;
 
-        if (((unint4) current_ch->next_chunk <= (unint4) current_ch) && ((unint4) current_ch->next_chunk != 0)) {
+        if (((unint4) chunk->next_chunk <= (unint4) chunk) && ((unint4) chunk->next_chunk != 0)) {
 			//printf("Error in chunk list...");
 			while(1);
 		}
     }
     else {
         // chunk is not splitted, only change state
-        current_ch->state = OCCUPIED;
+        chunk->state = OCCUPIED;
     }
 }
 
-void SequentialFitMemManager::merge( unint4* chunk ) {
+void SequentialFitMemManager::merge( Chunk_Header* chunk ) {
 
-	Chunk_Header *current_ch	=  (Chunk_Header*) ((unint4) chunk - sizeof(Chunk_Header));
+	//Chunk_Header *current_ch	=  (Chunk_Header*) ((unint4) chunk - sizeof(Chunk_Header));
 
 
 	//printf("free: 0x%x [%d]\r",chunk,current_ch->size);
 	// we are free anyway
-	current_ch->state = FREE;
-	memset(chunk, 0, ((unint4)current_ch->next_chunk - (unint4)chunk) - sizeof(Chunk_Header));
+	chunk->state = FREE;
+	memset((void*) ((unint4) chunk + sizeof(Chunk_Header)), 0, ((unint4)chunk->next_chunk - (unint4)chunk) - sizeof(Chunk_Header));
 
 	// policy: try merging it with the previous chunk first
 	// if not existend merge with next if it is free
 	// if that fails just mark this chunk as free
 	// however, this will increase the used mem as the header stays reserved
 
-	if (current_ch->prev_chunk != 0) {
-		Chunk_Header *prev_ch	=  (Chunk_Header*) (current_ch->prev_chunk - sizeof(Chunk_Header));
+	if (chunk->prev_chunk != 0) {
+		Chunk_Header *prev_ch	=  chunk->prev_chunk;
 		// change the size
 		if (prev_ch->state == FREE) {
 
-			prev_ch->next_chunk = current_ch->next_chunk;
-			prev_ch->size 		+= (((unint4) chunk - current_ch->prev_chunk) - prev_ch->size) + current_ch->size;
+			prev_ch->next_chunk = chunk->next_chunk;
+			//prev_ch->size 		+= (((unint4) chunk - current_ch->prev_chunk) - prev_ch->size) + current_ch->size;
+			prev_ch->size 		+= chunk->size + sizeof(Chunk_Header);
 
-			if (current_ch->next_chunk != 0) {
-				Chunk_Header *next_ch	=  (Chunk_Header*) (current_ch->next_chunk - sizeof(Chunk_Header));
-				next_ch->prev_chunk = current_ch->prev_chunk;
+			if (chunk->next_chunk != 0) {
+				chunk->next_chunk->prev_chunk = prev_ch;
 			}
 
-			current_ch = prev_ch;
+			chunk = prev_ch;
 		}
 	}
 
-	if (current_ch->next_chunk != 0) {
-		Chunk_Header *next_ch	=  (Chunk_Header*) (current_ch->next_chunk - sizeof(Chunk_Header));
+	if (chunk->next_chunk != 0) {
+		Chunk_Header *next_ch	=  chunk->next_chunk;
 
 		// change the size
 		if (next_ch->state == FREE) {
-			unint4 current_chunk = (unint4) current_ch + sizeof(Chunk_Header);
 
-			current_ch->next_chunk = next_ch->next_chunk;
-			current_ch->size 		+= (((unint4) next_ch - (unint4) current_ch) - current_ch->size) + next_ch->size;
+			chunk->next_chunk  = next_ch->next_chunk;
+			chunk->size 	   += next_ch->size + sizeof(Chunk_Header);
 
-			next_ch->prev_chunk = current_chunk;
-
-			if (next_ch->next_chunk != 0) {
-				Chunk_Header *next_next_ch	=  (Chunk_Header*) (next_ch->next_chunk - sizeof(Chunk_Header));
-				next_next_ch->prev_chunk = current_chunk;
+			if (chunk->next_chunk != 0) {
+				chunk->next_chunk->prev_chunk = chunk;
 			}
 
 		}
@@ -123,19 +124,18 @@ void SequentialFitMemManager::merge( unint4* chunk ) {
 }
 
 
-bool SequentialFitMemManager::isValidChunkAddress( unint4* chunk ) {
-    unint4* current = startChunk;
+bool SequentialFitMemManager::isValidChunkAddress( Chunk_Header* chunk ) {
+    Chunk_Header* current = startChunk;
 
     while ( current != 0 ) {
-        if ( chunk == current ) {
+        if ( chunk == current) {
             return true;
         }
-        else if ( chunk < current ) {
+        else if ( chunk < current) {
             return false;
         }
 
-        Chunk_Header *current_ch =  (Chunk_Header*) ((unint4) current - sizeof(Chunk_Header));
-        current = (unint4*) current_ch->next_chunk;
+        current = current->next_chunk;
     }
 
     return false;
@@ -151,51 +151,50 @@ SequentialFitMemManager::SequentialFitMemManager( void* startAddr, void* endAddr
 }
 
 // new version
-void* SequentialFitMemManager::getFittingChunk( size_t size, bool aligned, unint4 align_val ) {
+Chunk_Header* SequentialFitMemManager::getFittingChunk( size_t size, bool aligned, unint4 align_val ) {
 
 #if MEM_LAST_FIT == 1
 	unint4* current_chunk = lastAllocatedChunk;
 #else
-	unint4* current_chunk = startChunk;
+	Chunk_Header* current_chunk = startChunk;
 #endif
 
 	if (align_val < 4) align_val = 4;
 
 	// always aligned
 	unint4 fragmentation;
-	Chunk_Header *current_ch = 0;
+	//Chunk_Header *current_ch = 0;
+	Chunk_Header* prev_chunk;
 
 	while (current_chunk != 0) {
 		// calculate fragmentation amount due to alignment
-		fragmentation = ((unint4) alignCeil((char*)current_chunk,align_val)) - (unint4) current_chunk;
-		current_ch =  (Chunk_Header*) ((unint4) current_chunk - sizeof(Chunk_Header));
+		fragmentation = ((unint4) alignCeil((char*) ((unint4) current_chunk + sizeof(Chunk_Header)),align_val))
+					  - ((unint4) current_chunk + sizeof(Chunk_Header));
 
 		// check if we can reuse this chunk
-		if ((current_ch->state == FREE) && (current_ch->size >= (size + fragmentation))) {
+		// size must be able to handle the rearrangement of the chunk to fit its new alignment
+		if ((current_chunk->state == FREE) && (current_chunk->size >= (size + fragmentation))) {
 			// found a free slot which is big enough including alignment
 
 			// return directly if we do not have to adapt the chunk to the new alignment
 			if (fragmentation == 0) return current_chunk;
 
 			// move chunk to new alignment
-			unint4* newchunk 	 =  (unint4*) alignCeil((char*)current_chunk,align_val);
+			unint4* newchunk 	 =  (unint4*) alignCeil((char*) ((unint4) current_chunk + sizeof(Chunk_Header)),align_val);
 			Chunk_Header *new_ch =  (Chunk_Header*) ((unint4) newchunk - sizeof(Chunk_Header));
 
 			// adopt next pointer of prev chunk in list
-			if (current_ch->prev_chunk != 0) {
-				Chunk_Header *prev_ch 	= (Chunk_Header*) ((current_ch->prev_chunk)- sizeof(Chunk_Header));
-				prev_ch->next_chunk 	= (unint4) newchunk;
-
-				if ((unint4) prev_ch->next_chunk <= (unint4) prev_ch) {
-					//printf("Error in chunk list..");
-					while(1);
-				}
+			if (current_chunk->prev_chunk != 0) {
+				Chunk_Header *prev_ch 	= current_chunk->prev_chunk;
+				prev_ch->next_chunk 	= new_ch;
+				// let the previous chunk regain the fragmentation
+				prev_ch->size 			+= fragmentation;
 			}
 
 			// safe temporarily
-			unint4 c_prev_chunk = current_ch->prev_chunk;
-			unint4 c_s 			= current_ch->size - fragmentation;;
-			unint4 c_next_ch 	= current_ch->next_chunk;
+			Chunk_Header* c_prev_chunk  = current_chunk->prev_chunk;
+			unint4 		  c_s 			= current_chunk->size - fragmentation;;
+			Chunk_Header* c_next_ch 	= current_chunk->next_chunk;
 
 			// set values
 			new_ch->prev_chunk 	= c_prev_chunk;
@@ -204,20 +203,19 @@ void* SequentialFitMemManager::getFittingChunk( size_t size, bool aligned, unint
 			new_ch->next_chunk	= c_next_ch;
 
 			if (c_next_ch != 0) {
-				Chunk_Header *next_ch 	= (Chunk_Header*) ((c_next_ch)- sizeof(Chunk_Header));
-				next_ch->prev_chunk		= (unint4) newchunk;
+				c_next_ch->prev_chunk		= new_ch;
 			}
 
 			if (current_chunk == startChunk)
-				startChunk = newchunk;
+				startChunk = new_ch;
 
-			return newchunk;
+			return new_ch;
 
 
 		} // chunk fits
 
 		// debug chunk list
-		if (((unint4) current_ch->next_chunk != 0) && ((unint4) current_ch->next_chunk <= (unint4) current_chunk)) {
+		if (((unint4) current_chunk->next_chunk != 0) && ((unint4) current_chunk->next_chunk <= (unint4) current_chunk)) {
 			printf("Error in chunk list...");
 
 			// return 0 for tasks to show them allocation failed ..
@@ -227,9 +225,12 @@ void* SequentialFitMemManager::getFittingChunk( size_t size, bool aligned, unint
 				while (1) {};
 		}
 
-		current_chunk = (unint4*) current_ch->next_chunk;
+		prev_chunk = current_chunk;
+		current_chunk = current_chunk->next_chunk;
 
 	}
+
+	printf("Out of Memory");
 
 	// no free memory left
 	return 0;
@@ -245,25 +246,25 @@ void* SequentialFitMemManager::alloc( size_t size, bool aligned, unint4 align_va
 	// be sure memory sement is never starting at 0!
 	// address 0 -> x shall be used to detect null pointers!
 	if (startChunk == 0) {
-	    startChunk = (unint4*) ( (int) Segment.getStartAddr() + sizeof(Chunk_Header) );
-	    startChunk = (unint4*) align( (byte*) startChunk, ALIGN_VAL);
+	    startChunk = (Chunk_Header*) ( (int) Segment.getStartAddr());
+	    startChunk = (Chunk_Header*) align( (byte*) startChunk, ALIGN_VAL);
 
 #if MEM_LAST_FIT == 1
 	    lastAllocatedChunk = startChunk;
 #endif
 
-	    Chunk_Header *start_ch =  (Chunk_Header*) ((unint4) startChunk - sizeof(Chunk_Header));
-	    start_ch->state = FREE;
-	    start_ch->next_chunk = 0;
-	    start_ch->prev_chunk = 0;
-	    start_ch->size = Segment.getSize();
+	    startChunk->state = FREE;
+	    startChunk->next_chunk = 0;
+	    startChunk->prev_chunk = 0;
+	    startChunk->size = Segment.getSize();
 
 	}
 
 	// put some buffer between to avoid erronous program access
 	//size = size + 40;
 
-    unint4* addr = (unint4*) getFittingChunk( size, aligned, align_val );
+    Chunk_Header* chunk =  getFittingChunk( size, aligned, align_val );
+    void* addr = (void*) ((unint4) chunk + sizeof(Chunk_Header));
 
     if (( ((unint4)addr) & (align_val-1)) != 0)
     {
@@ -271,15 +272,23 @@ void* SequentialFitMemManager::alloc( size_t size, bool aligned, unint4 align_va
     	while(1) {};
     }
 
-    if ( addr ) {
-        split( addr, size );
+    if ( chunk != 0) {
+        split( chunk, size );
        // printf("MEM_ALLOC: %x (%d)\r",(unint4) addr, size);
         return addr;
     } else {
     	printf("No more memory left .. serious error .. halting..\r");
-
-    	unint4 memused = this->getUsedMemSize();
+    	int overhead;
+    	int fragmentation;
+    	unint4 memused = this->getUsedMemSize(overhead,fragmentation);
     	printf("UsedMem: %d\r", memused);
+    	printf("Overhead: %d\r", overhead);
+    	printf("Fragmentation: %d\r", fragmentation);
+
+    	// TODO: handle this diffrently... we dont want user tasks to be able to
+    	// crash the kernel just because it allocats too much stuff inside the kernel
+    	// by,e.g. reading in a huge fat directory ...
+
     	while (1) {};
     }
 
@@ -289,7 +298,9 @@ void* SequentialFitMemManager::alloc( size_t size, bool aligned, unint4 align_va
 ErrorT SequentialFitMemManager::free( void* chunk ) {
    	//printf("MEM_FREE : %x\r",(unint4) chunk);
 
-    if ( !isValidChunkAddress( (unint4*) chunk ) ) {
+	Chunk_Header* chunk_head = (Chunk_Header*) ((unint4) chunk - sizeof(Chunk_Header));
+
+    if ( !isValidChunkAddress( chunk_head ) ) {
     	printf("Trying to free invalid address %x\r",(unint4) chunk);
         return cNoValidChunkAddress;
     }
@@ -301,39 +312,36 @@ ErrorT SequentialFitMemManager::free( void* chunk ) {
 #endif
 
     // merge this chunk with its neighbor chunks
-    merge( (unint4*) chunk );
+    merge( chunk_head);
     return cOk;
 }
 
 
-size_t SequentialFitMemManager::getUsedMemSize(int* fragmentation) {
+size_t SequentialFitMemManager::getUsedMemSize(int &overhead, int &free_mem) {
     size_t usedSize = 0;
-    unint4* next = startChunk;
+    Chunk_Header* next = startChunk;
 
-    int frag = 0;
+    free_mem = 0;
+    overhead = 0;
 
     while ( next ) {
-    	 Chunk_Header *current_ch	=  (Chunk_Header*) ((unint4) next - sizeof(Chunk_Header));
+    	 overhead += sizeof(Chunk_Header);
 
-        if ( current_ch->state == OCCUPIED ) {
-            usedSize = usedSize + ( size_t )current_ch->size + SZ_HEADER;
-            frag += ((current_ch->next_chunk - SZ_HEADER) - (unint4) next) - current_ch->size;
+        if ( next->state == OCCUPIED ) {
+            usedSize = usedSize + ( size_t )next->size;
         }
         else {
-        	//frag += ( size_t )current_ch->size;
-            usedSize = usedSize + SZ_HEADER;
+            usedSize = usedSize + sizeof(Chunk_Header);
+            free_mem += next->size;
         }
 
-        if (((unint4) current_ch->next_chunk <= (unint4) current_ch) && ((unint4) current_ch->next_chunk != 0)) {
+        if (((unint4) next->next_chunk <= (unint4) next) && ((unint4) next->next_chunk != 0)) {
         	printf("error in chunk list...");
         	while(1);
         }
 
-        next = (unint4*) current_ch->next_chunk;
-
-
+        next = next->next_chunk;
     }
 
-    if (fragmentation != 0) *fragmentation = frag;
     return usedSize;
 }

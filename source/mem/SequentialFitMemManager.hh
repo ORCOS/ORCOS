@@ -24,21 +24,13 @@
 #include <inc/error.hh>
 #include <Alignment.hh>
 
-// PREV-field in Header
-#define PREV(i) 	*((unint4*)((unint4)i - 16))
-// NEXT-field in Header
-#define NEXT(i) 	*((unint4*)((unint4)i - 12))
-// STATE-field in Header
-#define STATE(i) 	*((unint4*)((unint4)i - 8))
-// SIZE-field in Header
-#define SIZE(i) 	*((unint4*)((unint4)i - 4))
 
-typedef struct {
-	unint4 prev_chunk;
-	unint4 next_chunk;
-	unint4 state;
-	unint4 size;
-} Chunk_Header;
+typedef struct Chunk_Header {
+	Chunk_Header *prev_chunk;
+	Chunk_Header *next_chunk;
+	unint1 state : 1;
+	unint4 size : 30;
+} __attribute__((packed)) Chunk_Header;
 
 // possible States of a memory chunk
 #define FREE 0
@@ -46,7 +38,7 @@ typedef struct {
 // size of the Chunk Header
 #define SZ_HEADER 16
 // Minimum payload needed for a chunk when splitting
-#define MINIMUM_PAYLOAD 8
+#define MINIMUM_PAYLOAD 0x20
 
 // MEM_LAST_FIT will start searching at the last freed object for chunks to allocated
 // this is faster than starting to search from the beginning
@@ -97,7 +89,7 @@ typedef struct {
 class SequentialFitMemManager: public MemManager {
 private:
     //! Pointer to the first memory chunk in the linked list
-    unint4* startChunk;
+    Chunk_Header* startChunk;
 
     /*!
      * \brief the memory chunk at the given address is splitted into a chunk of the given size and a chunk containing the remaining unused memory (if possible)
@@ -110,7 +102,7 @@ private:
      *
      * If false -> the whole chunk is used and its state is set to occupied.
      */
-    void split( unint4*, size_t );
+    void split( Chunk_Header*, size_t );
 
     /*!
      * \brief the memory chunk at the given address and his free neighbor chunks are merged into one chunk
@@ -133,7 +125,7 @@ private:
      *       the PREV field of the chunk following the Next Chunk is set to the Prev Chunk, the SIZE field of the Prev Chunk is set to its <br>
      *       old SIZE + 2*size of header + SIZE(Freed Chunk) + SIZE(Next Chunk)  <br>
      */
-    void merge( unint4* );
+    void merge( Chunk_Header* );
 
     /*!
      * \brief it is checked for the given address if it points to a memory chunk in the linked list
@@ -141,7 +133,7 @@ private:
      * The linked list of memory chunks is traversed. If the given address is the starting address of the payload section of a chunk, the method
      * returns true, otherwise false.
      */
-    bool isValidChunkAddress( unint4* );
+    bool isValidChunkAddress( Chunk_Header* );
 
     /*!
      * \brief a free memory chunk of sufficient size is searched according to the configured placement policy
@@ -150,7 +142,7 @@ private:
      * The chunk is chosen according to the configured placement policy (which can be configured by the user using SCL).
      *
      */
-    void* getFittingChunk( size_t, bool, unint4 );
+    Chunk_Header* getFittingChunk( size_t, bool, unint4 );
 
 #if MEM_LAST_FIT == 1
     //! Pointer to the memory chunk which has been lastly allocated - only used for NextFit-Policy
@@ -199,7 +191,7 @@ public:
      *
      * The linked list is traversed and returned is the sum of all Headers of free chunks and the Headers and Payload of occupied chunks
      */
-    size_t getUsedMemSize(int* fragmentation = 0);
+    size_t getUsedMemSize(int &overhead, int &fragmentation);
 };
 
 #endif /*SEQUENTIALFITMEMMANAGER_HH_*/

@@ -30,6 +30,14 @@ typedef struct __attribute__((packed)) {
 
 } FAT_BS_BPB;
 
+typedef struct __attribute__((packed)) {
+	unint1 BS_DrvNum;
+	unint1 BS_Reserved1;
+	unint1 BS_BootSig;
+	unint4 BS_VolID;
+	char   BS_VolLab[11];
+	char   BS_FilSysType[8];
+} FAT16_BPB;
 
 typedef struct __attribute__((packed)) {
 	unint4 BPB_FATSz32;
@@ -48,6 +56,11 @@ typedef struct __attribute__((packed)) {
 
 } FAT32_BPB;
 
+
+typedef union {
+	FAT16_BPB myFAT16_BPB;
+	FAT32_BPB myFAT32_BPB;
+} FATxx_BPB;
 
 typedef struct __attribute__((packed)) {
 	unint4 FSI_LeadSig;
@@ -119,7 +132,7 @@ private:
 
 	FAT_BS_BPB myFAT_BPB;
 
-	FAT32_BPB myFAT32_BPB;
+	FATxx_BPB myFATxx_BPB;
 
 	unint4 RootDirSectors;
 
@@ -185,6 +198,9 @@ private:
 	// shortcut to my directory entry cluter number
 	unint4 mycluster_num;
 
+	// the starting sector of this director
+	unint4 sector;
+
 	// pointer to the filesystem we are located in
 	FATFileSystem* myFS;
 
@@ -197,6 +213,9 @@ private:
 
 public:
 	FATDirectory(FATFileSystem* parentFileSystem, unint4 cluster_num,  const char* name);
+
+	// FAT Directory Constructor for FAT16 Fs
+	FATDirectory(FATFileSystem* parentFileSystem, unint4 cluster_num,  const char* name, unint4 sector_num);
 
     //! Adds another resource to this directory
    //ErrorT add( Resource* res ) { };

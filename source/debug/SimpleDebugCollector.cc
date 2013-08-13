@@ -55,19 +55,20 @@ ErrorT SimpleDebugCollector::readBytes( char *bytes, unint4 &length ) {
         unint numberoftasks = llt->getSize();
 
         // output number of running tasks
-        sprintf(tmpBuf,"#Tasks: %d\rTaskID\tUsedMem\tFrag\tThreads\r", numberoftasks );
+        sprintf(tmpBuf,"#Tasks: %d\rTaskID\tUsedMem\t(Overhead)\tFree\tThreads\r", numberoftasks );
         strcat(outputMsg, tmpBuf);
 
         // output list of tasks
         for (LinkedListDatabaseItem* lldi = llt->getHead(); lldi != 0; lldi = lldi->getSucc()) {
             Task* task = (Task*) lldi->getData();
 
-            int fragmentation = 0;
-            int usedmem       = task->getMemManager()->getUsedMemSize(&fragmentation);
+            int freemem = 0;
+            int overhead = 0;
+            int usedmem       = task->getMemManager()->getUsedMemSize(overhead,freemem);
             sprintf(tmpBuf, "  %02d\t %d\t", task->getId(),usedmem);
             strcat(outputMsg, tmpBuf);
 
-            sprintf(tmpBuf, "%d\t",fragmentation);
+            sprintf(tmpBuf, "(%d)\t%d\t",overhead,freemem);
             strcat(outputMsg, tmpBuf);
 
             for (LinkedListDatabaseItem* t = task->getThreadDB()->getHead(); t != 0; t = t->getSucc()) {
@@ -87,8 +88,8 @@ ErrorT SimpleDebugCollector::readBytes( char *bytes, unint4 &length ) {
         }
 
         MemoryManagerCfdCl* mm = theOS->getMemManager();
-        sprintf(tmpBuf, "\rKernel Used Memory: %d\r", mm->getUsedMemSize());
-        strcat(outputMsg, tmpBuf);
+        //sprintf(tmpBuf, "\rKernel Used Memory: %d\r", mm->getUsedMemSize());
+        //strcat(outputMsg, tmpBuf);
 
 
         Board_ClockCfdCl* clock = theOS->getClock();

@@ -46,7 +46,7 @@ Task::Task( MemoryManagerCfdCl* memoryManager, taskTable* tasktbl ) :
 
     // create initial thread for this task
     new ThreadCfdCl( (void*) tasktbl->task_entry_addr, (void*) tasktbl->task_thread_exit_addr, this, memoryManager,
-            DEFAULT_USER_STACK_SIZE, (void*) ( tasktbl + 1 ), false );
+            DEFAULT_USER_STACK_SIZE, (void*) ( tasktbl ), false );
 
 }
 

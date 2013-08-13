@@ -29,7 +29,7 @@ PriorityThread::PriorityThread( void* startRoutinePointer, void* exitRoutinePoin
 
 {
     if ( prioThreadAttributes != 0 ) {
-    	RTThreadAttrs* attr = static_cast< RTThreadAttrs* > ( prioThreadAttributes );
+    	taskTable* attr = static_cast< taskTable* > ( prioThreadAttributes );
         // get phase and convert from µs to cycles
         this->phase 			= attr->phase * (CLOCK_RATE / 1000000);
         this->initialPriority 	= attr->initialPriority;

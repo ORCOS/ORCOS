@@ -102,7 +102,7 @@ char* types[11] = {
 static int mydirhandle = 0;
 
 
-static char dir_content[1024];
+static char dir_content[4096];
 
 // reduces the path by "." and ".." statements
 void compactPath(char* path) {
@@ -299,7 +299,7 @@ void handleCommand(int socket, int command_length) {
 		if (mydirhandle == 0) return;
 
 		//printf("reading dir handle %d..\r",mydirhandle);
-		int ret = fread(dir_content,1024,1,mydirhandle);
+		int ret = fread(dir_content,4096,1,mydirhandle);
 		if (ret > 0) {
 			//printf("data len: %d\r",ret);
 			// interpret data
@@ -343,9 +343,9 @@ void handleCommand(int socket, int command_length) {
 						retmsg += strlen(ESC_CYAN);
 					}
 
-					sprintf(retmsg,"%-20s %2d %3d %-15s %-8d %-8x\r",&dir_content[pos+1],dir_content[pos+3+namelen],dir_content[pos+2+namelen],typestr,filesize,flags);
-					msglen += 39 + 23;
-					retmsg += 39 + 23;
+					sprintf(retmsg,"%-20s %4d %3d %-15s %-8d %-8x\r",&dir_content[pos+1],dir_content[pos+3+namelen],dir_content[pos+2+namelen],typestr,filesize,flags);
+					msglen += 39 + 25;
+					retmsg += 39 + 25;
 
 					if (dirtype == 1) {
 						sprintf(retmsg,ESC_WHITE);
@@ -369,6 +369,11 @@ void handleCommand(int socket, int command_length) {
 				return_msg[msglen +1] = '\0';
 				sendto(socket,return_msg,msglen+2,0);
 
+			}
+
+			if (ret > 4000) {
+				sprintf(return_msg,"\rMore files..\r");
+				sendto(socket,return_msg,strlen(return_msg)+1,0);
 			}
 
 			return;
