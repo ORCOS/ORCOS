@@ -216,6 +216,10 @@ ErrorT TaskManager::loadTaskFromFile(File* file, TaskIdT& tid) {
 
     // we get the ID of the task we will create next
 	tid = Task::getIdOfNextCreatedTask();
+	if (tid == 0) {
+		LOG(KERNEL,WARN,(KERNEL,WARN,"TaskManager: no more free Task IDs."));
+		return cError;
+	}
 
 	unint4 task_start = (unint4) theOS->getRamManager()->alloc(file->getFileSize(),tid);
 	LOG(KERNEL,INFO,(KERNEL,INFO,"TaskManager: new Task will be placed at 0x%x", task_start));

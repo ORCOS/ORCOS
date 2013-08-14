@@ -113,8 +113,10 @@
 #define QT_TOKEN_STATUS_PERR		0x01
 #define QT_BUFFER_CNT				5
 
-#define QT_LINK(from,to) from->qt_next = (((unint4)to) & ~0x1f)
-#define QT_LINK_ALT(from,to) from->qt_altnext = (((unint4)to) & ~0x1f)
+#define QT_LINK(from,to) (from)->qt_next = (((unint4)to) & ~0x1f)
+#define QT_LINK_ALT(from,to) (from)->qt_altnext = (((unint4)to) & ~0x1f)
+
+#define QH_LINK(from,to) (from)->qh_link = ((((unint4)to) & ~0x1f) | 0x2)
 
 /* Queue Element Transfer Descriptor (qTD). */
 typedef struct {
@@ -324,7 +326,16 @@ public:
 
   ~USBDevice();
 
-  static unint1 		addr_counter;
+  	  static ArrayDatabase* freeDeviceIDs;
+
+	 //! initialize
+  	  static void initialize() {
+		 freeDeviceIDs = new ArrayDatabase(255);
+		 // maximum 255 devices (USB 2.0 limit)
+		 for (unint4 i = 1; i < 255; i++) {
+			 freeDeviceIDs->addTail((DatabaseItem*) i);
+		 }
+	 }
 
   // the device descriptor received
   DeviceDescriptor 		dev_descr;
@@ -369,7 +380,7 @@ public:
   ErrorT deactivate();
 
   // sets the address of the usb device and updates all queue heads for it
-  ErrorT setAddress(unint2 addr);
+  ErrorT setAddress(unint1 addr);
 
 };
 

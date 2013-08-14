@@ -86,6 +86,7 @@ void Kernel::initialize() {
     Thread::initialize();
     CommDeviceDriver::initialize();
     BlockDeviceDriver::initialize();
+    USBDevice::initialize();
 
     this->errorHandler = new TaskErrorHandler();
     // create the Ram Manager using a simple paging algorithm

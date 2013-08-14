@@ -74,8 +74,6 @@ char* bmTransferTypeStr[4] = {
 };
 
 
-unint1 USBDevice::addr_counter = 1;
-
 extern Board_ClockCfdCl* theClock;
 
 
@@ -86,6 +84,10 @@ void kwait(int millseconds) {
 
 	while (theClock->getTimeSinceStartup() < (now + millseconds)) {};
 }
+
+
+// The main QH we are enqueing to
+QH QHmain __attribute__((aligned(32)));
 
 USB_EHCI_Host_Controller::USB_EHCI_Host_Controller(unint4 ehci_dev_base, void* memory_base, unint4 memory_size) {
 
@@ -107,6 +109,12 @@ USB_EHCI_Host_Controller::USB_EHCI_Host_Controller(unint4 ehci_dev_base, void* m
 	for (int i=0; i < 10; i++) {
 		registered_devices[i] = 0;
 	}
+	memset(&QHmain,0,sizeof(QH));
+	QHmain.qh_endpt1 = QH_ENDPT1_H(1) | QH_ENDPT1_I(1);
+	QHmain.qh_curtd = QT_NEXT_TERMINATE;
+	QHmain.qh_overlay.qt_next = QT_NEXT_TERMINATE;
+	QHmain.qh_overlay.qt_altnext = QT_NEXT_TERMINATE;
+	QH_LINK(&QHmain, &QHmain);
 
 }
 
@@ -200,7 +208,7 @@ ErrorT USB_EHCI_Host_Controller::Init() {
 	// initialize the working queues
 	OUTW(operational_register_base + PERIODICLISTBASE_OFFSET,(unint4) this->memory_base);
 
-	OUTW(operational_register_base + ASYNCLISTADDR_OFFSET,0x0);
+	OUTW(operational_register_base + ASYNCLISTADDR_OFFSET, (unint4) &QHmain);
 	// allow interrupts
 	//OUTW(operational_register_base + USBINTR_OFFSET,0x1 | 1 << 2 | 1 << 1);
 	OUTW(operational_register_base + USBINTR_OFFSET,0x0);
@@ -233,6 +241,10 @@ ErrorT USB_EHCI_Host_Controller::Init() {
 	// give ports a chance to power on
 	timeout = 20;
 	while (timeout) {timeout--; kwait(1);}
+
+	unint4 usb_cmd = INW(operational_register_base + USBCMD_OFFSET);
+	SETBITS(usb_cmd,5,5,1);
+	OUTW(operational_register_base + USBCMD_OFFSET, usb_cmd);
 
 	// wait for ports to get connected..
 	// register those connected as we can communicate over them!
@@ -400,19 +412,8 @@ int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1
 	// set next qtd in qh overlay to activate transfer
 	qh->qh_overlay.qt_next = (unint4) qtd;
 
-	// asynchronous access to the asynclist register ..
-	// be sure the register contains the correct value
-	// thats why we set it multiple times here
-	OUTW(operational_register_base + ASYNCLISTADDR_OFFSET,(unint4) qh);
-	while (INW(operational_register_base + ASYNCLISTADDR_OFFSET) != (unint4)qh) {
-		OUTW(operational_register_base + ASYNCLISTADDR_OFFSET,(unint4) qh);
-	}
-
-
-	// be sure schedule is activated
-	unint4 usb_cmd = INW(operational_register_base + USBCMD_OFFSET);
-	SETBITS(usb_cmd,5,5,1);
-	OUTW(operational_register_base + USBCMD_OFFSET, usb_cmd);
+	QH_LINK(qh,&QHmain);
+	QH_LINK(&QHmain,qh);
 
 	// wait for completion of usb transaction
 	volatile unint4 timeout = 20;
@@ -427,8 +428,8 @@ int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1
 		LOG(ARCH,ERROR,(ARCH,ERROR,"USB_EHCI_Host_Controller::send() error on bulk packet.."));
 
 		printf("timeout: %d\n\r",timeout);
-		printf("qtd\t(%08x)\tstatus: %x\r", qtd,qtd->qt_token);
-		printf("qtd_last\t(%08x)\tstatus: %x\r", qtd_last,qtd_last->qt_token);
+		printf("qtd     \t(%08x)\tstatus: %x\r", (unint4) qtd,qtd->qt_token);
+		printf("qtd_last\t(%08x)\tstatus: %x\r", (unint4) qtd_last,qtd_last->qt_token);
 		printf("AsyncListAddr: 0x%x\r",INW(operational_register_base + ASYNCLISTADDR_OFFSET));
 
 		memdump((unint4) qtd,4);
@@ -438,6 +439,7 @@ int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1
 		num = -1;
 	}
 
+	QH_LINK(&QHmain,&QHmain);
 	qh->qh_overlay.qt_next = 0xdead0000;
 
 	// on success toggle dt bit
@@ -500,17 +502,14 @@ int USB_EHCI_Host_Controller::sendUSBControlMsg(USBDevice *dev, unint1 endpoint,
 	// set next qtd in qh overlay to activate transfer
 	qh->qh_overlay.qt_next = (unint4) qtd;
 
-	OUTW(operational_register_base + ASYNCLISTADDR_OFFSET,(unint4) qh);
-	while (INW(operational_register_base + ASYNCLISTADDR_OFFSET) != (unint4)qh) {
-		OUTW(operational_register_base + ASYNCLISTADDR_OFFSET,(unint4) qh);
-	}
+	QH_LINK(qh,&QHmain);
+	QH_LINK(&QHmain,qh);
 
-	unint4 usb_cmd = INW(operational_register_base + USBCMD_OFFSET);
-	SETBITS(usb_cmd,5,5,1);
-	OUTW(operational_register_base + USBCMD_OFFSET, usb_cmd);
-
-	volatile unint4 timeout = 200;
-	while (( QT_TOKEN_GET_STATUS(lastqtd->qt_token) == 0x80  ) && timeout) {timeout--; kwait(1);};
+	volatile unint4 timeout = 400;
+	while (( QT_TOKEN_GET_STATUS(INW(&lastqtd->qt_token)) == 0x80  ) && timeout) {
+		timeout--;
+		kwait(1);
+	};
 
 	// get number of bytes transferred
 	unint4 num = 0;
@@ -520,15 +519,17 @@ int USB_EHCI_Host_Controller::sendUSBControlMsg(USBDevice *dev, unint1 endpoint,
 	if (timeout == 0 || ( QT_TOKEN_GET_STATUS(lastqtd->qt_token) != 0x0))  {
 		LOG(ARCH,ERROR,(ARCH,ERROR,"USB_EHCI_Host_Controller::send() error on control packet.."));
 		printf("timeout: %d\n\r",timeout);
-		printf("qt1 status: %x\n\r", qtd->qt_token);
-		printf("qt2 status: %x\n\r", qtd2->qt_token);
-		printf("qt3 status: %x\n\r", qtd3->qt_token);
+		printf("lastqtd \t %08x\r",(unint4)lastqtd);
+		printf("qtd1    \t(%08x)\tstatus: %x\r", (unint4) qtd,qtd->qt_token);
+		printf("qtd2    \t(%08x)\tstatus: %x\r", (unint4) qtd2,qtd2->qt_token);
+		printf("qtd3    \t(%08x)\tstatus: %x\r", (unint4) qtd3,qtd3->qt_token);
 		printf("AsyncListAddr: 0x%x\r",INW(operational_register_base + ASYNCLISTADDR_OFFSET));
 		memdump((unint4) qh,8);
 		//return as we can not use this port
 		num = -1;
 	}
 
+	QH_LINK(&QHmain,&QHmain);
 	// invalidate qtd transfer anyway
 	qh->qh_overlay.qt_next = 0xdead0000;
 
@@ -591,7 +592,8 @@ ErrorT USB_EHCI_Host_Controller::enumerateDevice(USBDevice *dev) {
 		// TODO: send a port reset feature request
 	}
 
-	LOG(ARCH,INFO,(ARCH,INFO,"USB_EHCI_Host_Controller: Setting Device Address: %d",dev->addr_counter));
+	unint4 next_device_addr = (unint4)USBDevice::freeDeviceIDs->removeHead();
+	LOG(ARCH,INFO,(ARCH,INFO,"USB_EHCI_Host_Controller: Setting Device Address: %d",next_device_addr));
 
 	unint4 cap_token = INW(dev->endpoints[0].queue_head+4);
 	SETBITS(cap_token,26,16,dev->dev_descr.bMaxPacketSize);
@@ -600,7 +602,7 @@ ErrorT USB_EHCI_Host_Controller::enumerateDevice(USBDevice *dev) {
 	dev->endpoints[0].max_packet_size = dev->dev_descr.bMaxPacketSize;
 
 	// set the device address!
-	int4 error = dev->setAddress(USBDevice::addr_counter++);
+	int4 error = dev->setAddress(next_device_addr);
 
 	if (error != cOk) {
 		return cError;
@@ -1159,8 +1161,9 @@ ErrorT USBHub::handleInterrupt() {
  *
  **********************************************************************/
 
+ArrayDatabase* USBDevice::freeDeviceIDs;
 
-ErrorT USBDevice::setAddress(unint2 addr) {
+ErrorT USBDevice::setAddress(unint1 addr) {
 
 	// got device descriptor ! set address
 	this->addr = addr;
@@ -1267,7 +1270,7 @@ ErrorT USBDevice::activateEndpoint(int num) {
 
 	if (this->endpoints[num].type != Interrupt) {
 		// let this new queue head be the head of the async list
-		queue_head_new->qh_endpt1 |= QH_ENDPT1_H(1);
+		//queue_head_new->qh_endpt1 |= QH_ENDPT1_H(1);
 		queue_head_new->qh_link = QH_LINK_TYPE_QH | ((unint4) queue_head_new);
 
 	} else {
@@ -1351,4 +1354,5 @@ USBDevice::USBDevice(USB_EHCI_Host_Controller *controller, USBDevice *parent, un
 
 USBDevice::~USBDevice() {
 	if (driver != 0) delete driver;
+	USBDevice::freeDeviceIDs->addTail((DatabaseItem*) (unint4) this->addr);
 }
