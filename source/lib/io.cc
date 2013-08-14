@@ -71,6 +71,10 @@ extern "C"size_t fwriteString(const void *ptr, int stream, size_t max)
     return syscall(cFWriteSysCallId, ptr, size, nitems, stream);
 }
 
+extern "C" int	ioctl(int fd, int request, void* args) {
+
+	return syscall(cIOControl,fd,request,args);
+}
 
 extern "C" size_t printToStdOut(const void* ptr,size_t max)
 {

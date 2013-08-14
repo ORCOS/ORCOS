@@ -97,6 +97,10 @@ public:
     }
     ;
 
+    virtual ErrorT ioctl(int request, void* args) {
+    	return cNotImplemented;
+    }
+
 };
 
 #endif /*GENERICDEVICEDRIVER_H_*/

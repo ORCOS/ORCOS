@@ -8,6 +8,7 @@
 #include "OmapGPIO.hh"
 #include "inc/memio.h"
 #include "kernel/Kernel.hh"
+#include "lib/sys/gpio.h"
 
 extern Kernel* theOS;
 
@@ -77,8 +78,10 @@ ErrorT OmapGPIO::writeBytes(const char* bytes, unint4 length) {
 
 }
 
-ErrorT OmapGPIO::setDirection(unint4 dirBits) {
-
-	OUTW(this->baseAddress + 0x34, dirBits);
-	return cOk;
+ErrorT OmapGPIO::ioctl(int request, void* args) {
+	// handle the io control request
+	if (request == IOCTL_GPIO_SET_DIR) {
+		OUTW(this->baseAddress + 0x34, (unint4) args);
+		return cOk;
+	} else return cInvalidArgument;
 }

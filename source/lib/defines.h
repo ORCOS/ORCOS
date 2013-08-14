@@ -92,5 +92,6 @@
 #define cRunTaskId				31
 #define cTask_KillSysCallId		32
 #define cShmMapId				33
+#define cIOControl				34
 
 #endif /* TASKLIB_HH_ */

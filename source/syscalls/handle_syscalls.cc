@@ -38,6 +38,27 @@ int mapMemory(int4 sp_int)
      return cError;
 }
 
+int ioctl(int4 int_sp) {
+
+	 int file_id;
+	 int request;
+	 void* args;
+	 Resource* res;
+
+	 SYSCALLGETPARAMS3(int_sp,(void*) file_id, request, args);
+
+	 LOG(SYSCALLS,DEBUG,(SYSCALLS,DEBUG,"Syscall: ioctl(%d,%d,%x)",file_id, request, args));
+
+	 res = pCurrentRunningTask->getOwnedResourceById( file_id );
+	 if ( res != 0 ) {
+		 if (res->getType() == cStreamDevice || res->getType() == cCommDevice || res->getType() == cGenericDevice || res->getType() == cBlockDevice) {
+			 return ((GenericDeviceDriver*) res)->ioctl(request,args);
+		 } else return cInvalidResource;
+	 }
+	 else return cInvalidResource;
+}
+
+
 int shm_mapSyscall(int4 sp_int) {
 	const char* file;
 	unint4* mapped_address;

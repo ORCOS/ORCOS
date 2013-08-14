@@ -256,6 +256,19 @@ extern "C" int 		fgetc(int stream);
  */
 extern "C" size_t 	fwrite(const void *ptr, size_t size, size_t nitems, int stream);
 
+
+/*!
+ * \brief Request an I/O Control operation on the device opened with handle 'fd'.
+ *
+ * \param fd		The opened devices handle.
+ * \param request	The I/O Control request operation.
+ * \param args		Argument to the I/O control operation.
+ * 					Depends on operation. may be just an integer
+ * 					or a pointer to a structure
+ *
+ */
+extern "C" int		ioctl(int fd, int request, void* args);
+
 /*!
  * \brief The fwrite() function writes the zero terminted string pointed to by prt to the stream referenced by stream. A maximum of max characters are written, which default
  * is 256

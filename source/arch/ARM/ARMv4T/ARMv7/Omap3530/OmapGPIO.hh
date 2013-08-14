@@ -41,7 +41,7 @@ public:
 	/*!
 	 * \brief Sets the direction of the GPIO pins. 0 = Output, 1 = Input
 	 */
-	ErrorT setDirection(unint4 dirBits);
+	ErrorT ioctl(int request, void* args);
 
 };
 

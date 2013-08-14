@@ -52,6 +52,8 @@ extern unint8       lastCycleStamp;
 
 int printToStdOut(int4 sp_int );
 
+int ioctl(int4 sp_int);
+
 int mallocp(int4 sp_int);
 
 int getTime(int4 sp_int);
@@ -356,6 +358,10 @@ inline void handleSyscall(int4 sp_int) {
 
                 case cShmMapId:
                 retval = shm_mapSyscall(sp_int);
+                break;
+
+                case cIOControl:
+                retval = ioctl(sp_int);
                 break;
 
             default:
