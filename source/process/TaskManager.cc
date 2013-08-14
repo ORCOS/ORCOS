@@ -241,6 +241,7 @@ ErrorT TaskManager::loadTaskFromFile(File* file, TaskIdT& tid) {
 	if (error < 0) {
 		theOS->getHatLayer()->unmap((void*) task_start);
 		theOS->getRamManager()->freeAll(tid);
+		return error;
 	}
 
 	error = this->checkValidTask((taskTable*) task_start);

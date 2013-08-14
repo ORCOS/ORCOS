@@ -24,7 +24,7 @@ ramOffset = 0x81000000;
 
 /* Kernel heap + kernel stacks < 16 k */
 /* this way they can easily be mapped into a 16 k page going from 0x10000 - 0x14000 */
-_kernelHeapSize = 0x10000; /* 65 KB */
+_kernelHeapSize = 0x40000; /* 65*4 KB */
 _kernelStackSize = 0x2000; /* 8 KB */
 
 PROVIDE(__PtSize = 0x4000); /* 16 KB */

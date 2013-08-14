@@ -90,7 +90,11 @@ FATFileSystem::FATFileSystem(Partition* myPartition) : FileSystemBase(myPartitio
 
 
 unint4 FATFileSystem::getFATTableEntry(unint4 clusterNum) {
-	unint4 addr = clusterNum * 4;
+	unint4 addr;
+	if (this->myFatType == FAT16)
+		addr = clusterNum * 2;
+	else
+		addr = clusterNum * 4;
 
 	// get table entry offset in partition sector
 	unint4 fatentoffset = addr % myFAT_BPB.BPB_BytsPerSec;
@@ -105,7 +109,10 @@ unint4 FATFileSystem::getFATTableEntry(unint4 clusterNum) {
 	// now get the table entry
 	// this is 4 bytes aligned.. however comiler does not know this
 	// thus this will produce a warning
-	return  (* ((unint4*)  &buffer[fatentoffset])) & 0x0FFFFFFF;
+	if (myFatType == FAT16)
+		return  (* ((unint2*)  &buffer[fatentoffset]));
+	else
+		return  (* ((unint4*)  &buffer[fatentoffset])) & 0x0FFFFFFF;
 
 }
 

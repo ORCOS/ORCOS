@@ -45,7 +45,7 @@ typedef struct Chunk_Header {
 // however: this will lead to a higher number of chunks, thus, increasing the number
 // of reserved (used) bytes not allocateable for the user.
 #ifndef MEM_LAST_FIT
-#define MEM_LAST_FIT 0
+#define MEM_LAST_FIT 1
 #endif
 
 /*!
@@ -146,7 +146,7 @@ private:
 
 #if MEM_LAST_FIT == 1
     //! Pointer to the memory chunk which has been lastly allocated - only used for NextFit-Policy
-    unint4* lastAllocatedChunk;
+    Chunk_Header* lastAllocatedChunk;
 #endif
 protected:
 

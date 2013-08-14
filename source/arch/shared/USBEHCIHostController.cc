@@ -376,6 +376,7 @@ int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1
 		current_len = length;
 		if (current_len > dev->endpoints[endpoint].max_packet_size) current_len = dev->endpoints[endpoint].max_packet_size;
 
+		qtd2->qt_next		= QT_NEXT_TERMINATE;
 		qtd2->qt_altnext 	= QT_NEXT_TERMINATE;
 		qtd2->qt_token 		= QT_TOKEN_DT(toggle) | QT_TOKEN_CERR(3) | QT_TOKEN_IOC(0) | QT_TOKEN_PID(dir)
 					 			 | QT_TOKEN_STATUS_ACTIVE | QT_TOKEN_TOTALBYTES(current_len);

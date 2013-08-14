@@ -154,7 +154,7 @@ SequentialFitMemManager::SequentialFitMemManager( void* startAddr, void* endAddr
 Chunk_Header* SequentialFitMemManager::getFittingChunk( size_t size, bool aligned, unint4 align_val ) {
 
 #if MEM_LAST_FIT == 1
-	unint4* current_chunk = lastAllocatedChunk;
+	Chunk_Header* current_chunk = lastAllocatedChunk;
 #else
 	Chunk_Header* current_chunk = startChunk;
 #endif
@@ -274,6 +274,7 @@ void* SequentialFitMemManager::alloc( size_t size, bool aligned, unint4 align_va
 
     if ( chunk != 0) {
         split( chunk, size );
+        lastAllocatedChunk = chunk;
        // printf("MEM_ALLOC: %x (%d)\r",(unint4) addr, size);
         return addr;
     } else {
@@ -306,7 +307,7 @@ ErrorT SequentialFitMemManager::free( void* chunk ) {
     }
 
 #if MEM_LAST_FIT == 1
-    if((unint4*)chunk == lastAllocatedChunk) {
+    if(chunk_head == lastAllocatedChunk) {
         lastAllocatedChunk = startChunk;
     }
 #endif
