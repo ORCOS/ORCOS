@@ -20,6 +20,7 @@
 #include "OMAP3530.h"
 #include "inc/memio.h"
 #include <kernel/Kernel.hh>
+#include "BeagleBoardGPTimer1.hh"
 
 extern "C" Kernel* theOS;
 
@@ -29,6 +30,10 @@ BeagleBoardGPTimer1::BeagleBoardGPTimer1() {
 	// generate 1ms tick, autoreload, disable, set start value
 	// choose 12k functional clock as timer clock
 	OUTW(CM_CLKSEL_WKUP, (INW(CM_CLKSEL_WKUP) & 0xFFFFFFFE));
+
+	// set input to 26 mhz sys clock ~ tick every 38 ns
+/*	unint4 cm_clksel_per = INW(CM_CLKSEL_WKUP);
+	OUTW(CM_CLKSEL_WKUP,cm_clksel_per | 1);*/
 
 	// GPT1_TPIR POSITIVE_INC_VALUE = 232000 = 0x38A40
 	OUTW(GPT1_TPIR, 0x38A40);

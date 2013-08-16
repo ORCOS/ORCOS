@@ -124,7 +124,7 @@
       </Member>
       <Member>
         <Name>Timer</Name>
-        <Class>arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardGPTimer1</Class>
+        <Class>arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardGPTimer2</Class>
         <None>false</None>
       </Member>
       <Member>

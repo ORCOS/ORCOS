@@ -21,10 +21,18 @@
 
 #include <hal/Clock.hh>
 
+
+#define	CLOCK_RATE	(26 MHZ)
+#define MAX_SLEEPTIME = 16777215 // max counter value for 24 bit
+
 /*! \brief ARMv4T Clock, Implementation of HAL Clock
  *
  */
 class Omap3530Clock: public Clock {
+
+private:
+	unint8 high_precision_time;
+
 public:
 	Omap3530Clock( const char* name );
     ~Omap3530Clock();

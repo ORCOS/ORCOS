@@ -148,18 +148,18 @@ public: \
 #define NEW_Board_ProcessorCfd Board_ProcessorCfdCl()
 
 // configuration of member Timer of class Board
-#define Board_Timer_hh <arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardGPTimer1.hh>
-#define Board_Timer_cc <arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardGPTimer1.cc>
-#define Board_TimerCfdCl BeagleBoardGPTimer1
-#define Board_TimerCfdT BeagleBoardGPTimer1*
+#define Board_Timer_hh <arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardGPTimer2.hh>
+#define Board_Timer_cc <arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardGPTimer2.cc>
+#define Board_TimerCfdCl BeagleBoardGPTimer2
+#define Board_TimerCfdT BeagleBoardGPTimer2*
 #define HAS_Board_TimerCfd 1
 #define Board_Timer_IN_USERSPACE 0
 #define DEF_Board_TimerCfd \
 private: \
-    BeagleBoardGPTimer1* TimerCfd; \
+    BeagleBoardGPTimer2* TimerCfd; \
 public: \
-    void setTimer(BeagleBoardGPTimer1* o) {TimerCfd = o;} \
-    BeagleBoardGPTimer1* getTimer() { return (BeagleBoardGPTimer1*) TimerCfd; }
+    void setTimer(BeagleBoardGPTimer2* o) {TimerCfd = o;} \
+    BeagleBoardGPTimer2* getTimer() { return (BeagleBoardGPTimer2*) TimerCfd; }
 #define NEW_Board_TimerCfd Board_TimerCfdCl()
 
 // configuration of member Clock of class Board

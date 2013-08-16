@@ -23,7 +23,7 @@
 #include <types.hh>
 #include <hal/TimerDevice.hh>
 
-#define	CLOCK_RATE	(0.001 MHZ)
+//#define	CLOCK_RATE	(26 MHZ)
 
 /*!
  * \brief BeagleBoardGPTimer1, implementation of HAL TimerDevice

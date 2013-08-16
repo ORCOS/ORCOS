@@ -1,5 +1,5 @@
 ARCH_OBJ +=ARMv4TProcessor.o
-ARCH_OBJ +=BeagleBoardGPTimer1.o
+ARCH_OBJ +=BeagleBoardGPTimer2.o
 ARCH_OBJ +=Omap3530Clock.o
 ARCH_OBJ +=BeagleBoardUART.o
 ARCH_OBJ +=ARMv4TInterruptHandler.o

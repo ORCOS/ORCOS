@@ -139,6 +139,7 @@
         <Class requires="OMAP3530">arch/ARM/ARMv4T/ARMv4TFixedIntervalTimer</Class>
         <Class requires="OMAP3530">arch/ARM/ARMv4T/ARMv4TProgrammableIntervalTimer</Class>
         <Class requires="OMAP3530">arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardGPTimer1</Class>
+        <Class requires="OMAP3530">arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardGPTimer2</Class>
       </Classes>
     </Member>
     <Member>

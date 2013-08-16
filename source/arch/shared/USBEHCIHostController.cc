@@ -82,7 +82,7 @@ extern Board_ClockCfdCl* theClock;
 void kwait(int millseconds) {
 	unint8 now = theClock->getTimeSinceStartup();
 
-	while (theClock->getTimeSinceStartup() < (now + millseconds)) {};
+	while (theClock->getTimeSinceStartup() < (now + (millseconds * (CLOCK_RATE / 1000000) * 1000))) {};
 }
 
 
@@ -98,17 +98,19 @@ USB_EHCI_Host_Controller::USB_EHCI_Host_Controller(unint4 ehci_dev_base, void* m
 	this->async_qh_reg = 0;
 
 	LOG(ARCH,INFO,(ARCH,INFO,"USB_EHCI_Host_Controller() creating HC at addr: %x",ehci_dev_base));
+	LOG(ARCH,INFO,(ARCH,INFO,"USB_EHCI_Host_Controller() periodic list at: %x",(unint4) memory_base));
 
 	hc_base = ehci_dev_base;
 
 	// Initialize the periodic list
 	for (int i = 0; i < 1024; i++) {
-		((unint4*)memory_base)[i] = QT_NEXT_TERMINATE;
+		((volatile unint4*)memory_base)[i] = QT_NEXT_TERMINATE;
 	}
 
 	for (int i=0; i < 10; i++) {
 		registered_devices[i] = 0;
 	}
+
 	memset(&QHmain,0,sizeof(QH));
 	QHmain.qh_endpt1 = QH_ENDPT1_H(1) | QH_ENDPT1_I(1);
 	QHmain.qh_curtd = QT_NEXT_TERMINATE;
@@ -187,6 +189,7 @@ ErrorT USB_EHCI_Host_Controller::Init() {
 	SETBITS(usbcmd_val,1,1,1);  // start hcreset
 	SETBITS(usbcmd_val,4,4,0);  // stop periodic schedule
 	SETBITS(usbcmd_val,5,5,0);  // stop asynch schedule
+	SETBITS(usbcmd_val,6,6,0);  // stop asynch schedule
 
 	OUTW(operational_register_base + USBCMD_OFFSET,usbcmd_val);
 	frame_list_size = 1024;
@@ -203,7 +206,6 @@ ErrorT USB_EHCI_Host_Controller::Init() {
 
 	// now initialize the aperiodic and periodic frame space
 	// set all frame list entries to invalid
-	memset(this->memory_base,0,frame_list_size*4);
 
 	// initialize the working queues
 	OUTW(operational_register_base + PERIODICLISTBASE_OFFSET,(unint4) this->memory_base);
@@ -294,6 +296,8 @@ ErrorT USB_EHCI_Host_Controller::Init() {
 				ports[i].root_device = new USBDevice(this,0,i,2);
 
 				OUTW(operational_register_base + USBSTS_OFFSET, 0x4);
+				// wait for status to settle
+				kwait(1);
 				// try to enumerate the port
 				// this initializes all devices
 				enumerateDevice(ports[i].root_device);
@@ -415,6 +419,7 @@ int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1
 	QH_LINK(qh,&QHmain);
 	QH_LINK(&QHmain,qh);
 
+
 	// wait for completion of usb transaction
 	volatile unint4 timeout = 20;
 	while (( QT_TOKEN_GET_STATUS(qtd_last->qt_token) == 0x80 ) && timeout) {timeout--;  kwait(1);};
@@ -441,7 +446,6 @@ int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1
 
 	QH_LINK(&QHmain,&QHmain);
 	qh->qh_overlay.qt_next = 0xdead0000;
-
 	// on success toggle dt bit
 	dev->endpoints[endpoint].data_toggle = toggle ^ 1;
 	return num;
@@ -769,6 +773,8 @@ ErrorT USB_EHCI_Host_Controller::enumerateDevice(USBDevice *dev) {
 	}
 
 	// enable usb interrupts
+
+	OUTW(operational_register_base + USBSTS_OFFSET, 0x3a);
 	OUTW(operational_register_base + USBINTR_OFFSET, 0x1);
 
 	return cOk;
@@ -852,6 +858,9 @@ void USB_EHCI_Host_Controller::handleInterrupt() {
 
 	LOG(ARCH,TRACE,(ARCH,TRACE,"EHCI Interrupt"));
 
+	//printf("USB INT_STS: %x\r",INW(operational_register_base + USBSTS_OFFSET));
+	//printf("USB USBCMD: %x\r",INW(operational_register_base + USBCMD_OFFSET));
+	//printf("USB USBINTR: %x\r",INW(operational_register_base + USBINTR_OFFSET));
 //	OUTW(operational_register_base + USBSTS_OFFSET, 0x3f);
 
 	for (int i=0; i < 10; i++) {
@@ -1220,7 +1229,7 @@ ErrorT USBDevice::reactivateEp(int num) {
 	//if (((unint4)qtd2 != QT_NEXT_TERMINATE ) && (QT_TOKEN_GET_STATUS(qh->qh_overlay.qt_token) != 0x80)) {
 	if ((QT_TOKEN_GET_STATUS(qh->qh_overlay.qt_token) != 0x80)) {
 		// set qtd back to active
-		qtd2->qt_token = QT_TOKEN_DT(endpoints[num].status_toggle) | QT_TOKEN_CERR(3) | QT_TOKEN_IOC(1) | QT_TOKEN_PID(QT_TOKEN_PID_IN)
+		qtd2->qt_token = QT_TOKEN_DT(endpoints[num].status_toggle) | QT_TOKEN_CERR(0) | QT_TOKEN_IOC(1) | QT_TOKEN_PID(QT_TOKEN_PID_IN)
 						 			 | QT_TOKEN_STATUS_ACTIVE | QT_TOKEN_TOTALBYTES(endpoints[num].max_packet_size);
 
 		qtd2->qt_buffer[0] = (unint4) endpoints[num].recv_buffer;
@@ -1229,7 +1238,7 @@ ErrorT USBDevice::reactivateEp(int num) {
 		qh->qh_curtd = QT_NEXT_TERMINATE;
 		qh->qh_overlay.qt_token = 0;
 		qh->qh_overlay.qt_altnext = QT_NEXT_TERMINATE;
-		//qh->qh_link = QT_NEXT_TERMINATE;
+		qh->qh_link = QT_NEXT_TERMINATE;
 		qh->qh_overlay.qt_next = (unint4) qtd2;
 		return cOk;
 	}
@@ -1295,7 +1304,7 @@ ErrorT USBDevice::activateEndpoint(int num) {
 		qtd->qt_buffer[0] = (unint4) endpoints[num].recv_buffer;
 		qtd->qt_buffer[1] = (unint4) alignCeil((char*) endpoints[num].recv_buffer,4096);
 
-		qtd->qt_token = QT_TOKEN_DT(1) | QT_TOKEN_CERR(3) | QT_TOKEN_IOC(1) | QT_TOKEN_PID(QT_TOKEN_PID_IN)
+		qtd->qt_token = QT_TOKEN_DT(1) | QT_TOKEN_CERR(0) | QT_TOKEN_IOC(1) | QT_TOKEN_PID(QT_TOKEN_PID_IN)
 						 			 | QT_TOKEN_STATUS_ACTIVE | QT_TOKEN_TOTALBYTES(endpoints[num].max_packet_size);
 
 		endpoints[num].q_int_transfer = qtd;

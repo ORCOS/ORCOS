@@ -991,7 +991,9 @@ ErrorT SMSC95xxUSBDeviceDriver::handleInterrupt() {
 	ErrorT ret = cError;
 
 	volatile QH* qh = dev->endpoints[this->int_ep].queue_head;
+	if (qh == 0) return cError;
 	volatile qTD* qtd2  = (qTD*) qh->qh_curtd;
+
 
 	if ( ((unint4)qtd2 > QT_NEXT_TERMINATE) && (QT_TOKEN_GET_STATUS(qh->qh_overlay.qt_token) != 0x80)) {
 		unint4 interrupt_sts = *((unint4*) &dev->endpoints[this->int_ep].recv_buffer[0]);

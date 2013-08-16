@@ -32,7 +32,7 @@ FATFileSystem::FATFileSystem(Partition* myPartition) : FileSystemBase(myPartitio
 
 			// right now we trust the rest of the table and do checks on demand
 			FAT32_BPB* myFAT32BPB = (FAT32_BPB*) &buffer[36];
-			FAT16_BPB* myFAT16BPB = (FAT16_BPB*) &buffer[36];
+			//FAT16_BPB* myFAT16BPB = (FAT16_BPB*) &buffer[36];
 
 
 			RootDirSectors = (((myFAT_BPB.BPB_RootEntCnt * 32) + (myFAT_BPB.BPB_BytsPerSec - 1)) / myFAT_BPB.BPB_BytsPerSec);
@@ -119,12 +119,6 @@ unint4 FATFileSystem::getFATTableEntry(unint4 clusterNum) {
 
 unint4 FATFileSystem::getNextSector(unint4 currentSector, unint4 &currentCluster) {
 
-	/*if (this->myFatType == FAT16) {
-		if (currentCluster == 0) {
-			if (currentSector == myFAT_BPB.BPB_RootEntCnt) return EOC;
-		}
-	}*/
-
 	// check if next sector would lie inside another cluster
 	// if so follow cluster chain
 	if ( (currentSector / myFAT_BPB.BPB_SecPerClus) != ((currentSector+1) / myFAT_BPB.BPB_SecPerClus)) {
@@ -132,14 +126,15 @@ unint4 FATFileSystem::getNextSector(unint4 currentSector, unint4 &currentCluster
 		// next sector is in another clusters
 		// lookup the FAT table to find the successor cluster
 		unint4 nextClusterNum = getFATTableEntry(currentCluster);
-		if (nextClusterNum != EOC) {
-			currentCluster = nextClusterNum;
-			return ClusterToSector(nextClusterNum);
-		} else {
-			currentCluster = EOC;
-			return EOC;
-		}
 
+		currentCluster = EOC;
+		if (this->myFatType == FAT16){
+			if (nextClusterNum >= 0xFFF8) return EOC;
+		} else
+			if (nextClusterNum >= 0xFFFFFF8) return EOC;
+
+		currentCluster = nextClusterNum;
+		return ClusterToSector(nextClusterNum);
 
 	} else {
 		return currentSector+1;

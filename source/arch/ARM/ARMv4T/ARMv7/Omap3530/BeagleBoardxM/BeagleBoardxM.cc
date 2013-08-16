@@ -1123,7 +1123,7 @@ BeagleBoardxM::BeagleBoardxM() {
  	OUTW(0x48004904,0x00000037);
 
  	// set GPT clock sources to 32K_FCLK
- 	OUTW(0x48005040,0xff);
+ 	//OUTW(0x48005040,0xff);
 
  	// independently of configuration: enable gpio 5+6 functional clock and uart3
  	OUTW(0x48005000,0x30800);
