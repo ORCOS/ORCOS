@@ -40,6 +40,8 @@ extern ThreadCfdCl* pCurrentRunningThread;
 extern Task*        pCurrentRunningTask;
 extern unint8       lastCycleStamp;
 
+
+
 /*!
  * \brief Manager class used to handle system calls.
  * \ingroup syscall
@@ -323,11 +325,6 @@ inline void handleSyscall(int4 sp_int) {
                 break;
     #endif
 
-    #ifdef HAS_SyscallManager_add_devaddrSyscallCfd
-                case cAddDevAddrSyscallId:
-                retval = add_devaddrSyscall( sp_int );
-                break;
-    #endif
                 case cPrintToStdOut:
                 retval = printToStdOut( sp_int );
                 break;
@@ -378,7 +375,7 @@ inline void handleSyscall(int4 sp_int) {
     #endif
 
         SET_RETURN_VALUE((void*)sp_int,(void*)retval);
-        assembler::restoreContext( pCurrentRunningThread ); // (void*) sp_int, pCurrentRunningTask->getId() );
+        assembler::restoreContext( pCurrentRunningThread );
 }
 
 

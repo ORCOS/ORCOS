@@ -57,9 +57,3 @@ extern "C"size_t recvfrom(int socket,char** msgptr,int flags,sockaddr* sender)
     return syscall(cRecvFromSyscallId,socket,msgptr,flags,sender);
 }
 
-extern "C"int add_devaddr(const char* dev, int domain, char* addr)
-{
-    return syscall(cAddDevAddrSyscallId,dev,domain,addr);
-}
-
-

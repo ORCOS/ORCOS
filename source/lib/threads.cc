@@ -29,8 +29,17 @@ extern "C"void sleep(int ms)
 {
     // rise the sc software interrupt
     // arguments will be passed onto the stack by the gcc compiler
-    syscall(cSleepSysCallId,ms);
+    syscall(cSleepSysCallId, ms * 1000);
 }
+
+/*!
+ * The sleep system call.
+ */
+extern "C"void usleep(int us)
+{
+    syscall(cSleepSysCallId, us);
+}
+
 
 extern "C"int task_stop(int taskid)
 {

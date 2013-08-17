@@ -93,7 +93,7 @@ KOBJ += TaskErrorHandler.o
 KOBJ += Mutex.o 
 
 #syscall
-KOBJ += handle_syscalls.o
+KOBJ += sc_common.o sc_io.o sc_mem.o sc_net.o sc_process.o sc_synchro.o
 
 #Every directory containing source code must be specified in KERNEL_PATH or ARCH_VPATH, 
 #depending on whether they are common kernel code or specific to the archectiture.

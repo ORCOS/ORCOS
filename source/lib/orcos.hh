@@ -126,9 +126,22 @@ extern "C" int 		task_resume(int taskid);
 /*!
  *  \brief Sleep method. The calling thread will be blocked for at least 'ms' milliseconds.
  *
- * \param ms	The amount of milliseconds to sleap at least
+ * Real-Time threads are guaranteed to wake up after the exact (except latency) number of milli-
+ * seconds. If they have the highest priority they will be executed directly.
+ *
+ * \param ms	The amount of milliseconds to sleep
  */
 extern "C" void 	sleep(int ms);
+
+/*!
+ *  \brief The calling thread will be blocked for at least 'us' micro-seconds.
+ *
+ * Real-Time threads are guaranteed to wake up after the exact (except latency) number of micro-
+ * seconds. If they have the highest priority they will be executed directly.
+ *
+ * \param us	The amount of microseconds to sleep
+ */
+extern "C"void 		usleep(int us);
 
 /*!
  * \brief Create a new thread.
@@ -449,21 +462,6 @@ extern "C" size_t 	recvfrom(int socket,char** msgptr,int flags,sockaddr* sender)
  * \return			The amount of services found
  */
 extern "C" int 		getservicebyname(char* name, const servicedescriptor* descr, unint1 n);
-
-/*!
- * \brief Adds another addr to a device specified by 'dev' for the domain given by 'domain'.
- *
- *  e.g: domain = 55555 (SimpleAddressProtocol) would tell the protocol that the device given by dev shall have the additional address addr.
- *
- * \param dev		The device name by path (e.g "/dev/comm/eth0")
- * \param domain	The id of the addressfamily/domain we want to add a new address to
- * \param addr		The address we want to add (e.g "192.168.1.27")
- *
- * \return			Error Number
- */
-// Unsupported since 2012
-//extern "C" int 		add_devaddr(const char* dev, int domain, char* addr);
-
 
 
 

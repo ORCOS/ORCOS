@@ -80,7 +80,8 @@
 #define cBindSyscallId          22
 #define cSendtoSyscallId        23
 #define cRecvFromSyscallId      24
-#define cAddDevAddrSyscallId    25
+
+#define cIOControl				25
 
 #define cPrintToStdOut          26
 #define cNewProtSysCallId       27
@@ -92,6 +93,5 @@
 #define cRunTaskId				31
 #define cTask_KillSysCallId		32
 #define cShmMapId				33
-#define cIOControl				34
 
 #endif /* TASKLIB_HH_ */
