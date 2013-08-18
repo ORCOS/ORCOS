@@ -186,6 +186,12 @@
         <None>false</None>
       </Member>
       <Member>
+        <Name>DSS</Name>
+        <Class>arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardDSS</Class>
+        <Device>"dss"</Device>
+        <None>false</None>
+      </Member>
+      <Member>
         <Name>HCI</Name>
         <Class>arch/none/DummyCharDriver</Class>
         <None>true</None>

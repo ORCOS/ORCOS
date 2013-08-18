@@ -165,6 +165,13 @@
         <Class>arch/none/DummyWatchdog</Class>
       </Classes>
     </Member>
+     <Member>
+      <Name>DSS</Name>
+      <Classes>
+        <Class requires="OMAP3530">arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardDSS</Class>
+        <Class>arch/none/DummyCharDriver</Class>
+      </Classes>
+    </Member>
     <Member>
       <Name>UART</Name>
       <Classes>

@@ -22,7 +22,7 @@
 #include <hal/Clock.hh>
 
 
-#define	CLOCK_RATE	(26 MHZ)
+#define	CLOCK_RATE	(13 MHZ)
 #define MAX_SLEEPTIME = 16777215 // max counter value for 24 bit
 
 /*! \brief ARMv4T Clock, Implementation of HAL Clock

@@ -21,6 +21,7 @@
 
 //#include <archtypes.hh>
 
+
 typedef unsigned int size_t;
 
 /*!
@@ -171,6 +172,17 @@ typedef struct packet_layer {
 #define TASK_CB_CRC32		1	// next task cb field is a crc32 sum of the task
 #define TASK_CB_AUTH		2	// next task cb field is an authentication header
 
+//! Thread attribute structure for thread creation.
+typedef struct {
+    unint4 priority;
+    unint4 phase;
+    unint4 period;
+    unint4 deadline;
+    unint4 executionTime;
+    unint4 stack_size;
+} thread_attr_t;
+
+
 /*!
  * \brief Structure holding informations about the inital tasks.
  *
@@ -186,11 +198,7 @@ typedef struct {
     long task_heap_end;     	// first physical addr that doesnt!! belong to this heap
     long task_data_end;     	// the first logical address that is no data of the task any more (.text | .data  | .bss ...)
     long task_thread_exit_addr; // logical addr of the thread_exit method inside the task
-    unint4 initialPriority;
-    unint4 phase;
-    unint4 period;
-    unint4 deadline;
-    unint4 executionTime;
+    thread_attr_t initial_thread_attr; 	// attributes of the initial thread
 } taskTable;
 
 

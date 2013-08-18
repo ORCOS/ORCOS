@@ -105,7 +105,7 @@ ErrorT BeagleBoardGPTimer2::setTimer( unint4 t ) {
 	//reset overflow counter register
 	OUTW(GPT2_TOCR, 0x0);
 
-	//printf("Timerval: %d , us=%d\r",t, t/26);
+	//printf("Timer: %d , us=%d\r",t, t/13);
 
 	// write t (time) to overflow wrapping register
 	//unint4 val =  (t / ((CLOCK_RATE / 1000000)));

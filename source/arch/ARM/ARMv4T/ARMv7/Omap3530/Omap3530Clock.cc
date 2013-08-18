@@ -23,8 +23,11 @@
 Omap3530Clock::Omap3530Clock( const char* name ) :
     Clock( name ) {
 
-#if CLOCK_RATE != (26 MHZ)
-#warning "Omap3530Clock should be used with BeagleBoardGPTimer2 for 26Mhz resolution!"
+// OMAP uses a 32768 HZ crystal
+#define TIME_CONV ( CLOCK_RATE / (32768.0d) )
+
+#if CLOCK_RATE != (13 MHZ)
+#warning "Omap3530Clock should be used with BeagleBoardGPTimer2 for 13Mhz resolution!"
 #endif
 	// set input to 26 mhz sys clock ~ tick every 38 ns
 	unint4 cm_clksel_per = INW(CM_CLKSEL_PER);
@@ -34,7 +37,6 @@ Omap3530Clock::Omap3530Clock( const char* name ) :
 	OUTW(0x48005000,INW(0x48005000) | (1 <<4));
 	// enabel timer 3 interface clock
  	OUTW(0x48005010,INW(0x48005010) | (1 << 4));
-
 
 	// GPT1_TPIR POSITIVE_INC_VALUE = 232000 = 0x38A40
 	OUTW(GPT3_TPIR, 0x0);
@@ -57,9 +59,8 @@ Omap3530Clock::Omap3530Clock( const char* name ) :
 
 	unint4 time_32khz = INW(0x48320010);
 
-	// 1 clock tick at 32 khz is approx. 812 clock ticks at 26 mhz
 	// initialize time base
-	high_precision_time = time_32khz * 812;
+	high_precision_time = ((unint8)time_32khz) * TIME_CONV;
 	// enable timer
 	OUTW(GPT3_TCLR, INW(GPT3_TCLR) | 0x1 );
 
@@ -85,18 +86,31 @@ unint8 Omap3530Clock::getTimeSinceStartup() {
 	  // the timers to use one of the GPTIMER 3-7 which are not generating
 	  // fixed 1ms ticks
 
-
 	  //time_32khz = time_32khz * (((CLOCK_RATE) / 1000) );
 
 	  unint4 high_precision_cycles = INW(GPT3_TCRR);
 	  OUTW(GPT3_TCRR, 0x0);
 	  high_precision_time += high_precision_cycles;
 
-#if CLOCK_RATE != (26 MHZ)
-	  return high_precision_time * (((CLOCK_RATE) / 1000000)) / 26;
+#if CLOCK_RATE != (13 MHZ)
+	  return high_precision_time * (((CLOCK_RATE) / 1000000)) / 13;
 #else
-	  // TODO compare 32khz clock with emulated time on a 32khz basis
+	  // compare 32khz clock with emulated time on a 32khz basis
 	  // to limit drift.
+
+	  // get synchronization 32khz frame ( in 12 mhz cycles)
+	  double frame = (unint8) time_32khz * TIME_CONV;
+
+	  // compare if we are drifting forwards
+	  if ((high_precision_time + TIME_CONV) < frame) {
+		  //printf("13 mhz time too slow: %d - %d\r",(unint4)high_precision_time, (unint4)frame);
+		  high_precision_time = (unint8) frame;
+	  } else
+	  // compare if we are drifting backwards
+	  if ((high_precision_time - frame) > TIME_CONV) {
+		  //printf("13 mhz time too fast: %d - %d\r",(unint4) high_precision_time, (unint4) frame);
+		  high_precision_time = (unint8) frame;
+	  }
 
 	  return high_precision_time;
 #endif

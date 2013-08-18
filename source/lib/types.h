@@ -25,16 +25,6 @@ typedef unsigned int size_t;
 typedef char int1;
 typedef int1 ResourceIdT;
 
-//! Thread attribute structure for thread creation.
-typedef struct {
-    int priority;
-    int phase;
-    int period;
-    int deadline;
-    int executionTime;
-    int stack_size;
-} thread_attr_t;
-
 // Socket related types
 
 typedef int1 sa_family_t;

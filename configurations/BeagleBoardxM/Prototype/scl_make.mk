@@ -5,6 +5,7 @@ ARCH_OBJ +=BeagleBoardUART.o
 ARCH_OBJ +=ARMv4TInterruptHandler.o
 ARCH_OBJ +=BeagleBoardInterruptController.o
 ARCH_OBJ +=Omap3530i2c.o
+ARCH_OBJ +=BeagleBoardDSS.o
 ARCH_OBJ +=HighSpeedUSBHostController.o
 ARCH_OBJ +=OmapGPIO.o
 ARCH_OBJ +=OmapGPIO.o

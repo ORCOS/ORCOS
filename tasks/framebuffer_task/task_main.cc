@@ -57,22 +57,24 @@ void* videomain(void* instance) {
 
 	int inst = val++;
 
-	unint4 val = inst;
+	//val = ~val;
+
+	printf("inst:%d\r",inst);
 
 	// fill the whole framebuffer
-	memsetlong(fb, val, fb_size >> 2);
+	//memsetlong(fb, val, fb_size >> 2);
 }
 
 extern "C" int task_main()
 {
-
+	val = 0;
 	printf("Hello from Framebuffer Task! \r\n");
 
 	unint4 fb_address = 0;
 
 	int error = shm_map("/dev/fb0",&fb_address,&fb_size);
 	if (error != 0) {
-		printf("Can not open Framebuffer 'fb0'. Error: %d",error);
+		printf("Can not open Framebuffer 'fb0'. Error: %d\r",error);
 	}
 
 	printf("Mapped Framebuffer at: 0x%x, size: %d\r",fb_address,fb_size);
@@ -86,8 +88,8 @@ extern "C" int task_main()
 
 
 	thread_attr_t attr;
-	attr.deadline = 60000;
-	attr.period = 60000 ;
+	attr.deadline = 1000000;
+	attr.period = 1000000;
 	attr.executionTime = 0;
 	attr.phase = 0;
 	attr.stack_size = 2048;
@@ -98,7 +100,7 @@ extern "C" int task_main()
 	thread_run(id);
 
 
-	while(1) { sleep(1000); }
+	while(1) { sleep(5000); }
 
 /*	int x = 0;
 	int y = 0;

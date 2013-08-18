@@ -208,9 +208,9 @@ int thread_createSyscall( int4 int_sp ) {
 			 RealTimeThread* rt = (RealTimeThread* ) newthread;
 			 rt->absoluteDeadline = 0;
 			 rt->instance = 1;
-			 rt->relativeDeadline = attr->deadline * (CLOCK_RATE / 1000000);
-			 rt->executionTime = attr->executionTime * (CLOCK_RATE / 1000000);
-			 rt->period = attr->period * (CLOCK_RATE / 1000000);
+			 rt->relativeDeadline = (unint8) attr->deadline * (CLOCK_RATE / 1000000);
+			 rt->executionTime = (unint8) attr->executionTime * (CLOCK_RATE / 1000000);
+			 rt->period = ((unint8) attr->period) * (CLOCK_RATE / 1000000);
 		#endif
 
     	 litem->remove();

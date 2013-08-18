@@ -22,6 +22,7 @@ private:
 
 public:
 	BeagleBoardDSS(const char* name);
+
 	~BeagleBoardDSS();
 
 	void init();

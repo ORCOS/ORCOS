@@ -37,11 +37,11 @@ RealTimeThread::RealTimeThread( void* startRoutinePointer, void* exitRoutinePoin
     PriorityThread( startRoutinePointer, exitRoutinePointer, owner, memManager, stack_size, RTThreadAttributes,
             newThread ) {
     if ( RTThreadAttributes != 0 ) {
-        // set the parameters and convert them from Âµs to cylces
-    	taskTable* attr = static_cast< taskTable* > ( RTThreadAttributes );
-        this->relativeDeadline = attr->deadline * (CLOCK_RATE / 1000000);
-        this->executionTime = attr->executionTime * (CLOCK_RATE / 1000000);
-        this->period = attr->period * (CLOCK_RATE / 1000000);
+        // set the parameters and convert them from µs to cylces
+    	thread_attr_t* attr = static_cast< thread_attr_t* > ( RTThreadAttributes );
+        this->relativeDeadline = ((unint8) attr->deadline) * (CLOCK_RATE / 1000000);
+        this->executionTime = ((unint8) attr->executionTime) * (CLOCK_RATE / 1000000);
+        this->period = ((unint8) attr->period) * (CLOCK_RATE / 1000000);
 
         unint8 currentCycles = theClock->getTimeSinceStartup();
         // set the new arrivaltime of this thread
@@ -119,9 +119,8 @@ void RealTimeThread::terminate() {
         theOS->getLogger()->log(PROCESS,WARN,  "exec_time: %d", (unint4) (currentCycles - arrivalTime) / (CLOCK_RATE / 1000000));
         currentCycles = theClock->getTimeSinceStartup();
 #endif
-
         // set the new arrivaltime of this thread
-        this->arrivalTime = currentCycles + sleepcycles;
+        this->arrivalTime += this->period; //= currentCycles + sleepcycles;
         this->absoluteDeadline = this->arrivalTime + this->relativeDeadline;
 
         // invoke the computePriority method of the scheduler

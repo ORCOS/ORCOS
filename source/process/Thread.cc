@@ -137,6 +137,7 @@ void Thread::callMain() {
  *---------------------------------------------------------------------------*/
 void Thread::sleep( int t, LinkedListDatabaseItem* item ) {
 
+	// prepare for sleep list update on dispatch call following
 	unint8 passedtime = theClock->getTimeSinceStartup() - lastCycleStamp;
 	this->sleepCycles = t + (unint4) passedtime;
 

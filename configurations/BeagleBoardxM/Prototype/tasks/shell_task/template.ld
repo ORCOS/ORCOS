@@ -23,7 +23,8 @@ SECTIONS
     LONG(PHASE);
     LONG(PERIOD);
     LONG(DEADLINE);
-    LONG(EXECUTIONTIME);   
+    LONG(EXECUTIONTIME);
+    LONG(4096);   
     
    }
    

@@ -290,6 +290,22 @@ public: \
     Omap3530i2c* getUART2() { return (Omap3530i2c*) UART2Cfd; }
 #define NEW_Board_UART2Cfd Board_UART2CfdCl("i2c",0x48070000)
 
+// configuration of member DSS of class Board
+#define Board_DSS_hh <arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardDSS.hh>
+#define Board_DSS_cc <arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardDSS.cc>
+#define Board_DSSCfdCl BeagleBoardDSS
+#define Board_DSSCfdT BeagleBoardDSS*
+#define HAS_Board_DSSCfd 1
+#define Board_DSS_IN_USERSPACE 0
+#define Board_DSS_NAME "dss"
+#define DEF_Board_DSSCfd \
+private: \
+    BeagleBoardDSS* DSSCfd; \
+public: \
+    void setDSS(BeagleBoardDSS* o) {DSSCfd = o;} \
+    BeagleBoardDSS* getDSS() { return (BeagleBoardDSS*) DSSCfd; }
+#define NEW_Board_DSSCfd Board_DSSCfdCl("dss")
+
 // configuration of member HCI of class Board
 #define Board_HCI_hh <arch/none/DummyCharDriver.hh>
 #define Board_HCI_cc <arch/none/DummyCharDriver.cc>
