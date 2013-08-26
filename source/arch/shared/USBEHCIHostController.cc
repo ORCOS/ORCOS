@@ -76,14 +76,8 @@ char* bmTransferTypeStr[4] = {
 
 extern Board_ClockCfdCl* theClock;
 
+extern void kwait(int millseconds);
 
-// TODO: move to some central place
-//requires the clock to be initialized beforehand
-void kwait(int millseconds) {
-	unint8 now = theClock->getTimeSinceStartup();
-
-	while (theClock->getTimeSinceStartup() < (now + (millseconds * (CLOCK_RATE / 1000000) * 1000))) {};
-}
 
 
 // The main QH we are enqueing to

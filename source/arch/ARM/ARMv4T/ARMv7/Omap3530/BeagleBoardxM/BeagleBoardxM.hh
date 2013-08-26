@@ -945,6 +945,8 @@ public:
     BeagleBoardxM();
     ~BeagleBoardxM();
 
+    void initialize();
+
     char* getBoardInfo() {return (char*) "         BeagleBoardxM revision C. SOC: DM37xx (compatible OMAP3530)\r\n"; };
 };
 

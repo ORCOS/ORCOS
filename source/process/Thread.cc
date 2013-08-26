@@ -141,7 +141,7 @@ void Thread::sleep( int t, LinkedListDatabaseItem* item ) {
 	unint8 passedtime = theClock->getTimeSinceStartup() - lastCycleStamp;
 	this->sleepCycles = t + (unint4) passedtime;
 
-   // LOG(KERNEL,INFO,(KERNEL,INFO,"Thread::sleep() t=%d",this->sleepCycles));
+    LOG(SCHEDULER,INFO,(SCHEDULER,INFO,"Thread::sleep() t=%d",this->sleepCycles));
     // unset the ready flag since we are not ready to run
     this->status.clearBits( cReadyFlag );
 

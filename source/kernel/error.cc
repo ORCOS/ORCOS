@@ -26,6 +26,26 @@
 
 extern Kernel* theOS;
 
+/*
+ * Kernel wait function. Uses the Board Clock to wait for a given time
+ * in milliseconds.
+ *
+ */
+void kwait(int milliseconds) {
+	// check if we have a board and clock
+	// if not we are probably initializing them
+	if ((theOS == 0) || (theOS->board == 0) || (theOS->getClock() == 0)) {
+		// fallback if the clock is not set
+		volatile unint4 i = 0;
+		while ( i < 100000) i++;
+	} else {
+		volatile unint8 now = theOS->getClock()->getTimeSinceStartup();
+		while (theOS->getClock()->getTimeSinceStartup() < (now + (milliseconds * 33))) {};
+	}
+
+}
+
+
 // handle a software error
 // at the moment the error is only reported
 ErrorT handleError( ErrorT status ) {

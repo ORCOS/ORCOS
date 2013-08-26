@@ -75,10 +75,18 @@ WorkerThread* WorkerTask::addJob( int id, int pid, void* param, unint priority_p
     #else
         // set the instance to 1
         pWThread->instance = 1;
-        // set the relative deadline for EDF
-        pWThread->relativeDeadline = priority_param * (CLOCK_RATE / 1000000);
-        // set period for RM
-        pWThread->period = priority_param * (CLOCK_RATE / 1000000);
+
+		#if CLOCK_RATE >= (1 MHZ)
+        	 // set the relative deadline for EDF
+             pWThread->relativeDeadline = priority_param * (CLOCK_RATE / 1000000);
+             // set period for RM
+             pWThread->period = priority_param * (CLOCK_RATE / 1000000)
+		#else
+			pWThread->relativeDeadline = (unint8) (((float)priority_param) * ((float) CLOCK_RATE / 1000000.0f));
+			pWThread->period = (unint8) (((float)priority_param) * ((float) CLOCK_RATE / 1000000.0f));
+		#endif
+
+
         // set the arrival time to now!
         pWThread->arrivalTime = currentCycles;
     #endif

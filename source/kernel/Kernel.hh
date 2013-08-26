@@ -65,7 +65,7 @@
 #include "inc/putc.hh"
 #include "comm/lwipTMR.hh"
 
-#define ms * (CLOCK_RATE / 1000000) * 1000
+
 
 
 /*!

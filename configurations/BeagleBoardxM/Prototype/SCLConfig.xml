@@ -466,7 +466,7 @@
     </Define>
     <Define>
       <Name>DCACHE_ENABLE</Name>
-      <Value>1</Value>
+      <Value>0</Value>
     </Define>
     <Define>
       <Name>DEFAULT_USER_STACK_SIZE</Name>

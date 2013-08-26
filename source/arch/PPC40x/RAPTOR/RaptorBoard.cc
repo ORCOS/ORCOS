@@ -23,7 +23,10 @@
 extern Kernel* theOS;
 
 
-RaptorBoard::RaptorBoard() {
+RaptorBoard::RaptorBoard() { }
+
+void RaptorBoard::initialize()
+{
 
 // OPB_UART_Lite Instance
 // created first so we can very early write to the serial console

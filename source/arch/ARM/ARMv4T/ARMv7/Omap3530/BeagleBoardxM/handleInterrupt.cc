@@ -91,8 +91,6 @@ extern "C"void dispatchIRQ(void* sp_int, int mode)
 	}
 
 	int irqSrc;
-	//BoardCfdCl* board;
-	//board = theOS->getBoard();
 
 	irqSrc = theOS->getBoard()->getInterruptController()->getIRQStatusVector();
 	LOG(HAL,TRACE,(HAL,TRACE,"IRQ number: %d, sp_int %x, mode: %d",irqSrc, sp_int, mode));

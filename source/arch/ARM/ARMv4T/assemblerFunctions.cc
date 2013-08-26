@@ -79,7 +79,6 @@ extern "C" void restoreContext(Thread*  t)
     // allow new interrupts
     OUTW(MPU_INTCPS_CONTROL, 0x1);
 
-
     if ((int)mode == 1) {
     	/*if (( (*(unint4*)sp) & 0x1f) != 16 ) {
     		//PSR corrupted

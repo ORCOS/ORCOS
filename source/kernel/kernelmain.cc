@@ -40,6 +40,7 @@ void abort() {
  for (;;) {};
 }
 
+
 /*!
  * \ingroup startup
  * The main "C" entry point for the OS after the assembler startup code has been executed.

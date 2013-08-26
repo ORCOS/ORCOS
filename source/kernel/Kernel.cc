@@ -295,7 +295,11 @@ void Kernel::initDeviceDrivers() {
 
 
     // Instance Board Class
+	// give components of the board a chance to
+	// reference each other by using theOS->board pointer.
     board = new BoardCfdCl( );
+    // now initialize
+    board->initialize();
     theClock = board->getClock();
 
     // Realtime clock is mandatory!

@@ -26,19 +26,20 @@ extern "C" Kernel* theOS;
 
 BeagleBoardGPTimer2::BeagleBoardGPTimer2() {
 
-	// configure GPTimer1: accurate 1ms tick
-	// generate 1ms tick, autoreload, disable, set start value
-
 	// set input to 26 mhz sys clock ~ tick every 38 ns
-	unint4 cm_clksel_per = INW(CM_CLKSEL_PER);
-	OUTW(CM_CLKSEL_PER,cm_clksel_per | 1);
+	//unint4 cm_clksel_per = INW(CM_CLKSEL_PER);
+	//OUTW(CM_CLKSEL_PER,cm_clksel_per | 1);
 
 	// enable timer 2 functional clock
 	OUTW(0x48005000,INW(0x48005000) | (1 <<3));
 	// enabel time 2 interface clock
  	OUTW(0x48005010,INW(0x48005010) | (1 << 3));
 
-//	OUTW(CM_CLKSEL_WKUP, (INW(CM_CLKSEL_WKUP) & 0xFFFFFFFE));
+ 	// use 32768 hz clock
+	unint4 cm_clksel_per = INW(CM_CLKSEL_PER);
+	OUTW(CM_CLKSEL_PER,cm_clksel_per & (~1));
+
+	//OUTW(CM_CLKSEL_WKUP, (INW(CM_CLKSEL_WKUP) & 0xFFFFFFFE));
 
 	// GPT1_TPIR POSITIVE_INC_VALUE = 232000 = 0x38A40
 	OUTW(GPT2_TPIR, 0x0);
@@ -104,8 +105,6 @@ ErrorT BeagleBoardGPTimer2::setTimer( unint4 t ) {
 
 	//reset overflow counter register
 	OUTW(GPT2_TOCR, 0x0);
-
-	//printf("Timer: %d , us=%d\r",t, t/13);
 
 	// write t (time) to overflow wrapping register
 	//unint4 val =  (t / ((CLOCK_RATE / 1000000)));

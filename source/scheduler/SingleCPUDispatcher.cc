@@ -58,6 +58,7 @@ void SingleCPUDispatcher::dispatch( unint4 dt ) {
      // first be sure that interrupts are disabled
     _disableInterrupts();
 
+
     // check whether the idle thread was currently running or not
     // the idle thread would have pRunningThreadDbItem = 0
     if ( pRunningThreadDbItem != 0 ) {
@@ -66,8 +67,8 @@ void SingleCPUDispatcher::dispatch( unint4 dt ) {
 
     // get the next timer event the scheduler wants to be called
     int nextevent = this->SchedulerCfd->getNextTimerEvent(sleepList,dt);
-    theTimer->setTimer( nextevent );
     LOG(SCHEDULER,TRACE,(SCHEDULER,TRACE,"SingleCPUDispatcher: next Timer %d", nextevent));
+    theTimer->setTimer( nextevent );
 
     // get the next ready thread
     // Be sure to call getNextTimerEvent() before this, since depending on the scheduler the returned

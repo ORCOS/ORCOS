@@ -39,9 +39,17 @@ RealTimeThread::RealTimeThread( void* startRoutinePointer, void* exitRoutinePoin
     if ( RTThreadAttributes != 0 ) {
         // set the parameters and convert them from µs to cylces
     	thread_attr_t* attr = static_cast< thread_attr_t* > ( RTThreadAttributes );
-        this->relativeDeadline = ((unint8) attr->deadline) * (CLOCK_RATE / 1000000);
-        this->executionTime = ((unint8) attr->executionTime) * (CLOCK_RATE / 1000000);
-        this->period = ((unint8) attr->period) * (CLOCK_RATE / 1000000);
+		#if CLOCK_RATE >= (1 MHZ)
+			this->relativeDeadline = ((unint8) attr->deadline) * (CLOCK_RATE / 1000000);
+			this->executionTime = ((unint8) attr->executionTime) * (CLOCK_RATE / 1000000);
+			this->period = ((unint8) attr->period) * (CLOCK_RATE / 1000000);
+		#else
+			this->relativeDeadline = (unint8) (((float)attr->deadline) * ((float) CLOCK_RATE / 1000000.0f));
+			this->executionTime = (unint8) (((float)attr->executionTime) * ((float) CLOCK_RATE / 1000000.0f));
+			this->period = (unint8) (((float)attr->period) * ((float) CLOCK_RATE / 1000000.0f));
+		#endif
+
+        LOG(PROCESS,WARN,( PROCESS, WARN, "RealtimeThread:() period: %d",this->period));
 
         unint8 currentCycles = theClock->getTimeSinceStartup();
         // set the new arrivaltime of this thread

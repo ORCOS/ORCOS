@@ -130,7 +130,7 @@ int fgetcSyscall( int4 int_sp ) {
 
 
 
-#ifdef HAS_SyscallManager_fcreateSyscallCfd
+//#ifdef HAS_SyscallManager_fcreateSyscallCfd
 int fcreateSyscall( int4 int_sp ) {
     char* filename;
     char* path;
@@ -145,13 +145,13 @@ int fcreateSyscall( int4 int_sp ) {
     	Directory* dir = (Directory*) res;
     	res = new Resource(cFile,true,filename);
     	dir->add(res);
-    	return cOk;
+    	res->aquire(pCurrentRunningThread,false);
     } else {
     	LOG(SYSCALLS,ERROR,(SYSCALLS,ERROR,"Syscall: fcreate(%s,%s) FAILED",filename,path));
     	return cInvalidResource;
     }
 }
-#endif
+//#endif
 
 
 /*******************************************************************

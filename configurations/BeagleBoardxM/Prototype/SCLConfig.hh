@@ -882,7 +882,7 @@ public: \
 
 #define ICACHE_ENABLE 1
 
-#define DCACHE_ENABLE 1
+#define DCACHE_ENABLE 0
 
 #define DEFAULT_USER_STACK_SIZE 4096
 

@@ -64,7 +64,6 @@ void startThread( register Thread* thread ) {
     // get stack address
     register void* stack_addr = (void*) ((unint4)thread->threadStack.endAddr-16);
 
-
 #ifdef HAS_MemoryManager_HatLayerCfd
 	ptStartAddr = (void*) ((unint)&__PageTableSec_start + PIDvar*0x4000);
 #endif

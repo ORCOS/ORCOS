@@ -60,6 +60,9 @@ extern Board_ClockCfdCl* theClock;
 
 
 BeagleBoardxM::BeagleBoardxM() {
+}
+
+void BeagleBoardxM::initialize() {
 
 	// Initialize interface and function clock tree
 	/*
@@ -361,7 +364,7 @@ BeagleBoardxM::BeagleBoardxM() {
     //GPIO6
  	OUTW(0x49058000 + 0x34, ~(GPIO23 | GPIO10 | GPIO8 | GPIO2 | GPIO1));
  	// GPIO5
- 	OUTW(0x49056000 + 0x34,~(GPIO31 | GPIO30 | GPIO29 | GPIO28 | GPIO22 | GPIO21 | GPIO15 | GPIO14 | GPIO13 | GPIO12));
+ 	OUTW(0x49056000 + 0x34,~(GPIO31 | GPIO30 | GPIO29 | GPIO11 | GPIO28 | GPIO22 | GPIO21 | GPIO15 | GPIO14 | GPIO13 | GPIO12));
 
 
 #ifdef HAS_Board_UART2Cfd
@@ -470,6 +473,9 @@ BeagleBoardxM::BeagleBoardxM() {
     DSSCfd = new NEW_Board_DSSCfd;
     DSSCfd->init();
 #endif
+
+
+
 }
 
 BeagleBoardxM::~BeagleBoardxM() {

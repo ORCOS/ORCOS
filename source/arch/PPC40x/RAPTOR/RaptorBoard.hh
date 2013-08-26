@@ -51,6 +51,8 @@ public:
     RaptorBoard();
     ~RaptorBoard();
 
+    void initialize();
+
 };
 
 #endif /*RAPTORBOARD_HH_*/
