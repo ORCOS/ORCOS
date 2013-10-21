@@ -23,6 +23,7 @@
 #include <types.hh>
 // include ORCOS module defines
 #include "arch/modules.hh"
+#include "SCLConfig.hh"
 
 #if MODULE_IN_USERSPACE
 // include for the UserSpace baseclass version of the comm device driver
@@ -99,7 +100,7 @@ private:
 public:
 
 	//!  constructor
-	ORCOS_MODULE_CONSTRUCTOR(BeagleBoardUART);
+	BeagleBoardUART(T_BeagleBoardUART_Init* init);
 
 	//!  destructor
 	~BeagleBoardUART();

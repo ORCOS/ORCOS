@@ -21,7 +21,7 @@
 
 #include "SCLConfig.hh"
 #include "db/ArrayDatabase.hh"
-#include ThreadCfd_hh
+#include Kernel_Thread_hh
 
 typedef enum {
     ExternalDeviceJob, TimedFunctionCallJob, PeriodicFunctionCallJob, TestJob
@@ -43,7 +43,7 @@ typedef enum {
  * PeriodicFunctionCallJob	: call a function periodically (not implemented yet)<BR>
  *
  */
-class WorkerThread: public ThreadCfdCl {
+class WorkerThread: public Kernel_ThreadCfdCl {
 private:
 
     //! The job table of the worker thread. Layout : jobid | parameters ...

@@ -134,7 +134,7 @@ private:
 
 public:
 
-	Omap3530i2c( const char *name, int4 a );
+	Omap3530i2c( T_Omap3530i2c_Init *init );
 
 	~Omap3530i2c();
 

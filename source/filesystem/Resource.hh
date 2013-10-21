@@ -24,7 +24,7 @@
 #include "SCLConfig.hh"
 #include "synchro/Mutex.hh"
 
-class ThreadCfdCl;
+class Kernel_ThreadCfdCl;
 
 /*!
  * \brief Base class of all resources inside the kernel.

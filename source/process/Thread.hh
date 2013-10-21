@@ -33,7 +33,7 @@ class Mutex;
 #define MAXSTACKPTRS 6
 
 #include "scheduler/ScheduleableItem.hh"
-#include MemoryManagerCfd_hh
+#include Kernel_MemoryManager_hh
 
 extern LinkedListDatabaseItem* pRunningThreadDbItem;
 
@@ -127,7 +127,7 @@ public:
     void* signal;
 
     //! Constructor which takes the startRoutinePointer as argument
-    Thread( void* startRoutinePointer, void* exitRoutinePointer, Task* owner, MemoryManagerCfdCl* memManager,
+    Thread( void* startRoutinePointer, void* exitRoutinePointer, Task* owner, Kernel_MemoryManagerCfdCl* memManager,
             unint4 stack_size = DEFAULT_USER_STACK_SIZE, void* attr = 0, bool newThread = true );
 
     //! Destructor
@@ -195,18 +195,21 @@ public:
         return this->sleepCycles;
     }
 
-    ErrorT pushStackPointer(void* sp)
+    ErrorT  __attribute__((noinline)) pushStackPointer(void* sp)
     {
         if (threadStack.top < MAXSTACKPTRS -1)
         {
             threadStack.stackptrs[threadStack.top] = sp;
             threadStack.top++;
-            return cOk;
-        } else return cStackOverflow;
+            return (cOk);
+        } else {
+
+        	return cStackOverflow;
+        }
 
     }
 
-    ErrorT popStackPointer(void* &sp)
+    ErrorT  __attribute__((noinline)) popStackPointer(void* &sp)
 	{
 		if (threadStack.top > 0)
 		{
@@ -243,7 +246,7 @@ public:
     }
 
     //! Returns the Memory Manager of the task the thread belongs to
-    MemoryManagerCfdCl* getMemManager();
+    Kernel_MemoryManagerCfdCl* getMemManager();
 
     /*!
      * \brief This method sets up the thread for execution. This involves telling the scheduler
@@ -266,6 +269,10 @@ public:
      * Involves informing the scheduler.
      */
     void block();
+
+
+
+
 
     /*!
      * \brief Unblocks the thread that has been waiting on a resource.

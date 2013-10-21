@@ -21,7 +21,7 @@
 #include <sprintf.hh>
 #include <kernel/Kernel.hh>
 
-#include ThreadCfd_hh
+#include Kernel_Thread_hh
 
 
 extern Kernel* theOS;
@@ -65,7 +65,7 @@ ErrorT handleError( ErrorT status ) {
 
 // handle a software error occuring in a single thread
 // at the moment the error is only reported
-ErrorT handleError( ErrorT status, ThreadCfdCl* curT ) {
+ErrorT handleError( ErrorT status, Kernel_ThreadCfdCl* curT ) {
 
 #ifdef HAS_Kernel_LoggerCfd
     int curThreadId = curT->getId();

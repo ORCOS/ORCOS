@@ -23,7 +23,7 @@ extern Kernel* theOS;
 #define DOS_MBR	0
 #define DOS_PBR	1
 
-static unsigned char buffer[1024];
+static unsigned char buffer[1024] __attribute__((aligned(4)));
 
 static inline int is_extended(int part_type)
 {
@@ -52,6 +52,17 @@ typedef struct {
 	unint4	pt_crc32;
 } EFI_PT_Header;
 
+
+typedef struct {
+	unint1 bootable;
+	char   chs_first[3];
+	unint1 type;
+	char   chs_last[3];
+	unint4 lba_start;
+	unint4 lba_size;
+} PT_Entry;
+
+
 ErrorT PartitionManager::handleEFIPartitionTable(BlockDeviceDriver* bdev) {
 
 	int error = bdev->readBlock(1,(char*)buffer,1);
@@ -72,6 +83,8 @@ ErrorT PartitionManager::handleEFIPartitionTable(BlockDeviceDriver* bdev) {
 		return cError;
 	}
 
+	LOG(ARCH,INFO,(ARCH,INFO,"PartitionManager: EFI Support missing."));
+
 	return cOk;
 }
 
@@ -86,13 +99,49 @@ ErrorT PartitionManager::tryDOSMBR(BlockDeviceDriver* bdev) {
 			return (cError);
 		} /* no DOS Signature at all */
 
+	int disksig = le32_to_int(&buffer[DOS_PART_DISKSIG_OFFSET]);
+	LOG(ARCH,INFO,(ARCH,INFO,"PartitionManager: Disk Signature: %x",disksig));
+
 	if (memcmp((char *)&buffer[DOS_PBR_FSTYPE_OFFSET],"FAT",3)==0 ||
 		memcmp((char *)&buffer[DOS_PBR32_FSTYPE_OFFSET],"FAT32",5)==0) {
-		return cError; /* is PBR.. we dont support PBR */
-	}
 
-	int disksig = le32_to_int(&buffer[DOS_PART_DISKSIG_OFFSET]);
-	LOG(ARCH,INFO,(ARCH,INFO,"PartitionManager: found MBR. Signature: %x",disksig));
+		// handle partition table .. mount every partition if possible
+		PT_Entry *pt_entry = (PT_Entry*) (buffer + DOS_PART_TBL_OFFSET);
+		for (int i = 0; i < 4; i++, pt_entry++) {
+
+			switch(pt_entry->type) {
+				case 0: break;
+
+				case 6: // FAT 16
+				case 12 : // FAT 32
+				case 13 : // FAT 32 (LBA)
+				case 14 : // FAT 16 (LBA)
+					{
+					Partition* partition = new Partition(bdev,"PT",pt_entry->lba_start,pt_entry->lba_size,i);
+					this->add(partition);
+
+					// FAT Filesystem
+					FileSystemBase* fs = new FATFileSystem(partition);
+					if (fs->isValidFileSystem()) fs->initialize();
+
+					break;
+				}
+				case 0xee: {
+					// handle efi partition tables here
+					// EFI Partition mit Legacy MBR
+					return handleEFIPartitionTable(bdev);
+					break;
+				}
+				default: {
+					LOG(ARCH,WARN,(ARCH,WARN,"PartitionManager: No Partition support for Type: %x",pt_entry->type));
+				}
+
+			}
+		}
+
+
+		return cOk; /* is PBR */
+	}
 
 	dos_partition_t *pt;
 
@@ -111,7 +160,10 @@ ErrorT PartitionManager::tryDOSMBR(BlockDeviceDriver* bdev) {
 
 			switch (pt->sys_ind) {
 				case 6: // FAT 16
-				case 12 : {
+				case 12 :
+				case 13 : // FAT 32 (LBA)
+				case 14 : // FAT 16 (LBA)
+					{
 					Partition* partition = new DOSPartition(bdev,pt,part_num,disksig);
 					this->add(partition);	    /* Is MBR */
 
@@ -156,6 +208,7 @@ void PartitionManager::registerBlockDevice(BlockDeviceDriver* bdev) {
 	if (tryDOSMBR(bdev) == cOk) return;
 
 	// TODO: try to mount directly as filesystem as no MBR might be present
+	LOG(ARCH,WARN,(ARCH,WARN,"PartitionManager: No supported partition/MBR found for '%s'",bdev->getName()));
 
 }
 

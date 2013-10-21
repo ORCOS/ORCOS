@@ -24,8 +24,8 @@
 #include "inc/const.hh"
 #include <assemblerFunctions.hh>
 #include "db/ArrayDatabase.hh"
-#include Mutex_Scheduler_hh
-#include ThreadCfd_hh
+#include Kernel_Scheduler_hh
+#include Kernel_Thread_hh
 
 class Resource;
 class Task;
@@ -50,7 +50,7 @@ private:
     int4 				m_locked;
 
     //! Stores a pointer to the thread currently locking this mutex.
-    ThreadCfdCl* 		m_pThread;
+    Kernel_ThreadCfdCl* 		m_pThread;
 
     /*! \brief Is used to store unused LinkedList Database Items
      *
@@ -69,7 +69,7 @@ private:
     Resource* 			m_pRes;
 
     //! configurable member scheduler
-DEF_Mutex_SchedulerCfd
+DEF_Kernel_SchedulerCfd
     // With SCL configured Scheduler
 
 
@@ -97,7 +97,7 @@ public    :
      * This method is not called within the mutex itself but from the thread_resume syscall. It makes sure to
      * reschedule the specified thread, if it has been added to the stoppedThreads list.
      */
-    void threadResume(ThreadCfdCl* pThread);
+    void threadResume(Kernel_ThreadCfdCl* pThread);
 
 };
 

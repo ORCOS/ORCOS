@@ -30,7 +30,7 @@ extern Kernel* theOS;
 
 // the stack address and size may be set explicitly
 WorkerThread::WorkerThread( Task* owner ) :
-    ThreadCfdCl( 0, 0, owner, theOS->getMemManager(),WORKERTHREAD_STACK_SIZE, 0, true ) {
+    Kernel_ThreadCfdCl( 0, 0, owner, theOS->getMemoryManager(),WORKERTHREAD_STACK_SIZE, 0, true ) {
     jobid = -1;
     param = 0;
 }
@@ -51,14 +51,14 @@ void WorkerThread::callMain() {
     this->threadStack.top = 0;
 
     // first set stack pointer
-    SETSTACKPTR(stack_addr);
+    //SETSTACKPTR(stack_addr);
 
     // switch the pid
-    SETPID(pid);
+    //SETPID(pid);
     // finally branch to the work() method on 'this' object
     // this must be done by hand since calling work() in c would
     // not work since the old stack could be accessed if compiled without optimization
-    BRANCHTO_WORKERTHREAD_WORK(thisptr);
+    BRANCHTO_WORKERTHREAD_WORK(thisptr,pid,stack_addr);
 
     // we should never get here
 }

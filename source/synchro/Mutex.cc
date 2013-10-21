@@ -23,24 +23,20 @@
 #include "filesystem/File.hh"
 
 extern Kernel* theOS;
-extern ThreadCfdCl*    pCurrentRunningThread;
+extern Kernel_ThreadCfdCl*    pCurrentRunningThread;
 extern Task*           pCurrentRunningTask;
 
 Mutex::Mutex() :
     m_locked( false ), m_pThread( 0 ), m_stoppedThreads(5), m_pRes(0) {
-#ifdef HAS_Mutex_SchedulerCfd
-    SchedulerCfd = new Mutex_SchedulerCfdCl( );
-#endif
+    SchedulerCfd = new Kernel_SchedulerCfdCl( );
 }
 
 Mutex::~Mutex() {
-#ifdef HAS_Mutex_SchedulerCfd
     delete SchedulerCfd;
-#endif
 }
 
 ErrorT Mutex::acquire( Resource* pRes, bool blocking ) {
-    ThreadCfdCl* pCallingThread = pCurrentRunningThread;
+	Kernel_ThreadCfdCl* pCallingThread = pCurrentRunningThread;
 
 #if ENABLE_NESTED_INTERRUPTS
     bool int_enabled;
@@ -69,18 +65,18 @@ ErrorT Mutex::acquire( Resource* pRes, bool blocking ) {
     {
       if (!blocking) return cError;
       // mutex already aquired by some other thread!
-    #ifdef HAS_Mutex_SchedulerCfd
+
         // Implementation of the Priority Inheritance Protocol (PIP)
         // See if the newly arrived Thread has a higher priority than the thread currently locking the semaphore.
         // If this is the case, set the priority of the currently owning Thread to that of the newly arrived one.
         // Save the original priority of the owner Thread so it can be set back afterwards.
         #ifdef HAS_PRIORITY
-        #if USE_PIP
-            if ( pCallingThread != 0 && m_pThread != 0 && m_pThread->effectivePriority
-                    < pCallingThread->effectivePriority ) {
-                m_pThread->effectivePriority = pCallingThread->effectivePriority ;
-            }
-        #endif
+			#if USE_PIP
+				if ( pCallingThread != 0 && m_pThread != 0 && m_pThread->effectivePriority
+						< pCallingThread->effectivePriority ) {
+					m_pThread->effectivePriority = pCallingThread->effectivePriority ;
+				}
+			#endif
         #endif
 
         // enter thread into scheduler and reuse linkedlistdatabaseitems to avoid memory leaks!
@@ -102,9 +98,7 @@ ErrorT Mutex::acquire( Resource* pRes, bool blocking ) {
         // they will get here and reference invalid memory locations!
 
         return cOk;
-    #else
-        return cError;
-    #endif
+
 
     }
 
@@ -138,13 +132,12 @@ ErrorT Mutex::release( ) {
 #endif
 #endif
 
-#ifdef HAS_Mutex_SchedulerCfd
       // get the next thread by the scheduler who is next to aquire the mutex
       LinkedListDatabaseItem* next = (LinkedListDatabaseItem*) getScheduler()->getNext();
-      ThreadCfdCl* pSchedulerThread;
+      Kernel_ThreadCfdCl* pSchedulerThread;
       // search the first not stopped thread
       while (next != 0) {
-          pSchedulerThread = (ThreadCfdCl*) next->getData();
+          pSchedulerThread = (Kernel_ThreadCfdCl*) next->getData();
           if ( pSchedulerThread->isStopped() ) m_stoppedThreads.addTail( pSchedulerThread );
           else break;
           next = (LinkedListDatabaseItem*) getScheduler()->getNext();
@@ -162,7 +155,7 @@ ErrorT Mutex::release( ) {
           pSchedulerThread->unblock();
 
       } else
-#endif
+
       {
           // no available thread to aquire the mutex
           m_locked = false;
@@ -179,7 +172,7 @@ ErrorT Mutex::release( ) {
 
 }
 
-void Mutex::threadResume( ThreadCfdCl* pThread ) {
+void Mutex::threadResume( Kernel_ThreadCfdCl* pThread ) {
 
     m_stoppedThreads.removeItem( (DatabaseItem*) pThread );
 

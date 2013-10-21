@@ -445,7 +445,7 @@ leavehandler:
 	wr 		%tmpPSR, %psr
 	nop; nop; nop;
 
-#ifdef HAS_MemoryManager_HatLayerCfd
+#ifdef HAS_Board_HatLayerCfd
 	// set pid
 	set 0x200, %g7
 	sta %g6, [%g7] 0x19

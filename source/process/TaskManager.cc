@@ -19,6 +19,7 @@
 #include "TaskManager.hh"
 #include <kernel/Kernel.hh>
 #include <db/LinkedListDatabase.hh>
+#include "inc/crc32.h"
 
 extern Kernel* theOS;
 extern Task* pCurrentRunningTask;
@@ -63,8 +64,9 @@ ErrorT TaskManager::checkValidTask(taskTable* taskCB) {
 
 	if (taskCB->task_magic_word != 0x230f7ae9) return cInvalidCBHeader;
 	if ((void*) taskCB->task_heap_end <= (void*) taskCB->task_heap_start) return cInvalidCBHeader;
+	if ((taskCB->platform & 0xff) != PLATFORM) return cInvalidCBHeader;
 
-	#ifndef HAS_MemoryManager_HatLayerCfd
+	#ifndef HAS_Board_HatLayerCfd
 		if ((void*) taskCB->task_heap_start < &__KERNELEND) return cInvalidCBHeader;
 		if ((void*) taskCB->task_heap_end < &__KERNELEND) return cInvalidCBHeader;
 		if ((void*) taskCB->task_heap_start > &__RAM_END) return cInvalidCBHeader;
@@ -97,7 +99,7 @@ ErrorT TaskManager::checkValidTask(taskTable* taskCB) {
 
 void TaskManager::initialize() {
     unint4 num_tasks = tasktable;
-	register MemoryManagerCfdCl* OSMemManager = theOS->getMemManager();
+	register Kernel_MemoryManagerCfdCl* OSMemManager = theOS->getMemoryManager();
 
 	LOG(KERNEL,INFO,(KERNEL,INFO,"Creating Initial Tasks"));
 
@@ -110,11 +112,11 @@ void TaskManager::initialize() {
 
 		// create the memory manager for the task. The memory manager will be inside the
 		// kernel space
-		void* memaddr = OSMemManager->alloc(sizeof(MemoryManagerCfdCl),true);
+		void* memaddr = OSMemManager->alloc(sizeof(Kernel_MemoryManagerCfdCl),true);
 
-		#ifndef HAS_MemoryManager_HatLayerCfd
-			MemoryManagerCfdCl* task_memManager =
-					   new ( memaddr ) MemoryManagerCfdCl( (void*) task_info->task_heap_start, (void*) task_info->task_heap_end);
+		#ifndef HAS_Board_HatLayerCfd
+			Kernel_MemoryManagerCfdCl* task_memManager =
+					   new ( memaddr ) Kernel_MemoryManagerCfdCl( (void*) task_info->task_heap_start, (void*) task_info->task_heap_end);
 
 
 			if (checkValidTask(task_info) != cOk) {
@@ -153,7 +155,6 @@ void TaskManager::initialize() {
 		   // create the vm map for the task! protection = 7 = RWX, ZoneSelect = 3
 		   theOS->getHatLayer()->map((void*) LOG_TASK_SPACE_START,(void*) task_info, size ,7,3,tid, !ICACHE_ENABLE);
 		   // now since the task is mapped activate its virtual memory map by setting the pid
-
 		   //theOS->getHatLayer()->dumpPageTable(tid);
 		   SETPID(tid);
 
@@ -165,8 +166,8 @@ void TaskManager::initialize() {
 			}
 
 
-			MemoryManagerCfdCl* task_memManager =
-					new(memaddr)  MemoryManagerCfdCl((void*) (LOG_TASK_SPACE_START + ( task_heap_start -  (unint4) task_info)),
+			Kernel_MemoryManagerCfdCl* task_memManager =
+					new(memaddr)  Kernel_MemoryManagerCfdCl((void*) (LOG_TASK_SPACE_START + ( task_heap_start -  (unint4) task_info)),
 							(void*) (LOG_TASK_SPACE_START + size ) );
 
 
@@ -175,6 +176,7 @@ void TaskManager::initialize() {
 			 * The task code itself remains at task_info->task_start_addr
 			 */
 			Task* task = new Task( task_memManager, (taskTable*) LOG_TASK_SPACE_START );
+			task->platform_flags = ((taskTable*) LOG_TASK_SPACE_START)->platform;
 		#endif
 
 		this->taskDatabase->addTail( task );
@@ -182,7 +184,7 @@ void TaskManager::initialize() {
 		task->run();
 
 
-	#ifdef HAS_MemoryManager_HatLayerCfd
+	#ifdef HAS_Board_HatLayerCfd
 		SETPID(0);
 	#endif
 	}
@@ -208,7 +210,7 @@ ErrorT TaskManager::removeTask(Task* task) {
 ErrorT TaskManager::loadTaskFromFile(File* file, TaskIdT& tid) {
 
 	// task loading only supported if virtual memory is activated
-	#ifndef HAS_MemoryManager_HatLayerCfd
+	#ifndef HAS_Board_HatLayerCfd
 		return cError;
 	#endif
 
@@ -248,6 +250,10 @@ ErrorT TaskManager::loadTaskFromFile(File* file, TaskIdT& tid) {
 		return error;
 	}
 
+	unint4 crc = crc32((char*) task_start, (size_t)size);
+
+	LOG(KERNEL,INFO,(KERNEL,INFO,"TaskManager::loadTaskFromFile: Task CRC32: 0x%x",crc));
+
 	error = this->checkValidTask((taskTable*) task_start);
 	if (error < 0) {
 		LOG(KERNEL,ERROR,(KERNEL,ERROR,"TaskManager::loadTaskFromFile: Invalid Task.. checkValidTask() failed: %d",error));
@@ -265,13 +271,13 @@ ErrorT TaskManager::loadTaskFromFile(File* file, TaskIdT& tid) {
 
     // create the memory manager for the task. The memory manager will be inside the
 	// kernel space
-	void* memaddr = theOS->getMemManager()->alloc(sizeof(MemoryManagerCfdCl),true);
+	void* memaddr = theOS->getMemoryManager()->alloc(sizeof(Kernel_MemoryManagerCfdCl),true);
 
 	LOG(KERNEL,INFO,(KERNEL,INFO,"TaskManager: new Task memory: [0x%x - 0x%x]", tt->task_heap_start,tt->task_heap_end));
 
 	// be sure its in register as we switch stack afterwards
-	register MemoryManagerCfdCl* task_memManager =
-			new(memaddr)  MemoryManagerCfdCl((void*) tt->task_heap_start, (void*) tt->task_heap_end );
+	register Kernel_MemoryManagerCfdCl* task_memManager =
+			new(memaddr)  Kernel_MemoryManagerCfdCl((void*) tt->task_heap_start + DEFAULT_USER_STACK_SIZE, (void*) tt->task_heap_end );
 
 	LOG(KERNEL,DEBUG,(KERNEL,DEBUG,"TaskManager::loadTaskFromFile: creating Task object."));
 	/*
@@ -282,6 +288,7 @@ ErrorT TaskManager::loadTaskFromFile(File* file, TaskIdT& tid) {
 
 	// for the future set it to the correct VM address
 	task->tasktable = (taskTable*) LOG_TASK_SPACE_START;
+	task->platform_flags = tt->platform;
 
 	// unmap the new task from the current task virtual memory map
 	theOS->getHatLayer()->unmap((void*) task_start);

@@ -37,7 +37,7 @@ protected:
 
 public:
 
-	BeagleBoardGPTimer2();
+	BeagleBoardGPTimer2(T_BeagleBoardGPTimer2_Init * init);
     ~BeagleBoardGPTimer2();
 
     /*!

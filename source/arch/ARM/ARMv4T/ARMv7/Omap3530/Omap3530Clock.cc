@@ -20,8 +20,8 @@
 #include "inc/memio.h"
 #include "OMAP3530.h"
 
-Omap3530Clock::Omap3530Clock( const char* name ) :
-    Clock( name ) {
+Omap3530Clock::Omap3530Clock( T_Omap3530Clock_Init *init  ) :
+    Clock( init->Name ) {
 
 
 }

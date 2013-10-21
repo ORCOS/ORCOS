@@ -20,7 +20,6 @@
 #include "inc/sprintf.hh"
 #include "lib/defines.h"
 #include "lwip/netif.h"
-#include "comm/hcibluetooth/HCI.hh"
 
 #define LINEFEED "\r"
 
@@ -133,7 +132,7 @@ void Kernel::initialize() {
     // all commdevices need to be created before the protocol pool is created
     protopool = new ProtocolPool( );
 
-#ifdef HAS_Kernel_LoggerCfd
+#if HAS_Kernel_LoggerCfd
     LoggerCfd = new NEW_Kernel_LoggerCfd;
 #endif
     LOG(KERNEL,INFO,(KERNEL,INFO,"Initialized Device Driver"));
@@ -159,14 +158,14 @@ void Kernel::initialize() {
     LOG(KERNEL,INFO,(KERNEL,INFO,"Available Safe Kernel Stacks: %d." ,((int) &__stack - (int) &_heap_end) / KERNEL_STACK_SIZE));
 #endif
 
-#ifdef HAS_MemoryManager_HatLayerCfd
+#ifdef HAS_Board_HatLayerCfd
     // create the hat layer object.
     // this will also create the initial memory mappings
-    MemoryManager_HatLayerCfdCl::initialize();
-    HatLayerCfd = new MemoryManager_HatLayerCfdCl();
+    Board_HatLayerCfdCl::initialize();
+    HatLayerCfd = new Board_HatLayerCfdCl();
 #endif
 
-#ifdef HAS_MemoryManager_HatLayerCfd
+#ifdef HAS_Board_HatLayerCfd
     // now enable HAT for the task creation
     // get a pointer to the hat layer (independent from the MM)
 
@@ -336,23 +335,9 @@ void Kernel::initDeviceDrivers() {
 }
 
 /*--------------------------------------------------------------------------*
- ** Kernel:::setMemManager
- *---------------------------------------------------------------------------*/
-void Kernel::setMemManager( MemoryManagerCfdCl* mm ) {
-    this->memManager = mm;
-}
-
-/*--------------------------------------------------------------------------*
- ** Kernel:::getMemManager
- *---------------------------------------------------------------------------*/
-MemoryManagerCfdCl* Kernel::getMemManager() {
-    return this->memManager;
-}
-
-/*--------------------------------------------------------------------------*
  ** Kernel:::getCPUScheduler
  *---------------------------------------------------------------------------*/
-SingleCPUDispatcher_SchedulerCfdT Kernel::getCPUScheduler() {
+Kernel_SchedulerCfdT Kernel::getCPUScheduler() {
     if ( cpuManager ) {
         return this->cpuManager->getScheduler();
     }

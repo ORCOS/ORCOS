@@ -112,6 +112,8 @@ USB_EHCI_Host_Controller::USB_EHCI_Host_Controller(unint4 ehci_dev_base, void* m
 	QHmain.qh_overlay.qt_altnext = QT_NEXT_TERMINATE;
 	QH_LINK(&QHmain, &QHmain);
 
+	LOG(ARCH,INFO,(ARCH,INFO,"USB_EHCI_Host_Controller() QHMain: 0x%x",&QHmain));
+
 }
 
 ErrorT USB_EHCI_Host_Controller::Init() {
@@ -268,9 +270,10 @@ ErrorT USB_EHCI_Host_Controller::Init() {
 				OUTW(operational_register_base + PORTSC1_OFFSET + 4*i,portsc);
 
 				// ensure bit is set long enough to perform reset
-				volatile unint4 timeout;
-				timeout = 10000;
-				while (timeout) {timeout--;}
+				//volatile unint4 timeout;
+				//timeout = 10000;
+				//while (timeout) {timeout--;}
+				kwait(2);
 
 				// set port reset bit to 0 and wait for port enable!
 				SETBITS(portsc,8,8,0); // start port reset
@@ -337,7 +340,7 @@ ErrorT USB_EHCI_Host_Controller::Init() {
 #define USB_SET_INDEX_FIELD(req,index) *((unint2*)(&req[4])) = htons(index)
 #define USB_SET_VALUE_FIELD(req,value) *((unint2*)(&req[2])) = htons(value)
 
-static unint1 recv_buf[256];
+static unint1 recv_buf[256] __attribute__((aligned(4)));
 
 volatile static qTD qtds[4] __attribute__((aligned(32)));
 
@@ -415,7 +418,7 @@ int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1
 
 
 	// wait for completion of usb transaction
-	volatile unint4 timeout = 20;
+	volatile unint4 timeout = 200;
 	while (( QT_TOKEN_GET_STATUS(qtd_last->qt_token) == 0x80 ) && timeout) {timeout--;  kwait(1);};
 
 	// get number of bytes transferred
@@ -427,6 +430,7 @@ int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1
 		LOG(ARCH,ERROR,(ARCH,ERROR,"USB_EHCI_Host_Controller::send() error on bulk packet.."));
 
 		printf("timeout: %d\n\r",timeout);
+		printf("USBSTS: %x\r",INW(operational_register_base + USBSTS_OFFSET));
 		printf("qtd     \t(%08x)\tstatus: %x\r", (unint4) qtd,qtd->qt_token);
 		printf("qtd_last\t(%08x)\tstatus: %x\r", (unint4) qtd_last,qtd_last->qt_token);
 		printf("AsyncListAddr: 0x%x\r",INW(operational_register_base + ASYNCLISTADDR_OFFSET));
@@ -436,6 +440,7 @@ int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1
 		memdump((unint4) qh,8);
 		//return as we can not use this port
 		num = -1;
+		dev->endpoints[endpoint].data_toggle = toggle ^ 1;
 	}
 
 	QH_LINK(&QHmain,&QHmain);
@@ -567,6 +572,8 @@ ErrorT USB_EHCI_Host_Controller::enumerateDevice(USBDevice *dev) {
 		// failed .. handle error
 	}
 
+	kwait(1);
+
 	// reset the port again
 	// some device only react on the following messages after resetting the port two times
 	if (dev->parent == 0) {
@@ -575,8 +582,7 @@ ErrorT USB_EHCI_Host_Controller::enumerateDevice(USBDevice *dev) {
 		OUTW(operational_register_base + PORTSC1_OFFSET + 4* dev->port,portsc);
 
 		// give some time to the device to change its address
-		volatile unint4 timeout = 100000;
-		while (timeout) {timeout--;};
+		kwait(5);
 
 		portsc = INW(operational_register_base + PORTSC1_OFFSET + 4*dev->port);
 		SETBITS(portsc,8,8,0); // start port reset
@@ -598,17 +604,17 @@ ErrorT USB_EHCI_Host_Controller::enumerateDevice(USBDevice *dev) {
 	OUTW(dev->endpoints[0].queue_head+4,cap_token);
 
 	dev->endpoints[0].max_packet_size = dev->dev_descr.bMaxPacketSize;
+	kwait(2);
 
 	// set the device address!
 	int4 error = dev->setAddress(next_device_addr);
-
 	if (error != cOk) {
+		LOG(ARCH,ERROR,(ARCH,ERROR,"USB_EHCI_Host_Controller: Setting Device Address failed"));
 		return cError;
 	}
 
 	// give some time to the device to change its address
-	volatile unint4 timeout = 10;
-	while (timeout) {timeout--; kwait(1);};
+	kwait(10);
 
 	memset(&recv_buf,0,0x40);
 	unint1 msg3[8] = USB_DESCRIPTOR_REQUEST(CONFIGURATION_DESCRIPTOR);
@@ -671,7 +677,7 @@ ErrorT USB_EHCI_Host_Controller::enumerateDevice(USBDevice *dev) {
 
 		dev->endpoints[i+1].address			= descr->bEndpointAddress & 0xf;
 
-		LOG(ARCH,ERROR,(ARCH,ERROR,"USB_EHCI_Host_Controller: Endpoint Adress: %d, Dir: %d",dev->endpoints[i+1].address,dev->endpoints[i+1].direction));
+		LOG(ARCH,DEBUG,(ARCH,DEBUG,"USB_EHCI_Host_Controller: Endpoint Adress: %d, Dir: %d",dev->endpoints[i+1].address,dev->endpoints[i+1].direction));
 
 		//if (dev->endpoints[i+1].max_packet_size  < 0x40) dev->endpoints[i+1].max_packet_size  = 40;
 
@@ -691,7 +697,7 @@ ErrorT USB_EHCI_Host_Controller::enumerateDevice(USBDevice *dev) {
 	}
 
 	// Done Enumeration. Now set the configuration
-
+	kwait(2);
 	unint1 msg4[8] = USB_SETCONFIGURATION_REQUEST(1);
 	error = this->sendUSBControlMsg(dev,0,(unint1*) &msg4);
 
@@ -743,7 +749,7 @@ ErrorT USB_EHCI_Host_Controller::enumerateDevice(USBDevice *dev) {
 
 	} else {
 		// load the device driver if existend
-		LOG(ARCH,TRACE,(ARCH,TRACE,"USB_EHCI_Host_Controller: Trying to load driver for new device"));
+		LOG(ARCH,DEBUG,(ARCH,DEBUG,"USB_EHCI_Host_Controller: Trying to load driver for new device"));
 
 		// driver needs to activate the endpoints and do the device specific stuff
 		// like registering at the OS as a char/comm or whatever device
@@ -850,7 +856,7 @@ void USB_EHCI_Host_Controller::unregisterDevice(USBDeviceDriver* drv) {
 
 void USB_EHCI_Host_Controller::handleInterrupt() {
 
-	LOG(ARCH,TRACE,(ARCH,TRACE,"EHCI Interrupt"));
+	LOG(ARCH,DEBUG,(ARCH,DEBUG,"EHCI Interrupt"));
 
 	//printf("USB INT_STS: %x\r",INW(operational_register_base + USBSTS_OFFSET));
 	//printf("USB USBCMD: %x\r",INW(operational_register_base + USBCMD_OFFSET));
@@ -969,6 +975,8 @@ void USBHub::handleStatusChange() {
 					LOG(ARCH,ERROR,(ARCH,ERROR,"USBHub: Clearing Port Feature failed.. "));
 					return;
 				}
+
+				kwait(2);
 
 				if (port_status[0] & 1) {
 					LOG(ARCH,INFO,(ARCH,INFO,"USBHub: Device attached on port %d..",i));
@@ -1247,7 +1255,7 @@ ErrorT USBDevice::activateEndpoint(int num) {
 
 	// create a queue head and insert it into the list
 	// generate a queue head for this device inside the asynchronous list
-	QH* queue_head_new =  (QH*) theOS->getMemManager()->alloc(48,1,32);	// delete @ USBDevice::deactivate
+	QH* queue_head_new =  (QH*) theOS->getMemoryManager()->alloc(48,1,32);	// delete @ USBDevice::deactivate
 	// store address and clear area
 	endpoints[num].queue_head = queue_head_new;
 	memset((void*) queue_head_new,0,48);
@@ -1279,7 +1287,7 @@ ErrorT USBDevice::activateEndpoint(int num) {
 	} else {
 		// Interrupt Endpoint
 		// generate one qtd for the polling transfer
-		qTD* qtd  =  (qTD*) theOS->getMemManager()->alloc(32,1,32);		// delete @ USBDevice::deactivate
+		qTD* qtd  =  (qTD*) theOS->getMemoryManager()->alloc(32,1,32);		// delete @ USBDevice::deactivate
 
 		queue_head_new->qh_overlay.qt_next = (unint4) qtd;
 		queue_head_new->qh_endpt2 |= num; // S-Mask
@@ -1292,7 +1300,7 @@ ErrorT USBDevice::activateEndpoint(int num) {
 		queue_head_new->qh_overlay.qt_altnext = QT_NEXT_TERMINATE;
 
 
-		endpoints[num].recv_buffer =  (unint1*) theOS->getMemManager()->alloc(endpoints[num].max_packet_size,1,4); // delete @ USBDevice::deactivate
+		endpoints[num].recv_buffer =  (unint1*) theOS->getMemoryManager()->alloc(endpoints[num].max_packet_size,1,4); // delete @ USBDevice::deactivate
 		memset(endpoints[num].recv_buffer,0,endpoints[num].max_packet_size);
 
 		qtd->qt_buffer[0] = (unint4) endpoints[num].recv_buffer;

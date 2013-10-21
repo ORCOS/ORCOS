@@ -9,6 +9,7 @@ SECTIONS
  .CB TASK_VMA : AT(TASK_START) {
     LONG(0x230f7ae9);  /* ORCOS Task MAGIC value */
     LONG(0x0);		   /* no next header field, RTparams are mandatory */
+    LONG(0x101);	   /* PLATFORM ARM, T BIT set*/
     
     /* Task CB types.hh: struct taskTable */
     LONG(TASK_VMA);

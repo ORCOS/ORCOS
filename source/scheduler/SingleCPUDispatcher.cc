@@ -33,17 +33,16 @@ extern Board_TimerCfdCl* theTimer;
 
 // Global Variables to speed up access to these objects
 LinkedListDatabaseItem* pRunningThreadDbItem;
-SingleCPUDispatcher_SchedulerCfdCl* theScheduler;
-ThreadCfdCl*    pCurrentRunningThread = 0;
+Kernel_SchedulerCfdCl* theScheduler;
+Kernel_ThreadCfdCl*    pCurrentRunningThread = 0;
 Task*           pCurrentRunningTask = 0;
 unint8          lastCycleStamp = 0;
 
 SingleCPUDispatcher::SingleCPUDispatcher() :
     blockedList( new LinkedListDatabase ), sleepList( new LinkedListDatabase ), waitList( new LinkedListDatabase ) {
-    // initialize the scheduler with 0, needed for the new Operator!
-#ifdef HAS_SingleCPUDispatcher_SchedulerCfd
-    SchedulerCfd = new NEW_SingleCPUDispatcher_SchedulerCfd;
-#endif
+
+	// initialize the scheduler with 0, needed for the new Operator!
+    SchedulerCfd = new NEW_Kernel_SchedulerCfd;
 
     theScheduler = SchedulerCfd;
     pRunningThreadDbItem = 0;
@@ -79,20 +78,20 @@ void SingleCPUDispatcher::dispatch( unint4 dt ) {
     lastCycleStamp = theClock->getTimeSinceStartup();
 
     if ( nextThreadDbItem != 0 ) {
-        pCurrentRunningThread = (ThreadCfdCl*) nextThreadDbItem->getData();
+        pCurrentRunningThread = (Kernel_ThreadCfdCl*) nextThreadDbItem->getData();
         pCurrentRunningTask   = pCurrentRunningThread->getOwner();
 
         ASSERT(pCurrentRunningThread);
         ASSERT(pCurrentRunningTask);
 
-#ifdef HAS_Kernel_LoggerCfd
+#if HAS_Kernel_LoggerCfd
         int tid = pCurrentRunningThread->getId();
 #endif
         pRunningThreadDbItem = nextThreadDbItem;
 
         if ( pCurrentRunningThread->isNew() ) {
 
-            LOG(SCHEDULER,DEBUG,(SCHEDULER,DEBUG,"SingleCPUDispatcher: start Thread %d at %x", tid, pCurrentRunningThread));
+            LOG(SCHEDULER,DEBUG,(SCHEDULER,DEBUG,"SingleCPUDispatcher: start Thread %d at %x, stack [0x%x - 0x%x]", tid, pCurrentRunningThread,pCurrentRunningThread->threadStack.startAddr,pCurrentRunningThread->threadStack.endAddr));
 #if USE_TRACE
             theOS->getTrace()->addExecutionTrace(tid,lastCycleStamp);
 #endif
@@ -152,7 +151,7 @@ void SingleCPUDispatcher::sleep( int cycles, LinkedListDatabaseItem* pSleepDbIte
     else {
         // dont sleep. be sure ready flag is set.
         //LOG(SCHEDULER,TRACE,(SCHEDULER,TRACE,"SingleCPUDispatcher::sleep() Thread sleepcycles <= 0 (%d) putting in ready queue.",cycles));
-        ( (ThreadCfdCl*) pSleepDbItem->getData() )->status.setBits( cReadyFlag );
+        ( (Kernel_ThreadCfdCl*) pSleepDbItem->getData() )->status.setBits( cReadyFlag );
         // announce thread to scheduler again
         this->SchedulerCfd->enter( (LinkedListDatabaseItem*) pSleepDbItem );
     }

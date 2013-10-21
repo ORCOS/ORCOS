@@ -23,28 +23,26 @@
 #include "ARMv4T.h"
 #include "assembler.h"
 
-EXPORT_FCN(void, restoreUserContext, (void))
-EXPORT_FCN(void, restoreSVCContext, (void))
-
-
-
 
 	.section .text
+.arm
 
-FUNC_START(restoreSVCContext)
-restoreSVCContext:
-	// r0 contains the stack pointer address of the return context
-    // switch back to user mode
-    // we are in svc mode .. put stack pointer
-	MSR CPSR_c, #(irq_mode)|CPSR_DISINT
-	mov		sp,r0
+EXPORT_FCN(void, restoreThreadContext, (void))
+FUNC_START(restoreThreadContext)
+restoreThreadContext:
+    // r0 = context address
+	// r1 = restore mode
+	// we need to restore from another mode
+	MSR 	CPSR_c, #(undef_mode)|CPSR_DISINT
+	mov		sp, r0
 
-	MSR CPSR_c, #(svc_mode)|CPSR_DISINT
+	MSR 	CPSR_c, r1
+
 	ldr		lr,[r0,#60] // restore lr
 	ldr		sp,[r0,#64] // restore sp
-	ldr		fp,[r0,#68] // restore sp
+	ldr		fp,[r0,#68] // restore fp
 
-	MSR CPSR_c, #(irq_mode)|CPSR_DISINT
+	MSR 	CPSR_c, #(undef_mode)|CPSR_DISINT
 
 	// get the PSR
 	ldmfd   sp!, {r0}
@@ -52,27 +50,7 @@ restoreSVCContext:
 
     // load all other registers + restore PSR + jump to pc
 	ldmfd   sp!, {r0-r12,pc}^
-
-FUNC_START(restoreUserContext)
-restoreUserContext:
-
-	// r0 contains the stack pointer address of the return context
-    // switch back to user mode
-    mov		sp, r0
-
-	MSR CPSR_c, #(system_mode)|CPSR_DISINT
-	ldr		lr,[r0,#60] // restore lr
-	ldr		sp,[r0,#64] // restore sp
-	ldr		fp,[r0,#68] // restore sp
-
-	MSR CPSR_c, #(svc_mode)|CPSR_DISINT
-
-	// get the PSR
-	ldmfd   sp!, {r0}
-	msr		SPSR, r0
-
-    // load all other registers + restore PSR + jump to pc
-	ldmfd   sp!, {r0-r12,pc}^
+	nop
 
 	.section	.irq,  "ax", "progbits"
 
@@ -86,107 +64,53 @@ EXPORT_FCN(void, jumpToIrqHandler,			(void))
 FUNC_START(jumpToIrqHandler)
 jumpToIrqHandler:
 
-	// set to irq stack top!
-	LDR	sp, = __stack
-
-	SUB     lr, lr, #4     // construct the return address
-	push 	{r0}
 	// Determine which mode was interrupted to access the corresponding sp and lr register
 	// leave virtual memory translation enabled
 
-	MRS r0, SPSR 		// load saved status register
-	AND r0, r0, #0x1F 	// extract mode bits
+	MRS 	sp, SPSR 		// load saved status register
+	AND 	sp, sp, #0x1F 	// extract mode bits
 
-	CMP r0, #user_mode 					// compare with user mode bit setting
-	BEQ save_user_mode_from_irq_mode
+	CMP 	sp, #user_mode 	// compare with user mode bit setting
+	MOVEQ	sp, #(system_mode) | CPSR_DISINT	// use system mode to save registers
+	ORRNE   sp, sp, #CPSR_DISINT				// use interrupted mode to save registers
+	BICNE	sp, sp, #0x220						// Clear Bits: Thumb and Big Endian
 
-	CMP r0, #svc_mode 					// compare with supervisor mode bit setting
-	BEQ save_svc_mode_from_irq_mode
+	MSR 	CPSR_c, sp			// switch to context save mode (access to interrupted mode register bank)
 
-	// irq from irq mode? .. just skip saving as we will not return to irq mode
-	B  .
+	str		fp, [sp,#-4]		// store stack pointer
+	str		sp, [sp,#-8]		// store stack pointer
+	str	    lr, [sp,#-12]		// save lr
+	sub 	sp,  sp,#16			// make room for pc
+	stmfd   sp!, {r0-r12}		// store context
 
-save_user_mode_from_irq_mode:
+	// we can now safely use r0-r12
+	MSR 	CPSR_c, #(irq_mode)|CPSR_DISINT
 
+	mrs     r2, SPSR			// get the return PSR to store away
+	sub		r0, lr, #4			// get the return PC
+	mov		r1, sp				// r2 == context save mode
 
-	pop 	{r0}
+	// switch back to user mode to store PSR and PC
+	MSR 	CPSR_c, sp
+	str	    r0,[sp,#52] 		// store return PC
+	stmfd   sp!, {r2} 			// store PSR
+	mov		r0, sp				// get save context address
 
-	MSR CPSR_c, #(system_mode)|CPSR_DISINT
-	// store stack pointer
-	str		fp, [sp,#-4]
-	// store stack pointer
-	str		sp, [sp,#-8]
-	// save lr
-	str	    lr, [sp,#-12]
-	// make room for pc
-	sub 	sp,sp,#16
-	// store context
-	stmfd   sp!, {r0-r12}
+	//sub		sp,sp,0x100		// safety margin if there are bugs somewhere which use this stack???
 
-	MSR CPSR_c, #(irq_mode)|CPSR_DISINT
-	// get the return PSR
-	mrs     r0, SPSR
-	mov		r1, lr
-	// switch back to user mode
-	MSR CPSR_c, #(system_mode)|CPSR_DISINT
-	str	    r1,[sp,#52] // store return PC
-	stmfd   sp!, {r0} // store SPSR
+	// switch to uninterrupable svc mode for interrupt handling (OS mode)
+	MSR 	CPSR_c, #svc_mode | CPSR_DISINT
 
-	// get stack pointer address for parameter to the handleInterrupt method
-    mov		r0, sp
-    mov		r1, #1
-
-	MSR CPSR_c, #(irq_mode)|CPSR_DISINT
-
-	B saving_to_irq_done
-
-save_svc_mode_from_irq_mode:
-
-
-	pop 	{r0}
-
-	MSR CPSR_c, #(svc_mode)|CPSR_DISINT
-	// store stack pointer
-	str		fp, [sp,#-4]
-	// store stack pointer
-	str		sp, [sp,#-8]
-	// save lr
-	str	    lr, [sp,#-12]
-	// make room for pc
-	sub 	sp,sp,#16
-	// store context
-	stmfd   sp!, {r0-r12}
-
-	MSR CPSR_c, #(irq_mode)|CPSR_DISINT
-	// get the return PSR
-	mrs     r0, SPSR
-	mov		r1, lr
-	// switch back to user mode
-	MSR CPSR_c, #(svc_mode)|CPSR_DISINT
-	str	    r1,[sp,#52] // store return PC
-	stmfd   sp!, {r0} // store SPSR
-
-	// get stack pointer address for parameter to the handleInterrupt method
-    mov		r0, sp
-    mov		r1, #2
-
-	MSR CPSR_c, #(irq_mode)|CPSR_DISINT
-
-	B saving_to_irq_done
-
-saving_to_irq_done:
-
-
-	// switch to svc mode (OS mode)
-	MSR CPSR_c, #svc_mode|CPSR_DISINT
-	//sub		sp, r0, #10	// use the thread stack - safety margin
-	LDR	sp, =__stack   // TODO: does not work for nested interrups .. check why we cant use
+	LDR		sp, = __stack - 0x100	// irq handling is done on a seperate stack
+	// TODO: does not work for nested interrups .. check why we cant use
 	// the thread stack instead ?? should be possible...
+
+	// r0 = saved context
+	// r1 = context save mode
 
 	// CALL INTERRUPT DISPATCHING FUNCTION
 	bl	FUNC_NAME(dispatchIRQ)
-
-	b   .
+	b	.
 	nop
 
 
@@ -202,83 +126,49 @@ EXPORT_FCN(void, jumpToSwiHandler,			(void))
 FUNC_START(jumpToSwiHandler)
 jumpToSwiHandler:
 
-	//LDR	sp, = (__stack - 0x500)
-	LDR	sp, =__stack
-	// Determine which mode was interrupted
-	push {r0} // save r0 on local stack
+	// Determine which mode was interrupted to access the corresponding sp and lr register
+	// leave virtual memory translation enabled
 
-	MRS r0, SPSR // load saved status register
-	AND r0, r0, #0x1F // extract mode bits
-	CMP r0, #user_mode // compare with user mode bit setting
-	BEQ save_user_mode_from_svc_mode
-	CMP r0, #svc_mode // compare with supervisor mode bit setting
-	BEQ save_svc_mode_from_svc_mode
-	CMP r0, #irq_mode // compare with irq mode bit setting
-	BEQ save_irq_mode_from_svc_mode
+	MRS sp, SPSR 		// load saved status register
+	AND sp, sp, #0x1F 	// extract mode bits
 
-	// should not happen
-	B .
+	CMP sp, #user_mode 	// compare with user mode bit setting
+	MOVEQ	sp, #(system_mode) | CPSR_DISINT	// use system mode to save registers
+	ORRNE   sp, sp, #CPSR_DISINT				// use interrupted mode to save registers
+	BICNE	sp, sp, #0x220						// Clear Bits: Thumb and Big Endian
 
-save_user_mode_from_svc_mode:
+	MSR 	CPSR_c, sp			// switch to context save mode (access to interrupted mode register bank)
 
-	pop 	{r0}
+	str		fp, [sp,#-4]		// store stack pointer
+	str		sp, [sp,#-8]		// store stack pointer
+	str	    lr, [sp,#-12]		// save lr
+	sub 	sp,  sp,#16			// make room for pc
+	stmfd   sp!, {r0-r12}		// store context
 
-	// TODO: we might get a data abort if the task purposly sets the sp register to
-	// an invalid value
-	// however: we can handle it inside the data abort handler and restart / remove the task
+	// we can now safely use r0-r12
+	MSR 	CPSR_c, #(svc_mode)|CPSR_DISINT
 
-	MSR CPSR_c, #(system_mode)|CPSR_DISINT
-	// store stack pointer
-	str		fp, [sp,#-4]
-	// store stack pointer
-	str		sp, [sp,#-8]
-	// save lr
-	str	    lr, [sp,#-12]
-	// make room for pc
-	sub 	sp,sp,#16
-	// store context
-	stmfd   sp!, {r0-r12}
+	mrs     r2, SPSR			// get the return PSR to store away
+	sub		r0, lr, #0			// get the return PC
+	mov		r1, sp				// r2 == context save mode
 
-	MSR CPSR_c, #(svc_mode)|CPSR_DISINT
-	// get the return PSR
-	mrs     r0, SPSR
-	mov		r1, lr
-	// switch back to user mode
-	MSR CPSR_c, #(system_mode)|CPSR_DISINT
-	str	    r1,[sp,#52] // store return PC
-	stmfd   sp!, {r0} // store SPSR
+	// switch back to user mode to store PSR and PC
+	MSR 	CPSR_c, sp
+	str	    r0,[sp,#52] 		// store return PC
+	stmfd   sp!, {r2} 			// store PSR
+	mov		r0, sp				// get save context address
 
-	// get stack pointer address for parameter to the handleInterrupt method
-    mov		r0, sp
-    mov		r1, #1
+	// switch to uninterrupable svc mode for interrupt handling (OS mode)
+	MSR 	CPSR_c, #(svc_mode) | CPSR_DISINT
 
-	MSR CPSR_c, #(svc_mode)|CPSR_DISINT
+	sub		sp, r0, #40			// use the thread stack - safety margin
 
-	B saving_to_svc_done
+	// r0 = saved context
+	// r1 = context save mode
 
-save_svc_mode_from_svc_mode:
-	//SAVE_CONTEXT(svc_mode, svc_mode)
-	//B saving_to_svc_done
-	B .
-
-save_irq_mode_from_svc_mode:
-	//SAVE_CONTEXT(irq_mode, svc_mode)
-	//B saving_to_svc_done
-	B .
-
-saving_to_svc_done:
-	// switch to svc mode (OS mode)
-	sub		sp, r0, #12	// use the thread stack - safety margin
-	//LDR	sp, =__stack - 0x500 // TODO <-- doesnt work for nested interrupts!
-	// CALL SYSCALL DISPATCHING FUNCTION
-	b	FUNC_NAME(dispatchSWI)
-
-
-
-no_int_mode_determined:
-	NOP
-	b no_int_mode_determined
-
+	// CALL INTERRUPT DISPATCHING FUNCTION
+	bl	FUNC_NAME(dispatchSWI)
+	b	.
 	nop
 
 
@@ -286,14 +176,23 @@ no_int_mode_determined:
 //		Data Abort Handler
 //---------------------------------------------------------/
 
+FUNC_START(abortIRQHandler)
 .section	.data_abort,  "ax", "progbits"
 
-	MRC p15,0,r0,c6,c0,0 				// Read CP15 Data Fault Address Register and copy to r0
+	MSR CPSR_c, #system_mode|CPSR_DISINT	// switch to supervisor mode
+	// store context
+	LDR		sp, =__stack - 0x200
+	stmfd   sp!, {r0-r12}
+ 	mov		r2, sp
+	MSR CPSR_c, #abort_mode|CPSR_DISINT	// switch to supervisor mode
 
-	MOV r1, lr							// copy user stack pointer to r1
+	MOV	r1, lr
+	MRS	r3, SPSR
+
 	MSR CPSR_c, #svc_mode|CPSR_DISINT	// switch to supervisor mode
 
-	LDR	sp, =__stack - 0x200
+	// Read CP15 Data Fault Address Register and copy to r0
+	MRC p15,0,r0,c6,c0,0
 
 	// handle the data abort using a safe kernel stack
 
@@ -306,18 +205,21 @@ no_int_mode_determined:
 //---------------------------------------------------------/
 
 
-// function that handles software interrupts
 EXPORT_FCN(void, undefinedIRQHandler,			(void))
 FUNC_START(undefinedIRQHandler)
 undefinedIRQHandler:
 
+	MSR CPSR_c, #system_mode|CPSR_DISINT	// switch to supervisor mode
+	// store context
+	LDR		sp, =__stack - 0x200
+	stmfd   sp!, {r0-r12}
+ 	mov		r2, sp
+	MSR CPSR_c, #undef_mode|CPSR_DISINT	// switch to supervisor mode
 
 	MOV	r0, lr
 	MRS	r1, SPSR
+
 	MSR CPSR_c, #svc_mode|CPSR_DISINT	// switch to supervisor mode
-
-	LDR	sp, =__stack - 0x200
-
 
 	b	FUNC_NAME(handleUndefinedIRQ)
 	nop

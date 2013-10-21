@@ -9,7 +9,7 @@
 #To change parameters and settings for a single configuration, 
 #the Makefile in the configuration directory should be used.
 
--include scl_make.mk
+-include make/scl_make.mk
 
 -include $(ARCH_DIR)/arch.mk
 
@@ -34,11 +34,11 @@ KOBJ += tasktable.o __cxa_pure_virtual.o
 KOBJ += ProtocolPool.o TCPTransportProtocol.o IPv4AddressProtocol.o
 
 
-KOBJ += etharp.o ethernet.o ip.o init.o mem.o memp.o pbuf.o lwip_ethernetif.o netif.o udp.o tcp.o sys.o inet.o ip4_addr.o ip4.o ip4_frag.o tcp_in.o tcp_out.o stats.o icmp.o ip6_addr.o ip6.o
+KOBJ += etharp.o ethernet.o ip.o init.o mem.o memp.o pbuf.o  netif.o udp.o tcp.o sys.o inet.o ip4_addr.o ip4.o ip4_frag.o tcp_in.o tcp_out.o stats.o icmp.o ip6_addr.o ip6.o
 
 KOBJ += icmp6.o ethar.o ethndp.o lwipTMR.o 
 
-KOBJ += WorkerThread.o WorkerTask.o SNServiceDiscovery.o
+KOBJ += WorkerThread.o WorkerTask.o SNServiceDiscovery.o crc32.o
 
 #bluetooth
 #KOBJ += HCI.o
@@ -97,7 +97,7 @@ KOBJ += sc_common.o sc_io.o sc_mem.o sc_net.o sc_process.o sc_synchro.o
 
 #Every directory containing source code must be specified in KERNEL_PATH or ARCH_VPATH, 
 #depending on whether they are common kernel code or specific to the archectiture.
-VPATH = $(addprefix $(KERNEL_DIR), $(KERNEL_VPATH)) $(ARCH_VPATH)
+VPATH = $(addprefix $(KERNEL_DIR), $(KERNEL_VPATH)) $(ARCH_VPATH) make/
 
 
 #LWIP_VPATH = comm/lwip/core/ comm/lwip/core/ipv4/ comm/lwip/netif/ comm/lwip/arch/ comm/lwip/include/
@@ -196,7 +196,7 @@ endif
 ifdef BDI_DIR
 	@$(RM) $(BDI_DIR)/* 
 endif
-	$(RM) SCLConfig.hh tasks.sh tasks_clean.sh logger_config.hh tasktable.S scl_make.mk
+	$(RM) make/SCLConfig.hh make/logger_config.hh make/tasktable.S make/scl_make.mk
 ifdef KERNEL_DIR
 	$(RM) $(KERNEL_DIR)lib/*.o $(KERNEL_DIR)lib/*.a
 endif
@@ -259,16 +259,16 @@ $(OUTPUT_DIR)liborcoskernel.a : $(OBJ)
 	@$(AR) qc $(OUTPUT_DIR)liborcoskernel.a $(OBJ)
 
 #rule for compiling the user orcos library
-$(KERNEL_DIR)lib/%.o : $(KERNEL_DIR)lib/%.cc $(KERNEL_DIR)lib/%.hh SCLConfig.hh
-	@echo Compiling the user library: $@
-# be sure to use optimization for the library otherwise syscalls wont work!
-	@$(CC) $(CPFLAGS) $(USER_LIB_OPT_FLAGS) $< --output $@
-
-#rule for compiling the user orcos library
 $(KERNEL_DIR)lib/%.o : $(KERNEL_DIR)lib/%.cc SCLConfig.hh
 	@echo Compiling the user library: $@
 # be sure to use optimization for the library otherwise syscalls wont work!
-	@$(CC) $(CPFLAGS) $(USER_LIB_OPT_FLAGS) $< --output $@
+	@$(CXX) $(CPFLAGS) $(USER_LIB_OPT_FLAGS) $< --output $@
+
+#rule for compiling the user orcos library
+$(KERNEL_DIR)lib/%.o : $(KERNEL_DIR)lib/%.c SCLConfig.hh
+	@echo Compiling the user library: $@
+# be sure to use optimization for the library otherwise syscalls wont work!
+	@$(CC) $(CFLAGS) $(USER_LIB_OPT_FLAGS) $< --output $@
 
 USERLIB_OBJS_ = static.o threads.o mem.o io.o string.o net.o Mutex.o pthread.o signal.o
 USERLIB_OBJS = $(addprefix $(KERNEL_DIR)lib/, $(USERLIB_OBJS_))

@@ -52,7 +52,7 @@ private:
     // Pointer to the start of our cab containing the buffers
     char* bufferstart;
 
-#ifdef HAS_MemoryManager_HatLayerCfd
+#ifdef HAS_Board_HatLayerCfd
     char* bufferstart_physical;
 #endif
 

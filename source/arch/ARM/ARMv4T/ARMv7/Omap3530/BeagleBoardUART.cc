@@ -16,7 +16,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardUART.hh"
+#include "BeagleBoardUART.hh"
 //#include "comm/AddressProtocol.hh"
 #include "inc/memio.h"
 //#include "kernel/Kernel.hh"
@@ -35,15 +35,13 @@ BeagleBoardUART::~BeagleBoardUART()
 }
 
 /*---------------------------------------------------------------------------*/
-ORCOS_MODULE_CONSTRUCTOR_IMPL(BeagleBoardUART,CommDeviceDriver)
+BeagleBoardUART::BeagleBoardUART(T_BeagleBoardUART_Init* init) : CommDeviceDriver(init->Name)
 /*---------------------------------------------------------------------------*/
 {
 
 	// be sure our clock generation is enabled!
 
-
-
-	baseAddr = a;
+	baseAddr = init->Address;
 	//char read_byte = 0;
 
 	// configure and enable interrupts within interrupt controller

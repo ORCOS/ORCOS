@@ -19,7 +19,7 @@
  */
 
 #include "handle_syscalls.hh"
-#include ThreadCfd_hh
+#include Kernel_Thread_hh
 #include "assembler.h"
 
 /*******************************************************************
@@ -33,7 +33,11 @@ int runTask(int4 sp_int) {
 
 	SYSCALLGETPARAMS1(sp_int,path);
 
+	VALIDATE_IN_PROCESS(path);
+	// TODO: safely validate path length to avoid running out of process bounds
+
 	LOG(SYSCALLS,INFO,(SYSCALLS,INFO,"Syscall: runTask(%s)",path));
+
 
 	if (path == 0) return cError;
 
@@ -87,7 +91,7 @@ int task_killSyscall(int4 sp_int) {
  *******************************************************************/
 
 
-#ifdef HAS_SyscallManager_task_stopSyscallCfd
+#ifdef HAS_SyscallManager_task_stopCfd
 int task_stopSyscall(int4 int_sp)
 {
     int taskid;
@@ -113,7 +117,7 @@ int task_stopSyscall(int4 int_sp)
  *				TASK_RESUME Syscall
  *******************************************************************/
 
-#ifdef HAS_SyscallManager_task_resumeSyscallCfd
+#ifdef HAS_SyscallManager_task_resumeCfd
 int task_resumeSyscall(int4 int_sp)
 {
     int taskid;
@@ -148,7 +152,7 @@ int task_resumeSyscall(int4 int_sp)
  *				SLEEP Syscall
  *******************************************************************/
 
-#ifdef HAS_SyscallManager_sleepSyscallCfd
+#ifdef HAS_SyscallManager_sleepCfd
 int sleepSyscall( int4 int_sp ) {
     int t;
     SYSCALLGETPARAMS1(int_sp,(void*)t);
@@ -171,7 +175,7 @@ int sleepSyscall( int4 int_sp ) {
  *				THREAD_CREATE Syscall
  *******************************************************************/
 
-#ifdef HAS_SyscallManager_thread_createSyscallCfd
+#ifdef HAS_SyscallManager_thread_createCfd
 int thread_createSyscall( int4 int_sp ) {
     int* threadid;
     thread_attr_t* attr;
@@ -179,6 +183,10 @@ int thread_createSyscall( int4 int_sp ) {
     void* arg;
 
     SYSCALLGETPARAMS4(int_sp,threadid,attr,start_routine,arg);
+
+    VALIDATE_IN_PROCESS(attr);
+    VALIDATE_IN_PROCESS(start_routine);
+    VALIDATE_IN_PROCESS(threadid);
 
     LOG(SYSCALLS,INFO,(SYSCALLS,INFO,"Syscall: thread_create(0x%x,0x%x,0x%x)",attr,start_routine,arg));
     LOG(SYSCALLS,INFO,(SYSCALLS,INFO,"Syscall: rel_deadline %d",attr->deadline));
@@ -232,7 +240,7 @@ int thread_createSyscall( int4 int_sp ) {
 
     // create a new thread. It will automatically register itself at the currentRunningTask which will be the parent.
 	 newthread =
-			new ThreadCfdCl( start_routine, (void*) tasktable->task_thread_exit_addr, pCurrentRunningTask, pCurrentRunningTask->getMemManager(), attr->stack_size, attr );
+			new Kernel_ThreadCfdCl( start_routine, (void*) tasktable->task_thread_exit_addr, pCurrentRunningTask, pCurrentRunningTask->getMemManager(), attr->stack_size, attr );
 #endif
 
     // set the return value for threadid
@@ -255,7 +263,7 @@ int thread_createSyscall( int4 int_sp ) {
  *				THREAD_RUN Syscall
  *******************************************************************/
 
-#ifdef HAS_SyscallManager_thread_runSyscallCfd
+#ifdef HAS_SyscallManager_thread_runCfd
 int thread_run( int4 int_sp ) {
     int threadid;
 
@@ -270,7 +278,7 @@ int thread_run( int4 int_sp ) {
 
     if ( threadid >= cFirstThread ) {
         // run the given thread
-        register ThreadCfdCl* t = pCurrentRunningTask->getThreadbyId( threadid );
+        register Kernel_ThreadCfdCl* t = pCurrentRunningTask->getThreadbyId( threadid );
 
         if ( t != 0 && t->isNew() && !t->isReady() ) {
 
@@ -295,7 +303,7 @@ int thread_run( int4 int_sp ) {
         LinkedListDatabaseItem* litem = threadDb->getHead();
 
         while ( litem != 0 ) {
-            ThreadCfdCl* thread = (ThreadCfdCl*) litem->getData();
+        	Kernel_ThreadCfdCl* thread = (Kernel_ThreadCfdCl*) litem->getData();
 
             if ( thread->isNew() && !thread->isReady() ) {
                 // we got a newly created thread here that has never run before
@@ -337,9 +345,11 @@ int thread_run( int4 int_sp ) {
  *				THREAD_SELF Syscall
  *******************************************************************/
 
-#ifdef HAS_SyscallManager_thread_selfSyscallCfd
+#ifdef HAS_SyscallManager_thread_selfCfd
 int thread_self(int4 int_sp)
 {
+	LOG(SYSCALLS,TRACE,(SYSCALLS,TRACE,"Syscall: threadSelf()"));
+
     return pCurrentRunningThread->getId();
 }
 #endif
@@ -350,7 +360,7 @@ int thread_self(int4 int_sp)
  *				THREAD_YIELD Syscall
  *******************************************************************/
 
-#ifdef HAS_SyscallManager_thread_yieldSyscallCfd
+#ifdef HAS_SyscallManager_thread_yieldCfd
 int thread_yield(int4 int_sp)
 {
     // dispatch directly

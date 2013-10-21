@@ -21,7 +21,7 @@ private:
 	SharedMemResource* framebuffer;
 
 public:
-	BeagleBoardDSS(const char* name);
+	BeagleBoardDSS(T_BeagleBoardDSS_Init *init);
 
 	~BeagleBoardDSS();
 

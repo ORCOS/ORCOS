@@ -40,8 +40,8 @@ DOSPartition::DOSPartition(BlockDeviceDriver *bdev, dos_partition_t *mypartition
 {
 	memcpy((void*) &this->mypartition, (void*) mypartition, sizeof(dos_partition_t));
 
-	char* myname = (char*) theOS->getMemManager()->alloc(9);
-	sprintf(myname,"DOS_%04x",disksig);
+	char* myname = (char*) theOS->getMemoryManager()->alloc(11);
+	sprintf(myname,"DOS_%04x-%2d",disksig,part_num);
 
 	this->name = myname;
 	this->partition_number = part_num;

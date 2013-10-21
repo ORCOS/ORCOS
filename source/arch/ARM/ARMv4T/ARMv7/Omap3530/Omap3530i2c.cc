@@ -9,41 +9,30 @@
 #include "kernel/Kernel.hh"
 #include "inc/memio.h"
 #include "inc/types.hh"
+#include "inc/error.hh"
 
 extern Kernel* theOS;
 
+extern void kwait(int milliseconds) ;
 
-/* simple function to create some delay
- * only used inside this module.
- *
- * does not use timers ..
- */
-static void udelay(unint4 loops)
-{
-
-	while(--loops) {
-	 __asm__ __volatile__("nop");
-	}
-
-}
 
 /*!
  * Waits for the I2C Bus to be not busy any more
  */
 void Omap3530i2c::wait_for_bus (void)
 {
-	int timeout = 10;
+	volatile int timeout = 10;
 	unint2 stat;
 
 	OUTW(I2C_STAT,0xFFFF);	 	/* clear current interruts...*/
 
 	while ((stat = INW (I2C_STAT) & I2C_STAT_BB) && timeout--) {
 		OUTW (I2C_STAT, stat);
-		udelay(1000);
+		kwait(2);
 	}
 
 	if (timeout <= 0) {
-		printf ("timed out in wait_for_bb: I2C_STAT=%x\n", INW (I2C_STAT));
+		printf ("timed out in wait_for_bb: I2C_STAT=%x\n\r", INW (I2C_STAT));
 	}
 	OUTW(I2C_STAT,0xFFFF);	 /* clear delayed stuff*/
 }
@@ -51,10 +40,10 @@ void Omap3530i2c::wait_for_bus (void)
 unint2 Omap3530i2c::wait_for_pin (void)
 {
 	unint2 status;
-	int timeout = 10;
+	volatile int timeout = 10;
 
 	do {
-		udelay (10000);
+		kwait (10);
 		status = INW (I2C_STAT);
 	} while (  !(status &
 		   (I2C_STAT_ROVR | I2C_STAT_XUDF | I2C_STAT_XRDY |
@@ -62,7 +51,7 @@ unint2 Omap3530i2c::wait_for_pin (void)
 		    I2C_STAT_AL)) && timeout--);
 
 	if (timeout <= 0) {
-		printf ("timed out in wait_for_pin: I2C_STAT=%x\n",INW (I2C_STAT));
+		printf ("timed out in wait_for_pin: I2C_STAT=%x\n\r",INW (I2C_STAT));
 		OUTW(I2C_STAT,0xFFFF);
 	}
 
@@ -82,7 +71,7 @@ void Omap3530i2c::flush_fifo(void)
             INW(I2C_DATA);
 
 			OUTW(I2C_STAT,I2C_STAT_RRDY);
-			udelay(1000);
+			kwait(1);
 		}else
 			return;
 	}
@@ -99,7 +88,7 @@ void Omap3530i2c::i2c_init(unint4 speed) {
 	OUTW(0x48004A00,clocks | 1 <<15 | 1 << 16 | 1 << 17);
 
 	OUTH(I2C_SYSC,0x2); // issue reset, for ES2 after soft reset
-	udelay(1000);
+	kwait(1);
 
 	OUTH(I2C_SYSC,I2C_SYSC_CLOCKACTIVITY_ALL | I2C_SYSC_IDLEMODE_NO | I2C_SYSC_ENAWAKEUP);
 
@@ -109,7 +98,7 @@ void Omap3530i2c::i2c_init(unint4 speed) {
 
 	if (INW (I2C_CON) & I2C_CON_EN) {
 		OUTH (I2C_CON,0);
-		udelay (50000);
+		kwait (5);
 	}
 
 	// Setup the speed of the I2C Bus
@@ -146,7 +135,7 @@ void Omap3530i2c::i2c_init(unint4 speed) {
 	/* have to enable interupts or OMAP i2c module doesn't work */
 	OUTH ( I2C_IE, I2C_IE_XRDY_IE | I2C_IE_RRDY_IE | I2C_IE_ARDY_IE |
 		  I2C_IE_NACK_IE | I2C_IE_AL_IE);
-	udelay (1000);
+	kwait (1);
 	flush_fifo();
 
 	OUTH (I2C_STAT,0xFFFF);
@@ -184,14 +173,14 @@ ErrorT Omap3530i2c::i2c_read_byte (unint1 devaddr, unint1 regoffset, unint1 *val
 		// clear the XRDY bit
 		OUTH(I2C_STAT,I2C_STAT_XRDY);
 
-		udelay (20000);
+		kwait (2);	// wait 2 ms .. for ack
 		if (status & I2C_STAT_NACK) {
 			i2c_error = cError;
-			printf("ERROR: Data was not acknowledged!\r");
+			printf("ERROR: Data was not acknowledged!\n\r");
 		}
 	} else {
 		i2c_error = cError;
-		printf("XRDY not set..");
+		printf("XRDY not set..\n\r");
 	}
 
 	// start read mode
@@ -224,7 +213,7 @@ ErrorT Omap3530i2c::i2c_read_byte (unint1 devaddr, unint1 regoffset, unint1 *val
 			}
 
             OUTH(I2C_STAT,I2C_STAT_RRDY);
-			udelay (20000);
+			//kwait (1);
 		} else {
 			LOG(ARCH,ERROR,(ARCH,ERROR,"OMAP3530i2C::readBytes() Not enough data received..."));
 			i2c_error = cError;
@@ -235,7 +224,7 @@ ErrorT Omap3530i2c::i2c_read_byte (unint1 devaddr, unint1 regoffset, unint1 *val
 			// clear the transaction
 			while (INH (I2C_STAT) || (INH (I2C_CON) & I2C_CON_MST)) {
 				flush_fifo();
-				udelay (10000);
+				kwait (1);
 				OUTH (I2C_STAT, 0xFFFF);
 			}
 		}
@@ -248,10 +237,10 @@ ErrorT Omap3530i2c::i2c_read_byte (unint1 devaddr, unint1 regoffset, unint1 *val
 }
 
 
-Omap3530i2c::Omap3530i2c( const char *name, int4 a )
-: CharacterDeviceDriver(true,name) {
+Omap3530i2c::Omap3530i2c( T_Omap3530i2c_Init *init )
+: CharacterDeviceDriver(true,init->Name) {
 
-	this->address = a;
+	this->address = init->Address;
 	i2c_init(OMAP_I2C_STANDARD);
 
 }
@@ -322,7 +311,7 @@ ErrorT Omap3530i2c::i2c_write_bytes (unint1 devaddr, const char* value, unint1 l
 		OUTH(I2C_STAT, I2C_STAT_XRDY);
 
 		/* must have enough delay to allow BB bit to go low */
-		udelay (50000);
+		kwait (2);
 
 		if (INW (I2C_STAT) & I2C_STAT_NACK) {
 			LOG(ARCH,DEBUG,(ARCH,DEBUG,"Omap3530i2c::writeBytes() NACK received.. slave not answering."));
@@ -338,7 +327,7 @@ ErrorT Omap3530i2c::i2c_write_bytes (unint1 devaddr, const char* value, unint1 l
 
 		OUTH (I2C_CON, I2C_CON_EN);
 		while ((status = INH (I2C_STAT)) || (INH (I2C_CON) & I2C_CON_MST)) {
-			udelay (1000);
+			kwait (1);
 
 			OUTH (I2C_STAT, 0xFFFF);
 			if(--eout == 0)

@@ -36,11 +36,26 @@
 extern Kernel* theOS;
 
 // Global Variables to speed up access to these objects
-extern ThreadCfdCl* pCurrentRunningThread;
+extern Kernel_ThreadCfdCl* pCurrentRunningThread;
 extern Task*        pCurrentRunningTask;
 extern unint8       lastCycleStamp;
 
+#define VALIDATE_SYSCALL_ADDRESS_RANGES 1
 
+#define MAX_TASK_SIZE 0x100000 * 16  // 16 MB max
+
+// Security MACRO which checks whether a address is inside the current running process
+// Validation increases syscall overhead, however increases security as buffer overflow attacks
+// are minimized
+#if VALIDATE_SYSCALL_ADDRESS_RANGES
+#define VALIDATE_IN_PROCESS( addr ) \
+	if (((unint4) (addr) < LOG_TASK_SPACE_START) || ((unint4) (addr) > LOG_TASK_SPACE_START + MAX_TASK_SIZE)) { \
+		LOG(SYSCALLS,ERROR,(SYSCALLS,ERROR,"SYSCALL: Address Space Violation: %x",addr));\
+		return (cError); \
+	}
+#else
+#define VALIDATE_IN_PROCESS( addr )
+#endif
 
 /*!
  * \brief Manager class used to handle system calls.
@@ -68,103 +83,103 @@ int task_killSyscall(int4 sp_int);
 
 int shm_mapSyscall(int4 sp_int);
 
-#ifdef HAS_SyscallManager_task_stopSyscallCfd
+#ifdef HAS_SyscallManager_task_stopCfd
     int task_stopSyscall(int4 int_sp);
 #endif
 
-#ifdef HAS_SyscallManager_task_resumeSyscallCfd
+#ifdef HAS_SyscallManager_task_resumeCfd
     int task_resumeSyscall(int4 int_sp);
 #endif
 
-#ifdef HAS_SyscallManager_sleepSyscallCfd
+#ifdef HAS_SyscallManager_sleepCfd
     int sleepSyscall( int4 int_sp );
 #endif
 
-#ifdef HAS_SyscallManager_thread_createSyscallCfd
+#ifdef HAS_SyscallManager_thread_createCfd
     int thread_createSyscall( int4 int_sp );
 #endif
 
-#ifdef HAS_SyscallManager_thread_runSyscallCfd
+#ifdef HAS_SyscallManager_thread_runCfd
     int thread_run( int4 int_sp );
 #endif
 
-#ifdef HAS_SyscallManager_thread_selfSyscallCfd
+#ifdef HAS_SyscallManager_thread_selfCfd
     int thread_self(int4 int_sp);
 #endif
 
-#ifdef HAS_SyscallManager_thread_yieldSyscallCfd
+#ifdef HAS_SyscallManager_thread_yieldCfd
     int thread_yield(int4 int_sp);
 #endif
 
-#ifdef HAS_SyscallManager_signal_waitSyscallCfd
+#ifdef HAS_SyscallManager_signal_waitCfd
     int signal_wait( int4 int_sp );
 #endif
 
-#ifdef HAS_SyscallManager_signal_signalSyscallCfd
+#ifdef HAS_SyscallManager_signal_signalCfd
     int signal_signal( int4 int_sp );
 #endif
 
-#ifdef HAS_SyscallManager_fputcSyscallCfd
+#ifdef HAS_SyscallManager_fputcCfd
     int fputcSyscall( int4 int_sp );
 #endif
 
-#ifdef HAS_SyscallManager_fgetcSyscallCfd
+#ifdef HAS_SyscallManager_fgetcCfd
     int fgetcSyscall( int4 int_sp );
 #endif
 
-#ifdef HAS_SyscallManager_fcreateSyscallCfd
+#ifdef HAS_SyscallManager_fcreateCfd
     int fcreateSyscall( int4 int_sp );
 #endif
 
-#ifdef HAS_SyscallManager_fopenSyscallCfd
+#ifdef HAS_SyscallManager_fopenCfd
     int fopenSyscall( int4 int_sp );
 #endif
 
-#ifdef HAS_SyscallManager_fcloseSyscallCfd
+#ifdef HAS_SyscallManager_fcloseCfd
     int fcloseSyscall( int4 int_sp );
 #endif
 
-#ifdef HAS_SyscallManager_fwriteSyscallCfd
+#ifdef HAS_SyscallManager_fwriteCfd
     int fwriteSyscall( int4 int_sp );
 #endif
 
-#ifdef HAS_SyscallManager_freadSyscallCfd
+#ifdef HAS_SyscallManager_freadCfd
     int freadSyscall( int4 int_sp );
 #endif
 
-#ifdef HAS_SyscallManager_newSyscallCfd
+#ifdef HAS_SyscallManager_newCfd
     int newSyscall( int4 int_sp );
 #endif
 
-#ifdef HAS_SyscallManager_deleteSyscallCfd
+#ifdef HAS_SyscallManager_deleteCfd
     int deleteSyscall(int4 int_sp);
 #endif
 
-#ifdef HAS_SyscallManager_socketSyscallCfd
+#ifdef HAS_SyscallManager_socketCfd
     int socketSyscall(int4 int_sp);
 #endif
 
-#ifdef HAS_SyscallManager_connectSyscallCfd
+#ifdef HAS_SyscallManager_connectCfd
     int connectSyscall(int4 int_sp);
 #endif
 
-#ifdef HAS_SyscallManager_listenSyscallCfd
+#ifdef HAS_SyscallManager_listenCfd
     int listenSyscall(int4 int_sp);
 #endif
 
-#ifdef HAS_SyscallManager_bindSyscallCfd
+#ifdef HAS_SyscallManager_bindCfd
     int bindSyscall(int4 int_sp);
 #endif
 
-#ifdef HAS_SyscallManager_sendtoSyscallCfd
+#ifdef HAS_SyscallManager_sendtoCfd
     int sendtoSyscall(int4 int_sp);
 #endif
 
-#ifdef HAS_SyscallManager_recvSyscallCfd
+#ifdef HAS_SyscallManager_recvCfd
     int recvSyscall(int4 int_sp);
 #endif
 
-#ifdef HAS_SyscallManager_add_devaddrSyscallCfd
+#ifdef HAS_SyscallManager_add_devaddrCfd
     int add_devaddrSyscall(int4 sp);
 #endif
 
@@ -172,25 +187,32 @@ inline void handleSyscall(int4 sp_int) {
         int syscallnum;
         int retval = -1;
 
+        // check sanity of sp_int
+        if (((unint4) pCurrentRunningThread->threadStack.startAddr > (unint4) sp_int) || ( (unint4) pCurrentRunningThread->threadStack.endAddr < (unint4) sp_int)) {
+        	LOG(SYSCALLS,ERROR,(SYSCALLS,ERROR,"handleSyscall: sp_int corrupt: %x",sp_int));
+            pCurrentRunningThread->terminate();
+        }
+
+
         GET_SYSCALL_NUM(sp_int,(void*) syscallnum);
 
         // if all syscall numbers are together (eg. 0 - 20)
         // than gcc will convert this switch statements into a jump table!
         // this greatly speeds up the code!
         switch ( syscallnum ) {
-    #ifdef HAS_SyscallManager_newSyscallCfd
+    #ifdef HAS_SyscallManager_newCfd
             case cNewSysCallId:
                 retval = newSyscall( sp_int );
                 break;
     #endif
 
-    #ifdef  HAS_SyscallManager_deleteSyscallCfd
+    #ifdef  HAS_SyscallManager_deleteCfd
                 case cDeleteSysCallId:
                 retval = deleteSyscall( sp_int );
                 break;
     #endif
 
-    #ifdef HAS_SyscallManager_thread_createSyscallCfd
+    #ifdef HAS_SyscallManager_thread_createCfd
             case cThread_CreateSysCallId:
                 retval = thread_createSyscall( sp_int );
                 break;
@@ -200,126 +222,126 @@ inline void handleSyscall(int4 sp_int) {
                 pCurrentRunningThread->terminate();
                 break;
 
-    #ifdef HAS_SyscallManager_thread_runSyscallCfd
+    #ifdef HAS_SyscallManager_thread_runCfd
             case cThread_RunSysCallId:
                 retval = thread_run( sp_int );
                 break;
     #endif
 
-    #ifdef HAS_SyscallManager_thread_selfSyscallCfd
+    #ifdef HAS_SyscallManager_thread_selfCfd
                 case cThread_SelfSysCallId:
                 retval = thread_self(sp_int);
                 break;
     #endif
 
-    #ifdef HAS_SyscallManager_thread_yieldSyscallCfd
+    #ifdef HAS_SyscallManager_thread_yieldCfd
                 case cThread_YieldSysCallId:
                 retval = thread_yield(sp_int);
                 break;
     #endif
 
-    #ifdef HAS_SyscallManager_signal_waitSyscallCfd
+    #ifdef HAS_SyscallManager_signal_waitCfd
                 case cSignal_WaitSyscallId:
                 retval = signal_wait( sp_int );
                 break;
     #endif
 
-    #ifdef HAS_SyscallManager_signal_signalSyscallCfd
+    #ifdef HAS_SyscallManager_signal_signalCfd
                 case cSignal_SignalSyscallId:
                 retval = signal_signal( sp_int );
                 break;
     #endif
 
-    #ifdef HAS_SyscallManager_task_stopSyscallCfd
+    #ifdef HAS_SyscallManager_task_stopCfd
                 case cTask_StopSysCallId:
                 retval = task_stopSyscall(sp_int);
                 break;
     #endif
 
-    #ifdef HAS_SyscallManager_task_resumeSyscallCfd
+    #ifdef HAS_SyscallManager_task_resumeCfd
                 case cTask_ResumeSysCallId:
                 retval = task_resumeSyscall(sp_int);
                 break;
     #endif
 
-    #ifdef HAS_SyscallManager_fgetcSyscallCfd
+    #ifdef HAS_SyscallManager_fgetcCfd
             case cFGetcSysCallId:
                 retval = fgetcSyscall( sp_int );
                 break;
     #endif
 
-    #ifdef HAS_SyscallManager_sleepSyscallCfd
+    #ifdef HAS_SyscallManager_sleepCfd
             case cSleepSysCallId:
                 retval = sleepSyscall( sp_int );
                 break;
     #endif
 
-    #ifdef HAS_SyscallManager_fputcSyscallCfd
+    #ifdef HAS_SyscallManager_fputcCfd
             case cFPutcSysCallId:
                 retval = fputcSyscall( sp_int );
                 break;
     #endif
-	#ifdef HAS_SyscallManager_fcreateSyscallCfd
+	#ifdef HAS_SyscallManager_fcreateCfd
             case cFCreateSysCallId:
             	retval = fcreateSyscall( sp_int );
             	break;
     #endif
 
-    #ifdef HAS_SyscallManager_fopenSyscallCfd
+    #ifdef HAS_SyscallManager_fopenCfd
             case cFOpenSysCallId:
                 retval = fopenSyscall( sp_int );
                 break;
     #endif
 
-    #ifdef HAS_SyscallManager_fcloseSyscallCfd
+    #ifdef HAS_SyscallManager_fcloseCfd
             case cFCloseSysCallId:
                 retval = fcloseSyscall( sp_int );
                 break;
     #endif
 
-    #ifdef HAS_SyscallManager_freadSyscallCfd
+    #ifdef HAS_SyscallManager_freadCfd
             case cFReadSysCallId:
                 retval = freadSyscall( sp_int );
                 break;
     #endif
 
-    #ifdef HAS_SyscallManager_fwriteSyscallCfd
+    #ifdef HAS_SyscallManager_fwriteCfd
             case cFWriteSysCallId:
                 retval = fwriteSyscall( sp_int );
                 break;
     #endif
 
-    #ifdef HAS_SyscallManager_socketSyscallCfd
+    #ifdef HAS_SyscallManager_socketCfd
                 case cSocketSyscallId:
                 retval = socketSyscall( sp_int );
                 break;
     #endif
 
-	#ifdef HAS_SyscallManager_connectSyscallCfd
+	#ifdef HAS_SyscallManager_connectCfd
                case cConnectSyscallId:
                retval = connectSyscall( sp_int );
                break;
     #endif
 
-	#ifdef HAS_SyscallManager_listenSyscallCfd
+	#ifdef HAS_SyscallManager_listenCfd
            case cListenSyscallId:
         	   retval = listenSyscall( sp_int );
         	   break;
 	#endif
 
-    #ifdef HAS_SyscallManager_bindSyscallCfd
+    #ifdef HAS_SyscallManager_bindCfd
                 case cBindSyscallId:
                 retval = bindSyscall( sp_int );
                 break;
     #endif
 
-    #ifdef HAS_SyscallManager_sendtoSyscallCfd
+    #ifdef HAS_SyscallManager_sendtoCfd
                 case cSendtoSyscallId:
                 retval = sendtoSyscall( sp_int );
                 break;
     #endif
 
-    #ifdef HAS_SyscallManager_recvSyscallCfd
+    #ifdef HAS_SyscallManager_recvCfd
                 case cRecvFromSyscallId:
                 retval = recvSyscall( sp_int );
                 break;

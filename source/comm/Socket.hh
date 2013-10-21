@@ -71,7 +71,7 @@ private:
 
 public:
     //! Thread blocked by this socket due to recv call on empty message buffer
-    ThreadCfdCl* blockedThread;
+    Kernel_ThreadCfdCl* blockedThread;
 
     // socket id of the newly created socket on connection acceptance
     int newSocketID;
@@ -99,10 +99,10 @@ public:
     int sendto( const void* buffer, int length, const char* service_name );
 
     //! try to connect to a given socket address! always blocking!
-    int connect(ThreadCfdCl* thread, sockaddr* toaddr );
+    int connect(Kernel_ThreadCfdCl* thread, sockaddr* toaddr );
 
     //! listen to a given socket address
-    int listen(ThreadCfdCl* thread);
+    int listen(Kernel_ThreadCfdCl* thread);
 
     //! callback from transportprotocol on connection
     void connected(int error);
@@ -114,10 +114,10 @@ public:
     ErrorT addMessage( char* msgstart, int msglength, sockaddr *fromaddr );
 
     //! method which is called by syscalles in order to receive a message and the address the method came from
-    size_t recvfrom( ThreadCfdCl* thread, char** addressof_ret_ptrtomsg, int flags, sockaddr* addr );
+    size_t recvfrom( Kernel_ThreadCfdCl* thread, char** addressof_ret_ptrtomsg, int flags, sockaddr* addr );
 
     //! method which is called by syscalles in order to receive a message
-    size_t recv( ThreadCfdCl* thread, char** addressof_ret_ptrtomsg, int flags );
+    size_t recv( Kernel_ThreadCfdCl* thread, char** addressof_ret_ptrtomsg, int flags );
 
     //! Returns the type of this socket
     inline

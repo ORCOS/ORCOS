@@ -174,7 +174,7 @@ IRQ0x0c00:
 
 IRQhandleSyscall:
 	// enable VM, should be available BEFORE working with the stack
-#ifdef HAS_MemoryManager_HatLayerCfd
+#ifdef HAS_Board_HatLayerCfd
     mtspr    SPRG5, r3
     mfmsr	 r3
     ori		 r3,r3,0x30
@@ -225,7 +225,7 @@ IRQ0x1020:
 
 IRQhandleTimer:
 	// enable VM, should be available BEFORE working with the stack
-#ifdef HAS_MemoryManager_HatLayerCfd
+#ifdef HAS_Board_HatLayerCfd
     mtspr    SPRG5, r3
     mfmsr	 r3
     ori		 r3,r3,0x30
@@ -255,7 +255,7 @@ IRQhandleTimer:
 
 IRQhandleWatchdog:
 	// enable VM, should be available BEFORE working with the stack
-#ifdef HAS_MemoryManager_HatLayerCfd
+#ifdef HAS_Board_HatLayerCfd
     mtspr    SPRG5, r3
     mfmsr	 r3
     ori		 r3,r3,0x30
@@ -287,7 +287,7 @@ IRQ0x0500:
 
 IRQhandleExternal:
 	// enable VM, should be available BEFORE working with the stack
-#ifdef HAS_MemoryManager_HatLayerCfd
+#ifdef HAS_Board_HatLayerCfd
     mtspr    SPRG5, r3
     mfmsr	 r3
     ori		 r3,r3,0x30

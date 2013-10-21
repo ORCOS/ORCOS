@@ -18,19 +18,19 @@
 
 #include <kernel/Kernel.hh>
 #include "SCLConfig.hh"
-#include ThreadCfd_hh
-#include MemoryManagerCfd_hh
+#include Kernel_Thread_hh
+#include Kernel_MemoryManager_hh
 
 extern Kernel* theOS;
 
 void* operator new( size_t s )
 /*---------------------------------------------------------------------------*/
 {
-    MemoryManagerCfdCl* mm;
+    Kernel_MemoryManagerCfdCl* mm;
 
     void* addr = 0;
 
-    mm = theOS->getMemManager();
+    mm = theOS->getMemoryManager();
     addr = mm->alloc( s, DO_ALIGN);
 
     return addr;
@@ -39,11 +39,11 @@ void* operator new( size_t s )
 void* operator new( size_t s, bool aligned )
 /*---------------------------------------------------------------------------*/
 {
-    MemoryManagerCfdCl* mm;
+	Kernel_MemoryManagerCfdCl* mm;
 
     void* addr = 0;
 
-    mm = theOS->getMemManager();
+    mm = theOS->getMemoryManager();
     addr = mm->alloc( s, aligned );
 
     return addr;
@@ -53,10 +53,10 @@ void* operator new( size_t s, bool aligned )
 void operator delete( void* ptr )
 /*---------------------------------------------------------------------------*/
 {
-    MemoryManagerCfdCl* mm;
+	Kernel_MemoryManagerCfdCl* mm;
     int status;
 
-    mm = theOS->getMemManager();
+    mm = theOS->getMemoryManager();
     status = mm->free( ptr );
     if ( isOk(status) ) {
         ptr = 0;
@@ -67,11 +67,11 @@ void operator delete( void* ptr )
 void* operator new[]( size_t s )
 /*---------------------------------------------------------------------------*/
 {
-    MemoryManagerCfdCl* mm;
+	Kernel_MemoryManagerCfdCl* mm;
 
     void* addr = 0;
 
-    mm = theOS->getMemManager();
+    mm = theOS->getMemoryManager();
     addr = mm->alloc( s, NO_ALIGN);
 
     return addr;
@@ -80,10 +80,10 @@ void* operator new[]( size_t s )
 void operator delete[]( void* ptr )
 /*---------------------------------------------------------------------------*/
 {
-    MemoryManagerCfdCl* mm;
+	Kernel_MemoryManagerCfdCl* mm;
     int status;
 
-    mm = theOS->getMemManager();
+    mm = theOS->getMemoryManager();
     status = mm->free( ptr );
     if ( isOk(status) ) {
         ptr = 0;

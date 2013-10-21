@@ -21,10 +21,10 @@
 #include "assembler.h"
 
 extern Kernel* theOS;
-extern ThreadCfdCl* pCurrentRunningThread;
+extern Kernel_ThreadCfdCl* pCurrentRunningThread;
 
 PriorityThread::PriorityThread( void* startRoutinePointer, void* exitRoutinePointer, Task* owner,
-        MemoryManagerCfdCl* memManager, unint4 stack_size, void* prioThreadAttributes, bool newThread ) :
+        Kernel_MemoryManagerCfdCl* memManager, unint4 stack_size, void* prioThreadAttributes, bool newThread ) :
     Thread( startRoutinePointer, exitRoutinePointer, owner, memManager, stack_size, prioThreadAttributes, newThread )
 
 {

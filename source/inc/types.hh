@@ -172,6 +172,28 @@ typedef struct packet_layer {
 #define TASK_CB_CRC32		1	// next task cb field is a crc32 sum of the task
 #define TASK_CB_AUTH		2	// next task cb field is an authentication header
 
+/********************************************
+ * 			PLATFORM IDENTIFIER:
+ *
+ *    PLATFORM DEPENDENT       PLATFORM
+ * ---------------------------------------
+ * |     24 Bit 			|   8 Bit    |
+ * ---------------------------------------
+ *
+ * 					ARM:
+ * ---------------------------------------
+ * |  23 BIT         |  T   |     0x1    |
+ * ---------------------------------------
+ *   T BIT: start task in thumb mode
+ *
+ ********************************************/
+
+#define PLATFORM_ARM		0x1
+#define PLATFORM_PPC        0x2
+#define PLATFORM_SPARC      0x3
+#define PLATFORM_X86        0x4
+
+
 //! Thread attribute structure for thread creation.
 typedef struct {
     unint4 priority;
@@ -192,6 +214,7 @@ typedef struct {
 typedef struct {
 	unint4 task_magic_word;   	// needs to be 0x230f7ae9
     unint4 task_next_header;	// defines the following task header field
+    unint4 platform;			// platform identifier, see platform defines
     long task_start_addr;   	// physical start address
     long task_entry_addr;   	// logical entry function address
     long task_heap_start;   	// physical heap start address

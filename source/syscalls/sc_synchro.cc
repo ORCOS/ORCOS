@@ -19,7 +19,7 @@
  */
 
 #include "handle_syscalls.hh"
-#include ThreadCfd_hh
+#include Kernel_Thread_hh
 #include "assembler.h"
 
 
@@ -27,18 +27,18 @@
  *				SIGNAL_WAIT Syscall
  *******************************************************************/
 
-#ifdef HAS_SyscallManager_signal_waitSyscallCfd
+#ifdef HAS_SyscallManager_signal_waitCfd
 int signal_wait( int4 int_sp ) {
     void* sig;
     bool memAddrAsSig;
     SYSCALLGETPARAMS2( int_sp, sig, memAddrAsSig );
 
-#ifdef HAS_MemoryManager_HatLayerCfd
+#ifdef HAS_Board_HatLayerCfd
     // if we want to use a Memory Address as the signal, we have to get the physical Address
     if (memAddrAsSig) {
         sig = (void*) theOS->getHatLayer()->getPhysicalAddress( sig );
     }
-#endif //HAS_MemoryManager_HatLayerCfd
+#endif //HAS_Board_HatLayerCfd
 
     pCurrentRunningThread->sigwait( sig );
 
@@ -51,18 +51,18 @@ int signal_wait( int4 int_sp ) {
  *				SIGNAL_SIGNAL Syscall
  *******************************************************************/
 
-#ifdef HAS_SyscallManager_signal_signalSyscallCfd
+#ifdef HAS_SyscallManager_signal_signalCfd
 int signal_signal( int4 int_sp ) {
     void* sig;
     bool memAddrAsSig;
     SYSCALLGETPARAMS2( int_sp, sig, memAddrAsSig );
 
-#ifdef HAS_MemoryManager_HatLayerCfd
+#ifdef HAS_Board_HatLayerCfd
     // if we want to use a Memory Address as the signal, we have to get the physical Address
     if (memAddrAsSig) {
         sig = (void*) theOS->getHatLayer()->getPhysicalAddress( sig );
     }
-#endif //HAS_MemoryManager_HatLayerCfd
+#endif //HAS_Board_HatLayerCfd
 
     theOS->getCPUDispatcher()->signal( sig );
 

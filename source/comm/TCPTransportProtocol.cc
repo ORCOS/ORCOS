@@ -137,7 +137,7 @@ static err_t  tcp_accept_wrapper(void *arg, struct tcp_pcb *newpcb,err_t err)
 	LOG(COMM,DEBUG,(COMM,DEBUG,"TCP: accepted..."));
 	tcp_recv(newpcb, &tcp_recv_wrapper);
 
-#ifdef HAS_MemoryManager_HatLayerCfd
+#ifdef HAS_Board_HatLayerCfd
     // get tasks memory manager and allocate memory for buffer
 	// we need to run with the process id of the listening task
 	// so we can access its memory
@@ -156,7 +156,7 @@ static err_t  tcp_accept_wrapper(void *arg, struct tcp_pcb *newpcb,err_t err)
 	oldsock->blockedThread->getOwner()->aquiredResources.addTail((DatabaseItem*) newsock);
 	oldsock->blockedThread->unblock();
 
-#ifdef HAS_MemoryManager_HatLayerCfd
+#ifdef HAS_Board_HatLayerCfd
 	// switch back to the mode of the workerthread
 	if (pCurrentRunningTask != 0)
 			{

@@ -36,7 +36,7 @@ private:
 	unint8 high_precision_time;
 
 public:
-	Omap3530Clock( const char* name );
+	Omap3530Clock( T_Omap3530Clock_Init *init );
     ~Omap3530Clock();
 
     /*!

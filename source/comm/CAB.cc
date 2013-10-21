@@ -25,7 +25,7 @@ extern Task* pCurrentRunningTask;
 extern Kernel* theOS;
 
 CAB::CAB( char* bufferstart, int length, Task* ownerTask ) {
-#ifdef HAS_MemoryManager_HatLayerCfd
+#ifdef HAS_Board_HatLayerCfd
     // well be working on the physical address when storing only
     this->bufferstart_physical = (char*) theOS->getHatLayer()->getPhysicalAddress(bufferstart);
     ASSERT(bufferstart_physical == 0);
@@ -84,7 +84,7 @@ ErrorT CAB::store( char* pmsg, int msglen ) {
 	 _disableInterrupts();
 
 
-#ifdef HAS_MemoryManager_HatLayerCfd
+#ifdef HAS_Board_HatLayerCfd
 
     unint2 pid = 0;
     if (pCurrentRunningTask != 0)
@@ -104,7 +104,7 @@ ErrorT CAB::store( char* pmsg, int msglen ) {
 
     void* dest_phy = theOS->getHatLayer()->getPhysicalAddress( (void*) dest);
 
-    LOG( COMM, DEBUG,(COMM, DEBUG,"CAB::store(): buf_phy: 0x%x realPage: 0x%x dest: 0x%x, phy; 0x%x", bufferstart_physical, realPage,dest,dest_phy) );
+    LOG( COMM, DEBUG,(COMM, DEBUG,"CAB::store(): buf_phy: 0x%x realPage: 0x%x dest_log: 0x%x, dest_phy; 0x%x", bufferstart_physical, realPage,dest,dest_phy) );
 
 #else
     dest = (unint4) bufferstart + this->free * this->dim_buf;
@@ -116,8 +116,9 @@ ErrorT CAB::store( char* pmsg, int msglen ) {
    // copy from source to dest
     memcpy( (void*) ( dest +  4 ), (void*) pmsg, msglen );
 
-#ifdef HAS_MemoryManager_HatLayerCfd
+#ifdef HAS_Board_HatLayerCfd
     theOS->getHatLayer()->unmap((void*) 0x2000000);
+    theOS->getHatLayer()->unmap((void*) 0x2100000);
 #endif
     if ( int_enabled ) {
                _enableInterrupts();

@@ -21,8 +21,9 @@
 
 #include "SCLConfig.hh"
 
-#include MemoryManagerCfd_hh
+#include Kernel_MemoryManager_hh
 #include BoardCfd_hh
+#include Board_HatLayer_hh
 
 #include "db/LinkedListDatabase.hh"
 #include "inc/types.hh"
@@ -35,7 +36,7 @@
 #include "process/WorkerTask.hh"
 #endif
 
-#include SingleCPUDispatcher_Scheduler_hh
+#include Kernel_Scheduler_hh
 #include "scheduler/SingleCPUDispatcher.hh"
 #include "filesystem/SimpleFileManager.hh"
 #include "filesystem/PartitionManager.hh"
@@ -78,9 +79,10 @@
 class Kernel {
 
 private:
-    //! The Memory Manager
-    MemoryManagerCfdCl* 	memManager;
+   //! The Memory Manager
+    DEF_Kernel_MemoryManagerCfd;
 
+private:
     //! The CPU Manager
     SingleCPUDispatcher*	cpuManager;
 
@@ -96,7 +98,7 @@ private:
     // The task manager which initializes tasks
     TaskManager* 			taskManager;
 
-    DEF_MemoryManager_HatLayerCfd;
+    DEF_Board_HatLayerCfd;
 
     // Memory Manager for the rest of the ram
     PagedRamMemManager*		ramManager;
@@ -160,16 +162,6 @@ public:
      */
     void initialize()  __attribute__((noreturn));;
 
-    /*!
-     *  \brief Sets the memory manager of the kernel.
-     *
-     *  This has to be done directly at the beginning otherwise there will be
-     *  unpredictable behaviour.
-     */
-    void setMemManager( MemoryManagerCfdCl* mm );
-
-    //! returns the kernel memory manager
-    MemoryManagerCfdCl* getMemManager();
 
     //! The timer device of the system
     Board_TimerCfdCl* getTimerDevice() {
@@ -188,7 +180,7 @@ public:
      *
      * If multiple cpus are availabe the scheduler for the first cpu will be returned.
      */
-    SingleCPUDispatcher_SchedulerCfdT getCPUScheduler();
+    Kernel_SchedulerCfdCl* getCPUScheduler();
 
     SingleCPUDispatcher* getCPUDispatcher() {
         return this->cpuManager;
@@ -224,6 +216,8 @@ public:
         return this->taskManager->getTaskDatabase();
     }
     ;
+
+
 
     TaskManager* getTaskManager() {
     	return this->taskManager;

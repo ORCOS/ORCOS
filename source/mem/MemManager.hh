@@ -22,11 +22,11 @@
 // Import section
 #include <inc/types.hh>
 #include "SCLConfig.hh"
-#include MemoryManager_Seg_hh
-#include MemoryManager_HatLayer_hh
+#include "MemResource.hh"
+//#include MemoryManager_HatLayer_hh
 
 //forward declaration of configured Threadtype
-class ThreadCfdCl;
+class Kernel_ThreadCfdCl;
 
 
 /*!

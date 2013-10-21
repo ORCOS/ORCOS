@@ -142,18 +142,51 @@ private:
 
 	unint4 DataSec;
 
+	// performance enhancement for division by BPB_SecPerClus
+	unint1 sector_shift_value;
+
 	FATDirectory *rootDir;
 
-	unint4 getNextSector(unint4 currentSector, unint4 &currentCluster);
+	/*
+	 * Returns the next sector following 'currentSector'.
+	 *
+	 * params: currenCluster , the cluster the sector is contained in (could be calculated)
+	 * 		   allocate	: if the current sector is the last sector of a cluster and no cluster is following
+	 * 		   			  a new cluster will be allocated if allocate is true.
+	 *
+	 */
+	unint4 getNextSector(unint4 currentSector, unint4 &currentCluster, bool allocate = false);
 
-	unint4 getFATTableEntry(unint4 clusterNum);
+	/*
+	 * Allocates a new cluster and marks it with the EOC value.
+	 * Returns the allocated cluster number or 0 if none found.
+	 */
+	unint4 allocateCluster();
+
+	/*
+	 * Returns the fat table entry (cluster number) for a given cluster number.
+	 * If the entry is EOC and allocate is true a new cluster will be allocated and linked
+	 */
+	unint4 getFATTableEntry(unint4 clusterNum,  bool allocate = false);
 public:
 	FATFileSystem(Partition* myPartition);
 
 	virtual ~FATFileSystem();
 
+	/*
+	 * Returns the cluster number the sector is contained in
+	 */
+	unint4 SectorToCluster(unint4 sectornum) {
+		return ((sectornum - FirstDataSector) >> sector_shift_value) +2;
+	}
+
+	/*
+	 * Returns the starting sector number of a cluster
+	 */
 	unint4 ClusterToSector(unint4 clusternum) {
-		 return FirstDataSector + ((clusternum -2) * myFAT_BPB.BPB_SecPerClus);
+
+		// return FirstDataSector + ((clusternum -2) * myFAT_BPB.BPB_SecPerClus);
+		 return FirstDataSector + ((clusternum -2) << sector_shift_value);
 
 	}
 
@@ -170,18 +203,26 @@ private:
 	// Base::position can be used to calculate the current byte in the sector
 	unint4 currentSector;
 
-
+	// TODO: check if calculation for this can be used and is correct
 	unint4 currentCluster;
 
 	// my file system
-	FATFileSystem * myFS;
+	FATFileSystem* myFS;
+
+	// the sector number for the directory entry of this file
+	unint4 directory_sector;
+
+	// the entry number for this file inside the directory tableof this file
+	unint1 directory_entry_number;
 
 public:
-	FATFile(char* name, FAT32_DirEntry* entry, FATFileSystem * fs);
+	FATFile(char* name, FAT32_DirEntry* entry, FATFileSystem * fs, unint4 directory_sector, unint1 directory_entry_number);
 
 	virtual ~FATFile();
 
 	ErrorT readBytes( char *bytes, unint4 &length );
+
+	ErrorT writeBytes( const char *bytes, unint4 length );
 
 	ErrorT resetPosition();
 };
@@ -211,6 +252,8 @@ private:
 	// ORCOS directory objects for them
 	void 	populateDirectory();
 
+	void 	generateShortName(unsigned char* shortname, char* name);
+
 public:
 	FATDirectory(FATFileSystem* parentFileSystem, unint4 cluster_num,  const char* name);
 
@@ -239,6 +282,13 @@ public:
 
     //! Returns the contents information of this directory as encoded string
     ErrorT readBytes( char *bytes, unint4 &length );
+
+    /*
+     * Creates a new FAT File inside this directory..
+     * Updates the FAT Directory entry and allocates a cluster for it.
+     * Updates the FAT as well.
+     */
+    File* createFile(char* name, unint4 flags);
 
 	~FATDirectory();
 };

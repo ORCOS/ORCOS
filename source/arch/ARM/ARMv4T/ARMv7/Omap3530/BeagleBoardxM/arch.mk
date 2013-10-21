@@ -13,9 +13,6 @@ ARCH_OBJ += BeagleBoardInterruptController.o handleInterrupt.o
 ARCH_OBJ += assemblerFunctions.o handleInterrupt.o ARMv4TInterruptHandlerHooks.o
 ARCH_OBJ += startThread.o
 ARCH_OBJ += ARMv7HatLayer.o
-ARCH_OBJ += BeagleBoardDSS.o
-
-
 
 #ARCH_VPATH defines architecture dependent VPATH-entries (see VPATH below).
 ARCH_VPATH = $(KERNEL_DIR)arch/ARM/ARMv4T $(KERNEL_DIR)arch/ARM/ARMv4T/ARMv7 $(KERNEL_DIR)arch/ARM/ARMv4T/ARMv7/Omap3530 $(KERNEL_DIR)arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardxM 

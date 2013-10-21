@@ -798,9 +798,9 @@ SMSC95xxUSBDeviceDriver::SMSC95xxUSBDeviceDriver(USBDevice* dev)
 static char data[1500];
 
 /*******************************************************************/
-unint4 crc32(unint4 crc, unint1 byte)
+//unint4 crc32(unint4 crc, unint1 byte)
 /*******************************************************************/
-{
+/*{
 int i;
   crc = crc ^ byte;
 
@@ -808,7 +808,7 @@ int i;
     crc=(crc>>1)^(0xedb88320ul & (-(crc&1)));
 
   return(crc);
-}
+}*/
 
 static err_t smsc95xx_low_level_output(struct netif *netif, struct pbuf *p) {
 	LOG(ARCH,TRACE,(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: sending packet.."));
@@ -946,7 +946,7 @@ ErrorT SMSC95xxUSBDeviceDriver::initialize() {
 		return cError;
 	}
 
-	dev->dev_priv = theOS->getMemManager()->alloc(sizeof(struct smsc95xx_private));
+	dev->dev_priv = theOS->getMemoryManager()->alloc(sizeof(struct smsc95xx_private));
 
 	if (init() < 0) {
 		LOG(ARCH,ERROR,(ARCH,ERROR,"SMSC95xxUSBDeviceDriver: Initializing Ethernet device failed.."));

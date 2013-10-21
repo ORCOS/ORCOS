@@ -21,7 +21,7 @@
 
 extern Board_ClockCfdCl* theClock;
 extern Kernel* theOS;
-extern SingleCPUDispatcher_SchedulerCfdCl* theScheduler;
+extern Kernel_SchedulerCfdCl* theScheduler;
 
 WorkerTask::WorkerTask() :
     Task() {
@@ -37,11 +37,11 @@ WorkerTask::WorkerTask() :
 
     LOG(KERNEL,INFO,(KERNEL,INFO,"WorkerTask(): Workerthread Ids: 1-%d", pWThread->getId()));
 
-#ifdef HAS_MemoryManager_HatLayerCfd
+#ifdef HAS_Board_HatLayerCfd
    // theOS->getHatLayer()->map((void*) 0,(void*) 0, 0 ,7,3,this->getId(), !ICACHE_ENABLE);
 #endif
 
-    this->memManager = theOS->getMemManager();
+    this->memManager = theOS->getMemoryManager();
 
 }
 

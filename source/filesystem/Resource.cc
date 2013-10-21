@@ -17,7 +17,7 @@
  */
 
 #include "Resource.hh"
-#include ThreadCfd_hh
+#include Kernel_Thread_hh
 #include <assemblerFunctions.hh>
 #include "process/Task.hh"
 #include "filesystem/File.hh"
@@ -30,7 +30,7 @@ extern Kernel* theOS;
 ResourceIdT Resource::globalResourceIdCounter;
 
 // Global Variables to speed up access to these objects
-extern ThreadCfdCl* pCurrentRunningThread;
+extern Kernel_ThreadCfdCl* pCurrentRunningThread;
 extern Task* pCurrentRunningTask;
 
 Resource::Resource( ResourceType rt, bool sync_res, const char* name ) {

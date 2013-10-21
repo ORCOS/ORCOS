@@ -26,7 +26,7 @@ class Module: public Task {
 
 protected:
 
-	ThreadCfdCl *waitingThread;
+	Kernel_ThreadCfdCl *waitingThread;
 	/*!
 	 * Starts a new thread to execute the module function at "addr". Blocks the current thread
 	 * and resume it with the return value.

@@ -854,9 +854,9 @@ void drawChar(char c, int x, int y, char r, char g, char b) {
 		for (int j = 0; j < 8; j++) {
 			int v = (pixel & (1 << (7-j) )) > 0;
 
-			//screen[offset + i*SCREEN_WIDTH*3 + j*3] = v * b;
-			//screen[offset + i*SCREEN_WIDTH*3 + j*3 + 1] = v * g;
-			//screen[offset + i*SCREEN_WIDTH*3 + j*3 + 2] = v * r;
+			screen[offset + i*SCREEN_WIDTH*3 + j*3] = v * b;
+			screen[offset + i*SCREEN_WIDTH*3 + j*3 + 1] = v * g;
+			screen[offset + i*SCREEN_WIDTH*3 + j*3 + 2] = v * r;
 
 		}
 	}
@@ -872,16 +872,16 @@ void drawRect(int x, int y ,int width) {
 
 	for (int i = x*3; i < x*3+width*3; i+=3) {
 
-		//screen[i + y*SCREEN_WIDTH*3] = b;
-		//screen[i+1 + y*SCREEN_WIDTH*3] = g;
-		//screen[i+2 + y*SCREEN_WIDTH*3] = r;
+		screen[i + y*SCREEN_WIDTH*3] = b;
+		screen[i+1 + y*SCREEN_WIDTH*3] = g;
+		screen[i+2 + y*SCREEN_WIDTH*3] = r;
 	}
 
 }
 
 
-BeagleBoardDSS::BeagleBoardDSS(const char* name) :
-		CharacterDeviceDriver(false,name)
+BeagleBoardDSS::BeagleBoardDSS(T_BeagleBoardDSS_Init *init) :
+		CharacterDeviceDriver(false,init->Name)
 {
 	this->framebuffer = new SharedMemResource(FRAMEBUFFER_SIZE,"fb0");
 
@@ -938,8 +938,8 @@ ErrorT BeagleBoardDSS::writeByte(char byte) {
 
 		//*((unint *) 0x48050488) = ((y_cursor - 59)*8) << 16;
 
-		memcpy(&screen,(void*) ((unint) &screen) + 640*3*8, 640*480*3 - 640*3*8);
-		memset((void*) ((unint) &screen) + 640*480*3 - 640*3*8, (char) 0, 640*3*8);
+		memcpy(&screen,(void*) (((unint) &screen) + 640*3*8), 640*480*3 - 640*3*8);
+		memset((void*) (((unint) &screen) + 640*480*3 - 640*3*8), (char) 0, 640*3*8);
 	}	else
 	if (y_cursor >= 120) {
 		y_cursor = 60;

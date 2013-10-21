@@ -11,7 +11,7 @@
 #include "inc/memtools.hh"
 
 extern Kernel* theOS;
-extern ThreadCfdCl* pCurrentRunningThread;
+extern Kernel_ThreadCfdCl* pCurrentRunningThread;
 
 MigrationManager::MigrationManager() {
 
@@ -48,7 +48,7 @@ MigrationManager::~MigrationManager() {
 
 void MigrationManager::handleMigrationRequest( MM_Request* request, sockaddr* sender ) {
 
-#ifndef HAS_MemoryManager_HatLayerCfd
+#ifndef HAS_Board_HatLayerCfd
 	 LOG(KERNEL,WARN,(KERNEL,WARN,"MigrationManager: Rejecting incoming migration. Reply: NO_VIRTUAL_MEMORY"));
 	 MM_Reply reply;
 	 reply.header.id = 0;
@@ -341,7 +341,7 @@ void MigrationManager::handleMigrationTaskMeta( MM_TaskMeta* meta, unint2 len, s
         LOG(KERNEL,INFO,(KERNEL,INFO,"MigrationManager: heap at 0x%x, size %d" , t->getTaskTable()->task_heap_start, (int) t->getTaskTable()->task_heap_end - (int) t->getTaskTable()->task_heap_start));
 
 		// create initial thread of that task
-		 new ThreadCfdCl( (void*) t->tasktable->task_entry_addr, (void*) t->tasktable->task_thread_exit_addr, t, t->getMemManager(),
+		 new Kernel_ThreadCfdCl( (void*) t->tasktable->task_entry_addr, (void*) t->tasktable->task_thread_exit_addr, t, t->getMemManager(),
 		            DEFAULT_USER_STACK_SIZE, (void*) ( t->tasktable + 1 ), false );
 
 
@@ -361,11 +361,11 @@ void MigrationManager::handleMigrationTaskMeta( MM_TaskMeta* meta, unint2 len, s
 void MigrationManager::callbackFunc( void* param ) {
 
 	// initialize socket!
-    mysocketbuffer = (char*) theOS->getMemManager()->alloc( 8000 );
+    mysocketbuffer = (char*) theOS->getMemoryManager()->alloc( 8000 );
     listenSocket = new Socket( cIPv4AddressProtocol, SOCK_DGRAM, cUDP, mysocketbuffer, 8000 );
 
     // bind our socket to some address
-    sockaddr* addr = (sockaddr*) theOS->getMemManager()->alloc( sizeof(sockaddr) );
+    sockaddr* addr = (sockaddr*) theOS->getMemoryManager()->alloc( sizeof(sockaddr) );
 
     addr->port_data = 1; // listen on port 1
     addr->name_data[0] = '\0';
@@ -379,7 +379,7 @@ void MigrationManager::callbackFunc( void* param ) {
 	LOG(KERNEL, INFO, (KERNEL, INFO, "MigrationManager: Started.."));
 
     while ( 1 ) {
-        unint2 len = listenSocket->recvfrom( (ThreadCfdCl*)pCurrentRunningThread, &msgptr, MSG_WAIT, &sender );
+        unint2 len = listenSocket->recvfrom( (Kernel_ThreadCfdCl*)pCurrentRunningThread, &msgptr, MSG_WAIT, &sender );
 
         MM_Header* header = (MM_Header*) msgptr;
         switch ( header->type ) {

@@ -55,7 +55,7 @@ void startThread( Thread* thread ) {
 
     asm volatile(
 
-#ifdef HAS_MemoryManager_HatLayerCfd
+#ifdef HAS_Board_HatLayerCfd
             "mtspr 945,%0;" // Set PID register
             "sync;"
             "isync;"

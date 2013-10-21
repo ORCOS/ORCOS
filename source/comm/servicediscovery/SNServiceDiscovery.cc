@@ -23,7 +23,7 @@
 #include "SNServiceDiscovery.hh"
 
 extern Kernel* theOS;
-extern ThreadCfdCl* pCurrentRunningThread;
+extern Kernel_ThreadCfdCl* pCurrentRunningThread;
 
 SNServiceDiscovery::SNServiceDiscovery() :
 	ServiceDiscovery(2314) {
@@ -207,7 +207,7 @@ void SNServiceDiscovery::callbackFunc(void* param) {
 	// since it needs a valid thread/task context!
 
 	// initialize our communication socket!
-	mysocketbuffer = (char*) theOS->getMemManager()->alloc(0x400,true);
+	mysocketbuffer = (char*) theOS->getMemoryManager()->alloc(0x400,true);
 	listenSocket = new Socket(cIPv4AddressProtocol, SOCK_DGRAM,
 			cUDP, mysocketbuffer, 0x400);
 

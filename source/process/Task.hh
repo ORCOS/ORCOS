@@ -22,7 +22,8 @@
 #include "SCLConfig.hh"
 #include "inc/const.hh"
 #include "inc/types.hh"
-#include ThreadCfd_hh
+#include Kernel_Thread_hh
+#include Kernel_MemoryManager_hh
 #include "db/LinkedListDatabase.hh"
 #include "db/ArrayDatabase.hh"
 
@@ -88,12 +89,13 @@ protected:
     /*!
      *   \brief The memory manager that will be used by the threads belonging to this task
      */
-    MemoryManagerCfdCl* memManager;
+    Kernel_MemoryManagerCfdCl* memManager;
 
     /*!
      * \brief the tasktable of this task
      */
     taskTable* tasktable;
+
 
     /*!
      * brief Flag indicating if this task is stopped.
@@ -117,10 +119,12 @@ protected:
 
 public:
 
+    unint4 platform_flags;
+
     /*!
      *  \brief Constructor of a task taking the memory manager and the pointer to the tasktable of this task.
      */
-    Task( MemoryManagerCfdCl* memoryManager, taskTable* tasktbl );
+    Task( Kernel_MemoryManagerCfdCl* memoryManager, taskTable* tasktbl );
 
     /*!
      * \brief Constructor for derived classes e.g. WorkerTask
@@ -186,7 +190,7 @@ public:
     /*!
      * \brief Returns the thread given by id. May be null if non existend in this task.
      */
-    ThreadCfdCl* getThreadbyId( ThreadIdT threadid );
+    Kernel_ThreadCfdCl* getThreadbyId( ThreadIdT threadid );
 
     /*!
      *   \brief Get the identity of this task
@@ -198,14 +202,14 @@ public:
     /*!
      *  \brief Return the Memory Manager of the Task
      */
-    inline MemoryManagerCfdCl* getMemManager() {
+    inline Kernel_MemoryManagerCfdCl* getMemManager() {
         return memManager;
     }
 
     /*!
      *  \brief Set the Memory Manager of the Task
      */
-    void setMemManager( MemoryManagerCfdCl* mm ) {
+    void setMemManager( Kernel_MemoryManagerCfdCl* mm ) {
         memManager = mm;
     }
 

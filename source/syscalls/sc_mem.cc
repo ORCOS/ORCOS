@@ -21,7 +21,7 @@
 
 
 #include "handle_syscalls.hh"
-#include ThreadCfd_hh
+#include Kernel_Thread_hh
 #include "assembler.h"
 
 
@@ -37,10 +37,14 @@ int mapMemory(int4 sp_int)
 
 	 SYSCALLGETPARAMS4(sp_int,log_start,phy_start,size,protection);
 
-#ifdef HAS_MemoryManager_HatLayerCfd
+	 // avoid due to security leak
+#if 0
+#ifdef HAS_Board_HatLayerCfd
      // create the vm map for the task! protection = 7 = RWX, ZoneSelect = 3
      theOS->getHatLayer()->map((void*) log_start,(void*) phy_start, size ,protection,3,pCurrentRunningTask->getId(), !ICACHE_ENABLE);
      return cOk;
+#endif
+
 #endif
 
      return cError;
@@ -56,6 +60,9 @@ int shm_mapSyscall(int4 sp_int) {
 	unint4* mapped_size;
 
 	SYSCALLGETPARAMS3(sp_int,file,mapped_address,mapped_size);
+
+	VALIDATE_IN_PROCESS(mapped_address);
+	VALIDATE_IN_PROCESS(mapped_size);
 
 	// try to find the specified resource
 	Resource* res = theOS->getFileManager()->getResourceByNameandType(file,cSharedMem);
@@ -82,11 +89,13 @@ int shm_mapSyscall(int4 sp_int) {
 /*******************************************************************
  *				DELETE Syscall
  *******************************************************************/
-#ifdef HAS_SyscallManager_deleteSyscallCfd
+#ifdef HAS_SyscallManager_deleteCfd
 int deleteSyscall( int4 int_sp ) {
     void* addr;
     SYSCALLGETPARAMS1(int_sp,(void*) addr);
     int retval;
+
+    VALIDATE_IN_PROCESS(addr);
 
     LOG(SYSCALLS,TRACE,(SYSCALLS,TRACE,"Syscall: free(%x)",addr));
     retval = (int) pCurrentRunningTask->getMemManager()->free( addr );
@@ -104,7 +113,7 @@ int deleteSyscall( int4 int_sp ) {
 /*******************************************************************
  *				NEW Syscall
  *******************************************************************/
-#ifdef HAS_SyscallManager_newSyscallCfd
+#ifdef HAS_SyscallManager_newCfd
 int newSyscall( int4 int_sp ) {
     size_t size;
     SYSCALLGETPARAMS1(int_sp,(void*) size);

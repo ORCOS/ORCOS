@@ -19,7 +19,7 @@
 #include "SCLConfig.hh"
 #include <kernel/Kernel.hh>
 #include "inc/newlib/newlib_helper.hh"
-#include MemoryManagerCfd_hh
+#include Kernel_MemoryManager_hh
 #include <assembler.h>
 #include "inc/memtools.hh"
 #include "inc/memio.h"
@@ -27,10 +27,7 @@
 //! global reference to the kernel object
 Kernel* theOS = 0;
 
-#ifdef HAS_MemoryManager_HatLayerCfd
-// logical address of our Memory Manager
-MemoryManagerCfdCl* logMM = 0;
-#endif
+
 
 // heap_start and heap_end address used to clear the memory
 extern void* _heap_start;
@@ -68,11 +65,11 @@ extern "C"void kernelmain()
     theOS = 0;
 
     // create MM working directly with the real physical addresses
-    MemoryManagerCfdCl* memMan = new(&_heap_start) MemoryManagerCfdCl(&_heap_start  +  sizeof(MemoryManagerCfdCl) ,&_heap_end);
+    Kernel_MemoryManagerCfdCl* memMan = new(&_heap_start) Kernel_MemoryManagerCfdCl(&_heap_start  +  sizeof(Kernel_MemoryManagerCfdCl) ,&_heap_end);
 
     // use the MM at its logical address for creating the kernel object
     theOS = (Kernel*) memMan->alloc(sizeof(Kernel)+ 16);
-    theOS->setMemManager(memMan);
+    theOS->setMemoryManager(memMan);
 
     // Initialize the device drivers
     theOS->initialize();

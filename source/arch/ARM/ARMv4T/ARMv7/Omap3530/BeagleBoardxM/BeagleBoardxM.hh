@@ -26,7 +26,6 @@
 #include Board_Processor_hh
 #include Board_InterruptHandler_hh
 #include Board_UART_hh
-#include Board_LED_hh
 #include Board_UART2_hh
 #include Board_InterruptController_hh
 #include Board_Timer_hh
@@ -38,9 +37,12 @@
 #include Board_GPIO4_hh
 #include Board_GPIO5_hh
 #include Board_GPIO6_hh
-#include Board_ETH_hh
 #include Board_DSS_hh
+#include Board_MMC_hh
+#include Board_ExtPowerControl_hh
 
+
+#define PLATFORM	PLATFORM_ARM
 
 /*
  * IEN  - Input Enable
@@ -72,7 +74,6 @@
 #define OMAP34XX_CTRL_BASE 0x48002000
 
 
-#define writew(b, addr) (void)((*(volatile unsigned short *) (addr)) = (b))
 /*
  * To get the actual address the offset has to added
  * with OMAP34XX_CTRL_BASE to get the actual address
@@ -910,8 +911,6 @@
 
 
 
-//#include Board_ETH_hh
-#include "BeagleBoardDSS.hh"
 /*!
  * \brief Implementation of the HAL board for the BeagleBoard architecture
  */
@@ -925,7 +924,6 @@ class BeagleBoardxM {
 	DEF_Board_ProcessorCfd
 	DEF_Board_InterruptHandlerCfd
     DEF_Board_UARTCfd
-    DEF_Board_LEDCfd
     DEF_Board_UART2Cfd
     DEF_Board_GPIO1Cfd
     DEF_Board_GPIO2Cfd
@@ -938,11 +936,13 @@ class BeagleBoardxM {
     DEF_Board_ClockCfd
     DEF_Board_USB_HCCfd
     DEF_Board_DSSCfd
-    DEF_Board_ETHCfd
+    DEF_Board_MMCCfd
+    DEF_Board_ExtPowerControlCfd
 
 public:
+    unint4 sys_clock;
 
-    BeagleBoardxM();
+     BeagleBoardxM();
     ~BeagleBoardxM();
 
     void initialize();

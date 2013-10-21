@@ -14,7 +14,7 @@ class BlockDeviceDriver: public GenericDeviceDriver {
 
 protected:
    /*!
-	 * \brief list of free task ids which can be used for task creation
+	 * \brief list of block device ids
 	 */
 	static ArrayDatabase *freeBlockDeviceIDs;
 
@@ -35,12 +35,19 @@ public:
 	 }
 
 	/*!
-	 * Tries to read "length" bytes from this device starting at block number "blockNum" into the
+	 * Tries to read "length" blocks from this device starting at block number "blockNum" into the
 	 * buffer at address "buffer"
 	 *
 	 * returns cOk on success, Error number (<0) otherwise
 	 */
 	virtual ErrorT readBlock(unint4 blockNum, char* buffer, unint4 length) = 0;
+
+	/*!
+	 * Tries to write "length" blocks to the device starting at block number "blockNum".
+	 *
+	 * returns cOk on success, Error number (<0) otherwise.
+	 */
+	virtual ErrorT writeBlock(unint4 blockNum, char* buffer, unint4 length) = 0;
 };
 
 #endif /* BLOCKDEVICEDRIVER_HH_ */

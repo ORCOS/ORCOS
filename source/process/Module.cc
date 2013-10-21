@@ -9,17 +9,17 @@
 #include "kernel/Kernel.hh"
 
 extern Kernel* theOS;
-extern ThreadCfdCl* pCurrentRunningThread;
+extern Kernel_ThreadCfdCl* pCurrentRunningThread;
 
 Module::Module(unint4 phy_start, unint4 phy_end, unint4 heap_start) {
 
-	#ifndef HAS_MemoryManager_HatLayerCfd
+	#ifndef HAS_Board_HatLayerCfd
 	#warning "User Space Device Driver/Modules can only be supported with HatLayer (virtual memory) enabled!!"
 	return;
 	#endif
 
-	register MemoryManagerCfdCl* OSMemManager = theOS->getMemManager();
-    void* memaddr = OSMemManager->alloc(sizeof(MemoryManagerCfdCl),true);
+	register Kernel_MemoryManagerCfdCl* OSMemManager = theOS->getMemoryManager();
+    void* memaddr = OSMemManager->alloc(sizeof(Kernel_MemoryManagerCfdCl),true);
 
     unint4 size = phy_end - phy_start;
     // create the vm map for the task! protection = 7 = RWX, ZoneSelect = 3
@@ -30,8 +30,8 @@ Module::Module(unint4 phy_start, unint4 phy_end, unint4 heap_start) {
     // works on the new virtual address space
     SETPID(this->getId());
 
-    MemoryManagerCfdCl* module_memManager =
-             new(memaddr)  MemoryManagerCfdCl((void*) (LOG_MODULE_SPACE_START + ( heap_start -  (unint4) phy_start)),
+    Kernel_MemoryManagerCfdCl* module_memManager =
+             new(memaddr)  Kernel_MemoryManagerCfdCl((void*) (LOG_MODULE_SPACE_START + ( heap_start -  (unint4) phy_start)),
                      (void*) (LOG_MODULE_SPACE_START + size ) );
 
     this->memManager = module_memManager;
@@ -40,7 +40,7 @@ Module::Module(unint4 phy_start, unint4 phy_end, unint4 heap_start) {
     SETPID(0);
 
     // create initial thread for this task
-    new ThreadCfdCl( (void*) 0, (void*) 0, this, module_memManager, 256, (void*) 0 , false );
+    new Kernel_ThreadCfdCl( (void*) 0, (void*) 0, this, module_memManager, 256, (void*) 0 , false );
 
 }
 
@@ -50,11 +50,11 @@ Module::~Module() {
 
 ErrorT Module::executeModuleFunction(void* addr, void* exit, void* arguments) {
 
-	#ifndef HAS_MemoryManager_HatLayerCfd
+	#ifndef HAS_Board_HatLayerCfd
 	return cError;
 	#endif
 
-	ThreadCfdCl *pThread = (ThreadCfdCl*) this->getThreadDB()->getHead()->getData();
+	Kernel_ThreadCfdCl *pThread = (Kernel_ThreadCfdCl*) this->getThreadDB()->getHead()->getData();
 	if (pThread->isNew()) {
 		// we can use this thread .. set its entry method we are calling
 		pThread->startRoutinePointer = (void*) addr;

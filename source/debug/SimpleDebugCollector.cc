@@ -87,7 +87,7 @@ ErrorT SimpleDebugCollector::readBytes( char *bytes, unint4 &length ) {
             strcat(outputMsg,newline);
         }
 
-        MemoryManagerCfdCl* mm = theOS->getMemManager();
+        Kernel_MemoryManagerCfdCl* mm = theOS->getMemoryManager();
         //sprintf(tmpBuf, "\rKernel Used Memory: %d\r", mm->getUsedMemSize());
         //strcat(outputMsg, tmpBuf);
 

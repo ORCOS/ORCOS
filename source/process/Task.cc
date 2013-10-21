@@ -22,7 +22,7 @@
 #include "inc/memtools.hh"
 // the kernel object
 extern Kernel* theOS;
-extern ThreadCfdCl* pCurrentRunningThread;
+extern Kernel_ThreadCfdCl* pCurrentRunningThread;
 extern Task* pCurrentRunningTask;
 
 // static non-const member variable initialization
@@ -34,7 +34,7 @@ ArrayDatabase *Task::freeTaskIDs;
 /*--------------------------------------------------------------------------*
  ** Task::Task
  *---------------------------------------------------------------------------*/
-Task::Task( MemoryManagerCfdCl* memoryManager, taskTable* tasktbl ) :
+Task::Task( Kernel_MemoryManagerCfdCl* memoryManager, taskTable* tasktbl ) :
     aquiredResources( 10 ), memManager( memoryManager )
 
 {
@@ -45,7 +45,7 @@ Task::Task( MemoryManagerCfdCl* memoryManager, taskTable* tasktbl ) :
     this->tasktable = tasktbl;
 
     // create initial thread for this task
-    new ThreadCfdCl( (void*) tasktbl->task_entry_addr, (void*) tasktbl->task_thread_exit_addr, this, memoryManager,
+    new Kernel_ThreadCfdCl( (void*) tasktbl->task_entry_addr, (void*) tasktbl->task_thread_exit_addr, this, memoryManager,
             DEFAULT_USER_STACK_SIZE, (void*) ( &tasktbl->initial_thread_attr ), false );
 
 }
@@ -125,7 +125,7 @@ void Task::run() {
     // this is supposed to be the thread at the head of the threaddb
     LinkedListDatabaseItem* litem = this->threadDb.getHead();
     if ( litem != 0 ) {
-        ThreadCfdCl* thread = (ThreadCfdCl*) litem->getData();
+        Kernel_ThreadCfdCl* thread = (Kernel_ThreadCfdCl*) litem->getData();
 
 #ifdef REALTIME
         // set the arrival time of this realtime thread
@@ -166,7 +166,7 @@ void Task::terminate()
 		 t->terminate();
 	 }
 
-#ifdef HAS_MemoryManager_HatLayerCfd
+#ifdef HAS_Board_HatLayerCfd
 	 if (pCurrentRunningTask != this)
       theOS->getHatLayer()->unmapAll(this->getId());
 #endif
@@ -223,7 +223,7 @@ LinkedListDatabaseItem* Task::getSuspendedThread(unint4 stacksize)
 	LinkedListDatabaseItem* litem = this->suspendedThreadDb.getHead();
 	while (litem != 0)
 	{
-		ThreadCfdCl* t = (ThreadCfdCl*) litem->getData();
+		Kernel_ThreadCfdCl* t = (Kernel_ThreadCfdCl*) litem->getData();
 		if ( ((unint4) t->threadStack.endAddr - (unint4) t->threadStack.startAddr) >= stacksize)
 		{
 			litem->remove();
@@ -234,14 +234,14 @@ LinkedListDatabaseItem* Task::getSuspendedThread(unint4 stacksize)
 	return 0;
 }
 
-ThreadCfdCl* Task::getThreadbyId( ThreadIdT threadid ) {
+Kernel_ThreadCfdCl* Task::getThreadbyId( ThreadIdT threadid ) {
     LinkedListDatabaseItem* litem = threadDb.getHead();
 
-    while ( litem != 0 && ( (ThreadCfdCl*) litem->getData() )->getId() != threadid )
+    while ( litem != 0 && ( (Kernel_ThreadCfdCl*) litem->getData() )->getId() != threadid )
         litem = litem->getSucc();
 
     if ( litem != 0 )
-        return (ThreadCfdCl*) litem->getData();
+        return (Kernel_ThreadCfdCl*) litem->getData();
     else
         return 0;
 }
@@ -390,10 +390,10 @@ Task* Task::deserialize( void* serialized_object, unint2 length, void* new_physi
     task->tasktable->task_start_addr = (long) new_physical_start_address;
 
     // create the memory manager for the task
-    void* memaddr = theOS->getMemManager()->alloc(sizeof(MemoryManagerCfdCl),false);
+    void* memaddr = theOS->getMemoryManager()->alloc(sizeof(Kernel_MemoryManagerCfdCl),false);
 
-    MemoryManagerCfdCl* task_memManager =
-                      new(memaddr)  MemoryManagerCfdCl((void*) (LOG_TASK_SPACE_START + (  (long) task->tasktable->task_heap_start -  (long) task->tasktable->task_start_addr)),
+    Kernel_MemoryManagerCfdCl* task_memManager =
+                      new(memaddr)  Kernel_MemoryManagerCfdCl((void*) (LOG_TASK_SPACE_START + (  (long) task->tasktable->task_heap_start -  (long) task->tasktable->task_start_addr)),
                               (void*) (LOG_TASK_SPACE_START +  (long) task->tasktable->task_heap_end - (long) task->tasktable->task_start_addr ) );
 
     task->memManager = task_memManager;

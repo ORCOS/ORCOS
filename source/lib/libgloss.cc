@@ -18,7 +18,7 @@
 
 #include "./types.h"
 #include "./defines.h"
-#include <assemblerFunctions.hh>
+
 
 // and the defines form <errno.h> here to be not dependant on compiler include files
 #define	ENOENT 2	/* No such file or directory */
@@ -52,6 +52,8 @@ extern "C" int fork() {
     return -1;
 }
 
+extern "C" void abort() {}
+
 #include <sys/stat.h>
 
 
@@ -62,7 +64,7 @@ extern "C" int fstat( int file, struct stat *st ) {
 
 extern "C" int getpid() {
     int pid = 0;
-    GETPID(pid);
+   // GETPID(pid);
     return pid;
 }
 

@@ -17,7 +17,7 @@
  */
 
 #include "handle_syscalls.hh"
-#include ThreadCfd_hh
+#include Kernel_Thread_hh
 #include "assembler.h"
 
 

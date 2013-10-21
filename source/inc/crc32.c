@@ -57,6 +57,7 @@ static unint4 crc_32_tab[] = { /* CRC polynomial 0xedb88320 */
 #define UPDC32(octet, crc) (crc_32_tab[((crc) ^ (octet)) & 0xff] ^ ((crc) >> 8))
 
 
+
 unint4 crc32(char *buf, size_t len) {
   register unint4 oldcrc32;
 
@@ -69,3 +70,5 @@ unint4 crc32(char *buf, size_t len) {
 
   return ~oldcrc32;
 }
+
+

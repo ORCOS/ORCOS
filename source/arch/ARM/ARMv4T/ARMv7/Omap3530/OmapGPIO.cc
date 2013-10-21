@@ -24,10 +24,10 @@ GPIO6	0x49058000
 
 */
 
-OmapGPIO::OmapGPIO( const char *name, int4 a) : CharacterDeviceDriver(true,name)  {
-	this->baseAddress = a;
+OmapGPIO::OmapGPIO(T_OmapGPIO_Init *init) : CharacterDeviceDriver(true,init->Name)  {
+	this->baseAddress = init->Address;
 
-    LOG(ARCH,INFO,(ARCH,INFO,"OMAPGPIO: creating '%s' [0x%x]",name,a) );
+    LOG(ARCH,INFO,(ARCH,INFO,"OMAPGPIO: creating '%s' [0x%x]",init->Name,init->Address) );
 
     //TODO: we could optimize this to enable only the clocks of the used gpios
     // we would need a lookup table for the addresses and set the correct bit

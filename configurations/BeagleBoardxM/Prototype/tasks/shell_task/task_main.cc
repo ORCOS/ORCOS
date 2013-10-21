@@ -76,7 +76,16 @@ static char* unknown_command = "Unknown Command\r";
 
 static char* dir_error = "Could not open Directory..\r";
 
-static char* help_msg = "OCROS Telnet Terminal\r\rSupported commands:\rhelp, cd, ls, cat, hexdump\r";
+static char* help_msg = "OCROS Telnet Terminal\r\rSupported commands:\r"
+						"help      - Shows this message\r"
+						"cd        - Change Directory\r"
+						"ls        - List Directory\r"
+						"cat       - Display Contents of file (in ASCII)\r"
+						"hexdump   - Dumps a file as hex and ASCII\r"
+						"touch     - Creates a new file\r"
+						"run       - Starts a task from file\r"
+						"cp        - Copies a file\r"
+						"kill      - Kills a task by ID\r";
 
 static char return_msg[520];
 
@@ -94,6 +103,7 @@ char* types[11] = {
 		"USBDriver",
 		"BlockDevice",
 		"Partition",
+		"SharedMem"
 		"AnyNoDir",
 		"Any"
 };
@@ -103,6 +113,32 @@ static int mydirhandle = 0;
 
 
 static char dir_content[4096];
+
+
+char* extractPath(char* &str) {
+
+	while (str[0] == ' ') str++;
+
+	if (str[0] == '"') {
+		str = &str[1];
+		int len = strpos("\"",str);
+		if (len < 0) return 0;
+		str[len] = 0;
+		return &str[len+1];
+	}
+
+	int len = strpos(" ",str);
+	if (len < 0) {
+		len = strlen(str);
+		return 0;
+	}
+
+	// something is following
+	str[len] = 0;
+	return &str[len+1];
+
+
+}
 
 // reduces the path by "." and ".." statements
 void compactPath(char* path) {
@@ -343,9 +379,9 @@ void handleCommand(int socket, int command_length) {
 						retmsg += strlen(ESC_CYAN);
 					}
 
-					sprintf(retmsg,"%-20s %4d %3d %-15s %-8d %-8x\r",&dir_content[pos+1],dir_content[pos+3+namelen],dir_content[pos+2+namelen],typestr,filesize,flags);
-					msglen += 39 + 25;
-					retmsg += 39 + 25;
+					sprintf(retmsg,"%-30s %4d %3d %-15s %-8d %-8x\r",&dir_content[pos+1],dir_content[pos+3+namelen],dir_content[pos+2+namelen],typestr,filesize,flags);
+					msglen += 39 + 25 + 10;
+					retmsg += 39 + 25 + 10;
 
 					if (dirtype == 1) {
 						sprintf(retmsg,ESC_WHITE);
@@ -514,6 +550,7 @@ void handleCommand(int socket, int command_length) {
 			if (filehandle > 0) {
 
 				int num = fread(return_msg,512,1,filehandle);
+				if (num < 0) num = 0; // check error
 
 				while (num == 512) {
 					// be sure the msg only contains telnet ascii chars
@@ -547,10 +584,98 @@ void handleCommand(int socket, int command_length) {
 
 		} else {
 			// no argument given
-			return sendMsg(socket,"No argument given..");
+			sendMsg(socket,"Error: No argument given..");
+			return;
 		}
 	}
 
+	if (strpos("touch",command) == 0) {
+		int arg = strpos(" ",command);
+		if (arg > 0) {
+			char* filename = &command[arg+1];
+
+			int res = fcreate(filename,current_dir);
+			if (res < 0)
+				sendMsg(socket,"Error creating file..");
+
+			return;
+		} else {
+			// no argument given
+			sendMsg(socket,"Error: No filename given..");
+			return;
+		}
+	}
+
+	if (strpos("cp",command) == 0) {
+		int arg = strpos(" ",command);
+		if (arg > 0) {
+			char* filename = &command[arg+1];
+			char* filename2 = extractPath(filename);
+			if (filename2 == 0) {
+				sendMsg(socket,"No destination given. Usage: cp source dest");
+				return;
+			}
+			extractPath(filename2);
+			int filehandle1;
+			int filehandle2;
+
+			char path1[100];
+
+			if (filename[0] != '/') {
+				strcpy(path1,current_dir);
+				strcat(&path1[strlen(current_dir)],filename);
+			} else {
+				strcpy(path1,filename);
+			}
+
+			char path2[100];
+
+			if (filename2[0] != '/') {
+				strcpy(path2,current_dir);
+				strcat(&path2[strlen(current_dir)],filename2);
+			} else {
+				strcpy(path2,filename2);
+			}
+
+			sprintf(return_msg,"copy '%s' -> '%s'",path1,path2);
+			int end = strlen(return_msg);
+			return_msg[end] = '\r';
+			return_msg[end+1] = '\0';
+			sendto(socket,return_msg,end+2,0);
+			return;
+
+			/*int filehandle = fopen(path,0);
+			if (filehandle > 0) {
+				int res;
+				for (int i = 0; i < 200; i++) {
+					char str[20];
+					sprintf(str,"%3d: test\n",i);
+					res = fwrite(str,10,1,filehandle);
+				}
+
+				sprintf(return_msg,"Result: %d",res);
+				int end = strlen(return_msg);
+				return_msg[end] = '\r';
+				return_msg[end+1] = '\0';
+				sendto(socket,return_msg,end+2,0);
+				return;
+
+			} else {
+				// can not open file
+				sprintf(return_msg,"Opening file failed. Error %d",filehandle);
+				int end = strlen(return_msg);
+				return_msg[end] = '\r';
+				return_msg[end+1] = '\0';
+				sendto(socket,return_msg,end+2,0);
+				return;
+			}*/
+
+		} else {
+			sendMsg(socket,"Usage: cp source dest");
+			return;
+		}
+
+	}
 
 	sendUnknownCommand(socket);
 
@@ -577,7 +702,7 @@ extern "C" int task_main()
 
 	bind(mysock,addr);
 
-	printf("Telnet-Server bound and waiting for clients.\r\n");
+	printf("Telnet-Server bound and waiting for clients.\r");
 
 	while(1)
 	{
@@ -593,7 +718,7 @@ extern "C" int task_main()
 		telnetcommand[2] = 1; // send will echo
 		sendto(newsock,telnetcommand,3,0);
 
-		printf("New connection!\r\n");
+		printf("New connection!\r");
 		sendto(newsock,welcome_msg,strlen(welcome_msg),0);
 
 		current_dir[0] = '/';

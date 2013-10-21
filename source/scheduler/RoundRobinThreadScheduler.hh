@@ -36,7 +36,7 @@ public:
 
     ~RoundRobinThreadScheduler();
 
-    inline void computePriority( ThreadCfdCl* item ) {};
+    inline void computePriority( Kernel_ThreadCfdCl* item ) {};
     /*!
      * \brief The scheduling policy.
      *

@@ -33,13 +33,13 @@ Socket::Socket( int domain, int type, int protocol, char* bufferstart, int buffe
 
     if ( bufferstart == 0 ) {
         // create a new buffer
-        #ifdef HAS_MemoryManager_HatLayerCfd
+        #ifdef HAS_Board_HatLayerCfd
                ERROR("Socket::Socket() Providing no buffer for message storage is only allowed if no MMU is used!");
         #endif
 
         if ( bufferlen <= 0 )
             bufferlen = DEFAULT_BUFFERSIZE;
-        bufferstart = (char*) theOS->getMemManager()->alloc( bufferlen, false );
+        bufferstart = (char*) theOS->getMemoryManager()->alloc( bufferlen, false );
     }
 
     // TODO: check sanity of bufferstart and bufferlen
@@ -170,7 +170,7 @@ void Socket::disconnected(int error) {
 	}
 }
 
-int Socket::connect(ThreadCfdCl* thread, sockaddr* toaddr ) {
+int Socket::connect(Kernel_ThreadCfdCl* thread, sockaddr* toaddr ) {
 
 	if (this->type == SOCK_STREAM) {
 
@@ -200,7 +200,7 @@ int Socket::connect(ThreadCfdCl* thread, sockaddr* toaddr ) {
 
 }
 
-int Socket::listen(ThreadCfdCl* thread) {
+int Socket::listen(Kernel_ThreadCfdCl* thread) {
 
 	if (this->type == SOCK_STREAM) {
 
@@ -295,6 +295,7 @@ int Socket::sendto( const void* buffer, int length, const sockaddr *dest_addr ) 
 
         // create a new linked list packet_layer structure which will contain
         // the pointer to the payload to be send
+        LOG( COMM,DEBUG,(COMM,DEBUG,"Socket::sendto(): buffer: 0x%x, length: %d",buffer, length) );
 
         packet_layer payload_layer;
         payload_layer.bytes = (char*) buffer;
@@ -305,7 +306,7 @@ int Socket::sendto( const void* buffer, int length, const sockaddr *dest_addr ) 
          // send the message
         if ( this->type == SOCK_DGRAM )
         {
-            LOG( KERNEL,DEBUG,(KERNEL,DEBUG,"Socket::sendto(): sending packet to 0x%x, port %d, len %d",dest->sa_data,dest->port_data, length) );
+            LOG( COMM,DEBUG,(COMM,DEBUG,"Socket::sendto(): sending packet to 0x%x, port %d, len %d",dest->sa_data,dest->port_data, length) );
             return this->tproto->sendto( &payload_layer, &myboundaddr, dest_addr,
                     this->aproto, this );
         }
@@ -321,10 +322,10 @@ int Socket::sendto( const void* buffer, int length, const sockaddr *dest_addr ) 
         }
     }
 
-    return cOk;
+    return cError;
 }
 
-size_t Socket::recvfrom( ThreadCfdCl* thread, char** addressof_ret_ptrtomsg, int flags, sockaddr* addr ) {
+size_t Socket::recvfrom( Kernel_ThreadCfdCl* thread, char** addressof_ret_ptrtomsg, int flags, sockaddr* addr ) {
 
     LOG(COMM,TRACE,(COMM,TRACE,"Socket::recvfrom()"));
 

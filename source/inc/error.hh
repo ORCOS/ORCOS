@@ -37,7 +37,7 @@
 
 
 //forward declaration
-class ThreadCfdCl;
+class Kernel_ThreadCfdCl;
 
 /* All of the following codes 'x' indicate either an error code or a warning.
  This fact is distinguished by the value of x:
@@ -173,6 +173,6 @@ class ThreadCfdCl;
 #endif
 
 ErrorT handleError( ErrorT );
-ErrorT handleError( ErrorT, ThreadCfdCl* );
+ErrorT handleError( ErrorT, Kernel_ThreadCfdCl* );
 
 #endif /* _ERROR_HH */

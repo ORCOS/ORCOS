@@ -88,7 +88,7 @@ public:
    * \brief Tries to write 'blocks' blocks to block number 'blockNum' of this Logical Unit from
    * 		the buffer. If verify is set to true the written bytes are verifyed on the device.
    */
-  ErrorT 	writeBlock(unint4 blockNum, char* buffer, unint4 blocks, bool verify = false);
+  ErrorT 	writeBlock(unint4 blockNum, char* buffer, unint4 blocks);
 
 
   ErrorT 	ResetRecovery();

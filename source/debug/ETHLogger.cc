@@ -25,7 +25,7 @@
 #include "memtools.hh"
 
 extern Kernel* theOS;
-extern ThreadCfdCl*		pCurrentRunningThread;
+extern Kernel_ThreadCfdCl*		pCurrentRunningThread;
 extern Task*        	pCurrentRunningTask;
 
 //FATAL=0,ERROR=1,WARN=2,INFO=3,DEBUG=4,TRACE=5

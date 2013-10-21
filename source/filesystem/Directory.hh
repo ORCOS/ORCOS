@@ -22,7 +22,7 @@
 #include "db/LinkedListDatabase.hh"
 #include "filesystem/Resource.hh"
 #include "hal/CharacterDeviceDriver.hh"
-
+#include "filesystem/File.hh"
 /*!
  * \brief Directory in filesystem.
  *
@@ -66,6 +66,12 @@ public:
 
     //! Returns the contents information of this directory as encoded string
     virtual ErrorT readBytes( char *bytes, unint4 &length );
+
+    /* Creates a new file inside the directory.
+     * Virtual to allow specializations of directory to create the appropriate
+     * file objects.
+     */
+    virtual File* createFile(char* name, unint4 flags) {return 0;};
 };
 
 #endif /*DIRECTORY_H_*/

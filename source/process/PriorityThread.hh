@@ -54,7 +54,7 @@ public:
     /*!
      *  The Constructor of the PriorityThread, the prioThreadAttributes pointer has to point to a prioThreadAttrs structure.
      */
-    PriorityThread( void* startRoutinePointer, void* exitRoutinePointer, Task* owner, MemoryManagerCfdCl* memManager,
+    PriorityThread( void* startRoutinePointer, void* exitRoutinePointer, Task* owner, Kernel_MemoryManagerCfdCl* memManager,
             unint4 stack_size = DEFAULT_USER_STACK_SIZE, void* prioThreadAttributes = 0, bool newThread = true );
 
 };

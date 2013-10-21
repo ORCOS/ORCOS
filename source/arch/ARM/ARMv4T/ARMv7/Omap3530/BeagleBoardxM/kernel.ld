@@ -27,6 +27,7 @@ ramOffset = 0x81000000;
 _kernelHeapSize = 0x40000; /* 65*4 KB */
 _kernelStackSize = 0x2000; /* 8 KB */
 
+__PtSize = 0x4000; /* 16 KB */
 PROVIDE(__PtSize = 0x4000); /* 16 KB */
 PROVIDE(__MaxNumPts = 20);  /* 20 * 16 KB = 320 KB */
 

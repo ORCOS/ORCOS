@@ -214,7 +214,7 @@ ErrorT ARMv7HatLayer::unmap( void* logBaseAddr ) {
 
 	ptStartAddr = ((unint4)(&__PageTableSec_start)) + pid*0x4000;
 
-	addr = (ptStartAddr + 4*addr);
+	addr = (ptStartAddr + addr);
 	// invalidate entry
 	*((unint4*)addr) = 0;
 
@@ -222,11 +222,18 @@ ErrorT ARMv7HatLayer::unmap( void* logBaseAddr ) {
 
 	// invalidate tlb entry
 	asm volatile(
+	".align 4;"
+	"mov    r0,pc;"
+	"bx     r0;"
+	".code 32;"
 	"MCR p15, 0, %0, c8, c5, 1;" // Invalidate Inst-TLB by MVA
 	"MCR p15, 0, %0, c8, c6, 1;" // Invalidate Data-TLB by MVA
+	"add r0, pc,#1;"
+	"bx  r0;"
+	".code 16;"
 		:
 		: "r" (logpageaddr)
-		:
+		: "r0"
 	);
 
 	return cOk;
@@ -248,11 +255,20 @@ ErrorT ARMv7HatLayer::unmapAll(int pid) {
 	// invalidate tlb of asid
 	// invalidate tlb entry
 	asm volatile(
-	"MCR p15, 0, %0, c8, c5, 2;" // Invalidate Inst-TLB by ASID
-	"MCR p15, 0, %0, c8, c6, 2;" // Invalidate Data-TLB by ASID
+			".align 4;"
+			"mov    r0,pc;"
+			"bx     r0;"
+			".code 32;"
+
+			"MCR p15, 0, %0, c8, c5, 2;" // Invalidate Inst-TLB by ASID
+			"MCR p15, 0, %0, c8, c6, 2;" // Invalidate Data-TLB by ASID
+
+			"add r0, pc,#1;"
+			"bx  r0;"
+			".code 16;"
 		:
 		: "r" (pid)
-		:
+		:  "r0"
 	);
 
 	return cOk;
@@ -261,58 +277,46 @@ ErrorT ARMv7HatLayer::unmapAll(int pid) {
 ErrorT ARMv7HatLayer::enableHAT() {
 
 
-	// set translation table base control register: set N to zero
-	// TTBR0 is always used
-	asm volatile(
-		"MRC p15, 0, r0, c2, c0, 2;"	// Read CP15 Translation Table Base Control Register
-		"LDR r1, =0xFFFFFFF8;"
-		"AND r0, r0, r1;"
-		"MCR p15, 0, r0, c2, c0, 2;"	// Write Translation Table Base Control Register
-		:
-		:
-		: "r0", "r1"
-	);
 
-	// set translation base register 0
+	// set stack pointer: todo
+	// enable MMU: set SCTLR bit 0 to 1
 	asm volatile(
+		".align 4;"
+		"mov    r0,pc;"
+		"bx     r0;"
+		".code 32;"
+
+		//"MRC p15, 0, r0, c2, c0, 2;"	// Read CP15 Translation Table Base Control Register
+		//"LDR r1, =0xFFFFFFF8;"
+		//"AND r0, r0, r1;"
+		"MOV r0,#0;"					// TTBRC = 0, only use TTBR0 for translation
+
+   		"MCR p15,0,r0,c13,c0,0 ;"		// write FCSE PID Register 0 for kernel
+
+		"MCR p15, 0, r0, c2, c0, 2;"	// Write Translation Table Base Control Register
+
 		"MRC p15, 0, r1, c2, c0, 0;"	// Read
 		"LDR r0, =0xFFFFC000;"
 		"BIC r1, r1, r0;"
 		"ORR r1, r1, %0;"
 		"MCR p15, 0, r1, c2, c0, 0;" // Write Translation Table Base Register 0
-		:
-		: "r" (&__PageTableSec_start)
-		: "r1"
-	);
 
-	// set ASID and PROCID: both 0 for OS
-	asm volatile(
 		"MOV r0, #0;"
-		"MCR p15,0,r0,c13,c0,1;"	// Write CP15 Context ID Register
-		:
-		:
-		: "r0"
-	);
+		"MCR p15,0,r0,c13,c0,1;"		// Write CP15 Context ID Register
 
-	// set domain as executable
-	asm volatile (
-			"MOV r1, #0x1;"					// only activate domain 0
-			//"MVN r1, #0x0;"
-			"MCR p15, 0, r1, c3, c0, 0 ;"	// Write Domain Access Control Register
-			:
-			:
-			: "r1"
-			);
+		"MOV r1, #0x1;"					// only activate domain 0
+		"MCR p15, 0, r1, c3, c0, 0 ;"	// Write Domain Access Control Register
 
-	// set stack pointer: todo
-	// enable MMU: set SCTLR bit 0 to 1
-	asm volatile(
 		"MRC p15, 0, r1, c1, c0, 0;"	// read CP15 Register 1
 		"ORR r1, r1, #0x1;"
 		"MCR p15, 0, r1, c1, c0, 0;"	// enable MMUs
+
+		"add r0, pc,#1;"
+		"bx  r0;"
+		".code 16;"
 		:
-		:
-		: "r1"
+		: "r" (&__PageTableSec_start)
+		: "r0","r1"
 	);
 
 	return cOk;
@@ -322,12 +326,21 @@ ErrorT ARMv7HatLayer::disableHAT() {
 	// set FSCE PID to zero
 	// disable MMU
 	asm volatile(
+		".align 4;"
+		"mov    r0,pc;"
+		"bx     r0;"
+		".code 32;"
+
 		"MRC p15, 0, r1, c1, c0, 0;" // read CP15 Register 1
 		"BIC r1, r1, #0x1;"
 		"MCR p15, 0, r1, c1, c0, 0;" // disabled
+
+			"add r0, pc,#1;"
+					"bx  r0;"
+					".code 16;"
 		:
 		:
-		: "r1"
+		: "r0","r1"
 		);
 	return cOk;
 }
@@ -368,6 +381,11 @@ void* ARMv7HatLayer::getPhysicalAddress( void* log_addr)
 	void* ret;
 
 	asm volatile(
+		".align 4;"
+		"mov    r0,pc;"
+		"bx     r0;"
+		".code 32;"
+
 		"MCR p15,0,%1,c7,c8,2;"		// Write CP15 VA to User Read VA to PA Translation Register
 		"MOV r0, #0x0;"
 		"MCR p15,0,r0,c7,c5,4;"		// Ensure completion of the CP15 write (ISB not working)
@@ -377,10 +395,24 @@ void* ARMv7HatLayer::getPhysicalAddress( void* log_addr)
 		"LDR r0, =0xFFFFF000;"
 		"BIC %1, %1, r0;"
 		"ORR %0, r1, %1;"
+
+		"add r0, pc,#1;"
+		"bx  r0;"
+		".code 16;"
+
 		: "=r" (ret)
 		: "r" ((unint)log_addr)
 		: "r0", "r1"
 		);
+
+	if (ret == 0) {
+		LOG(ARCH,ERROR,(ARCH,ERROR,"ARMv7HatLayer::getPhysicalAddress() Address could not be translated: %x",log_addr));
+		unint4 pid;
+		if (pCurrentRunningTask == 0) pid = 0;
+		else pid = pCurrentRunningTask->getId();
+		this->dumpPageTable(pid);
+	}
+
 	return (void*) ret;
 }
 
@@ -399,19 +431,33 @@ void ARMv7HatLayer::initialize() {
     // program relevant CP15 registers
     // Control register: set data and instruction cache
     asm volatile(
+    		".align 4;"
+			"mov    r0,pc;"
+			"bx     r0;"
+			".code 32;"
+
     		"MRC p15, 0, r1, c1, c0, 0;" 	// read CP15 Register 1
     		"LDR r0, =0x1004;"				// load mask for clearing
     		"BIC r1, r1, r0;"				// clear bit positions for ICACHE and DCACHE
     		"ORR r1, r1, %0,LSL #12;"		// set ICACHE bit
     		"ORR r1, r1, %1,LSL #2;"		// set DCACHE bit
     		"MCR p15, 0, r1, c1, c0, 0;" 	// write back
+
+    		"MOV r0, #0;"
+    	    "MCR p15, 0, r0, c8, c5, 0;" // Invalidate Inst-TLB
+    	    "MCR p15, 0, r0, c8, c6, 0;" // Invalidate Data-TLB
+
+    		"add r0, pc,#1;"
+			"bx  r0;"
+			".code 16;"
+
     		:
     		: "r" (ICACHE_ENABLE), "r" (DCACHE_ENABLE)
     		: "r0", "r1"
     		);
 
 	// invalidate TLB
-    ARMv7MMU::invalidate();
+    //ARMv7MMU::invalidate();
 }
 
 
@@ -440,7 +486,7 @@ void ARMv7HatLayer::dumpPageTable(int pid) {
 			printf("dom :%d " , GETBITS(*addr,8,5) );
 			printf("XN: %d ", GETBITS(*addr,4,4));
 			printf("AP2: %d ", GETBITS(*addr,15,15));
-			printf("AP: %d \r\n", GETBITS(*addr,11,10));
+			printf("AP: %d \r", GETBITS(*addr,11,10));
 
 		}
 

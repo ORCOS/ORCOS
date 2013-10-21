@@ -51,7 +51,7 @@ void startThread( register Thread* thread ) {
     ASSERT(addr);
     ASSERT(returnaddr);
 
-    SETPID(PIDvar);
+  /*  SETPID(PIDvar);
 
     // check whether the stack for this thread needs to be allocated
     // stack allocation might have been delayed up to this point
@@ -60,54 +60,76 @@ void startThread( register Thread* thread ) {
     	int stack_size = (int) thread->threadStack.endAddr;
     	thread->threadStack.startAddr = thread->getMemManager()->alloc( stack_size + RESERVED_BYTES_FOR_STACKFRAME, true );
     	thread->threadStack.endAddr = (void*) ( (byte*) thread->threadStack.startAddr + stack_size );
-    }
+    }*/
     // get stack address
     register void* stack_addr = (void*) ((unint4)thread->threadStack.endAddr-16);
 
-#ifdef HAS_MemoryManager_HatLayerCfd
+#if HAS_Board_HatLayerCfd
 	ptStartAddr = (void*) ((unint)&__PageTableSec_start + PIDvar*0x4000);
 #endif
 
-    asm volatile(
+		unint4 spsrval = 16;
+		// check for thumb mode
+		if ((thread->getOwner()->platform_flags >> 8) == 1) spsrval = 48;
 
-    #ifdef HAS_MemoryManager_HatLayerCfd
+    asm volatile(
+	#if ARM_THUMB == 1
+    		// thumb to arm jump code
+    		".align 4;"			// be sure we are 4 byte aligned for jump to work
+    		"mov    r0,pc;"		// set arm based jump address
+    		"bx     r0;"		// jump and switch mode
+    		".code 32;"			// following code is arm code
+	#endif
+
+    #if HAS_Board_HatLayerCfd
     		"MOV r0, #0x0;"
 
     		"MOV r1, %0;"
 			"ORR r1, r1, %0, lsl #8;"
+
 			"MCR p15, 0, r1, c13, c0, 1;"	// set ASID and PROCID field of CONTEXTIDR register
 			"MCR p15, 0, r0, c7, c5, 4;"	// Ensure completion of the CP15 write (ISB not working)
 
     		"MCR p15, 0, %5, c2, c0, 0;"	// set TBBR0
 			"MCR p15, 0, r0, c7, c5, 4;"	// Ensure completion of the CP15 write (ISB not working)
+
+    		// virtually address instruction caches have a huge performance bottlneck
+    		// as we need to flush them on address space change...
+    		"MCR p15, 0, r0, c7, c5, 0;" 	// invalidate whole instruction cache as instructions are virtually address
+
+
+    		//"MCR p15, 0, r0, c8, c5, 0;" 	// invalidate whole instruction TLB
+    		//"MCR p15, 0, r0, c8, c6, 0;" 	// invalidate whole data TLB
     #endif
 
+			// switch to system mode (cps instruction not working here) to load the right registers
 
-				// switch to system mode (cps instruction not working here) to load the right registers
-				"MSR	CPSR_c, #0x1F | 0xC0;"
+			"MSR	CPSR_c, #0x1F | 0xC0;"
 
-    			// set stack pointer and link register for user mode
-				"mov 	lr, %3;" 				// write the return address into the user link register (returnaddr)
-				"mov	sp, %1;" 				// load the stack pointer into the user stack register (stack_addr)
-    			"and    r0, sp, #3;"
-    			"sub    sp, sp, r0;"			// be sure the sp is 4 byte aligned!
+			// set stack pointer and link register for user mode
+			"mov 	lr, %3;" 				// write the return address into the user link register (returnaddr)
+			"mov	sp, %1;" 				// load the stack pointer into the user stack register (stack_addr)
+			"and    r0, sp, #3;"
+			"sub    sp, sp, r0;"			// be sure the sp is 4 byte aligned!
 
 
-				// switch to back to supervisor mode
-				"MSR	CPSR_c,#0x13 | 0xC0;"
-    			"MSR	SPSR, #16;"				// write saved PSR register (SPSR)
+			// switch to back to supervisor mode
+			"MSR	CPSR_c,#0x13 | 0xC0;"
+			//"MSR	SPSR, #16;"				// write saved PSR register (SPSR)
+    		//"MSR	SPSR, #48;"				// write saved PSR register (SPSR)
+    		"MSR	SPSR, %6;"				// write saved PSR register (SPSR)
 
-    			// push task start address on stack
-    		    "push     {%2};"
-    			// set the arguments
-    			"MOV 	r0, %4;"
-				// jump to task and switch to user mode
-    			"LDM      sp!, {pc}^;"		// do a exception return.. copies SPSR->CPSR
+			// push task start address on stack
+			"push     {%2};"
+			// set the arguments
+			"MOV 	r0, %4;"
+			// jump to task and switch to user mode
+			"LDM      sp!, {pc}^;"		// do a exception return.. copies SPSR->CPSR
 
-                : // no output variables
-                : "r" (PIDvar) , "r" (stack_addr) , "r" (addr), "r" (returnaddr), "r" (arguments), "r" (ptStartAddr) // input variables
-                : "r0", "r1" // clobber list
-        );
+			: // no output variables
+			: "r" (PIDvar) , "r" (stack_addr) , "r" (addr), "r" (returnaddr), "r" (arguments), "r" (ptStartAddr), "r" (spsrval) // input variables
+			: "r0", "r1" // clobber list
+	);
 
     // this point is never reached.
     while ( true ) {

@@ -21,7 +21,7 @@
 
 
 #include "handle_syscalls.hh"
-#include ThreadCfd_hh
+#include Kernel_Thread_hh
 #include "assembler.h"
 
 
@@ -37,6 +37,8 @@ int ioctl(int4 int_sp) {
 
 	 SYSCALLGETPARAMS3(int_sp,(void*) file_id, request, args);
 
+	 VALIDATE_IN_PROCESS(args);
+
 	 LOG(SYSCALLS,DEBUG,(SYSCALLS,DEBUG,"Syscall: ioctl(%d,%d,%x)",file_id, request, args));
 
 	 res = pCurrentRunningTask->getOwnedResourceById( file_id );
@@ -51,7 +53,7 @@ int ioctl(int4 int_sp) {
 /*******************************************************************
  *				FPUTC Syscall
  *******************************************************************/
-#ifdef HAS_SyscallManager_fputcSyscallCfd
+#ifdef HAS_SyscallManager_fputcCfd
 int fputcSyscall( int4 int_sp ) {
     short c;
     int stream;
@@ -91,7 +93,7 @@ int fputcSyscall( int4 int_sp ) {
  *				FGETC Syscall
  *******************************************************************/
 
-#ifdef HAS_SyscallManager_fgetcSyscallCfd
+#ifdef HAS_SyscallManager_fgetcCfd
 int fgetcSyscall( int4 int_sp ) {
     char c;
     int stream;
@@ -130,7 +132,7 @@ int fgetcSyscall( int4 int_sp ) {
 
 
 
-//#ifdef HAS_SyscallManager_fcreateSyscallCfd
+//#ifdef HAS_SyscallManager_fcreateCfd
 int fcreateSyscall( int4 int_sp ) {
     char* filename;
     char* path;
@@ -138,14 +140,23 @@ int fcreateSyscall( int4 int_sp ) {
     Resource* res;
 
     SYSCALLGETPARAMS2(int_sp,(void*) filename, (void*) path);
+
+    VALIDATE_IN_PROCESS(filename);
+    VALIDATE_IN_PROCESS(path);
+
     LOG(SYSCALLS,TRACE,(SYSCALLS,TRACE,"Syscall: fcreate(%s,%s)",filename,path));
     res = theOS->getFileManager()->getDirectory( path );
 
     if ( res != 0 ) {
     	Directory* dir = (Directory*) res;
-    	res = new Resource(cFile,true,filename);
-    	dir->add(res);
-    	res->aquire(pCurrentRunningThread,false);
+    	//res = new Resource(cFile,true,filename);
+    	//dir->add(res);
+    	res = dir->createFile(filename,0);
+    	if (res != 0) {
+    		res->aquire(pCurrentRunningThread,false);
+    		return res->getId();
+    	}
+    	return cError;
     } else {
     	LOG(SYSCALLS,ERROR,(SYSCALLS,ERROR,"Syscall: fcreate(%s,%s) FAILED",filename,path));
     	return cInvalidResource;
@@ -159,7 +170,7 @@ int fcreateSyscall( int4 int_sp ) {
  *******************************************************************/
 
 
-#ifdef HAS_SyscallManager_fopenSyscallCfd
+#ifdef HAS_SyscallManager_fopenCfd
 int fopenSyscall( int4 int_sp ) {
     char* filename;
     int retval;
@@ -167,6 +178,8 @@ int fopenSyscall( int4 int_sp ) {
     int blocking;
 
     SYSCALLGETPARAMS2(int_sp,(void*) filename,(void*) blocking);
+
+    VALIDATE_IN_PROCESS(filename);
 
     LOG(SYSCALLS,TRACE,(SYSCALLS,TRACE,"Syscall: fopen(%s)",filename));
 
@@ -190,7 +203,7 @@ int fopenSyscall( int4 int_sp ) {
  *******************************************************************/
 
 
-#ifdef HAS_SyscallManager_fcloseSyscallCfd
+#ifdef HAS_SyscallManager_fcloseCfd
 int fcloseSyscall( int4 int_sp ) {
 
     int file_id;
@@ -230,7 +243,7 @@ int fcloseSyscall( int4 int_sp ) {
  *				FWRITE Syscall
  *******************************************************************/
 
-#ifdef HAS_SyscallManager_fwriteSyscallCfd
+#ifdef HAS_SyscallManager_fwriteCfd
 int fwriteSyscall( int4 int_sp ) {
     const char *write_ptr;
     unint4 write_size;
@@ -239,6 +252,11 @@ int fwriteSyscall( int4 int_sp ) {
     int retval;
 
     SYSCALLGETPARAMS4(int_sp,(void*) write_ptr,(void*) write_size, (void*) write_nitems,(void*) write_stream);
+
+    // for performance reasons we just check the write ptr..
+    // range is not checked.. may thus lead to a data abort -> terminating the thread
+    VALIDATE_IN_PROCESS(write_ptr);
+    //VALIDATE_IN_PROCESS((unint4)write_ptr + (write_size * write_nitems ));
 
     LOG(SYSCALLS,DEBUG,(SYSCALLS,DEBUG,"Syscall: fwrite(...,%d,%d,%d)",write_size,write_nitems,write_stream));
 
@@ -250,7 +268,7 @@ int fwriteSyscall( int4 int_sp ) {
 
         // resource valid and owned
         // check if resource is a characterdevice
-        if ( ( res->getType() == cStreamDevice ) || ( res->getType() == cCommDevice ) ) {
+        if ( ( res->getType() == cStreamDevice ) || ( res->getType() == cCommDevice ) || res->getType() == cFile ) {
             char* pointer = (char*) write_ptr;
             for ( unint4 i = 0; i < write_nitems; i++ ) {
             	ErrorT result = ( (CharacterDeviceDriver*) res )->writeBytes( pointer, write_size );
@@ -283,7 +301,7 @@ int fwriteSyscall( int4 int_sp ) {
  *				FREAD Syscall
  *******************************************************************/
 
-#ifdef HAS_SyscallManager_freadSyscallCfd
+#ifdef HAS_SyscallManager_freadCfd
 int freadSyscall( int4 int_sp ) {
     const char *read_ptr;
     unint4 read_size;
@@ -292,6 +310,8 @@ int freadSyscall( int4 int_sp ) {
     int volatile retval;
 
     SYSCALLGETPARAMS4(int_sp,(void*) read_ptr, (void*) read_size,(void*) read_nitems,(void*) read_stream);
+
+    VALIDATE_IN_PROCESS(read_ptr);
 
     LOG(SYSCALLS,TRACE,(SYSCALLS,TRACE,"Syscall: fread(...,%d,%d,%d)",read_size,read_nitems,read_stream));
 

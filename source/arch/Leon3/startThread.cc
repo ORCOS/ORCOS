@@ -64,7 +64,7 @@ void startThread(Thread* thread) {
 		"mov 	%%l0, %%psr;"
 		"nop; nop; nop;"					/* write delay */
 
-#ifdef HAS_MemoryManager_HatLayerCfd
+#ifdef HAS_Board_HatLayerCfd
 		/* set mmu context to pid */
 		"set 	0x200, %%g7;"
 		"sta 	%4, [%%g7] 0x19;"

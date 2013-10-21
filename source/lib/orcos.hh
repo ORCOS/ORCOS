@@ -302,11 +302,6 @@ extern "C" size_t 	printToStdOut(const void* ptr,size_t max = 256);
 
 
 /*!
- * \brief Prints the formatted string to the standard output device
- */
-extern "C" void 	printf( const char *format, ... );
-
-/*!
  * \brief The map_memory() function asks the kernel to map the desired physical address space to the logical address space specified
  *
  * \param log_start 	Logical address space

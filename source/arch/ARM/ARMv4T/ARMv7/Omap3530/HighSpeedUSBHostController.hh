@@ -12,7 +12,11 @@
 
 class HighSpeedUSBHostController: public USB_EHCI_Host_Controller {
 public:
-	HighSpeedUSBHostController();
+
+
+	HighSpeedUSBHostController(T_HighSpeedUSBHostController_Init *init);
+
+
 	virtual ~HighSpeedUSBHostController();
 };
 

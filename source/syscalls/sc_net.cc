@@ -21,7 +21,7 @@
 
 
 #include "handle_syscalls.hh"
-#include ThreadCfd_hh
+#include Kernel_Thread_hh
 #include "assembler.h"
 
 
@@ -29,7 +29,7 @@
  *				SOCKET Syscall
  *******************************************************************/
 
-#ifdef HAS_SyscallManager_socketSyscallCfd
+#ifdef HAS_SyscallManager_socketCfd
 int socketSyscall( int4 int_sp ) {
     int domain;
     int type;
@@ -38,6 +38,11 @@ int socketSyscall( int4 int_sp ) {
     int buffersize;
 
     SYSCALLGETPARAMS5(int_sp,domain,type,protocol,buffer,buffersize);
+
+    if (buffer != 0) {
+    	VALIDATE_IN_PROCESS(buffer);
+    	VALIDATE_IN_PROCESS((unint4) buffer + buffersize);
+    }
 
     // create new Socket
     Socket* s = new Socket( domain, type, protocol, buffer, buffersize );
@@ -56,13 +61,15 @@ int socketSyscall( int4 int_sp ) {
  *				CONNECT Syscall
  *******************************************************************/
 
-#ifdef HAS_SyscallManager_connectSyscallCfd
+#ifdef HAS_SyscallManager_connectCfd
 int connectSyscall(int4 int_sp) {
 	 int socketid;
 	 sockaddr* addr;
 	 int retval;
 
 	 SYSCALLGETPARAMS2(int_sp,socketid,addr);
+
+	 VALIDATE_IN_PROCESS(addr);
 
 	 Resource* res;
 	 res = pCurrentRunningTask->getOwnedResourceById( socketid );
@@ -93,7 +100,7 @@ int connectSyscall(int4 int_sp) {
  *				LISTEN Syscall
  *******************************************************************/
 
-#ifdef HAS_SyscallManager_listenSyscallCfd
+#ifdef HAS_SyscallManager_listenCfd
 int listenSyscall(int4 int_sp) {
 	int socketid;
 	int retval;
@@ -111,14 +118,17 @@ int listenSyscall(int4 int_sp) {
 		if ( res->getType() == cSocket ) {
 			retval = ( (Socket*) res )->listen(pCurrentRunningThread);
 		}
-		else
-		retval = cError;
+		else {
+			retval = cError;
+			LOG(SYSCALLS,ERROR,(SYSCALLS,ERROR,"Syscall: listen invalid.. Resource is not a Socket. "));
+		}
 
 	}
 	// maybe resource not owned or resource doesn't exist
-
-	else
-	retval = cError;
+	else {
+		retval = cError;
+		LOG(SYSCALLS,ERROR,(SYSCALLS,ERROR,"Syscall: listen invalid.. Resource not owned.. "));
+	}
 
 	return retval;
 }
@@ -130,13 +140,15 @@ int listenSyscall(int4 int_sp) {
  *				BIND Syscall
  *******************************************************************/
 
-#ifdef HAS_SyscallManager_bindSyscallCfd
+#ifdef HAS_SyscallManager_bindCfd
 int bindSyscall( int4 int_sp ) {
     int socketid;
     sockaddr* addr;
     int retval;
 
     SYSCALLGETPARAMS2(int_sp,socketid,addr);
+
+    VALIDATE_IN_PROCESS(addr);
 
     Resource* res;
     res = pCurrentRunningTask->getOwnedResourceById( socketid );
@@ -150,15 +162,18 @@ int bindSyscall( int4 int_sp ) {
             retval = ( (Socket*) res )->bind( addr );
 
         }
-        else
-        retval = cError;
+        else {
+			retval = cError;
+			LOG(SYSCALLS,ERROR,(SYSCALLS,ERROR,"Syscall: bind invalid.. Resource is not a Socket. "));
+		}
 
     }
     // maybe resource not owned or resource doesnt exist
 
-    else
-    retval = cError;
-
+    else{
+		retval = cError;
+		LOG(SYSCALLS,ERROR,(SYSCALLS,ERROR,"Syscall: bind invalid.. Resource not owned.. "));
+	}
     return retval;
 }
 #endif
@@ -169,7 +184,7 @@ int bindSyscall( int4 int_sp ) {
  *				SENDTO Syscall
  *******************************************************************/
 
-#ifdef HAS_SyscallManager_sendtoSyscallCfd
+#ifdef HAS_SyscallManager_sendtoCfd
 int sendtoSyscall( int4 int_sp ) {
     int socket;
     const void* buffer;
@@ -178,6 +193,10 @@ int sendtoSyscall( int4 int_sp ) {
     int retval;
 
     SYSCALLGETPARAMS4(int_sp,socket,buffer,length,dest_addr);
+
+    VALIDATE_IN_PROCESS(buffer);
+    //VALIDATE_IN_PROCESS(dest_addr);
+    VALIDATE_IN_PROCESS((unint4) buffer + length);
 
     Resource* res;
     res = pCurrentRunningTask->getOwnedResourceById( socket );
@@ -212,8 +231,9 @@ int sendtoSyscall( int4 int_sp ) {
  *				RECV Syscall
  *******************************************************************/
 
-#ifdef HAS_SyscallManager_recvSyscallCfd
+#ifdef HAS_SyscallManager_recvCfd
 int recvSyscall( int4 int_sp) {
+
     int socketid;
     char** addressofptrtomsg;
     int flags;
@@ -221,6 +241,11 @@ int recvSyscall( int4 int_sp) {
     sockaddr* sender;
 
     SYSCALLGETPARAMS4(int_sp,socketid,addressofptrtomsg,flags,sender);
+
+    VALIDATE_IN_PROCESS(addressofptrtomsg);
+    //VALIDATE_IN_PROCESS(sender);
+
+    LOG(SYSCALLS,DEBUG,(SYSCALLS,DEBUG,"Syscall: recv: socketid %d, msg_addr: 0x%x, flags: %x, sockaddr_ptr: 0x%x",socketid,addressofptrtomsg,flags,sender));
 
     Resource* res;
     res = pCurrentRunningTask->getOwnedResourceById( socketid );
@@ -238,9 +263,8 @@ int recvSyscall( int4 int_sp) {
 
     }
     // maybe resource not owned or resource doesnt exist
-
     else
-    retval = cError;
+    	retval = cError;
 
     return retval;
 }

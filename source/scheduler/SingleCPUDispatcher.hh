@@ -22,7 +22,7 @@
 #include "process/IdleThread.hh"
 #include "db/LinkedListDatabase.hh"
 #include "process/Task.hh"
-#include SingleCPUDispatcher_Scheduler_hh
+#include Kernel_Scheduler_hh
 
 /*!
  * \brief Class managing the execution of threads on a single cpu.
@@ -40,7 +40,7 @@
 class SingleCPUDispatcher {
 
     //! scheduler maintaining the ready list.
-DEF_SingleCPUDispatcher_SchedulerCfd
+DEF_Kernel_SchedulerCfd
 
 private    :
     //! list containing the currently blocked threads

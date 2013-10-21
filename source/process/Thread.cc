@@ -55,42 +55,41 @@ ThreadIdT Thread::globalThreadIdCounter;
 /*--------------------------------------------------------------------------*
  ** Thread::Thread
  *---------------------------------------------------------------------------*/
-Thread::Thread( void* startRoutinePointer, void* exitRoutinePointer, Task* owner, MemoryManagerCfdCl* memManager,
+Thread::Thread( void* startRoutinePointer, void* exitRoutinePointer, Task* owner, Kernel_MemoryManagerCfdCl* memManager,
         unint4 stack_size, void* attr, bool newThread ) {
 
     ASSERT(owner);
     ASSERT(memManager);
 
-    this->myThreadId = globalThreadIdCounter++;
-    this->startRoutinePointer = startRoutinePointer;
-    this->exitRoutinePointer = exitRoutinePointer;
-    this->owner = owner;
+    this->myThreadId 			= globalThreadIdCounter++;
+    this->startRoutinePointer 	= startRoutinePointer;
+    this->exitRoutinePointer 	= exitRoutinePointer;
+    this->owner 				= owner;
     this->status.clear();
     this->status.setBits( cNewFlag );
-    this->arguments = (void*) myThreadId;
-    this->sleepCycles = 0;
-    this->signal = 0;
+    this->arguments 			= (void*) myThreadId;
+    this->sleepCycles 			= 0;
+    this->signal 				= 0;
 
     // inform my owner that i belong to him
     if ( owner != 0 )
-        owner->addThread( static_cast< ThreadCfdCl* > ( this ) );
+        owner->addThread( static_cast< Kernel_ThreadCfdCl* > ( this ) );
 
     // create the thread stack inside the tasks heap!
     // thus the memManager of the heap is used!
 
     if (pCurrentRunningTask == 0 || pCurrentRunningTask == owner) {
     	this->threadStack.startAddr = memManager->alloc( stack_size + RESERVED_BYTES_FOR_STACKFRAME, true );
-    	this->threadStack.endAddr = (void*) ( (byte*) threadStack.startAddr + stack_size );
     } else {
     	// we are creating this thread from the context of another task
-    	// probably new Task(). Thus, we can not access the memory of the owener task now
+    	// probably new Task(). Thus, we can not access the memory of the owner task now
     	// as they both have the same LOG_START_ADDRESS.
     	// switching PID does not work as we are working on the thread stack of the calling task.. :(
     	// we will create this thread stack during startThread().
-    	this->threadStack.startAddr = 0;
-    	this->threadStack.endAddr = (void*) stack_size;
+    	this->threadStack.startAddr = (void*) owner->getTaskTable()->task_heap_start;
     }
 
+    this->threadStack.endAddr = (void*) ( (byte*) threadStack.startAddr + stack_size );
     this->threadStack.top = 0;
 
 
@@ -163,7 +162,7 @@ void Thread::sigwait( void* sig ) {
     theOS->getCPUDispatcher()->sigwait( this );
 }
 
-MemoryManagerCfdCl* Thread::getMemManager() {
+Kernel_MemoryManagerCfdCl* Thread::getMemManager() {
     return owner->getMemManager();
 }
 
@@ -183,11 +182,13 @@ void Thread::block() {
     }
     else
     {
-        // since we are going to be blocked save my context!
-        unsigned char buf[ PROCESSOR_CONTEXT_SIZE ];
 
-        // Save Register and msr like the context save method in an interrupt handler would do
-        SAVE_CONTEXT_AT(&buf);
+    	/// TODO: implement the Thread->block method in assembler.. which takes care of
+    	// saveing the context correctly.. then call the c++ method which calls the CPUDispatcher
+    	// thus: thread->asm_block->block
+
+    	// since we are going to be blocked save my context!
+        unsigned char buf[ PROCESSOR_CONTEXT_SIZE + 16 ];
         void* stackpointer = &buf;
 
         #if STACK_GROWS_DOWNWARDS
@@ -201,12 +202,14 @@ void Thread::block() {
 
         LOG(PROCESS,DEBUG,(PROCESS,DEBUG,"Thread::block() id=%d stackpointer=%x ",this->getId(),stackpointer));
 
+        // Save Register and msr like the context save method in an interrupt handler would do
+        SAVE_CONTEXT_AT(&buf);
 
         ASSERT(isOk(this->pushStackPointer( stackpointer )));
 
         #ifdef PLATFORM_ARM
-        // we are in SVC mode
-        ASSERT(isOk(this->pushStackPointer( (void*) 2 )));
+        // context restore mode will be svc mode
+        ASSERT(isOk(this->pushStackPointer( (void*) 0xd3 )));
 		#endif
 
         // inform the current cpuscheduler that im going to sleep
@@ -217,8 +220,8 @@ void Thread::block() {
         asm volatile("returnof:");
 
         // dont put anything behind here! since optimized code may use variables inside register
-        // that have been initialized after the context was saved at SAVE_CONTEXT!
-        LOG(PROCESS,DEBUG,(PROCESS,DEBUG,"Thread::block() returned!"));
+        // that have been initialized only after the context was saved at SAVE_CONTEXT!
+        //LOG(PROCESS,DEBUG,(PROCESS,DEBUG,"Thread::block() returned!"));
     }
 
 }
@@ -251,7 +254,7 @@ void Thread::resume() {
     }
     else {
         if ( pBlockedMutex != 0 )
-            pBlockedMutex->threadResume( (ThreadCfdCl*) this );
+            pBlockedMutex->threadResume( (Kernel_ThreadCfdCl*) this );
     }
 }
 

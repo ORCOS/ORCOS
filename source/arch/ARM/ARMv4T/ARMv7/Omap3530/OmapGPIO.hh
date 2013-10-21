@@ -20,7 +20,7 @@ private:
 	int4 baseAddress;
 
 public:
-	OmapGPIO( const char *name, int4 a);
+	OmapGPIO( T_OmapGPIO_Init *init);
 
 	virtual ~OmapGPIO();
 

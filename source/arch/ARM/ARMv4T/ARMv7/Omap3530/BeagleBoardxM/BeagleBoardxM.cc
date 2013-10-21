@@ -57,7 +57,7 @@ extern Board_ClockCfdCl* theClock;
 #define CM_FCLKEN_PER 0x48005000
 
 #define SETBITS(a,UP,LOW,val) a = ((a & ~(( (1 << (UP - LOW + 1)) -1) << LOW)) | ((val & ((1 << (UP - LOW + 1)) -1)) << LOW) )
-
+#define writew(b, addr) (void)((*(volatile unsigned short *) (addr)) = (b))
 
 BeagleBoardxM::BeagleBoardxM() {
 }
@@ -200,15 +200,14 @@ void BeagleBoardxM::initialize() {
 // to e.g. write error messages!
 #ifdef HAS_Board_UARTCfd
 
+ 	 INIT_Board_UARTCfd;
      UARTCfd = new NEW_Board_UARTCfd;
 #if __EARLY_SERIAL_SUPPORT__
      theOS->setStdOutputDevice( UARTCfd );
 #endif
  	LOG(ARCH,INFO,(ARCH,INFO,""));
  	LOG(ARCH,INFO,(ARCH,INFO,"BeagleBoardXM Initializing..."));
-
-     #define BoardUART_str "[K][INFO ] Board UART: '" Board_UART_NAME "' [" STRINGIZE(Board_UARTCfdCl) "]\r"
-     printf(BoardUART_str);
+ 	LOG(ARCH,INFO,(ARCH,INFO,"BeagleBoardxM: Board UART: [" STRINGIZE(Board_UARTCfdCl) "]" ));
 #endif
 
 
@@ -256,12 +255,11 @@ void BeagleBoardxM::initialize() {
 	LOG(ARCH,DEBUG,(ARCH,DEBUG,"BeagleBoardxM: CM_CLKSEL1_PLL   =%x",INW(0x48004D40)));
 	LOG(ARCH,DEBUG,(ARCH,DEBUG,"BeagleBoardxM: CM_IDLEST2_CKGEN =%x",INW(0x48004d24)));
 
-
- 	unint sys_clk = INW(REG_PRM_CLKSEL);
+	unint sys_clk = INW(REG_PRM_CLKSEL);
  	LOG(ARCH,DEBUG,(ARCH,DEBUG,"BeagleBoardxM: PRM_CLKSEL       =%d",sys_clk));
 
-
- 	unint sys_clock = 26000;
+ 	// TODO read sysclock / 2 bit
+ 	sys_clock = 26000;
 
  	if (sys_clk == 4)
  		sys_clock = 38400;
@@ -278,6 +276,7 @@ void BeagleBoardxM::initialize() {
  	if (sys_clk == 0)
  		sys_clock = 12000;
 
+ 	sys_clock = sys_clock >> 1;
  	LOG(ARCH,INFO,(ARCH,INFO,"BeagleBoardxM: System Clock      = %d kHz",sys_clock));
 
  	unint m_dpll3 = (INW(CM_CLKSEL1_PLL) >> 16) & 0x7ff;  // dpll3 multiplier
@@ -366,13 +365,6 @@ void BeagleBoardxM::initialize() {
  	// GPIO5
  	OUTW(0x49056000 + 0x34,~(GPIO31 | GPIO30 | GPIO29 | GPIO11 | GPIO28 | GPIO22 | GPIO21 | GPIO15 | GPIO14 | GPIO13 | GPIO12));
 
-
-#ifdef HAS_Board_UART2Cfd
-     UART2Cfd = new NEW_Board_UART2Cfd;
-	 #define BoardUART2_str "[K][INFO ] Board UART2: '" Board_UART2_NAME "' [" STRINGIZE(Board_UART2CfdCl) "]\r"
-     printf(BoardUART2_str );
-#endif
-
     // Processor
 #ifdef HAS_Board_ProcessorCfd
      LOG(ARCH,INFO,(ARCH,INFO,"BeagleBoardxM: Board Processor [" STRINGIZE(Board_ProcessorCfdCl) "]" ));
@@ -388,15 +380,31 @@ void BeagleBoardxM::initialize() {
     // Timer
 #ifdef HAS_Board_TimerCfd
     LOG(ARCH,INFO,(ARCH,INFO,"BeagleBoardxM: Board Timer [" STRINGIZE(Board_TimerCfdCl) "]") );
+    INIT_Board_TimerCfd;
     TimerCfd = new NEW_Board_TimerCfd;
 #endif
 
     // Clock
 #ifdef HAS_Board_ClockCfd
     LOG(ARCH,INFO,(ARCH,INFO,"BeagleBoardxM: Board Clock [" STRINGIZE(Board_ClockCfdCl) "]") );
+    INIT_Board_ClockCfd;
     ClockCfd = new NEW_Board_ClockCfd;
     theClock = ClockCfd; // clock is now available for other devices
 #endif
+
+
+#ifdef HAS_Board_UART2Cfd
+ 	 INIT_Board_UART2Cfd;
+     UART2Cfd = new NEW_Board_UART2Cfd;
+     LOG(ARCH,INFO,(ARCH,INFO,"BeagleBoardxM: Board UART2: [" STRINGIZE(Board_UART2CfdCl) "]"));
+#endif
+
+#ifdef HAS_Board_UART2Cfd
+ 	 INIT_Board_ExtPowerControlCfd;
+ 	 ExtPowerControlCfd = new NEW_Board_ExtPowerControlCfd;
+ 	 LOG(ARCH,INFO,(ARCH,INFO,"BeagleBoardxM: Board External Power: [" STRINGIZE(Board_ExtPowerControlCfdCl) "]"));
+#endif
+
 
     // LED Interface
 #ifdef HAS_Board_LEDCfd
@@ -404,9 +412,17 @@ void BeagleBoardxM::initialize() {
     LEDCfd = new NEW_Board_LEDCfd;
 #endif
 
-#ifdef HAS_Board_USB_HCCfd
-    LOG(ARCH,INFO,(ARCH,INFO,"BeagleBoardxM: USB Host-Controller: [" STRINGIZE(USB_HCCfdCl) "]" ));
+#ifdef HAS_Board_MMCCfd
+    LOG(ARCH,INFO,(ARCH,INFO,"BeagleBoardxM: MMC-Controller: [" STRINGIZE(Board_MMCCfdCl) "]" ));
 
+    INIT_Board_MMCCfd;
+    MMCCfd = new NEW_Board_MMCCfd;
+#endif
+
+#ifdef HAS_Board_USB_HCCfd
+    LOG(ARCH,INFO,(ARCH,INFO,"BeagleBoardxM: USB Host-Controller: [" STRINGIZE(Board_USB_HCCfdCl) "]" ));
+
+    INIT_Board_USB_HCCfd;
     USB_HCCfd = new NEW_Board_USB_HCCfd;
 
  	// enable the EHCI interrupt source inside the MPU interrupt controller
@@ -425,26 +441,32 @@ void BeagleBoardxM::initialize() {
 #endif
 
 #ifdef HAS_Board_GPIO1Cfd
+    INIT_Board_GPIO1Cfd;
     GPIO1Cfd = new NEW_Board_GPIO1Cfd;
 #endif
 
 #ifdef HAS_Board_GPIO2Cfd
+    INIT_Board_GPIO2Cfd
     GPIO2Cfd = new NEW_Board_GPIO2Cfd;
 #endif
 
 #ifdef HAS_Board_GPIO3Cfd
+    INIT_Board_GPIO3Cfd
     GPIO3Cfd = new NEW_Board_GPIO3Cfd;
 #endif
 
 #ifdef HAS_Board_GPIO4Cfd
+    INIT_Board_GPIO4Cfd
     GPIO4Cfd = new NEW_Board_GPIO4Cfd;
 #endif
 
 #ifdef HAS_Board_GPIO5Cfd
+    INIT_Board_GPIO5Cfd
     GPIO5Cfd = new NEW_Board_GPIO5Cfd;
 #endif
 
 #ifdef HAS_Board_GPIO6Cfd
+    INIT_Board_GPIO6Cfd
     GPIO6Cfd = new NEW_Board_GPIO6Cfd;
 #endif
 
@@ -466,10 +488,11 @@ void BeagleBoardxM::initialize() {
 #endif
 
 	unint prod_id = *((unint *) 0x4830A20C);
-	LOG(ARCH,INFO,(ARCH,INFO,"OMAP PROD_ID : %x",prod_id));
+	LOG(ARCH,INFO,(ARCH,INFO,"BeagleBoardxM: OMAP Product ID : %x",prod_id));
 
 #ifdef HAS_Board_DSSCfd
     LOG(ARCH,INFO,(ARCH,INFO,"Starting Display Subsystem (DSS) LCD Output."));
+    INIT_Board_DSSCfd;
     DSSCfd = new NEW_Board_DSSCfd;
     DSSCfd->init();
 #endif

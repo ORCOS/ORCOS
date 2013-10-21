@@ -21,7 +21,7 @@
 #include <sprintf.hh>
 #include <putc.hh>
 
-extern ThreadCfdCl*    pCurrentRunningThread;
+extern Kernel_ThreadCfdCl*    pCurrentRunningThread;
 
 //FATAL=0,ERROR=1,WARN=2,INFO=3,DEBUG=4,TRACE=5
 static const char* levelStrings[ 6 ] = { "FATAL", "ERROR", "WARN ", "INFO ", "DEBUG", "TRACE" };

@@ -26,14 +26,12 @@
 extern Kernel* theOS;
 extern unint8   lastCycleStamp;
 extern Board_ClockCfdCl* theClock;
-extern SingleCPUDispatcher_SchedulerCfdCl* theScheduler;
-
-extern unint4 GPIO_VAL;
+extern Kernel_SchedulerCfdCl* theScheduler;
 
 #define FAIL_ADDR          0xcb000000
 
 RealTimeThread::RealTimeThread( void* startRoutinePointer, void* exitRoutinePointer, Task* owner,
-        MemoryManagerCfdCl* memManager, unint4 stack_size, void* RTThreadAttributes, bool newThread ) :
+        Kernel_MemoryManagerCfdCl* memManager, unint4 stack_size, void* RTThreadAttributes, bool newThread ) :
     PriorityThread( startRoutinePointer, exitRoutinePointer, owner, memManager, stack_size, RTThreadAttributes,
             newThread ) {
     if ( RTThreadAttributes != 0 ) {
@@ -114,7 +112,7 @@ void RealTimeThread::terminate() {
         int8 sleepcycles = (int8) period - ((int8) currentCycles - (int8) arrivalTime);
         if (sleepcycles < 0) sleepcycles = 0;
 
-#ifdef HAS_Kernel_LoggerCfd
+#if HAS_Kernel_LoggerCfd
         // check if we missed our deadline
         if(currentCycles > this->absoluteDeadline) {
         	theOS->getLogger()->log(PROCESS,FATAL,"RealTimeThread ID %d failed deadline! cur_cyles: %d, deadline: %d, sleep: %d", this->getId(), (unint4) currentCycles, (unint4) this->absoluteDeadline, (unint4) sleepcycles);

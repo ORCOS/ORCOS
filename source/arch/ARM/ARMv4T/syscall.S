@@ -14,13 +14,15 @@
 #include "ARMv4T.h"
 #include "assembler.h"
 
+.code 32
+
 .section .text.syscall,  "ax", "progbits"
 
 EXPORT_FCN(void, syscall, (void))
 syscall:
-	push {fp}
+	nop
 	// r0-r3 should carry the paramters
 	svc	 #0
+	nop
 	// r0 contains return value
-	pop	 {fp}
 	bx 	 lr

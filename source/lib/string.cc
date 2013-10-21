@@ -188,7 +188,7 @@ void print( char **out, const char *format, va_list args ) {
     }
     if ( out )
         **out = '\0';
-    va_end( args );
+
 }
 
 
@@ -199,10 +199,12 @@ void print( char **out, const char *format, va_list args ) {
  * \param format    The format string to use
  * \param ...       Arguments for the format string
  */
-void sprintf( char *out, const char *format, ... ) {
+int sprintf( char *out, const char *format, ... ) {
     va_list args;
     va_start( args, format );
     print( &out, format, args );
+    va_end(args);
+    //TODO: calculate length (out - orignal_out)
 }
 
 
@@ -210,19 +212,18 @@ void sprintf( char *out, const char *format, ... ) {
 // create a temporary buffer on the stack
 static char tmp[256];
 
-void printf( const char *format, ... )
+int printf( const char *format, ... )
 {
-
-    char* out = (char*) &tmp;
+    char* out = tmp;
 
     va_list args;
     va_start( args, format );
     print( &out, format, args );
+    va_end(args);
 
-    size_t size = strlen(&tmp[0]);
+    size_t size = strlen(tmp);
 
-
-    printToStdOut(&tmp,size);
+    printToStdOut(tmp,size);
 }
 
 /**
@@ -288,6 +289,9 @@ int memcmp(const char* s1, const char* s2, int len) {
 
 }
 
+/*
+ * Returns the position of s1 inside s2
+ */
 int strpos(const char* s1, const char* s2) {
 	int s1_len = strlen(s1);
 	int s2_len = strlen(s2);

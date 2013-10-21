@@ -29,6 +29,7 @@ typedef struct {
 #define USB_BULK_CB_WRAP_LEN	31
 #define USB_BULK_CB_SIG			0x43425355	/* Spells out USBC */
 #define USB_BULK_IN_FLAG		0x80
+#define USB_BULK_OUT_FLAG		0x00
 
 #define SCSI_READ10			0x28
 #define SCSI_INQUIRY		0x12
@@ -80,7 +81,7 @@ MassStorageSCSIUSBDeviceDriver::MassStorageSCSIUSBDeviceDriver(USBDevice* dev)
 	this->next 			= 0;
 
 	int num = (int) BlockDeviceDriver::freeBlockDeviceIDs->removeHead();
-	char* new_name = (char*) theOS->getMemManager()->alloc(4);
+	char* new_name = (char*) theOS->getMemoryManager()->alloc(4);
 	new_name[0] = 's';
 	new_name[1] = 'd';
 	new_name[2] = '0' + num;
@@ -276,7 +277,7 @@ ErrorT MassStorageSCSIUSBDeviceDriver::initialize() {
 	// create additional logical unit representations
 	for (unint1 i=1; i< lun; i++) {
 
-		char* name = (char*) theOS->getMemManager()->alloc(4);
+		char* name = (char*) theOS->getMemoryManager()->alloc(4);
 		int num = (int) BlockDeviceDriver::freeBlockDeviceIDs->removeHead();
 		name[0] = 's';
 		name[1] = 'd';
@@ -346,9 +347,9 @@ ErrorT MassStorageSCSIUSBDeviceDriver::readBlock(unint4 blockNum, char* buffer, 
 
 static char cbwWrite10[36] = {
 		'U','S','B','C',    			// CBW Signature
-		0x11,0x34,0x56,0x10,   			// CBW Tag
+		0x11,0x34,0x56,0x12,   			// CBW Tag
 		0,0,0,0,
-		USB_BULK_IN_FLAG, 0x0, 10,		// Data DIR, CBW LUN, CB Length
+		USB_BULK_OUT_FLAG, 0x0, 10,		// Data DIR, CBW LUN, CB Length
 		// CB
 		SCSI_WRITE10,
 		0x0,0,0, 0,
@@ -356,12 +357,15 @@ static char cbwWrite10[36] = {
 		0x0 ,0x0, 0x0, 0x0,
 		0x0, 0x0, 0x0
 		};
-ErrorT MassStorageSCSIUSBDeviceDriver::writeBlock(unint4 blockNum, char* buffer,
-		unint4 blocks, bool verify) {
 
-	if (verify) {
-		cbwWrite10[15] = SCSI_WRITE10_VERIFY;
-	} else
+ErrorT MassStorageSCSIUSBDeviceDriver::writeBlock(unint4 blockNum, char* buffer,
+		unint4 blocks) {
+
+	LOG(ARCH,DEBUG,(ARCH,DEBUG,"MassStorageSCSIUSBDeviceDriver: writing block %d. blocks: %d.",blockNum,blocks));
+
+	//if (verify) {
+	//	cbwWrite10[15] = SCSI_WRITE10_VERIFY;
+	//} else
 		cbwWrite10[15] = SCSI_WRITE10;
 
 	// block size = 512

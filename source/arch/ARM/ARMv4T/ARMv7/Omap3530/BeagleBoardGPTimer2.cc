@@ -24,7 +24,9 @@
 
 extern "C" Kernel* theOS;
 
-BeagleBoardGPTimer2::BeagleBoardGPTimer2() {
+BeagleBoardGPTimer2::BeagleBoardGPTimer2(T_BeagleBoardGPTimer2_Init * init) {
+
+	// TODO: use init addresses!
 
 	// set input to 26 mhz sys clock ~ tick every 38 ns
 	//unint4 cm_clksel_per = INW(CM_CLKSEL_PER);

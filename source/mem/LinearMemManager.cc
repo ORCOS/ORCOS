@@ -71,7 +71,7 @@ LinearMemManager* LinearMemManager::deserialize(void* serialized_object, unint2 
 {
     if (length != sizeof(LinearMemManager)) return 0;
 
-    LinearMemManager* newobject = (LinearMemManager*) theOS->getMemManager()->alloc(length);
+    LinearMemManager* newobject = (LinearMemManager*) theOS->getMemoryManager()->alloc(length);
     memcpy(newobject,serialized_object,length);
     return newobject;
 }
