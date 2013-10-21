@@ -1,6 +1,6 @@
 #!/bin/bash
 (set -o igncr) 2>/dev/null && set -o igncr; # this comment is needed
-source tasks.in
+source make/tasks.in
 
 echo ""
 echo "[uImage] Creating Uboot Firmware Image..." 
