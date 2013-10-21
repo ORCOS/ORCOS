@@ -115,39 +115,33 @@
 	    		<xs:element name="Name" type="xs:string" maxOccurs="1"	minOccurs="1" />
 	    		<xs:element name="Superclass" type="xs:string" maxOccurs="1" minOccurs="0" />
 	    		<xs:element ref="Member" maxOccurs="unbounded" minOccurs="0" />
-	    		<xs:element ref="Template" maxOccurs="1" minOccurs="0"/>
 	    	</xs:sequence>
 	    </xs:complexType>
 	</xs:element>
-	
+  
+  <xs:element name="PropertyValue">
+    <xs:complexType>
+      <xs:attribute name="Name" type="xs:string" use="required"/>
+      <xs:attribute name="Value" type="xs:string" use="required"/>
+	  <xs:attribute name="Type" type="xs:string" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  
 	<xs:element name="Member">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element name="Name" type="xs:string" maxOccurs="1" minOccurs="1" />
-				<xs:element name="Class" type="xs:string" maxOccurs="1" minOccurs="1" />
-				<xs:element name="Device" type="xs:string" maxOccurs="1" minOccurs="0" />
-				<xs:element name="Address" type="xs:string" maxOccurs="1" minOccurs="0" />
-				<xs:element name="Length" type="xs:string" maxOccurs="1" minOccurs="0" />
-				<xs:element name="UniqueID" type="xs:string" maxOccurs="1" minOccurs="0" />
-				<xs:element name="IP4Addr" type="xs:string" maxOccurs="1" minOccurs="0" />
-				<xs:element name="IP4NetMask" type="xs:string" maxOccurs="1" minOccurs="0" />				
-				<xs:element name="None" type="xs:boolean" maxOccurs="1" minOccurs="0" />
-				<xs:element name="UserSpace" type="xs:boolean" maxOccurs="1" minOccurs="0" />
-				<xs:element name="PhyLoadAddress" type="xs:string" maxOccurs="1" minOccurs="0" />
-				<xs:element ref="Template" maxOccurs="1" minOccurs="0"/>
+				<xs:element ref="PropertyValue" maxOccurs="unbounded" minOccurs="0"/>
 			</xs:sequence>
+      <xs:attribute name="Name" type="xs:string" use="required"/>
+      <xs:attribute name="Class" type="xs:string" use="optional"/>
+      <xs:attribute name="None" type="xs:boolean" use="required"/>
+      <xs:attribute name="UserSpace" type="xs:boolean" use="optional"/>
+      <xs:attribute name="PhyLoadAddress" type="xs:string" use="optional"/>
 		</xs:complexType>
 	</xs:element>
 	
 	
-	<xs:element name="Template">
-		<xs:complexType>
-	    	<xs:sequence>		
-	    		<xs:element name="Parameter" type="xs:string" maxOccurs="unbounded"	minOccurs="1" />
-	    	</xs:sequence>
-	    </xs:complexType>
-	</xs:element>
-	
+
 	
 
 </xs:schema>

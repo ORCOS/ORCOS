@@ -32,6 +32,7 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 
+import org.jdom.Attribute;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
@@ -47,11 +48,11 @@ import org.xml.sax.SAXException;
  */
 public class SCLReader {
 
-	private static final String DEFAULT_TARGET_SCL_CONFIG_NAME = "SCLConfig.hh";
-	private static final String DEFAULT_TARGET_TASK_CONFIG_NAME = "tasktable.S";
-	private static final String DEFAULT_TARGET_LOGGING_CONFIG_NAME = "logger_config.hh";
+	private static final String DEFAULT_TARGET_SCL_CONFIG_NAME = "make/SCLConfig.hh";
+	private static final String DEFAULT_TARGET_TASK_CONFIG_NAME = "make/tasktable.S";
+	private static final String DEFAULT_TARGET_LOGGING_CONFIG_NAME = "make/logger_config.hh";
 	
-	private static final String DEFAULT_TARGET_MAKEFILE_NAME = "scl_make.mk";
+	private static final String DEFAULT_TARGET_MAKEFILE_NAME = "make/scl_make.mk";
 
 	private static final String TASK_SED_FILENAME = "task.sed";
 	//private static final String TASK_MAKE_FILENAME = "tasks.sh";
@@ -68,6 +69,9 @@ public class SCLReader {
 	private static StringBuffer tasksdirbuffer = new StringBuffer();
 	private static StringBuffer tasksstartbuffer = new StringBuffer();
 	private static StringBuffer tasksendbuffer = new StringBuffer();
+	
+	
+	private static ArrayList<String> typedefs = new ArrayList();
 	
 	// incremented for each task that is found in the config file. this number
 	// is written as first entry to the DEFAULT_TARGET_TASK_CONFIG_NAME
@@ -159,6 +163,8 @@ public class SCLReader {
 		// This is written to SCLConfig.hh
 		StringBuffer sclConfigBuffer = new StringBuffer();
 
+		sclConfigBuffer.append("#ifndef _SCLCONFIG_HH_\r\n#define _SCLCONFIG_HH_\r\n");
+		
 		// This is written to tasktable.S
 		StringBuffer taskTableBuffer = new StringBuffer();
 
@@ -177,6 +183,9 @@ public class SCLReader {
 			System.exit(1);
 		}
 
+		sclConfigBuffer.append("#endif");
+		
+		
 		tasksdirbuffer.append(")\n");
 		tasksstartbuffer.append(")\n");
 		tasksendbuffer.append(")\n");
@@ -195,7 +204,7 @@ public class SCLReader {
 			output.close();
 			
 			output = new FileWriter(outputDir.getAbsolutePath()
-					+ fileSeparator + "tasks.in");
+					+ fileSeparator + "/make/tasks.in");
 			bufWrite = new BufferedWriter(output);
 			bufWrite.write(tasksdirbuffer.toString());
 			bufWrite.write(tasksstartbuffer.toString());
@@ -273,7 +282,7 @@ public class SCLReader {
 		
 		StreamSource streamSource = new StreamSource(xsdfile);
 		Schema schema = factory.newSchema(streamSource);
-		Validator validator = schema.newValidator();
+		Validator validator = schema.newValidator();		
 		validator.validate(new StreamSource(xmlfile));
 
 		return true;
@@ -301,16 +310,17 @@ public class SCLReader {
 
 		if (checkDeps) {
 			dependenciesDocument = saxBuilder.build(new File(depsFile));
-			dependenciesList = dependenciesDocument.getRootElement()
-					.getChildren();
+			dependenciesList = dependenciesDocument.getRootElement().getChildren();
 		}
 
 		// iterate over all found nodes and process them
 		for (Element childElement : rootChildList) {
+			// Process Options Node
 			if (childElement.getName().equalsIgnoreCase("Options")) {
 				processConfigNode(childElement, configBuffer);
 
 			} else if (childElement.getName().equalsIgnoreCase("Tasks")) {
+				// Process Task Node
 				List<Element> taskNodes = childElement.getChildren();
 
 				for (Element taskNode : taskNodes) {
@@ -318,7 +328,7 @@ public class SCLReader {
 				}
 
 			} else if (childElement.getName().equalsIgnoreCase("SCL")) {
-
+				// Process SCL Node
 				List<Element> sclNodes = childElement.getChildren();
 
 				for (Element sclNode : sclNodes) {
@@ -328,30 +338,23 @@ public class SCLReader {
 							processSkeletonNode(sclNode, configBuffer);
 						} else {
 							// process each SKELETON
-							String skeletonName = sclNode.getChildText("Name")
-									.trim();
+							String skeletonName = sclNode.getChildText("Name").trim();
 
 							boolean found = false;
 							// find corresponding node in dependencies File
 							for (Element dependencyElement : dependenciesList) {
-								if (dependencyElement.getChildText("Name")
-										.equals(skeletonName)) {
+								if (dependencyElement.getChildText("Name").equals(skeletonName)) {
 
-									if (checkSkeletonDependencies(sclNode,
-											dependencyElement)) {
+									if (checkSkeletonDependencies(sclNode,dependencyElement)) {
 										// the current node is valid against its
 										// dependencies
-										processSkeletonNode(sclNode,
-												configBuffer);
+										processSkeletonNode(sclNode,configBuffer);
 										found = true;
 										break;
 
 									} else {
 
-										throw new Exception(
-												"Skeleton Node: "
-														+ childElement
-																.getChildText("Name")
+										throw new Exception("Skeleton Node: "+ childElement.getChildText("Name")
 														+ " does not match its dependencies");
 									}
 								}
@@ -360,8 +363,7 @@ public class SCLReader {
 							// check if the corresponding node was found in
 							// dependencies file
 							if (!found) {
-								throw new Exception(
-										"Skeleton Node: "
+								throw new Exception("Skeleton Node: "
 												+ skeletonName
 												+ " - no corresponding dependencies could be found in SCL Dependencies file!");
 							}
@@ -438,20 +440,22 @@ public class SCLReader {
 			// superclass exists in skeleton
 			String superclassValue = superclassElement.getValue();
 			if (verboselevel > 2)
-			System.out.println("superclass: " + superclassValue);
+			System.out.println("Checking Superclass: " + superclassValue);
 
 			// search for appropriate superclass definition in SCLDependencies
 			Element depSuperclasses = dependencies.getChild("Superclasses");
 			if (depSuperclasses == null) {
+				System.err.println("No Superclasses in dependency file found..");
 				return false;
 			}
+			
 			boolean found = false;
 			List<Element> depSuperclassList = depSuperclasses.getChildren();
 			for (Element depSuperclassItem : depSuperclassList) {
 
 				// System.out.println("Diffing: " + dClass.getValue() +
 				// " against: " + superclass);
-				if (depSuperclassItem.getValue().equals(superclassValue)) {
+				if (depSuperclassItem.getAttributeValue("Name").equals(superclassValue)) {
 					found = true;
 					break;
 				}
@@ -470,8 +474,11 @@ public class SCLReader {
 
 		for (Element memberItem : memberList) {
 
-			String memberName = memberItem.getChildText("Name").trim();
-			String memberClass = memberItem.getChildText("Class").trim();
+			String memberName = memberItem.getAttributeValue("Name").trim();
+			String memberClass = memberItem.getAttributeValue("Class","").trim();
+			// ignore members which do not have a configurable class
+			if (memberClass == "") continue;
+			
 			boolean found = false;
 
 			for (Element depMemberItem : depMemberList) {
@@ -479,11 +486,10 @@ public class SCLReader {
 				String depMemberName = depMemberItem.getChildText("Name");
 				if (memberName.equals(depMemberName)) {
 
-					List<Element> definedClasses = depMemberItem.getChild(
-							"Classes").getChildren();
+					List<Element> definedClasses = depMemberItem.getChild("Classes").getChildren();
 					for (Element depClassItem : definedClasses) {
 
-						String depClassValue = depClassItem.getValue().trim();
+						String depClassValue = depClassItem.getAttributeValue("Name").trim();
 						if (memberClass.equals(depClassValue)) {
 							found = true;
 							if (verboselevel > 1)
@@ -648,21 +654,12 @@ public class SCLReader {
 		String templateString = "";
 		// required
 		String className = skeletonNode.getChild("Name").getValue().trim();		
-		outBuffer.append("\r\n// configuration of class " + className + "\r\n");
+		outBuffer.append("\r\n// Configuration of class " + className + "\r\n #ifndef __ASSEMBLER__\r\n");
 
 		// optional
 		String superClassName = null;
 
 		// ================= <Superclass> ============================
-		boolean isTemplate = false;
-		Element templateElement = skeletonNode.getChild("Template");
-		if (templateElement != null) {
-
-			isTemplate = true;
-			templateString = getTemplateString(templateElement
-					.getChildren("Parameter"));
-			// System.out.println(templateString);
-		}
 
 		Element superClassNode = skeletonNode.getChild("Superclass");
 		if (superClassNode != null) {
@@ -670,13 +667,13 @@ public class SCLReader {
 
 			outBuffer.append("#define " + className + "Cfd_hh <"
 					+ superClassName + ".hh>\r\n");
-			outBuffer.append("#define "
-					+ className
-					+ "CfdCl "
-					+ superClassName
-							.substring(superClassName.lastIndexOf("/") + 1)
+			outBuffer.append("#define "	+ className	+ "CfdCl "
+					+ superClassName.substring(superClassName.lastIndexOf("/") + 1)
 					+ templateString + "\r\n");
-		}
+			
+			if (verboselevel > 2) System.out.println("Superclass #define created for: " + superClassName);
+			
+		}		
 		// ================= </Superclass> ============================
 
 		
@@ -686,48 +683,41 @@ public class SCLReader {
 			String s = superClassName.substring(0,superClassName.lastIndexOf("/"));
 			archdirbuffer.append(s);
 			archdirbuffer.append("/\n");
+			if (verboselevel > 2) System.out.println("ARCH_DIR: " + s);
+
 		}
 		
 		List<Element> memberNodes = skeletonNode.getChildren("Member");
 		for (Element memberNode : memberNodes) {
 
-			// check if the template is configured:
-			isTemplate = false;
-			templateElement = memberNode.getChild("Template");
-			if (templateElement != null) {
+			String memberName = memberNode.getAttributeValue("Name").trim();
+			String memberClassName = memberNode.getAttributeValue("Class","").trim();
 
-				isTemplate = true;
-				templateString = getTemplateString(templateElement
-						.getChildren("Parameter"));
-				// System.out.println(templateString);
-			}
+			
+			if (verboselevel > 2) System.out.println("Processing '" + memberName + "' (" + memberClassName + ")");
 
-			String memberName = memberNode.getChild("Name").getValue().trim();
-			String memberClassName = memberNode.getChild("Class").getValue()
-					.trim();
-
+			
 			boolean isNone = false;
 			boolean isUserspace = false;
 
-			Element noneNode = memberNode.getChild("None");
-			if (noneNode != null
-					&& noneNode.getValue().trim().equalsIgnoreCase("true")) {
-				isNone = true;
-			}
+			isNone =  memberNode.getAttributeValue("None","true").equalsIgnoreCase("true");
 			String phyloadAddr = "";
+			String memberClassFileName = memberClassName.substring(memberClassName.lastIndexOf("/")+1);
 			
 			// only generate module and arch information for the class skeleton
 			if (className.equals("Board") && !isNone) {
-				String memberClassFileName = memberClassName.substring(memberClassName.lastIndexOf("/")+1);
+			
 				//System.out.println(memberClassFileName);
-				Element userSpaceNode = memberNode.getChild("UserSpace");
-				if (userSpaceNode != null && userSpaceNode.getValue().trim().equalsIgnoreCase("true")) {					
+				Attribute userSpaceNode = memberNode.getAttribute("UserSpace");
+				if (userSpaceNode != null && userSpaceNode.getValue().trim().equalsIgnoreCase("true")) {
+					// is inside userspace
 					module_objects.add(memberClassFileName + ".o");					
 					Element phyLoadAddrNode = memberNode.getChild("PhyLoadAddress");
 					if (phyLoadAddrNode == null) {
 						System.out.println("No Physical Load Address given for module: " + memberClassFileName);
 						throw new Exception();
 					}
+					
 					phyloadAddr = phyLoadAddrNode.getValue();
 					module_addresses.add(memberClassFileName.toUpperCase() + "_PHY_LOAD_ADDRESS=" + phyloadAddr);
 
@@ -740,8 +730,10 @@ public class SCLReader {
 					output.close();
 					isUserspace = true;
 				} else {
+					// not in userspace
 					if (!memberClassFileName.contains("Dummy")) {
-					arch_objects.add(memberClassFileName + ".o");
+						// only build object if its not a dummy object
+						arch_objects.add(memberClassFileName + ".o");
 					} else {
 						System.out.println("Warning: not adding " + memberClassFileName + " to object list (Dummy* Filter)!");
 					}
@@ -749,55 +741,59 @@ public class SCLReader {
 				}
 			}
 			
-			Element deviceNode = memberNode.getChild("Device");
-			Element addressNode = memberNode.getChild("Address");
-			Element lengthNode = memberNode.getChild("Length");
-			Element uniqueIDNode = memberNode.getChild("UniqueID");
-			Element ip4addrNode = memberNode.getChild("IP4Addr");
-			Element ip4netmaskNode = memberNode.getChild("IP4NetMask");
-			String constructor = generateConstructorString(memberNode);
-			String device = (deviceNode == null ? "" : deviceNode
-					.getValue().trim());
-			String address = (addressNode == null ? "" : addressNode
-					.getValue().trim());
-			String length = (lengthNode == null ? "" : lengthNode
-					.getValue().trim());
-			String uniqueID = (uniqueIDNode == null ? "" : uniqueIDNode
-					.getValue().trim());
-			String ip4addr = (ip4addrNode == null ? "" : ip4addrNode
-					.getValue().trim());
-			String ip4netmask = (ip4netmaskNode == null ? "" : ip4netmaskNode
-					.getValue().trim());			
+			//Element deviceNode = memberNode.getChild("Device");
+			//Element addressNode = memberNode.getChild("Address");
+			//Element lengthNode = memberNode.getChild("Length");
+			//Element uniqueIDNode = memberNode.getChild("UniqueID");
+			//Element ip4addrNode = memberNode.getChild("IP4Addr");
+			//Element ip4netmaskNode = memberNode.getChild("IP4NetMask");
 			
-			outBuffer.append("\r\n// configuration of member " + memberName
+			// 
+			
+			outBuffer.append("\r\n// Configuration of member " + memberName
 					+ " of class " + className + "\r\n");
 
-			String configuredType;
-			if (!isUserspace) {
-				configuredType = memberClassName.substring(memberClassName
-						.lastIndexOf("/") + 1);
-				outBuffer.append("#define " + className + "_" + memberName
-						+ "_hh <" + memberClassName + ".hh>\r\n");
-				outBuffer.append("#define " + className + "_" + memberName
-						+ "_cc <" + memberClassName + ".cc>\r\n");
-				outBuffer.append("#define " + className + "_" + memberName
-						+ "CfdCl " + configuredType
-						+ (isTemplate ? templateString : "") + "\r\n");
-				outBuffer.append("#define " + className + "_" + memberName
-						+ "CfdT " + configuredType + "*\r\n");
-			} else {
-				configuredType = "USCommDeviceDriver";
+			String property_init = "";
+			String constructor = ""; //generateConstructorString(memberNode);
+
+			List<Element> properties = memberNode.getChildren("PropertyValue");
+			
+			if (properties.size() > 0) {
+				String inittypename = "T_" + memberClassFileName +"_Init";
+				if (! typedefs.contains(inittypename)) {
+					typedefs.add(inittypename);
+					
+					outBuffer.append("\r\ntypedef struct " + inittypename + " { \r\n");
+							
+					for (Element p : properties) {
+						// throw exception if no type given!
+						String type = p.getAttributeValue("Type");											
+						outBuffer.append("   " + type + " " + p.getAttributeValue("Name") + ";\r\n");					
+					}		
 				
-				outBuffer.append("#define " + className + "_" + memberName
-						+ "_hh <hal/USCommDeviceDriver.hh>\r\n");
-				outBuffer.append("#define " + className + "_" + memberName
-						+ "_cc <hal/USCommDeviceDriver.cc>\r\n");
-				outBuffer.append("#define " + className + "_" + memberName
-						+ "CfdCl " + configuredType
-						+ (isTemplate ? templateString : "") + "\r\n");
-				outBuffer.append("#define " + className + "_" + memberName
-						+ "CfdT " + configuredType + "*\r\n");
+					outBuffer.append("} " + inittypename + ";\r\n\r\n");
+				}
+				
+				property_init = inittypename + " init_" + memberNode.getAttributeValue("Name") + " = {";
+				boolean first = true;
+				for (Element p : properties) {
+					
+					String type = p.getAttributeValue("Type");
+					String value;
+					if (type.contains("char*")) 
+						value = "\"" + p.getAttributeValue("Value") + "\"";
+					else value = p.getAttributeValue("Value");
+					
+					if (!first) property_init += ",";
+					else first = false;
+					
+					property_init += " " + p.getAttributeValue("Name") + " : " + value; 
+				}
+				property_init += "};";
+				constructor = "&init_" + memberNode.getAttributeValue("Name");
 			}
+			
+			String configuredType;
 			
 			if (!isNone) {
 				outBuffer.append("#define HAS_" + className + "_" + memberName
@@ -806,73 +802,78 @@ public class SCLReader {
 				outBuffer.append("#define " + className + "_" + memberName
 						+ "_IN_USERSPACE " + (isUserspace ? "1" : "0") + "\r\n");
 			}
-
-			if (!device.equals("")) {
-				outBuffer.append("#define " + className + "_" + memberName
-						+ "_NAME " + device + "\r\n");
-			}
-			if (!address.equals("")) {
-				outBuffer.append("#define " + className + "_" + memberName
-						+ "_MMIO_PHYS_ADDR " + address + "\r\n");
-			}
-			if (!length.equals("")) {
-				outBuffer.append("#define " + className + "_" + memberName
-						+ "_MMIO_LENGTH " + length + "\r\n");
-			}
-			if (!uniqueID.equals("")) {
-				outBuffer.append("#define " + className + "_" + memberName
-						+ "_UNIQUEID " + uniqueID + "\r\n");
-			}
-			if (!ip4addr.equals("")) {
-				outBuffer.append("#define " + className + "_" + memberName
-						+ "_IP4ADDR " + ip4addr + "\r\n");
-			}
-			if (!ip4netmask.equals("")) {
-				outBuffer.append("#define " + className + "_" + memberName
-						+ "_IP4NETMASK " + ip4netmask + "\r\n");
-			}
 			
-			outBuffer.append("#define DEF_" + className + "_" + memberName
-					+ "Cfd \\\r\n");
-
-			if (!isNone) {
-				outBuffer.append("private: \\\r\n");
-
-				outBuffer.append("    " + configuredType
-						+ (isTemplate ? templateString : "*") + " "
-						+ memberName + "Cfd; \\\r\n");
-			}
-
-			outBuffer.append("public: \\\r\n");
-
-			if (!isNone) {
-
-				outBuffer.append("    void set" + memberName + "("
-						+ configuredType + (isTemplate ? templateString : "")
-						+ "* o) {" + memberName + "Cfd = o;} \\\r\n");
-				outBuffer.append("    " + configuredType
-						+ (isTemplate ? templateString : "") + "* get"
-						+ memberName + "() { return (" + configuredType
-						+ (isTemplate ? templateString : "") + "*) "
-						+ memberName + "Cfd; }\r\n");
-
-			if (!isUserspace) {
-				outBuffer.append("#define NEW_" + className + "_" + memberName
-						+ "Cfd " + className + "_" + memberName + "CfdCl" + "("
-						+ constructor + ")\r\n");
-			} else {
-				outBuffer.append("#define NEW_" + className + "_" + memberName
-						+ "Cfd " + className + "_" + memberName + "CfdCl" + "("
-						+ constructor + ",1024," + phyloadAddr + ")\r\n");
-			}
-
-			} else {
-				outBuffer.append("    void set" + memberName + "("
-						+ configuredType + "* o) { } \\\r\n");
-				outBuffer.append("    " + configuredType + "* get" + memberName
-						+ "() { return 0; }\r\n");
+			if (memberClassName != "") {
+				if (!isUserspace) {
+					configuredType = memberClassName.substring(memberClassName
+							.lastIndexOf("/") + 1);
+					outBuffer.append("#define " + className + "_" + memberName
+							+ "_hh <" + memberClassName + ".hh>\r\n");
+					outBuffer.append("#define " + className + "_" + memberName
+							+ "_cc <" + memberClassName + ".cc>\r\n");
+					outBuffer.append("#define " + className + "_" + memberName
+							+ "CfdCl " + configuredType	+ "\r\n");
+					outBuffer.append("#define " + className + "_" + memberName
+							+ "CfdT " + configuredType + "*\r\n");
+				} else {
+					configuredType = "USCommDeviceDriver";
+					
+					outBuffer.append("#define " + className + "_" + memberName
+							+ "_hh <hal/USCommDeviceDriver.hh>\r\n");
+					outBuffer.append("#define " + className + "_" + memberName
+							+ "_cc <hal/USCommDeviceDriver.cc>\r\n");
+					outBuffer.append("#define " + className + "_" + memberName
+							+ "CfdCl " + configuredType	 + "\r\n");
+					outBuffer.append("#define " + className + "_" + memberName
+							+ "CfdT " + configuredType + "*\r\n");
+				}
+				
+				
+				
+				// Generate Member definition 			
+				outBuffer.append("#define DEF_" + className + "_" + memberName
+						+ "Cfd \\\r\n");
+	
+				if (!isNone) {
+					outBuffer.append("private: \\\r\n");
+					outBuffer.append("    " + configuredType+  "* "	+ memberName + "Cfd; \\\r\n");
+				}
+	
+				outBuffer.append("public: \\\r\n");
+	
+				if (!isNone) {
+	
+					outBuffer.append("    void set" + memberName + "("
+							+ configuredType 
+							+ "* o) {" + memberName + "Cfd = o;} \\\r\n");
+					outBuffer.append("    " + configuredType
+							+  "* get" + memberName + "() { return (" + configuredType	+ "*) "
+							+ memberName + "Cfd; }\r\n");
+	
+				if (!isUserspace) {
+					
+					outBuffer.append("#define INIT_" + className + "_" + memberName
+							+ "Cfd " + property_init + "\r\n");
+					
+					outBuffer.append("#define NEW_" + className + "_" + memberName
+							+ "Cfd " + className + "_" + memberName + "CfdCl" + "("
+							+ constructor + ")\r\n");
+				} else {
+					outBuffer.append("#define NEW_" + className + "_" + memberName
+							+ "Cfd " + className + "_" + memberName + "CfdCl" + "("
+							+ constructor + ",1024," + phyloadAddr + ")\r\n");
+				}
+	
+				} else {
+					outBuffer.append("    void set" + memberName + "("
+							+ configuredType + "* o) { } \\\r\n");
+					outBuffer.append("    " + configuredType + "* get" + memberName
+							+ "() { return 0; }\r\n");
+				}
 			}
 		}
+		
+		outBuffer.append("#endif\r\n");
 	}
 
 	/**
