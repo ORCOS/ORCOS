@@ -46,39 +46,5 @@ void kwait(int milliseconds) {
 }
 
 
-// handle a software error
-// at the moment the error is only reported
-ErrorT handleError( ErrorT status ) {
-    switch ( status ) {
-        case cNotImplemented:
-            LOG(KERNEL,ERROR,(KERNEL,ERROR,"Method is not implemented"));
-            break;
-        case cError:
-            LOG(KERNEL,ERROR,(KERNEL,ERROR,"unspecified error occurred"));
-            break;
-        case cHeapMemoryExhausted:
-            LOG(KERNEL,ERROR,(KERNEL,ERROR,"no more heap memory available"));
-            break;
-    }
-    return status;
-}
 
-// handle a software error occuring in a single thread
-// at the moment the error is only reported
-ErrorT handleError( ErrorT status, Kernel_ThreadCfdCl* curT ) {
 
-#ifdef HAS_Kernel_LoggerCfd
-    int curThreadId = curT->getId();
-#endif
-
-    switch ( status ) {
-        case cNotImplemented:
-            LOG(KERNEL,ERROR,(KERNEL,ERROR,"Method is not implemented in Thread: %d",curThreadId));
-        case cError:
-            LOG(KERNEL,ERROR,(KERNEL,ERROR,"Unspecified error occurred in Thread: %d",curThreadId));
-        case cHeapMemoryExhausted:
-            LOG(KERNEL,ERROR,(KERNEL,ERROR,"No more heap memory available in Thread: %d",curThreadId));
-            break;
-    }
-    return status;
-}

@@ -61,7 +61,7 @@ RealTimeThread::RealTimeThread( void* startRoutinePointer, void* exitRoutinePoin
         this->absoluteDeadline = 0;
     }
     this->instance = 1;
-    this->arguments = (void*) instance;
+    this->arguments = 0;
 
 #ifdef AIS
     lasterror = *((unsigned int*)FAIL_ADDR);
@@ -82,23 +82,14 @@ void RealTimeThread::terminate() {
             _disableInterrupts();
         #endif
 
-       /*
-        * This is for logging time points with an external logic analyzer
-        *
-        * GPIO_VAL = ((1UL << (29 + this->getId() )));
-        *((volatile unsigned*) 0x90230000) = 	GPIO_VAL;
-        *((volatile unsigned*) 0x90230000) = 	0;
-        */
 
         // Reset the thread context. Fortunately it is this simple ^_^.
         threadStack.top = 0;
 
         // Set the status to new so that the call main method will be called instead of restoring the context.
         this->status.set( cNewFlag | cReadyFlag );
-
-        // REMARK: we waste 4 bytes here since we could also use the arguments variable as a counter for the instance
         this->instance++;
-        this->arguments = (void*) instance;
+
 
         #if USE_SAFE_KERNEL_STACKS
         // we use safe kernel stacks so we must free the stack slot now
@@ -126,7 +117,7 @@ void RealTimeThread::terminate() {
         currentCycles = theClock->getTimeSinceStartup();
 #endif
         // set the new arrivaltime of this thread
-        this->arrivalTime += this->period; //= currentCycles + sleepcycles;
+        this->arrivalTime += currentCycles + sleepcycles;
         this->absoluteDeadline = this->arrivalTime + this->relativeDeadline;
 
         // invoke the computePriority method of the scheduler
@@ -136,41 +127,7 @@ void RealTimeThread::terminate() {
         this->sleep( (unint4) sleepcycles );
     }
     else {
-        unint8 currentCycles = theClock->getTimeSinceStartup();
-        LOG(PROCESS,WARN,( PROCESS, WARN, "RealtimeThread::terminate() lateness: %d",(int4) (currentCycles - this->absoluteDeadline) ));
-
-#ifdef AIS_MIGRATE
-
-      volatile unsigned int errorc = *((unsigned int*)FAIL_ADDR);
-      volatile unsigned int diff = errorc - lasterror;
-      lasterror = errorc;
-
-      LOG(PROCESS,WARN,( PROCESS, WARN, "RealtimeThread::terminate() errors: %d",diff ));
-
-
-      unint4 threshold = 1200;
-      if ( diff >= threshold )
-      {
-    	  // threshold reached!
-    	  // migrate now
-          LOG(PROCESS,WARN,( PROCESS, WARN, "RealtimeThread::terminate() migrating whole task!" ));
-
-          sockaddr destination;
-
-          destination.port_data =   1;
-          destination.sa_data =     IP4_ADDR(192,168,1,10);
-          destination.name_data[0] = '\0';
-
-          if (isOk(theOS->getMigrationManager()->migrateTask(this->getOwner(),&destination))) {
-        	  //this->getOwner()->terminate();
-          }
-          else {
-        	  LOG(PROCESS,WARN,( PROCESS, WARN, "RealtimeThread::terminate() could not replicate task to destination node!" ));
-          }
-
-      }
-#endif
-
+        LOG(PROCESS,WARN,( PROCESS, WARN, "RealtimeThread::terminate() lateness: %d",(int4) (theClock->getTimeSinceStartup() - this->absoluteDeadline) ));
         Thread::terminate();
     }
 }

@@ -207,7 +207,7 @@ ErrorT TaskManager::removeTask(Task* task) {
 	return cOk;
 }
 
-ErrorT TaskManager::loadTaskFromFile(File* file, TaskIdT& tid) {
+ErrorT TaskManager::loadTaskFromFile(File* file, TaskIdT& tid, char* arguments,unint2 arg_length) {
 
 	// task loading only supported if virtual memory is activated
 	#ifndef HAS_Board_HatLayerCfd
@@ -262,6 +262,10 @@ ErrorT TaskManager::loadTaskFromFile(File* file, TaskIdT& tid) {
 		return error;
 	}
 
+	// align arg_length
+	if (arg_length > 0)
+		arg_length = (arg_length + 4) & (~0x3);
+
 	LOG(KERNEL,DEBUG,(KERNEL,DEBUG,"TaskManager::loadTaskFromFile: valid task."));
 
 	register taskTable* tt = (taskTable*) task_start;
@@ -277,7 +281,7 @@ ErrorT TaskManager::loadTaskFromFile(File* file, TaskIdT& tid) {
 
 	// be sure its in register as we switch stack afterwards
 	register Kernel_MemoryManagerCfdCl* task_memManager =
-			new(memaddr)  Kernel_MemoryManagerCfdCl((void*) tt->task_heap_start + DEFAULT_USER_STACK_SIZE, (void*) tt->task_heap_end );
+			new(memaddr)  Kernel_MemoryManagerCfdCl((void*) (tt->task_heap_start + DEFAULT_USER_STACK_SIZE + arg_length), (void*) tt->task_heap_end );
 
 	LOG(KERNEL,DEBUG,(KERNEL,DEBUG,"TaskManager::loadTaskFromFile: creating Task object."));
 	/*
@@ -285,6 +289,15 @@ ErrorT TaskManager::loadTaskFromFile(File* file, TaskIdT& tid) {
 	 * The task code itself remains at task_info->task_start_addr
 	 */
 	Task* task = new Task( task_memManager, tt );
+
+	// copy arguments
+	if (arguments != 0) {
+		char* args = (char*) (task_start + (tt->task_heap_start - LOG_TASK_SPACE_START) + DEFAULT_USER_STACK_SIZE);
+		memcpy(args,arguments,arg_length);
+		// set argument of the initial thread
+		Kernel_ThreadCfdCl* thread = (Kernel_ThreadCfdCl*) task->getThreadDB()->getHead()->getData();
+		thread->arguments = (void*) (tt->task_heap_start + DEFAULT_USER_STACK_SIZE);
+	}
 
 	// for the future set it to the correct VM address
 	task->tasktable = (taskTable*) LOG_TASK_SPACE_START;

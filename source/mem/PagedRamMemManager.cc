@@ -10,13 +10,19 @@
 #include <kernel/Kernel.hh>
 
 extern void* __KERNELEND;
+extern void* __RAM_END;
+extern void* __RAM_START;
 
-//IMPORTANT: keep page size synced with chosen HAT layer page size
-// TODO: get this value from the HAT layer implementation as define
-#define PAGESIZE 0x100000  // 1 MB
+// check PAGESIZE define
+#ifndef PAGESIZE
+#error "PAGESIZE must be defined by the taget architecture. Usually inside the HAT-Layer Implementation if existend."
+#endif
 
-// TODO: change to (RAM_SIZE / PAGESIZE ) -1
-#define NUM_PAGES 500
+#ifndef RAM_SIZE
+#error "RAMSIZE must be defined by the taget architecture."
+#endif
+
+#define NUM_PAGES ((RAM_SIZE / PAGESIZE) -1)
 
 // map of used memory pages by tasks .. starting at the page after __KERNELEND
 // this map must be big enough to cover all possible locations of tasks inside the memory
@@ -30,11 +36,12 @@ PagedRamMemManager::PagedRamMemManager() {
 		UsedPageTable[i] = 0;
 	}
 
+	// calculate free memory area (useable by tasks)
 	MemStart = (unint4) alignCeil((char*) &__KERNELEND,PAGESIZE);
 }
 
 PagedRamMemManager::~PagedRamMemManager() {
-	// TODO Auto-generated destructor stub
+
 }
 
 

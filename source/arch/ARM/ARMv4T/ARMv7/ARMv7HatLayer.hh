@@ -23,6 +23,9 @@
 
 #define SECTION_SIZE 0x100000
 
+// Define for the Paged Memory Manager
+#define PAGESIZE SECTION_SIZE
+
 /*!
  * \brief This class provides an abstraction of the virtual memory management of the ARMv7 architecture
  */

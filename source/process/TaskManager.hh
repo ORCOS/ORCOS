@@ -80,7 +80,7 @@ public:
     * Returns cOk on success, an error otherwise.
     * The Out paramter tid is used to return the created task id on success.
     */
-   ErrorT loadTaskFromFile(File *file, TaskIdT &tid);
+   ErrorT loadTaskFromFile(File *file, TaskIdT &tid, char* arguments = 0,unint2 arg_length = 0);
 
 };
 

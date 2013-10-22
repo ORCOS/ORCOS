@@ -281,6 +281,10 @@
       <Name>__DEBUG__</Name>
       <Value>0</Value>
     </Define>
+    <Define>
+      <Name>RAM_SIZE</Name>
+      <Value>512 MB</Value>
+    </Define>
   </SCL>
 </Configuration>
 

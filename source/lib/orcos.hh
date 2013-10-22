@@ -52,29 +52,6 @@ extern "C" void* 	memcpy( void* dst0, const void* src0, size_t len0 );
 
 extern "C" void* 	memset( void* ptr, char c, int n);
 
-/**************************************
- *  AIS related system calls
- **************************************/
-
-/*!
- * \brief Memory allocation with protection (AIS Design only (Leon3))
- */
-extern "C" void* 	mallocp(size_t s, int mode);
-
-/*!
- * \brief Returns the errors counted on the hardware bus! (AIS Design only)
- */
-extern "C" int 		getErrorCount();
-
-/*!
- * \brief Sets the injected Failure Rate for Simulation Purposes (AIS Design only)
- */
-extern "C" int 		setIFR(int ifr);
-
-/*!
- * \brief Sets hw_prot + addroffset to mode
- */
-extern "C" int 		setProtectionMode(void* addroffset, int mode);
 
 
 /**************************************
@@ -85,10 +62,11 @@ extern "C" int 		setProtectionMode(void* addroffset, int mode);
  * \brief Start a new task given by its file path.
  *
  * \param path 		The path to the task file to be executed
+ * \param arguments A null terminated string of arguments
  *
  * \return 			Error Number < 0 or task id > 0
  */
-extern "C" int 		task_run(char* path);
+extern "C" int 		task_run(char* path, char* arguments);
 
 
 /*!

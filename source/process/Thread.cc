@@ -67,7 +67,7 @@ Thread::Thread( void* startRoutinePointer, void* exitRoutinePointer, Task* owner
     this->owner 				= owner;
     this->status.clear();
     this->status.setBits( cNewFlag );
-    this->arguments 			= (void*) myThreadId;
+    this->arguments 			= 0;
     this->sleepCycles 			= 0;
     this->signal 				= 0;
 
@@ -118,7 +118,7 @@ ErrorT Thread::run() {
     this->status.setBits( cReadyFlag );
 
     // inform the global cpu scheduler that i am ready to run
-    return theOS->getCPUScheduler()->enter( this );
+    return (theOS->getCPUScheduler()->enter( this ));
 }
 
 /*--------------------------------------------------------------------------*
@@ -163,7 +163,7 @@ void Thread::sigwait( void* sig ) {
 }
 
 Kernel_MemoryManagerCfdCl* Thread::getMemManager() {
-    return owner->getMemManager();
+    return (owner->getMemManager());
 }
 
 

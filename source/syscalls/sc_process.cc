@@ -30,31 +30,39 @@ int runTask(int4 sp_int) {
 
 	int retval = 0;
 	char* path;
+	char* arguments;
+	unint2 arg_length = 0;
 
-	SYSCALLGETPARAMS1(sp_int,path);
+	SYSCALLGETPARAMS2(sp_int,path,arguments);
 
-	VALIDATE_IN_PROCESS(path);
 	// TODO: safely validate path length to avoid running out of process bounds
+	// TODO: safely validate arguments length to avoid running out of process bounds
+	VALIDATE_IN_PROCESS(path);
+	if (arguments != 0) {
+		VALIDATE_IN_PROCESS(arguments);
+		arg_length = strlen(arguments);
+	}
 
 	LOG(SYSCALLS,INFO,(SYSCALLS,INFO,"Syscall: runTask(%s)",path));
 
 
-	if (path == 0) return cError;
+	if (path == 0) return (cError);
 
     Resource* res = theOS->getFileManager()->getResourceByNameandType( path, cFile );
     if (res == 0) {
 		LOG(SYSCALLS,ERROR,(SYSCALLS,ERROR,"Syscall: runTask(%s) FAILED: invalid path.",path));
-    	return cInvalidResource;
+    	return (cInvalidResource);
     }
 
 	// we got the resource .. load as task
 	TaskIdT taskId;
-	retval = theOS->getTaskManager()->loadTaskFromFile((File*)res,taskId);
+	retval = theOS->getTaskManager()->loadTaskFromFile((File*)res,taskId,arguments,arg_length);
+
 	// on failure return the error number
-	if (retval < 0) return retval;
+	if (retval < 0) return (retval);
 
 	// on success return the taskId
-	return taskId;
+	return (taskId);
 
 }
 
@@ -187,6 +195,7 @@ int thread_createSyscall( int4 int_sp ) {
     VALIDATE_IN_PROCESS(attr);
     VALIDATE_IN_PROCESS(start_routine);
     VALIDATE_IN_PROCESS(threadid);
+    VALIDATE_IN_PROCESS(arg);
 
     LOG(SYSCALLS,INFO,(SYSCALLS,INFO,"Syscall: thread_create(0x%x,0x%x,0x%x)",attr,start_routine,arg));
     LOG(SYSCALLS,INFO,(SYSCALLS,INFO,"Syscall: rel_deadline %d",attr->deadline));
@@ -252,7 +261,7 @@ int thread_createSyscall( int4 int_sp ) {
     // set the arguments of the new thread
     newthread->arguments = arg;
 
-    return cOk;
+    return (cOk);
 }
 #endif
 
@@ -292,12 +301,12 @@ int thread_run( int4 int_sp ) {
 #endif
             // announce to scheduler!
             t->run();
-        } else return cThreadNotFound;
+        } else return (cThreadNotFound);
     }
     else {
         // run all new threads of this task!
         // if we are realtime set the arrivaltime of all threads!
-        // the arrivaltime will be the same then which is important
+        // the arrivaltime will be the same then, which is important
         // if all threads shall start at the same time (no phase shifting)
         LinkedListDatabase* threadDb = pCurrentRunningTask->getThreadDB();
         LinkedListDatabaseItem* litem = threadDb->getHead();
@@ -334,7 +343,7 @@ int thread_run( int4 int_sp ) {
         theOS->getCPUDispatcher()->dispatch(theOS->getClock()->getTimeSinceStartup() - lastCycleStamp);
 #endif
 
-    return cOk;
+    return (cOk);
 }
 #endif
 

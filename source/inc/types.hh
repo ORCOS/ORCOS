@@ -20,7 +20,8 @@
 #define _TYPES_HH
 
 //#include <archtypes.hh>
-
+#define MB * 0x100000
+#define KB * 0x400
 
 typedef unsigned int size_t;
 

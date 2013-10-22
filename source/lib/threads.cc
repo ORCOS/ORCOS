@@ -46,8 +46,8 @@ extern "C"int task_stop(int taskid)
     return syscall(cTask_StopSysCallId,taskid);
 }
 
-extern "C" int task_run(char* path) {
-    return syscall(cRunTaskId,path);
+extern "C" int task_run(char* path, char* arguments) {
+    return syscall(cRunTaskId,path,arguments);
 }
 
 extern "C" int 	task_kill(int taskid) {

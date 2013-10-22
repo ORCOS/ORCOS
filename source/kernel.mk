@@ -47,7 +47,7 @@ KOBJ += WorkerThread.o WorkerTask.o SNServiceDiscovery.o crc32.o
 KOBJ+=USBEHCIHostController.o
 
 #socket
-KOBJ += Socket.o CAB.o  MigrationManager.o
+KOBJ += Socket.o CAB.o  
 
 #db
 KOBJ += ArrayDatabase.o LinkedListDatabase.o
@@ -75,7 +75,7 @@ KOBJ += stringtools.o memtools.o sprintf.o putc.o libgccmath.o endian.o
 KOBJ += newlib_helper.o
 
 #kernel
-KOBJ += error.o kernelmain.o Kernel.o 
+KOBJ += kwait.o kernelmain.o Kernel.o 
 
 #mem
 KOBJ += LinearMemManager.o new.o SequentialFitMemManager.o PagedRamMemManager.o

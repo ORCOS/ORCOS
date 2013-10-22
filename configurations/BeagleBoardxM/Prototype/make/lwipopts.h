@@ -1759,7 +1759,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * TCP_QLEN_DEBUG: Enable debugging for TCP queue lengths.
  */
 #ifndef TCP_QLEN_DEBUG
-#define TCP_QLEN_DEBUG                  LWIP_DBG_ON
+#define TCP_QLEN_DEBUG  LWIP_DBG_OFF
 #endif
 
 /**

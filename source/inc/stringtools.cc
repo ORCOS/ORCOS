@@ -137,8 +137,9 @@ size_t strlen(const char * s){
     const char *sc;
 
     for (sc = s; *sc != '\0'; ++sc)
-        /* nothing */;
-    return sc - s;
+
+    /* nothing */;
+    return (sc - s);
 }
 
 char* strcat( char *s1, const char *s2 ) {

@@ -141,10 +141,10 @@ public:
         globalTaskIdCounter = cFirstTask;
         freeTaskIDs = new ArrayDatabase(20);
 
-        // workertasks must be mapped to pid 0
-        // to ensure they are running wirh kernel mappings
-        // under virrual memory
-        // user tasks must start at pid 1 to ensure
+        // workertasks must be mapped to PID 0
+        // to ensure they are running with kernel mappings
+        // under virtual memory
+        // user tasks must start at PID 1 to ensure
         // the kernel page table to be not overwritten
 		#if USE_WORKERTASK
         for (unint4 i = 0; i < 20; i++) {
@@ -196,14 +196,14 @@ public:
      *   \brief Get the identity of this task
      */
     inline TaskIdT getId() const {
-        return myTaskId;
+        return (myTaskId);
     }
 
     /*!
      *  \brief Return the Memory Manager of the Task
      */
     inline Kernel_MemoryManagerCfdCl* getMemManager() {
-        return memManager;
+        return (memManager);
     }
 
     /*!
@@ -223,7 +223,7 @@ public:
      */
     inline
     taskTable* getTaskTable() {
-        return tasktable;
+        return (tasktable);
     }
     ;
 
@@ -252,28 +252,9 @@ public:
      *
      */
     LinkedListDatabase* getThreadDB() {
-        return &threadDb;
+        return (&threadDb);
     }
     ;
-
-    /*!
-     * \brief Serialization Method.
-     *
-     * Will store the TaskCB and all ThreadCBs inside the given buffer.
-     */
-    bool serialize(void* buffer, unint2 &length);
-
-    /*!
-     * \brief De-Serialization Mmethod.
-     *
-     * Takes a byte-stream given by parameter 'serialized_object' and tries to reconstruct the
-     * object on this node. May fail due to Task/Thread implementation mismatch or Deserialization Failure of the
-     * used Memory Manager.
-     *
-     * On Success returns a pointer to the reconstructed Task CB.
-     * On Failure returns 0.
-     */
-    static Task* deserialize(void* serialized_object, unint2 length, void* new_physical_start_address);
 
 };
 

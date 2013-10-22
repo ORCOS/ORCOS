@@ -97,6 +97,8 @@ class Kernel_ThreadCfdCl;
 #define cGivenTLBEntryNotFound (int)-101
 #define cNoValidChunkAddress (int)-102
 
+#define cDeviceMemoryExhausted (int)-105
+
 //-----------------------------------------------------
 // Synchronization          200 <= |C(s)| < 300
 //-----------------------------------------------------
@@ -144,6 +146,10 @@ class Kernel_ThreadCfdCl;
 // Architecture             700 <= |C(s)| < 800
 //-----------------------------------------------------
 // Warning or Status Value
+
+#define cBlockDeviceReadError (int)-700
+#define cBlockDeviceWriteError (int)-701
+
 
 // Error
 #define cInvalidResourceType    (int)-700

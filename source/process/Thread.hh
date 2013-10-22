@@ -142,28 +142,28 @@ public:
 
     //! Returns the owner task of this thread.
     Task* getOwner() const {
-        return owner;
+        return (owner);
     }
 
     //!  Get the flags of this Thread
     Bitmap& getStatus() {
-        return status;
+        return (status);
     }
 
     //!  Set the flags of this Thread
     ErrorT setStatus( Bitmap s ) {
         status = s;
-        return cOk;
+        return (cOk);
     }
 
     //! Returns true iff the thread has never been run before
     bool isNew() const {
-        return status.areSet( cNewFlag );
+        return (status.areSet( cNewFlag ));
     }
 
     //! Returns true iff the thread is scheduled for execution
     bool isReady() const {
-        return status.areSet( cReadyFlag );
+        return (status.areSet( cReadyFlag ));
     }
 
     /*!
@@ -171,28 +171,28 @@ public:
      * 		 resource.
      */
     bool isBlocked() const {
-        return status.areSet( cBlockedFlag );
+        return (status.areSet( cBlockedFlag ));
     }
 
     /*!
      * \brief Returns true iff the thread is stopped.
      */
     bool isStopped() const {
-        return status.areSet( cStopped );
+        return (status.areSet( cStopped ));
     }
 
     bool isSleeping() const {
-        return !status.anySet( (BitmapT) cBlockedFlag | cReadyFlag | cNewFlag );
+        return (!status.anySet( (BitmapT) cBlockedFlag | cReadyFlag | cNewFlag ));
     }
 
     //! Returns true iff the thread has terminated.
     bool hasTerminated() const {
-        return status.areSet( cTermFlag );
+        return (status.areSet( cTermFlag ));
     }
 
     //! Returns the currently set sleeptime
     int4 getSleepTime() {
-        return this->sleepCycles;
+        return (this->sleepCycles);
     }
 
     ErrorT  __attribute__((noinline)) pushStackPointer(void* sp)
@@ -226,23 +226,23 @@ public:
     }
 
     inline int2 getKernelStackBucketIndex() {
-        return threadStack.myKernelStackBucketIndex;
+        return (threadStack.myKernelStackBucketIndex);
     }
 #endif
 
     //! Returns the addr (pointer) of the startRoutine of this thread
     void* getStartRoutinePointer() const {
-        return startRoutinePointer;
+        return (startRoutinePointer);
     }
 
     //! Returns the addr (pointer) of the exitRoutine of this thread
     void* getExitRoutinePointer() const {
-        return exitRoutinePointer;
+        return (exitRoutinePointer);
     }
 
     //! Returns the arguments passed to the thread on startup
     void* getStartArguments() const {
-        return this->arguments;
+        return (this->arguments);
     }
 
     //! Returns the Memory Manager of the task the thread belongs to

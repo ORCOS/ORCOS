@@ -427,6 +427,8 @@ void handleCommand(int socket, int command_length) {
 		int arg = strpos(" ",command);
 		if (arg > 0) {
 			char* filename = &command[arg+1];
+			char* arguments = extractPath(filename);
+
 			if (filename[0] != '/') {
 				// prepend current directory
 				strcpy(temp_msg,current_dir);
@@ -434,9 +436,9 @@ void handleCommand(int socket, int command_length) {
 				filename = temp_msg;
 			}
 
-			int error = task_run(filename);
+			int error = task_run(filename,arguments);
 			// no argument given
-			sprintf(return_msg,"Exec: %d\r",error);
+			sprintf(return_msg,"Status: %d\r",error);
 			sendto(socket,return_msg,strlen(return_msg)+1,0);
 			return;
 		}

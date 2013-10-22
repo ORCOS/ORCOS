@@ -87,23 +87,24 @@ void Kernel::initialize() {
     BlockDeviceDriver::initialize();
     USBDevice::initialize();
 
-    this->errorHandler = new TaskErrorHandler();
+    this->errorHandler 		= new TaskErrorHandler();
     // create the Ram Manager using a simple paging algorithm
-    this->ramManager = new PagedRamMemManager();
+    this->ramManager 		= new PagedRamMemManager();
     // create the cpudispatcher with scheduler
-    this->cpuManager 	= new SingleCPUDispatcher( );
+    this->cpuManager 		= new SingleCPUDispatcher( );
     // create the file	manager implementing the filesystem
-    this->fileManager = new SimpleFileManager( );
-    // set the idlethread of the cpudispatcher
-    this->cpuManager->setIdleThread( new IdleThread( ) );
+    this->fileManager		= new SimpleFileManager( );
     // create the "/usb/" directory which will contain all usb drivers
-    this->usbDriverLib 	= new USBDriverLibrary();
+    this->usbDriverLib 		= new USBDriverLibrary();
     // create the PartitionMananger which handles block device partitions
-    this->partitionManager = new PartitionManager();
+    this->partitionManager 	= new PartitionManager();
     // create the Task Manager which holds the list of all tasks
-    this->taskManager = new TaskManager();
+    this->taskManager 		= new TaskManager();
+
     // be sure the initial loaded set of tasks is registered at the ramManager
     taskManager->registerMemPages();
+    // set the idlethread of the cpudispatcher
+    this->cpuManager->setIdleThread( new IdleThread( ) );
 
     // Add support for smsc95xx ethernet over USB devices
     new SMSC95xxUSBDeviceDriverFactory("smsc95xx");
@@ -275,13 +276,6 @@ void Kernel::initialize() {
     printf(" running.."LINEFEED);
     printf(theOS->getBoard()->getBoardInfo());
 
-
-  /*  char testbytes[] __attribute__((aligned(4))) = {0x0,0x1,0xf2,0x03,0xf4,0xf5,0xf6,0xf7};
-    u32_t checksum = chksum((u16_t*) &testbytes,8);
-
-    printf(" checksum: %x",checksum);*/
-
-
     // invoke the cpumanager so it starts the first thread
     this->cpuManager->dispatch( 0 );
     while (true) {}
@@ -339,10 +333,10 @@ void Kernel::initDeviceDrivers() {
  *---------------------------------------------------------------------------*/
 Kernel_SchedulerCfdT Kernel::getCPUScheduler() {
     if ( cpuManager ) {
-        return this->cpuManager->getScheduler();
+        return (this->cpuManager->getScheduler());
     }
     else {
-        return 0;
+        return (0);
     }
 }
 
@@ -358,5 +352,5 @@ void Kernel::setStdOutputDevice( CharacterDeviceDriver* outputDevice ) {
  ** OPB_UART_Lite Kernel::getStdOutputDevice()
  *---------------------------------------------------------------------------*/
 CharacterDeviceDriver* Kernel::getStdOutputDevice() {
-    return this->stdOutputDevice;
+    return (this->stdOutputDevice);
 }

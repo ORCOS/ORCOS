@@ -735,51 +735,56 @@ struct netif tEMAC0Netif;
 ErrorT SMSC95xxUSBDeviceDriver::recv(unint4 recv_len)
 {
 
-	int err = -1;
 	unint4 packet_len;
 
 	LOG(ARCH,TRACE,(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: Packet received.. USB-Len %x",recv_len));
 
+	unint4 recvd_bytes = 0;
 
-	memcpy(&packet_len, &dev->endpoints[this->bulkin_ep].recv_buffer[0], sizeof(packet_len));
+	while (recvd_bytes < recv_len) {
 
-	// cpu to le
-	//packet_len = tole32(packet_len);
+		memcpy(&packet_len, &dev->endpoints[this->bulkin_ep].recv_buffer[recvd_bytes], sizeof(packet_len));
 
-	if (packet_len & RX_STS_ES_) {
-		LOG(ARCH,WARN,(ARCH,WARN,"SMSC95xxUSBDeviceDriver: RX packet header Error: %x",packet_len));
-		return -1;
-	}
+		// cpu to le
+		//packet_len = tole32(packet_len);
 
-	packet_len = ((packet_len & RX_STS_FL_) >> 16);
+		if (packet_len & RX_STS_ES_) {
+			LOG(ARCH,WARN,(ARCH,WARN,"SMSC95xxUSBDeviceDriver: RX packet header Error: %x",packet_len));
+			return cError;
+		}
+		// extract packet_len
+		packet_len = ((packet_len & RX_STS_FL_) >> 16);
 
-	LOG(ARCH,TRACE,(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: Packet received.. Packet-Len %x",packet_len));
+		LOG(ARCH,TRACE,(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: Packet received.. Packet-Len %x",packet_len));
 
-
-	if (packet_len > 1500) {
-		LOG(ARCH,WARN,(ARCH,WARN,"SMSC95xxUSBDeviceDriver: Length Validation failed: %d",packet_len));
-		return cError;
-	}
-
-	struct pbuf* ptBuf = pbuf_alloc(PBUF_RAW, packet_len+10, PBUF_RAM);
-	if (ptBuf != 0) {
-
-		memcpy(ptBuf->payload, &dev->endpoints[bulkin_ep].recv_buffer[4], packet_len );
-
-		// check if packet is complete
-		if (packet_len < recv_len)
-			ethernet_input(ptBuf,&tEMAC0Netif);
-		else {
-			LOG(ARCH,WARN,(ARCH,WARN,"SMSC95xxUSBDeviceDriver: Packet lost due to split transaction of USB packet.. (Len > max_packet_size)"));
+		if (packet_len > 1500) {
+			LOG(ARCH,WARN,(ARCH,WARN,"SMSC95xxUSBDeviceDriver: Length Validation failed: %d",packet_len));
+			return (cError);
 		}
 
-		pbuf_free(ptBuf);
+		// deliver packet to upper layer
+		struct pbuf* ptBuf = pbuf_alloc(PBUF_RAW, packet_len+10, PBUF_RAM);
+		if (ptBuf != 0) {
 
-	} else {
-		LOG(ARCH,ERROR,(ARCH,ERROR,"SMSC95xxUSBDeviceDriver: no memory for pbuf!"));
+			memcpy(ptBuf->payload, &dev->endpoints[bulkin_ep].recv_buffer[recvd_bytes+4], packet_len );
+
+			// check if packet is complete
+			if (packet_len < recv_len)
+				ethernet_input(ptBuf,&tEMAC0Netif);
+			else {
+				LOG(ARCH,WARN,(ARCH,WARN,"SMSC95xxUSBDeviceDriver: Packet lost due to split transaction of USB packet.. (Len > max_packet_size)"));
+			}
+
+			pbuf_free(ptBuf);
+
+		} else {
+			LOG(ARCH,ERROR,(ARCH,ERROR,"SMSC95xxUSBDeviceDriver: no memory for pbuf!"));
+		}
+
+		recvd_bytes += packet_len + 4;
 	}
 
-	return err;
+	return cOk;
 }
 
 
