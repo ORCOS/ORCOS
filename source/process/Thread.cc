@@ -277,11 +277,6 @@ void Thread::terminate() {
     this->status.clear();
     this->status.setBits( cTermFlag );
 
- /*   if ( this->owner->getThreadDB()->getSize() == 0 ) {
-        // no threads left. i was the last one. so we can safly delete the task.
-        delete this->owner;
-        this->owner = 0;
-    }*/
     // finally tell cpudispatcher that im gone..
     theOS->getCPUDispatcher()->terminate_thread( this );
 }

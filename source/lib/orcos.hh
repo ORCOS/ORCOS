@@ -24,6 +24,8 @@
 
 extern "C" int 		syscall (int syscallnumber, ...);
 
+extern "C" int      testandset(void* address, int testvalue, int setvalue);
+
 /**************************************
  *  Memory related system calls
  **************************************/

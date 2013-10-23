@@ -272,7 +272,7 @@ $(KERNEL_DIR)lib/%.o : $(KERNEL_DIR)lib/%.c SCLConfig.hh
 
 USERLIB_OBJS_ = static.o threads.o mem.o io.o string.o net.o Mutex.o pthread.o signal.o
 USERLIB_OBJS = $(addprefix $(KERNEL_DIR)lib/, $(USERLIB_OBJS_))
-USERLIB_OBJS += $(OUTPUT_DIR)syscall.o
+USERLIB_OBJS += $(OUTPUT_DIR)syscall.o $(OUTPUT_DIR)testandset.o 
 USERNEWLIB_OBJS_ = static.o libgloss.o
 USERNEWLIB_OBJS = $(addprefix $(KERNEL_DIR)lib/, $(USERNEWLIB_OBJS_))
 USERNEWLIB_OBJS += $(OUTPUT_DIR)syscall.o

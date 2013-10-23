@@ -60,7 +60,7 @@ public:
      * superflous DatabaseItem will be generated which results in a memory leak!
      */
     ErrorT enter( ScheduleableItem* item ) {
-        return this->enter( new LinkedListDatabaseItem( item ) );
+        return (this->enter( new LinkedListDatabaseItem( item ) ));
     }
 
     /*! \brief Method returning the amount of microseconds for next timer event.

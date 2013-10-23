@@ -50,7 +50,7 @@ private:
     int4 				m_locked;
 
     //! Stores a pointer to the thread currently locking this mutex.
-    Kernel_ThreadCfdCl* 		m_pThread;
+    Kernel_ThreadCfdCl* m_pThread;
 
     /*! \brief Is used to store unused LinkedList Database Items
      *
@@ -69,9 +69,7 @@ private:
     Resource* 			m_pRes;
 
     //! configurable member scheduler
-DEF_Kernel_SchedulerCfd
-    // With SCL configured Scheduler
-
+    DEF_Kernel_SchedulerCfd
 
 public    :
     //! Constructor, initializes m_locked to false, so the Mutex can be aquired, and initializes the scheduler.

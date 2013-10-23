@@ -30,11 +30,11 @@ ErrorT EarliestDeadlineFirstThreadScheduler::enter( LinkedListDatabaseItem* item
     if ( pRTThread->phase > 0 ) {
         pRTThread->sleep( pRTThread->phase, item );
         pRTThread->phase = 0;
-        return cOk;
+        return (cOk);
     }
 
     // enter Thread in the database in accordance with it's priority
-    return PriorityThreadScheduler::enter( item );
+    return (PriorityThreadScheduler::enter( item ));
 
 }
 
@@ -85,7 +85,7 @@ unint4 EarliestDeadlineFirstThreadScheduler::getNextTimerEvent( LinkedListDataba
 
     }
 
-    return sleeptime;
+    return (sleeptime);
 
 }
 

@@ -17,7 +17,8 @@ SECTIONS
  .CB 0x100000 : {
     LONG(0x230f7ae9);  /* ORCOS Task MAGIC value */
     LONG(0x0);		   /* no next header field, RTparams are mandatory */
-    
+    LONG(0x101);	   /* PLATFORM ARM, T BIT set*/
+      
     /* Task CB types.hh: struct taskTable */
     LONG(0x100000);   /* start address */
     LONG(task_main);  /* entry address */

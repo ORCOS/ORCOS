@@ -106,7 +106,7 @@ void RealTimeThread::terminate() {
 #if HAS_Kernel_LoggerCfd
         // check if we missed our deadline
         if(currentCycles > this->absoluteDeadline) {
-        	theOS->getLogger()->log(PROCESS,FATAL,"RealTimeThread ID %d failed deadline! cur_cyles: %d, deadline: %d, sleep: %d", this->getId(), (unint4) currentCycles, (unint4) this->absoluteDeadline, (unint4) sleepcycles);
+        	//theOS->getLogger()->log(PROCESS,FATAL,"RealTimeThread ID %d failed deadline! cur_cyles: %d, deadline: %d, sleep: %d", this->getId(), (unint4) currentCycles, (unint4) this->absoluteDeadline, (unint4) sleepcycles);
         	// omit serial console time for now .. this is not correct but good for debugging
         	currentCycles = theClock->getTimeSinceStartup();
         }
@@ -117,7 +117,7 @@ void RealTimeThread::terminate() {
         currentCycles = theClock->getTimeSinceStartup();
 #endif
         // set the new arrivaltime of this thread
-        this->arrivalTime += currentCycles + sleepcycles;
+        this->arrivalTime      = currentCycles + sleepcycles;
         this->absoluteDeadline = this->arrivalTime + this->relativeDeadline;
 
         // invoke the computePriority method of the scheduler

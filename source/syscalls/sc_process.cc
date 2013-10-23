@@ -194,8 +194,10 @@ int thread_createSyscall( int4 int_sp ) {
 
     VALIDATE_IN_PROCESS(attr);
     VALIDATE_IN_PROCESS(start_routine);
-    VALIDATE_IN_PROCESS(threadid);
-    VALIDATE_IN_PROCESS(arg);
+    if (threadid != 0)
+    	VALIDATE_IN_PROCESS(threadid);
+    if (arg != 0)
+    	VALIDATE_IN_PROCESS(arg);
 
     LOG(SYSCALLS,INFO,(SYSCALLS,INFO,"Syscall: thread_create(0x%x,0x%x,0x%x)",attr,start_routine,arg));
     LOG(SYSCALLS,INFO,(SYSCALLS,INFO,"Syscall: rel_deadline %d",attr->deadline));
@@ -359,7 +361,7 @@ int thread_self(int4 int_sp)
 {
 	LOG(SYSCALLS,TRACE,(SYSCALLS,TRACE,"Syscall: threadSelf()"));
 
-    return pCurrentRunningThread->getId();
+    return (pCurrentRunningThread->getId());
 }
 #endif
 
@@ -374,7 +376,7 @@ int thread_yield(int4 int_sp)
 {
     // dispatch directly
     theOS->getCPUDispatcher()->dispatch(theOS->getClock()->getTimeSinceStartup() - lastCycleStamp);
-    return cOk;
+    return (cOk);
 }
 #endif
 

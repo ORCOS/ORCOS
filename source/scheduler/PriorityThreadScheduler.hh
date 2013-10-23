@@ -49,7 +49,7 @@ public:
      * superflous DatabaseItem will be generated which results in a memory leak!
      */
     ErrorT enter( ScheduleableItem* item ) {
-        return this->enter( new LinkedListDatabaseItem( item ) );
+        return (this->enter( new LinkedListDatabaseItem( item ) ));
     }
 
     /*!

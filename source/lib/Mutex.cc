@@ -28,20 +28,22 @@ Mutex::~Mutex() {
 }
 
 ErrorT Mutex::acquire(int blocking) {
-    //TODO use test-and-set or similar
 
-    while ( counter == 0 ) {
-    	//printf("Mutex locked!\n");
+	// this actually implements a simple Mutex operation
+	// blocked threads will be activated on Mutex::release according to
+	// their priorities
+
+    while ( testandset(&counter,1,0) == 0 ) {
 
     	if (!blocking)
-    		return cError;
+    		return (cError);
 
         signal_wait( (void*) this, true );
     }
 
    counter = 0;
 
-   return cOk;
+   return (cOk);
 }
 
 ErrorT Mutex::release() {
@@ -50,5 +52,5 @@ ErrorT Mutex::release() {
 
     signal_signal( (void*) this, true );
 
-    return cOk;
+    return (cOk);
 }

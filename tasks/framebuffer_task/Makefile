@@ -34,7 +34,7 @@ GCC_VERSION=4.7.2
 GCC_LIB_DIR=C:/yagarto-20121222/lib/gcc/arm-none-eabi/$(GCC_VERSION)/thumb/
 
 AFLAGS =
-CFLAGS = -c -I$(KERNEL_LIB_DIR) -fno-exceptions -fno-rtti -O2
+CFLAGS = -c -I$(KERNEL_LIB_DIR) -fno-exceptions -fno-rtti -O2 -mthumb
 CPPFLAGS = $(CFLAGS) -g  
 	
 all: task.elf binary stack_usage

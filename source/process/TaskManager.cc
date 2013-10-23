@@ -194,7 +194,7 @@ void TaskManager::initialize() {
 }
 
 ErrorT TaskManager::removeTask(Task* task) {
-	if (task == 0) return cError;
+	if (task == 0) return (cError);
 
 	// mark the used pages as free
 	theOS->getRamManager()->freeAll(task->getId());
@@ -204,7 +204,7 @@ ErrorT TaskManager::removeTask(Task* task) {
 	// now remove all its threads from the scheduler
 	delete task;
 
-	return cOk;
+	return (cOk);
 }
 
 ErrorT TaskManager::loadTaskFromFile(File* file, TaskIdT& tid, char* arguments,unint2 arg_length) {

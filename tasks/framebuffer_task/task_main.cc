@@ -17,12 +17,14 @@
 */
 
 #include <orcos.hh>
+#include <string.hh>
 
 #define SCREEN_WIDTH 1024
 char* fb;
 
 unint4 fb_size = 0;
 
+#define FRAMEBUFFER_SIZE 1024 * 768 * 1 * 2
 
 void drawRect(int x, int y ,int width) {
 
@@ -55,20 +57,20 @@ static int val = 0;
 
 void* videomain(void* instance) {
 
-	int inst = val++;
+	val += 0x11301130;
 
 	//val = ~val;
 
-	printf("inst:%d\r",inst);
+	//printf("inst:%d\r",inst);
 
 	// fill the whole framebuffer
-	//memsetlong(fb, val, fb_size >> 2);
+	memsetlong(fb, val, FRAMEBUFFER_SIZE / 4 );
 }
 
 extern "C" int task_main()
 {
 	val = 0;
-	printf("Hello from Framebuffer Task! \r\n");
+	printf("Hello from Framebuffer Task!\r\n ");
 
 	unint4 fb_address = 0;
 
@@ -88,8 +90,8 @@ extern "C" int task_main()
 
 
 	thread_attr_t attr;
-	attr.deadline = 1000000;
-	attr.period = 1000000;
+	attr.deadline = 300000;
+	attr.period = 300000;
 	attr.executionTime = 0;
 	attr.phase = 0;
 	attr.stack_size = 2048;

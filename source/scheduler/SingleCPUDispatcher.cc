@@ -367,7 +367,8 @@ void SingleCPUDispatcher::terminate_thread( Thread* thread ) {
 #endif
 
         // TODO: maybe keep the thread as zombie
-        // delete thread;
+        if (thread->owner->getThreadDB()->getSize() == 0)
+        	theOS->getTaskManager()->removeTask(thread->owner);
 
         pRunningThreadDbItem = 0;
 

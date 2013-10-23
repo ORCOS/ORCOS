@@ -23,8 +23,8 @@
 #include "filesystem/File.hh"
 
 extern Kernel* theOS;
-extern Kernel_ThreadCfdCl*    pCurrentRunningThread;
-extern Task*           pCurrentRunningTask;
+extern Kernel_ThreadCfdCl* pCurrentRunningThread;
+extern Task*  pCurrentRunningTask;
 
 Mutex::Mutex() :
     m_locked( false ), m_pThread( 0 ), m_stoppedThreads(5), m_pRes(0) {
@@ -46,25 +46,25 @@ ErrorT Mutex::acquire( Resource* pRes, bool blocking ) {
 
     if (m_locked == false)
     {
-        m_locked = true;
         // successfully aquired mutex
-        m_pThread = pCallingThread;
-        m_pRes = pRes;
+        m_locked 	= true;
+        m_pThread 	= pCallingThread;
+        m_pRes 		= pRes;
         if ( m_pRes != 0) pCurrentRunningTask->aquiredResources.addTail( pRes );
 
-        // reset the file position
+        // reset the file position on newly acquired files
         if (m_pRes->getType() == cFile) ((File*) m_pRes)->resetPosition();
 
         #if ENABLE_NESTED_INTERRUPTS
             if ( int_enabled )  _enableInterrupts();
         #endif
 
-        return cOk;
+        return (cOk);
     }
     else
     {
-      if (!blocking) return cError;
-      // mutex already aquired by some other thread!
+      if (!blocking) return (cError);
+        // mutex already aquired by some other thread!
 
         // Implementation of the Priority Inheritance Protocol (PIP)
         // See if the newly arrived Thread has a higher priority than the thread currently locking the semaphore.
@@ -81,28 +81,25 @@ ErrorT Mutex::acquire( Resource* pRes, bool blocking ) {
 
         // enter thread into scheduler and reuse linkedlistdatabaseitems to avoid memory leaks!
         if ( m_unusedLinkedListDBItems.isEmpty() ) {
-                   getScheduler()->enter( pCallingThread );
-               }
-               // we have an unused LLDB item, so we reuse it instead of creating a new one
-               else {
-                   LinkedListDatabaseItem* newItem = m_unusedLinkedListDBItems.removeHead();
-                   newItem->setData( pCallingThread );
-                   getScheduler()->enter( newItem );
-               }
+		   getScheduler()->enter( pCallingThread );
+	   }
+	   else {
+		   // we have an unused LLDB item, so we reuse it instead of creating a new one
+		   LinkedListDatabaseItem* newItem = m_unusedLinkedListDBItems.removeHead();
+		   newItem->setData( pCallingThread );
+		   getScheduler()->enter( newItem );
+	   }
 
         // now block the calling thread!
-        // non returning function call!
         pCallingThread->pBlockedMutex = this;
         pCallingThread->block();
         // TODO: how to handle unblocked threads if this mutex is deleted?
         // they will get here and reference invalid memory locations!
 
-        return cOk;
-
-
+        return (cOk);
     }
 
-   return cError;
+   return (cError);
 }
 
 
@@ -114,15 +111,11 @@ ErrorT Mutex::release( ) {
     _disableInterrupts();
 #endif
 
-    // no need to check this .. handle syscall already checked it!
-//    if ( pCallingThread->getOwner() != m_pThread->getOwner() )
-//           return cError;
-
       // remove the resource from the acquired list of the owner task
       if ( m_pRes != 0 )
           pCurrentRunningTask->aquiredResources.removeItem( m_pRes );
 
-       LOG(SYNCHRO,TRACE,(SYNCHRO,TRACE,"Task released resource."));
+       LOG(SYNCHRO,TRACE,(SYNCHRO,TRACE,"Mutex 0x%x released",this));
 
 
 #ifdef HAS_PRIORITY
@@ -139,36 +132,35 @@ ErrorT Mutex::release( ) {
       while (next != 0) {
           pSchedulerThread = (Kernel_ThreadCfdCl*) next->getData();
           if ( pSchedulerThread->isStopped() ) m_stoppedThreads.addTail( pSchedulerThread );
-          else break;
+          else {
+        	  // available thread found
+			   m_unusedLinkedListDBItems.addHead(next);
+			   m_pThread = pSchedulerThread;
+			   pSchedulerThread->pBlockedMutex = 0;
+			   if ( m_pRes != 0) pSchedulerThread->getOwner()->aquiredResources.addTail( m_pRes );
+			   // reset the file position
+			   if (m_pRes->getType() == cFile) ((File*) m_pRes)->resetPosition();
+
+			   pSchedulerThread->unblock();
+
+				#if ENABLE_NESTED_INTERRUPTS
+					if ( int_enabled )  _enableInterrupts();
+				#endif
+			   return (cOk);
+          }
           next = (LinkedListDatabaseItem*) getScheduler()->getNext();
       }
-      if (next != 0)
-      {
-          // available thread found
-          m_unusedLinkedListDBItems.addHead(next);
-          m_pThread = pSchedulerThread;
-          pSchedulerThread->pBlockedMutex = 0;
-          if ( m_pRes != 0) pSchedulerThread->getOwner()->aquiredResources.addTail( m_pRes );
-          // reset the file position
-          if (m_pRes->getType() == cFile) ((File*) m_pRes)->resetPosition();
 
-          pSchedulerThread->unblock();
+    // no available thread to aquire the mutex
+    m_locked 	= false;
+    m_pThread = 0;
+    m_pRes 	= 0;
 
-      } else
+	#if ENABLE_NESTED_INTERRUPTS
+		if ( int_enabled )  _enableInterrupts();
+	#endif
 
-      {
-          // no available thread to aquire the mutex
-          m_locked = false;
-          m_pThread = 0;
-          m_pRes = 0;
-          return cOk;
-      }
-
-
-#if ENABLE_NESTED_INTERRUPTS
-    if ( int_enabled )  _enableInterrupts();
-#endif
-    return cOk;
+    return (cOk);
 
 }
 
@@ -179,8 +171,8 @@ void Mutex::threadResume( Kernel_ThreadCfdCl* pThread ) {
     if (!m_locked)
     {
         // directly aquire the resource now!
-        m_locked = true;
-        m_pThread = pThread;
+        m_locked 	= true;
+        m_pThread 	= pThread;
         pThread->pBlockedMutex = 0;
         if ( m_pRes != 0) pThread->getOwner()->aquiredResources.addTail( m_pRes );
 
@@ -193,14 +185,14 @@ void Mutex::threadResume( Kernel_ThreadCfdCl* pThread ) {
     {
         // enter thread into scheduler and reuse linkedlistdatabaseitems to avoid memory leaks!
        if ( m_unusedLinkedListDBItems.isEmpty() ) {
-                  getScheduler()->enter( pThread );
-              }
-              // we have an unused LLDB item, so we reuse it instead of creating a new one
-              else {
-                  LinkedListDatabaseItem* newItem = m_unusedLinkedListDBItems.removeHead();
-                  newItem->setData( pThread );
-                  getScheduler()->enter( newItem );
-              }
+		  getScheduler()->enter( pThread );
+	  }
+	  // we have an unused LLDB item, so we reuse it instead of creating a new one
+	  else {
+		  LinkedListDatabaseItem* newItem = m_unusedLinkedListDBItems.removeHead();
+		  newItem->setData( pThread );
+		  getScheduler()->enter( newItem );
+	  }
     }
 
 
