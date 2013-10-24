@@ -42,7 +42,7 @@ Platform Support:
 	- Ethernet
 	- Timer  + RT-Clock
 	- Serial
-=====	
+
 For further information have a look at the source directory or the auto-generated
 doxygen documentation.	
 	
