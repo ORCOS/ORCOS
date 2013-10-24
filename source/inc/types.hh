@@ -19,9 +19,18 @@
 #ifndef _TYPES_HH
 #define _TYPES_HH
 
+/*
+ * This file includes KERNEL ONLY Types. Place cross kernelspace types inside the user library types.h
+ */
+
+
+// include syscall library types
+#include "inc/types.h"
+
 //#include <archtypes.hh>
 #define MB * 0x100000
 #define KB * 0x400
+
 
 typedef unsigned int size_t;
 
@@ -37,7 +46,6 @@ typedef unsigned char unint1;
 typedef unsigned short unint2;
 typedef unsigned int unint4;
 typedef unsigned long long unint8;
-
 
 typedef int ErrorT;
 typedef unint2 EndianT;
@@ -195,16 +203,6 @@ typedef struct packet_layer {
 #define PLATFORM_X86        0x4
 
 
-//! Thread attribute structure for thread creation.
-typedef struct {
-    unint4 priority;
-    unint4 phase;
-    unint4 period;
-    unint4 deadline;
-    unint4 executionTime;
-    unint4 stack_size;
-} thread_attr_t;
-
 
 /*!
  * \brief Structure holding informations about the inital tasks.
@@ -248,6 +246,8 @@ typedef enum {
     cAnyNoDirectory = cStreamDevice | cCommDevice | cGenericDevice | cFile | cSocket | cUSBDriver | cBlockDevice | cSharedMem,
     cAnyResource 	= cStreamDevice | cCommDevice | cGenericDevice | cFile | cSocket | cUSBDriver | cDirectory | cBlockDevice | cSharedMem
 } ResourceType;
+
+
 
 #endif /* _TYPES_HH */
 

@@ -19,7 +19,7 @@
 // includes
 #include "RealTimeThread.hh"
 #include "kernel/Kernel.hh"
-#include "lib/defines.h"
+#include "inc/defines.h"
 #include "assembler.h"
 
 // Kernel definition, needed for clock

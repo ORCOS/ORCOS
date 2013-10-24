@@ -22,7 +22,7 @@
 #include "inc/types.hh"
 #include <SCLConfig.hh>
 
-#include "lib/defines.h"
+#include "inc/defines.h"
 #include "kernel/Kernel.hh"
 #include "filesystem/Resource.hh"
 #include "process/Task.hh"

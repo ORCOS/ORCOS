@@ -23,7 +23,7 @@
 #include "inc/const.hh"
 #include "hal/CommDeviceDriver.hh"
 #include "filesystem/Directory.hh"
-#include "lib/types.h"
+#include "inc/types.hh"
 
 class Socket;
 class TransportProtocol;

@@ -1,9 +1,0 @@
-cpu ac 1
-load AISDemoClient.elf
-load AISClient.elf
-ep 0x42004000
-cpu ac 0
-load AISDemoServer.elf
-load AISServer.elf
-ep 0x40004000
-tm both

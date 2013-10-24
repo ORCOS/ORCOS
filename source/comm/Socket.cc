@@ -22,7 +22,7 @@
 #include <assemblerFunctions.hh>
 #include <assembler.h>
 #include "inc/stringtools.hh"
-#include "lib/defines.h"
+#include "inc/defines.h"
 
 extern Kernel* theOS;
 

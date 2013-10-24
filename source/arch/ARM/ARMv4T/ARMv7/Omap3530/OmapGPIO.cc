@@ -8,7 +8,11 @@
 #include "OmapGPIO.hh"
 #include "inc/memio.h"
 #include "kernel/Kernel.hh"
-#include "lib/sys/gpio.h"
+
+
+// Keep consistent with sys/gpio.h defines
+#define IOCTL_GPIO_SET_DIR 0x0
+#define IOCTL_GPIO_GET_DIR 0x1
 
 extern Kernel* theOS;
 

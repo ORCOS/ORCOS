@@ -18,7 +18,7 @@
 
 #include "Directory.hh"
 #include "stringtools.hh"
-#include "lib/defines.h"
+#include "inc/defines.h"
 #include "memtools.hh"
 #include "filesystem/File.hh"
 #include "kernel/Kernel.hh"

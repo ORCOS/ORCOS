@@ -22,7 +22,7 @@
 #include "inc/types.hh"
 #include "inc/const.hh"
 #include "comm/AddressProtocol.hh"
-#include "lib/types.h"
+#include "inc/types.hh"
 
 class Socket;
 

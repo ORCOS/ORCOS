@@ -20,7 +20,7 @@
 #include <stdarg.h>
 #include <sprintf.hh>
 #include "kernel/Kernel.hh"
-#include "lib/defines.h"
+#include "inc/defines.h"
 #include "stringtools.hh"
 #include "memtools.hh"
 

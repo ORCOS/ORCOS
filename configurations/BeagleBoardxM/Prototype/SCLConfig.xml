@@ -23,7 +23,7 @@
       <Start>0x81100000</Start>
       <End>0x8117FFFF</End>
       <Heap>0x81177000</Heap>
-      <Path>./tasks/shell_task/</Path>
+      <Path>./tasks/telnet_server/</Path>
       <PriorityOptions>
         <InitialPriority>0</InitialPriority>
         <Phase>0</Phase>

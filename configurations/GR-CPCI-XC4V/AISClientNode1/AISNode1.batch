@@ -1,4 +1,0 @@
-load ../../../tasks/AISDemoClient/AISDemoClient.elf
-load ../AISClientNode1/output/kernel.elf
-ep 0x42004000
-stack 0x42ffffff

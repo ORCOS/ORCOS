@@ -32,12 +32,8 @@ KOBJ += tasktable.o __cxa_pure_virtual.o
 #protocols
 #KOBJ += ARP.o SimpleTransportProtocol.o SimpleAddressProtocol.o IPv4AddressProtocol.o UDP.o
 KOBJ += ProtocolPool.o TCPTransportProtocol.o IPv4AddressProtocol.o
-
-
 KOBJ += etharp.o ethernet.o ip.o init.o mem.o memp.o pbuf.o  netif.o udp.o tcp.o sys.o inet.o ip4_addr.o ip4.o ip4_frag.o tcp_in.o tcp_out.o stats.o icmp.o ip6_addr.o ip6.o
-
 KOBJ += icmp6.o ethar.o ethndp.o lwipTMR.o 
-
 KOBJ += WorkerThread.o WorkerTask.o SNServiceDiscovery.o crc32.o
 
 #bluetooth
@@ -104,6 +100,10 @@ VPATH = $(addprefix $(KERNEL_DIR), $(KERNEL_VPATH)) $(ARCH_VPATH) make/
 KERNEL_VPATH = db/ debug/ filesystem/ hal/ inc/ inc/newlib/ kernel/ robust/ mem/ process/ scheduler/ syscalls/ synchro/ comm/ migration/ comm/servicediscovery/ comm/lwip/core/ comm/lwip/core/ipv4/ comm/lwip/netif/ comm/lwip/arch/ comm/lwip/core/ipv6/ comm/hcibluetooth/ arch/shared/ arch/shared/usb
 #$(LWIP_VPATH) 
 
+#---------------------------------------------------------------------------------------------------------------------------------------
+#                                                      Pre-Build Checks
+#---------------------------------------------------------------------------------------------------------------------------------------
+
 check_defines:
 ifndef MODULES_DIR
 	$(error MODULES_DIR is undefined)
@@ -121,7 +121,7 @@ ifndef LINKERSCRIPT
 	$(error LINKERSCRIPT is undefined)
 endif
 ifndef KERNEL_LIB_DIR
-	$(error KERNEL_LIB_DIR is undefined)
+	$(error KERNEL_LIB_DIR is undefined. Needed for linking tasks.)
 endif
 ifndef KERNEL_DIR
 	$(error KERNEL_DIR is undefined)
@@ -133,6 +133,31 @@ check_dirs:
 	@if ! [ -e $(XMD_DIR) ]; then mkdir $(XMD_DIR); fi
 	@if ! [ -e $(BDI_DIR) ]; then mkdir $(BDI_DIR); fi	
 	@if ! [ -e $(MODULES_DIR) ]; then mkdir $(MODULES_DIR); fi
+
+checktools:
+	@echo
+	@if ! [ -e $(ARCH_DIR) ]; then echo "ERROR: ARCH_DIR does not exist!"; exit -1; fi
+	@if ! [ -e $(ARCH_DIR)/arch.mk ]; then echo "ERROR: no arch.mk found in $(ARCH_DIR)!"; exit -1; fi
+	@if ! [ -e $(KERNEL_LIB_DIR) ]; then echo "ERROR: KERNEL_LIB_DIR does not exist! $(KERNEL_LIB_DIR)"; exit -1; fi
+	@if ! [ -e $(KERNEL_DIR) ]; then echo "ERROR: KERNEL_DIR does not exist!"; exit -1; fi
+	@echo "----------------------------------"
+	@echo "     Checking for tools"
+	@echo "----------------------------------"
+	@if ! [ -e $(CC) ]; then { echo "C-Compiler (CC) $(CC) not found! Stopping!"; exit 1;} fi
+	@if ! [ -e $(CXX) ]; then { echo "C++-Compiler (CXX) $(CXX) not found! Stopping!"; exit 1;} fi
+	@if ! [ -e $(AS) ]; then { echo "Assembler (AS) $(AS) not found! Stopping!"; exit 1;} fi
+	@if ! [ -e $(AR) ]; then { echo "Archiver (AR) $(AR) not found! Stopping!"; exit 1;} fi
+	@if ! java -version >> /dev/null; then { echo "Java not found! Stopping!"; exit 1;} fi
+	@if ! [ -e $(OBJCOPY) ]; then { echo "Object-Copy (OBJCOPY) $(OBJCOPY) not found! Stopping!"; exit 1;} fi
+	@if ! [ -e $(GCC_LIB_DIR) ]; then { echo "GCC_LIB_DIR $(GCC_LIB_DIR) not found! Stopping!"; exit 1;} fi
+	@echo All tools installed...
+	@echo 
+	
+
+#---------------------------------------------------------------------------------------------------------------------------------------
+#                                                     Target: all
+#---------------------------------------------------------------------------------------------------------------------------------------
+
 
 all: check_dirs scl check_defines			
 # build all dependencies
@@ -152,31 +177,11 @@ all: check_dirs scl check_defines
 	@make -s uImage
 	@echo All done .. Images can be found inside the output directory..
 
-uImage: scl tasks $(OUTPUT_DIR)kernel.elf $(OUTPUT_DIR)kernel.bin
-	@echo "----------------------------------"
-	@echo "      Building the uImage"
-	@echo "----------------------------------"
-	/bin/bash $(RELATIVE_SOURCE_PATH)/source/uImage.sh $(UIMAGE_ARCH)
 
-checktools:
-	@echo
-	@if ! [ -e $(ARCH_DIR) ]; then echo "ERROR: ARCH_DIR does not exist!"; exit -1; fi
-	@if ! [ -e $(ARCH_DIR)/arch.mk ]; then echo "ERROR: no arch.mk found in $(ARCH_DIR)!"; exit -1; fi
-	@if ! [ -e $(KERNEL_LIB_DIR) ]; then echo "ERROR: KERNEL_LIB_DIR does not exist!"; exit -1; fi
-	@if ! [ -e $(KERNEL_DIR) ]; then echo "ERROR: KERNEL_DIR does not exist!"; exit -1; fi
-	@echo "----------------------------------"
-	@echo "     Checking for tools"
-	@echo "----------------------------------"
-	@if ! [ -e $(CC) ]; then { echo "C-Compiler (CC) $(CC) not found! Stopping!"; exit 1;} fi
-	@if ! [ -e $(CXX) ]; then { echo "C++-Compiler (CXX) $(CXX) not found! Stopping!"; exit 1;} fi
-	@if ! [ -e $(AS) ]; then { echo "Assembler (AS) $(AS) not found! Stopping!"; exit 1;} fi
-	@if ! [ -e $(AR) ]; then { echo "Archiver (AR) $(AR) not found! Stopping!"; exit 1;} fi
-	@if ! java -version >> /dev/null; then { echo "Java not found! Stopping!"; exit 1;} fi
-	@if ! [ -e $(OBJCOPY) ]; then { echo "Object-Copy (OBJCOPY) $(OBJCOPY) not found! Stopping!"; exit 1;} fi
-	@if ! [ -e $(GCC_LIB_DIR) ]; then { echo "GCC_LIB_DIR $(GCC_LIB_DIR) not found! Stopping!"; exit 1;} fi
-	@echo All tools installed...
-	@echo 
-	
+#---------------------------------------------------------------------------------------------------------------------------------------
+#                        Target: cleane 
+#---------------------------------------------------------------------------------------------------------------------------------------
+
 clean: tasks_clean
 	@echo "----------------------------------"
 	@echo "     Cleaning Kernel"
@@ -201,6 +206,22 @@ ifdef KERNEL_DIR
 	$(RM) $(KERNEL_DIR)lib/*.o $(KERNEL_DIR)lib/*.a
 endif
 	@for i in $(TASKS); do rm -f $$i/task.sed; done
+
+#---------------------------------------------------------------------------------------------------------------------------------------
+#                        Target: uImage : Create UBOOT compatible boot image 
+#---------------------------------------------------------------------------------------------------------------------------------------
+
+
+uImage: scl tasks $(OUTPUT_DIR)kernel.elf $(OUTPUT_DIR)kernel.bin
+	@echo "----------------------------------"
+	@echo "      Building the uImage"
+	@echo "----------------------------------"
+	/bin/bash $(RELATIVE_SOURCE_PATH)/source/uImage.sh $(UIMAGE_ARCH)
+
+
+#---------------------------------------------------------------------------------------------------------------------------------------
+#                         				Compile rules
+#---------------------------------------------------------------------------------------------------------------------------------------
 
 # Assemble: create object files from assembler source files. 
 $(OUTPUT_DIR)%.o : %.S SCLConfig.hh
@@ -246,9 +267,6 @@ $(OUTPUT_DIR)%.o : %.c SCLConfig.hh
 	@echo kernel.mk[C]   : Compiling  $@
 	@$(CC) -c $(CFLAGS) $(OPT_FLAGS)  $< --output $@
 
-$(OUTPUT_DIR)syscall.o : syscall.S SCLConfig.hh
-	@echo Syscall  : Compiling  $@
-	@$(CC) -c $(CPFLAGS) $(USER_LIB_OPT_FLAGS)  $< --output $@
 
 # Create static library of the OS so the linker only links the 
 # really used classes into the binary
@@ -258,50 +276,15 @@ $(OUTPUT_DIR)liborcoskernel.a : $(OBJ)
 	@$(RM) $(OUTPUT_DIR)liborcoskernel.a
 	@$(AR) qc $(OUTPUT_DIR)liborcoskernel.a $(OBJ)
 
-#rule for compiling the user orcos library
-$(KERNEL_DIR)lib/%.o : $(KERNEL_DIR)lib/%.cc SCLConfig.hh
-	@echo Compiling the user library: $@
-# be sure to use optimization for the library otherwise syscalls wont work!
-	@$(CXX) $(CPFLAGS) $(USER_LIB_OPT_FLAGS) $< --output $@
-
-#rule for compiling the user orcos library
-$(KERNEL_DIR)lib/%.o : $(KERNEL_DIR)lib/%.c SCLConfig.hh
-	@echo Compiling the user library: $@
-# be sure to use optimization for the library otherwise syscalls wont work!
-	@$(CC) $(CFLAGS) $(USER_LIB_OPT_FLAGS) $< --output $@
-
-USERLIB_OBJS_ = static.o threads.o mem.o io.o string.o net.o Mutex.o pthread.o signal.o
-USERLIB_OBJS = $(addprefix $(KERNEL_DIR)lib/, $(USERLIB_OBJS_))
-USERLIB_OBJS += $(OUTPUT_DIR)syscall.o $(OUTPUT_DIR)testandset.o 
-USERNEWLIB_OBJS_ = static.o libgloss.o
-USERNEWLIB_OBJS = $(addprefix $(KERNEL_DIR)lib/, $(USERNEWLIB_OBJS_))
-USERNEWLIB_OBJS += $(OUTPUT_DIR)syscall.o
-
-#Make liborcos.a
-$(KERNEL_DIR)lib/liborcos.a: $(USERLIB_OBJS)
-	@echo "----------------------------------"
-	@echo "     Building the User Library"
-	@echo "----------------------------------"
-	@make -s $(USERLIB_OBJS)
-	@echo Archiving the user library into liborcos.a
-	@$(AR) qc $@ $(USERLIB_OBJS)
-	@echo 
-
-$(KERNEL_DIR)lib/liborcos_newlib.a: $(USERNEWLIB_OBJS)
-	@echo "------------------------------------"
-	@echo "Building the User Library for newlib"
-	@echo "------------------------------------"
-	@make -s $(USERNEWLIB_OBJS)
-	@echo Archiving the user library into liborcos_newlib.a
-	@$(AR) rc $@ $(USERNEWLIB_OBJS)
-	@echo
 
 modules: $(MODULES)
 	@echo Modules build..
 
-lib:
-	@if ! [ -e $(OUTPUT_DIR) ]; then mkdir $(OUTPUT_DIR); fi 
-	@make -s scl $(KERNEL_DIR)lib/liborcos.a $(KERNEL_DIR)lib/liborcos_newlib.a
+
+#---------------------------------------------------------------------------------------------------------------------------------------
+#                         				Kernel Linking 
+#---------------------------------------------------------------------------------------------------------------------------------------
+
 
 #final linking rule		
 $(OUTPUT_DIR)kernel.elf: output/_startup.o output/tasktable.o $(OUTPUT_DIR)liborcoskernel.a 
@@ -310,6 +293,10 @@ $(OUTPUT_DIR)kernel.elf: output/_startup.o output/tasktable.o $(OUTPUT_DIR)libor
 	$(LD) -L$(OUTPUT_DIR) output/_startup.o output/tasktable.o -lorcoskernel  $(LDFLAGS) 
 	$(OBJDUMP) -h $(OUTPUT_DIR)kernel.elf > $(OUTPUT_DIR)kernel.sections
 #no libc (-lc) linking since this increases the memory footprint by about 660 bytes
+
+#---------------------------------------------------------------------------------------------------------------------------------------
+#                         				Other rules 
+#---------------------------------------------------------------------------------------------------------------------------------------
 
 #rule for creation of the configuration header file	
 scl: SCLConfig.hh
@@ -322,7 +309,13 @@ $(OUTPUT_DIR)kernel.bin: $(OUTPUT_DIR)kernel.elf
 
 binary: $(OUTPUT_DIR)kernel.bin
 
-tasks: scl lib
+#---------------------------------------------------------------------------------------------------------------------------------------
+#                         				Initial Tasks Make rules 
+#
+# Tasks build here will be contained inside the uImage boot image and started directly after startup
+#---------------------------------------------------------------------------------------------------------------------------------------
+
+tasks: scl 
 	@echo "----------------------------------"
 	@echo "     Building Tasks"
 	@echo "----------------------------------"
@@ -334,56 +327,3 @@ tasks_clean:
 	@echo "----------------------------------"
 	@for i in $(TASKS); do echo Cleaning $$i; make -s -C $$i TASK_DIR="$$i" clean; done
 
-
-bdilocal: all tasks_clean tasks
-	@echo "----------------------------------"
-	@echo "     Loading to Target BDI"
-	@echo "----------------------------------"
-	@python $(BDICOMMAND) $(BDIADRESS) $(BDIPORT) "reset"
-	@sleep 1
-# first copy and load the tasks
-	@for i in $(TASKS); do make -s -C $$i bdilocal BDICOMMAND=$(BDICOMMAND) BDIADRESS=$(BDIADRESS) BDIPORT=$(BDIPORT) BDI_DIR=$(BDI_DIR); done
-# now copy and load the kernel
-	@echo Loading Kernel to BDI Target
-	$(RM) $(BDI_DIR)/kernel.elf
-	$(CP) $(OUTPUT_DIR)/kernel.elf $(BDI_DIR)/kernel.elf
-	@python $(BDICOMMAND) $(BDIADRESS) $(BDIPORT) "load" "load kernel.elf"
-	
-bdi: all tasks
-	@echo "----------------------------------"
-	@echo "     Copying to Target BDI"
-	@echo "----------------------------------"
-# first copy and load the tasks
-	@echo $(TASKS)
-	@for i in $(TASKS); do cp $$i/*.elf $(BDI_DIR)/; done
-# now copy and load the kernel
-	@echo Copying Kernel to BDI directory
-	$(CP) $(OUTPUT_DIR)/kernel.elf $(BDI_DIR)/
-	#$(CP) $(OUTPUT_DIR)/kernel.bin $(BDI_DIR)/
-	$(CP) $(BDI_CONFIG) $(BDI_DIR)/
-	$(CP) $(BDI_REGDEF) $(BDI_DIR)/	
-
-
-xmdlocal: all tasks_clean tasks
-	@echo "----------------------------------"
-	@echo "     Copying to Target XMD"
-	@echo "----------------------------------"
-# first copy and load the tasks
-	@for i in $(TASKS); do make -s -C $$i xmdlocal XMD_DIR=$(XMD_DIR); done
-# now copy and load the kernel
-	@echo Copying Kernel to XMD directory
-	$(RM) $(XMD_DIR)/kernel.elf
-	$(CP) $(OUTPUT_DIR)/kernel.elf $(XMD_DIR)/kernel.elf
-	$(CP) xmd.ini $(XMD_DIR)/xmd.ini	
-	
-xmd: all tasks
-	@echo "----------------------------------"
-	@echo "     Copying to Target XMD"
-	@echo "----------------------------------"
-# first copy and load the tasks
-	@for i in $(TASKS); do make -s -C $$i xmd XMD_DIR=$(CWD)/$(XMD_DIR); done
-# now copy and load the kernel
-	@echo Copying Kernel to XMD directory
-	$(CP) $(OUTPUT_DIR)/kernel.elf $(XMD_DIR)/
-#$(CP) $(OUTPUT_DIR)/kernel.bin $(XMD_DIR)/
-	$(CP) xmd.ini $(XMD_DIR)/

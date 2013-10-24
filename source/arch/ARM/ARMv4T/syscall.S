@@ -10,8 +10,6 @@
 
 #define _ASSEMBLER
 
-#include "SCLConfig.hh"
-#include "ARMv4T.h"
 #include "assembler.h"
 
 .code 32

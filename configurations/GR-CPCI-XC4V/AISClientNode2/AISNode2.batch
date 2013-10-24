@@ -1,3 +1,0 @@
-load ../AISClientNode2/output/kernel.elf
-ep 0x44004000
-stack 0x44ffffff

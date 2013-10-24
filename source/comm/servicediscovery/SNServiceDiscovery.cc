@@ -17,7 +17,7 @@
  */
 
 #include "kernel/Kernel.hh"
-#include "lib/defines.h"
+#include "inc/defines.h"
 #include "inc/stringtools.hh"
 #include "inc/memtools.hh"
 #include "SNServiceDiscovery.hh"

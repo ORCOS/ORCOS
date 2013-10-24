@@ -22,7 +22,7 @@
 #include "inc/types.hh"
 #include "inc/const.hh"
 #include "filesystem/Directory.hh"
-#include "lib/types.h"
+
 
 /*!
  * \brief The ServiceDiscovery Base Class.

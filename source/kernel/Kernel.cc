@@ -18,7 +18,7 @@
 
 #include "Kernel.hh"
 #include "inc/sprintf.hh"
-#include "lib/defines.h"
+#include "inc/defines.h"
 #include "lwip/netif.h"
 
 #define LINEFEED "\r"
