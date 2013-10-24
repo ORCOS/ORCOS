@@ -22,9 +22,9 @@ Features:
 	- SMSC USB Ethernet Support (BeagleBoardxM Ethernet Port)
 - Full Virtual Memory Support for PPC405 and ARMv7
 - Filesystem Support:
-		- DOS MBR Partitions supported
-		- EFI Partitions in development
-		- FAT16 Read / FAT32 Read/Write 
+	- DOS MBR Partitions supported
+	- EFI Partitions in development
+	- FAT16 Read / FAT32 Read/Write 
 
 Platform Support:	
 	
@@ -38,11 +38,11 @@ Platform Support:
 	- MMC/SD 
 	- TWL4030 Power Control
 
-RAPTOR:
+- RAPTOR:
 	- Ethernet
 	- Timer  + RT-Clock
 	- Serial
-	
+=====	
 For further information have a look at the source directory or the auto-generated
 doxygen documentation.	
 	
