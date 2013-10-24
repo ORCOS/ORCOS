@@ -21,7 +21,10 @@ Features:
 	- SCSI USB Mass Storage Device Class Support
 	- SMSC USB Ethernet Support (BeagleBoardxM Ethernet Port)
 - Full Virtual Memory Support for PPC405 and ARMv7
-	
+- Filesystem Support:
+		- DOS MBR Partitions supported
+		- EFI Partitions in development
+		- FAT16 Read / FAT32 Read/Write 
 
 Platform Support:	
 	
