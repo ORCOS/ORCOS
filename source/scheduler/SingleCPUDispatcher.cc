@@ -37,6 +37,8 @@ Kernel_SchedulerCfdCl* theScheduler;
 Kernel_ThreadCfdCl*    pCurrentRunningThread = 0;
 Task*           pCurrentRunningTask = 0;
 unint8          lastCycleStamp = 0;
+bool			processChanged = true;
+
 
 SingleCPUDispatcher::SingleCPUDispatcher() :
     blockedList( new LinkedListDatabase ), sleepList( new LinkedListDatabase ), waitList( new LinkedListDatabase ) {
@@ -76,6 +78,8 @@ void SingleCPUDispatcher::dispatch( unint4 dt ) {
 
      // set the time stamp
     lastCycleStamp = theClock->getTimeSinceStartup();
+    // indicate a process change
+    processChanged = true;
 
     if ( nextThreadDbItem != 0 ) {
         pCurrentRunningThread = (Kernel_ThreadCfdCl*) nextThreadDbItem->getData();

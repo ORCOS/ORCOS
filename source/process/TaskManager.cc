@@ -173,15 +173,13 @@ void TaskManager::initialize() {
 		   theOS->getRamManager()->markAsUsed((unint4) task_info,task_end,tid);
 
 		   // create the vm map for the task! protection = 7 = RWX, ZoneSelect = 3
-		   theOS->getHatLayer()->map((void*) LOG_TASK_SPACE_START,(void*) task_info, size ,7,3,tid, !ICACHE_ENABLE);
-		   // now since the task is mapped activate its virtual memory map by setting the pid
-		   //theOS->getHatLayer()->dumpPageTable(tid);
-		   SETPID(tid);
+		   theOS->getHatLayer()->map((void*) LOG_TASK_SPACE_START,(void*) task_info, size ,7,3,tid, false);
+		   theOS->getHatLayer()->map((void*) LOG_TASK_SPACE_START,(void*) task_info, size ,7,0,0, true);
 
 		   if (checkValidTask((taskTable*) LOG_TASK_SPACE_START) != cOk) {
 				LOG(KERNEL,ERROR,(KERNEL,ERROR,"Task invalid.. dropping"));
-				theOS->getHatLayer()->unmap((void*) LOG_TASK_SPACE_START);
-				SETPID(0);
+				theOS->getHatLayer()->unmap((void*) LOG_TASK_SPACE_START,0);
+				//SETPID(0);
 				continue;
 			}
 
@@ -205,7 +203,8 @@ void TaskManager::initialize() {
 
 
 	#ifdef HAS_Board_HatLayerCfd
-		SETPID(0);
+		//SETPID(0);
+		theOS->getHatLayer()->unmap((void*) LOG_TASK_SPACE_START,0);
 	#endif
 	}
 

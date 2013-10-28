@@ -67,8 +67,11 @@ FUNC_START(startORCOS)
 	BIC r1, r1, #0x1;
 	MCR p15, 0, r1, c1, c0, 0; // disabled
 
-	// disable instruction and data cache here
-	// we may enable them later on again
+
+	MRC	p15, 0, r0, c1, c0, 0	// read Control Register
+	MOV	r1, #0x800				// load enable branch prediction
+	ORR	r1, r0, r1				// enable bit
+	MCR p15, 0, r1, c1, c0, 0	// write Control Register
 
 // Instruction cache
 #ifndef ICACHE_ENABLE
@@ -212,7 +215,23 @@ loopSBSS:
 doneSBSS:
 
 
+	// enable user access to performance counter
+	MOV r0,#1
+	MCR p15, 0, r0, C9, C14, 0
 
+	// disable overflow interrupts
+	MOV r0,#0x8000000f
+	MCR p15, 0, r0, C9, C14, 2
+
+	// program the performance-counter control-register:
+	MOV r0,#1
+    MCR p15, 0, r0, c9, c12, 0
+
+	// enable all counters:
+	MOV r0,#0x8000000f
+    MCR p15, 0, r0, c9, c12, 1
+    // clear overflows
+    MCR p15, 0, r0, c9, c12, 3
 
 
 // Set system (supervisor mode) stack pointer.

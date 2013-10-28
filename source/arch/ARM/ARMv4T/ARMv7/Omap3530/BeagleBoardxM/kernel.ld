@@ -83,7 +83,7 @@ SECTIONS
   /* first the text section */
   .text      .	  :
   {
-    *(.text .text._Z*)
+    *(.text)
     *(.text.*)
   } 
 
@@ -94,7 +94,7 @@ SECTIONS
   	{
   	PROVIDE(_data_start = .);
   	 
-  	*(.rodata) *(.rodata.str*) *(.rodata._Z*)
+  	*(.rodata.*) *(.rodata.str*) *(.rodata._Z*)
   	
   	/* write the tasktable into memory */
 	
@@ -105,7 +105,8 @@ SECTIONS
   .data	 ALIGN(4) :
   {
   	PROVIDE(_data_start_data = .);
-    *(.data*)
+    *(.data)
+    *(.data.*)
     *(.sdata)
     *(.ctors)
   } 
@@ -123,6 +124,7 @@ SECTIONS
   .bss  .  :
   {
     *(.bss)        
+    *(.bss.*)
   }  
   . = ALIGN(4);
   PROVIDE (__bss_end = .);

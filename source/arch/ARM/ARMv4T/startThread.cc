@@ -23,7 +23,7 @@
 #include "memtools.hh"
 
 extern Kernel* theOS;
-
+extern bool	   processChanged;
 extern void* __PageTableSec_start;
 extern void* __stack;
 void startThread( Thread* thread )  __attribute__((noreturn));
@@ -46,7 +46,7 @@ void startThread( register Thread* thread ) {
     register void* returnaddr = thread->getExitRoutinePointer();
     register void* arguments = thread->getStartArguments();
     register void* ptStartAddr = 0;
-
+    processChanged = false;
 
     ASSERT(addr);
     ASSERT(returnaddr);

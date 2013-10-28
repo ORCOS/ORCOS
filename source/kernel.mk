@@ -289,10 +289,11 @@ modules: $(MODULES)
 #final linking rule		
 $(OUTPUT_DIR)kernel.elf: output/_startup.o output/tasktable.o $(OUTPUT_DIR)liborcoskernel.a 
 	@echo
-	@echo kernel.mk[LD] : Linking $@
+	@echo kernel.mk[LD] : Linking $@	
 	$(LD) -L$(OUTPUT_DIR) output/_startup.o output/tasktable.o -lorcoskernel  $(LDFLAGS) 
 	$(OBJDUMP) -h $(OUTPUT_DIR)kernel.elf > $(OUTPUT_DIR)kernel.sections
 #no libc (-lc) linking since this increases the memory footprint by about 660 bytes
+# in order to use --gc-sections we need to be sure to always include interrupt vectors a.s.o
 
 #---------------------------------------------------------------------------------------------------------------------------------------
 #                         				Other rules 

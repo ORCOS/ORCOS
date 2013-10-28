@@ -114,7 +114,7 @@ void ARMv7HatLayer::mapKernel(BitmapT protection, int pid, bool nonGlobal) {
 	// TODO: this is architecture specific!
 	// get the values from the arch mk file!
 	// map page containing OMAP3630 ROM vectors
-	this->createPT( (void*) 0x0, (void*) 0x0, 0xFFFFF, protection, 0, pid, true,  nonGlobal);
+	this->createPT( (void*) 0x0, (void*) 0x0, 0xFFFFF, protection, 0, pid, !ICACHE_ENABLE,  nonGlobal);
 
 	// Just map first MB 1:1 starting at 0x80000000. Kernel text and data and interrupt routines lying here (see linker script)
 	this->createPT( (void*) &__LOADADDRESS, (void*) &__LOADADDRESS, (unint4 ) &__KERNELEND - (unint4) &__LOADADDRESS, protection, 0, pid, true, nonGlobal );
@@ -175,6 +175,17 @@ void* ARMv7HatLayer::createPT(void* logBaseAddr, void* physBaseAddr, size_t size
     pte.setDomain(0);
 	pte.setType( ptTypeSection );
 	pte.setBaseAddr(ptTypeSection, physBaseAddr);
+
+	if (!cache_inhibit) {
+		// cache not completly functional this way ...
+		// process change causes data aborts.. need to further investigate
+		// if data cache needs to be flushed ..
+		// set l2 cache to write-back, write allocate
+		/*pte.setTex(0x5);
+		// set l1 cache to write-back, write allocate
+		pte.setCBit(0);
+		pte.setBBit(1);*/
+	}
 
 	// write descriptor to page table in memory (index depending on logBaseAddr)
 	// TODO make page table placement by the OS and get the address by task->getPageTable() method
@@ -307,6 +318,10 @@ ErrorT ARMv7HatLayer::enableHAT() {
 		"MOV r1, #0x1;"					// only activate domain 0
 		"MCR p15, 0, r1, c3, c0, 0 ;"	// Write Domain Access Control Register
 
+		"MOV r0, #0;"
+		"MCR p15, 0, r0, c8, c5, 0;" // Invalidate Inst-TLB
+		"MCR p15, 0, r0, c8, c6, 0;" // Invalidate Data-TLB
+
 		"MRC p15, 0, r1, c1, c0, 0;"	// read CP15 Register 1
 		"ORR r1, r1, #0x1;"
 		"MCR p15, 0, r1, c1, c0, 0;"	// enable MMUs
@@ -335,9 +350,9 @@ ErrorT ARMv7HatLayer::disableHAT() {
 		"BIC r1, r1, #0x1;"
 		"MCR p15, 0, r1, c1, c0, 0;" // disabled
 
-			"add r0, pc,#1;"
-					"bx  r0;"
-					".code 16;"
+		"add r0, pc,#1;"
+		"bx  r0;"
+		".code 16;"
 		:
 		:
 		: "r0","r1"
@@ -430,7 +445,7 @@ void ARMv7HatLayer::initialize() {
 
     // program relevant CP15 registers
     // Control register: set data and instruction cache
-    asm volatile(
+  /*  asm volatile(
     		".align 4;"
 			"mov    r0,pc;"
 			"bx     r0;"
@@ -454,7 +469,7 @@ void ARMv7HatLayer::initialize() {
     		:
     		: "r" (ICACHE_ENABLE), "r" (DCACHE_ENABLE)
     		: "r0", "r1"
-    		);
+    		);*/
 
 	// invalidate TLB
     //ARMv7MMU::invalidate();

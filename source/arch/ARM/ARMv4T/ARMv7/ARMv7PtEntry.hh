@@ -72,11 +72,13 @@ public:
 		ptL1Descriptor.clearBits( 0x1E0 );
 		ptL1Descriptor.setBits( dom << 5);
 	}
-	void setCBit(){
-
+	void setCBit(int value){
+		ptL1Descriptor.clearBits( 1 << 3 );
+		ptL1Descriptor.setBits( (value & 0x1) << 3);
 	}
-	void setBBit(){
-
+	void setBBit(int value){
+		ptL1Descriptor.clearBits( 1 << 2 );
+		ptL1Descriptor.setBits( (value & 0x1) << 2);
 	}
 	void setSBit(){
 
@@ -88,8 +90,9 @@ public:
 	void setNSBit(){
 
 	}
-	void setTex(){
-
+	void setTex(int value){
+		ptL1Descriptor.clearBits( 0x7 << 12);
+		ptL1Descriptor.setBits( (value & 0x7) << 12);
 	}
 	void setAP(Bitmap permission){
 		ptL1Descriptor.clearBits( 0xC00 );

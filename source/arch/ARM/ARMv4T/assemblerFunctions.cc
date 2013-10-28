@@ -28,7 +28,7 @@
 extern Kernel* theOS;
 extern "C" void restoreContext(Thread*  t)  __attribute__((noreturn));
 extern "C" void dumpContext(void* sp_context);
-
+extern bool	processChanged;
 /*!
  * Restores the context of a given thread saved at sp.
  *
@@ -63,6 +63,23 @@ extern "C" void restoreContext(Thread*  t)
     }
 
     TaskIdT pid = t->getOwner()->getId();
+
+    // if the process changed we MUST invalidate the instruction cache as we do not have
+    // support for fast context switching extension yet
+    if (processChanged) {
+    	LOG(HAL,TRACE,(HAL,TRACE,"flushing instruction cache!"));
+    	asm volatile(
+			"MOV r0, 0;"
+    		"MCR p15, 0, r0, c7 , c5, 0;" 	// invalidate whole instruction cache
+			:
+			:
+			: "r0"
+    		);
+    }
+
+    // indicate no process change from now on until
+    // we really dispatch to avoid instruction cache to be flushed again
+    processChanged = false;
 
     LOG(HAL,DEBUG,(HAL,DEBUG,"Restore Context: t: %x, sp@ 0x%x, mode:%d" , t,sp, mode));
 
@@ -101,7 +118,6 @@ extern "C" void restoreContext(Thread*  t)
 		"MCR p15, 0, %1, c2, c0, 0;"	// set TBBR0
 		"MCR p15, 0, r2, c7, c5, 4;"	// Ensure completion of the CP15 write (ISB not working)
 
-		"MCR p15, 0, r0, c7 , c5, 0;" // invalidate whole instruction cache
 #endif
 
 		//"bl  dumpContext;"
