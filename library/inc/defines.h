@@ -20,6 +20,10 @@
 #define cSimpleAddressProtocol      55555
 #define cUDP      					17
 
+
+// wait for task to finish?
+#define cWait						1
+
 //-----------------------------------------------------
 // Error Messages
 //-----------------------------------------------------
@@ -94,6 +98,7 @@
 #define cTask_KillSysCallId		32
 #define cShmMapId				33
 
+#define cThread_WaitPID			34
 
 #define ErrorToString(s) #s
 

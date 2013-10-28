@@ -52,11 +52,26 @@ Task* TaskManager::getTask( int taskId ) {
     for ( LinkedListDatabaseItem* lldi = this->taskDatabase->getHead(); lldi != 0; lldi = lldi->getSucc() ) {
         Task* task = (Task*) lldi->getData();
         if ( task->getId() == taskId ) {
-            return task;
+            return (task);
         }
     }
 
-    return 0;
+    return (0);
+}
+
+ErrorT handleTaskHeader(taskTable* taskCB, void* &taskHead, unint4 &nextHeader) {
+	if (nextHeader == TASK_CB_CRC32) {
+		taskCRCHeader* crcHeader = (taskCRCHeader*) taskHead;
+
+		unint4 crc = crc32((char*) taskCB->task_start_addr,taskCB->task_data_end- taskCB->task_start_addr);
+		if (crc != crcHeader->taskCRC32) return (cTaskCRCFailed);
+
+		taskHead = crcHeader++;
+		nextHeader = crcHeader->next_header;
+		return (cOk);
+	}
+
+	return (cInvalidCBHeader);
 }
 
 
@@ -90,10 +105,15 @@ ErrorT TaskManager::checkValidTask(taskTable* taskCB) {
 		}
 	#endif
 
+	unint4 nextHeader = taskCB->task_next_header;
+	void* taskHeader = ++taskCB;
+	while (nextHeader != 0) {
+		ErrorT ret = handleTaskHeader(taskCB,taskHeader,nextHeader);
+		if (isError(ret)) return (ret);
+	}
 
-	//TODO: check for crc header field and check crc value
 
-	return cOk;
+	return (cOk);
 
 }
 
@@ -196,11 +216,15 @@ void TaskManager::initialize() {
 ErrorT TaskManager::removeTask(Task* task) {
 	if (task == 0) return (cError);
 
+	LOG(KERNEL,INFO,(KERNEL,INFO,"TaskManager::removeTask: removing task"));
+
 	// mark the used pages as free
 	theOS->getRamManager()->freeAll(task->getId());
 
 	task->terminate();
+	theOS->getCPUDispatcher()->signal(task,task->exitValue);
 
+	LOG(KERNEL,TRACE,(KERNEL,TRACE,"TaskManager::removeTask: deleting task"));
 	// now remove all its threads from the scheduler
 	delete task;
 
@@ -250,9 +274,6 @@ ErrorT TaskManager::loadTaskFromFile(File* file, TaskIdT& tid, char* arguments,u
 		return error;
 	}
 
-	unint4 crc = crc32((char*) task_start, (size_t)size);
-
-	LOG(KERNEL,INFO,(KERNEL,INFO,"TaskManager::loadTaskFromFile: Task CRC32: 0x%x",crc));
 
 	error = this->checkValidTask((taskTable*) task_start);
 	if (error < 0) {

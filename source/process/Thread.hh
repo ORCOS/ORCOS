@@ -94,6 +94,9 @@ public:
     //! Pointer to some arbitrary associated data
     void* pArg;
 
+    //! The current return value of a system call or blockin operation with return value
+    void* returnValue;
+
 private:
 
     //! The Mutex we are currently blocked by
@@ -270,10 +273,6 @@ public:
      */
     void block();
 
-
-
-
-
     /*!
      * \brief Unblocks the thread that has been waiting on a resource.
      */
@@ -296,6 +295,13 @@ public:
      * if this is the last thread of a task.
      */
     void terminate();
+
+    /*!
+     * Sets the return value of this thread.
+     */
+    void setReturnValue(void* ret) {
+    	returnValue = ret;
+    }
 
     /*!
      * \brief Calling this method will setup the thread for first time execution and

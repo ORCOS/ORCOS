@@ -109,9 +109,20 @@ public:
      */
     void unblock(Thread* thread);
 
+    /*!
+     *  \brief Indicates to the dispatch that the given thread is waiting on a signal
+     *
+     *  The signal the thread is waiting on is given inside thread->signal
+     *  This signal itself can be a memory location, a define SIG_xx or anything else.
+     */
     void sigwait(Thread* thread);
 
-    void signal(void* sig);
+
+    /*!
+     * \brief Resumes all threads waiting for the given signal. The corresponding signal_value
+     * will be set as return value.
+     */
+    void signal(void* sig, int signalvalue = cOk);
 
     /*!
      * \brief Terminates the given thread

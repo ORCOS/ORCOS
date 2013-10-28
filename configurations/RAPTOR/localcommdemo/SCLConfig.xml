@@ -3,15 +3,15 @@
   <Options>
     <Logging>
       <Log Prefix="KERNEL" Level="INFO" />
-      <Log Prefix="MEM" Level="ERROR" />
+      <Log Prefix="MEM" Level="WARN" />
       <Log Prefix="PROCESS" Level="WARN" />
-      <Log Prefix="SCHEDULER" Level="ERROR" />
-      <Log Prefix="SYNCHRO" Level="ERROR" />
+      <Log Prefix="SCHEDULER" Level="WARN" />
+      <Log Prefix="SYNCHRO" Level="WARN" />
       <Log Prefix="SYSCALLS" Level="WARN" />
-      <Log Prefix="DB" Level="ERROR" />
-      <Log Prefix="HAL" Level="ERROR" />
-      <Log Prefix="ARCH" Level="ERROR" />
-      <Log Prefix="FILESYSTEM" Level="ERROR" />
+      <Log Prefix="DB" Level="WARN" />
+      <Log Prefix="HAL" Level="WARN" />
+      <Log Prefix="ARCH" Level="INFO" />
+      <Log Prefix="FILESYSTEM" Level="WARN" />
       <Log Prefix="COMM" Level="WARN" />
     </Logging>
   </Options>
@@ -20,179 +20,51 @@
          ************************************ -->
   <Tasks>
     <Task>
-      <Start>0x140000</Start>
-      <End>0x14FFFF</End>
-      <Heap>0x148000</Heap>
-      <Path>./tasks/localcommtask1/</Path>
+      <Start>0x81100000</Start>
+      <End>0x8117FFFF</End>
+      <Heap>0x81177000</Heap>
+      <Path>./tasks/telnet_server/</Path>
       <PriorityOptions>
         <InitialPriority>0</InitialPriority>
-        <Phase>2000000</Phase>
+        <Phase>0</Phase>
         <RealTimeOptions>
           <Period>500000</Period>
-          <Deadline>1000000</Deadline>
+          <Deadline>500000</Deadline>
           <ExecutionTime>0</ExecutionTime>
         </RealTimeOptions>
       </PriorityOptions>
-    </Task>
-    <Task>
-      <Start>0x150000</Start>
-      <End>0x15FFFF</End>
-      <Heap>0x158000</Heap>
-      <Path>./tasks/localcommtask2/</Path>
-      <PriorityOptions>
-        <InitialPriority>0</InitialPriority>
-        <Phase>2000000</Phase>
-        <RealTimeOptions>
-          <Period>500000</Period>
-          <Deadline>1000000</Deadline>
-          <ExecutionTime>0</ExecutionTime>
-        </RealTimeOptions>
-      </PriorityOptions>
+      <Vma>0x100000</Vma>
     </Task>
   </Tasks>
   <SCL>
-    <!-- ************************************
-    			Skeleton Mutex
-         ************************************ -->
-    <Skeleton>
-      <Name>Mutex</Name>
-      <Member>
-        <Name>Scheduler</Name>
-        <Class>scheduler/RoundRobinThreadScheduler</Class>
-      </Member>
-    </Skeleton>
-    <!-- ************************************
-    			Skeleton Semaphore
-         ************************************ -->
-    <Skeleton>
-      <Name>Semaphore</Name>
-      <Member>
-        <Name>Scheduler</Name>
-        <Class>scheduler/RoundRobinThreadScheduler</Class>
-      </Member>
-    </Skeleton>
-    <!-- ************************************
-    			Skeleton SingleCPUDispatcher
-         ************************************ -->
-    <Skeleton>
-      <Name>SingleCPUDispatcher</Name>
-      <Member>
-        <Name>Scheduler</Name>
-        <Class>scheduler/RoundRobinThreadScheduler</Class>
-      </Member>
-    </Skeleton>
-    <!-- ************************************
-    			Skeleton Thread
-         ************************************ -->
-    <Skeleton>
-      <Name>Thread</Name>
-      <Superclass>process/Thread</Superclass>
-    </Skeleton>
-    <!-- ************************************
-    			Skeleton MemoryManager
-         ************************************ -->
-    <Skeleton>
-      <Name>MemoryManager</Name>
-      <Superclass>mem/LinearMemManager</Superclass>
-      <Member>
-        <Name>Seg</Name>
-        <Class>mem/MemResource</Class>
-      </Member>
-      <Member>
-        <Name>HatLayer</Name>
-        <Class>arch/PPC40x/PPC405HatLayer</Class>
-        <None>true</None>
-      </Member>
-      <Member>
-        <Name>FirstFit</Name>
-        <Class />
-        <None>true</None>
-      </Member>
-      <Member>
-        <Name>NextFit</Name>
-        <Class />
-        <None>true</None>
-      </Member>
-      <Member>
-        <Name>BestFit</Name>
-        <Class />
-        <None>true</None>
-      </Member>
-      <Member>
-        <Name>WorstFit</Name>
-        <Class />
-        <None>true</None>
-      </Member>
-    </Skeleton>
     <!-- ************************************
     			Skeleton Board
          ************************************ -->
     <Skeleton>
       <Name>Board</Name>
       <Superclass>arch/PPC40x/RAPTOR/RaptorBoard</Superclass>
-      <Member>
-        <Name>Processor</Name>
-        <Class>arch/PPC40x/PPC405FXProcessor</Class>
+      <Member Name="HatLayer" Class="arch/PPC40x/PPC405HatLayer" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="Clock" Class="arch/PPC40x/PPC405Clock" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="Processor" Class="arch/PPC40x/PPC405FXProcessor" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="UART2" Class="arch/none/DummyCharDriver" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="InterruptHandler" Class="arch/PPC40x/PPC405InterruptHandler" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="InterruptController" Class="arch/PPC40x/RAPTOR/OPB_Interrupt_Controller" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="ETH" Class="arch/PPC40x/RAPTOR/PLB_EMAC0" None="false" UserSpace="false" PhyLoadAddress="0x0">
+        <PropertyValue Name="Address" Value="0x90000000" Type="unsigned int" />
+        <PropertyValue Name="Length" Value="4096" Type="unsigned int" />
+        <PropertyValue Name="Name" Value="eth0" Type="char*" />
       </Member>
-      <Member>
-        <Name>Timer</Name>
-        <Class>arch/PPC40x/PPC405ProgrammableIntervalTimer</Class>
+      <Member Name="UART" Class="arch/PPC40x/RAPTOR/OPB_UART_Lite" None="false" UserSpace="false" PhyLoadAddress="0x0">
+        <PropertyValue Name="Address" Value="0x90210000" Type="unsigned int" />
+        <PropertyValue Name="Length" Value="16" Type="unsigned int" />
+        <PropertyValue Name="Name" Value="serial0" Type="char*" />
       </Member>
-      <Member>
-        <Name>Clock</Name>
-        <Class>arch/PPC40x/PPC405Clock</Class>
-        <Device>"clock"</Device>
+      <Member Name="LED" Class="arch/PPC40x/RAPTOR/LED" None="false" UserSpace="false" PhyLoadAddress="0x0">
+        <PropertyValue Name="Address" Value="0x90220000" Type="unsigned int" />
+        <PropertyValue Name="Length" Value="16" Type="unsigned int" />
+        <PropertyValue Name="Name" Value="led0" Type="char*" />
       </Member>
-      <Member>
-        <Name>Watchdog</Name>
-        <Class>arch/PPC40x/PPC405Watchdog</Class>
-        <Device>"watchdog"</Device>
-        <None>false</None>
-      </Member>
-      <Member>
-        <Name>UART</Name>
-        <Class>arch/PPC40x/RAPTOR/OPB_UART_Lite</Class>
-        <Device>"serial0"</Device>
-        <Address>0x90210000</Address>
-        <Length>(unint4)16</Length>
-      </Member>
-      <Member>
-        <Name>LED</Name>
-        <Class>arch/PPC40x/RAPTOR/LED</Class>
-        <Device>"led0"</Device>
-        <Address>0x90220000</Address>
-        <Length>(unint4)16</Length>
-        <None>false</None>
-      </Member>
-      <Member>
-        <Name>InterruptHandler</Name>
-        <Class>arch/PPC40x/PPC405InterruptHandler</Class>
-      </Member>
-      <Member>
-        <Name>InterruptController</Name>
-        <Class>arch/PPC40x/RAPTOR/OPB_Interrupt_Controller</Class>
-      </Member>
-      <Member>
-        <Name>ETH</Name>
-        <Class>arch/PPC40x/RAPTOR/PLB_EMAC0</Class>
-        <Device>"eth0"</Device>
-        <Address>0x90000000</Address>
-        <Length>(unint4)1024*1024</Length>
-        <UniqueID>0x0,0x1,0x2,0x3,0x4,0x5</UniqueID>
-        <IP4Addr>192,168,0,1</IP4Addr>
-        <IP4NetMask>255,0,0,0</IP4NetMask>
-        <None>false</None>
-      </Member>
-      <Member>
-        <Name>UART2</Name>
-        <Class>arch/PPC40x/Virtex2/OPB_UART_Lite</Class>
-        <None>true</None>
-      </Member>
-      <Member>
-        <Name>SHM</Name>
-        <Class>arch/Leon3/ShmDriver/ShmDriver</Class>
-        <None>true</None>
-      </Member>
+      <Member Name="Timer" Class="arch/PPC40x/PPC405ProgrammableIntervalTimer" None="false" UserSpace="false" PhyLoadAddress="0x0" />
     </Skeleton>
     <!-- ************************************
     			Skeleton Kernel
@@ -200,31 +72,17 @@
     <Skeleton>
       <Name>Kernel</Name>
       <Superclass>kernel/Kernel</Superclass>
-      <Member>
-        <Name>Logger</Name>
-        <Class>debug/Logger</Class>
-        <None>false</None>
+      <Member Name="MigrationManager" Class="migration/MigrationManager" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="ServiceDiscovery" Class="comm/servicediscovery/SNServiceDiscovery" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="MemoryManager" Class="mem/SequentialFitMemManager" None="false" UserSpace="false" PhyLoadAddress="0x0">
+        <PropertyValue Name="LastFit" Value="0" Type="unsigned int" />
       </Member>
-      <Member>
-        <Name>PowerManager</Name>
-        <Class>hal/PowerManager</Class>
-        <None>true</None>
-      </Member>
-      <Member>
-        <Name>TaskManager</Name>
-        <Class>process/TaskManager</Class>
-        <None>true</None>
-      </Member>
-      <Member>
-        <Name>MigrationManager</Name>
-        <Class>migration/MigrationManager</Class>
-        <None>true</None>
-      </Member>
-      <Member>
-        <Name>ServiceDiscovery</Name>
-        <Class>comm/servicediscovery/SNServiceDiscovery</Class>
-        <None>true</None>
-      </Member>
+      <Member Name="Thread" Class="process/RealTimeThread" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="Dispatcher" Class="scheduler/SingleCPUDispatcher" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="Scheduler" Class="scheduler/EarliestDeadlineFirstThreadScheduler" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="Logger" Class="debug/Logger" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="PowerManager" Class="hal/PowerManager" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="TaskManager" Class="process/TaskManager" None="false" UserSpace="false" PhyLoadAddress="0x0" />
     </Skeleton>
     <!-- ************************************
     			Skeleton SyscallManager
@@ -232,126 +90,32 @@
     <Skeleton>
       <Name>SyscallManager</Name>
       <Superclass>syscalls/SyscallManager</Superclass>
-      <Member>
-        <Name>sleepSyscall</Name>
-        <Class />
-        <None>false</None>
-      </Member>
-      <Member>
-        <Name>fputcSyscall</Name>
-        <Class />
-        <None>false</None>
-      </Member>
-      <Member>
-        <Name>fgetcSyscall</Name>
-        <Class />
-        <None>false</None>
-      </Member>
-      <Member>
-        <Name>thread_createSyscall</Name>
-        <Class />
-        <None>false</None>
-      </Member>
-      <Member>
-        <Name>thread_runSyscall</Name>
-        <Class />
-        <None>false</None>
-      </Member>
-      <Member>
-        <Name>fwriteSyscall</Name>
-        <Class />
-        <None>false</None>
-      </Member>
-      <Member>
-        <Name>freadSyscall</Name>
-        <Class />
-        <None>false</None>
-      </Member>
-      <Member>
-        <Name>fopenSyscall</Name>
-        <Class />
-        <None>false</None>
-      </Member>
-      <Member>
-        <Name>fcloseSyscall</Name>
-        <Class />
-        <None>false</None>
-      </Member>
-      <Member>
-        <Name>newSyscall</Name>
-        <Class />
-        <None>false</None>
-      </Member>
-      <Member>
-        <Name>task_stopSyscall</Name>
-        <Class />
-        <None>false</None>
-      </Member>
-      <Member>
-        <Name>task_resumeSyscall</Name>
-        <Class />
-        <None>false</None>
-      </Member>
-      <Member>
-        <Name>deleteSyscall</Name>
-        <Class />
-        <None>false</None>
-      </Member>
-      <Member>
-        <Name>socketSyscall</Name>
-        <Class />
-        <None>false</None>
-      </Member>
-      <Member>
-        <Name>bindSyscall</Name>
-        <Class />
-        <None>false</None>
-      </Member>
-      <Member>
-        <Name>sendtoSyscall</Name>
-        <Class />
-        <None>false</None>
-      </Member>
-      <Member>
-        <Name>recvSyscall</Name>
-        <Class />
-        <None>false</None>
-      </Member>
-      <Member>
-        <Name>add_devaddrSyscall</Name>
-        <Class />
-        <None>true</None>
-      </Member>
-      <Member>
-        <Name>thread_selfSyscall</Name>
-        <Class />
-        <None>false</None>
-      </Member>
-      <Member>
-        <Name>thread_yieldSyscall</Name>
-        <Class />
-        <None>false</None>
-      </Member>
-      <Member>
-        <Name>signal_waitSyscall</Name>
-        <Class />
-        <None>true</None>
-      </Member>
-      <Member>
-        <Name>signal_signalSyscall</Name>
-        <Class />
-        <None>true</None>
-      </Member>
-      <Member>
-        <Name>connectSyscall</Name>
-        <Class />
-        <None>false</None>
-      </Member>
-      <Member>
-        <Name>listenSyscall</Name>
-        <Class />
-        <None>false</None>
-      </Member>
+      <Member Name="sleep" None="false" />
+      <Member Name="thread_create" None="false" />
+      <Member Name="thread_run" None="false" />
+      <Member Name="thread_self" None="false" />
+      <Member Name="thread_yield" None="false" />
+      <Member Name="signal_wait" None="false" />
+      <Member Name="signal_signal" None="false" />
+      <Member Name="fputc" None="false" />
+      <Member Name="fgetc" None="false" />
+      <Member Name="fcreate" None="false" />
+      <Member Name="fopen" None="false" />
+      <Member Name="fclose" None="false" />
+      <Member Name="fwrite" None="false" />
+      <Member Name="fread" None="false" />
+      <Member Name="new" None="false" />
+      <Member Name="delete" None="false" />
+      <Member Name="socket" None="false" />
+      <Member Name="connect" None="false" />
+      <Member Name="listen" None="false" />
+      <Member Name="bind" None="false" />
+      <Member Name="sendto" None="false" />
+      <Member Name="recv" None="false" />
+      <Member Name="add_devaddr" None="false" />
+      <Member Name="task_stop" None="false" />
+      <Member Name="task_resume" None="false" />
+      <Member Name="ioctl" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
     </Skeleton>
     <!--  DEFINES -->
     <Define>
@@ -361,7 +125,7 @@
     <!-- PROCFS -->
     <Define>
       <Name>HAS_PROCFS_ENABLED</Name>
-      <Value>0</Value>
+      <Value>1</Value>
     </Define>
     <!--  Worker Task configuration -->
     <Define>
@@ -370,12 +134,12 @@
     </Define>
     <Define>
       <Name>NUM_WORKERTHREADS</Name>
-      <Value>3</Value>
+      <Value>2</Value>
     </Define>
     <!-- logical Memory addresses -->
     <Define>
       <Name>LOG_TASK_SPACE_START</Name>
-      <Value>0x500000</Value>
+      <Value>0x100000</Value>
     </Define>
     <Define>
       <Name>NUM_ADDRESS_PROTOCOLS</Name>
@@ -399,7 +163,7 @@
     </Define>
     <Define>
       <Name>MMIO_START_ADDRESS</Name>
-      <Value>0x90000000</Value>
+      <Value>0x48000000</Value>
     </Define>
     <Define>
       <Name>MMIO_AREA_LENGTH</Name>
@@ -407,22 +171,18 @@
     </Define>
     <Define>
       <Name>ICACHE_ENABLE</Name>
-      <Value>0</Value>
-    </Define>
-    <Define>
-      <Name>DCACHE_ENABLE</Name>
-      <Value>0</Value>
-    </Define>
-    <Define>
-      <Name>DEFAULT_USER_STACK_SIZE</Name>
-      <Value>2048</Value>
-    </Define>
-    <Define>
-      <Name>STACK_GROWS_DOWNWARDS</Name>
       <Value>1</Value>
     </Define>
     <Define>
-      <Name>CLEAR_THREAD_STACKS</Name>
+      <Name>DCACHE_ENABLE</Name>
+      <Value>1</Value>
+    </Define>
+    <Define>
+      <Name>DEFAULT_USER_STACK_SIZE</Name>
+      <Value>4096</Value>
+    </Define>
+    <Define>
+      <Name>STACK_GROWS_DOWNWARDS</Name>
       <Value>1</Value>
     </Define>
     <Define>
@@ -430,16 +190,20 @@
       <Value>12</Value>
     </Define>
     <Define>
+      <Name>CLEAR_THREAD_STACKS</Name>
+      <Value>1</Value>
+    </Define>
+    <Define>
       <Name>WORKERTHREAD_STACK_SIZE</Name>
-      <Value>2048</Value>
+      <Value>4096</Value>
     </Define>
     <Define>
       <Name>WORKERTHREAD_UART_PRIORITY_PARAM</Name>
-      <Value>50000</Value>
+      <Value>5000</Value>
     </Define>
     <Define>
       <Name>WORKERTHREAD_ETH_PRIORITY_PARAM</Name>
-      <Value>10000</Value>
+      <Value>2000</Value>
     </Define>
     <Define>
       <Name>USE_SAFE_KERNEL_STACKS</Name>
@@ -447,39 +211,23 @@
     </Define>
     <Define>
       <Name>KERNEL_STACK_SIZE</Name>
-      <Value>2048</Value>
+      <Value>4096</Value>
     </Define>
     <Define>
-      <Name>__DEBUG__</Name>
-      <Value>1</Value>
+      <Name>ALIGN_VAL</Name>
+      <Value>4</Value>
     </Define>
     <Define>
       <Name>__EARLY_SERIAL_SUPPORT__</Name>
       <Value>1</Value>
     </Define>
     <Define>
-      <Name>USE_IPV4ADDRESSPROTOCOL</Name>
+      <Name>__DEBUG__</Name>
       <Value>0</Value>
     </Define>
     <Define>
-      <Name>STATIC_GATEWAY_IP</Name>
-      <Value>IP4_ADDR(192,168,1,2)</Value>
-    </Define>
-    <Define>
-      <Name>DEBUG_TRACE_LOCATION</Name>
-      <Value>0x200000</Value>
-    </Define>
-    <Define>
-      <Name>DEBUG_TRACE_SIZE</Name>
-      <Value>900</Value>
-    </Define>
-    <Define>
-      <Name>USE_TRACE</Name>
-      <Value>0</Value>
-    </Define>
-    <Define>
-      <Name>ALIGN_VAL</Name>
-      <Value>4</Value>
+      <Name>RAM_SIZE</Name>
+      <Value>512 MB</Value>
     </Define>
   </SCL>
 </Configuration>

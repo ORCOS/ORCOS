@@ -103,6 +103,12 @@ extern "C" int 		task_resume(int taskid);
  *  Thread related system calls
  **************************************/
 
+
+extern "C" int 		wait();
+
+
+extern "C" int		waitpid(unint1 pid);
+
 /*!
  *  \brief Sleep method. The calling thread will be blocked for at least 'ms' milliseconds.
  *
@@ -160,7 +166,7 @@ extern "C" void 	thread_yield();
  *
  * If a Memory Manager is used that does not support deallocation of memory the TCB and stack will be kept for further thread creation calls.
  */
-extern "C" void 	thread_exit();
+extern "C" void 	thread_exit(int exitCode = cOk);
 
 
 

@@ -75,6 +75,7 @@ u8_t ip_addr_isbroadcast(struct ip_addr*, struct netif *);
 u8_t ip_addr_ismulticast(struct ip_addr*);
 
 u32_t IPH_HL(struct ip_hdr* iphdr);
+u16_t IPH_PROTO(struct ip_hdr* iphdr);
 void IPH_DEST(struct ip_hdr* iphdr,struct ip_addr* addr);
 void IPH_SRC(struct ip_hdr* iphdr,struct ip_addr* addr);
 

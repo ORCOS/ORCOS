@@ -109,6 +109,12 @@ void print( char **out, const char *format, va_list args ) {
                 prints( out, print_buf, width, pad );
                 continue;
             }
+            if ( *format == 'u' ) {
+                char print_buf[ PRINT_BUF_LEN ];
+                itoa( va_arg( args, unsigned int ), print_buf, 10 );
+                prints( out, print_buf, width, pad );
+                continue;
+            }
             if( *format == 'x' ) {
                 char print_buf[ PRINT_BUF_LEN ];
                 itoa( va_arg( args, unsigned int ), print_buf, 16 );

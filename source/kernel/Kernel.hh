@@ -56,12 +56,12 @@
 //------------------------------------------------------
 //                  USB Imports
 //------------------------------------------------------
-
+#if USB_SUPPORT_ENABLED
 #include "arch/shared/usb/USBDriverLibrary.hh"
-// TODO auto imports here
+// TODO: add configurable driver selection
 #include "arch/shared/usb/SMSC95xxUSBDeviceDriver.hh"
 #include "arch/shared/usb/MassStorageSCSIUSBDeviceDriver.hh"
-
+#endif
 
 #include "inc/putc.hh"
 #include "comm/lwipTMR.hh"
@@ -89,8 +89,10 @@ private:
     //! The Filesystem Manager
     SimpleFileManager* 		fileManager;
 
+#if USB_SUPPORT_ENABLED
     // Library containing usb deviice drivers
     USBDriverLibrary* 		usbDriverLib;
+#endif
 
     // Partition Manager which intializes attached file systems
     PartitionManager* 		partitionManager;

@@ -64,7 +64,7 @@ int signal_signal( int4 int_sp ) {
     }
 #endif //HAS_Board_HatLayerCfd
 
-    theOS->getCPUDispatcher()->signal( sig );
+    theOS->getCPUDispatcher()->signal( sig, cOk );
 
     return cOk;
 }

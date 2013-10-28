@@ -28,4 +28,5 @@ extern "C" void 	itoa( int value, char* str, int base );
 
 extern "C" int 		atoi(char *p);
 
+extern "C" int 		puts(const char* s);
 #endif /* STRING_HH_ */

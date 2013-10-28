@@ -150,7 +150,7 @@ udp_input(struct pbuf *p, struct netif *inp)
            (- broadcast or directed to us) -> DHCP is link-layer-addressed, local ip is always ANY!
            - inp->dhcp->pcb->remote == ANY or iphdr->src */
         if ((ip_addr_isany(&inp->dhcp->pcb->remote_ip) ||
-           ip_addr_cmp(&(inp->dhcp->pcb->remote_ip), &(iphdr->src)))) {
+           ip_addr_cmp(&(inp->dhcp->pcb->remote_ip), &src_ipaddr))) {
           pcb = inp->dhcp->pcb;
         }
       }
@@ -558,7 +558,6 @@ udp_sendto_if(struct udp_pcb *pcb, struct pbuf *p,
 #if CHECKSUM_GEN_UDP
     if ((pcb->flags & UDP_FLAGS_NOCHKSUM) == 0) {
 
-    	// TODO: ip6 vs ipv4 checksum Proto Number!
     	if (dst_ip->version == IPV4)
     		udphdr->chksum = inet_chksum_pseudo(q, &src_ip.addr, &dst_ip->addr,src_ip.version, IP4_PROTO_UDP, q->tot_len);
     	else

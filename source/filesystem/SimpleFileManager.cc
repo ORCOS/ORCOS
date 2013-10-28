@@ -31,6 +31,8 @@ SimpleFileManager::SimpleFileManager() :
     // create dir dev/
     Directory* devDir = new Directory( "dev" );
 
+    Directory* memDir = new Directory( "mem" );
+
     // create dir dev/comm
     Directory* commDir = new Directory( "comm" );
 
@@ -43,6 +45,7 @@ SimpleFileManager::SimpleFileManager() :
     rootDir.add( devDir );
     rootDir.add( userDir );
     rootDir.add( mntDir);
+    rootDir.add( memDir);
 }
 
 SimpleFileManager::~SimpleFileManager() {
@@ -51,28 +54,51 @@ SimpleFileManager::~SimpleFileManager() {
 ErrorT SimpleFileManager::registerResource( Resource* res ) {
 
     if ( res != 0 ) {
-        if ( ( res->getType() == cGenericDevice ) ||
-        	 ( res->getType() == cStreamDevice ) ||
-        	 ( res->getType() == cBlockDevice ) ||
-        	 ( res->getType() == cSharedMem)) {
+    	if ( (res->getType() & (cGenericDevice | cStreamDevice | cBlockDevice )) != 0) {
             // register this resource under dev/
             getDirectory( "dev" )->add( res );
-            return cOk;
+            return (cOk);
         }
         else if ( res->getType() == cCommDevice ) {
             // register under dev/comm
             getDirectory( "dev/comm" )->add( res );
-            return cOk;
+            return (cOk);
         }
         else if (res->getType() == cDirectory) {
             rootDir.add(res);
-            return cOk;
+            return (cOk);
         }
-        return cInvalidResourceType;
+        else if (res->getType() == cSharedMem) {
+        	getDirectory( "mem" )->add( res );
+            return (cOk);
+        }
+        return (cInvalidResourceType);
     }
     else
-        return cNullPointerProvided;
+        return (cNullPointerProvided);
 
+}
+
+ErrorT SimpleFileManager::unregisterResource( Resource* res ) {
+	  if ( res != 0 ) {
+			if ( (res->getType() & (cGenericDevice | cStreamDevice | cBlockDevice )) != 0) {
+				// resource under dev/
+				getDirectory( "dev" )->remove( res );
+				return (cOk);
+			}
+			else if ( res->getType() == cCommDevice ) {
+				// register under dev/comm
+				getDirectory( "dev/comm" )->remove( res );
+				return (cOk);
+			}
+			else if (res->getType() == cSharedMem) {
+				getDirectory( "mem" )->remove( res );
+				return (cOk);
+			}
+			return (cInvalidResourceType);
+		}
+		else
+			return (cNullPointerProvided);
 }
 
 Resource*
@@ -87,34 +113,28 @@ SimpleFileManager::getResourceByNameandType( const char* pathname, ResourceType 
     // TODO add a length check first
     // 50 bytes on the stack may be enough
     char str[ 100 ];
-    //char* str = strbuf;
     // copy the pathname to a temporary str
     // since the string will be broken by the string tokenizer afterwards
-    if (strlen(pathname) > 100) return 0;
+    if (strlen(pathname) > 100) return (0);
     strcpy( str, pathname );
 
     // be sure that the leading "/" is omitted if existent
     char* token;
-   /* if ( str[ 0 ] == '/' ) {
-        token = strtok( str, "/" );
-        str = 0;
-    }*/
-
     token = strtok( str, "/" );
 
     // check for root dir match
     if (token == 0) {
     	// str == "/";
-    	 if ( ( res->getType() & typefilter ) == res->getType() )
+    	 if ( ( res->getType() & typefilter ) != 0 )
 			{
 				LOG(FILESYSTEM,DEBUG,(FILESYSTEM,DEBUG,"Filesystem: Resource %s found",pathname));
-				return res;
+				return (res);
 			}
 			else
 			{
 				LOG(FILESYSTEM,ERROR,(FILESYSTEM,ERROR,"Filesystem: Resource %s found but invalid type!",pathname));
 				LOG(FILESYSTEM,ERROR,(FILESYSTEM,ERROR,"Filesystem: Resource has type %d!",res->getType()));
-				return 0;
+				return (0);
 			}
     }
 
@@ -130,16 +150,16 @@ SimpleFileManager::getResourceByNameandType( const char* pathname, ResourceType 
             if ( token == 0 ) {
                 // end of pathname
                 // check whether the resource we found is of correct type
-                if ( ( res->getType() & typefilter ) == res->getType() )
+                if ( ( res->getType() & typefilter ) != 0 )
                 {
                     LOG(FILESYSTEM,DEBUG,(FILESYSTEM,DEBUG,"Filesystem: Resource %s found",pathname));
-                    return res;
+                    return (res);
                 }
                 else
                 {
                     LOG(FILESYSTEM,ERROR,(FILESYSTEM,ERROR,"Filesystem: Resource %s found but invalid type!",pathname));
                     LOG(FILESYSTEM,ERROR,(FILESYSTEM,ERROR,"Filesystem: Resource has type %d!",res->getType()));
-                    return 0;
+                    return (0);
                 }
             }
             else {
@@ -148,7 +168,7 @@ SimpleFileManager::getResourceByNameandType( const char* pathname, ResourceType 
                 if ( res->getType() != cDirectory )
                 {
                     LOG(FILESYSTEM,ERROR,(FILESYSTEM,ERROR,"Filesystem: Wrong subname %s! Directory expected!",token));
-                    return 0;
+                    return (0);
                 }
             }
 
@@ -161,7 +181,7 @@ SimpleFileManager::getResourceByNameandType( const char* pathname, ResourceType 
     }
 
     // if we got here the pathname was invalid
-    return 0;
+    return (0);
 }
 
 Resource* SimpleFileManager::getResource( const char* pathname ) {
@@ -169,11 +189,11 @@ Resource* SimpleFileManager::getResource( const char* pathname ) {
     LOG(FILESYSTEM,DEBUG,(FILESYSTEM,DEBUG,"Filesystem: getResource(%s)",pathname));
 
     // get the resource by the pathname and set the filter to any type except a directory!
-    return this->getResourceByNameandType( pathname, cAnyResource  );
+    return (this->getResourceByNameandType( pathname, cAnyResource  ));
 }
 
 Directory*
 SimpleFileManager::getDirectory( const char* dir ) {
     LOG(FILESYSTEM,DEBUG,(FILESYSTEM,DEBUG,"Filesystem: getDirectory(%s)",dir));
-    return (Directory*) this->getResourceByNameandType( dir, cDirectory );
+    return ((Directory*) this->getResourceByNameandType( dir, cDirectory ));
 }

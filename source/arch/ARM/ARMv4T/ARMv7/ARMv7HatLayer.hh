@@ -77,9 +77,10 @@ public:
      * \brief Unmap an address space with a logical address from his given physical address
      *
      * Implements the corresponding method in HATLayer.hh
-     *
+     * \param addr	The address to be unmapped
+     * \param pid	The Process ID. if -1 the current running process will be used.
      */
-    ErrorT unmap( void* );
+    ErrorT unmap( void* addr, unint1 tid = 0);
 
     /*!
      * \brief unmap all address spaces with logical addresses which has been mapped before by this HATLayer-Instance

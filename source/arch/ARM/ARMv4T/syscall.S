@@ -12,8 +12,6 @@
 
 #include "assembler.h"
 
-.code 32
-
 .section .text.syscall,  "ax", "progbits"
 
 EXPORT_FCN(void, syscall, (void))

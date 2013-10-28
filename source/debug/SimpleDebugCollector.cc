@@ -36,9 +36,6 @@ SimpleDebugCollector::SimpleDebugCollector() :
 
 ErrorT SimpleDebugCollector::readBytes( char *bytes, unint4 &length ) {
 
-    //	unint sleepListSize = cpudispatcher->getSizeOfSleepList();
-    //	unint blockedListSize = cpudispatcher->getSizeOfBlockedList();
-
     static unint lastReadOffset = 0;
     const char* newline = "\r";
     char tmpBuf[ 100 ];
@@ -55,7 +52,7 @@ ErrorT SimpleDebugCollector::readBytes( char *bytes, unint4 &length ) {
         unint numberoftasks = llt->getSize();
 
         // output number of running tasks
-        sprintf(tmpBuf,"#Tasks: %d\rTaskID\tUsedMem\t(Overhead)\tFree\tThreads\r", numberoftasks );
+        sprintf(tmpBuf,"#Tasks: %d\rTaskID\tUsedMem\tOverhead\tFree\tThreads\r", numberoftasks );
         strcat(outputMsg, tmpBuf);
 
         // output list of tasks
@@ -65,10 +62,10 @@ ErrorT SimpleDebugCollector::readBytes( char *bytes, unint4 &length ) {
             int freemem = 0;
             int overhead = 0;
             int usedmem       = task->getMemManager()->getUsedMemSize(overhead,freemem);
-            sprintf(tmpBuf, "  %02d\t %d\t", task->getId(),usedmem);
+            sprintf(tmpBuf, "  %02d\t%7d\t", task->getId(),usedmem);
             strcat(outputMsg, tmpBuf);
 
-            sprintf(tmpBuf, "(%d)\t%d\t",overhead,freemem);
+            sprintf(tmpBuf, "%7d\t%d\t",overhead,freemem);
             strcat(outputMsg, tmpBuf);
 
             for (LinkedListDatabaseItem* t = task->getThreadDB()->getHead(); t != 0; t = t->getSucc()) {
@@ -87,22 +84,15 @@ ErrorT SimpleDebugCollector::readBytes( char *bytes, unint4 &length ) {
             strcat(outputMsg,newline);
         }
 
-        Kernel_MemoryManagerCfdCl* mm = theOS->getMemoryManager();
-        //sprintf(tmpBuf, "\rKernel Used Memory: %d\r", mm->getUsedMemSize());
-        //strcat(outputMsg, tmpBuf);
-
-
         Board_ClockCfdCl* clock = theOS->getClock();
         volatile unint8 passedTime = clock->getTimeSinceStartup();
 
+        unint4 seconds_passed = (unint4) (passedTime / CLOCK_RATE);
+        unint4 milliseconds = (passedTime - (seconds_passed * CLOCK_RATE)) / (CLOCK_RATE / 1000);
+
         char time[ 16 ];
         itoa( passedTime, time, 10 );
-
-        sprintf( tmpBuf, "Time since startup: " );
-
-        strcat( tmpBuf, time );
-        strcat( tmpBuf, newline );
-
+        sprintf( tmpBuf, "Time since startup: %6d,%03d s [Cyles: %s]",seconds_passed,milliseconds,time);
         strcat( outputMsg, tmpBuf );
 
         lastReadOffset = 0;
@@ -120,5 +110,5 @@ ErrorT SimpleDebugCollector::readBytes( char *bytes, unint4 &length ) {
 
     length = i;
 
-    return cOk;
+    return (cOk);
 }

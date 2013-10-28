@@ -66,6 +66,11 @@ extern unint8       lastCycleStamp;
  * the SyscallManager in a way that it only contains the system call functionality that is needed
  * in order to reduce kernel size.  Also have a look at ORCOS.hh which implements the syscall API available for user taks programmer.
  */
+void thread_exitSyscall(int4 sp_int);
+
+int thread_wait(int4 sp_int);
+
+int task_wait(int4 sp_int);
 
 int printToStdOut(int4 sp_int );
 
@@ -219,7 +224,7 @@ inline void handleSyscall(int4 sp_int) {
     #endif
 
             case cThread_ExitSysCallId:
-                pCurrentRunningThread->terminate();
+            	thread_exitSyscall(sp_int);
                 break;
 
     #ifdef HAS_SyscallManager_thread_runCfd
@@ -312,81 +317,85 @@ inline void handleSyscall(int4 sp_int) {
     #endif
 
     #ifdef HAS_SyscallManager_socketCfd
-                case cSocketSyscallId:
-                retval = socketSyscall( sp_int );
-                break;
+			case cSocketSyscallId:
+				retval = socketSyscall( sp_int );
+				break;
     #endif
 
 	#ifdef HAS_SyscallManager_connectCfd
-               case cConnectSyscallId:
-               retval = connectSyscall( sp_int );
-               break;
+		   case cConnectSyscallId:
+			   retval = connectSyscall( sp_int );
+			   break;
     #endif
 
 	#ifdef HAS_SyscallManager_listenCfd
            case cListenSyscallId:
-        	   retval = listenSyscall( sp_int );
-        	   break;
+			   retval = listenSyscall( sp_int );
+			   break;
 	#endif
 
     #ifdef HAS_SyscallManager_bindCfd
-                case cBindSyscallId:
-                retval = bindSyscall( sp_int );
-                break;
+			case cBindSyscallId:
+				retval = bindSyscall( sp_int );
+				break;
     #endif
 
     #ifdef HAS_SyscallManager_sendtoCfd
-                case cSendtoSyscallId:
-                retval = sendtoSyscall( sp_int );
-                break;
+			case cSendtoSyscallId:
+				retval = sendtoSyscall( sp_int );
+				break;
     #endif
 
     #ifdef HAS_SyscallManager_recvCfd
-                case cRecvFromSyscallId:
-                retval = recvSyscall( sp_int );
-                break;
+			case cRecvFromSyscallId:
+				retval = recvSyscall( sp_int );
+				break;
     #endif
 
-                case cPrintToStdOut:
-                retval = printToStdOut( sp_int );
-                break;
+			case cPrintToStdOut:
+				retval = printToStdOut( sp_int );
+				break;
 
-                case cNewProtSysCallId:
-                retval = mallocp(sp_int);
-                break;
+			case cNewProtSysCallId:
+				retval = cError;
+				break;
 
-                case cGetTimeSyscallId:
-                retval = getTime(sp_int);
-                break;
+			case cGetTimeSyscallId:
+				retval = getTime(sp_int);
+				break;
 
-                case cMapMemorySyscallId:
-                retval = mapMemory(sp_int);
-                break;
+			case cMapMemorySyscallId:
+				retval = mapMemory(sp_int);
+				break;
 
-                case cModuleReturnId:
-                ((Module*) pCurrentRunningTask)->moduleReturn();
-                break;
+			case cModuleReturnId:
+				((Module*) pCurrentRunningTask)->moduleReturn();
+				break;
 
-                case cRunTaskId:
-                retval = runTask(sp_int);
-                break;
+			case cRunTaskId:
+				runTask(sp_int);
+				break;
 
-                case cTask_KillSysCallId:
-                retval = task_killSyscall(sp_int);
-                break;
+			case cTask_KillSysCallId:
+				retval = task_killSyscall(sp_int);
+				break;
 
-                case cShmMapId:
-                retval = shm_mapSyscall(sp_int);
-                break;
+			case cShmMapId:
+				retval = shm_mapSyscall(sp_int);
+				break;
 
-                case cIOControl:
-                retval = ioctl(sp_int);
-                break;
+			case cIOControl:
+				retval = ioctl(sp_int);
+				break;
 
-            default:
-                LOG(SYSCALLS,ERROR,(SYSCALLS,ERROR,"invalid syscall %d",syscallnum));
-                retval = -1;
-                break;
+			case cThread_WaitPID:
+				retval = thread_wait(sp_int);
+				break;
+
+			default:
+				LOG(SYSCALLS,ERROR,(SYSCALLS,ERROR,"invalid syscall %d",syscallnum));
+				retval = -1;
+				break;
         }
 
     #if ENABLE_NESTED_INTERRUPTS
@@ -396,7 +405,7 @@ inline void handleSyscall(int4 sp_int) {
         pCurrentRunningThread->executinginthandler = false;
     #endif
 
-        SET_RETURN_VALUE((void*)sp_int,(void*)retval);
+        pCurrentRunningThread->setReturnValue((void*)retval);
         assembler::restoreContext( pCurrentRunningThread );
 }
 

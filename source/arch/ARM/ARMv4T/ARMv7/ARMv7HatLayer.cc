@@ -195,10 +195,10 @@ void* ARMv7HatLayer::createPT(void* logBaseAddr, void* physBaseAddr, size_t size
         this->createPT( nextLogAddr, nextPhysAddr, size - SECTION_SIZE, protection, zsel , pid , cache_inhibit, nonGlobal );
     }
 
-    return (void*) physBaseAddr;
+    return ((void*) physBaseAddr);
 }
 
-ErrorT ARMv7HatLayer::unmap( void* logBaseAddr ) {
+ErrorT ARMv7HatLayer::unmap( void* logBaseAddr, unint1 tid ) {
 
 	// be sure we have the page address
 	unint4 logpageaddr = ((unint4) logBaseAddr) >> 20;
@@ -207,10 +207,13 @@ ErrorT ARMv7HatLayer::unmap( void* logBaseAddr ) {
 	unint4 addr = logpageaddr * 4;
 
 	unint4 ptStartAddr = 0;
-	unint4 pid = 0;
 
-	if (pCurrentRunningTask == 0) pid = 0;
-	else pid = pCurrentRunningTask->getId();
+	unint4 pid;
+
+	if (tid == 0) {
+		if (pCurrentRunningTask == 0) pid = 0;
+		else pid = pCurrentRunningTask->getId();
+	} else pid = tid;
 
 	ptStartAddr = ((unint4)(&__PageTableSec_start)) + pid*0x4000;
 
@@ -255,17 +258,17 @@ ErrorT ARMv7HatLayer::unmapAll(int pid) {
 	// invalidate tlb of asid
 	// invalidate tlb entry
 	asm volatile(
-			".align 4;"
-			"mov    r0,pc;"
-			"bx     r0;"
-			".code 32;"
+		".align 4;"
+		"mov    r0,pc;"
+		"bx     r0;"
+		".code 32;"
 
-			"MCR p15, 0, %0, c8, c5, 2;" // Invalidate Inst-TLB by ASID
-			"MCR p15, 0, %0, c8, c6, 2;" // Invalidate Data-TLB by ASID
+		"MCR p15, 0, %0, c8, c5, 2;" // Invalidate Inst-TLB by ASID
+		"MCR p15, 0, %0, c8, c6, 2;" // Invalidate Data-TLB by ASID
 
-			"add r0, pc,#1;"
-			"bx  r0;"
-			".code 16;"
+		"add r0, pc,#1;"
+		"bx  r0;"
+		".code 16;"
 		:
 		: "r" (pid)
 		:  "r0"
@@ -276,9 +279,6 @@ ErrorT ARMv7HatLayer::unmapAll(int pid) {
 
 ErrorT ARMv7HatLayer::enableHAT() {
 
-
-
-	// set stack pointer: todo
 	// enable MMU: set SCTLR bit 0 to 1
 	asm volatile(
 		".align 4;"

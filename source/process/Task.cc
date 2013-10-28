@@ -149,8 +149,8 @@ void Task::terminate()
 		 // first remove all other threads than the currentRunningThread
 		 if (t != pCurrentRunningThread)
 			 {
+			 	 litem = litem->getSucc();
 				 t->terminate();
-				 litem = this->threadDb.getHead();
 			 }
 		 else litem = litem->getSucc();
 	 }

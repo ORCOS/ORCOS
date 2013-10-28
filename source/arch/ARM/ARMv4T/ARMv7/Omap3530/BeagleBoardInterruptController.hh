@@ -13,7 +13,7 @@ public:
      * \brief Returns the content of the interrupts status register
      *
      * The interrupt status register indicates which interrupt input is active and can be used
-     * to determine which hardware deviced raised an interrupt
+     * to determine which hardware device raised an interrupt
      */
     int getIRQStatusVector();
 

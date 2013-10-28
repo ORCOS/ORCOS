@@ -100,11 +100,11 @@ u8_t ip_addr_ismulticast(struct ip_addr* addr) {
 	if (addr == 0) return 0;
 
 	if (addr->version == IPV4) {
-				return ip4_addr_ismulticast(&addr->addr.ip4addr);
-			} else
-			{
-				return ip6_addr_ismulticast(&addr->addr.ip6addr);
-			}
+		return ip4_addr_ismulticast(&addr->addr.ip4addr);
+	} else
+	{
+		return ip6_addr_ismulticast(&addr->addr.ip6addr);
+	}
 }
 
 u32_t IPH_HL(struct ip_hdr* iphdr)
@@ -113,6 +113,14 @@ u32_t IPH_HL(struct ip_hdr* iphdr)
 	else if (iphdr->v == IPV6) return 40;
 	else return -1;
 }
+
+u16_t IPH_PROTO(struct ip_hdr* iphdr)
+{
+	if (iphdr->v == IPV4) return ((struct ip4_hdr*) iphdr)->_ttl_proto;
+	else if (iphdr->v == IPV6) ((struct ip6_hdr*) iphdr)->nexthdr;
+	else return 0;
+}
+
 
 void IPH_DEST(struct ip_hdr* iphdr,struct ip_addr* addr)
 {

@@ -43,4 +43,11 @@ int printToStdOut(int4 int_sp )
     else return cError;
 }
 
+void thread_exitSyscall(int4 sp_int)
+{
+	int exitCode;
+	SYSCALLGETPARAMS1(sp_int,(void*) exitCode);
 
+	pCurrentRunningTask->exitValue = exitCode;
+	pCurrentRunningThread->terminate();
+}

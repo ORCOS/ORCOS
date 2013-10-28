@@ -16,6 +16,11 @@
 // Defines
 //----------------------------
 
+
+#ifndef USB_SUPPORT_ENABLED
+#define USB_SUPPORT_ENABLED 1
+#endif
+
 /*
 00h 1 CAPLENGTH Core Capability Register Length
 01h 1 Reserved Core N/A

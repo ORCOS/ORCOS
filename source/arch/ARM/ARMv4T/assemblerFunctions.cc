@@ -66,6 +66,7 @@ extern "C" void restoreContext(Thread*  t)
 
     LOG(HAL,DEBUG,(HAL,DEBUG,"Restore Context: t: %x, sp@ 0x%x, mode:%d" , t,sp, mode));
 
+    //LOG(HAL,WARN,(HAL,WARN,"Return Value: %d" , t->returnValue ));
 
 #if HAS_Board_HatLayerCfd
 	ptStartAddr = (void*) ((unint)&__PageTableSec_start + pid*0x4000);
@@ -106,9 +107,10 @@ extern "C" void restoreContext(Thread*  t)
 		//"bl  dumpContext;"
 		"MOV r0, %0;"
 		"MOV r1, %3;"	// set restore context mode
+		"str %4, [%0, #4];"
 		"b 	 restoreThreadContext;"
 		:
-		: "r" (sp), "r" (ptStartAddr), "r" (pid) ,"r" (mode)
+		: "r" (sp), "r" (ptStartAddr), "r" (pid) ,"r" (mode) ,"r" (t->returnValue)
 		: "r0", "r1", "r2"
 	);
 

@@ -28,7 +28,7 @@ err_t ethernet_input(struct pbuf *p, struct netif *netif) {
     /* points to packet payload, which starts with an Ethernet header */
     ethhdr = p->payload;
     LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE,
-            ("ethernet_input: dest:%02x:%02x:%02x:%02x:%02x:%02x, src:%02x:%02x:%02x:%02x:%02x:%02x, type:%2x\n",
+            ("ethernet_input: dest:%02x:%02x:%02x:%02x:%02x:%02x, src:%02x:%02x:%02x:%02x:%02x:%02x, type:%2x\r\n",
                     (unsigned)ethhdr->dest.addr[0], (unsigned)ethhdr->dest.addr[1], (unsigned)ethhdr->dest.addr[2],
                     (unsigned)ethhdr->dest.addr[3], (unsigned)ethhdr->dest.addr[4], (unsigned)ethhdr->dest.addr[5],
                     (unsigned)ethhdr->src.addr[0], (unsigned)ethhdr->src.addr[1], (unsigned)ethhdr->src.addr[2],

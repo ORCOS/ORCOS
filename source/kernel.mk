@@ -32,7 +32,7 @@ KOBJ += tasktable.o __cxa_pure_virtual.o
 #protocols
 #KOBJ += ARP.o SimpleTransportProtocol.o SimpleAddressProtocol.o IPv4AddressProtocol.o UDP.o
 KOBJ += ProtocolPool.o TCPTransportProtocol.o IPv4AddressProtocol.o
-KOBJ += etharp.o ethernet.o ip.o init.o mem.o memp.o pbuf.o  netif.o udp.o tcp.o sys.o inet.o ip4_addr.o ip4.o ip4_frag.o tcp_in.o tcp_out.o stats.o icmp.o ip6_addr.o ip6.o
+KOBJ += etharp.o ethernet.o ip.o init.o mem.o memp.o pbuf.o  netif.o udp.o tcp.o sys.o inet.o ip4_addr.o ip4.o ip4_frag.o tcp_in.o tcp_out.o stats.o icmp.o ip6_addr.o ip6.o dhcp.o
 KOBJ += icmp6.o ethar.o ethndp.o lwipTMR.o 
 KOBJ += WorkerThread.o WorkerTask.o SNServiceDiscovery.o crc32.o
 

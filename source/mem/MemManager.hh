@@ -43,7 +43,6 @@ class MemManager {
 protected:
     //! the memory segment to be managed
     MemResource Segment;
-//DEF_MemoryManager_SegCfd
 
 public:
 

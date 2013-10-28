@@ -59,15 +59,8 @@ EXPORT_FCN(void, _exit,			(int))
 
 FUNC_START(startORCOS)
 
-// Disable interrupts. They should be off by default, disable anyway to be sure.
+	// Disable interrupts. They should be off by default, disable anyway to be sure.
 	MSR cpsr, #svc_mode|CPSR_DISINT
-
-//	MRS	r0, cpsr				// read CPSR register
-//	MOV	r1, #CPSR_DISINTALL		// load mask to disable interrupts
-//	ORR	r1, r0, r1				// mask
-//	MSR	cpsr, r1				// write CPSR register
-
-
 
 	// be sure MMU is disabled
 	MRC p15, 0, r1, c1, c0, 0; // read CP15 Register 1
@@ -76,8 +69,6 @@ FUNC_START(startORCOS)
 
 	// disable instruction and data cache here
 	// we may enable them later on again
-
-
 
 // Instruction cache
 #ifndef ICACHE_ENABLE
@@ -117,13 +108,9 @@ FUNC_START(startORCOS)
 #endif
 
 
-
-
 	// be sure the vector table is at OMAP3530 rom location
     LDR  r0, =0x14000
     MCR  p15, #0, r0, c12, c0, #0
-
-
 
 	# interrupt vector initilization
 	# set RAM exception vectors to initial value:

@@ -29,7 +29,6 @@
 #include "logger_config.hh"
 
 #ifdef HAS_Kernel_LoggerCfd
-//#define LOG(arg)                       theOS->getLogger()->log arg
 #define LOG(prefix,level,msg) if ((int) level <= (int) prefix)  theOS->getLogger()->log msg
 #else
 #define LOG(prefix,level,msg)
@@ -38,6 +37,14 @@
 
 //forward declaration
 class Kernel_ThreadCfdCl;
+
+
+
+/*
+ *  SIGNAL DEFINITIONS
+ */
+
+#define SIG_CHILD_TERMINATED 1
 
 /* All of the following codes 'x' indicate either an error code or a warning.
  This fact is distinguished by the value of x:
@@ -112,7 +119,7 @@ class Kernel_ThreadCfdCl;
 // Warning or Status Value
 
 #define cInvalidCBHeader (int)-300
-
+#define cTaskCRCFailed (int)-301
 // Error
 
 //-----------------------------------------------------
@@ -164,12 +171,7 @@ class Kernel_ThreadCfdCl;
 // values.  The next macro checks if the error code is not an error.
 #define maybeOk(errcode)        ((errcode) >= cOk)
 
-//methods to handle a behavior when an error occurs
-//implemented in error.cc
-
-//void printf( const char *format, ... );
-
-//#define ERROR(a) {printf("ERROR in line %d in file %s with message: %s",__LINE__,__FILE__,a); while(1);}
+// ERROR MACROS
 #define ERROR(a) {printf("ERROR in line %d in file %s with message: %s",__LINE__,__FILE__,a); while(1);}
 
 #if __DEBUG__
@@ -177,8 +179,5 @@ class Kernel_ThreadCfdCl;
 #else
 #define ASSERT(a) if (!a) ;
 #endif
-
-ErrorT handleError( ErrorT );
-ErrorT handleError( ErrorT, Kernel_ThreadCfdCl* );
 
 #endif /* _ERROR_HH */

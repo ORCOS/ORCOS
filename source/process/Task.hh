@@ -80,6 +80,11 @@ public:
      */
     LinkedListDatabase threadDb;
 
+    /*!
+     *  \brief the exit Value of the task == exit value of last terminated task
+     */
+    int exitValue;
+
 protected:
     /*!
      *  \brief The database storing the Threads belonging to this task

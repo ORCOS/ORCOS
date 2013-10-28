@@ -37,6 +37,9 @@ private:
 	/*! The ipv4 address structure of this device.  */
 	struct ip4_addr tIpAddr;
 
+	// Link status
+	bool	link_up;
+
 public:
   SMSC95xxUSBDeviceDriver(USBDevice* dev);
 

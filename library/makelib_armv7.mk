@@ -36,8 +36,8 @@ SED 		= sed
 #---------------------------------------------------------------------------------------------------------------------------------------
 OUTPUT_DIR = bin/armv7/
 
-OPT_FLAGS = -O2  -mthumb -mcpu=cortex-a8  -mthumb-interwork -mno-unaligned-access -DARM_THUMB=1
-USER_LIB_OPT_FLAGS = -O2 -mcpu=cortex-a8 -mno-unaligned-access
+OPT_FLAGS = -O2   -mcpu=cortex-a8  -mthumb-interwork -mno-unaligned-access -DARM_THUMB=1
+USER_LIB_OPT_FLAGS = -O2 -mcpu=cortex-a8 -mno-unaligned-access 
 
 #Command line arguments to compile .c files.
 CFLAGS = -Wall -g -Iinc/ -I../source/inc -ffunction-sections -fno-exceptions -fno-unwind-tables -msoft-float -fno-stack-protector -Wno-write-strings -c $(CPU_FLAGS) 

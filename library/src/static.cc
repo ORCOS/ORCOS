@@ -22,9 +22,9 @@
 #include "./orcos.hh"
 
 // must always be linked into the user application
-extern "C" void thread_exit()
+extern "C" void thread_exit(int exitCode)
 {
-    syscall(cThread_ExitSysCallId);
+    syscall(cThread_ExitSysCallId, exitCode);
 }
 
 

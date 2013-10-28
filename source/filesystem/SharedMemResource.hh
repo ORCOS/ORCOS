@@ -11,6 +11,11 @@
 #include "Resource.hh"
 
 
+typedef struct {
+	void* virtual_address;
+	Task* task;
+} Mapping;
+
 /*
  * Shared Memory Area Resource. Allows the creation of shared memory areas at
  * arbitrary phyiscal memory locations. This may even be used to create
@@ -19,13 +24,17 @@
 class SharedMemResource: public Resource {
 
 private:
+	// The physical start address of this memory area
 	unint4 physical_start_address;
-
+	// The size of this memory area
 	unint4 size;
+	// The owner (creator) of this resource
+	Task* owner;
 
-	TaskIdT owner;
+	LinkedListDatabase mapping;
+
 public:
-	SharedMemResource(unint4 size, char* name, TaskIdT owner = -1);
+	SharedMemResource(unint4 size, char* name, Task* owner = 0);
 
 	virtual ~SharedMemResource();
 
@@ -43,17 +52,17 @@ public:
 	/*!
 	 * Returns the Owner Task ID.
 	 */
-	TaskIdT getOwner() { return owner; }
+	Task* getOwner() { return (owner); }
 
 	/*!
 	 * Returns the size of the shared memory area.
 	 */
-	unint4 getSize() { return size; }
+	unint4 getSize() { return (size); }
 
 	/*!
 	 * Returns the physical start address of the shared memory area.
 	 */
-	unint4 getPhysicalStartAddress() { return physical_start_address; }
+	unint4 getPhysicalStartAddress() { return (physical_start_address); }
 };
 
 #endif /* SHAREDMEMRESOURCE_HH_ */

@@ -60,6 +60,8 @@ public:
      */
     ErrorT registerResource( Resource* res );
 
+    ErrorT unregisterResource( Resource* res );
+
     /*!
      * \brief Resource creation is not imlpemented in this filemanager.
      */

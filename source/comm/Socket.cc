@@ -42,11 +42,9 @@ Socket::Socket( int domain, int type, int protocol, char* bufferstart, int buffe
         bufferstart = (char*) theOS->getMemoryManager()->alloc( bufferlen, false );
     }
 
-    // TODO: check sanity of bufferstart and bufferlen
-
     // create the message buffer
     this->ownerTask 			= pCurrentRunningTask;
-    this->messageBuffer = new CAB( bufferstart, bufferlen , pCurrentRunningTask );
+    this->messageBuffer 		= new CAB( bufferstart, bufferlen , pCurrentRunningTask );
     this->arg					= 0;
     this->newSocketID			= -1;
 
@@ -97,7 +95,7 @@ Socket::~Socket() {
 ErrorT Socket::bind( sockaddr* address ) {
 
     if (myboundaddr.sa_data != 0 ){
-    	return cSocketAlreadyBoundError;
+    	return (cSocketAlreadyBoundError);
     }
 
     ErrorT error = cOk;

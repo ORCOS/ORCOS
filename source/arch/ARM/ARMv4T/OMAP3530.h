@@ -22,8 +22,6 @@
 #define MHZ			*1000000
 #define kHZ			*1000
 
-//#define	CLOCK_RATE	(26 MHZ)
-//#define	CLOCK_RATE	(0.001 MHZ)
 
 /*
  * PRCM Interrupt Configuration Registers

@@ -292,7 +292,7 @@ void SingleCPUDispatcher::sigwait( Thread* thread ) {
         if ( litem == 0 ) {
             // thread must be new since it is not
             // referenced anywhere so lets create
-            // a new databaseitem to hold the reference
+            // a new linkedlist databaseitem to hold the reference
             // from now on
             litem = new LinkedListDatabaseItem( thread );
         }
@@ -307,7 +307,7 @@ void SingleCPUDispatcher::sigwait( Thread* thread ) {
 #endif
 }
 
-void SingleCPUDispatcher::signal( void* sig ) {
+void SingleCPUDispatcher::signal( void* sig, int sigvalue ) {
     // be sure that this critical area cant be interrupted
 #if ENABLE_NESTED_INTERRUPTS
     bool int_enabled;
@@ -330,6 +330,8 @@ void SingleCPUDispatcher::signal( void* sig ) {
                 LOG(SCHEDULER,TRACE,(SCHEDULER,TRACE,"SingleCPUDispatcher::signal() signal to thread %d", pThread->getId()));
 
                 pThread->status.clearBits( cSignalFlag );
+                pCurrentRunningThread->setReturnValue((void*)sigvalue);
+
                 if ( !pThread->status.areSet( cStopped ) ) {
 
                     if ( pThread->status.areSet( cBlockedFlag ) ) {
@@ -343,6 +345,7 @@ void SingleCPUDispatcher::signal( void* sig ) {
                         this->SchedulerCfd->enter( litem );
                     }
                 }
+
             }
         }
 

@@ -160,7 +160,7 @@ Omap3530_BebotLED:: Omap3530_BebotLED( const char* name, int4 baseaddr )
 }
 
 Omap3530_BebotLED::~Omap3530_BebotLED() {
-	// TODO Auto-generated destructor stub
+
 }
 
 

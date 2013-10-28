@@ -183,22 +183,9 @@ void Thread::block() {
     else
     {
 
-    	/// TODO: implement the Thread->block method in assembler.. which takes care of
-    	// saveing the context correctly.. then call the c++ method which calls the CPUDispatcher
-    	// thus: thread->asm_block->block
-
     	// since we are going to be blocked save my context!
         unsigned char buf[ PROCESSOR_CONTEXT_SIZE + 16 ];
         void* stackpointer = &buf;
-
-        #if STACK_GROWS_DOWNWARDS
-        	// TODO add macro with context size
-            //void* stackpointer = &buf[ 156 ];  // ppc
-
-			//void* stackpointer = &buf[ 0 ];
-        #else
-            void* stackpointer = &buf[ 400 ];
-        #endif
 
         LOG(PROCESS,DEBUG,(PROCESS,DEBUG,"Thread::block() id=%d stackpointer=%x ",this->getId(),stackpointer));
 
@@ -276,6 +263,10 @@ void Thread::terminate() {
     this->owner->removeThread( this );
     this->status.clear();
     this->status.setBits( cTermFlag );
+
+    // be sure only threads inside our tasks are signalled as signal is global
+    unint4 signal = (this->owner->getId() << 16) | (SIG_CHILD_TERMINATED);
+    theOS->getCPUDispatcher()->signal((void*) signal,cOk);
 
     // finally tell cpudispatcher that im gone..
     theOS->getCPUDispatcher()->terminate_thread( this );

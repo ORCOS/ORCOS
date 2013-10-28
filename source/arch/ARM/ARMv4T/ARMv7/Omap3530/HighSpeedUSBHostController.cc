@@ -496,6 +496,6 @@ HighSpeedUSBHostController::HighSpeedUSBHostController(T_HighSpeedUSBHostControl
 }
 
 HighSpeedUSBHostController::~HighSpeedUSBHostController() {
-	// TODO Auto-generated destructor stub
+
 }
 

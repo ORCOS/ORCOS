@@ -10,6 +10,7 @@
 
 #include "lwip/netif.h"
 #include "lwip/udp.h"
+#include "lwip/err.h"
 
 #ifdef __cplusplus
 extern "C" {

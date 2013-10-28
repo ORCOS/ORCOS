@@ -79,3 +79,15 @@ extern "C"void thread_yield()
     syscall(cThread_YieldSysCallId);
 }
 
+
+extern "C" int	waitpid(unint1 pid)
+{
+    return (syscall(cThread_WaitPID,pid));
+}
+
+extern "C" int 	wait()
+{
+   return (waitpid(0));
+}
+
+

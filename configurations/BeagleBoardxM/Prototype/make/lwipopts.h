@@ -313,7 +313,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * LWIP_ARP==1: Enable ARP functionality.
  */
 #ifndef LWIP_ARP
-#define LWIP_ARP                        1
+#define LWIP_ARP  1
 #endif
 
 /**
@@ -521,7 +521,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * LWIP_DHCP==1: Enable DHCP module.
  */
 #ifndef LWIP_DHCP
-#define LWIP_DHCP                       0
+#define LWIP_DHCP  0
 #endif
 
 /**
@@ -1597,14 +1597,14 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * ETHARP_DEBUG: Enable debugging in etharp.c.
  */
 #ifndef ETHARP_DEBUG
-#define ETHARP_DEBUG                    LWIP_DBG_OFF
+#define ETHARP_DEBUG  LWIP_DBG_OFF
 #endif
 
 /**
  * NETIF_DEBUG: Enable debugging in netif.c.
  */
 #ifndef NETIF_DEBUG
-#define NETIF_DEBUG                     LWIP_DBG_OFF
+#define NETIF_DEBUG  LWIP_DBG_OFF
 #endif
 
 /**
@@ -1660,7 +1660,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * IP_DEBUG: Enable debugging for IP.
  */
 #ifndef IP_DEBUG
-#define IP_DEBUG                        LWIP_DBG_OFF
+#define IP_DEBUG  LWIP_DBG_OFF
 #endif
 
 /**
@@ -1702,14 +1702,14 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * TCP_DEBUG: Enable debugging for TCP.
  */
 #ifndef TCP_DEBUG
-#define TCP_DEBUG                       LWIP_DBG_OFF
+#define TCP_DEBUG  LWIP_DBG_OFF
 #endif
 
 /**
  * TCP_INPUT_DEBUG: Enable debugging in tcp_in.c for incoming debug.
  */
 #ifndef TCP_INPUT_DEBUG
-#define TCP_INPUT_DEBUG                 LWIP_DBG_OFF
+#define TCP_INPUT_DEBUG  LWIP_DBG_OFF
 #endif
 
 /**
@@ -1745,21 +1745,21 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * TCP_OUTPUT_DEBUG: Enable debugging in tcp_out.c output functions.
  */
 #ifndef TCP_OUTPUT_DEBUG
-#define TCP_OUTPUT_DEBUG                LWIP_DBG_OFF
+#define TCP_OUTPUT_DEBUG  LWIP_DBG_OFF
 #endif
 
 /**
  * TCP_RST_DEBUG: Enable debugging for TCP with the RST message.
  */
 #ifndef TCP_RST_DEBUG
-#define TCP_RST_DEBUG                   LWIP_DBG_OFF
+#define TCP_RST_DEBUG  LWIP_DBG_OFF
 #endif
 
 /**
  * TCP_QLEN_DEBUG: Enable debugging for TCP queue lengths.
  */
 #ifndef TCP_QLEN_DEBUG
-#define TCP_QLEN_DEBUG  LWIP_DBG_OFF
+#define TCP_QLEN_DEBUG  				LWIP_DBG_OFF
 #endif
 
 /**
@@ -1773,7 +1773,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * TCPIP_DEBUG: Enable debugging in tcpip.c.
  */
 #ifndef TCPIP_DEBUG
-#define TCPIP_DEBUG                     LWIP_DBG_OFF
+#define TCPIP_DEBUG  LWIP_DBG_OFF
 #endif
 
 /**

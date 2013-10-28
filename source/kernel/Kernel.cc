@@ -94,8 +94,6 @@ void Kernel::initialize() {
     this->cpuManager 		= new SingleCPUDispatcher( );
     // create the file	manager implementing the filesystem
     this->fileManager		= new SimpleFileManager( );
-    // create the "/usb/" directory which will contain all usb drivers
-    this->usbDriverLib 		= new USBDriverLibrary();
     // create the PartitionMananger which handles block device partitions
     this->partitionManager 	= new PartitionManager();
     // create the Task Manager which holds the list of all tasks
@@ -106,11 +104,17 @@ void Kernel::initialize() {
     // set the idlethread of the cpudispatcher
     this->cpuManager->setIdleThread( new IdleThread( ) );
 
+#if USB_SUPPORT_ENABLED
+    // create the "/usb/" directory which will contain all usb drivers
+    this->usbDriverLib 		= new USBDriverLibrary();
+
     // Add support for smsc95xx ethernet over USB devices
     new SMSC95xxUSBDeviceDriverFactory("smsc95xx");
 
     // Add support for USB SCSI Bulk only Mass Storage Devices
     new MassStorageSCSIUSBDeviceDriverFactory("msd_scsi_bot");
+
+#endif
 
 #if USE_TRACE
     // create the debug trace class
@@ -314,16 +318,6 @@ void Kernel::initDeviceDrivers() {
  //  setStdOutputDevice( board->getUART() );
 #else
     setStdOutputDevice(0);
-#endif
-
-#ifdef HAS_Board_ETHCfd
-
-#if !USE_WORKERTASK
-#error "YOU MUST USE WORKTASKS IF YOU WANT TO COMMUNICATE OVER ETHERNET"
-#endif
-
-    extern struct netif tEMAC0Netif;
-    netif_set_up(&tEMAC0Netif);
 #endif
 
 }

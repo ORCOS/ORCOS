@@ -18,7 +18,6 @@
 
 #include <stringtools.hh>
 
-//#define MODULO(a,b)  a >= b ? a-b : a
 #define MODULO(a,b)  a % b
 
 void strreverse( char* begin, char* end ) {

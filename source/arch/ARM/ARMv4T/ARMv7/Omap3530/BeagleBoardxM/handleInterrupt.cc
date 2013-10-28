@@ -98,7 +98,7 @@ extern "C" void handleDataAbort(int addr, int instr, int context, int spsr) {
 		// dump TLB
 	#endif
 
-	SETPID(0);
+	//SETPID(0);
 
 	// handle the error
 	theOS->getErrorHandler()->handleError();
@@ -155,8 +155,7 @@ extern "C" void handleUndefinedIRQ(int addr, int spsr, int context) {
 		// dump TLB
 	#endif
 
-	while(1) {};
-	SETPID(0);
+	//SETPID(0);
 
 	// handle the error
 	theOS->getErrorHandler()->handleError();

@@ -25,7 +25,7 @@ lwipTMR::lwipTMR() {
 }
 
 lwipTMR::~lwipTMR() {
-	// TODO Auto-generated destructor stub
+
 }
 
 

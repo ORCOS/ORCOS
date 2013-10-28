@@ -75,12 +75,12 @@
 #include "lwip/stats.h"
 #include "lwip/mem.h"
 #include "lwip/udp.h"
-#include "lwip/ip_addr.h"
+//#include "lwip/ip_addr.h"
 #include "lwip/netif.h"
-#include "lwip/inet.h"
+//#include "lwip/inet.h"
 #include "lwip/sys.h"
 #include "lwip/dhcp.h"
-#include "lwip/autoip.h"
+//#include "lwip/autoip.h"
 #include "lwip/dns.h"
 #include "netif/etharp.h"
 
@@ -171,9 +171,9 @@ dhcp_handle_nak(struct netif *netif)
   /* Set the interface down since the address must no longer be used, as per RFC2131 */
   netif_set_down(netif);
   /* remove IP address from interface */
-  netif_set_ipaddr(netif, IP_ADDR_ANY);
-  netif_set_gw(netif, IP_ADDR_ANY);
-  netif_set_netmask(netif, IP_ADDR_ANY); 
+  netif_set_ipaddr(netif, IP4_ADDR_ANY);
+  netif_set_gw(netif, IP4_ADDR_ANY);
+  netif_set_netmask(netif, IP4_ADDR_ANY);
   /* Change to a defined state */
   dhcp_set_state(dhcp, DHCP_BACKING_OFF);
   /* We can immediately restart discovery */

@@ -22,7 +22,36 @@
   						RaptorBoard Definition and Default Values
  	         #################################################### -->
       
-      <Superclass Provides="PPC405,RAPTOR,FPGA" Name="arch/PPC40x/RAPTOR/RaptorBoard"></Superclass>
+      <Superclass Provides="PPC405,RAPTOR,FPGA" Name="arch/PPC40x/RAPTOR/RaptorBoard">
+        <MemberRef Name="Timer"/>
+        <MemberRef Name="UART">
+		  <Defaults Class="arch/PPC40x/RAPTOR/OPB_UART_Lite">
+            <PropertyValue Name="Address" Value="0x90210000" />
+            <PropertyValue Name="Length" Value="16" />
+			<PropertyValue Name="Name" Value="serial0" />
+          </Defaults>
+		</MemberRef>
+        <MemberRef Name="UART2"/>
+        <MemberRef Name="HatLayer"/>
+        <MemberRef Name="Clock"/>
+        <MemberRef Name="Processor"/>
+        <MemberRef Name="LED">
+		  <Defaults Class="arch/PPC40x/RAPTOR/LED">
+            <PropertyValue Name="Address" Value="0x90220000" />
+            <PropertyValue Name="Length" Value="16" />
+			<PropertyValue Name="Name" Value="led0" />
+          </Defaults>
+		</MemberRef>
+		<MemberRef Name="ETH">
+		  <Defaults Class="arch/PPC40x/RAPTOR/PLB_EMAC0">
+            <PropertyValue Name="Address" Value="0x90000000" />
+            <PropertyValue Name="Length" Value="4096" />
+			<PropertyValue Name="Name" Value="eth0" />
+          </Defaults>
+		</MemberRef>
+        <MemberRef Name="InterruptHandler"/>
+        <MemberRef Name="InterruptController"/>    
+      </Superclass>
 
 
       <!-- #################################################### 
@@ -48,6 +77,7 @@
         <MemberRef Name="HatLayer"/>
         <MemberRef Name="Clock"/>
         <MemberRef Name="Processor"/>
+        <MemberRef Name="Watchdog"/>
         <MemberRef Name="HCI"/>
         <MemberRef Name="LED"/>
         <MemberRef Name="InterruptHandler"/>
@@ -191,14 +221,8 @@
     <Member>
       <Name>Timer</Name>
       <Classes>
-        <Class Requires="PPC405" Name="arch/PPC40x/PPC405ProgrammableIntervalTimer">
-          <Property Name="Address" Type="unsigned int" Optional="false" />
-          <Property Name="Length" Type="unsigned int" Optional="false"/>
-        </Class>
-        <Class Requires="PPC405" Name="arch/PPC40x/PPC405FixedIntervalTimer">
-          <Property Name="Address" Type="unsigned int" Optional="false" />
-          <Property Name="Length" Type="unsigned int" Optional="false"/>
-        </Class>
+        <Class Requires="PPC405" Name="arch/PPC40x/PPC405ProgrammableIntervalTimer"/>
+        <Class Requires="PPC405" Name="arch/PPC40x/PPC405FixedIntervalTimer"/>
         <Class Requires="Leon3" Name="arch/Leon3/Leon3IntervalTimer">
           <Property Name="Address" Type="unsigned int" Optional="false" />
           <Property Name="Length" Type="unsigned int" Optional="false" />

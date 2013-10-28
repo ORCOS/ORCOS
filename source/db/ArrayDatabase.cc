@@ -19,6 +19,7 @@
 #include "ArrayDatabase.hh"
 
 
+// if we are sure a -b is never > b we can use this!
 #define MODULO(a,b)  a >= b ? a-b : a
 
 ArrayDatabase::ArrayDatabase( int max ) {

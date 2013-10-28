@@ -40,6 +40,10 @@ typedef struct Chunk_Header {
 // Minimum payload needed for a chunk when splitting
 #define MINIMUM_PAYLOAD 0x20
 
+// activating precisely validity checks checks a freed chunk on correct placement
+// inside the chunk list. However, takes a lot more time.
+#define PRECISE_VALIDITY_CHECK 0
+
 // MEM_LAST_FIT will start searching at the last freed object for chunks to allocated
 // this is faster than starting to search from the beginning
 // however: this will lead to a higher number of chunks, thus, increasing the number
@@ -90,6 +94,10 @@ class SequentialFitMemManager: public MemManager {
 private:
     //! Pointer to the first memory chunk in the linked list
     Chunk_Header* startChunk;
+
+    unint4 free_mem;
+
+    unint4 overhead;
 
     /*!
      * \brief the memory chunk at the given address is splitted into a chunk of the given size and a chunk containing the remaining unused memory (if possible)

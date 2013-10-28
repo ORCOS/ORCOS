@@ -36,18 +36,18 @@ int ioctl(int4 int_sp) {
 	 Resource* res;
 
 	 SYSCALLGETPARAMS3(int_sp,(void*) file_id, request, args);
-
 	 VALIDATE_IN_PROCESS(args);
 
 	 LOG(SYSCALLS,DEBUG,(SYSCALLS,DEBUG,"Syscall: ioctl(%d,%d,%x)",file_id, request, args));
 
 	 res = pCurrentRunningTask->getOwnedResourceById( file_id );
 	 if ( res != 0 ) {
-		 if (res->getType() == cStreamDevice || res->getType() == cCommDevice || res->getType() == cGenericDevice || res->getType() == cBlockDevice) {
-			 return ((GenericDeviceDriver*) res)->ioctl(request,args);
-		 } else return cInvalidResource;
+		 // check for correct type
+		 if (res->getType() & (cStreamDevice | cCommDevice | cGenericDevice | cBlockDevice)) {
+			 return (((GenericDeviceDriver*) res)->ioctl(request,args));
+		 } else return (cInvalidResource);
 	 }
-	 else return cInvalidResource;
+	 else return (cInvalidResource);
 }
 
 /*******************************************************************
@@ -66,15 +66,13 @@ int fputcSyscall( int4 int_sp ) {
     register Resource* res;
     res = pCurrentRunningTask->getOwnedResourceById( stream );
     if ( res != 0 ) {
-        // resource valid and owned
-        // check if resource is a characterdevice
-        if ( ( res->getType() == cStreamDevice ) || ( res->getType() == cCommDevice ) ) {
+        // check if resource is char writeable device
+        if  ( res->getType() & (cStreamDevice | cCommDevice ))  {
             // we are ok to write onto this resource
             retval = cOk;
             ( (CharacterDeviceDriver*) res )->writeByte( c );
 
             LOG(SYSCALLS,TRACE,(SYSCALLS,TRACE,"Syscall: Valid Resource %d",stream));
-
         }
         else
             retval = cResourceNotWriteable;
@@ -84,7 +82,7 @@ int fputcSyscall( int4 int_sp ) {
     else
         retval = cResourceNotOwned;
 
-    return retval;
+    return (retval);
 }
 #endif
 
@@ -108,7 +106,7 @@ int fgetcSyscall( int4 int_sp ) {
     if ( res != 0 ) {
         // resource valid and owned
         // check if resource is a characterdevice
-        if ( ( res->getType() == cStreamDevice ) || ( res->getType() == cCommDevice ) ) {
+    	 if  ( res->getType() & (cStreamDevice | cCommDevice ))  {
             LOG(SYSCALLS,TRACE,(SYSCALLS,TRACE,"Syscall: Valid Resource %d",stream));
             // we are ok to read this resource
             retval=  ((CharacterDeviceDriver*) res )->readByte( &c );
@@ -121,7 +119,7 @@ int fgetcSyscall( int4 int_sp ) {
     else
         retval = cResourceNotOwned;
 
-    return retval;
+    return (retval);
 }
 #endif
 
@@ -132,7 +130,7 @@ int fgetcSyscall( int4 int_sp ) {
 
 
 
-//#ifdef HAS_SyscallManager_fcreateCfd
+#ifdef HAS_SyscallManager_fcreateCfd
 int fcreateSyscall( int4 int_sp ) {
     char* filename;
     char* path;
@@ -149,20 +147,18 @@ int fcreateSyscall( int4 int_sp ) {
 
     if ( res != 0 ) {
     	Directory* dir = (Directory*) res;
-    	//res = new Resource(cFile,true,filename);
-    	//dir->add(res);
     	res = dir->createFile(filename,0);
     	if (res != 0) {
     		res->aquire(pCurrentRunningThread,false);
-    		return res->getId();
+    		return (res->getId());
     	}
-    	return cError;
+    	return (cError);
     } else {
     	LOG(SYSCALLS,ERROR,(SYSCALLS,ERROR,"Syscall: fcreate(%s,%s) FAILED",filename,path));
-    	return cInvalidResource;
+    	return (cInvalidResource);
     }
 }
-//#endif
+#endif
 
 
 /*******************************************************************
@@ -178,7 +174,6 @@ int fopenSyscall( int4 int_sp ) {
     int blocking;
 
     SYSCALLGETPARAMS2(int_sp,(void*) filename,(void*) blocking);
-
     VALIDATE_IN_PROCESS(filename);
 
     LOG(SYSCALLS,TRACE,(SYSCALLS,TRACE,"Syscall: fopen(%s)",filename));
@@ -192,7 +187,7 @@ int fopenSyscall( int4 int_sp ) {
 
         LOG(SYSCALLS,ERROR,(SYSCALLS,ERROR,"Syscall: fopen(%s) FAILED",filename));
     }
-    return retval;
+    return (retval);
 }
 #endif
 
@@ -231,10 +226,10 @@ int fcloseSyscall( int4 int_sp ) {
         // we may have unblocked a higher priority thread so we need to reschedule now!
         theOS->getCPUDispatcher()->dispatch( theOS->getClock()->getTimeSinceStartup() - lastCycleStamp );
 #endif
-        return retval;
+        return (retval);
     }
     else
-        return cResourceNotOwned;
+        return (cResourceNotOwned);
 }
 #endif
 
@@ -268,12 +263,12 @@ int fwriteSyscall( int4 int_sp ) {
 
         // resource valid and owned
         // check if resource is a characterdevice
-        if ( ( res->getType() == cStreamDevice ) || ( res->getType() == cCommDevice ) || res->getType() == cFile ) {
+        if ( res->getType() & ( cStreamDevice | cCommDevice | cFile )) {
             char* pointer = (char*) write_ptr;
             for ( unint4 i = 0; i < write_nitems; i++ ) {
             	ErrorT result = ( (CharacterDeviceDriver*) res )->writeBytes( pointer, write_size );
             	// check if writing failed
-            	if (isError(result)) return result;
+            	if (isError(result)) return (result);
                 pointer += write_size;
             }
             retval = write_nitems;
@@ -285,12 +280,10 @@ int fwriteSyscall( int4 int_sp ) {
     // maybe resource not owned or resource doesnt exist
     else {
         retval = cResourceNotOwned;
-
         LOG(SYSCALLS,ERROR,(SYSCALLS,ERROR,"Syscall: fwrite on device with id %d failed", write_stream));
-
     }
 
-    return retval;
+    return (retval);
 
 }
 #endif
@@ -323,13 +316,13 @@ int freadSyscall( int4 int_sp ) {
 
         // resource valid and owned
         // check if resource is a characterdevice
-        if ( ( res->getType() == cStreamDevice ) || ( res->getType() == cCommDevice ) || ( res->getType() == cDirectory ) || ( res->getType() == cFile )  ) {
+        if ( res->getType() & ( cStreamDevice | cCommDevice | cFile | cDirectory)) {
             char* pointer = (char*) read_ptr;
             for ( unint4 i = 0; i < read_nitems; i++ ) {
 
                 ErrorT result = ( (CharacterDeviceDriver*) res )->readBytes( pointer, read_size );
                 // check if reading failed
-                if (isError(result)) return result;
+                if (isError(result)) return (result);
 
                 pointer += read_size;
             }
@@ -339,20 +332,16 @@ int freadSyscall( int4 int_sp ) {
         }
         else {
             retval = cResourceNotReadable;
-
             LOG(SYSCALLS,ERROR,(SYSCALLS,ERROR,"Syscall: fread failed. Not a readable device."));
-
         }
 
     }
     // maybe resource not owned or resource doesnt exist
     else {
         retval = cResourceNotOwned;
-
         LOG(SYSCALLS,ERROR,(SYSCALLS,ERROR,"Syscall: fread on device with id %d failed", read_stream));
-
     }
-    return retval;
+    return (retval);
 }
 #endif
 

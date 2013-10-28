@@ -25,12 +25,13 @@ TaskErrorHandler::~TaskErrorHandler() {
 void TaskErrorHandler::handleError() {
 	pRunningThreadDbItem = 0;
 	Task* t = pCurrentRunningTask;
-	pCurrentRunningTask = 0;
+	//pCurrentRunningTask = 0;
 	pCurrentRunningThread = 0;
 
 	// no other policy then removing the task
 	theOS->getTaskManager()->removeTask(t);
 
+	LOG(KERNEL,INFO,(KERNEL,INFO,"TaskErrorHandler::handleError: dispatching"));
 	theOS->getCPUDispatcher()->dispatch( theOS->getClock()->getTimeSinceStartup() - lastCycleStamp );
 
 }

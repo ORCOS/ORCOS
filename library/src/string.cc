@@ -390,3 +390,6 @@ char* strtok( char *s, const char *delim ) {
     /* NOTREACHED */
 }
 
+extern "C" int puts(const char *s) {
+	return (printToStdOut(s,strlen(s)));
+}

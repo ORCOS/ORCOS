@@ -32,8 +32,9 @@ int runTask(int4 sp_int) {
 	char* path;
 	char* arguments;
 	unint2 arg_length = 0;
+	unint4 flags;
 
-	SYSCALLGETPARAMS2(sp_int,path,arguments);
+	SYSCALLGETPARAMS3(sp_int,path,arguments,flags);
 
 	// TODO: safely validate path length to avoid running out of process bounds
 	// TODO: safely validate arguments length to avoid running out of process bounds
@@ -44,7 +45,6 @@ int runTask(int4 sp_int) {
 	}
 
 	LOG(SYSCALLS,INFO,(SYSCALLS,INFO,"Syscall: runTask(%s)",path));
-
 
 	if (path == 0) return (cError);
 
@@ -58,13 +58,43 @@ int runTask(int4 sp_int) {
 	TaskIdT taskId;
 	retval = theOS->getTaskManager()->loadTaskFromFile((File*)res,taskId,arguments,arg_length);
 
-	// on failure return the error number
-	if (retval < 0) return (retval);
+	if (flags & cWait) {
+		Task* t = theOS->getTaskManager()->getTask(taskId);
+		// lets wait for this task to finish
+		pCurrentRunningThread->sigwait(t);
+	} else
+	{
+		// on failure return the error number
+		if (isOk(retval)) retval = taskId;
+		pCurrentRunningThread->setReturnValue((void*)retval);
+	}
 
-	// on success return the taskId
-	return (taskId);
+	// new task may have higher priority so dispatch now!
+	theOS->getCPUDispatcher()->dispatch();
 
+	return cError;
 }
+
+int thread_wait(int4 sp_int) {
+
+	int pid;
+	SYSCALLGETPARAMS1(sp_int,pid);
+	LOG(SYSCALLS,INFO,(SYSCALLS,INFO,"Syscall: task_wait: pid %d",pid));
+
+	if (pid == 0) {
+		// wait for any child to terminate on our current process
+		unint4 signal = (pCurrentRunningTask->getId() << 16) | (SIG_CHILD_TERMINATED);
+		pCurrentRunningThread->sigwait((void*) signal);
+	} else {
+		Task* t = theOS->getTaskManager()->getTask(pid);
+		if (t == 0) return (cError);
+		// wait for task to finish
+		pCurrentRunningThread->sigwait(t);
+	}
+
+	return (cError);
+}
+
 
 /*******************************************************************
  *				TASK_KILL Syscall

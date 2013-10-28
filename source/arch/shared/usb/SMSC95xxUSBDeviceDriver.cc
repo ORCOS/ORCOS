@@ -615,7 +615,8 @@ ErrorT SMSC95xxUSBDeviceDriver::init()
 		return ret;
 	LOG(ARCH,TRACE,(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: Read Value from BURST_CAP after writing: 0x%08x", read_buf));
 
-	read_buf = DEFAULT_BULK_IN_DELAY;
+	//read_buf = DEFAULT_BULK_IN_DELAY;
+	read_buf = 0x1000;
 	ret = smsc95xx_write_reg(dev, BULK_IN_DLY, read_buf);
 	if (ret < 0)
 		return ret;
@@ -702,7 +703,7 @@ ErrorT SMSC95xxUSBDeviceDriver::init()
 	smsc95xx_start_tx_path(dev);
 	smsc95xx_start_rx_path(dev);
 
-	LOG(ARCH,INFO,(ARCH,INFO,"SMSC95xxUSBDeviceDriver: Waiting for Ethernet connection..."));
+	/*LOG(ARCH,INFO,(ARCH,INFO,"SMSC95xxUSBDeviceDriver: Waiting for Ethernet connection..."));
 	timeout = 1000;
 
 	do {
@@ -721,7 +722,7 @@ ErrorT SMSC95xxUSBDeviceDriver::init()
 	} else {
 		LOG(ARCH,WARN,(ARCH,WARN,"SMSC95xxUSBDeviceDriver: Error: Cable not connected?."));
 		return cOk;
-	}
+	}*/
 
 	return 0;
 }
@@ -796,7 +797,7 @@ SMSC95xxUSBDeviceDriver::SMSC95xxUSBDeviceDriver(USBDevice* dev)
 	this->bulkout_ep = 0;
 	this->int_ep = 0;
 	LOG(ARCH,INFO,(ARCH,INFO,"SMSC95xxUSBDeviceDriver: new Device attached.."));
-
+	link_up = false;
 
 }
 
@@ -968,7 +969,8 @@ ErrorT SMSC95xxUSBDeviceDriver::initialize() {
 	//define default value
 	#define Board_ETH_IP4NETMASK 255,0,0,0
 	#endif
-	int netmask[4] = {Board_ETH_IP4NETMASK};
+
+	int netmask[4] = {255,255,255,0};
 	IP4_ADDR(&eth_nm, netmask[0], netmask[1], netmask[2], netmask[3]);
 
 	//#ifndef Board_ETH_IP4ADDR
@@ -984,10 +986,9 @@ ErrorT SMSC95xxUSBDeviceDriver::initialize() {
 	netif_add(&tEMAC0Netif, &tIpAddr, &eth_nm, 0, 0, &smsc9x_ethernetif_init, 0);
 	tEMAC0Netif.state = (void*) this;
 
-	netif_set_default(&tEMAC0Netif);
-	netif_set_up(&tEMAC0Netif);
+	netif_set_down(&tEMAC0Netif);
 
-	return cOk;
+	return (cOk);
 }
 
 
@@ -1011,8 +1012,12 @@ ErrorT SMSC95xxUSBDeviceDriver::handleInterrupt() {
 		if ((interrupt_sts & INT_EP_CTL_PHY_INT_) != 0) {
 			 /* clear interrupt status */
 
-			LOG(ARCH,INFO,(ARCH,INFO,"SMSC95xxUSBDeviceDriver: Link Status changed.."));
-			//while (1) smsc95xx_recv(dev,this->bulkin_ep);
+			LOG(ARCH,DEBUG,(ARCH,DEBUG,"SMSC95xxUSBDeviceDriver: Link Activated.."));
+			link_up = true;
+			netif_set_default(&tEMAC0Netif);
+			netif_set_up(&tEMAC0Netif);
+
+
 		}
 
 		// set qtd back to active
@@ -1058,7 +1063,7 @@ ErrorT SMSC95xxUSBDeviceDriver::handleInterrupt() {
 
 
 SMSC95xxUSBDeviceDriver::~SMSC95xxUSBDeviceDriver() {
-	// TODO Auto-generated destructor stub
+
 }
 
 void SMSC95xxUSBDeviceDriver::recv() {
@@ -1067,7 +1072,7 @@ void SMSC95xxUSBDeviceDriver::recv() {
 
 
 ErrorT SMSC95xxUSBDeviceDriver::lowlevel_send( char* data, int len ) {
-	return cNotImplemented;
+	return (cNotImplemented);
 }
 
 

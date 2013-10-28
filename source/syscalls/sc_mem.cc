@@ -66,25 +66,38 @@ int shm_mapSyscall(int4 sp_int) {
 
 	// try to find the specified resource
 	Resource* res = theOS->getFileManager()->getResourceByNameandType(file,cSharedMem);
-	if (res == 0) return cInvalidArgument;
+	if (res == 0) return (cInvalidArgument);
 
 	// must be a shared mem resource
 	SharedMemResource* shm_res = (SharedMemResource*) res;
 	unint4 virtual_address;
 
 	// is this shared mem resource valid?
-	if (shm_res->getPhysicalStartAddress() == 0) return cInvalidResource;
+	if (shm_res->getPhysicalStartAddress() == 0) return (cInvalidResource);
 
-	// mpa it into the address space of the calling task
+	// map it into the address space of the calling task
 	int retval = shm_res->mapIntoTask(pCurrentRunningTask,virtual_address);
 
 	// set return addresses
 	*mapped_address = virtual_address;
 	*mapped_size = shm_res->getSize();
 
-	return retval;
+	return (retval);
 
 }
+
+/*******************************************************************
+ *				SHM_UNMAP  Syscall
+ *******************************************************************/
+int shm_unmapSyscall(int4 sp_int) {
+	const char* file;
+	unint4* mapped_address;
+	unint4* mapped_size;
+
+	return (cError);
+
+}
+
 
 /*******************************************************************
  *				DELETE Syscall
@@ -129,23 +142,4 @@ int newSyscall( int4 int_sp ) {
 #endif
 
 
-/*******************************************************************
- *				MALLOCP Syscall
- *******************************************************************/
-int mallocp(int4 sp_int) {
-    size_t size;
-    int protection_mode;
-    SYSCALLGETPARAMS2(sp_int,(void*) size,protection_mode);
-    int retval;
 
-#if USE_AIS_MEM
-	// call AIS MemManager
-   	retval = (int) theOS->getBoard()->aisMemManager->allocp(size,protection_mode);
-#else
-    retval = (int) pCurrentRunningTask->getMemManager()->alloc( size, true );
-#endif
-
-    ASSERT(retval);
-
-    return retval;
-}
