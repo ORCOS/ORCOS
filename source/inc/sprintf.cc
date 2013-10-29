@@ -40,6 +40,8 @@ static void printchar( char **str, int c ) {
         (void) putc( c );
 }
 
+
+
 static void prints( char **out, const char *string, int width, int pad ) {
     register int padchar = ' ';
 
@@ -158,7 +160,7 @@ int printf( const char *format, ... ) {
     return 0;
 }
 
-int puts(const char* s) {
+extern "C" int puts(const char* s) {
 
 	printf(s);
 	return 1;

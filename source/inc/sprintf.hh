@@ -35,6 +35,7 @@ int printf (const char * format, ...);
 //void sprintf( char *out, const char *format, ... );
 int sprintf (char * str, const char * format, ...);
 
+int puts(const char* s);
 #ifdef __cplusplus
 }
 #endif
