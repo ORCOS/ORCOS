@@ -64,18 +64,20 @@ extern "C" void restoreContext(Thread*  t)
 
     TaskIdT pid = t->getOwner()->getId();
 
+#if HAS_Board_HatLayerCfd
     // if the process changed we MUST invalidate the instruction cache as we do not have
     // support for fast context switching extension yet
     if (processChanged) {
     	LOG(HAL,TRACE,(HAL,TRACE,"flushing instruction cache!"));
     	asm volatile(
-			"MOV r0, 0;"
+			"MOV r0, #0;"
     		"MCR p15, 0, r0, c7 , c5, 0;" 	// invalidate whole instruction cache
 			:
 			:
 			: "r0"
     		);
     }
+#endif
 
     // indicate no process change from now on until
     // we really dispatch to avoid instruction cache to be flushed again

@@ -51,17 +51,21 @@ extern Kernel* theOS;
 #define CM_CLKSEL3_PLL 0x48004D48
 
 BeBot::BeBot() {
+}
+
+
+void BeBot::initialize() {
 
 // UART device instance
 // created first so we can very early write to the serial console
 // to e.g. write error messages!
 #ifdef HAS_Board_UARTCfd
+	 INIT_Board_UARTCfd
      UARTCfd = new NEW_Board_UARTCfd;
 #if __EARLY_SERIAL_SUPPORT__
      theOS->setStdOutputDevice( UARTCfd );
 #endif
-	#define BoardUART_str "[K][INFO ] Board UART: '" Board_UART_NAME "' [" STRINGIZE(Board_UARTCfdCl) "]\r"
-     printf(BoardUART_str);
+
 #endif
 
 
@@ -119,54 +123,49 @@ BeBot::BeBot() {
  	printf("DIV_96M            = %d\r",(INW(CM_CLKSEL3_PLL) & 0x1f));
 
 #ifdef HAS_Board_UART2Cfd
+ 	 INIT_Board_UART2Cfd
      UART2Cfd = new NEW_Board_UART2Cfd;
-	 #define BoardUART2_str "[K][INFO ] Board UART2: '" Board_UART2_NAME "' [" STRINGIZE(Board_UART2CfdCl) "]\r"
-     printf(BoardUART2_str );
 #endif
 
     // Processor
 #ifdef HAS_Board_ProcessorCfd
+ 	INIT_Board_ProcessorCfd
     ProcessorCfd = new NEW_Board_ProcessorCfd;
     printf("[K][INFO ] Board Processor [" STRINGIZE(Board_ProcessorCfdCl) "]\r" );
 #endif
 
     // Watchdog
 #ifdef HAS_Board_WatchdogCfd
+    INIT_Board_WatchdogCfd
     WatchdogCfd = new NEW_Board_WatchdogCfd;
-    //getWatchdog()->enable();
 #endif
 
     // Timer
 #ifdef HAS_Board_TimerCfd
+    INIT_Board_TimerCfd
     TimerCfd = new NEW_Board_TimerCfd;
     printf("[K][INFO ] Board Timer [" STRINGIZE(Board_TimerCfdCl) "]\r" );
 #endif
 
     // Clock
 #ifdef HAS_Board_ClockCfd
+    INIT_Board_ClockCfd
     ClockCfd = new NEW_Board_ClockCfd;
     printf("[K][INFO ] Board Clock [" STRINGIZE(Board_ClockCfdCl) "]\r" );
 #endif
 
     // LED Interface
 #ifdef HAS_Board_LEDCfd
+    INIT_Board_LEDCfd
     LEDCfd = new NEW_Board_LEDCfd;
     LEDCfd->Clear();
-    printf("[K][INFO ] Board LED: '" Board_LED_NAME  "' [" STRINGIZE(Board_LEDCfdCl) "]\r" );
+    printf("[K][INFO ] Board LED: [" STRINGIZE(Board_LEDCfdCl) "]\r" );
 #endif
 
 #ifdef HAS_Board_UARTCfd
 #ifdef HAS_BoardLEDCfd
     UARTCfd->setLED( LEDCfd );
 #endif
-#endif
-
-#ifdef HAS_Board_ETHCfd
-    ETHCfd = new NEW_Board_ETHCfd;
-#endif
-
-#ifdef HAS_Board_HCICfd
-     HCICfd = new NEW_Board_HCICfd;
 #endif
 
     // InterruptHandler
@@ -180,13 +179,8 @@ BeBot::BeBot() {
     InterruptControllerCfd = new NEW_Board_InterruptControllerCfd;
     printf("[K][INFO ] Board Interrupt Controller: [" STRINGIZE(Board_InterruptControllerCfdCl) "]\r" );
     InterruptControllerCfd->clearIRQ(1);
-   // InterruptControllerCfd->enableIRQs();
 #endif
 
-    //printf("Starting DSS\n");
-   // dss = new BeagleBoardDSS("dss");
-    //dss->init();
-   // theOS->setStdOutputDevice( dss );
 
 }
 

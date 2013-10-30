@@ -26,7 +26,9 @@ ramOffset = 0x81000000;
 /* this way they can easily be mapped into a 16 k page going from 0x10000 - 0x14000 */
 _kernelHeapSize = 0x10000; /* 4 KB */
 _kernelStackSize = 0x2000; /* 8 KB */
-_PtSize = 0x4000; /* 16 KB */
+__PtSize = 0x4000; /* 16 KB */
+PROVIDE(__PtSize = 0x4000); /* 16 KB */
+__MaxNumPts = 20;  /* 20 * 16 KB = 320 KB */
 
 PROVIDE(_kernelHeapSize = 0x10000);
 PROVIDE(_kernelStackSize = 0x2000);
@@ -138,14 +140,12 @@ SECTIONS
  
 
   /* put page table in memory (16k alignment) */
+  . = ALIGN(0x4000);
   
-  PROVIDE (__PageTableSec_start = ALIGN(0x4000));
-  . += _PtSize;
-  . += _PtSize;
-  . += _PtSize;  
-  . += _PtSize;  
-  . += _PtSize;  
-  PROVIDE (__PageTableSec_end = ALIGN(0x4000));
+  PROVIDE (__PageTableSec_start = .);
+  . += (__PtSize * __MaxNumPts);
+  PROVIDE (__PageTableSec_end = .);
+
 
   __KERNELEND = .;
 

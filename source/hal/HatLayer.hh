@@ -30,6 +30,8 @@
 #define hatProtectionWrite        (BitmapT)2
 #define hatProtectionExecute      (BitmapT)4
 
+#define PAGESIZE 1024
+
 /*!
  * \ingroup memmanager
  * \brief Superclass for HAT(Hardware address translation) layers, provides an interface for them.

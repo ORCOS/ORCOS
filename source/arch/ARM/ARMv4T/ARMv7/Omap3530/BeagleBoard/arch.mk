@@ -4,8 +4,7 @@
 
 #ARCH_OBJ contains all architecture dependent object files to be compiled and linked into the kernel.
 ARCH_OBJ += _startup.o
-ARCH_OBJ += ARMv4TProcessor.o
-ARCH_OBJ += ARMv4TClock.o  BeagleBoardGPTimer1.o 
+ARCH_OBJ += Omap3530Clock.o  
 ARCH_OBJ += ARMv4TInterruptHandler.o 
 ARCH_OBJ += BeagleBoard.o 
 ARCH_OBJ += BeagleBoardInterruptController.o handleInterrupt.o

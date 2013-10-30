@@ -85,7 +85,6 @@ void Kernel::initialize() {
     Thread::initialize();
     CommDeviceDriver::initialize();
     BlockDeviceDriver::initialize();
-    USBDevice::initialize();
 
     this->errorHandler 		= new TaskErrorHandler();
     // create the Ram Manager using a simple paging algorithm
@@ -105,6 +104,8 @@ void Kernel::initialize() {
     this->cpuManager->setIdleThread( new IdleThread( ) );
 
 #if USB_SUPPORT_ENABLED
+    USBDevice::initialize();
+
     // create the "/usb/" directory which will contain all usb drivers
     this->usbDriverLib 		= new USBDriverLibrary();
 

@@ -133,6 +133,7 @@ check_dirs:
 	@if ! [ -e $(XMD_DIR) ]; then mkdir $(XMD_DIR); fi
 	@if ! [ -e $(BDI_DIR) ]; then mkdir $(BDI_DIR); fi	
 	@if ! [ -e $(MODULES_DIR) ]; then mkdir $(MODULES_DIR); fi
+	
 
 checktools:
 	@echo
@@ -284,7 +285,6 @@ modules: $(MODULES)
 #---------------------------------------------------------------------------------------------------------------------------------------
 #                         				Kernel Linking 
 #---------------------------------------------------------------------------------------------------------------------------------------
-
 
 #final linking rule		
 $(OUTPUT_DIR)kernel.elf: output/_startup.o output/tasktable.o $(OUTPUT_DIR)liborcoskernel.a 

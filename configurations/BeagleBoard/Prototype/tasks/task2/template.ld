@@ -6,29 +6,41 @@
 SECTIONS
 {
  . = TASK_START;
- .text TASK_VMA : AT(TASK_START) {
-    LONG(TASK_START);
+ .CB TASK_VMA : AT(TASK_START) {
+    LONG(0x230f7ae9);  /* ORCOS Task MAGIC value */
+    LONG(0x0);		   /* no next header field, RTparams are mandatory */
+    LONG(0x101);	   /* PLATFORM ARM, T BIT set*/
+    
+    /* Task CB types.hh: struct taskTable */
+    LONG(TASK_VMA);
     LONG(task_main);
-    LONG(TASK_HEAP);
-    LONG(TASK_END);
+    LONG( TASK_VMA + (TASK_HEAP - TASK_START) );
+    LONG( TASK_VMA + (TASK_END - TASK_START));
     LONG(TASK_DATA_END);
     LONG(thread_exit);
+    
+    /* Task CB Priority and RealtimeThread Parameters: struct RTThreadAttrs  */
     LONG(INITIAL_PRIORITY);
     LONG(PHASE);
     LONG(PERIOD);
     LONG(DEADLINE);
     LONG(EXECUTIONTIME);
+    LONG(4096);   
+    
+   }
+   
+.text : {    
     static.o(.text)
- 	*(.text)
+ 	*(.text*)
  }
  .rodata : {
-	*(.rodata)
+	*(.rodata*)
  }
  .data : {
- 	*(.data)
+ 	*(.data*)
  }
  .bss : {
- 	*(.bss)
+ 	*(.bss*)
  }
  TASK_DATA_END = .;
 }

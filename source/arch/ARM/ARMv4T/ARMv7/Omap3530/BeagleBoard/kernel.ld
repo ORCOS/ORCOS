@@ -24,9 +24,12 @@ ramOffset = 0x81000000;
 
 /* Kernel heap + kernel stacks < 16 k */
 /* this way they can easily be mapped into a 16 k page going from 0x10000 - 0x14000 */
-_kernelHeapSize = 0x10000; /* 4 KB */
+_kernelHeapSize = 0x40000; /* 65*4 KB */
 _kernelStackSize = 0x2000; /* 8 KB */
-_PtSize = 0x4000; /* 16 KB */
+
+__PtSize = 0x4000; /* 16 KB */
+PROVIDE(__PtSize = 0x4000); /* 16 KB */
+__MaxNumPts = 20;  /* 20 * 16 KB = 320 KB */
 
 PROVIDE(_kernelHeapSize = 0x10000);
 PROVIDE(_kernelStackSize = 0x2000);
@@ -46,11 +49,8 @@ SECTIONS
   . = ramOffset;
   __LOADADDRESS = .;
     
-  /*   PROVIDE(_exidx_start = .);
-   .ARM.exidx	. : {
-        *(.ARM.exidx* .gnu.linkonce.armexidx.*)
-   } 
-   PROVIDE(_exidx_end = .);*/
+   __exidx_start = .;
+   __exidx_end = .;
    
   /* irq section */ 
   .irq	.	:
@@ -83,7 +83,7 @@ SECTIONS
   /* first the text section */
   .text      .	  :
   {
-    *(.text .text._Z*)
+    *(.text)
     *(.text.*)
   } 
 
@@ -94,20 +94,19 @@ SECTIONS
   	{
   	PROVIDE(_data_start = .);
   	 
-  	*(.rodata) *(.rodata.str*) *(.rodata._Z*)
+  	*(.rodata.*) *(.rodata.str*) *(.rodata._Z*)
   	
   	/* write the tasktable into memory */
 	
   	tasktable = .;
 	*(.tasktable); 
    } 
-		
-  . = ALIGN(4);
   		
-  .data	 . :
+  .data	 ALIGN(4) :
   {
   	PROVIDE(_data_start_data = .);
     *(.data)
+    *(.data.*)
     *(.sdata)
     *(.ctors)
   } 
@@ -125,6 +124,7 @@ SECTIONS
   .bss  .  :
   {
     *(.bss)        
+    *(.bss.*)
   }  
   . = ALIGN(4);
   PROVIDE (__bss_end = .);
@@ -138,14 +138,11 @@ SECTIONS
  
 
   /* put page table in memory (16k alignment) */
+  . = ALIGN(0x4000);
   
-  PROVIDE (__PageTableSec_start = ALIGN(0x4000));
-  . += _PtSize;
-  . += _PtSize;
-  . += _PtSize;  
-  . += _PtSize;  
-  . += _PtSize;  
-  PROVIDE (__PageTableSec_end = ALIGN(0x4000));
+  PROVIDE (__PageTableSec_start = .);
+  . += (__PtSize * __MaxNumPts);
+  PROVIDE (__PageTableSec_end = .);
 
   __KERNELEND = .;
 
@@ -154,6 +151,7 @@ SECTIONS
   	*(.comment) 	/* Discarding comments */
   	*(.data.rel.local)
   	*(.ARM.exidx* .gnu.linkonce.armexidx.*)
+  	*(.ARM.ex*)
   }
   
 

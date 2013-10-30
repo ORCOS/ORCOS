@@ -40,7 +40,7 @@ extern void* __PageTableSec_start;
 										asm volatile ( \
 										"str %1, [%0, #4];" \
 										: \
-										: "r" (sp_int), "r" (retval) \
+										: "l" (sp_int), "r" (retval) \
 										: \
 									)
 
@@ -63,7 +63,7 @@ extern void* __PageTableSec_start;
 #define SYSCALLGETPARAMS1(int_sp,param1) \
 											asm volatile(\
 											"ldr %0, [%1, #8];"\
-											: "=&r" (param1)\
+											: "=&l" (param1)\
 											: "r" (int_sp)\
 											:\
 											)
@@ -72,7 +72,7 @@ extern void* __PageTableSec_start;
 											asm volatile(\
 											"ldr %0, [%2, #8];"\
 											"ldr %1, [%2, #12];"\
-											: "=&r" (param1), "=&r" (param2) \
+											: "=&l" (param1), "=&l" (param2) \
 											: "r" (int_sp)\
 											:\
 											)
@@ -82,7 +82,7 @@ extern void* __PageTableSec_start;
 											"ldr %0, [%3, #8];"\
 											"ldr %1, [%3, #12];"\
 											"ldr %2, [%3, #16];"\
-											: "=&r" (param1), "=&r" (param2), "=&r" (param3) \
+											: "=&l" (param1), "=&l" (param2), "=&l" (param3) \
 											: "r" (int_sp)\
 											:\
 											)
@@ -93,7 +93,7 @@ extern void* __PageTableSec_start;
 											"ldr %1, [%4, #12];"\
 											"ldr %2, [%4, #16];"\
 											"ldr %3, [%4, #72];"\
-											: "=&r" (param1), "=&r" (param2), "=&r" (param3), "=&r" (param4) \
+											: "=&l" (param1), "=&l" (param2), "=&l" (param3), "=&l" (param4) \
 											: "r" (int_sp)\
 											:\
 											)
@@ -105,7 +105,7 @@ extern void* __PageTableSec_start;
 											"ldr %2, [%5, #16];"\
 											"ldr %3, [%5, #72];"\
 											"ldr %4, [%5, #76];"\
-											: "=&r" (param1), "=&r" (param2), "=&r" (param3), "=&r" (param4), "=&r" (param5) \
+											: "=&l" (param1), "=&l" (param2), "=&l" (param3), "=&l" (param4), "=&r" (param5) \
 											: "r" (int_sp)\
 											:\
 											)
@@ -113,7 +113,7 @@ extern void* __PageTableSec_start;
 #define SYSCALLGETPARAM1(int_sp,param1) \
 											asm volatile(\
 											"ldr %0, [%1, #8];"\
-											: "=&r" (param1)\
+											: "=&l" (param1)\
 											: "r" (int_sp)\
 											:\
 											)
@@ -121,7 +121,7 @@ extern void* __PageTableSec_start;
 #define SYSCALLGETPARAM2(int_sp,param2) \
 											asm volatile(\
 											"ldr %0, [%1, #12];"\
-											: "=&r" (param1)\
+											: "=&l" (param1)\
 											: "r" (int_sp)\
 											:\
 											)
@@ -129,7 +129,7 @@ extern void* __PageTableSec_start;
 #define SYSCALLGETPARAM3(int_sp,param3) \
 											asm volatile(\
 											"ldr %0, [%1, #16];"\
-											: "=&r" (param1)\
+											: "=&l" (param1)\
 											: "r" (int_sp)\
 											:\
 											)
@@ -137,7 +137,7 @@ extern void* __PageTableSec_start;
 #define SYSCALLGETPARAM4(int_sp,param4) \
 											asm volatile(\
 											"ldr %0, [%1, #76];"\
-											: "=&r" (param1)\
+											: "=&l" (param1)\
 											: "r" (int_sp)\
 											:\
 											)
@@ -145,7 +145,7 @@ extern void* __PageTableSec_start;
 #define SYSCALLGETPARAM5(int_sp,param5) \
 											asm volatile(\
 											"ldr %0, [%1, #80];"\
-											: "=&r" (param1)\
+											: "=&l" (param1)\
 											: "r" (int_sp)\
 											:\
 											)
@@ -368,7 +368,7 @@ extern void* __PageTableSec_start;
 	   "ldr  r1, =returnof;" \
 	   "str	 r1,[r0,#52];" \
 	   "mrs  r1,CPSR;" \
-	   "orr  r1,r1,0x20;" \
+	   "orr  r1,r1,#0x20;" \
 	   "stmfd r0!,{r1};" \
 	   "add  r0, pc,#1;" \
 		"bx  r0;" \

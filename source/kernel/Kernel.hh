@@ -233,8 +233,10 @@ public:
 
     CharacterDeviceDriver* getStdOutputDevice();
 
+#if USB_SUPPORT_ENABLED
     //! Returns the usb driver library of the kernel
     USBDriverLibrary* getUSBDriverLibrary() { return usbDriverLib; }
+#endif
 
     BoardCfdCl* getBoard() {
         return board;

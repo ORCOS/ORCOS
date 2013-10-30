@@ -26,14 +26,17 @@
 #include Board_Processor_hh
 #include Board_InterruptHandler_hh
 #include Board_UART_hh
-#include Board_LED_hh
 #include Board_UART2_hh
 #include Board_InterruptController_hh
 #include Board_Timer_hh
 #include Board_Clock_hh
 #include Board_USB_HC_hh
-//#include Board_ETH_hh
-#include "BeagleBoardDSS.hh"
+
+#ifndef RAM_SIZE
+#define RAM_SIZE 	128 MB
+#endif
+
+#define PLATFORM	PLATFORM_ARM
 /*!
  * \brief Implementation of the HAL board for the BeagleBoard architecture
  */
@@ -41,14 +44,12 @@ class BeagleBoard {
 	DEF_Board_ProcessorCfd
 	DEF_Board_InterruptHandlerCfd
     DEF_Board_UARTCfd
-    DEF_Board_LEDCfd
     DEF_Board_UART2Cfd
     DEF_Board_InterruptControllerCfd
     DEF_Board_TimerCfd
     DEF_Board_ClockCfd
     DEF_Board_USB_HCCfd
 
-    //DEF_Board_ETHCfd
     CommDeviceDriver* getETH() { return 0; }
 
 public:
@@ -56,7 +57,7 @@ public:
     BeagleBoard();
     ~BeagleBoard();
 
-    //BeagleBoardDSS *dss;
+    void initialize();
 
     char* getBoardInfo() {return (char*) "         BeagleBoard revision B5. SOC: OMAP3530\n\n"; };
 };

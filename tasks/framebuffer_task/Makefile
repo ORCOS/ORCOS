@@ -28,13 +28,15 @@ LD		= /cygdrive/c/yagarto-20121222/bin/arm-none-eabi-ld
 OBJCOPY = /cygdrive/c/yagarto-20121222/bin/arm-none-eabi-objcopy 
 STRIP   = /cygdrive/c/yagarto-20121222/bin/arm-none-eabi-strip
 
-KERNEL_LIB_DIR = C:/git/orcos_github/source/lib
+KERNEL_LIB_DIR = C:/git/orcos_github/library/bin/armv7
+KERNEL_INC_DIR = C:/git/orcos_github/library/inc
+
 
 GCC_VERSION=4.7.2
 GCC_LIB_DIR=C:/yagarto-20121222/lib/gcc/arm-none-eabi/$(GCC_VERSION)/thumb/
 
 AFLAGS =
-CFLAGS = -c -I$(KERNEL_LIB_DIR) -fno-exceptions -fno-rtti -O2 -mthumb
+CFLAGS = -c -I$(KERNEL_INC_DIR) -fno-exceptions -fno-rtti -O2 -mthumb -ffunction-sections
 CPPFLAGS = $(CFLAGS) -g  
 	
 all: task.elf binary stack_usage

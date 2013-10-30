@@ -143,9 +143,11 @@ int2 CAB::get( char** addressof_ret_ptrtomsg, int2 &buffer ) {
     }
 
     buffer = actb;
+#ifdef HAS_Board_HatLayerCfd
     int addr = (int) bufferstart + this->actb * this->dim_buf;
     void* phy_addr =  theOS->getHatLayer()->getPhysicalAddress( (void*) ( bufferstart + this->actb * this->dim_buf) );
     LOG( COMM, DEBUG,(COMM, DEBUG,"CAB::get(): addr: 0x%x phy_addr: 0x%x", addr,phy_addr) );
+#endif
 
     int2 retlen = 0;
     // check if we have a message at all

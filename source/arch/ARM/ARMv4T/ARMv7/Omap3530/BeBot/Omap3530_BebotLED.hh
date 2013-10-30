@@ -50,7 +50,7 @@ class Omap3530_BebotLED: public CharacterDeviceDriver {
 
 
 public:
-	Omap3530_BebotLED( const char* name, int4 baseaddr );
+	Omap3530_BebotLED( T_Omap3530_BebotLED_Init* init );
     ~Omap3530_BebotLED();
 
     void LedOn( int4 ledNumber );

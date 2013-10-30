@@ -1,13 +1,12 @@
 /*
- * lwipopts.h
- *
- *  Created on: 27.01.2010
- *      Author: dbaldin
+ FILE: lwipopts.h
+ DO NOT CHANGE THIS FILE BY HAND. USE THE SCL EDITOR.
+ CHANGES IN THE COMMENTS STRUCTURE CAN MAKE THIS FILE UNUSBALE INSIDE
+ THE SCL EDITOR.
  */
 
 #ifndef LWIPOPTS_H_
 #define LWIPOPTS_H_
-
 #define LWIP_DEBUG
 
 // includes for memcpy and memset
@@ -15,9 +14,15 @@
 
 /*
    -----------------------------------------------
-   ---------- Platform specific locking ----------
+   ---------- Platform Specific  ----------
    -----------------------------------------------
 */
+
+/**
+Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
+*/
+#define BYTE_ORDER LITTLE_ENDIAN
+
 
 /**
  * SYS_LIGHTWEIGHT_PROT==1: if you want inter-task protection for certain
@@ -30,7 +35,7 @@
 
 /**
  * NO_SYS==1: Provides VERY minimal functionality. Otherwise,
- * use lwIP facilities.
+ * use lwIP facilities. BEWARE: ORCOS ONLY SUPPORTS NO_SYS==1
  */
 #ifndef NO_SYS
 #define NO_SYS                          1
@@ -89,7 +94,7 @@
  * a lot of data that needs to be copied, this should be set high.
  */
 #ifndef MEM_SIZE
-#define MEM_SIZE                        4096
+#define MEM_SIZE                        4096*4
 #endif
 
 /**
@@ -102,7 +107,7 @@
  *      memp_malloc() or memp_free() is called (useful but slow!)
  */
 #ifndef MEMP_OVERFLOW_CHECK
-#define MEMP_OVERFLOW_CHECK             0
+#define MEMP_OVERFLOW_CHECK             1
 #endif
 
 /**
@@ -176,7 +181,7 @@
  * this should be set high.
  */
 #ifndef MEMP_NUM_PBUF
-#define MEMP_NUM_PBUF                   0
+#define MEMP_NUM_PBUF                   8
 #endif
 
 /**
@@ -308,7 +313,7 @@
  * LWIP_ARP==1: Enable ARP functionality.
  */
 #ifndef LWIP_ARP
-#define LWIP_ARP                        0
+#define LWIP_ARP  1
 #endif
 
 /**
@@ -464,7 +469,7 @@
  * Be careful, disable that make your product non-compliant to RFC1122
  */
 #ifndef LWIP_ICMP
-#define LWIP_ICMP                       0
+#define LWIP_ICMP                       1
 #endif
 
 /**
@@ -516,7 +521,7 @@
  * LWIP_DHCP==1: Enable DHCP module.
  */
 #ifndef LWIP_DHCP
-#define LWIP_DHCP                       0
+#define LWIP_DHCP  0
 #endif
 
 /**
@@ -688,7 +693,7 @@
  * LWIP_UDP==1: Turn on UDP.
  */
 #ifndef LWIP_UDP
-#define LWIP_UDP                        0
+#define LWIP_UDP                        1
 #endif
 
 /**
@@ -721,7 +726,7 @@
  * LWIP_TCP==1: Turn on TCP.
  */
 #ifndef LWIP_TCP
-#define LWIP_TCP                        0
+#define LWIP_TCP                        1
 #endif
 
 /**
@@ -770,7 +775,7 @@
  */
 #ifndef TCP_MSS
 //#define TCP_MSS                         202
-#define TCP_MSS                         536
+#define TCP_MSS                           512
 //#define TCP_MSS                         1440
 #endif
 
@@ -794,7 +799,7 @@
  */
 #ifndef TCP_SND_BUF
 //#define TCP_SND_BUF                     TCP_MSS*4//768
-#define TCP_SND_BUF                     2*TCP_MSS//768
+#define TCP_SND_BUF                     4*TCP_MSS//768
 #endif
 
 /**
@@ -1549,21 +1554,21 @@
  * CHECKSUM_CHECK_IP==1: Check checksums in software for incoming IP packets.
  */
 #ifndef CHECKSUM_CHECK_IP
-#define CHECKSUM_CHECK_IP               0
+#define CHECKSUM_CHECK_IP               1
 #endif
 
 /**
  * CHECKSUM_CHECK_UDP==1: Check checksums in software for incoming UDP packets.
  */
 #ifndef CHECKSUM_CHECK_UDP
-#define CHECKSUM_CHECK_UDP              0
+#define CHECKSUM_CHECK_UDP              1
 #endif
 
 /**
  * CHECKSUM_CHECK_TCP==1: Check checksums in software for incoming TCP packets.
  */
 #ifndef CHECKSUM_CHECK_TCP
-#define CHECKSUM_CHECK_TCP              0
+#define CHECKSUM_CHECK_TCP  0
 #endif
 
 /*
@@ -1592,14 +1597,14 @@
  * ETHARP_DEBUG: Enable debugging in etharp.c.
  */
 #ifndef ETHARP_DEBUG
-#define ETHARP_DEBUG                    LWIP_DBG_OFF
+#define ETHARP_DEBUG  LWIP_DBG_OFF
 #endif
 
 /**
  * NETIF_DEBUG: Enable debugging in netif.c.
  */
 #ifndef NETIF_DEBUG
-#define NETIF_DEBUG                     LWIP_DBG_OFF
+#define NETIF_DEBUG  LWIP_DBG_OFF
 #endif
 
 /**
@@ -1655,7 +1660,7 @@
  * IP_DEBUG: Enable debugging for IP.
  */
 #ifndef IP_DEBUG
-#define IP_DEBUG                        LWIP_DBG_OFF
+#define IP_DEBUG  LWIP_DBG_OFF
 #endif
 
 /**
@@ -1697,14 +1702,14 @@
  * TCP_DEBUG: Enable debugging for TCP.
  */
 #ifndef TCP_DEBUG
-#define TCP_DEBUG                       LWIP_DBG_ON
+#define TCP_DEBUG  LWIP_DBG_OFF
 #endif
 
 /**
  * TCP_INPUT_DEBUG: Enable debugging in tcp_in.c for incoming debug.
  */
 #ifndef TCP_INPUT_DEBUG
-#define TCP_INPUT_DEBUG                 LWIP_DBG_ON
+#define TCP_INPUT_DEBUG  LWIP_DBG_OFF
 #endif
 
 /**
@@ -1740,21 +1745,21 @@
  * TCP_OUTPUT_DEBUG: Enable debugging in tcp_out.c output functions.
  */
 #ifndef TCP_OUTPUT_DEBUG
-#define TCP_OUTPUT_DEBUG                LWIP_DBG_ON
+#define TCP_OUTPUT_DEBUG  LWIP_DBG_OFF
 #endif
 
 /**
  * TCP_RST_DEBUG: Enable debugging for TCP with the RST message.
  */
 #ifndef TCP_RST_DEBUG
-#define TCP_RST_DEBUG                   LWIP_DBG_OFF
+#define TCP_RST_DEBUG  LWIP_DBG_OFF
 #endif
 
 /**
  * TCP_QLEN_DEBUG: Enable debugging for TCP queue lengths.
  */
 #ifndef TCP_QLEN_DEBUG
-#define TCP_QLEN_DEBUG                  LWIP_DBG_OFF
+#define TCP_QLEN_DEBUG  				LWIP_DBG_OFF
 #endif
 
 /**
@@ -1768,7 +1773,7 @@
  * TCPIP_DEBUG: Enable debugging in tcpip.c.
  */
 #ifndef TCPIP_DEBUG
-#define TCPIP_DEBUG                     LWIP_DBG_OFF
+#define TCPIP_DEBUG  LWIP_DBG_OFF
 #endif
 
 /**

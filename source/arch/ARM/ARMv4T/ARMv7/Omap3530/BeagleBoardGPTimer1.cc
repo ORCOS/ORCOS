@@ -101,7 +101,7 @@ ErrorT BeagleBoardGPTimer1::setTimer( unint4 t ) {
 	OUTW(GPT1_TOCR, 0x0);
 
 	// write t (time) to overflow wrapping register
-	unint4 val =  (t / ((CLOCK_RATE / 1000000) * 1000));
+	unint4 val =  (t / (CLOCK_RATE / 1000) );
 	OUTW(GPT1_TOWR, val);
 
 	// reset timer interrupt pending bit

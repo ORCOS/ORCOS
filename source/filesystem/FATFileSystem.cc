@@ -9,6 +9,7 @@
 #include "inc/memtools.hh"
 
 #include "kernel/Kernel.hh"
+#include "inc/stringtools.hh"
 
 extern Kernel* theOS;
 

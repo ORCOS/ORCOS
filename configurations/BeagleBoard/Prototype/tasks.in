@@ -1,3 +1,0 @@
-TASKS=(./tasks/task/ )
-TASKS_START=(0x81060000 )
-TASK_END=(0x8106FFFF )

@@ -20,9 +20,9 @@
          ************************************ -->
   <Tasks>
     <Task>
-      <Start>0x81060000</Start>
-      <End>0x8106FFFF</End>
-      <Heap>0x81067000</Heap>
+      <Start>0x81160000</Start>
+      <End>0x8116FFFF</End>
+      <Heap>0x81167000</Heap>
       <Path>./tasks/task/</Path>
       <PriorityOptions>
         <InitialPriority>0</InitialPriority>
@@ -37,164 +37,53 @@
   </Tasks>
   <SCL>
     <!-- ************************************
-    			Skeleton Mutex
-         ************************************ -->
-    <Skeleton>
-      <Name>Mutex</Name>
-      <Member>
-        <Name>Scheduler</Name>
-        <Class>scheduler/RoundRobinThreadScheduler</Class>
-      </Member>
-    </Skeleton>
-    <!-- ************************************
-    			Skeleton Semaphore
-         ************************************ -->
-    <Skeleton>
-      <Name>Semaphore</Name>
-      <Member>
-        <Name>Scheduler</Name>
-        <Class>scheduler/RoundRobinThreadScheduler</Class>
-      </Member>
-    </Skeleton>
-    <!-- ************************************
-    			Skeleton SingleCPUDispatcher
-         ************************************ -->
-    <Skeleton>
-      <Name>SingleCPUDispatcher</Name>
-      <Member>
-        <Name>Scheduler</Name>
-        <Class>scheduler/EarliestDeadlineFirstThreadScheduler</Class>
-      </Member>
-    </Skeleton>
-    <!-- ************************************
-    			Skeleton Thread
-         ************************************ -->
-    <Skeleton>
-      <Name>Thread</Name>
-      <Superclass>process/RealTimeThread</Superclass>
-    </Skeleton>
-    <!-- ************************************
-    			Skeleton MemoryManager
-         ************************************ -->
-    <Skeleton>
-      <Name>MemoryManager</Name>
-      <Superclass>mem/LinearMemManager</Superclass>
-      <Member>
-        <Name>Seg</Name>
-        <Class>mem/MemResource</Class>
-        <None>false</None>
-      </Member>
-      <Member>
-        <Name>HatLayer</Name>
-        <Class>hal/HatLayer</Class>
-        <None>true</None>
-      </Member>
-      <Member>
-        <Name>FirstFit</Name>
-        <Class />
-        <None>true</None>
-      </Member>
-      <Member>
-        <Name>NextFit</Name>
-        <Class />
-        <None>true</None>
-      </Member>
-      <Member>
-        <Name>BestFit</Name>
-        <Class />
-        <None>true</None>
-      </Member>
-      <Member>
-        <Name>WorstFit</Name>
-        <Class />
-        <None>true</None>
-      </Member>
-    </Skeleton>
-    <!-- ************************************
     			Skeleton Board
          ************************************ -->
     <Skeleton>
       <Name>Board</Name>
       <Superclass>arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoard/BeagleBoard</Superclass>
-      <Member>
-        <Name>Processor</Name>
-        <Class>arch/ARM/ARMv4T/ARMv4TProcessor</Class>
-        <None>false</None>
+      <Member Name="Timer" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardGPTimer2" None="false" UserSpace="false" PhyLoadAddress="0x0">
+        <PropertyValue Name="Address" Value="0x49032000" Type="unsigned int" />
+        <PropertyValue Name="Length" Value="4096" Type="unsigned int" />
       </Member>
-      <Member>
-        <Name>Timer</Name>
-        <Class>arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardGPTimer1</Class>
-        <None>false</None>
+      <Member Name="HatLayer" Class="arch/ARM/ARMv4T/ARMv7/ARMv7HatLayer" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="Clock" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530Clock" None="false" UserSpace="false" PhyLoadAddress="0x0">
+        <PropertyValue Name="Name" Value="sysclock0" Type="char*" />
       </Member>
-      <Member>
-        <Name>Clock</Name>
-        <Class>arch/ARM/ARMv4T/ARMv4TClock</Class>
-        <Device>"clock"</Device>
-        <None>false</None>
+      <Member Name="Processor" Class="arch/ARM/ARMv4T/ARMv4TProcessor" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="UART" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardUART" None="false" UserSpace="false" PhyLoadAddress="0x0">
+        <PropertyValue Name="Address" Value="0x49020000" Type="unsigned int" />
+        <PropertyValue Name="Length" Value="1024" Type="unsigned int" />
+        <PropertyValue Name="Name" Value="serial0" Type="char*" />
       </Member>
-      <Member>
-        <Name>Watchdog</Name>
-        <Class>arch/none/DummyWatchdog</Class>
-        <Device>"watchdog"</Device>
-        <None>true</None>
+      <Member Name="UART2" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530i2c" None="false" UserSpace="false" PhyLoadAddress="0x0">
+        <PropertyValue Name="Address" Value="0x48060000" Type="unsigned int" />
+        <PropertyValue Name="Length" Value="1024" Type="unsigned int" />
+        <PropertyValue Name="Name" Value="i2c0" Type="char*" />
       </Member>
-      <Member>
-        <Name>UART</Name>
-        <Class>arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardUART</Class>
-        <Device>"serial0"</Device>
-        <Address>0x49020000</Address>
-        <Length>(unint4)1024</Length>
-        <None>false</None>
+      <Member Name="GPIO1" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO" None="true" UserSpace="false" PhyLoadAddress="0x0">
+        <PropertyValue Name="Address" Value="0x48310000" Type="unsigned int" />
+        <PropertyValue Name="Length" Value="4096" Type="unsigned int" />
+        <PropertyValue Name="Name" Value="gpio1" Type="char*" />
+        <PropertyValue Name="DirectionBits" Value="0x0" Type="unsigned int" />
+        <PropertyValue Name="ValueBits" Value="0x0" Type="unsigned int" />
       </Member>
-      <Member>
-        <Name>LED</Name>
-        <Class>arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530_BebotLED</Class>
-        <Device>"led0"</Device>
-        <Address>0</Address>
-        <None>true</None>
+      <Member Name="GPIO2" Class="arch/none/DummyCharDriver" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="GPIO3" Class="arch/none/DummyCharDriver" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="GPIO4" Class="arch/none/DummyCharDriver" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="GPIO5" Class="arch/none/DummyCharDriver" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="GPIO6" Class="arch/none/DummyCharDriver" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="USB_HC" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/HighSpeedUSBHostController" None="true" UserSpace="false" PhyLoadAddress="0x0">
+        <PropertyValue Name="I2CDeviceName" Value="dev/i2c0" Type="char*" />
       </Member>
-      <Member>
-        <Name>InterruptHandler</Name>
-        <Class>arch/ARM/ARMv4T/ARMv4TInterruptHandler</Class>
-        <None>false</None>
+      <Member Name="InterruptHandler" Class="arch/ARM/ARMv4T/ARMv4TInterruptHandler" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="InterruptController" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardInterruptController" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="ExtPowerControl" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/TWL4030" None="false" UserSpace="false" PhyLoadAddress="0x0">
+        <PropertyValue Name="I2CDeviceName" Value="dev/i2c0" Type="char*" />
       </Member>
-      <Member>
-        <Name>InterruptController</Name>
-        <Class>arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardInterruptController</Class>
-        <None>false</None>
+      <Member Name="MMC" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapMMC_SD_HC" None="true" UserSpace="false" PhyLoadAddress="0x0">
+        <PropertyValue Name="Address" Value="0x4809C000" Type="unsigned int" />
       </Member>
-      <Member>
-        <Name>ETH</Name>
-        <Class>arch/none/DummyCommDriver</Class>
-        <Device>"eth0"</Device>
-        <Address>0x90000000</Address>
-        <Length>(unint4)1024*1024</Length>
-        <UniqueID>0x0,0x1,0x2,0x3,0x4</UniqueID>
-        <None>true</None>
-      </Member>
-      <Member>
-        <Name>SHM</Name>
-        <Class>arch/none/DummyCommDriver</Class>
-        <None>true</None>
-      </Member>
-      <Member>
-        <Name>UART2</Name>
-        <Class>arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530i2c</Class>
-        <Device>"i2c"</Device>
-        <Address>0x48060000</Address>
-        <None>true</None>
-      </Member>
-      <Member>
-        <Name>HCI</Name>
-        <Class>arch/none/DummyCharDriver</Class>
-        <None>true</None>
-      </Member>
-      <Member>
-        <Name>USB_HC</Name>
-        <Class>arch/ARM/ARMv4T/ARMv7/Omap3530/HighSpeedUSBHostController</Class>
-        <None>false</None>
-      </Member>
-      
     </Skeleton>
     <!-- ************************************
     			Skeleton Kernel
@@ -202,31 +91,17 @@
     <Skeleton>
       <Name>Kernel</Name>
       <Superclass>kernel/Kernel</Superclass>
-      <Member>
-        <Name>Logger</Name>
-        <Class>debug/Logger</Class>
-        <None>false</None>
+      <Member Name="MemoryManager" Class="mem/SequentialFitMemManager" None="false" UserSpace="false" PhyLoadAddress="0x0">
+        <PropertyValue Name="LastFit" Value="0" Type="unsigned int" />
       </Member>
-      <Member>
-        <Name>PowerManager</Name>
-        <Class>hal/PowerManager</Class>
-        <None>true</None>
-      </Member>
-      <Member>
-        <Name>TaskManager</Name>
-        <Class>process/TaskManager</Class>
-        <None>true</None>
-      </Member>
-      <Member>
-        <Name>MigrationManager</Name>
-        <Class>migration/MigrationManager</Class>
-        <None>true</None>
-      </Member>
-      <Member>
-        <Name>ServiceDiscovery</Name>
-        <Class>comm/servicediscovery/SNServiceDiscovery</Class>
-        <None>true</None>
-      </Member>
+      <Member Name="Thread" Class="process/RealTimeThread" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="Dispatcher" Class="scheduler/SingleCPUDispatcher" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="Scheduler" Class="scheduler/EarliestDeadlineFirstThreadScheduler" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="Logger" Class="debug/Logger" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="PowerManager" Class="hal/PowerManager" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="TaskManager" Class="process/TaskManager" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="MigrationManager" Class="migration/MigrationManager" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="ServiceDiscovery" Class="comm/servicediscovery/SNServiceDiscovery" None="true" UserSpace="false" PhyLoadAddress="0x0" />
     </Skeleton>
     <!-- ************************************
     			Skeleton SyscallManager
@@ -234,131 +109,31 @@
     <Skeleton>
       <Name>SyscallManager</Name>
       <Superclass>syscalls/SyscallManager</Superclass>
-      <Member>
-        <Name>sleepSyscall</Name>
-        <Class />
-        <None>false</None>
-      </Member>
-      <Member>
-        <Name>fputcSyscall</Name>
-        <Class />
-        <None>false</None>
-      </Member>
-      <Member>
-        <Name>fgetcSyscall</Name>
-        <Class />
-        <None>false</None>
-      </Member>
-      <Member>
-        <Name>thread_createSyscall</Name>
-        <Class />
-        <None>false</None>
-      </Member>
-      <Member>
-        <Name>thread_runSyscall</Name>
-        <Class />
-        <None>false</None>
-      </Member>
-      <Member>
-        <Name>fwriteSyscall</Name>
-        <Class />
-        <None>false</None>
-      </Member>
-      <Member>
-        <Name>freadSyscall</Name>
-        <Class />
-        <None>false</None>
-      </Member>
-      <Member>
-        <Name>fopenSyscall</Name>
-        <Class />
-        <None>false</None>
-      </Member>
-      <Member>
-        <Name>fcloseSyscall</Name>
-        <Class />
-        <None>false</None>
-      </Member>
-      <Member>
-        <Name>newSyscall</Name>
-        <Class />
-        <None>false</None>
-      </Member>
-      <Member>
-        <Name>task_stopSyscall</Name>
-        <Class />
-        <None>false</None>
-      </Member>
-      <Member>
-        <Name>task_resumeSyscall</Name>
-        <Class />
-        <None>false</None>
-      </Member>
-      <Member>
-        <Name>deleteSyscall</Name>
-        <Class />
-        <None>false</None>
-      </Member>
-      <Member>
-        <Name>socketSyscall</Name>
-        <Class />
-        <None>true</None>
-      </Member>
-      <Member>
-        <Name>bindSyscall</Name>
-        <Class />
-        <None>true</None>
-      </Member>
-      <Member>
-        <Name>sendtoSyscall</Name>
-        <Class />
-        <None>true</None>
-      </Member>
-      <Member>
-        <Name>recvSyscall</Name>
-        <Class />
-        <None>true</None>
-      </Member>
-      <Member>
-        <Name>add_devaddrSyscall</Name>
-        <Class />
-        <None>true</None>
-      </Member>
-      <Member>
-        <Name>thread_selfSyscall</Name>
-        <Class />
-        <None>false</None>
-      </Member>
-      <Member>
-        <Name>thread_yieldSyscall</Name>
-        <Class />
-        <None>false</None>
-      </Member>
-      <Member>
-        <Name>signal_waitSyscall</Name>
-        <Class />
-        <None>true</None>
-      </Member>
-      <Member>
-        <Name>signal_signalSyscall</Name>
-        <Class />
-        <None>true</None>
-      </Member>
-      <Member>
-        <Name>fcreateSyscall</Name>
-        <Class />
-        <None>true</None>
-      </Member>
-      <Member>
-        <Name>connectSyscall</Name>
-        <Class />
-        <None>true</None>
-      </Member>
-      <Member>
-        <Name>listenSyscall</Name>
-        <Class />
-        <None>true</None>
-      </Member>
+      <Member Name="sleep" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="thread_create" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="thread_run" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="thread_self" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="thread_yield" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="signal_wait" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="signal_signal" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="fputc" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="fgetc" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="fcreate" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="fopen" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="fclose" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="fwrite" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="fread" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="new" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="delete" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="socket" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="connect" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="listen" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="bind" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="sendto" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="recv" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="task_stop" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="task_resume" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="ioctl" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
     </Skeleton>
     <!--  DEFINES -->
     <Define>

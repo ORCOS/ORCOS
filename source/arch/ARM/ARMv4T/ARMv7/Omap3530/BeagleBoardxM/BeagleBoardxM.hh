@@ -41,6 +41,9 @@
 #include Board_MMC_hh
 #include Board_ExtPowerControl_hh
 
+#ifndef RAM_SIZE
+#define RAM_SIZE 	512 MB
+#endif
 
 #define PLATFORM	PLATFORM_ARM
 

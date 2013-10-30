@@ -113,8 +113,8 @@ void a6281_set_pwm() {
 	a6281_write((unint4*) &data,4);
 }
 
-Omap3530_BebotLED:: Omap3530_BebotLED( const char* name, int4 baseaddr )
-	: CharacterDeviceDriver(false,name)
+Omap3530_BebotLED:: Omap3530_BebotLED(T_Omap3530_BebotLED_Init* init )
+	: CharacterDeviceDriver(false,init->Name)
 {
 
 	OUTW(A6281_GPIO + GPIO_SYSCONFIG,0);

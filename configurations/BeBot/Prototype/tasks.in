@@ -1,3 +1,0 @@
-TASKS=(./tasks/task/ ./tasks/task2/ )
-TASKS_START=(0x81150000 0x81160000 )
-TASK_END=(0x8115FFFF 0x8116FFFF )

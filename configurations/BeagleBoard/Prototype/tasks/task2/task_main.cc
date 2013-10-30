@@ -17,6 +17,7 @@
 */
 
 #include <orcos.hh>
+#include "string.hh"
 
 extern "C" int task_main()
 {
@@ -31,22 +32,8 @@ extern "C" int task_main()
 
 	while(1)
 	{
-		//in handle = fopen("led");
-		//cd_id = fopen("dev/led0");
-		//leds = fgetc(cd_id);
-		//leds = leds | led2on;
-		//fputc(leds,cd_id);
-
 		sleep(2000);
 		printf("Hello from Task 2! \r\n");
-
-		//leds = fgetc(cd_id);
-		//leds = leds & ~led2on;
-		//fputc(leds,cd_id);
-		//fclose(cd_id);
-
-		//sleep(1500);
-
 		i++;
 	}
 }

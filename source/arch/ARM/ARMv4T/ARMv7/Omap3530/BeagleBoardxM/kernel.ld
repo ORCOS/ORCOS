@@ -29,7 +29,7 @@ _kernelStackSize = 0x2000; /* 8 KB */
 
 __PtSize = 0x4000; /* 16 KB */
 PROVIDE(__PtSize = 0x4000); /* 16 KB */
-PROVIDE(__MaxNumPts = 20);  /* 20 * 16 KB = 320 KB */
+__MaxNumPts = 20;  /* 20 * 16 KB = 320 KB */
 
 PROVIDE(_kernelHeapSize = 0x10000);
 PROVIDE(_kernelStackSize = 0x2000);

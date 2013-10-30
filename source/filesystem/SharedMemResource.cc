@@ -36,6 +36,7 @@ SharedMemResource::~SharedMemResource() {
 	theOS->getRamManager()->free(this->physical_start_address,this->physical_start_address+size);
 	theOS->getFileManager()->unregisterResource(this);
 
+#ifdef HAS_Board_HatLayerCfd
 	LinkedListDatabaseItem* curItem = mapping.getHead();
 	while ( curItem != 0 ) {
 		Mapping* map = (Mapping*) curItem->getData();
@@ -43,6 +44,7 @@ SharedMemResource::~SharedMemResource() {
 		curItem = curItem->getSucc();
 		mapping.remove((DatabaseItem*) map);
 	}
+#endif
 
 }
 
@@ -51,19 +53,20 @@ ErrorT SharedMemResource::mapIntoTask(Task* t, unint4& virtual_address) {
 	if (t == 0) return (cInvalidArgument);
 	// we must be sure the physical start address is virtual page aligned
 	// otherwise we need some offset into the virtual page
-
+#ifdef HAS_Board_HatLayerCfd
 	virtual_address = (unint4) theOS->getHatLayer()->map((void*) this->physical_start_address,size,7,3,t->getId(),false);
 
 	Mapping* map = new Mapping();
 	map->virtual_address = (void*) virtual_address;
 	map->task = t;
 	this->mapping.addTail((DatabaseItem*) map);
+#endif
 
 	return (cOk);
 }
 
 ErrorT SharedMemResource::unmapFromTask(Task* t) {
-
+#ifdef HAS_Board_HatLayerCfd
 	LinkedListDatabaseItem* curItem = mapping.getHead();
 	while ( curItem != 0 ) {
 		Mapping* map = (Mapping*) curItem->getData();
@@ -75,6 +78,6 @@ ErrorT SharedMemResource::unmapFromTask(Task* t) {
 		}
 	    curItem = curItem->getSucc();
 	}
-
+#endif
 	return (cError);
 }

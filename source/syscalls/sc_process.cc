@@ -21,6 +21,7 @@
 #include "handle_syscalls.hh"
 #include Kernel_Thread_hh
 #include "assembler.h"
+#include "inc/stringtools.hh"
 
 /*******************************************************************
  *				RUNTASK Syscall
