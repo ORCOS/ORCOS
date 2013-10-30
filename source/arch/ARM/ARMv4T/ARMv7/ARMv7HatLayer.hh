@@ -19,7 +19,7 @@
 #ifndef ARMv7HATLAYER_HH_
 #define ARMv7HATLAYER_HH_
 
-//#include <hal/HatLayer.hh>
+#include <hal/HatLayer.hh>
 
 #define SECTION_SIZE 0x100000
 

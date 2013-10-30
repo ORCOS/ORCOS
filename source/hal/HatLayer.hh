@@ -30,7 +30,6 @@
 #define hatProtectionWrite        (BitmapT)2
 #define hatProtectionExecute      (BitmapT)4
 
-#define PAGESIZE 1024
 
 /*!
  * \ingroup memmanager
