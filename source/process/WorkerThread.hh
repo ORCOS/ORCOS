@@ -73,8 +73,8 @@ public:
     void setJob( int id, void* params );
 
     //! Set the PID the workerthread shall work with
-    void setPID( int pid ) {
-        WorkerThread::pid = pid;
+    void setPID( int thread_pid ) {
+        this->pid = thread_pid;
     }
 
     void stop() {
@@ -87,7 +87,7 @@ public:
 
     //! Get the PID the workerthread is currently working with
     int getPID() {
-        return pid;
+        return (pid);
     }
 
 };

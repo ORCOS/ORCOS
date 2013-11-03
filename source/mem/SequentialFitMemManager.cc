@@ -321,8 +321,8 @@ ErrorT SequentialFitMemManager::free( void* chunk ) {
 }
 
 
-size_t SequentialFitMemManager::getUsedMemSize(int &overhead, int &free_mem) {
-	free_mem = this->free_mem;
-	overhead = this->overhead;
+size_t SequentialFitMemManager::getUsedMemSize(size_t &u_overhead, size_t &u_free_mem) {
+	u_free_mem = this->free_mem;
+	u_overhead = this->overhead;
     return (this->Segment.getSize() - this->free_mem);
 }

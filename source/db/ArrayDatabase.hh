@@ -70,13 +70,13 @@ private:
     unint1 headPointer;
 
 public:
-    ArrayDatabase( int maxEntries );
+    ArrayDatabase( unint1 maxEntries );
     ~ArrayDatabase();
 
     /*!
      * \brief returns the number of elements in this database
      */
-    int size();
+    unint1 size();
 
     /*!
      * \brief Adds another element to the database at the end

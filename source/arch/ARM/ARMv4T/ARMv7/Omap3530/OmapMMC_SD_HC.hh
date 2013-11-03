@@ -72,9 +72,9 @@ public:
 
 	ErrorT sendCommand(unint4 cmd, unint4 arg);
 
-	ErrorT readBlock(unint4 blockNum, char* buffer, unint4 length);
+	ErrorT readBlock(unint4 blockNum, unint1* buffer, unint4 length);
 
-	ErrorT writeBlock(unint4 blockNum, char* buffer, unint4 length);
+	ErrorT writeBlock(unint4 blockNum, unint1* buffer, unint4 length);
 
 };
 

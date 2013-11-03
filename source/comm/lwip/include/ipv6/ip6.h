@@ -44,7 +44,7 @@ extern "C" {
 #endif
 
 
-#define IP6_HLEN 40
+#define IP6_HLEN  40
 
 #define IP6_PROTO_ICMP    58
 #define IP6_PROTO_UDP     17

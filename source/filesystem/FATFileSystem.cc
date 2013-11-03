@@ -15,9 +15,9 @@ extern Kernel* theOS;
 
 // TODO: optimize memory usage .. remove temporary buffers
 
-static char buffer[1024];
+static unsigned char buffer[1024];
 
-FATFileSystem::FATFileSystem(Partition* myPartition) : FileSystemBase(myPartition) {
+FATFileSystem::FATFileSystem(Partition* p_myPartition) : FileSystemBase(p_myPartition) {
 
 	rootDir = 0;
 	myPartition->setMountedFileSystem(this);
@@ -103,13 +103,13 @@ FATFileSystem::FATFileSystem(Partition* myPartition) : FileSystemBase(myPartitio
 }
 
 
-char temp_buf[512] __attribute__((aligned(4)));
+static unsigned char temp_buf[512] __attribute__((aligned(4)));
 
 unint4 FATFileSystem::allocateCluster() {
 
 	// TODO: add FAT 16 allocate cluster support
 	if (this->myFatType == FAT16)
-		return 0xFFFF;
+		return (0xFFFF);
 	else {
 		unint4 fsinfo_lba = myFATxx_BPB.myFAT32_BPB.BPB_FSInfo * ( myFAT_BPB.BPB_BytsPerSec / this->myPartition->getSectorSize());
 		int error = myPartition->readSectors(fsinfo_lba,temp_buf,1);
@@ -138,7 +138,7 @@ unint4 FATFileSystem::allocateCluster() {
 			fatsecnum = myFAT_BPB.BPB_RsvdSecCnt + (currentClusterAddr / myFAT_BPB.BPB_BytsPerSec);
 
 			// read the sector
-			int error = myPartition->readSectors(fatsecnum,temp_buf,1);
+			error = myPartition->readSectors(fatsecnum,temp_buf,1);
 			if (error < 0 ) return (EOC);
 
 			// read all FAT entrys found inside this sector if needed
@@ -158,23 +158,23 @@ unint4 FATFileSystem::allocateCluster() {
 			// mark as end of chain
 			(* ((unint4*)  &temp_buf[fatentoffset])) = EOC;
 			error = myPartition->writeSectors(fatsecnum,temp_buf,1);
-			if (error < 0 ) return EOC;
+			if (error < 0 ) return (EOC);
 
 			// update FS_INFO
 			error = myPartition->readSectors(fsinfo_lba,temp_buf,1);
-			if (error < 0) return EOC;
+			if (error < 0) return (EOC);
 
 			FAT32_FSInfo *fsinfo = (FAT32_FSInfo *) &temp_buf[0];
 			fsinfo->FSI_FreeCount--;
 			fsinfo->FSI_Nxt_Free = currentCluster+1;
 
 			error = myPartition->writeSectors(fsinfo_lba,temp_buf,1);
-			if (error < 0) return EOC;
+			if (error < 0) return (EOC);
 
-			return currentCluster;
+			return (currentCluster);
 		}
 
-		return EOC;
+		return (EOC);
 	}
 
 
@@ -207,7 +207,7 @@ unint4 FATFileSystem::getFATTableEntry(unint4 clusterNum, bool allocate) {
 		unint2 nextCluster = (* ((unint2*)  &buffer[fatentoffset]));
 
 		if ((nextCluster >= 0xFFF8) && allocate) {
-			nextCluster = allocateCluster();
+			nextCluster = (unint2) allocateCluster();
 
 
 			// set FAT entry
@@ -227,7 +227,7 @@ unint4 FATFileSystem::getFATTableEntry(unint4 clusterNum, bool allocate) {
 			(* ((unint4*)  &buffer[fatentoffset])) = nextCluster;
 			// write back the part of the FAT table
 			error = myPartition->writeSectors(fatsecnum,buffer,1);
-			if (error < 0) return EOC;
+			if (error < 0) return (EOC);
 		}
 		return (nextCluster);
 	}
@@ -357,18 +357,18 @@ ErrorT FATFileSystem::initialize() {
 			LOG(ARCH,INFO,(ARCH,INFO,"FATFileSystem: FAT Filesystem mounted to '/mnt/%s/'.",name));
 
 			// go on and mount this fs
-			return cOk;
+			return (cOk);
 
 		}
 
 	}
 
-	return cError;
+	return (cError);
 
 }
 
 FATDirectory::FATDirectory(FATFileSystem* parentFileSystem, unint4 cluster_num,
-		const char* name) : Directory(name) {
+		const char* p_name) : Directory(p_name) {
 
 	this->myFS 			= parentFileSystem;
 	this->mycluster_num = cluster_num;
@@ -377,7 +377,7 @@ FATDirectory::FATDirectory(FATFileSystem* parentFileSystem, unint4 cluster_num,
 }
 
 FATDirectory::FATDirectory(FATFileSystem* parentFileSystem, unint4 cluster_num,
-		const char* name, unint4 sector) : Directory(name) {
+		const char* p_name, unint4 sector) : Directory(p_name) {
 
 	this->myFS 			= parentFileSystem;
 	this->mycluster_num = cluster_num;
@@ -389,7 +389,7 @@ FATDirectory::FATDirectory(FATFileSystem* parentFileSystem, unint4 cluster_num,
 ErrorT FATDirectory::readBytes(char* bytes, unint4& length) {
 
 	if (!populated) this->populateDirectory();
-	return Directory::readBytes(bytes,length);
+	return (Directory::readBytes(bytes,length));
 }
 
 
@@ -432,7 +432,7 @@ void FATDirectory::populateDirectory() {
 	// check if this is the dedicated volume entry
 
 	unint4 entries_per_sector = myFS->myPartition->getSectorSize() / 32;
-	unint4 num = 0;
+	unint1 num = 0;
 	char* longname = 0;
 	unint1 chksum = 0;
 
@@ -482,7 +482,7 @@ void FATDirectory::populateDirectory() {
 				if (fsrootdir_entry->DIR_Attr != ATTR_VOLUME_ID) {
 
 					unint4 clusterid = (fsrootdir_entry->DIR_FstClusHI << 16) | fsrootdir_entry->DIR_FstClusLO;
-					char* name;
+					char* p_name;
 
 
 					if ((longname != 0) && (ChkSum((unsigned char*) fsrootdir_entry->DIR_Name) != chksum)) {
@@ -491,44 +491,44 @@ void FATDirectory::populateDirectory() {
 					}
 
 					if (longname == 0) {
-						name = (char*) theOS->getMemoryManager()->alloc(12);
-						name[11] = 0;
-						memcpy(name,fsrootdir_entry->DIR_Name,11);
+						p_name = (char*) theOS->getMemoryManager()->alloc(12);
+						p_name[11] = 0;
+						memcpy(p_name,fsrootdir_entry->DIR_Name,11);
 					} else  {
-						name = longname;
-						FAT_SHORTNAME_STRIP(name,strlen(name)-1);
+						p_name = longname;
+						FAT_SHORTNAME_STRIP(p_name, (unint1) (strlen(p_name)-1));
 					}
 
 					if ((fsrootdir_entry->DIR_Attr & ATTR_DIRECTORY) != 0) {
-						if (longname == 0) FAT_SHORTNAME_STRIP(name,9);
-						FATDirectory *fatDir = new FATDirectory(this->myFS,clusterid,name);
+						if (longname == 0) FAT_SHORTNAME_STRIP(p_name,9);
+						FATDirectory *fatDir = new FATDirectory(this->myFS,clusterid,p_name);
 						this->add(fatDir);
 					} else {
 						if (longname == 0) {
-							int lastpos = FAT_SHORTNAME_STRIP(name,7);
+							int lastpos = FAT_SHORTNAME_STRIP(p_name,7);
 							lastpos++;
 
 							// file extension handling for fat names
 							char ext[3];
-							ext[0] = name[8];
-							ext[1] = name[9];
-							ext[2] = name[10];
+							ext[0] = p_name[8];
+							ext[1] = p_name[9];
+							ext[2] = p_name[10];
 							if (ext[0] != ' ') {
-								name[lastpos] = '.';
-								name[lastpos+1] = ext[0];
-								name[lastpos+2] = ext[1];
-								name[lastpos+3] = ext[2];
-								name[lastpos+4] = 0;
-							} else name[lastpos] = 0;
+								p_name[lastpos] = '.';
+								p_name[lastpos+1] = ext[0];
+								p_name[lastpos+2] = ext[1];
+								p_name[lastpos+3] = ext[2];
+								p_name[lastpos+4] = 0;
+							} else p_name[lastpos] = 0;
 						}
 
-						FATFile *file = new FATFile(name,fsrootdir_entry,myFS,sector_number,num);
+						FATFile *file = new FATFile(p_name,fsrootdir_entry,myFS,sector_number,num);
 						this->add(file);
 
 					}
 					longname = 0;
 
-					LOG(ARCH,TRACE,(ARCH,TRACE,"'%s'\t%x\t%d\t%d",name,fsrootdir_entry->DIR_Attr,clusterid,fsrootdir_entry->DIR_FileSize));
+					LOG(ARCH,TRACE,(ARCH,TRACE,"'%s'\t%x\t%d\t%d",p_name,fsrootdir_entry->DIR_Attr,clusterid,fsrootdir_entry->DIR_FileSize));
 
 				} // if not ATTR_VOLUME_ID
 			} // if not long name entry
@@ -553,7 +553,7 @@ void FATDirectory::populateDirectory() {
 
 }
 
-Resource* FATDirectory::get(const char* name) {
+Resource* FATDirectory::get(const char* p_name) {
 	// if this directory is already populated forward to base class
 	if (!populated) populateDirectory();
 
@@ -561,7 +561,7 @@ Resource* FATDirectory::get(const char* name) {
 	//TODO: we might return a single resource without populating the whole directory
 	// just lookup the entries on the block devices partition and create a resource for it.
 
-	return (Directory::get(name));
+	return (Directory::get(p_name));
 
 
 }
@@ -569,7 +569,7 @@ Resource* FATDirectory::get(const char* name) {
 
 
 
-File* FATDirectory::createFile(char* name, unint4 flags) {
+File* FATDirectory::createFile(char* p_name, unint4 flags) {
 
 	// create a FAT directory entry..
 	// check if we need to allocate a new cluster for it as the current one is full
@@ -586,9 +586,9 @@ File* FATDirectory::createFile(char* name, unint4 flags) {
 	// check if this is the dedicated volume entry
 
 	unint4 entries_per_sector = myFS->myPartition->getSectorSize() / 32;
-	unint4 num = 0;
+	unint1 num = 0;
 
-	unint4 namelen = strlen(name);
+	unint4 namelen = strlen(p_name);
 	unint1 long_entries = (namelen / 13) +1;
 
 	// we stupidly put new files at the end of the file...
@@ -620,7 +620,7 @@ File* FATDirectory::createFile(char* name, unint4 flags) {
 	// create entries at the end
 
 	unsigned char shortname[11];
-	generateShortName(shortname,name);
+	generateShortName(shortname,p_name);
 	char temp_name[13];
 
 	FAT32_LongDirEntry* fslongentry;
@@ -634,12 +634,12 @@ File* FATDirectory::createFile(char* name, unint4 flags) {
 		fslongentry->LDIR_FstClusLO = 0;
 		fslongentry->LDIR_Type = 0;
 		if (i == 0)
-			fslongentry->LDIR_Ord = (long_entries - i) | 0x40;
+			fslongentry->LDIR_Ord = (unint1) ((long_entries - i) | 0x40);
 		else
-			fslongentry->LDIR_Ord = long_entries - i;
+			fslongentry->LDIR_Ord = (unint1) (long_entries - i);
 
 		// now set name fields
-		char* pos = &name[13*((long_entries -i) -1)];
+		char* pos = &p_name[13*((long_entries -i) -1)];
 		int len = 13;
 		if (i == 0 ) {
 			len = namelen - ((long_entries-1) * 13);
@@ -713,7 +713,7 @@ File* FATDirectory::createFile(char* name, unint4 flags) {
 	// write last (short) entry
 	memset(fsrootdir_entry,0,sizeof(FAT32_DirEntry));
 	memcpy(fsrootdir_entry->DIR_Name,shortname,11);
-	fsrootdir_entry->DIR_FstClusHI = fileCluster >> 16;
+	fsrootdir_entry->DIR_FstClusHI = (unint2) (fileCluster >> 16);
 	fsrootdir_entry->DIR_FstClusLO = fileCluster & 0xffff;
 	fsrootdir_entry->DIR_Attr = 0x20; // mark as backup
 
@@ -821,15 +821,15 @@ FATDirectory::~FATDirectory() {
 
 
 
-FATFile::FATFile(char* name, FAT32_DirEntry* entry, FATFileSystem* fs, unint4 directory_sector, unint1 directory_entry_number)
-: File(name,entry->DIR_FileSize,entry->DIR_Attr) {
+FATFile::FATFile(char* p_name, FAT32_DirEntry* p_entry, FATFileSystem* p_fs, unint4 u_directory_sector, unint1 u_directory_entry_number)
+: File(p_name,p_entry->DIR_FileSize,p_entry->DIR_Attr) {
 
-	this->clusterStart = ((entry->DIR_FstClusHI << 16) | entry->DIR_FstClusLO);
+	this->clusterStart = ((p_entry->DIR_FstClusHI << 16) | p_entry->DIR_FstClusLO);
 	this->currentCluster = clusterStart;
-	this->currentSector = fs->ClusterToSector(clusterStart);
-	this->myFS = fs;
-	this->directory_entry_number = directory_entry_number;
-	this->directory_sector = directory_sector;
+	this->currentSector = p_fs->ClusterToSector(clusterStart);
+	this->myFS = p_fs;
+	this->directory_entry_number = u_directory_entry_number;
+	this->directory_sector = u_directory_sector;
 }
 
 FATFile::~FATFile() {
@@ -962,7 +962,7 @@ ErrorT FATFile::writeBytes(const char* bytes, unint4 length) {
 	// directly update the filesize!
 	if (this->position > this->filesize) {
 		// we appended something... update the entries filesize
-		int error = myFS->myPartition->readSectors(this->directory_sector,buffer,1);
+		error = myFS->myPartition->readSectors(this->directory_sector,buffer,1);
 		if (error < 0) return (error);
 
 		this->filesize = this->position;

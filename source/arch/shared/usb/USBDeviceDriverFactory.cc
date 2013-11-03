@@ -11,8 +11,8 @@
 
 extern Kernel *theOS;
 
-USBDeviceDriverFactory::USBDeviceDriverFactory(char* name)
-: Resource(cUSBDriver,false,name)
+USBDeviceDriverFactory::USBDeviceDriverFactory(char* p_name)
+: Resource(cUSBDriver,false,p_name)
 {
 	// register ourself at the USBDriverLibrary
 	Directory* usbdir = theOS->getFileManager()->getDirectory("/usb/");

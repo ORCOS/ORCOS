@@ -90,9 +90,9 @@ int shm_mapSyscall(int4 sp_int) {
  *				SHM_UNMAP  Syscall
  *******************************************************************/
 int shm_unmapSyscall(int4 sp_int) {
-	const char* file;
+	/*const char* file;
 	unint4* mapped_address;
-	unint4* mapped_size;
+	unint4* mapped_size;*/
 
 	return (cError);
 

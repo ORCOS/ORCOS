@@ -76,8 +76,8 @@ public:
     }
     ;
 
-    LinkedListDatabaseItem( DatabaseItem* data ) {
-        this->data = data;
+    LinkedListDatabaseItem( DatabaseItem* p_data ) {
+        this->data = p_data;
         this->pred = 0;
         this->succ = 0;
         this->host_db = 0;
@@ -91,7 +91,7 @@ public:
      * \brief Returns the reference to the DatabaseItem this LLDbItem is holding.
      */
     inline DatabaseItem* getData() {
-        return data;
+        return (data);
     }
 
     /*!
@@ -99,22 +99,22 @@ public:
      *
      * This may be used in order to reuse a LLDbItem if memory cant be freed.
      */
-    inline void setData( DatabaseItem* data ) {
-        this->data = data;
+    inline void setData( DatabaseItem* p_data ) {
+        this->data = p_data;
     }
 
     /*!
      * \brief Get the predecessor of this LLDbItem
      */
     inline LinkedListDatabaseItem* getPred() {
-        return pred;
+        return (pred);
     }
 
     /*!
      * \brief Get the successor of this LLDbItem
      */
     inline LinkedListDatabaseItem* getSucc() {
-        return succ;
+        return (succ);
     }
 
     /*!

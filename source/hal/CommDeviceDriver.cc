@@ -27,11 +27,12 @@ int2 CommDeviceDriver::globalCommDeviceIdCounter;
 // period/timed functional call to send packets
 // since this takes alot more memory this has to be configureable!
 
-CommDeviceDriver::CommDeviceDriver( const char* name ) :
-    CharacterDeviceDriver( cCommDevice, false, name ) {
+CommDeviceDriver::CommDeviceDriver( const char* p_name ) :
+    CharacterDeviceDriver( cCommDevice, false, p_name ) {
     myId = globalCommDeviceIdCounter;
     globalCommDeviceIdCounter++;
     interruptPending = false;
+
 #if USE_WORKERTASK
     hasAssignedWokerThread = false;
 #endif

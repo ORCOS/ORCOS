@@ -98,7 +98,7 @@ WorkerThread* WorkerTask::addJob( int id, int pid, void* param, unint priority_p
             // until the the function can be called
             TimedFunctionCall* funcCall = (TimedFunctionCall*) param;
             // when are wo going to be called the first time? sleep until that point in time
-            pWThread->sleepCycles = funcCall->time - currentCycles;
+            pWThread->sleepCycles = (unint4) (funcCall->time - currentCycles);
         }
         else
             pWThread->sleepCycles = 0;
@@ -108,13 +108,13 @@ WorkerThread* WorkerTask::addJob( int id, int pid, void* param, unint priority_p
         // either to be scheduled directly
         // or send to sleep if the sleeptime is > 0
         pWThread->unblock();
-        return pWThread;
+        return (pWThread);
     }
     else
     {
         ERROR("No WorkerThread available!");
 
         // no available workerthread
-        return 0;
+        return (0);
     }
 }

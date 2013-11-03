@@ -330,7 +330,7 @@ ErrorT OmapMMC_SD_HC::sendCommand(unint4 cmd, unint4 arg) {
 	return cError;
 }
 
-ErrorT OmapMMC_SD_HC::readBlock(unint4 blockNum, char* buffer, unint4 length) {
+ErrorT OmapMMC_SD_HC::readBlock(unint4 blockNum, unint1* buffer, unint4 length) {
 
 	length *= 512;
 	LOG(ARCH,DEBUG,(ARCH,DEBUG,"MMC/SD HC()::readBlock, blockNum: %d length: %d, buffer: %x",blockNum, length, buffer));
@@ -381,7 +381,7 @@ ErrorT OmapMMC_SD_HC::readBlock(unint4 blockNum, char* buffer, unint4 length) {
 
 }
 
-ErrorT OmapMMC_SD_HC::writeBlock(unint4 blockNum, char* buffer, unint4 length) {
+ErrorT OmapMMC_SD_HC::writeBlock(unint4 blockNum, unint1* buffer, unint4 length) {
 
 	length *= 512;
 	LOG(ARCH,DEBUG,(ARCH,DEBUG,"MMC/SD HC()::writeBlock, blockNum: %d length: %d, buffer: %x",blockNum, length, buffer));

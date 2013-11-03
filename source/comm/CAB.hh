@@ -50,29 +50,29 @@
 class CAB {
 private:
     // Pointer to the start of our cab containing the buffers
-    char* bufferstart;
+    void* bufferstart;
 
 #ifdef HAS_Board_HatLayerCfd
-    char* bufferstart_physical;
+    void* bufferstart_physical;
 #endif
 
     // Length of the message buffer
-    int length;
+    unint4 length;
 
     // actual buffer
-    int2 actb;
+    unint2 actb;
 
     // a free buffer
-    int2 free;
+    unint2 free;
 
     // the dimension of each buffer
-    int2 dim_buf;
+    unint2 dim_buf;
 
     // The task this cab belongs to (needed for vm)
     Task* ownerTask;
 
 public:
-    CAB( char* bufferstart, int length, Task* ownerTask );
+    CAB( void* bufferstart, unint4 length, Task* ownerTask );
     ~CAB();
 
     // store a new message in the buffer
@@ -82,6 +82,7 @@ public:
 
     // get the most recent message from the buffer
     int2 get( char** addressof_ret_ptrtomsg, int2 &buffer );
+
 
     bool hasData() {
         if ( actb != -1 )

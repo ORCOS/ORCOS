@@ -29,8 +29,8 @@ extern Kernel* theOS;
 #endif
 
 // the stack address and size may be set explicitly
-WorkerThread::WorkerThread( Task* owner ) :
-    Kernel_ThreadCfdCl( 0, 0, owner, theOS->getMemoryManager(),WORKERTHREAD_STACK_SIZE, 0, true ) {
+WorkerThread::WorkerThread( Task* p_owner ) :
+    Kernel_ThreadCfdCl( 0, 0, p_owner, theOS->getMemoryManager(),WORKERTHREAD_STACK_SIZE, 0, true ) {
     jobid = -1;
     param = 0;
 }
@@ -46,7 +46,7 @@ void WorkerThread::callMain() {
     // store all values inside register since we are going to switch the pid
     // and variables on the stack will not be accessible any more
     register void* stack_addr = this->threadStack.endAddr;
-    register int pid = this->pid;
+    register unint1 u_pid = this->pid;
     register void* thisptr = this;
     this->threadStack.top = 0;
 
@@ -58,7 +58,7 @@ void WorkerThread::callMain() {
     // finally branch to the work() method on 'this' object
     // this must be done by hand since calling work() in c would
     // not work since the old stack could be accessed if compiled without optimization
-    BRANCHTO_WORKERTHREAD_WORK(thisptr,pid,stack_addr);
+    BRANCHTO_WORKERTHREAD_WORK(thisptr,u_pid,stack_addr);
 
     // we should never get here
 }
@@ -113,7 +113,7 @@ void WorkerThread::work() {
         // set the absolute time of execution
         pcall->functioncall.time += pcall->period;
         // calculate the time until execution and get to sleep
-        Thread::sleep( pcall->functioncall.time - theOS->getClock()->getTimeSinceStartup() );
+        Thread::sleep( (unint4) (pcall->functioncall.time - theOS->getClock()->getTimeSinceStartup()) );
     }
     else {
        this->jobid = -1;

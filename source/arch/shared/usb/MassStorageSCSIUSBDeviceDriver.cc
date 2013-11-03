@@ -40,9 +40,9 @@ typedef struct {
 
 #define SCSI_UNIT_READY 	0x0
 
-#define CBW_SET_LUN(cbw,lun) cbw[13] = lun
+#define CBW_SET_LUN(cbw,lun) cbw[13] = ((char) lun)
 
-static char cbwInquiry[31] __attribute__((aligned(4))) = {
+static unsigned char cbwInquiry[31] __attribute__((aligned(4))) = {
 'U','S','B','C',    			// CBW Signature
 0x12,0x34,0x56,0x78,   			// CBW Tag
 SCSI_INQUIRY_LEN,0x0,0x0,0x0, 	// CBW Data Transfer Length
@@ -55,7 +55,8 @@ SCSI_INQUIRY,
 0x0, 0x0, 0x0
 };
 
-static char cbwTestUnitReady[31] __attribute__((aligned(4))) = {
+#if 0
+static unsigned char cbwTestUnitReady[31] __attribute__((aligned(4))) = {
 'U','S','B','C',    			// CBW Signature
 0x12,0x34,0x56,0x78,   			// CBW Tag
 0x1,0x0,0x0,0x0, 				// CBW Data Transfer Length
@@ -67,12 +68,13 @@ SCSI_UNIT_READY,
 0x0 ,0x0, 0x0, 0x0,
 0x0, 0x0, 0x0
 };
+#endif
 
 
-MassStorageSCSIUSBDeviceDriver::MassStorageSCSIUSBDeviceDriver(USBDevice* dev)
+MassStorageSCSIUSBDeviceDriver::MassStorageSCSIUSBDeviceDriver(USBDevice* p_dev)
 :  USBDeviceDriver(), BlockDeviceDriver("sdx")
 {
-	this->dev 			= dev;
+	this->dev 			= p_dev;
 	this->bulkin_ep 	= 0;
 	this->bulkout_ep 	= 0;
 	this->int_ep 		= 0;
@@ -84,7 +86,7 @@ MassStorageSCSIUSBDeviceDriver::MassStorageSCSIUSBDeviceDriver(USBDevice* dev)
 	char* new_name = (char*) theOS->getMemoryManager()->alloc(4);
 	new_name[0] = 's';
 	new_name[1] = 'd';
-	new_name[2] = '0' + num;
+	new_name[2] = (char) ('0' + num);
 	new_name[3] = 0;
 
 	this->name = new_name;
@@ -94,8 +96,8 @@ MassStorageSCSIUSBDeviceDriver::MassStorageSCSIUSBDeviceDriver(USBDevice* dev)
 
 }
 
-MassStorageSCSIUSBDeviceDriver::MassStorageSCSIUSBDeviceDriver(MassStorageSCSIUSBDeviceDriver* parent, int lun, char* name)
-:  USBDeviceDriver(), BlockDeviceDriver(name)
+MassStorageSCSIUSBDeviceDriver::MassStorageSCSIUSBDeviceDriver(MassStorageSCSIUSBDeviceDriver* parent, int lun, char* p_name)
+:  USBDeviceDriver(), BlockDeviceDriver(p_name)
 {
 	this->dev 			= parent->dev;
 	this->bulkin_ep 	= parent->bulkin_ep;
@@ -108,7 +110,7 @@ MassStorageSCSIUSBDeviceDriver::MassStorageSCSIUSBDeviceDriver(MassStorageSCSIUS
 	LOG(ARCH,INFO,(ARCH,INFO,"MassStorageSCSIUSBDeviceDriver: created LUN %d as '%s'",lun,name));
 
 	memset(&this->scsi_info,0,sizeof(InquiryData));
-	int	error = performTransaction(cbwInquiry,(char*)&this->scsi_info,SCSI_INQUIRY_LEN);
+	int	error = performTransaction(cbwInquiry,(unsigned char*)&this->scsi_info,SCSI_INQUIRY_LEN);
 	if (error < 0) {
 		LOG(ARCH,ERROR,(ARCH,ERROR,"MassStorageSCSIUSBDeviceDriver: device inquiry failed. Ignoring LUN %d.",this->myLUN));
 	} else {
@@ -118,9 +120,9 @@ MassStorageSCSIUSBDeviceDriver::MassStorageSCSIUSBDeviceDriver(MassStorageSCSIUS
 }
 
 // TODO: not multi threading capable
-static volatile char csw[13];
+static unsigned char csw[13];
 
-ErrorT MassStorageSCSIUSBDeviceDriver::performTransaction(char* bot_cbw, char* data,unint4 length) {
+ErrorT MassStorageSCSIUSBDeviceDriver::performTransaction(unsigned char* bot_cbw, unsigned char* data,unint2 length) {
 
 
 	CBW_SET_LUN(bot_cbw,myLUN);
@@ -140,7 +142,7 @@ ErrorT MassStorageSCSIUSBDeviceDriver::performTransaction(char* bot_cbw, char* d
 		if (error < 0) {
 			LOG(ARCH,ERROR,(ARCH,ERROR,"MassStorageSCSIUSBDeviceDriver: bulk msg recv failed.."));
 			ResetRecovery();
-			return cError;
+			return (cError);
 		}
 
 	} else {
@@ -159,7 +161,7 @@ ErrorT MassStorageSCSIUSBDeviceDriver::performTransaction(char* bot_cbw, char* d
 	if (error < 0) {
 		LOG(ARCH,ERROR,(ARCH,ERROR,"MassStorageSCSIUSBDeviceDriver: csw recv failed.."));
 		ResetRecovery();
-		return cError;
+		return (cError);
 	}
 
 	// check csw
@@ -168,15 +170,15 @@ ErrorT MassStorageSCSIUSBDeviceDriver::performTransaction(char* bot_cbw, char* d
 
 		// todo check tag
 		// return data residue on command passed
-		if (csw[12] == 0) return csw[8];
-		else return csw[12];
+		if (csw[12] == 0) return (csw[8]);
+		else return (csw[12]);
 
 	} else {
 		ResetRecovery();
-		return cError;
+		return (cError);
 	}
 
-	return cOk;
+	return (cOk);
 
 }
 
@@ -220,22 +222,22 @@ ErrorT MassStorageSCSIUSBDeviceDriver::initialize() {
 	// first check the endpoint information
 	bool bulkinep, bulkoutep, intep = false;
 
-	for (int i = 1; i <= dev->numEndpoints; i++) {
+	for (unint1 i = 1; i <= dev->numEndpoints; i++) {
 		if (dev->endpoints[i].type == Bulk) {
 			// active it
 			if (dev->endpoints[i].direction == Out) {
-				this->bulkout_ep = i; //dev->endpoints[i].address;
+				this->bulkout_ep = i;
 				bulkoutep = true;
 
 			} else {
-				this->bulkin_ep =  i; //dev->endpoints[i].address;;
+				this->bulkin_ep =  i;
 				bulkinep = true;
 			}
 
 			dev->activateEndpoint(i);
 
 		} else if(dev->endpoints[i].type == Interrupt)  {
-			int_ep =  i; //dev->endpoints[i].address;;
+			int_ep =  i;
 			dev->endpoints[i].poll_frequency = 200;
 			intep = true;
 		}
@@ -277,22 +279,22 @@ ErrorT MassStorageSCSIUSBDeviceDriver::initialize() {
 	// create additional logical unit representations
 	for (unint1 i=1; i< lun; i++) {
 
-		char* name = (char*) theOS->getMemoryManager()->alloc(4);
+		char* p_name = (char*) theOS->getMemoryManager()->alloc(4);
 		int num = (int) BlockDeviceDriver::freeBlockDeviceIDs->removeHead();
-		name[0] = 's';
-		name[1] = 'd';
-		name[2] = '0' + num;
-		name[3] = 0;
-		MassStorageSCSIUSBDeviceDriver *next = new MassStorageSCSIUSBDeviceDriver(this,i,name);
+		p_name[0] = 's';
+		p_name[1] = 'd';
+		p_name[2] = ((char) ('0' + num));
+		p_name[3] = 0;
+		MassStorageSCSIUSBDeviceDriver *p_next = new MassStorageSCSIUSBDeviceDriver(this,i,p_name);
 		// link the created LUNs MSDs so we can delete them again
-		current->next = next;
-		current = next;
+		current->next = p_next;
+		current = p_next;
 	}
 
-	error = performTransaction(cbwInquiry,(char*)&this->scsi_info,SCSI_INQUIRY_LEN);
+	error = performTransaction(cbwInquiry,(unsigned char*)&this->scsi_info,SCSI_INQUIRY_LEN);
 	if (error < 0) {
 		LOG(ARCH,ERROR,(ARCH,ERROR,"MassStorageSCSIUSBDeviceDriver: device inquiry failed. Ignoring LUN %d.",this->myLUN));
-		return cError;
+		return (cError);
 	}
 
 	// we only register if inquiry succeeds
@@ -303,7 +305,7 @@ ErrorT MassStorageSCSIUSBDeviceDriver::initialize() {
 }
 
 // TODO: not multi threading capable
-static char cbwRead10[36] = {
+static unsigned char cbwRead10[36] = {
 		'U','S','B','C',    			// CBW Signature
 		0x11,0x34,0x56,0x10,   			// CBW Tag
 		0,0,0,0,
@@ -316,12 +318,14 @@ static char cbwRead10[36] = {
 		0x0, 0x0, 0x0
 		};
 
-ErrorT MassStorageSCSIUSBDeviceDriver::readBlock(unint4 blockNum, char* buffer, unint4 blocks) {
+ErrorT MassStorageSCSIUSBDeviceDriver::readBlock(unint4 blockNum, unsigned char* buffer, unint4 blocks) {
 
 	// block size = 512
 	// num blocks = (length / 512) +1;
 	//int num_blocks = (length >> 9) +1;
-	unint4 length = blocks << 9;
+
+	if (blocks > 256) return (cBlockDeviceTooManyBlocks);
+	unint2 length = (unint2) (blocks << 9);
 
 	// initialize read command
 	// needs to be done this way for dma on physical address to work
@@ -339,13 +343,13 @@ ErrorT MassStorageSCSIUSBDeviceDriver::readBlock(unint4 blockNum, char* buffer, 
 	int error = performTransaction(cbwRead10,buffer,length);
 	if (error < 0) {
 		LOG(ARCH,ERROR,(ARCH,ERROR,"MassStorageSCSIUSBDeviceDriver: reading device blocks failed %d. length: %d.",error,length));
-		return cError;
+		return (cError);
 	}
 
-	return cOk;
+	return (cOk);
 }
 
-static char cbwWrite10[36] = {
+static unsigned char cbwWrite10[36] = {
 		'U','S','B','C',    			// CBW Signature
 		0x11,0x34,0x56,0x12,   			// CBW Tag
 		0,0,0,0,
@@ -358,7 +362,7 @@ static char cbwWrite10[36] = {
 		0x0, 0x0, 0x0
 		};
 
-ErrorT MassStorageSCSIUSBDeviceDriver::writeBlock(unint4 blockNum, char* buffer,
+ErrorT MassStorageSCSIUSBDeviceDriver::writeBlock(unint4 blockNum, unint1* buffer,
 		unint4 blocks) {
 
 	LOG(ARCH,DEBUG,(ARCH,DEBUG,"MassStorageSCSIUSBDeviceDriver: writing block %d. blocks: %d.",blockNum,blocks));
@@ -369,9 +373,8 @@ ErrorT MassStorageSCSIUSBDeviceDriver::writeBlock(unint4 blockNum, char* buffer,
 		cbwWrite10[15] = SCSI_WRITE10;
 
 	// block size = 512
-	// num blocks = (length / 512) +1;
-	//int num_blocks = (length >> 9) +1;
-	unint4 length = blocks << 9;
+    if (blocks > 256) return (cBlockDeviceTooManyBlocks);
+	unint2 length = (unint2) (blocks << 9);
 
 	// initialize read command
 	// needs to be done this way for dma on physical address to work
@@ -389,17 +392,19 @@ ErrorT MassStorageSCSIUSBDeviceDriver::writeBlock(unint4 blockNum, char* buffer,
 	int error = performTransaction(cbwWrite10,buffer,length);
 	if (error < 0) {
 		LOG(ARCH,ERROR,(ARCH,ERROR,"MassStorageSCSIUSBDeviceDriver: writing device blocks failed %d. length: %d.",error,length));
-		return cError;
+		return (cError);
 	}
 
-	return cOk;
+	return (cOk);
 }
 
 ErrorT MassStorageSCSIUSBDeviceDriver::handleInterrupt() {
 
 	ErrorT ret = cError;
 
-	return ret;
+	// TODO: anything to do here?
+
+	return (ret);
 }
 
 
@@ -429,13 +434,13 @@ bool MassStorageSCSIUSBDeviceDriverFactory::isDriverFor(USBDevice* dev) {
 	// if Mass Storage Device with SCSI command set and Bulk only transfer
 	if ((dev->if_descr.bInterfaceClass == 8) && (dev->if_descr.bInterfaceSubClass == 6) && (dev->if_descr.bInterfaceProtocol == 0x50)) return true;
 
-	return false;
+	return (false);
 
 }
 
 
-MassStorageSCSIUSBDeviceDriverFactory::MassStorageSCSIUSBDeviceDriverFactory(char* name)
-: USBDeviceDriverFactory(name)
+MassStorageSCSIUSBDeviceDriverFactory::MassStorageSCSIUSBDeviceDriverFactory(char* p_name)
+: USBDeviceDriverFactory(p_name)
 {
 
 }

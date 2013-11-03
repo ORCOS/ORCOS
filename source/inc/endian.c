@@ -7,6 +7,8 @@
 
 #include "lwip/arch.h"
 #include "SCLConfig.hh"
+#include "endian.h"
+
 
 #if BYTE_ORDER != BIG_ENDIAN
 #if BYTE_ORDER != LITTLE_ENDIAN
@@ -51,18 +53,19 @@ unint2 cputobe16(unint2 n) { return n;}
 unint4
 cputobe32(unint4 n)
 {
-  return ((n & 0xff) << 24) |
+  return (((n & 0xff) << 24) |
     ((n & 0xff00) << 8) |
     ((n & 0xff0000UL) >> 8) |
-    ((n & 0xff000000UL) >> 24);
+    ((n & 0xff000000UL) >> 24));
 }
 
 unint2
 cputobe16(unint2 n)
 {
-  return ((n & 0xff) << 8) | ((n & 0xff00) >> 8);
+  return ((unint2)(((n & 0xff) << 8) | ((n & 0xff00) >> 8)));
 }
 
 #endif
+
 
 

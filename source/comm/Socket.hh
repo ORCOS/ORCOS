@@ -53,7 +53,7 @@ private:
     sockaddr senderaddr[MAX_BUF];
 
     //! the send buffer which is used by the protocols to wrap the message
-    char* sendBuffer;
+    void* sendBuffer;
 
     //! The type of the socket (SOCK_STREAM, SOCK_DGRAM)
     SOCK_TYPE type;
@@ -86,17 +86,17 @@ public:
 public:
 	 void*	arg;
 
-	Socket( int domain, int type, int protocol, char* bufferstart, int bufferlen );
+	Socket( unint2 domain, SOCK_TYPE e_type, unint2 protocol, void* bufferstart, unint4 bufferlen);
     ~Socket();
 
     //! bind the socket to an addr
     ErrorT bind( sockaddr* address );
 
     //! send message which sends a given message to a known socket address
-    int sendto( const void* buffer, int length, const sockaddr *dest_addr );
+    int sendto( const void* buffer, unint2 length, const sockaddr *dest_addr );
 
     //! send message which sends a given message to a service
-    int sendto( const void* buffer, int length, const char* service_name );
+    int sendto( const void* buffer, unint2 length, const char* service_name );
 
     //! try to connect to a given socket address! always blocking!
     int connect(Kernel_ThreadCfdCl* thread, sockaddr* toaddr );
@@ -111,33 +111,33 @@ public:
     void disconnected(int error);
 
     //! method which is called from the transport protocol whenever this socket receives a message
-    ErrorT addMessage( char* msgstart, int msglength, sockaddr *fromaddr );
+    ErrorT addMessage( char* msgstart, unint2 msglength, sockaddr *fromaddr );
 
     //! method which is called by syscalles in order to receive a message and the address the method came from
-    size_t recvfrom( Kernel_ThreadCfdCl* thread, char** addressof_ret_ptrtomsg, int flags, sockaddr* addr );
+    size_t recvfrom( Kernel_ThreadCfdCl* thread, char** addressof_ret_ptrtomsg, unint4 flags, sockaddr* addr );
 
     //! method which is called by syscalles in order to receive a message
-    size_t recv( Kernel_ThreadCfdCl* thread, char** addressof_ret_ptrtomsg, int flags );
+    size_t recv( Kernel_ThreadCfdCl* thread, char** addressof_ret_ptrtomsg, unint4 flags );
 
     //! Returns the type of this socket
     inline
     SOCK_TYPE getType() {
-        return type;
+        return (type);
     }
     //! Returns the address protocol
     inline
     AddressProtocol* getAProto() {
-        return aproto;
+        return (aproto);
     }
     //! Returns the transport protocol
     inline
     TransportProtocol* getTProto() {
-        return tproto;
+        return (tproto);
     }
     //! Returns the ownerTask
     inline
     Task* getOwnerTask() {
-        return ownerTask;
+        return (ownerTask);
     }
 
 };

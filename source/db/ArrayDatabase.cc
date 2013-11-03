@@ -22,7 +22,7 @@
 // if we are sure a -b is never > b we can use this!
 #define MODULO(a,b)  a >= b ? a-b : a
 
-ArrayDatabase::ArrayDatabase( int max ) {
+ArrayDatabase::ArrayDatabase( unint1 max ) {
     maxEntries = max;
     numEntries = 0;
     entries = new DatabaseItem*[ max ];
@@ -39,41 +39,41 @@ ArrayDatabase::~ArrayDatabase() {
     delete[] entries;
 }
 
-int ArrayDatabase::size() {
-    return numEntries;
+unint1 ArrayDatabase::size() {
+    return (numEntries);
 }
 
 DatabaseItem* ArrayDatabase::getHead() {
-    return entries[ headPointer ];
+    return (entries[ headPointer ]);
 }
 
 DatabaseItem* ArrayDatabase::getTail() {
-    return entries[ MODULO(( headPointer + numEntries - 1 ),maxEntries) ];
+    return (entries[ MODULO(( headPointer + numEntries - 1 ),maxEntries) ]);
 }
 
 ErrorT ArrayDatabase::addTail( DatabaseItem* item ) {
 
     if ( numEntries + 1 > maxEntries ) {
-        return cDatabaseOverflow;
+        return (cDatabaseOverflow);
     }
 
     int ptr = MODULO(( headPointer + numEntries ) , maxEntries);
     numEntries++;
     entries[ ptr ] = item;
 
-    return cOk;
+    return (cOk);
 }
 
 ErrorT ArrayDatabase::addHead( DatabaseItem* item ) {
 
     if ( numEntries + 1 >= maxEntries ) {
-        return cDatabaseOverflow;
+        return (cDatabaseOverflow);
     }
 
     if ( headPointer == 0 ) {
         //addHead only grows to the left side,
         //so check whether it goes over 0
-        headPointer = maxEntries - 1;
+        headPointer = (unint1) (maxEntries - 1);
     }
     else {
         headPointer--;
@@ -82,13 +82,13 @@ ErrorT ArrayDatabase::addHead( DatabaseItem* item ) {
     entries[ headPointer ] = item;
     numEntries++;
 
-    return cOk;
+    return (cOk);
 
 }
 
 DatabaseItem* ArrayDatabase::removeHead() {
     if ( 0 == numEntries ) {
-        return 0;
+        return (0);
     }
 
     DatabaseItem* ret = entries[ headPointer ];
@@ -102,25 +102,25 @@ DatabaseItem* ArrayDatabase::removeHead() {
         headPointer++;
     }
     numEntries--;
-    return ret;
+    return (ret);
 }
 
 DatabaseItem* ArrayDatabase::removeTail() {
     if ( 0 == numEntries ) {
-        return 0;
+        return (0);
     }
 
     int p = MODULO(( headPointer + numEntries - 1 ) , ( maxEntries ));
     DatabaseItem* ret = entries[ p ];
     entries[ p ] = 0;
     numEntries--;
-    return ret;
+    return (ret);
 }
 
 DatabaseItem* ArrayDatabase::removeItemAt( int at ) {
 
     if ( at < 0 || at > numEntries ) {
-        return 0;
+        return (0);
     }
 
     int ptr = MODULO(( headPointer + at ) , maxEntries);
@@ -133,17 +133,17 @@ DatabaseItem* ArrayDatabase::removeItemAt( int at ) {
     }
 
     numEntries--;
-    return ret;
+    return (ret);
 }
 
 ErrorT ArrayDatabase::insertItemAt( int at, DatabaseItem* item ) {
 
     if ( numEntries + 1 > maxEntries ) {
-        return cDatabaseOverflow;
+        return (cDatabaseOverflow);
     }
 
     if ( at < 0 || at > numEntries ) {
-        return cIndexOutOfBounds;
+        return (cIndexOutOfBounds);
     }
 
     for ( int i = ( numEntries - at ); i >= 0; i-- ) {
@@ -154,19 +154,19 @@ ErrorT ArrayDatabase::insertItemAt( int at, DatabaseItem* item ) {
     entries[ MODULO(( headPointer + at ) , maxEntries) ] = item;
 
     numEntries++;
-    return cOk;
+    return (cOk);
 
 }
 
 DatabaseItem* ArrayDatabase::getItemAt( int i ) {
-    return entries[ MODULO(( headPointer + i ) , maxEntries) ];
+    return (entries[ MODULO(( headPointer + i ) , maxEntries) ]);
 }
 
 DatabaseItem* ArrayDatabase::removeItem( DatabaseItem* item ) {
     for ( int i = 0; i <= numEntries; i++ ) {
         if ( item == entries[ MODULO(( headPointer + i ) , maxEntries) ] ) {
-            return removeItemAt( i );
+            return (removeItemAt( i ));
         }
     }
-    return 0;
+    return (0);
 }

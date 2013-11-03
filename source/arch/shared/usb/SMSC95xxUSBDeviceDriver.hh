@@ -19,13 +19,13 @@ public:
 	USBDevice *dev;
 
 	// endpoint number for bulk out transfer
-	int bulkout_ep;
+	unint1 bulkout_ep;
 
 	// endpoint number for bulk in transfer
-	int bulkin_ep;
+	unint1 bulkin_ep;
 
 	// interrupt endpoint number
-	int int_ep;
+	unint1 int_ep;
 
 private:
 	// Receive the current packet
@@ -56,11 +56,11 @@ public:
   */
   void 		recv();
 
-  // Send out the data over the USB Ethernet Device
+  /* Send out the data over the USB Ethernet Device */
   ErrorT 	lowlevel_send( char* data, int len );
 
 
-  //! broadcast method which sends the message to the devices broadcast address
+  /* broadcast method which sends the message to the devices broadcast address*/
   ErrorT 	broadcast( packet_layer* packet, int2 fromProtocol_ID ) { return cNotImplemented;};
 
   /*!
@@ -79,12 +79,12 @@ class SMSC95xxUSBDeviceDriverFactory : public USBDeviceDriverFactory {
 public:
 	SMSC95xxUSBDeviceDriverFactory(char* name);
 
-	//checks whether the given class,product device is supported by this driver
+	/* checks whether the given class,product device is supported by this driver*/
 	bool isDriverFor(USBDevice* dev);
 
-	// factory method which creates a new instance of this driver
+	/* factory method which creates a new instance of this driver */
 	USBDeviceDriver* getInstance(USBDevice* dev) {
-		return new SMSC95xxUSBDeviceDriver(dev);
+		return (new SMSC95xxUSBDeviceDriver(dev));
 	};
 
 	virtual ~SMSC95xxUSBDeviceDriverFactory() {};

@@ -58,7 +58,7 @@ task.ld:
 	
 %.o: %.cpp
 	@echo task.mk: Compiling $@
-	@$(CXX) $(CPPFLAGS) $< -o $@
+	@$(CXX) $(CPPFLAGS) $< -o bin/$@
 
 %.o: %.c
 	@echo task.mk: Compiling $@

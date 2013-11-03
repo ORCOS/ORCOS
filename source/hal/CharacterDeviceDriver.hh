@@ -57,8 +57,8 @@ public:
      * abstract function to read a byte from the device and writes it
      * to the supplied pointer a error is returned when no byte is available.
      */
-    virtual ErrorT readByte( char* byte ) {
-        return cNotImplemented;
+    virtual ErrorT readByte( char* p_byte ) {
+        return (cNotImplemented);
     }
 
     /*!
@@ -67,8 +67,8 @@ public:
      * abstract function to write a byte to the device
      * if not possible an error is returned.
      */
-    virtual ErrorT writeByte( char byte ) {
-        return cNotImplemented;
+    virtual ErrorT writeByte( char c_byte ) {
+        return (cNotImplemented);
     }
 
     /*!
@@ -83,7 +83,7 @@ public:
      * is returned by the function.
      */
     virtual ErrorT readBytes( char *bytes, unint4 &length ) {
-        return cNotImplemented;
+        return (cNotImplemented);
     }
 
     /*!
@@ -94,7 +94,7 @@ public:
      * an error value is returned.
      */
     virtual ErrorT writeBytes( const char *bytes, unint4 length ) {
-        return cNotImplemented;
+        return (cNotImplemented);
     }
 
 
@@ -106,10 +106,10 @@ public:
      *
      * Block devices will interpret the seek_value as sectors NOT bytes!
      */
-    virtual ErrorT seek(int4 seek_value) { this->position += seek_value; return cOk; };
+    virtual ErrorT seek(int4 seek_value) { this->position += seek_value; return (cOk); };
 
 
-    virtual ErrorT resetPosition() { this->position = 0; return cOk; }
+    virtual ErrorT resetPosition() { this->position = 0; return (cOk); }
 
 
 };

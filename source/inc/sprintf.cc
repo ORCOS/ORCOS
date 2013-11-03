@@ -31,7 +31,7 @@
 extern void putc( char c ); //< puts the character to the standard output device
 extern void itoa( int8 value, char* str, int base );
 
-static void printchar( char **str, int c ) {
+static void printchar( char **str, char c ) {
     if ( str ) {
         **str = c;
         ++( *str );
@@ -43,7 +43,7 @@ static void printchar( char **str, int c ) {
 
 
 static void prints( char **out, const char *string, int width, int pad ) {
-    register int padchar = ' ';
+    register char padchar = ' ';
 
     if ( width > 0 ) {
         register int len = 0;
@@ -137,7 +137,7 @@ void print( char **out, const char *format, va_list args ) {
              }*/
             if ( *format == 'c' ) {
                 /* char are converted to int then pushed on the stack */
-                scr[ 0 ] = va_arg( args, int );
+                scr[ 0 ] = (char) va_arg( args, int );
                 scr[ 1 ] = '\0';
                 prints( out, scr, width, pad );
                 continue;
@@ -157,18 +157,18 @@ int printf( const char *format, ... ) {
     va_list args;
     va_start( args, format );
     print( 0, format, args );
-    return 0;
+    return (0);
 }
 
 extern "C" int puts(const char* s) {
-
+	// TODO: directly print instead of going through printf
 	printf(s);
-	return 1;
+	return (1);
 }
 
 int sprintf( char *out, const char *format, ... ) {
     va_list args;
     va_start( args, format );
     print( &out, format, args );
-    return 0;
+    return (0);
 }

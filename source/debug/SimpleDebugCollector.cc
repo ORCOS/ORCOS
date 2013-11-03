@@ -59,9 +59,9 @@ ErrorT SimpleDebugCollector::readBytes( char *bytes, unint4 &length ) {
         for (LinkedListDatabaseItem* lldi = llt->getHead(); lldi != 0; lldi = lldi->getSucc()) {
             Task* task = (Task*) lldi->getData();
 
-            int freemem = 0;
-            int overhead = 0;
-            int usedmem       = task->getMemManager()->getUsedMemSize(overhead,freemem);
+            size_t freemem = 0;
+            size_t overhead = 0;
+            size_t usedmem       = task->getMemManager()->getUsedMemSize(overhead,freemem);
             sprintf(tmpBuf, "  %02d\t%7d\t", task->getId(),usedmem);
             strcat(outputMsg, tmpBuf);
 
@@ -88,7 +88,7 @@ ErrorT SimpleDebugCollector::readBytes( char *bytes, unint4 &length ) {
         volatile unint8 passedTime = clock->getTimeSinceStartup();
 
         unint4 seconds_passed = (unint4) (passedTime / CLOCK_RATE);
-        unint4 milliseconds = (passedTime - (seconds_passed * CLOCK_RATE)) / (CLOCK_RATE / 1000);
+        unint4 milliseconds = ((unint4) (passedTime - (seconds_passed * CLOCK_RATE))) / (CLOCK_RATE / 1000);
 
         char time[ 16 ];
         itoa( passedTime, time, 10 );

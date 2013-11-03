@@ -26,7 +26,7 @@ extern void* __RAM_START;
 
 // map of used memory pages by tasks .. starting at the page after __KERNELEND
 // this map must be big enough to cover all possible locations of tasks inside the memory
-static char   UsedPageTable[ NUM_PAGES ];
+static unsigned char UsedPageTable[ NUM_PAGES ];
 static unint4 MemStart;
 
 PagedRamMemManager::PagedRamMemManager() {
@@ -45,7 +45,7 @@ PagedRamMemManager::~PagedRamMemManager() {
 }
 
 
-ErrorT PagedRamMemManager::markAsUsed(unint4 start, unint4 end, int pid) {
+ErrorT PagedRamMemManager::markAsUsed(unint4 start, unint4 end, unint1 pid) {
 
 	unint4 start_page =  (unint4) alignFloor((char*) start,PAGESIZE);
     unint4 end_page   =  (unint4) alignFloor((char*) end,PAGESIZE);
@@ -54,9 +54,9 @@ ErrorT PagedRamMemManager::markAsUsed(unint4 start, unint4 end, int pid) {
 	int pe_end   = (end_page - MemStart) / PAGESIZE;
 
     // mark the pages as used
-    for (int i = pe_start; i <= pe_end; i++) UsedPageTable[i] = pid;
+    for (unint4 i = pe_start; i <= pe_end; i++) UsedPageTable[i] = pid;
 
-    return cOk;
+    return (cOk);
 }
 
 ErrorT PagedRamMemManager::free(unint4 start, unint4 end) {
@@ -69,7 +69,7 @@ ErrorT PagedRamMemManager::free(unint4 start, unint4 end) {
     // mark the pages as used
     for (int i = pe_start; i <= pe_end; i++) UsedPageTable[i] = 0;
 
-    return cOk;
+    return (cOk);
 }
 
 ErrorT PagedRamMemManager::freeAll(int pid) {

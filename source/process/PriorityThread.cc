@@ -23,9 +23,9 @@
 extern Kernel* theOS;
 extern Kernel_ThreadCfdCl* pCurrentRunningThread;
 
-PriorityThread::PriorityThread( void* startRoutinePointer, void* exitRoutinePointer, Task* owner,
+PriorityThread::PriorityThread( void* p_startRoutinePointer, void* p_exitRoutinePointer, Task* p_owner,
         Kernel_MemoryManagerCfdCl* memManager, unint4 stack_size, void* prioThreadAttributes, bool newThread ) :
-    Thread( startRoutinePointer, exitRoutinePointer, owner, memManager, stack_size, prioThreadAttributes, newThread )
+    Thread( p_startRoutinePointer, p_exitRoutinePointer, p_owner, memManager, stack_size, prioThreadAttributes, newThread )
 
 {
     if ( prioThreadAttributes != 0 ) {

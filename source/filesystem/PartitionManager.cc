@@ -65,14 +65,14 @@ typedef struct {
 
 ErrorT PartitionManager::handleEFIPartitionTable(BlockDeviceDriver* bdev) {
 
-	int error = bdev->readBlock(1,(char*)buffer,1);
-	if (error < 0) return cError;
+	int error = bdev->readBlock(1,buffer,1);
+	if (error < 0) return (cError);
 
 	EFI_PT_Header* efi_header = (EFI_PT_Header*) buffer;
 
 	if (memcmp(efi_header->signature,EFI_Signature,8) != 0) {
 		LOG(ARCH,INFO,(ARCH,INFO,"PartitionManager: EFI Signature validation failed."));
-		return cError;
+		return (cError);
 	}
 
 	LOG(ARCH,INFO,(ARCH,INFO,"PartitionManager: Found EFI Header."));
@@ -80,20 +80,20 @@ ErrorT PartitionManager::handleEFIPartitionTable(BlockDeviceDriver* bdev) {
 
 	if (efi_header->num_pte > 2) {
 		LOG(ARCH,INFO,(ARCH,INFO,"PartitionManager: No support for more than 2 EFI partitions."));
-		return cError;
+		return (cError);
 	}
 
 	LOG(ARCH,INFO,(ARCH,INFO,"PartitionManager: EFI Support missing."));
 
-	return cOk;
+	return (cOk);
 }
 
 ErrorT PartitionManager::tryDOSMBR(BlockDeviceDriver* bdev) {
 
 	memset(buffer,0,1024);
 	// read first sector
-	int error = bdev->readBlock(0,(char*)buffer,1);
-	if (error < 0) return cError;
+	int error = bdev->readBlock(0,buffer,1);
+	if (error < 0) return (cError);
 
 	if((buffer[DOS_PART_MAGIC_OFFSET + 0] != 0x55) || (buffer[DOS_PART_MAGIC_OFFSET + 1] != 0xaa) ) {
 			return (cError);
@@ -145,7 +145,7 @@ ErrorT PartitionManager::tryDOSMBR(BlockDeviceDriver* bdev) {
 
 	dos_partition_t *pt;
 
-	int part_num = 1;
+	unint1 part_num = 1;
 
 	/* Print all primary/logical partitions */
 	pt = (dos_partition_t *) (buffer + DOS_PART_TBL_OFFSET);
@@ -176,7 +176,7 @@ ErrorT PartitionManager::tryDOSMBR(BlockDeviceDriver* bdev) {
 				case 0xee: {
 					// handle efi partition tables here
 					// EFI Partition mit Legacy MBR
-					return handleEFIPartitionTable(bdev);
+					return (handleEFIPartitionTable(bdev));
 					break;
 				}
 				default: {

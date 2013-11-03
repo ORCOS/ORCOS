@@ -45,11 +45,11 @@ void abort() {
 extern "C"void kernelmain()
 {
     // first of all clear the OS heap so we get a clean working system
-    volatile void* addr = (void*) &_heap_start;
+    unint4* addr = (unint4*) &_heap_start;
 
     // use this address if you want to clear the whole os heap
     // this may take quite a while
-    volatile int* endaddr = (int*) &_heap_end;
+    unint4* endaddr = (unint4*) &_heap_end;
 
     // use this address if you want to clear just the used part of the heap
     // much faster!
@@ -58,8 +58,9 @@ extern "C"void kernelmain()
     // now clear the memory area
     while (addr < endaddr)
     {
-        *((unint4*) addr) = 0;
-        addr = (void*) (((unint4) addr) + 4);
+    	// use architecture size of void*
+        *(addr) = 0;
+        addr = addr +4;
     }
 
     theOS = 0;

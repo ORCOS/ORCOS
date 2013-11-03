@@ -17,10 +17,10 @@ extern Kernel* theOS;
 								(module_cb->i_max_argument_size > 0))
 
 
-USCommDeviceDriver::USCommDeviceDriver(const char* dev_name, unint4 mmio_address, unint4 mmio_size, unint4 us_driver_addr) :
+USCommDeviceDriver::USCommDeviceDriver(const char* dev_name, unint4 u_mmio_address, unint4 mmio_size, unint4 us_driver_addr) :
   CommDeviceDriver(dev_name), Module(us_driver_addr,us_driver_addr+4096,us_driver_addr+2048)
 {
-	this->mmio_address = mmio_address;
+	this->mmio_address = u_mmio_address;
 	this->us_driver_address = us_driver_addr;
 
 	// try to read out the module control block

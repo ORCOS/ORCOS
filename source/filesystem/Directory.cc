@@ -25,8 +25,8 @@
 
 extern Kernel* theOS;
 
-Directory::Directory( const char* name ) :
-    CharacterDeviceDriver( cDirectory, false, name ) {
+Directory::Directory( const char* p_name ) :
+    CharacterDeviceDriver( cDirectory, false, p_name ) {
     num_entries = 0;
 }
 
@@ -51,19 +51,19 @@ Directory::~Directory() {
 ErrorT Directory::add( Resource* res ) {
     dir_content.addTail( res );
     num_entries++;
-    return cOk;
+    return (cOk);
 }
 
 ErrorT Directory::remove(Resource *res) {
 	if (dir_content.remove(res) == cOk) {
 		num_entries--;
-		return cOk;
+		return (cOk);
 	}
 
-	return cError;
+	return (cError);
 }
 
-Resource* Directory::get( const char* name ) {
+Resource* Directory::get( const char* p_name ) {
     // parse the whole dir_content db for an item with name 'name'
     LinkedListDatabaseItem* litem = dir_content.getHead();
     Resource* res;
@@ -72,12 +72,12 @@ Resource* Directory::get( const char* name ) {
         // not found yet and we got anther entry in our database
         res = (Resource*) litem->getData();
         // compare names
-        if ( strcmp( name, res->getName() ) == 0 )
-            return res;
+        if ( strcmp( p_name, res->getName() ) == 0 )
+            return (res);
         litem = litem->getSucc();
     }
 
-    return 0;
+    return (0);
 }
 
 /*
@@ -91,7 +91,7 @@ Resource* Directory::get( const char* name ) {
  */
 ErrorT Directory::readBytes( char *bytes, unint4 &length ) {
 
-	if (length < 1) return cOk;
+	if (length < 1) return (cOk);
 	// we are a base directory .. we only have name, type and id information
 	bytes[0] = cDirTypeORCOS;
 
@@ -101,15 +101,16 @@ ErrorT Directory::readBytes( char *bytes, unint4 &length ) {
 
 	while (litem != 0) {
 		Resource* ritem = (Resource*) litem->getData();
-		const char* name = ritem->getName();
-		int namelen = strlen(name);
+		const char* p_name = ritem->getName();
+		// may 256 chars for the name
+		unint1 namelen = (unint1) strlen(p_name);
 
 		// stop if we do not fit into the bytes array any more
 		if ((pos + namelen + 11) > length) break;
 
 		// copy name into the bytes array
 		bytes[pos] = namelen;
-		memcpy((void*) &bytes[pos+1],(void*)name,namelen);
+		memcpy((void*) &bytes[pos+1],(void*)p_name,namelen);
 
 		bytes[pos+namelen+1] = 0;
 		bytes[pos+namelen+2] = ritem->getType();
@@ -121,14 +122,14 @@ ErrorT Directory::readBytes( char *bytes, unint4 &length ) {
 			filesize = ((File*) ritem)->getFileSize();
 			flags = ((File*) ritem)->getFlags();
 		}
-		bytes[pos+namelen+4] = (filesize & 0xff000000) >> 24;
-		bytes[pos+namelen+5] = (filesize & 0xff0000) >> 16;
-		bytes[pos+namelen+6] = (filesize & 0xff00) >> 8;
-		bytes[pos+namelen+7] = (filesize & 0xff);
+		bytes[pos+namelen+4] = (char) ((filesize & 0xff000000) >> 24);
+		bytes[pos+namelen+5] = (char) ((filesize & 0xff0000) >> 16);
+		bytes[pos+namelen+6] = (char) ((filesize & 0xff00) >> 8);
+		bytes[pos+namelen+7] = (char) ((filesize & 0xff));
 
-		bytes[pos+namelen+8] = (flags & 0xff000000) >> 24;
-		bytes[pos+namelen+9] = (flags & 0xff0000) >> 16;
-		bytes[pos+namelen+10] = (flags & 0xff00) >> 8;
+		bytes[pos+namelen+8] = (char) ((flags & 0xff000000) >> 24);
+		bytes[pos+namelen+9] = (char) ((flags & 0xff0000) >> 16);
+		bytes[pos+namelen+10] = (char) ((flags & 0xff00) >> 8);
 		bytes[pos+namelen+11] = (flags & 0xff);
 
 
@@ -138,5 +139,5 @@ ErrorT Directory::readBytes( char *bytes, unint4 &length ) {
 	}
 
     length = pos;
-    return cOk;
+    return (cOk);
 }

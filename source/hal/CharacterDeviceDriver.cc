@@ -21,8 +21,8 @@
 
 extern Kernel* theOS;
 
-CharacterDeviceDriver::CharacterDeviceDriver( bool sync_res, const char* name ) :
-    GenericDeviceDriver( cStreamDevice, sync_res, name ) {
+CharacterDeviceDriver::CharacterDeviceDriver( bool sync_res, const char* p_name ) :
+    GenericDeviceDriver( cStreamDevice, sync_res, p_name ) {
 
 	this->position = 0;
 	// register myself at the filesystem manager
@@ -35,8 +35,8 @@ CharacterDeviceDriver::CharacterDeviceDriver( bool sync_res, const char* name ) 
 
 }
 
-CharacterDeviceDriver::CharacterDeviceDriver( ResourceType rt, bool sync_res, const char* name ) :
-    GenericDeviceDriver( rt, sync_res, name ) {
+CharacterDeviceDriver::CharacterDeviceDriver( ResourceType rt, bool sync_res, const char* p_name ) :
+    GenericDeviceDriver( rt, sync_res, p_name ) {
 
 	this->position = 0;
 

@@ -41,15 +41,17 @@ public:
     }
     ;
 
-    ErrorT readByte( char* byte ) {
-        return cNotImplemented;
+    ErrorT readByte( char* p_byte ) {
+        return (cNotImplemented);
     }
-    ErrorT writeByte( char byte ) {
-        return cNotImplemented;
+    ErrorT writeByte( char c_byte ) {
+        return (cNotImplemented);
     }
+
     ErrorT readBytes( char *bytes, unint4 &length );
+
     ErrorT writeBytes( const char *bytes, unint4 length ) {
-        return cNotImplemented;
+        return (cNotImplemented);
     }
 };
 

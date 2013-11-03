@@ -7,9 +7,9 @@
 
 #include "File.hh"
 
-File::File(char* name, unint4 size, unint4 flags) : CharacterDeviceDriver(cFile,true,name) {
+File::File(char* p_name, unint4 size, unint4 u_flags) : CharacterDeviceDriver(cFile,true,p_name) {
 	this->filesize = size;
-	this->flags = flags;
+	this->flags = u_flags;
 
 }
 

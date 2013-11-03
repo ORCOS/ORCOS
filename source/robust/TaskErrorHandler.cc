@@ -32,6 +32,6 @@ void TaskErrorHandler::handleError() {
 	theOS->getTaskManager()->removeTask(t);
 
 	LOG(KERNEL,INFO,(KERNEL,INFO,"TaskErrorHandler::handleError: dispatching"));
-	theOS->getCPUDispatcher()->dispatch( theOS->getClock()->getTimeSinceStartup() - lastCycleStamp );
+	theOS->getCPUDispatcher()->dispatch( (unint4) ( theOS->getClock()->getTimeSinceStartup() - lastCycleStamp) );
 
 }

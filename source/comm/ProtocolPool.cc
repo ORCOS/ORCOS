@@ -40,7 +40,7 @@ ProtocolPool::~ProtocolPool() {
 }
 
 AddressProtocol*
-ProtocolPool::getAddressProtocolbyId( int2 id ) {
+ProtocolPool::getAddressProtocolbyId( unint2 id ) {
     // search database for protocol with id 'id'
 
     for ( int i = 0; i < addressprotocols->size(); i++ ) {
@@ -53,7 +53,7 @@ ProtocolPool::getAddressProtocolbyId( int2 id ) {
 }
 
 TransportProtocol*
-ProtocolPool::getTransportProtocolbyId( int2 id ) {
+ProtocolPool::getTransportProtocolbyId( unint2 id ) {
     // search database for protocol with id 'id'
 
     for ( int i = 0; i < transportprotocols->size(); i++ ) {

@@ -221,7 +221,7 @@ ip6_input(struct pbuf *p, struct netif *inp) {
     return;
   }
 
-  pbuf_realloc(p, IP6_HLEN + ntohs(iphdr->len));
+  pbuf_realloc(p, (u16_t) (IP6_HLEN + ntohs(iphdr->len)));
 
   /* send to upper layers */
 #if IP_DEBUG
@@ -229,6 +229,7 @@ ip6_input(struct pbuf *p, struct netif *inp) {
   ip_debug_print(p);
   LWIP_DEBUGF("ip_input: p->len %"U16_F" p->tot_len %"U16_F"\n", p->len, p->tot_len);*/
 #endif /* IP_DEBUG */
+
 
   /*if(pbuf_header(p, -IP6_HLEN)) {
     LWIP_ASSERT("Can't move over header in packet", 0);
@@ -299,7 +300,7 @@ ip6_output_if (struct pbuf *p, struct ip6_addr *src, struct ip6_addr *dest,
     LWIP_DEBUGF(IP_DEBUG, ("!IP_HDRLINCL\n"));
     iphdr->hoplim = ttl;
     iphdr->nexthdr = proto;
-    iphdr->len = htons(p->tot_len - IP6_HLEN);
+    iphdr->len = htons( (u16_t) (p->tot_len - IP6_HLEN));
     ip6_addr_set(&(iphdr->dest), dest);
 
     iphdr->v = 6;

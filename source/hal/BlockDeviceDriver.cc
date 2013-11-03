@@ -11,7 +11,7 @@
 extern Kernel* theOS;
 ArrayDatabase *BlockDeviceDriver::freeBlockDeviceIDs;
 
-BlockDeviceDriver::BlockDeviceDriver(char* name) :  GenericDeviceDriver(cBlockDevice, true, name) {
+BlockDeviceDriver::BlockDeviceDriver(char* p_name) :  GenericDeviceDriver(cBlockDevice, true, p_name) {
 
 	SimpleFileManager* fm = theOS->getFileManager();
 

@@ -156,7 +156,7 @@ class Kernel_ThreadCfdCl;
 
 #define cBlockDeviceReadError (int)-700
 #define cBlockDeviceWriteError (int)-701
-
+#define cBlockDeviceTooManyBlocks (int)-702
 
 // Error
 #define cInvalidResourceType    (int)-700

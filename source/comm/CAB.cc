@@ -24,7 +24,8 @@
 extern Task* pCurrentRunningTask;
 extern Kernel* theOS;
 
-CAB::CAB( char* bufferstart, int length, Task* ownerTask ) {
+CAB::CAB( void* p_bufferstart, unint4 u_length, Task* p_ownerTask ) {
+
 #ifdef HAS_Board_HatLayerCfd
     // well be working on the physical address when storing only
     this->bufferstart_physical = (char*) theOS->getHatLayer()->getPhysicalAddress(bufferstart);
@@ -32,14 +33,15 @@ CAB::CAB( char* bufferstart, int length, Task* ownerTask ) {
 #endif
 
     ASSERT(bufferstart);
-    this->bufferstart = bufferstart;
-    this->length = length;
+    this->bufferstart = p_bufferstart;
+    this->length = u_length;
 
-    this->dim_buf = length / MAX_BUF;
-    //LOG( COMM, INFO,(COMM, INFO, "CAB::CAB(): created CAB with %d buffer of size %d", MAX_BUF, dim_buf) );
+    this->dim_buf = (unint2) (u_length / MAX_BUF);
     this->free = 0;
     this->actb = -1;
-    this->ownerTask = ownerTask;
+    this->ownerTask = p_ownerTask;
+
+    LOG( COMM, DEBUG,(COMM, DEBUG, "CAB::CAB(): created CAB with %d buffer of size %d", MAX_BUF, dim_buf) );
 }
 
 CAB::~CAB() {
@@ -61,7 +63,7 @@ ErrorT CAB::store( char* pmsg, int msglen ) {
        }else{
            LOG( COMM, ERROR,(COMM, ERROR, "CAB::store(): msglen to big for CAB! %d > %d", msglen, dim_buf) );
        }
-           return cError;
+           return (cError);
        }
 
    if (pCurrentRunningTask){
@@ -72,7 +74,8 @@ ErrorT CAB::store( char* pmsg, int msglen ) {
 
    if ( free == actb ) {
            // increment actb so it points to the second oldest and now new oldest msg
-            actb = ( actb + 1 ) % MAX_BUF;
+	   	   actb++;
+	   	   if ( actb == MAX_BUF) actb = 0;
       }
 
 
@@ -89,7 +92,6 @@ ErrorT CAB::store( char* pmsg, int msglen ) {
     unint2 pid = 0;
     if (pCurrentRunningTask != 0)
     	pid = pCurrentRunningTask->getId();
-    //GETPID(pid);
 
     // map this buffer into the logical address space of the calling task
     // TODO: size calculation may be wrong! mapping may need more than 1 page ..
@@ -129,9 +131,10 @@ ErrorT CAB::store( char* pmsg, int msglen ) {
 
     int ret = free;
 
-    free = ( free + 1 ) % MAX_BUF;
+    free++;
+    if (free == MAX_BUF) free = 0;
 
-    return ret;
+    return (ret);
 }
 
 int2 CAB::get( char** addressof_ret_ptrtomsg, int2 &buffer ) {
@@ -144,8 +147,8 @@ int2 CAB::get( char** addressof_ret_ptrtomsg, int2 &buffer ) {
 
     buffer = actb;
 #ifdef HAS_Board_HatLayerCfd
-    int addr = (int) bufferstart + this->actb * this->dim_buf;
-    void* phy_addr =  theOS->getHatLayer()->getPhysicalAddress( (void*) ( bufferstart + this->actb * this->dim_buf) );
+    unint4 addr = ((unint4) bufferstart) + this->actb * this->dim_buf;
+    void* phy_addr =  theOS->getHatLayer()->getPhysicalAddress( (void*) addr );
     LOG( COMM, DEBUG,(COMM, DEBUG,"CAB::get(): addr: 0x%x phy_addr: 0x%x", addr,phy_addr) );
 #endif
 
@@ -158,7 +161,9 @@ int2 CAB::get( char** addressof_ret_ptrtomsg, int2 &buffer ) {
         // return length of data as pointer
         retlen = ( (int2*) ( (int) bufferstart + this->actb * this->dim_buf + 2 ) )[ 0 ];
 
-        actb = ( actb + 1 ) % MAX_BUF;
+        actb++;
+        if (actb == MAX_BUF) actb = 0;
+
         // check if next buffer to read has message
         if ( actb == free )
             actb = -1;

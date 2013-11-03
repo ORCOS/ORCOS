@@ -30,12 +30,12 @@
  *******************************************************************/
 int ioctl(int4 int_sp) {
 
-	 int file_id;
+	 ResourceIdT file_id;
 	 int request;
 	 void* args;
 	 Resource* res;
 
-	 SYSCALLGETPARAMS3(int_sp,(void*) file_id, request, args);
+	 SYSCALLGETPARAMS3(int_sp, file_id, request, args);
 	 VALIDATE_IN_PROCESS(args);
 
 	 LOG(SYSCALLS,DEBUG,(SYSCALLS,DEBUG,"Syscall: ioctl(%d,%d,%x)",file_id, request, args));
@@ -55,8 +55,8 @@ int ioctl(int4 int_sp) {
  *******************************************************************/
 #ifdef HAS_SyscallManager_fputcCfd
 int fputcSyscall( int4 int_sp ) {
-    short c;
-    int stream;
+    char c;
+    ResourceIdT stream;
     int retval;
 
     SYSCALLGETPARAMS2(int_sp, c, stream);
@@ -94,10 +94,10 @@ int fputcSyscall( int4 int_sp ) {
 #ifdef HAS_SyscallManager_fgetcCfd
 int fgetcSyscall( int4 int_sp ) {
     char c;
-    int stream;
+    ResourceIdT stream;
     int retval;
 
-    SYSCALLGETPARAMS1(int_sp,(void*) stream);
+    SYSCALLGETPARAMS1(int_sp,stream);
 
     LOG(SYSCALLS,DEBUG,(SYSCALLS,DEBUG,"Syscall: fgetc(%d,%d)",c,stream));
 
@@ -134,7 +134,6 @@ int fgetcSyscall( int4 int_sp ) {
 int fcreateSyscall( int4 int_sp ) {
     char* filename;
     char* path;
-    int retval;
     Resource* res;
 
     SYSCALLGETPARAMS2(int_sp,(void*) filename, (void*) path);
@@ -201,11 +200,11 @@ int fopenSyscall( int4 int_sp ) {
 #ifdef HAS_SyscallManager_fcloseCfd
 int fcloseSyscall( int4 int_sp ) {
 
-    int file_id;
+	ResourceIdT file_id;
     int retval;
     Resource* res;
 
-    SYSCALLGETPARAMS1(int_sp,(void*) file_id);
+    SYSCALLGETPARAMS1(int_sp,file_id);
 
     LOG(SYSCALLS,DEBUG,(SYSCALLS,DEBUG,"Syscall: fclose(%d)",file_id));
 
@@ -224,7 +223,7 @@ int fcloseSyscall( int4 int_sp ) {
 
         SET_RETURN_VALUE((void*)int_sp,(void*)retval);
         // we may have unblocked a higher priority thread so we need to reschedule now!
-        theOS->getCPUDispatcher()->dispatch( theOS->getClock()->getTimeSinceStartup() - lastCycleStamp );
+        theOS->getCPUDispatcher()->dispatch( (unint4) ( theOS->getClock()->getTimeSinceStartup() - lastCycleStamp) );
 #endif
         return (retval);
     }
@@ -243,10 +242,10 @@ int fwriteSyscall( int4 int_sp ) {
     const char *write_ptr;
     unint4 write_size;
     unint4 write_nitems;
-    unint4 write_stream;
+    ResourceIdT write_stream;
     int retval;
 
-    SYSCALLGETPARAMS4(int_sp,(void*) write_ptr,(void*) write_size, (void*) write_nitems,(void*) write_stream);
+    SYSCALLGETPARAMS4(int_sp,write_ptr,write_size,write_nitems,write_stream);
 
     // for performance reasons we just check the write ptr..
     // range is not checked.. may thus lead to a data abort -> terminating the thread
@@ -299,10 +298,10 @@ int freadSyscall( int4 int_sp ) {
     const char *read_ptr;
     unint4 read_size;
     unint4 read_nitems;
-    unint4 read_stream;
+    ResourceIdT read_stream;
     int volatile retval;
 
-    SYSCALLGETPARAMS4(int_sp,(void*) read_ptr, (void*) read_size,(void*) read_nitems,(void*) read_stream);
+    SYSCALLGETPARAMS4(int_sp,read_ptr, read_size, read_nitems, read_stream);
 
     VALIDATE_IN_PROCESS(read_ptr);
 

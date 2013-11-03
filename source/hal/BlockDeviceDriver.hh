@@ -40,14 +40,14 @@ public:
 	 *
 	 * returns cOk on success, Error number (<0) otherwise
 	 */
-	virtual ErrorT readBlock(unint4 blockNum, char* buffer, unint4 length) = 0;
+	virtual ErrorT readBlock(unint4 blockNum, unint1* buffer, unint4 length) = 0;
 
 	/*!
 	 * Tries to write "length" blocks to the device starting at block number "blockNum".
 	 *
 	 * returns cOk on success, Error number (<0) otherwise.
 	 */
-	virtual ErrorT writeBlock(unint4 blockNum, char* buffer, unint4 length) = 0;
+	virtual ErrorT writeBlock(unint4 blockNum, unint1* buffer, unint4 length) = 0;
 };
 
 #endif /* BLOCKDEVICEDRIVER_HH_ */

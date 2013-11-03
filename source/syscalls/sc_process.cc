@@ -42,7 +42,7 @@ int runTask(int4 sp_int) {
 	VALIDATE_IN_PROCESS(path);
 	if (arguments != 0) {
 		VALIDATE_IN_PROCESS(arguments);
-		arg_length = strlen(arguments);
+		arg_length = (unint2) strlen(arguments);
 	}
 
 	LOG(SYSCALLS,INFO,(SYSCALLS,INFO,"Syscall: runTask(%s)",path));
@@ -178,11 +178,11 @@ int task_resumeSyscall(int4 int_sp)
             pCurrentRunningThread->executinginthandler = false;
         #endif
             SET_RETURN_VALUE((void*)int_sp,(void*)cOk);
-            theOS->getCPUDispatcher()->dispatch(theOS->getClock()->getTimeSinceStartup() - lastCycleStamp);
+            theOS->getCPUDispatcher()->dispatch( (unint4) (theOS->getClock()->getTimeSinceStartup() - lastCycleStamp));
     #endif
 
     }
-    return cError;
+    return (cError);
 }
 #endif
 
@@ -203,7 +203,7 @@ int sleepSyscall( int4 int_sp ) {
 
     // return will not be called
     // if the system works correctly
-    return cOk;
+    return (cOk);
 }
 #endif
 
@@ -307,9 +307,9 @@ int thread_createSyscall( int4 int_sp ) {
 
 #ifdef HAS_SyscallManager_thread_runCfd
 int thread_run( int4 int_sp ) {
-    int threadid;
+    ThreadIdT threadid;
 
-    SYSCALLGETPARAMS1(int_sp,(void*) threadid);
+    SYSCALLGETPARAMS1(int_sp, threadid);
 
     LOG(SYSCALLS,INFO,(SYSCALLS,INFO,"Syscall: thread_run(%d)",threadid));
 
@@ -373,7 +373,7 @@ int thread_run( int4 int_sp ) {
         pCurrentRunningThread->executinginthandler = false;
     #endif
         SET_RETURN_VALUE((void*)int_sp,(void*)cOk);
-        theOS->getCPUDispatcher()->dispatch(theOS->getClock()->getTimeSinceStartup() - lastCycleStamp);
+        theOS->getCPUDispatcher()->dispatch((unint4) (theOS->getClock()->getTimeSinceStartup() - lastCycleStamp));
 #endif
 
     return (cOk);

@@ -16,7 +16,7 @@ public:
 
 	virtual ~PagedRamMemManager();
 
-	ErrorT markAsUsed(unint4 start, unint4 end, int pid);
+	ErrorT markAsUsed(unint4 start, unint4 end, unint1 pid);
 
 	void* alloc(size_t size, int pid);
 

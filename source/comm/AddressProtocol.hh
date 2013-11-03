@@ -44,19 +44,19 @@ protected:
     Directory* commdevsdir;
 
 public:
-    AddressProtocol( int2 id, Directory* commdevsdir ) {
-        this->id = id;
-        this->commdevsdir = commdevsdir;
+    AddressProtocol( int2 i_protocol_id, Directory* p_commdevsdir ) {
+        this->id = i_protocol_id;
+        this->commdevsdir = p_commdevsdir;
     }
     ;
 
-    ~AddressProtocol() {
+    virtual ~AddressProtocol() {
     }
     ;
 
     //! Returns the Id of this protocol
     int2 getId() {
-        return id;
+        return (id);
     }
     ;
 
@@ -72,7 +72,7 @@ public:
      */
     virtual
     ErrorT send( packet_layer* upperload, unint4 dest_addr, TransportProtocol* fromProto ) {
-        return cNotImplemented;
+        return (cNotImplemented);
     }
 
 
@@ -85,7 +85,7 @@ public:
      */
     virtual
     ErrorT recv( char* packetstart, int packetlength, CommDeviceDriver* fromDevice ) {
-        return cNotImplemented;
+        return (cNotImplemented);
     }
 
 
@@ -96,7 +96,7 @@ public:
      */
     virtual
     ErrorT bind( sockaddr* addr, Socket* sock ) {
-        return cNotImplemented;
+        return (cNotImplemented);
     }
 
 
@@ -107,7 +107,7 @@ public:
      */
     virtual
     ErrorT unbind( sockaddr* addr, Socket* sock ) {
-        return cNotImplemented;
+        return (cNotImplemented);
     }
 
     /*!
@@ -118,7 +118,7 @@ public:
      */
     virtual
     ErrorT addLocalDeviceAddress( CommDeviceDriver* dev, unint4 addr ) {
-        return cNotImplemented;
+        return (cNotImplemented);
     }
 
 
@@ -131,13 +131,6 @@ public:
     }
 
 
-    /*!
-     * \brief Adds the information that 'dest_addr' can be found using the device 'device' which uses .
-     */
-    virtual
-    ErrorT addNeighborInfo( unint4 dest_addr, CommDeviceDriver* device, char* mac_addr, size_t mac_addr_len ) {
-        return cNotImplemented;
-    }
 
 };
 

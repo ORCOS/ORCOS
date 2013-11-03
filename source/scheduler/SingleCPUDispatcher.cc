@@ -135,7 +135,7 @@ void SingleCPUDispatcher::dispatch( unint4 dt ) {
 
 
 void SingleCPUDispatcher::dispatch() {
-	dispatch(theClock->getTimeSinceStartup() - lastCycleStamp);
+	dispatch((unint4) (theClock->getTimeSinceStartup() - lastCycleStamp));
 }
 
 void SingleCPUDispatcher::sleep( int cycles, LinkedListDatabaseItem* pSleepDbItem ) {
@@ -148,13 +148,13 @@ void SingleCPUDispatcher::sleep( int cycles, LinkedListDatabaseItem* pSleepDbIte
 #endif
 
     if ( cycles > 0 ) {
-       // LOG(KERNEL,INFO,(KERNEL,INFO,"SingleCPUDispatcher::sleep(): %d",cycles));
+        LOG(SCHEDULER,DEBUG,(SCHEDULER,DEBUG,"SingleCPUDispatcher::sleep(): %d",cycles));
         // the specified thread wants to sleep
         this->sleepList->addTail( (LinkedListDatabaseItem*) pSleepDbItem );
     }
     else {
         // dont sleep. be sure ready flag is set.
-        //LOG(SCHEDULER,TRACE,(SCHEDULER,TRACE,"SingleCPUDispatcher::sleep() Thread sleepcycles <= 0 (%d) putting in ready queue.",cycles));
+        LOG(SCHEDULER,TRACE,(SCHEDULER,TRACE,"SingleCPUDispatcher::sleep() Thread sleepcycles <= 0 (%d) putting in ready queue.",cycles));
         ( (Kernel_ThreadCfdCl*) pSleepDbItem->getData() )->status.setBits( cReadyFlag );
         // announce thread to scheduler again
         this->SchedulerCfd->enter( (LinkedListDatabaseItem*) pSleepDbItem );
@@ -165,7 +165,7 @@ void SingleCPUDispatcher::sleep( int cycles, LinkedListDatabaseItem* pSleepDbIte
 #if ENABLE_NESTED_INTERRUPTS
         pCurrentRunningThread->executinginthandler = false;
 #endif
-        dispatch( theClock->getTimeSinceStartup() - lastCycleStamp );
+        dispatch( (unint4) (theClock->getTimeSinceStartup() - lastCycleStamp) );
     }
 
 #if ENABLE_NESTED_INTERRUPTS
@@ -193,7 +193,7 @@ void SingleCPUDispatcher::block( Thread* thread ) {
         pCurrentRunningThread->executinginthandler = false;
 #endif
        // LOG(SCHEDULER,INFO,(SCHEDULER,INFO,"SingleCPUDispatcher::block() dispatching! %d",this->SchedulerCfd->database.getSize()));
-        dispatch( theClock->getTimeSinceStartup() - lastCycleStamp );
+        dispatch( (unint4) ( theClock->getTimeSinceStartup() - lastCycleStamp) );
     }
     else {
         // find the databaseitem of this thread and remove it from the scheduler
@@ -276,7 +276,7 @@ void SingleCPUDispatcher::sigwait( Thread* thread ) {
 #if ENABLE_NESTED_INTERRUPTS
         pCurrentRunningThread->executinginthandler = false;
 #endif
-        dispatch( theClock->getTimeSinceStartup() - lastCycleStamp );
+        dispatch( (unint4) ( theClock->getTimeSinceStartup() - lastCycleStamp) );
     }
     else {
         // find the databaseitem of this thread and remove it from the scheduler
@@ -379,7 +379,7 @@ void SingleCPUDispatcher::terminate_thread( Thread* thread ) {
 
         pRunningThreadDbItem = 0;
 
-        dispatch( theClock->getTimeSinceStartup() - lastCycleStamp );
+        dispatch( (unint4) ( theClock->getTimeSinceStartup() - lastCycleStamp) );
     }
     else {
    	     	    // if the thread is currently sleeping remove it from the sleeplist

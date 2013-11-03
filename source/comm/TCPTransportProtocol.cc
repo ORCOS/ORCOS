@@ -124,15 +124,15 @@ static err_t tcp_connected(void *arg, struct tcp_pcb *pcb, err_t err) {
 static err_t  tcp_accept_wrapper(void *arg, struct tcp_pcb *newpcb,err_t err)
 {
 
-	int bufferlen = 0;
-	char* bufferstart = 0;
+	unint4 bufferlen = 0;
+	void* bufferstart = 0;
 
 	Socket* oldsock = (Socket*) arg;
 	LOG(COMM,DEBUG,(COMM,DEBUG,"TCP: accept wrapper: newpcb: %x",newpcb));
 
 	// we are not accepting connections if the thread is not ready and waiting
 	// for connections
-	if (!oldsock->hasListeningThread) return ERR_ABRT;
+	if (!oldsock->hasListeningThread) return (ERR_ABRT);
 
 	LOG(COMM,DEBUG,(COMM,DEBUG,"TCP: accepted..."));
 	tcp_recv(newpcb, &tcp_recv_wrapper);
@@ -146,7 +146,7 @@ static err_t  tcp_accept_wrapper(void *arg, struct tcp_pcb *newpcb,err_t err)
 	bufferstart = (char*) oldsock->getOwnerTask()->getMemManager()->alloc( bufferlen, false );
 #endif
 
-	Socket* newsock = new Socket((int) oldsock->getAProto()->getId(), (int) oldsock->getType(), (int) oldsock->getTProto()->getId(), bufferstart, bufferlen);
+	Socket* newsock = new Socket(oldsock->getAProto()->getId(), oldsock->getType(), oldsock->getTProto()->getId(), bufferstart, bufferlen);
 	newsock->connected(cOk);
 
 	oldsock->newSocketID = newsock->getId();

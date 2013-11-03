@@ -35,22 +35,22 @@ static void print_one_part(dos_partition_t *p, int ext_part_sector,
 }
 
 
-DOSPartition::DOSPartition(BlockDeviceDriver *bdev, dos_partition_t *mypartition, unint1 part_num, unint4 disksig) :
+DOSPartition::DOSPartition(BlockDeviceDriver *bdev, dos_partition_t *p_mypartition, unint1 part_num, unint4 disksig) :
 	Partition(bdev,"")
 {
-	memcpy((void*) &this->mypartition, (void*) mypartition, sizeof(dos_partition_t));
+	memcpy((void*) &this->mypartition, (void*) p_mypartition, sizeof(dos_partition_t));
 
 	char* myname = (char*) theOS->getMemoryManager()->alloc(11);
 	sprintf(myname,"DOS_%04x-%2d",disksig,part_num);
 
 	this->name = myname;
 	this->partition_number = part_num;
-	this->sectors 	= le32_to_int (mypartition->size4);
-	this->lba_start = le32_to_int (mypartition->start4);
+	this->sectors 	= le32_to_int (p_mypartition->size4);
+	this->lba_start = le32_to_int (p_mypartition->start4);
 
 	printf("%s:\r",myname);
 	printf("Part\tStart Sector\tNum Sectors\tUUID\t\tType\r\n");
-	print_one_part(mypartition, 0, part_num, disksig);
+	print_one_part(p_mypartition, 0, part_num, disksig);
 }
 
 DOSPartition::~DOSPartition() {

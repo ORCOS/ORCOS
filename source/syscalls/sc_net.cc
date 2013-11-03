@@ -31,9 +31,9 @@
 
 #ifdef HAS_SyscallManager_socketCfd
 int socketSyscall( int4 int_sp ) {
-    int domain;
-    int type;
-    int protocol;
+    unint2 domain;
+    SOCK_TYPE type;
+    unint2 protocol;
     char* buffer;
     int buffersize;
 
@@ -51,7 +51,7 @@ int socketSyscall( int4 int_sp ) {
     LOG(SYSCALLS,TRACE,(SYSCALLS,TRACE,"Syscall: Socket created with id %d",s->getId()));
 
     // return the id of this new resource (socket)
-    return s->getId();
+    return (s->getId());
 }
 #endif
 
@@ -63,7 +63,7 @@ int socketSyscall( int4 int_sp ) {
 
 #ifdef HAS_SyscallManager_connectCfd
 int connectSyscall(int4 int_sp) {
-	 int socketid;
+	 ResourceIdT socketid;
 	 sockaddr* addr;
 	 int retval;
 
@@ -90,7 +90,7 @@ int connectSyscall(int4 int_sp) {
 	 else
 	    retval = cError;
 
-	 return retval;
+	 return (retval);
 }
 #endif
 
@@ -102,7 +102,7 @@ int connectSyscall(int4 int_sp) {
 
 #ifdef HAS_SyscallManager_listenCfd
 int listenSyscall(int4 int_sp) {
-	int socketid;
+	ResourceIdT socketid;
 	int retval;
 
 	SYSCALLGETPARAMS1(int_sp,socketid);
@@ -130,7 +130,7 @@ int listenSyscall(int4 int_sp) {
 		LOG(SYSCALLS,ERROR,(SYSCALLS,ERROR,"Syscall: listen invalid.. Resource not owned.. "));
 	}
 
-	return retval;
+	return (retval);
 }
 #endif
 
@@ -142,7 +142,7 @@ int listenSyscall(int4 int_sp) {
 
 #ifdef HAS_SyscallManager_bindCfd
 int bindSyscall( int4 int_sp ) {
-    int socketid;
+	ResourceIdT socketid;
     sockaddr* addr;
     int retval;
 
@@ -174,7 +174,7 @@ int bindSyscall( int4 int_sp ) {
 		retval = cError;
 		LOG(SYSCALLS,ERROR,(SYSCALLS,ERROR,"Syscall: bind invalid.. Resource not owned.. "));
 	}
-    return retval;
+    return (retval);
 }
 #endif
 
@@ -186,7 +186,7 @@ int bindSyscall( int4 int_sp ) {
 
 #ifdef HAS_SyscallManager_sendtoCfd
 int sendtoSyscall( int4 int_sp ) {
-    int socket;
+	ResourceIdT socket;
     const void* buffer;
     size_t length;
     const sockaddr *dest_addr;
@@ -221,7 +221,7 @@ int sendtoSyscall( int4 int_sp ) {
         retval = cError;
     }
 
-    return retval;
+    return (retval);
 }
 #endif
 
@@ -234,7 +234,7 @@ int sendtoSyscall( int4 int_sp ) {
 #ifdef HAS_SyscallManager_recvCfd
 int recvSyscall( int4 int_sp) {
 
-    int socketid;
+	ResourceIdT socketid;
     char** addressofptrtomsg;
     int flags;
     int retval;
@@ -266,7 +266,7 @@ int recvSyscall( int4 int_sp) {
     else
     	retval = cError;
 
-    return retval;
+    return (retval);
 }
 #endif
 

@@ -144,8 +144,8 @@ public:
 	 * Reads a Byte from the I2C bus polling the device. Loops until a byte is read.
 	 *
 	 */
-	ErrorT readByte( char* byte ) {
-		return cNotImplemented;
+	ErrorT readByte( char* p_byte ) {
+		return (cNotImplemented);
 	}
 
 	/*!
@@ -153,8 +153,8 @@ public:
 	 *
 	 * Not supported as I2C requires at least 2 bytes.
 	 */
-	ErrorT writeByte( char byte ) {
-		return cNotImplemented;
+	ErrorT writeByte( char c_byte ) {
+		return (cNotImplemented);
 	}
 
 	/*!

@@ -33,9 +33,9 @@ ResourceIdT Resource::globalResourceIdCounter;
 extern Kernel_ThreadCfdCl* pCurrentRunningThread;
 extern Task* pCurrentRunningTask;
 
-Resource::Resource( ResourceType rt, bool sync_res, const char* name ) {
+Resource::Resource( ResourceType rt, bool sync_res, const char* p_name ) {
     this->restype = rt;
-    this->name = name;
+    this->name = p_name;
     this->myResourceId = globalResourceIdCounter++;
     // if this is a resource that needs to be syncronized create Mutex
     if ( sync_res )
@@ -48,7 +48,6 @@ void Resource::aquire( Thread* pThread, bool blocking ) {
     ASSERT(pThread);
 
     int retval = this->myResourceId;
-    void* sp_int = pThread->threadStack.stackptrs[0];
 
     // blocking call!
     if ( this->accessControl != 0 ) {
@@ -59,13 +58,12 @@ void Resource::aquire( Thread* pThread, bool blocking ) {
         // this resource is not synchronized. so just add it to the set of aquired resources
        int result = pThread->getOwner()->aquiredResources.addTail( this );
        // for files we also reset the position
-       if (this->getType() == cFile) ((File*) this)->resetPosition();
+       if (this->getType() & cFile) ((File*) this)->resetPosition();
        // forward status back to user
        if (result < 0) retval = result;
     }
 
     pCurrentRunningThread->returnValue = (void*) retval;
-    //SET_RETURN_VALUE(sp_int,(void*) retval);
 
 #if ENABLE_NESTED_INTERRUPTS
     // first to do is disable interrupts now since we are going to restore the context now
@@ -99,11 +97,11 @@ ErrorT Resource::release( Thread* pThread ) {
     ASSERT(pThread);
 
     if ( this->accessControl != 0 )
-        return accessControl->release();
+        return (accessControl->release());
     else {
         // remove myself from the database
         pThread->getOwner()->aquiredResources.removeItem( this );
-        return cOk;
+        return (cOk);
     }
 
 }

@@ -38,8 +38,7 @@ Task::Task( Kernel_MemoryManagerCfdCl* memoryManager, taskTable* tasktbl ) :
     aquiredResources( 10 ), memManager( memoryManager )
 
 {
-    //myTaskId = globalTaskIdCounter++;
-	myTaskId = (unint4) Task::freeTaskIDs->removeHead();
+	myTaskId = (TaskIdT) ((unint4) Task::freeTaskIDs->removeHead());
 
     // store reference to my tasktable
     this->tasktable = tasktbl;
@@ -54,8 +53,7 @@ Task::Task() :
     aquiredResources( 10 )
 {
 	tasktable = 0;
-    //myTaskId = globalTaskIdCounter++;
-	myTaskId = (unint4) Task::freeTaskIDs->removeHead();
+	myTaskId = (TaskIdT) ((unint4) Task::freeTaskIDs->removeHead());
 }
 
 
@@ -84,10 +82,10 @@ Resource* Task::getOwnedResourceById( ResourceIdT id ) {
     for ( int i = 0; i < this->aquiredResources.size(); i++ ) {
         Resource* res = (Resource*) aquiredResources.getItemAt( i );
         if ( res->getId() == id )
-            return res;
+            return (res);
     }
 
-    return 0;
+    return (0);
 }
 
 ErrorT Task::aquireResource( Resource* res, Thread* t, bool blocking ) {
@@ -97,15 +95,14 @@ ErrorT Task::aquireResource( Resource* res, Thread* t, bool blocking ) {
 
         LOG(PROCESS,TRACE,(PROCESS,TRACE,"Task: Resource already owned"));
         // increase the reference count of the res in this task
-
         // return the id of the resource so thread can continue working
-        return res->getId();
+        return (res->getId());
     }
     else {
         LOG(PROCESS,TRACE,(PROCESS,TRACE,"Task: aquiring resource"));
         // change .. opening directories is now possible
         res->aquire( t, blocking );
-        return cOk;
+        return (cOk);
 
     }
 }
@@ -114,10 +111,10 @@ ErrorT Task::releaseResource( Resource* res, Thread* t ) {
     //REMARK: check wheter t is a thread belonging to this task
     // get the resource to close by id from the tasks owned resource database
     if ( res != 0 ) {
-        return res->release( t );
+        return (res->release( t ));
     }
 
-    return cError;
+    return (cError);
 }
 
 void Task::run() {
@@ -227,11 +224,11 @@ LinkedListDatabaseItem* Task::getSuspendedThread(unint4 stacksize)
 		if ( ((unint4) t->threadStack.endAddr - (unint4) t->threadStack.startAddr) >= stacksize)
 		{
 			litem->remove();
-			return litem;
+			return (litem);
 		}
 	}
 
-	return 0;
+	return (0);
 }
 
 Kernel_ThreadCfdCl* Task::getThreadbyId( ThreadIdT threadid ) {
@@ -241,14 +238,14 @@ Kernel_ThreadCfdCl* Task::getThreadbyId( ThreadIdT threadid ) {
         litem = litem->getSucc();
 
     if ( litem != 0 )
-        return (Kernel_ThreadCfdCl*) litem->getData();
+        return ((Kernel_ThreadCfdCl*) litem->getData());
     else
-        return 0;
+        return (0);
 }
 
 TaskIdT Task::getIdOfNextCreatedTask() {
   //  return ( Task::globalTaskIdCounter );
-	  return ( (unint4) Task::freeTaskIDs->getHead() );
+	  return ( (TaskIdT) ((unint4) Task::freeTaskIDs->getHead() ));
 }
 
 void Task::stop() {

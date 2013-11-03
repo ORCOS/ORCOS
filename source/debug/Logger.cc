@@ -40,25 +40,32 @@ void Logger::log( Prefix prefix, Level level, const char* msg, ... ) {
     if ( (int) level > (int) prefix ) {
         return;
     }
-   /* if ( (int) level <= ERROR ) {
+
+#if LOGGER_PRINT_HIGHLIGHTS
+    if ( (int) level <= ERROR ) {
         printf( ESC_RED );
     }
     else if ( (int) level == WARN ) {
         printf( ESC_YELLOW );
-    }*/
+    }
+#endif
 
 
     if (pCurrentRunningThread != 0)
-    	 printf("[%1d][%s] ", pCurrentRunningThread->getId(), (char*) levelStrings[ level ]);
-    else printf("[K][%s] ",  (char*) levelStrings[ level ]);
+    	 printf("[%1d][%s] ", pCurrentRunningThread->getId(), levelStrings[ level ]);
+    else printf("[K][%s] ",   levelStrings[ level ]);
 
 
     va_list arglist;
     va_start(arglist, msg);
     print( 0, msg, arglist );
-   /* if ( (int) level <= WARN ) {
+
+#if LOGGER_PRINT_HIGHLIGHTS
+    if ( (int) level <= WARN ) {
         printf( ESC_WHITE );
-    }*/
-    printf( " "" \r\n" );
+    }
+#endif
+
+    printf( "\r\n" );
 }
 

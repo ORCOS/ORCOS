@@ -27,20 +27,20 @@ int getTime(int4 sp_int)
 	unint8* time;
 	SYSCALLGETPARAMS1(sp_int,time);
 	*time = theOS->getBoard()->getClock()->getTimeSinceStartup();
-	return cOk;
+	return (cOk);
 }
 
 int printToStdOut(int4 int_sp )
 {
    const char *write_ptr;
    unint4 write_size;
-   SYSCALLGETPARAMS2(int_sp,(void*) write_ptr,(void*) write_size);
+   SYSCALLGETPARAMS2(int_sp,write_ptr,write_size);
 
    LOG(SYSCALLS,TRACE,(SYSCALLS,TRACE,"Syscall: printToStdOut(%s)",write_ptr));
 
     if (theOS->getStdOutputDevice() != 0)
-        return theOS->getStdOutputDevice()->writeBytes(write_ptr,write_size);
-    else return cError;
+        return (theOS->getStdOutputDevice()->writeBytes(write_ptr,write_size));
+    else return (cError);
 }
 
 void thread_exitSyscall(int4 sp_int)

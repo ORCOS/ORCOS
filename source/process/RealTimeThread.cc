@@ -30,9 +30,9 @@ extern Kernel_SchedulerCfdCl* theScheduler;
 
 #define FAIL_ADDR          0xcb000000
 
-RealTimeThread::RealTimeThread( void* startRoutinePointer, void* exitRoutinePointer, Task* owner,
+RealTimeThread::RealTimeThread( void* p_startRoutinePointer, void* p_exitRoutinePointer, Task* p_owner,
         Kernel_MemoryManagerCfdCl* memManager, unint4 stack_size, void* RTThreadAttributes, bool newThread ) :
-    PriorityThread( startRoutinePointer, exitRoutinePointer, owner, memManager, stack_size, RTThreadAttributes,
+    PriorityThread( p_startRoutinePointer, p_exitRoutinePointer, p_owner, memManager, stack_size, RTThreadAttributes,
             newThread ) {
     if ( RTThreadAttributes != 0 ) {
         // set the parameters and convert them from µs to cylces

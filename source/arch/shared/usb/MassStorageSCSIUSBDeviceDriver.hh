@@ -39,10 +39,10 @@ public:
 	USBDevice 	*dev;
 
 	// endpoint number for bulk out transfer
-	int 		bulkout_ep;
+	unint1 		bulkout_ep;
 
 	// endpoint number for bulk in transfer
-	int 		bulkin_ep;
+	unint1 		bulkin_ep;
 
 	// interrupt endpoint number
 	int 		int_ep;
@@ -62,9 +62,9 @@ public:
 
 private:
   // constructor for additional luns
-  MassStorageSCSIUSBDeviceDriver(MassStorageSCSIUSBDeviceDriver* parent, int lun, char* name);
+  MassStorageSCSIUSBDeviceDriver(MassStorageSCSIUSBDeviceDriver* parent, int lun, char* p_name);
 
-  ErrorT 	performTransaction(char* bot_cbw, char* data, unint4 length);
+  ErrorT 	performTransaction(unint1* bot_cbw, unint1* data, unint2 length);
 
 public:
   ErrorT 	initialize();
@@ -74,7 +74,7 @@ public:
   /*!
    * Static block size of 512 bytes for MassStorageDevices
    */
-  unint4 	getBlockSize() { return 512; }
+  unint4 	getBlockSize() { return (512); }
 
   // TODO overload character device driver methods to allow raw block access to the device
 
@@ -82,13 +82,13 @@ public:
    * \brief Reads 'blocks' blocks from block number 'blockNum' of this Logical Unit into
    * 		the buffer.
    */
-  ErrorT 	readBlock(unint4 blockNum, char* buffer, unint4 blocks);
+  ErrorT 	readBlock(unint4 blockNum, unint1* buffer, unint4 blocks);
 
   /*!
    * \brief Tries to write 'blocks' blocks to block number 'blockNum' of this Logical Unit from
    * 		the buffer. If verify is set to true the written bytes are verifyed on the device.
    */
-  ErrorT 	writeBlock(unint4 blockNum, char* buffer, unint4 blocks);
+  ErrorT 	writeBlock(unint4 blockNum, unint1* buffer, unint4 blocks);
 
 
   ErrorT 	ResetRecovery();
@@ -106,7 +106,7 @@ public:
 
 	// factory method which creates a new instance of this driver
 	USBDeviceDriver* getInstance(USBDevice* dev) {
-		return new MassStorageSCSIUSBDeviceDriver(dev);
+		return (new MassStorageSCSIUSBDeviceDriver(dev));
 	};
 
 	virtual ~MassStorageSCSIUSBDeviceDriverFactory() {};

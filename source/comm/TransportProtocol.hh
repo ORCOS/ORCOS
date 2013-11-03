@@ -40,8 +40,8 @@ private:
     int2 id;
 
 public:
-    TransportProtocol( int2 id ) {
-        this->id = id;
+    TransportProtocol( int2 protocol_id ) {
+        this->id = protocol_id;
     }
     ;
     ~TransportProtocol() {
@@ -49,7 +49,7 @@ public:
     ;
 
     int2 getId() {
-        return id;
+        return (id);
     }
     ;
 

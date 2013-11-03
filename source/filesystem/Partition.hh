@@ -39,16 +39,16 @@ protected:
 
 public:
 
-	Partition(BlockDeviceDriver *bdev, char* name, unint4 lba_start, unint4 sectors, unint4 partition_number) : Resource(cPartition,true,name) {
-			this->myBlockDevice 	= bdev;
-			this->lba_start 		= lba_start;
-			this->sectors 			= sectors;
-			this->partition_number 	= partition_number;
+	Partition(BlockDeviceDriver *p_bdev, char* p_name, unint4 i_lba_start, unint4 i_sectors, unint4 i_partition_num) : Resource(cPartition,true,p_name) {
+			this->myBlockDevice 	= p_bdev;
+			this->lba_start 		= i_lba_start;
+			this->sectors 			= i_sectors;
+			this->partition_number 	= i_partition_num;
 			this->mountedFileSystem = 0;
 		};
 
-	Partition(BlockDeviceDriver *bdev, char* name) : Resource(cPartition,true,name) {
-		this->myBlockDevice 	= bdev;
+	Partition(BlockDeviceDriver *p_bdev, char* p_name) : Resource(cPartition,true,p_name) {
+		this->myBlockDevice 	= p_bdev;
 		this->lba_start 		= 0;
 		this->sectors 			= 0;
 		this->partition_number 	= 0;
@@ -68,37 +68,37 @@ public:
 	/*!
 	 * Tries to read the given sector of this partition into the buffer.
 	 */
-	ErrorT readSectors(unint4 sector_start, char* buffer, unint4 num_sectors) {
+	ErrorT readSectors(unint4 sector_start, unint1* buffer, unint4 num_sectors) {
 		if (sector_start + num_sectors < sectors)
-			return myBlockDevice->readBlock(this->lba_start + sector_start,buffer, num_sectors);
-		else return cError;
+			return (myBlockDevice->readBlock(this->lba_start + sector_start,buffer, num_sectors));
+		else return (cError);
 	}
 
-	ErrorT writeSectors(unint4 sector_start, char* buffer, unint4 num_sectors) {
+	ErrorT writeSectors(unint4 sector_start, unint1* buffer, unint4 num_sectors) {
 		if (sector_start + num_sectors < sectors)
-			return myBlockDevice->writeBlock(this->lba_start + sector_start,buffer, num_sectors);
-		else return cError;
+			return (myBlockDevice->writeBlock(this->lba_start + sector_start,buffer, num_sectors));
+		else return (cError);
 	}
 
 	/*!
 	 * Returns the Starting Logical Block Address of this partition.
 	 */
-	unint4 getStartLBA() 		{ return lba_start; }
+	unint4 getStartLBA() 		{ return (lba_start); }
 
 	/*!
 	 * Returns the number of sectors this partition contains.
 	 */
-	unint4 getNumSectors() 		{ return sectors; }
+	unint4 getNumSectors() 		{ return (sectors); }
 
 	/*!
 	 * Returns the bytes per sector value.
 	 */
-	unint4 getSectorSize() 		{ return this->myBlockDevice->sector_size; }
+	unint4 getSectorSize() 		{ return (this->myBlockDevice->sector_size); }
 
 	/*!
 	 * Returns the partition number.
 	 */
-	unint4 getPartitionNumber() { return partition_number; }
+	unint4 getPartitionNumber() { return (partition_number); }
 
 };
 

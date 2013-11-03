@@ -18,8 +18,8 @@
 
 #include "Clock.hh"
 
-Clock::Clock( const char* name ) :
-    GenericDeviceDriver( false, name ) {
+Clock::Clock( const char* p_name ) :
+    GenericDeviceDriver( false, p_name ) {
 }
 
 Clock::~Clock() {

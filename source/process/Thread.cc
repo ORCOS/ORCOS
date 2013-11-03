@@ -55,16 +55,16 @@ ThreadIdT Thread::globalThreadIdCounter;
 /*--------------------------------------------------------------------------*
  ** Thread::Thread
  *---------------------------------------------------------------------------*/
-Thread::Thread( void* startRoutinePointer, void* exitRoutinePointer, Task* owner, Kernel_MemoryManagerCfdCl* memManager,
+Thread::Thread( void* p_startRoutinePointer, void* p_exitRoutinePointer, Task* p_owner, Kernel_MemoryManagerCfdCl* memManager,
         unint4 stack_size, void* attr, bool newThread ) {
 
-    ASSERT(owner);
+    ASSERT(p_owner);
     ASSERT(memManager);
 
     this->myThreadId 			= globalThreadIdCounter++;
-    this->startRoutinePointer 	= startRoutinePointer;
-    this->exitRoutinePointer 	= exitRoutinePointer;
-    this->owner 				= owner;
+    this->startRoutinePointer 	= p_startRoutinePointer;
+    this->exitRoutinePointer 	= p_exitRoutinePointer;
+    this->owner 				= p_owner;
     this->status.clear();
     this->status.setBits( cNewFlag );
     this->arguments 			= 0;
@@ -134,9 +134,11 @@ void Thread::callMain() {
 /*--------------------------------------------------------------------------*
  ** Thread::sleep
  *---------------------------------------------------------------------------*/
-void Thread::sleep( int t, LinkedListDatabaseItem* item ) {
+void Thread::sleep( unint4 t, LinkedListDatabaseItem* item ) {
 
 	// prepare for sleep list update on dispatch call following
+	// which will subtract the passed time from all sleeping
+	// threads!
 	unint8 passedtime = theClock->getTimeSinceStartup() - lastCycleStamp;
 	this->sleepCycles = t + (unint4) passedtime;
 
@@ -265,8 +267,8 @@ void Thread::terminate() {
     this->status.setBits( cTermFlag );
 
     // be sure only threads inside our tasks are signalled as signal is global
-    unint4 signal = (this->owner->getId() << 16) | (SIG_CHILD_TERMINATED);
-    theOS->getCPUDispatcher()->signal((void*) signal,cOk);
+    unint4 signal_value = (this->owner->getId() << 16) | (SIG_CHILD_TERMINATED);
+    theOS->getCPUDispatcher()->signal((void*) signal_value,cOk);
 
     // finally tell cpudispatcher that im gone..
     theOS->getCPUDispatcher()->terminate_thread( this );

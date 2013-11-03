@@ -64,12 +64,20 @@ class GenericDeviceDriver: public Resource {
 
 public:
 
-    GenericDeviceDriver( bool sync_res, const char* name ) :
-        Resource( cGenericDevice, sync_res, name ) {
+	/**
+	 * Constructor for generic devices
+	 */
+    GenericDeviceDriver( bool sync_res, const char* p_name ) :
+        Resource( cGenericDevice, sync_res, p_name ) {
     }
     ;
-    GenericDeviceDriver( ResourceType rt, bool sync_res, const char* name ) :
-        Resource( rt, sync_res, name ) {
+
+    /**
+     *  Constructor for drivers specialising from generic device driver,
+     *  thus, providing its own ResourceType information.
+     */
+    GenericDeviceDriver( ResourceType rt, bool sync_res, const char* p_name ) :
+        Resource( rt, sync_res, p_name ) {
     }
     ;
 
@@ -78,27 +86,27 @@ public:
     ;
 
     virtual ErrorT probe() {
-        return cNotImplemented;
+        return (cNotImplemented);
     }
     ;
 
     virtual ErrorT shutdown() {
-        return cNotImplemented;
+        return (cNotImplemented);
     }
     ;
 
     virtual ErrorT suspend() {
-        return cNotImplemented;
+        return (cNotImplemented);
     }
     ;
 
     virtual ErrorT resume() {
-        return cNotImplemented;
+        return (cNotImplemented);
     }
     ;
 
     virtual ErrorT ioctl(int request, void* args) {
-    	return cNotImplemented;
+    	return (cNotImplemented);
     }
 
 };

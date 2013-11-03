@@ -284,7 +284,7 @@ ErrorT TaskManager::loadTaskFromFile(File* file, TaskIdT& tid, char* arguments,u
 
 	// align arg_length
 	if (arg_length > 0)
-		arg_length = (arg_length + 4) & (~0x3);
+		arg_length = (unint2) ((arg_length + 4) & (~0x3));
 
 	LOG(KERNEL,DEBUG,(KERNEL,DEBUG,"TaskManager::loadTaskFromFile: valid task."));
 
@@ -332,6 +332,6 @@ ErrorT TaskManager::loadTaskFromFile(File* file, TaskIdT& tid, char* arguments,u
 	task->run();
 
 
-	return cOk;
+	return (cOk);
 
 }

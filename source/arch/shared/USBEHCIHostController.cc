@@ -83,16 +83,16 @@ extern void kwait(int millseconds);
 // The main QH we are enqueing to
 QH QHmain __attribute__((aligned(32)));
 
-USB_EHCI_Host_Controller::USB_EHCI_Host_Controller(unint4 ehci_dev_base, void* memory_base, unint4 memory_size) {
+USB_EHCI_Host_Controller::USB_EHCI_Host_Controller(unint4 ehci_dev_base, void* p_memory_base, unint4 u_memory_size) {
 
-	this->memory_base = memory_base;
-	this->memory_size = memory_size;
+	this->memory_base = p_memory_base;
+	this->memory_size = u_memory_size;
 	this->operational = false;
 	this->frame_list_size = 1024;
 	this->async_qh_reg = 0;
 
 	LOG(ARCH,INFO,(ARCH,INFO,"USB_EHCI_Host_Controller() creating HC at addr: %x",ehci_dev_base));
-	LOG(ARCH,INFO,(ARCH,INFO,"USB_EHCI_Host_Controller() periodic list at: %x",(unint4) memory_base));
+	LOG(ARCH,INFO,(ARCH,INFO,"USB_EHCI_Host_Controller() periodic list at: %x",(unint4) p_memory_base));
 
 	hc_base = ehci_dev_base;
 
@@ -140,7 +140,7 @@ ErrorT USB_EHCI_Host_Controller::Init() {
 	LOG(ARCH,INFO,(ARCH,INFO,"    Ports Routing           : %d",GETBITS(hcsparams,7,7) ));
 	LOG(ARCH,INFO,(ARCH,INFO,"    Number of Ports         : %d",GETBITS(hcsparams,3,0) ));
 
-	unint1 power_control = GETBITS(hcsparams,4,4);
+	unint1 power_control = (unint1) (GETBITS(hcsparams,4,4));
 	LOG(ARCH,INFO,(ARCH,INFO,"    Port Power Control      : %d",power_control ));
 
 
@@ -254,7 +254,7 @@ ErrorT USB_EHCI_Host_Controller::Init() {
 		unint4 portsc = INW(operational_register_base + PORTSC1_OFFSET + 4*i);
 
 		LOG(ARCH,TRACE,(ARCH,TRACE,"USB_EHCI_Host_Controller::Init() Port %d Status: %x", i+1, portsc));
-		unint1 line_status = GETBITS(portsc,11,10);
+		unint1 line_status = (unint1) (GETBITS(portsc,11,10));
 		unint1 connect = GETBITS(portsc,0,0);
 
 		LOG(ARCH,TRACE,(ARCH,TRACE,"USB_EHCI_Host_Controller::Init()   line_status : %x", line_status));
@@ -596,7 +596,7 @@ ErrorT USB_EHCI_Host_Controller::enumerateDevice(USBDevice *dev) {
 		// TODO: send a port reset feature request
 	}
 
-	unint4 next_device_addr = (unint4)USBDevice::freeDeviceIDs->removeHead();
+	unint1 next_device_addr = (unint1) ((unint4)USBDevice::freeDeviceIDs->removeHead());
 	LOG(ARCH,INFO,(ARCH,INFO,"USB_EHCI_Host_Controller: Setting Device Address: %d",next_device_addr));
 
 	unint4 cap_token = INW(dev->endpoints[0].queue_head+4);
@@ -610,7 +610,7 @@ ErrorT USB_EHCI_Host_Controller::enumerateDevice(USBDevice *dev) {
 	int4 error = dev->setAddress(next_device_addr);
 	if (error != cOk) {
 		LOG(ARCH,ERROR,(ARCH,ERROR,"USB_EHCI_Host_Controller: Setting Device Address failed"));
-		return cError;
+		return (cError);
 	}
 
 	// give some time to the device to change its address
@@ -906,7 +906,7 @@ ErrorT USBHub::enumerate() {
 	unint1 port_power_control = (hub_descr.wHubCharacteristics & 0x3);
 
 	// power on ports..
-	for (int i= 1; i <= hub_descr.bnrPorts; i++) {
+	for (unint1 i= 1; i <= hub_descr.bnrPorts; i++) {
 		// individual power control... power all ports
 		unint1 msg2[8] __attribute__((aligned(4))) = USB_SETPORT_FEATURE(PORT_POWER);
 		msg2[4] = i;
@@ -938,7 +938,7 @@ ErrorT USBHub::enumerate() {
 		dev->activateEndpoint(1);
 	}
 
-	return cOk;
+	return (cOk);
 }
 
 /*!
@@ -951,7 +951,7 @@ void USBHub::handleStatusChange() {
 
 	unint1 recv_buf[20];
 
-	for (int i = 1; i <= hub_descr.bnrPorts; i++) {
+	for (unint1 i = 1; i <= hub_descr.bnrPorts; i++) {
 		if ((dev->endpoints[1].recv_buffer[0] &  (1 << i)) != 0)  {
 
 			// get status of port
@@ -1121,9 +1121,9 @@ void USBHub::handleStatusChange() {
 	}
 }
 
-USBHub::USBHub(USBDevice *dev, USB_EHCI_Host_Controller *controller) :  USBDeviceDriver() {
-	this->dev = dev;
-	this->controller = controller;
+USBHub::USBHub(USBDevice *p_dev, USB_EHCI_Host_Controller *p_controller) :  USBDeviceDriver() {
+	this->dev = p_dev;
+	this->controller = p_controller;
 	for (int i = 0; i < 6; i++) {
 		this->portDevices[i] = 0;
 	}
@@ -1174,18 +1174,18 @@ ErrorT USBHub::handleInterrupt() {
 
 ArrayDatabase* USBDevice::freeDeviceIDs;
 
-ErrorT USBDevice::setAddress(unint1 addr) {
+ErrorT USBDevice::setAddress(unint1 u_addr) {
 
 	// got device descriptor ! set address
-	this->addr = addr;
+	this->addr = u_addr;
 
-	unint1 msg2[8] = USB_SETADDRESS_REQUEST((unint1)addr);
+	unint1 msg2[8] = USB_SETADDRESS_REQUEST((unint1)u_addr);
 	unint4 error = controller->sendUSBControlMsg(this,0,(unint1*) &msg2);
 
 	// keep communicating with address 0 until we set the configuration and ask for the status!
 	if (error < 0) {
 		LOG(ARCH,ERROR,(ARCH,ERROR,"USB_EHCI_Host_Controller: Setting Device Address failed.."));
-		return cError;
+		return (cError);
 	}
 
 	// adapt the queue head of this device endpoints
@@ -1194,7 +1194,7 @@ ErrorT USBDevice::setAddress(unint1 addr) {
 			SETBITS(endpoints[i].queue_head->qh_endpt1,6,0,this->addr);
 		}
 	}
-	return cOk;
+	return (cOk);
 }
 
 ErrorT USBDevice::deactivate() {
@@ -1220,7 +1220,7 @@ ErrorT USBDevice::deactivate() {
 
 	}
 
-	return cOk;
+	return (cOk);
 }
 
 ErrorT USBDevice::reactivateEp(int num) {
@@ -1312,25 +1312,25 @@ ErrorT USBDevice::activateEndpoint(int num) {
 		endpoints[num].q_int_transfer = qtd;
 
 		if (endpoints[num].poll_frequency <=1)
-			endpoints[num].poll_frequency = 22 + num + this->addr;
+			endpoints[num].poll_frequency = (unint1) (22 + num + this->addr);
 
 		// insert qh in periodic list
 		controller->insertPeriodicQH(queue_head_new,endpoints[num].poll_frequency);
 
 	}
-	return cOk;
+	return (cOk);
 
 }
 
-USBDevice::USBDevice(USB_EHCI_Host_Controller *controller, USBDevice *parent, unint1 port, unint1 speed) {
+USBDevice::USBDevice(USB_EHCI_Host_Controller *p_controller, USBDevice *p_parent, unint1 u_port, unint1 u_speed) {
 
-	this->controller 	= controller;
-	this->parent 		= parent;
-	this->port 			= port;
+	this->controller 	= p_controller;
+	this->parent 		= p_parent;
+	this->port 			= u_port;
 	this->dev_priv 		= 0;
 	this->numEndpoints	= 0;
 	this->driver		= 0;
-	this->speed 		= speed;
+	this->speed 		= u_speed;
 
 	// new devices need can only be access by control port 0 first
 	// an address needs to be set after successfull configuration

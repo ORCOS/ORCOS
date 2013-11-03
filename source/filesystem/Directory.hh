@@ -56,12 +56,12 @@ public:
 
     //! Returns the amount of entries in this directory
     virtual int getNumEntries() {
-        return num_entries;
+        return (num_entries);
     }
 
     //! Returns the content of this directory
     virtual LinkedListDatabase* getContent() {
-        return &dir_content;
+        return (&dir_content);
     }
 
     //! Returns the contents information of this directory as encoded string
@@ -71,7 +71,7 @@ public:
      * Virtual to allow specializations of directory to create the appropriate
      * file objects.
      */
-    virtual File* createFile(char* name, unint4 flags) {return 0;};
+    virtual File* createFile(char* p_name, unint4 flags) {return 0;};
 };
 
 #endif /*DIRECTORY_H_*/

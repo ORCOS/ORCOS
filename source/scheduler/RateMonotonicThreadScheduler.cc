@@ -69,7 +69,7 @@ int RateMonotonicThreadScheduler::getNextTimerEvent( LinkedListDatabase* sleepLi
 
      }
 
-     return sleeptime;
+     return (sleeptime);
 }
 
 ErrorT RateMonotonicThreadScheduler::enter( LinkedListDatabaseItem* item ) {
@@ -88,12 +88,12 @@ ErrorT RateMonotonicThreadScheduler::enter( LinkedListDatabaseItem* item ) {
 
         // If a phase has been specified, put the thread to sleep for the specified duration.
         if ( pRTThread->phase > 0 ) {
-            pRTThread->sleep( pRTThread->phase, item );
+            pRTThread->sleep( (unint4) pRTThread->phase, item );
             pRTThread->phase = 0 ;
-            return cOk;
+            return (cOk);
         }
     }
 
     // enter Thread in the database in accordance with it's priority
-    return PriorityThreadScheduler::enter( item );
+    return (PriorityThreadScheduler::enter( item ));
 }

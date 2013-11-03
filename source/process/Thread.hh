@@ -262,8 +262,11 @@ public:
      *
      * Involves informing the scheduler.
      */
-    void sleep( int t, LinkedListDatabaseItem* item = pRunningThreadDbItem );
+    void sleep( unint4 t, LinkedListDatabaseItem* item = pRunningThreadDbItem );
 
+    /*!
+     * Blocks the thread until the sig is signaled from some other thread.
+     */
     void sigwait( void* sig );
 
     /*!

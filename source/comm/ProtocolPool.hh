@@ -55,9 +55,9 @@ public:
     ProtocolPool();
     ~ProtocolPool();
 
-    AddressProtocol* getAddressProtocolbyId( int2 id );
+    AddressProtocol* getAddressProtocolbyId( unint2 id );
 
-    TransportProtocol* getTransportProtocolbyId( int2 id );
+    TransportProtocol* getTransportProtocolbyId( unint2 id );
 
 
 };

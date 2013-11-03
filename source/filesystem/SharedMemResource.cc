@@ -11,12 +11,12 @@
 extern Kernel* theOS;
 
 
-SharedMemResource::SharedMemResource(unint4 size, char* name, Task* owner): Resource(cSharedMem,false,name) {
+SharedMemResource::SharedMemResource(unint4 size, char* p_name, Task* p_owner): Resource(cSharedMem,false,p_name) {
 
-	this->owner = owner;
+	this->owner = p_owner;
 	TaskIdT id = 0;
-	if (owner != 0)
-		id = owner->getId();
+	if (p_owner != 0)
+		id = p_owner->getId();
 
 	// get a physical area
 	this->physical_start_address = (unint4) theOS->getRamManager()->alloc(size,id);
@@ -26,8 +26,8 @@ SharedMemResource::SharedMemResource(unint4 size, char* name, Task* owner): Reso
 	// register this shared memory area
 	theOS->getFileManager()->registerResource(this);
 
-	if (owner != 0) {
-		owner->aquiredResources.addTail(this);
+	if (p_owner != 0) {
+		p_owner->aquiredResources.addTail(this);
 	}
 
 }

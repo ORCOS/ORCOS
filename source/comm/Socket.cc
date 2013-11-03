@@ -28,7 +28,7 @@ extern Kernel* theOS;
 
 extern Task* pCurrentRunningTask;
 
-Socket::Socket( int domain, int type, int protocol, char* bufferstart, int bufferlen ) :
+Socket::Socket( unint2 domain, SOCK_TYPE e_type, unint2 protocol, void* bufferstart, unint4 bufferlen ) :
     Resource( cSocket, false ) {
 
     if ( bufferstart == 0 ) {
@@ -56,7 +56,7 @@ Socket::Socket( int domain, int type, int protocol, char* bufferstart, int buffe
     this->tproto 				= protopool->getTransportProtocolbyId( protocol );
     ASSERT(this->tproto);
 
-    this->type 					= (SOCK_TYPE) type;
+    this->type 					= (SOCK_TYPE) e_type;
     this->sendBuffer 			= bufferstart;
     this->blockedThread 		= 0;
     this->socket_connected 		= 0;
@@ -189,12 +189,12 @@ int Socket::connect(Kernel_ThreadCfdCl* thread, sockaddr* toaddr ) {
 
 		// we return here
 		if (this->socket_connected != 0) {
-			return cOk;
-		} else return  cError;
+			return (cOk);
+		} else return  (cError);
 
 
 	}
-	else return cError;
+	else return (cError);
 
 }
 
@@ -212,14 +212,14 @@ int Socket::listen(Kernel_ThreadCfdCl* thread) {
 		this->hasListeningThread = false;
 		// if we get here we got a new connection
 		// the socket has been created and newSocketID contains the resourceID
-		return newSocketID;
+		return (newSocketID);
 
 	}
-	else return cError;
+	else return (cError);
 
 }
 
-ErrorT Socket::addMessage( char* msgstart, int msglength, sockaddr *fromaddr ) {
+ErrorT Socket::addMessage( char* msgstart, unint2 msglength, sockaddr *fromaddr ) {
 
 	if (fromaddr != 0) {
 		// be sure service name is unset!
@@ -234,7 +234,7 @@ ErrorT Socket::addMessage( char* msgstart, int msglength, sockaddr *fromaddr ) {
 	if (isError(buffer) || buffer > MAX_BUF)
 		{
 			LOG(COMM,ERROR,(COMM,ERROR,"Socket::addMessage(): CAB::store() returned error %d",buffer));
-			return cError;
+			return (cError);
 		}
 
 
@@ -253,10 +253,10 @@ ErrorT Socket::addMessage( char* msgstart, int msglength, sockaddr *fromaddr ) {
 	}
 
 
-    return cOk;
+    return (cOk);
 }
 
-int Socket::sendto( const void* buffer, int length, const sockaddr *dest_addr ) {
+int Socket::sendto( const void* buffer, unint2 length, const sockaddr *dest_addr ) {
 
 
     if ( this->type == SOCK_DGRAM || this->socket_connected != 0 ) {
@@ -305,25 +305,24 @@ int Socket::sendto( const void* buffer, int length, const sockaddr *dest_addr ) 
         if ( this->type == SOCK_DGRAM )
         {
             LOG( COMM,DEBUG,(COMM,DEBUG,"Socket::sendto(): sending packet to 0x%x, port %d, len %d",dest->sa_data,dest->port_data, length) );
-            return this->tproto->sendto( &payload_layer, &myboundaddr, dest_addr,
-                    this->aproto, this );
+            return (this->tproto->sendto( &payload_layer, &myboundaddr, dest_addr, this->aproto, this ));
         }
         else if ( this->socket_connected != 0 )
         {
             LOG( COMM,DEBUG,(COMM,DEBUG,"Socket::sendto(): sending packet to 0x%x, port %d",connected_socket.sa_data,connected_socket.port_data) );
-            return this->tproto->send(  &payload_layer, this->aproto, this );
+            return (this->tproto->send(  &payload_layer, this->aproto, this ));
         }
         else
         {
             LOG( COMM,ERROR,(COMM,ERROR,"Socket::sendto(): failed!") );
-            return cNotConnected;
+            return (cNotConnected);
         }
     }
 
-    return cError;
+    return (cError);
 }
 
-size_t Socket::recvfrom( Kernel_ThreadCfdCl* thread, char** addressof_ret_ptrtomsg, int flags, sockaddr* addr ) {
+size_t Socket::recvfrom( Kernel_ThreadCfdCl* thread, char** addressof_ret_ptrtomsg, unint4 flags, sockaddr* addr ) {
 
     LOG(COMM,TRACE,(COMM,TRACE,"Socket::recvfrom()"));
 
@@ -342,7 +341,7 @@ size_t Socket::recvfrom( Kernel_ThreadCfdCl* thread, char** addressof_ret_ptrtom
             if (this->type == SOCK_STREAM && this->socket_connected == 0) {
             	// we were disconnected
             	// tell thread we are disconnected
-            	return -1;
+            	return (-1);
             }
 
             // we got unblocked! now there is some data!
@@ -354,7 +353,7 @@ size_t Socket::recvfrom( Kernel_ThreadCfdCl* thread, char** addressof_ret_ptrtom
             // so return 0
             *addressof_ret_ptrtomsg = 0;
             addr = 0;
-            return 0;
+            return (0);
         }
     }
 
@@ -370,7 +369,7 @@ size_t Socket::recvfrom( Kernel_ThreadCfdCl* thread, char** addressof_ret_ptrtom
         memcpy(addr,&senderaddr[buffer],sizeof(sockaddr));
     }
 
-    return len;
+    return (len);
 }
 
 

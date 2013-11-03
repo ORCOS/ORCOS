@@ -38,8 +38,8 @@ protected:
 	Directory* commdevsdir;
 
 public:
-	ServiceDiscovery(int2 id) {
-		this->id = id;
+	ServiceDiscovery(int2 i_id) {
+		this->id = i_id;
 	}
 	;
 
@@ -49,7 +49,7 @@ public:
 
 	//! Returns the Id of this protocol
 	int2 getId() {
-		return id;
+		return (id);
 	}
 	;
 

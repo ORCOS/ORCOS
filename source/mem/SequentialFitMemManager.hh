@@ -199,7 +199,7 @@ public:
      *
      * The linked list is traversed and returned is the sum of all Headers of free chunks and the Headers and Payload of occupied chunks
      */
-    size_t getUsedMemSize(int &overhead, int &fragmentation);
+    size_t getUsedMemSize(size_t &u_overhead, size_t &u_free_mem);
 };
 
 #endif /*SEQUENTIALFITMEMMANAGER_HH_*/

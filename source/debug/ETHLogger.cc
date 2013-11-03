@@ -54,12 +54,7 @@ ETHLogger::ETHLogger() {
     //! The transportprotocol used
     tproto = protopool->getTransportProtocolbyId( cUDP );
 
-
-    char mac[6] = ETHLOGGER_DEST_MAC;
-
-    aproto->addNeighborInfo( ETHLOGGER_DEST_IP,(CommDeviceDriver*) theOS->getFileManager()->getResource("dev/comm/eth0"),(char*) &mac,6);
-
-	// create socket for eth_logger
+    // create socket for eth_logger
     // first get some buffer the socket can work on (storing messages and so on)
 	char* mysocketbuffer = (char*) pCurrentRunningTask->getMemManager()->alloc( 800, true );
 

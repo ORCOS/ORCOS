@@ -186,7 +186,7 @@ static int smsc95xx_write_reg(USBDevice *dev, unint2 index, unint4 data)
 
 	if (error != 4) {
 		printf("smsc95xx_write_reg failed: index=%d, data=%d, len=%d\r\n", index, data, sizeof(data));
-		return -1;
+		return (-1);
 	}
 	return cOk;
 
@@ -396,19 +396,19 @@ static int smsc95xx_init_mac_address(char* ethaddr, USBDevice *dev)
 	 * No eeprom, or eeprom values are invalid. Generating a random MAC
 	 * address is not safe. Just return an error.
 	 */
-	return -1;
+	return (-1);
 }
 
 
 static inline unint2 __get_unaligned_le16(unint1 *p)
 {
-	return p[0] | p[1] << 8; // if we need to convert
+	return ((unint2) (p[0] | p[1] << 8)); // if we need to convert
 	//return p[0] << 8 | p[1];
 }
 
 static inline unint4 __get_unaligned_le32(unint1 *p)
 {
-	return p[0] | p[1] << 8 | p[2] << 16 | p[3] << 24; // if we need to convert
+	return (p[0] | p[1] << 8 | p[2] << 16 | p[3] << 24); // if we need to convert
 	//return p[3] | p[2] << 8 | p[1] << 16 | p[0] << 24;
 }
 
@@ -422,7 +422,7 @@ static int smsc95xx_write_hwaddr(USBDevice* dev, char* ethaddr)
 	//printf("** %s()\r", __func__);
 	ret = smsc95xx_write_reg(dev, ADDRL, addr_lo);
 	if (ret < 0)
-		return ret;
+		return (ret);
 
 	ret = smsc95xx_write_reg(dev, ADDRH, addr_hi);
 	if (ret < 0)
@@ -518,7 +518,6 @@ ErrorT SMSC95xxUSBDeviceDriver::init()
 	unint4 write_buf;
 	unint4 read_buf;
 	unint4 burst_cap;
-	volatile int link_detected;
 	int ret;
 	volatile int timeout;
 
@@ -527,39 +526,39 @@ ErrorT SMSC95xxUSBDeviceDriver::init()
 	write_buf = HW_CFG_LRST_;
 	ret = smsc95xx_write_reg(dev, HW_CFG, write_buf);
 	if (ret < 0)
-		return ret;
+		return (ret);
 
 	timeout = 0;
 	do {
 		ret = smsc95xx_read_reg(dev, HW_CFG, &read_buf);
 		if (ret < 0)
-			return ret;
+			return (ret);
 
 		timeout++;
 	} while ((read_buf & HW_CFG_LRST_) && (timeout < 1000000));
 
 	if (timeout >= 100) {
 		LOG(ARCH,ERROR,(ARCH,ERROR,"SMSC95xxUSBDeviceDriver: timeout waiting for completion of Lite Reset"));
-		return -1;
+		return (-1);
 	}
 	LOG(ARCH,TRACE,(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: SMSC95xx reset successfully.."));
 
 	write_buf = PM_CTL_PHY_RST_;
 	ret = smsc95xx_write_reg(dev, PM_CTRL, write_buf);
 	if (ret < 0)
-		return ret;
+		return (ret);
 
 	timeout = 0;
 	do {
 		ret = smsc95xx_read_reg(dev, PM_CTRL, &read_buf);
 		if (ret < 0)
-			return ret;
+			return (ret);
 
 		timeout++;
 	} while ((read_buf & PM_CTL_PHY_RST_) && (timeout < 10000000));
 	if (timeout >= 100) {
 		LOG(ARCH,ERROR,(ARCH,ERROR,"SMSC95xxUSBDeviceDriver: timeout waiting for PHY Reset"));
-		return -1;
+		return (-1);
 	}
 
 	LOG(ARCH,TRACE,(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: SMSC95xx PHY reset successfully.."));
@@ -575,21 +574,21 @@ ErrorT SMSC95xxUSBDeviceDriver::init()
 	memdump((unint4) &ethaddr,2);*/
 
 	if (smsc95xx_write_hwaddr(dev,(char*) &default_macaddr) < 0)
-		return -1;
+		return (-1);
 
 	ret = smsc95xx_read_reg(dev, HW_CFG, &read_buf);
 	if (ret < 0)
-		return ret;
+		return (ret);
 	LOG(ARCH,TRACE,(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: Read Value from HW_CFG : 0x%08x", read_buf));
 
 	read_buf |= HW_CFG_BIR_;
 	ret = smsc95xx_write_reg(dev, HW_CFG, read_buf);
 	if (ret < 0)
-		return ret;
+		return (ret);
 
 	ret = smsc95xx_read_reg(dev, HW_CFG, &read_buf);
 	if (ret < 0)
-		return ret;
+		return (ret);
 	LOG(ARCH,TRACE,(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: Read Value from HW_CFG after writing HW_CFG_BIR_: 0x%08x", read_buf));
 
 #ifdef TURBO_MODE
@@ -608,27 +607,27 @@ ErrorT SMSC95xxUSBDeviceDriver::init()
 
 	ret = smsc95xx_write_reg(dev, BURST_CAP, burst_cap);
 	if (ret < 0)
-		return ret;
+		return (ret);
 
 	ret = smsc95xx_read_reg(dev, BURST_CAP, &read_buf);
 	if (ret < 0)
-		return ret;
+		return (ret);
 	LOG(ARCH,TRACE,(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: Read Value from BURST_CAP after writing: 0x%08x", read_buf));
 
 	//read_buf = DEFAULT_BULK_IN_DELAY;
 	read_buf = 0x1000;
 	ret = smsc95xx_write_reg(dev, BULK_IN_DLY, read_buf);
 	if (ret < 0)
-		return ret;
+		return (ret);
 
 	ret = smsc95xx_read_reg(dev, BULK_IN_DLY, &read_buf);
 	if (ret < 0)
-		return ret;
+		return (ret);
 	LOG(ARCH,TRACE,(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: Read Value from BULK_IN_DLY after writing: 0x%08x", read_buf));
 
 	ret = smsc95xx_read_reg(dev, HW_CFG, &read_buf);
 	if (ret < 0)
-		return ret;
+		return (ret);
 	LOG(ARCH,TRACE,(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: Read Value from HW_CFG: 0x%08x", read_buf));
 
 #ifdef TURBO_MODE
@@ -641,64 +640,64 @@ ErrorT SMSC95xxUSBDeviceDriver::init()
 
 	ret = smsc95xx_write_reg(dev, HW_CFG, read_buf);
 	if (ret < 0)
-		return ret;
+		return (ret);
 
 	ret = smsc95xx_read_reg(dev, HW_CFG, &read_buf);
 	if (ret < 0)
-		return ret;
+		return (ret);
 	LOG(ARCH,TRACE,(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: Read Value from HW_CFG after writing: 0x%08x", read_buf));
 
 	write_buf = 0xFFFFFFFF;
 	ret = smsc95xx_write_reg(dev, INT_STS, write_buf);
 	if (ret < 0)
-		return ret;
+		return (ret);
 
 	ret = smsc95xx_read_reg(dev, ID_REV, &read_buf);
 	if (ret < 0)
-		return ret;
+		return (ret);
 	LOG(ARCH,TRACE,(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: ID_REV = 0x%08x", read_buf));
 
 	/* Init Tx */
 	write_buf = 0;
 	ret = smsc95xx_write_reg(dev, FLOW, write_buf);
 	if (ret < 0)
-		return ret;
+		return (ret);
 
 	read_buf = AFC_CFG_DEFAULT;
 	ret = smsc95xx_write_reg(dev, AFC_CFG, read_buf);
 	if (ret < 0)
-		return ret;
+		return (ret);
 
 	ret = smsc95xx_read_reg(dev, MAC_CR, &priv->mac_cr);
 	if (ret < 0)
-		return ret;
+		return (ret);
 
 	/* Init Rx. Set Vlan */
 	write_buf = (unint4)ETH_P_8021Q;
 	ret = smsc95xx_write_reg(dev, VLAN1, write_buf);
 	if (ret < 0)
-		return ret;
+		return (ret);
 
 	/* Disable checksum offload engines */
 	ret = smsc95xx_set_csums(dev, 1, 0);
 	if (ret < 0) {
 		LOG(ARCH,ERROR,(ARCH,ERROR,"SMSC95xxUSBDeviceDriver: Failed to set csum offload: %d", ret));
-		return ret;
+		return (ret);
 	}
 	smsc95xx_set_multicast(dev);
 
 	if (smsc95xx_phy_initialize(dev) < 0)
-		return -1;
+		return (-1);
 	ret = smsc95xx_read_reg(dev, INT_EP_CTL, &read_buf);
 	if (ret < 0)
-		return ret;
+		return (ret);
 
 	/* enable PHY interrupts */
 	read_buf |= INT_EP_CTL_PHY_INT_;
 
 	ret = smsc95xx_write_reg(dev, INT_EP_CTL, read_buf);
 	if (ret < 0)
-		return ret;
+		return (ret);
 
 	smsc95xx_start_tx_path(dev);
 	smsc95xx_start_rx_path(dev);
@@ -724,7 +723,7 @@ ErrorT SMSC95xxUSBDeviceDriver::init()
 		return cOk;
 	}*/
 
-	return 0;
+	return (0);
 }
 
 #define PKTSIZE			1518
@@ -736,7 +735,7 @@ struct netif tEMAC0Netif;
 ErrorT SMSC95xxUSBDeviceDriver::recv(unint4 recv_len)
 {
 
-	unint4 packet_len;
+	unint2 packet_len;
 
 	LOG(ARCH,TRACE,(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: Packet received.. USB-Len %x",recv_len));
 
@@ -751,7 +750,7 @@ ErrorT SMSC95xxUSBDeviceDriver::recv(unint4 recv_len)
 
 		if (packet_len & RX_STS_ES_) {
 			LOG(ARCH,WARN,(ARCH,WARN,"SMSC95xxUSBDeviceDriver: RX packet header Error: %x",packet_len));
-			return cError;
+			return (cError);
 		}
 		// extract packet_len
 		packet_len = ((packet_len & RX_STS_FL_) >> 16);
@@ -764,7 +763,7 @@ ErrorT SMSC95xxUSBDeviceDriver::recv(unint4 recv_len)
 		}
 
 		// deliver packet to upper layer
-		struct pbuf* ptBuf = pbuf_alloc(PBUF_RAW, packet_len+10, PBUF_RAM);
+		struct pbuf* ptBuf = pbuf_alloc(PBUF_RAW, (unint2) ( packet_len+10), PBUF_RAM);
 		if (ptBuf != 0) {
 
 			memcpy(ptBuf->payload, &dev->endpoints[bulkin_ep].recv_buffer[recvd_bytes+4], packet_len );
@@ -785,14 +784,14 @@ ErrorT SMSC95xxUSBDeviceDriver::recv(unint4 recv_len)
 		recvd_bytes += packet_len + 4;
 	}
 
-	return cOk;
+	return (cOk);
 }
 
 
-SMSC95xxUSBDeviceDriver::SMSC95xxUSBDeviceDriver(USBDevice* dev)
+SMSC95xxUSBDeviceDriver::SMSC95xxUSBDeviceDriver(USBDevice* p_dev)
 :  USBDeviceDriver(), CommDeviceDriver("eth0")
 {
-	this->dev = dev;
+	this->dev = p_dev;
 	this->bulkin_ep = 0;
 	this->bulkout_ep = 0;
 	this->int_ep = 0;
@@ -801,7 +800,7 @@ SMSC95xxUSBDeviceDriver::SMSC95xxUSBDeviceDriver(USBDevice* dev)
 
 }
 
-static char data[1500];
+static unsigned char data[1500];
 
 /*******************************************************************/
 //unint4 crc32(unint4 crc, unint1 byte)
@@ -819,15 +818,15 @@ int i;
 static err_t smsc95xx_low_level_output(struct netif *netif, struct pbuf *p) {
 	LOG(ARCH,TRACE,(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: sending packet.."));
 
-	memset(data,0,64);
+	//memset(data,0,64);
 
 	if (p->tot_len > 1500) {
 		//pbuf_free(p);
 		LOG(ARCH,WARN,(ARCH,WARN,"SMSC95xxUSBDeviceDriver: not sending packet. Len > 1500."));
-		return ERR_MEM;
+		return (ERR_MEM);
 	}
 
-	int pos = 0;
+	unint2 pos = 0;
 
 	struct pbuf *curp = p;
 
@@ -858,13 +857,10 @@ static err_t smsc95xx_low_level_output(struct netif *netif, struct pbuf *p) {
 	if (driver != 0) {
 		driver->dev->controller->USBBulkMsg(driver->dev,driver->bulkout_ep,USB_DIR_OUT,pos,(unint1*) data);
 	}
-	return ERR_OK;
+	return (ERR_OK);
 }
 
-err_t
-dummy_output(struct netif *netif, struct pbuf *q, struct ip4_addr *ipaddr) {
-	return ERR_OK;
-}
+
 
 err_t smsc9x_ethernetif_init(struct netif *netif) {
 
@@ -889,7 +885,7 @@ err_t smsc9x_ethernetif_init(struct netif *netif) {
 #if LWIP_ARP
     netif->ip4_output = etharp_output;
 #else
-    netif->ip4_output = dummy_output;
+#warning "SMSC95xx USB device Driver non operational without ARP support."
 #endif
     netif->input = ethernet_input;
     netif->linkoutput = smsc95xx_low_level_output;
@@ -909,7 +905,7 @@ err_t smsc9x_ethernetif_init(struct netif *netif) {
        netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP
                | NETIF_FLAG_LINK_UP;
 
-       return cOk;
+       return (cOk);
 }
 
 
@@ -922,15 +918,15 @@ ErrorT SMSC95xxUSBDeviceDriver::initialize() {
 
 	bool bulkinep, bulkoutep, intep = false;
 
-	for (int i = 1; i < 5; i++) {
+	for (unint1 i = 1; i < 5; i++) {
 		if (dev->endpoints[i].type == Bulk) {
 			// active it
 
 			if (dev->endpoints[i].direction == Out) {
-				bulkout_ep =  i; //dev->endpoints[i].address;
+				bulkout_ep =  i;
 				bulkoutep = true;
 			} else {
-				bulkin_ep =  i; //dev->endpoints[i].address;
+				bulkin_ep =  i;
 				bulkinep = true;
 				// internally handle RX transfer as interrupt requests
 				dev->endpoints[bulkin_ep].type = Interrupt;
@@ -940,7 +936,7 @@ ErrorT SMSC95xxUSBDeviceDriver::initialize() {
 			dev->activateEndpoint(i);
 
 		} else if(dev->endpoints[i].type == Interrupt)  {
-			int_ep =  i; //dev->endpoints[i].address;
+			int_ep =  i;
 			dev->endpoints[i].poll_frequency = 200;
 			intep = true;
 		}
@@ -949,14 +945,14 @@ ErrorT SMSC95xxUSBDeviceDriver::initialize() {
 	if (!(bulkinep & bulkoutep & intep)) {
 		LOG(ARCH,ERROR,(ARCH,ERROR,"SMSC95xxUSBDeviceDriver: probing failed.."));
 		// deactivate eps again
-		return cError;
+		return (cError);
 	}
 
 	dev->dev_priv = theOS->getMemoryManager()->alloc(sizeof(struct smsc95xx_private));
 
 	if (init() < 0) {
 		LOG(ARCH,ERROR,(ARCH,ERROR,"SMSC95xxUSBDeviceDriver: Initializing Ethernet device failed.."));
-		return cError;
+		return (cError);
 	}
 
 	// setup periodic interrupt transfer
@@ -997,7 +993,7 @@ ErrorT SMSC95xxUSBDeviceDriver::handleInterrupt() {
 	ErrorT ret = cError;
 
 	volatile QH* qh = dev->endpoints[this->int_ep].queue_head;
-	if (qh == 0) return cError;
+	if (qh == 0) return (cError);
 	volatile qTD* qtd2  = (qTD*) qh->qh_curtd;
 
 
@@ -1071,7 +1067,7 @@ void SMSC95xxUSBDeviceDriver::recv() {
 }
 
 
-ErrorT SMSC95xxUSBDeviceDriver::lowlevel_send( char* data, int len ) {
+ErrorT SMSC95xxUSBDeviceDriver::lowlevel_send( char* p_data, int len ) {
 	return (cNotImplemented);
 }
 
@@ -1079,16 +1075,16 @@ ErrorT SMSC95xxUSBDeviceDriver::lowlevel_send( char* data, int len ) {
 //checks whether the given class,product device is supported by this driver
 bool SMSC95xxUSBDeviceDriverFactory::isDriverFor(USBDevice* dev) {
 
-	if (dev->dev_descr.idVendor != 0x0424) return false;
-	if (dev->dev_descr.idProduct == 0xec00 || dev->dev_descr.idProduct == 0x9500 ) return true;
+	if (dev->dev_descr.idVendor != 0x0424) return (false);
+	if (dev->dev_descr.idProduct == 0xec00 || dev->dev_descr.idProduct == 0x9500 ) return (true);
 
-	return false;
+	return (false);
 
 }
 
 
-SMSC95xxUSBDeviceDriverFactory::SMSC95xxUSBDeviceDriverFactory(char* name)
-: USBDeviceDriverFactory(name)
+SMSC95xxUSBDeviceDriverFactory::SMSC95xxUSBDeviceDriverFactory(char* p_name)
+: USBDeviceDriverFactory(p_name)
 {
 
 }
