@@ -1,0 +1,12 @@
+Gestartet durch vorgelagertes Projekt "[8mha:AAAArB+LCAAAAAAAAP9b85aBtbiIQTGjNKU4P08vOT+vOD8nVc83PyU1x6OyILUoJzMv2y+/JJUBAhiZGBgqihhk0NSjKDWzXb3RdlLBUSYGJk8GtpzUvPSSDB8G5tKinBIGIZ+sxLJE/ZzEvHT94JKizLx0a6BxUmjGOUNodHsLgAypEgYF/az8JH3/IGf/4PjgyuLkxJwcn8ykosSiynjHIN8yc30AJebJetUAAAA=[0mORCOS_SyscallLibrary_ARMv7", Build [8mha:AAAArB+LCAAAAAAAAP9b85aBtbiIQTGjNKU4P08vOT+vOD8nVc83PyU1x6OyILUoJzMv2y+/JJUBAhiZGBgqihhk0NSjKDWzXb3RdlLBUSYGJk8GtpzUvPSSDB8G5tKinBIGIZ+sxLJE/ZzEvHT94JKizLx0a6BxUmjGOUNodHsLQIwSBkX9rPwkff8gZ//g+ODK4uTEnByfzKSixKLKeMcg3zJzfUsAseUABtYAAAA=[0m9
+originally caused by:
+ Gestartet durch Benutzer [8mha:AAAAlh+LCAAAAAAAAP9b85aBtbiIQTGjNKU4P08vOT+vOD8nVc83PyU1x6OyILUoJzMv2y+/JJUBAhiZGBgqihhk0NSjKDWzXb3RdlLBUSYGJk8GtpzUvPSSDB8G5tKinBIGIZ+sxLJE/ZzEvHT94JKizLx0a6BxUmjGOUNodHsLgAzOEgYu/dLi1CL9vNKcHACFIKlWvwAAAA==[0manonymous
+BuildingJDK kann nicht automatisch installiert werden, solange die Lizenzvereinbarung nicht akzeptiert wurde. 
+ in workspace /home/pi/build
+JDK kann nicht automatisch installiert werden, solange die Lizenzvereinbarung nicht akzeptiert wurde. 
+[build] $ /bin/sh -xe /tmp/hudson5734749363017082394.sh
++ cd tasks/coreutils
++ mkdir bin
+mkdir: kann Verzeichnis „bin“ nicht anlegen: Die Datei existiert bereits
+Build step 'Shell ausführen' marked build as failure
+Finished: FAILURE

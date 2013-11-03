@@ -1,0 +1,9 @@
+Gestartet durch Benutzer [8mha:AAAAlh+LCAAAAAAAAP9b85aBtbiIQTGjNKU4P08vOT+vOD8nVc83PyU1x6OyILUoJzMv2y+/JJUBAhiZGBgqihhk0NSjKDWzXb3RdlLBUSYGJk8GtpzUvPSSDB8G5tKinBIGIZ+sxLJE/ZzEvHT94JKizLx0a6BxUmjGOUNodHsLgAzOEgYu/dLi1CL9vNKcHACFIKlWvwAAAA==[0manonymous
+BuildingJDK kann nicht automatisch installiert werden, solange die Lizenzvereinbarung nicht akzeptiert wurde. 
+ in workspace /home/pi/build
+JDK kann nicht automatisch installiert werden, solange die Lizenzvereinbarung nicht akzeptiert wurde. 
+Fetching changes from the remote Git repository
+Fetching upstream changes from https://github.com/ORCOS/ORCOS.git
+Checking out Revision 5948daad3421efc8c3b5f6bb594863d9b128cb79 (origin/master)
+First time build. Skipping changelog.
+Finished: SUCCESS
