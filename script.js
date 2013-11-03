@@ -15,7 +15,7 @@ TINY.table=function(){
 			}
 		}
 		for(i=0;i<this.l;i++){t.a[i]={}}
-		if(f!=null){var a=new Function(this.n+'.wk('+f+')'); a()}
+		if(f!=null){var a=new Function(this.n+'.wk('+f+')'); a(); a()}
 		if(this.paginate){this.g=1; this.pages()}
 	};
 	sorter.prototype.wk=function(y){
@@ -53,10 +53,10 @@ TINY.table=function(){
 	function ge(e){var t=T$(e); t.b=T$$('tbody',t)[0]; t.r=t.b.rows; return t};
 	function cp(f,c){
 		var g,h; f=g=f.v.toLowerCase(), c=h=c.v.toLowerCase();
-		var i=parseFloat(f.replace(/(\$|\,)/g,'')), n=parseFloat(c.replace(/(\$|\,)/g,''));
-		if(!isNaN(i)&&!isNaN(n)){g=i,h=n}
-		i=Date.parse(f); n=Date.parse(c);
-		if(!isNaN(i)&&!isNaN(n)){g=i; h=n}
+		//var i=parseFloat(f.replace(/(\$|\,)/g,'')), n=parseFloat(c.replace(/(\$|\,)/g,''));
+		//if(!isNaN(i)&&!isNaN(n)){g=i,h=n}
+		//i=Date.parse(f); n=Date.parse(c);
+		//if(!isNaN(i)&&!isNaN(n)){g=i; h=n}
 		return g>h?1:(g<h?-1:0)
 	};
 	return{sorter:sorter}

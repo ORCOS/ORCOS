@@ -8,7 +8,7 @@
 .sortable .desc, .sortable .asc {background:url(images/header-selected-bg.gif)}
 .sortable .desc h3 {background:url(images/desc.gif) 7px center no-repeat; cursor:pointer; padding-left:18px}
 .sortable .asc h3 {background:url(images/asc.gif) 7px  center no-repeat; cursor:pointer; padding-left:18px}
-.sortable .head:hover, .sortable .desc:hover, .sortable .asc:hover {color:#fff}
+.sortable .head:hover, .sortable .desc:hover, .sortable .asc:hover {color:#01f}
 .sortable .evenrow td {background:#fff}
 .sortable .oddrow td {background:#ecf2f6}
 .sortable td.evenselected {background:#ecf2f6}
