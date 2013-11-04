@@ -50,7 +50,7 @@
  * For now, this is not optimized. Must be optimized for the particular processor
  * arcitecture on which it is to run. Preferebly coded in assembler.
  */
-
+#if 0
 u32_t chksum_old(void *dataptr, u16_t len) {
 	u8_t *sdataptr = dataptr;
 	u32_t acc;
@@ -80,9 +80,10 @@ u32_t chksum_old(void *dataptr, u16_t len) {
 	return acc;
 
 }
+#endif
 
 u32_t chksum(u16_t *data, u16_t len) {
-	int sum = 0;
+	u32_t sum = 0;
 	union {
 		u16_t s;
 		u8_t b[2];
@@ -96,10 +97,11 @@ u32_t chksum(u16_t *data, u16_t len) {
 
 	while (len > 1) {
 		sum += *data++;
-		len -= 2;
+		len = (u16_t) (len - 2);
 	}
 
 	if (len == 1) {
+		// TODO: does this work for both endianesses???? i dont think so
 		pad.b[0] = *(u16_t *) data;
 		pad.b[1] = 0;
 		sum += pad.s;
@@ -137,7 +139,7 @@ u16_t inet_chksum_pseudo(struct pbuf *p, void *src_ip, void *dest_ip,
 			acc = (acc & 0xffff) + (acc >> 16);
 		}
 		if (q->len % 2 != 0) {
-			swapped = 1 - swapped;
+			swapped = swapped ^ 0x1; //1 - swapped;
 			acc = ((acc & 0xff) << 8) | ((acc & 0xff00) >> 8);
 		}
 	}
@@ -146,7 +148,7 @@ u16_t inet_chksum_pseudo(struct pbuf *p, void *src_ip, void *dest_ip,
 		acc = ((acc & 0xff) << 8) | ((acc & 0xff00) >> 8);
 	}
 
-	int m = 0;
+	u16_t m = 0;
 	if (ip_version == IPV4)
 		m = 4;
 	else
@@ -171,7 +173,7 @@ u16_t inet_chksum_pseudo(struct pbuf *p, void *src_ip, void *dest_ip,
 	while (acc >> 16) {
 		acc = (acc & 0xffff) + (acc >> 16);
 	}
-	return ~(acc & 0xffff);
+	return ((u16_t) (~(acc & 0xffff)));
 }
 
 /* inet_chksum:
@@ -187,7 +189,7 @@ u16_t inet_chksum(void *dataptr, u16_t len) {
 	sum = (acc & 0xffff) + (acc >> 16);
 	//sum += (sum >> 16);
 	sum = (sum & 0xffff) + (sum >> 16);
-	return ~(sum & 0xffff);
+	return ((u16_t) (~(sum & 0xffff)));
 }
 
 u16_t inet_chksum_pbuf(struct pbuf *p) {
@@ -203,7 +205,7 @@ u16_t inet_chksum_pbuf(struct pbuf *p) {
 			acc = (acc & 0xffff) + (acc >> 16);
 		}
 		if (q->len % 2 != 0) {
-			swapped = 1 - swapped;
+			swapped = swapped ^ 0x1; // 1 - swapped;
 			acc = (acc & 0xff << 8) | (acc & 0xff00 >> 8);
 		}
 	}
@@ -211,7 +213,7 @@ u16_t inet_chksum_pbuf(struct pbuf *p) {
 	if (swapped) {
 		acc = ((acc & 0xff) << 8) | ((acc & 0xff00) >> 8);
 	}
-	return ~(acc & 0xffff);
+	return ( (u16_t) (~(acc & 0xffff)));
 }
 
 /**

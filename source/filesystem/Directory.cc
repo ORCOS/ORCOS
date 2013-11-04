@@ -110,7 +110,7 @@ ErrorT Directory::readBytes( char *bytes, unint4 &length ) {
 
 		// copy name into the bytes array
 		bytes[pos] = namelen;
-		memcpy((void*) &bytes[pos+1],(void*)p_name,namelen);
+		memcpy((void*) &bytes[pos+1],(const void*)p_name,namelen);
 
 		bytes[pos+namelen+1] = 0;
 		bytes[pos+namelen+2] = ritem->getType();

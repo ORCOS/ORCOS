@@ -261,7 +261,7 @@ int Socket::sendto( const void* buffer, unint2 length, const sockaddr *dest_addr
 
     if ( this->type == SOCK_DGRAM || this->socket_connected != 0 ) {
 
-    	sockaddr* dest = (sockaddr*) dest_addr;
+    	sockaddr* dest = const_cast<sockaddr*>(dest_addr);
 
 #ifdef HAS_Kernel_ServiceDiscoveryCfd
     	 if (strcmp(dest_addr->name_data,"") != 0) {
@@ -296,7 +296,7 @@ int Socket::sendto( const void* buffer, unint2 length, const sockaddr *dest_addr
         LOG( COMM,DEBUG,(COMM,DEBUG,"Socket::sendto(): buffer: 0x%x, length: %d",buffer, length) );
 
         packet_layer payload_layer;
-        payload_layer.bytes = (char*) buffer;
+        payload_layer.bytes = (const char*) buffer;
         payload_layer.size = length;
         payload_layer.next = 0;
         payload_layer.total_size = length;

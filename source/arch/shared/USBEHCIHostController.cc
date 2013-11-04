@@ -949,7 +949,7 @@ ErrorT USBHub::enumerate() {
 void USBHub::handleStatusChange() {
 	ErrorT error;
 
-	unint1 recv_buf[20];
+	unint1 u_recv_buf[20];
 
 	for (unint1 i = 1; i <= hub_descr.bnrPorts; i++) {
 		if ((dev->endpoints[1].recv_buffer[0] &  (1 << i)) != 0)  {
@@ -999,9 +999,9 @@ void USBHub::handleStatusChange() {
 					while (enabled == 0) {
 						msg4[4] = i;
 
-						memset(&recv_buf,0,20);
-						error = controller->sendUSBControlMsg(dev,0,(unint1*) &msg4,USB_DIR_IN,20,(unint1*) &recv_buf);
-						enabled = recv_buf[0] & (1 << 1);
+						memset(&u_recv_buf,0,20);
+						error = controller->sendUSBControlMsg(dev,0,(unint1*) &msg4,USB_DIR_IN,20,(unint1*) &u_recv_buf);
+						enabled = u_recv_buf[0] & (1 << 1);
 						timeout--;
 
 						if (timeout < 0) {
@@ -1021,12 +1021,12 @@ void USBHub::handleStatusChange() {
 					LOG(ARCH,INFO,(ARCH,INFO,"USBHub: Port enabled.. Enumerating "));
 
 					unint1 speed = 2;
-					if (recv_buf[1] & ( 1 << 1)) {
+					if (u_recv_buf[1] & ( 1 << 1)) {
 						speed = 1;
 						LOG(ARCH,INFO,(ARCH,INFO,"USBHub: Low-Speed Device attached."));
 					}
 					else
-					if (recv_buf[1] & ( 1 << 2)) {
+					if (u_recv_buf[1] & ( 1 << 2)) {
 						speed = 2;
 						LOG(ARCH,INFO,(ARCH,INFO,"USBHub: High-Speed Device attached."));
 					}

@@ -24,7 +24,7 @@
 #include Kernel_Thread_hh
 
 typedef enum {
-    ExternalDeviceJob, TimedFunctionCallJob, PeriodicFunctionCallJob, TestJob
+    ExternalDeviceJob, TimedFunctionCallJob, PeriodicFunctionCallJob, None
 } JOBS;
 
 /*!
@@ -51,13 +51,13 @@ private:
     void* param;
 
     // the jobid
-    int jobid;
+    unint1 jobid;
 
     /*!
      * \brief the pid the worker thread is currently running with
      * this pid can change during the execution of the worker thread
      */
-    int pid;
+    unint1 pid;
 public:
 
     WorkerThread( Task* owner );
@@ -70,23 +70,23 @@ public:
     void work();
 
     //! Set the job of this workerthread
-    void setJob( int id, void* params );
+    void setJob( unint1 id, void* params );
 
     //! Set the PID the workerthread shall work with
-    void setPID( int thread_pid ) {
+    void setPID( unint1 thread_pid ) {
         this->pid = thread_pid;
     }
 
     void stop() {
-        jobid = -1;
+        jobid = None;
         param = 0;
         this->block();
     }
 
-    bool hasJob() { return (jobid >= 0); }
+    bool hasJob() { return (jobid != None); }
 
     //! Get the PID the workerthread is currently working with
-    int getPID() {
+    unint1 getPID() {
         return (pid);
     }
 

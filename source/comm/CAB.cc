@@ -102,7 +102,7 @@ ErrorT CAB::store( char* pmsg, int msglen ) {
 
     void* realPage = theOS->getHatLayer()->map((void*) 0x2000000,(void*) phypage, 0x200000-1 ,7,3,pid, !ICACHE_ENABLE);
 
-    dest = ((int4) 0x2000000 + offset + this->free * this->dim_buf);
+    dest = ((unint4) 0x2000000 + offset + this->free * this->dim_buf);
 
     void* dest_phy = theOS->getHatLayer()->getPhysicalAddress( (void*) dest);
 
@@ -112,9 +112,9 @@ ErrorT CAB::store( char* pmsg, int msglen ) {
     dest = (unint4) bufferstart + this->free * this->dim_buf;
 #endif
 
-    ( (int2*) dest )[ 0 ] = 0;
+    ( (unint2*) dest )[ 0 ] = 0;
     // write data into buffer
-    ( (int2*) (dest + 2 ) )[ 0 ] = (int2) msglen;
+    ( (unint2*) (dest + 2 ) )[ 0 ] = (unint2) msglen;
    // copy from source to dest
     memcpy( (void*) ( dest +  4 ), (void*) pmsg, msglen );
 

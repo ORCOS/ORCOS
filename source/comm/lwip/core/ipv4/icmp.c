@@ -85,14 +85,14 @@ icmp_input(struct pbuf *p, struct netif *inp)
   struct icmp_echo_hdr *iecho;
   struct ip4_hdr *iphdr;
   struct ip4_addr tmpaddr;
-  s16_t hlen;
+  u16_t hlen;
 
   ICMP_STATS_INC(icmp.recv);
   snmp_inc_icmpinmsgs();
 
 
   iphdr = p->payload;
-  hlen = IP4H_HL(iphdr) * 4;
+  hlen = (u16_t) (IP4H_HL(iphdr) * 4);
   if (pbuf_header(p, -hlen) || (p->tot_len < sizeof(u16_t)*2)) {
     LWIP_DEBUGF(ICMP_DEBUG, ("icmp_input: short ICMP (%"U16_F" bytes) received\n", p->tot_len));
     goto lenerr;

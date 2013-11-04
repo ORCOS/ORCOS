@@ -28,20 +28,20 @@
 // align to the next lower address which can be divided by n
 inline
 byte* alignFloor( byte* addr, unint n ) {
-    return (byte*) ( (unint) addr & ~( n - 1 ) );
+    return ((byte*) ( (unint) addr & ~( n - 1 ) ));
 }
 
 // align to the next higher address which can be divided by n
 inline
-byte* alignCeil( byte* addr, unint n ) {
-    return alignFloor( addr + ( n - 1 ), n );
+byte*  alignCeil( byte* addr, unint n ) {
+    return (alignFloor( addr + ( n - 1 ), n ));
 }
 
 // align address according to the user configuration, this method is called by Memory Manager
 inline
-byte* align( byte* addr, unint n ) {
+byte*  align( byte* addr, unint n ) {
 #if(ALIGN_CEIL)
-    return alignCeil( addr, n );
+    return (alignCeil( addr, n ));
 #else
     return alignFloor(addr,n);
 #endif

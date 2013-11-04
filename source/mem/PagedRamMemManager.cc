@@ -50,8 +50,8 @@ ErrorT PagedRamMemManager::markAsUsed(unint4 start, unint4 end, unint1 pid) {
 	unint4 start_page =  (unint4) alignFloor((char*) start,PAGESIZE);
     unint4 end_page   =  (unint4) alignFloor((char*) end,PAGESIZE);
 
-	int pe_start = (start_page - MemStart) / PAGESIZE;
-	int pe_end   = (end_page - MemStart) / PAGESIZE;
+	unint4 pe_start = (start_page - MemStart) / PAGESIZE;
+	unint4 pe_end   = (end_page - MemStart) / PAGESIZE;
 
     // mark the pages as used
     for (unint4 i = pe_start; i <= pe_end; i++) UsedPageTable[i] = pid;
@@ -72,15 +72,15 @@ ErrorT PagedRamMemManager::free(unint4 start, unint4 end) {
     return (cOk);
 }
 
-ErrorT PagedRamMemManager::freeAll(int pid) {
+ErrorT PagedRamMemManager::freeAll(unint1 pid) {
 	for (int i = 0; i< NUM_PAGES; i++) {
 		if (UsedPageTable[i] == pid) UsedPageTable[i] = 0;
 	}
 
-	return cOk;
+	return (cOk);
 }
 
-void* PagedRamMemManager::alloc(size_t size, int pid) {
+void* PagedRamMemManager::alloc(size_t size, unint1 pid) {
 	unint4 area_size  = 0;
 	int area_start = -1; // current consecutive free virtual memory area
 	int i;
@@ -107,7 +107,7 @@ void* PagedRamMemManager::alloc(size_t size, int pid) {
 	// mark as used
 	markAsUsed(area_start, area_start + size, pid);
 
-	return (void*) area_start;
+	return ((void*) area_start);
 }
 
 

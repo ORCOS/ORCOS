@@ -31,7 +31,7 @@ PriorityThread::PriorityThread( void* p_startRoutinePointer, void* p_exitRoutine
     if ( prioThreadAttributes != 0 ) {
     	thread_attr_t* attr = static_cast< thread_attr_t* > ( prioThreadAttributes );
         // get phase and convert from µs to cycles
-        this->phase 			= attr->phase * (CLOCK_RATE / 1000000);
+    	this->phase 			= ((unint8) attr->phase * CLOCK_RATE) / 1000000U;
         this->initialPriority 	= attr->priority;
         this->effectivePriority = attr->priority;
     }

@@ -114,7 +114,7 @@ tcp_write(struct tcp_pcb *pcb, struct pbuf* p_data, u16_t len, u8_t apiflags);
 
 void             tcp_setprio (struct tcp_pcb *pcb, u8_t prio);
 
-void			tcp_init();
+void			tcp_init(void);
 
 #define TCP_PRIO_MIN    1
 #define TCP_PRIO_NORMAL 64

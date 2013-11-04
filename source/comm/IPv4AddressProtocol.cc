@@ -23,8 +23,8 @@ extern Kernel* theOS;
 
 
 
-IPv4AddressProtocol::IPv4AddressProtocol( Directory* commdevsdir ) :
-    AddressProtocol( 0x800, commdevsdir ) {
+IPv4AddressProtocol::IPv4AddressProtocol( Directory* p_commdevsdir ) :
+    AddressProtocol( 0x800, p_commdevsdir ) {
 
 
 }

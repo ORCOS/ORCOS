@@ -22,7 +22,7 @@
 
 void* memcpy( void* dst0, const void* src0, size_t len0 ) {
     char *dst = (char *) dst0;
-    char *src = (char *) src0;
+    char *src = const_cast<char *>( (const char*) src0);
 
     void* save = dst0;
 
@@ -33,12 +33,12 @@ void* memcpy( void* dst0, const void* src0, size_t len0 ) {
         src++;
     }
 
-    return save;
+    return (save);
 }
 
 int memcmp( const void* m1, const void* m2, size_t n ) {
-    unsigned char *s1 = (unsigned char *) m1;
-    unsigned char *s2 = (unsigned char *) m2;
+    unsigned char *s1 = const_cast<unsigned char *>( (const unsigned char*) m1);
+    unsigned char *s2 = const_cast<unsigned char *>( (const unsigned char*) m2);
 
     while ( n-- ) {
         if ( *s1 != *s2 ) {
@@ -47,7 +47,7 @@ int memcmp( const void* m1, const void* m2, size_t n ) {
         s1++;
         s2++;
     }
-    return 0;
+    return (0);
 }
 
 void* memset( void* ptr, int c, size_t n ) {
@@ -59,7 +59,7 @@ void* memset( void* ptr, int c, size_t n ) {
         *p++ = (unsigned char) c;
     }
 
-    return save;
+    return (save);
 }
 
 void* memsetlong( void* ptr, int c, size_t n ) {
@@ -71,7 +71,7 @@ void* memsetlong( void* ptr, int c, size_t n ) {
         *p++ = c;
     }
 
-    return save;
+    return (save);
 }
 
 void makeHexCharCompatible(char* msg, int len) {

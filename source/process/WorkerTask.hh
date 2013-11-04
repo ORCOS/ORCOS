@@ -45,7 +45,7 @@ public:
      *          param   parameters passed to the job
      *          priority_param  the priority/deadline of the workerthread in a priority/realtime based system
      */
-    WorkerThread* addJob( int id, int pid, void* param, unint priority_param );
+    WorkerThread* addJob( unint1 id, unint1 pid, void* param, unint priority_param );
 };
 
 #endif /*WORKERTASK_HH_*/

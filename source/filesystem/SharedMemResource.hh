@@ -14,7 +14,7 @@
 typedef struct {
 	void* virtual_address;
 	Task* task;
-} Mapping;
+} __attribute__((aligned(4))) Mapping;
 
 /*
  * Shared Memory Area Resource. Allows the creation of shared memory areas at

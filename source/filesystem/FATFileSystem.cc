@@ -164,7 +164,7 @@ unint4 FATFileSystem::allocateCluster() {
 			error = myPartition->readSectors(fsinfo_lba,temp_buf,1);
 			if (error < 0) return (EOC);
 
-			FAT32_FSInfo *fsinfo = (FAT32_FSInfo *) &temp_buf[0];
+			fsinfo = (FAT32_FSInfo *) &temp_buf[0];
 			fsinfo->FSI_FreeCount--;
 			fsinfo->FSI_Nxt_Free = currentCluster+1;
 
@@ -377,12 +377,12 @@ FATDirectory::FATDirectory(FATFileSystem* parentFileSystem, unint4 cluster_num,
 }
 
 FATDirectory::FATDirectory(FATFileSystem* parentFileSystem, unint4 cluster_num,
-		const char* p_name, unint4 sector) : Directory(p_name) {
+		const char* p_name, unint4 u_sector) : Directory(p_name) {
 
 	this->myFS 			= parentFileSystem;
 	this->mycluster_num = cluster_num;
 	this->populated 	= false;
-	this->sector 		= sector;
+	this->sector 		= u_sector;
 }
 
 
@@ -589,7 +589,7 @@ File* FATDirectory::createFile(char* p_name, unint4 flags) {
 	unint1 num = 0;
 
 	unint4 namelen = strlen(p_name);
-	unint1 long_entries = (namelen / 13) +1;
+	unint1 long_entries = (unint1) ((namelen / 13) +1);
 
 	// we stupidly put new files at the end of the file...
 	// not very efficient .. however simple
@@ -761,14 +761,14 @@ File* FATDirectory::createFile(char* p_name, unint4 flags) {
 }
 
 
-void FATDirectory::generateShortName(unsigned char* shortname, char* name) {
+void FATDirectory::generateShortName(unsigned char* shortname, char* p_name) {
 
 	int dotpos = -1;
 	int len = 0;
 
 	for (int i = 0; i < 255; i++) {
-		if (name[i] == '.') dotpos = i;
-		if (name[i] == 0) {
+		if (p_name[i] == '.') dotpos = i;
+		if (p_name[i] == 0) {
 			len = i;
 			break;
 		}
@@ -784,19 +784,19 @@ void FATDirectory::generateShortName(unsigned char* shortname, char* name) {
 
 	if (dotpos == -1) {
 		if (len > 10) len = 8;
-		memcpy(shortname,name,len);
+		memcpy(shortname,p_name,len);
 	}
 	else {
 		// get extension length
-		unint1 ext_len = (len - dotpos) -1;
+		unint1 ext_len = (unint1) ((len - dotpos) -1);
 		if (ext_len > 3) ext_len = 3;
 		// copy extension, shrink to 3 chars
-		memcpy(&shortname[8],&name[dotpos+1],ext_len);
+		memcpy(&shortname[8],&p_name[dotpos+1],ext_len);
 
 		// copy name before extension
 		// shrink name
 		if (dotpos > 10) dotpos = 8;
-		memcpy(shortname,name,dotpos);
+		memcpy(shortname,p_name,dotpos);
 
 	}
 
@@ -807,7 +807,7 @@ void FATDirectory::generateShortName(unsigned char* shortname, char* name) {
 		unint1 val = shortname[i];
 		if (val < 32) val = '_';
 		if (val > 122) val = '_';
-		if (val > 96) val = val - 32;
+		if (val > 96) val = (unint1) (val - 32);
 		shortname[i] = val;
 	}
 

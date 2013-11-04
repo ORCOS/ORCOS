@@ -239,7 +239,7 @@ int fcloseSyscall( int4 int_sp ) {
 
 #ifdef HAS_SyscallManager_fwriteCfd
 int fwriteSyscall( int4 int_sp ) {
-    const char *write_ptr;
+    char *write_ptr;
     unint4 write_size;
     unint4 write_nitems;
     ResourceIdT write_stream;
@@ -295,11 +295,11 @@ int fwriteSyscall( int4 int_sp ) {
 
 #ifdef HAS_SyscallManager_freadCfd
 int freadSyscall( int4 int_sp ) {
-    const char *read_ptr;
+    char *read_ptr;
     unint4 read_size;
     unint4 read_nitems;
     ResourceIdT read_stream;
-    int volatile retval;
+    int retval;
 
     SYSCALLGETPARAMS4(int_sp,read_ptr, read_size, read_nitems, read_stream);
 

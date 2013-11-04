@@ -50,7 +50,7 @@ typedef struct {
 	unint4	num_pte;				// number of pt entries
 	unint4	pte_size;
 	unint4	pt_crc32;
-} EFI_PT_Header;
+} __attribute__((packed)) EFI_PT_Header;
 
 
 typedef struct {
@@ -60,7 +60,7 @@ typedef struct {
 	char   chs_last[3];
 	unint4 lba_start;
 	unint4 lba_size;
-} PT_Entry;
+} __attribute__((packed)) PT_Entry;
 
 
 ErrorT PartitionManager::handleEFIPartitionTable(BlockDeviceDriver* bdev) {

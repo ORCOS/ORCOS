@@ -101,7 +101,7 @@ union u_ip_hdr {
 
 extern struct ethar_entry ar_table[AR_TABLE_SIZE];
 
-void ethar_init();
+void ethar_init(void);
 
 s8_t find_entry(struct ip_addr *ipaddr, u8_t flags);
 

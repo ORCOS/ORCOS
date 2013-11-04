@@ -18,11 +18,11 @@ public:
 
 	ErrorT markAsUsed(unint4 start, unint4 end, unint1 pid);
 
-	void* alloc(size_t size, int pid);
+	void* alloc(size_t size, unint1 pid);
 
 	ErrorT free(unint4 start, unint4 end);
 
-	ErrorT freeAll(int pid);
+	ErrorT freeAll(unint1 pid);
 };
 
 #endif /* PAGEDRAMMEMMANAGER_HH_ */

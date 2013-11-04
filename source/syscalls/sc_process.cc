@@ -322,7 +322,7 @@ int thread_run( int4 int_sp ) {
         // run the given thread
         register Kernel_ThreadCfdCl* t = pCurrentRunningTask->getThreadbyId( threadid );
 
-        if ( t != 0 && t->isNew() && !t->isReady() ) {
+        if ( (t != 0) && (t->isNew()) && (!t->isReady()) ) {
 
             LOG(SYSCALLS,TRACE,(SYSCALLS,TRACE,"Syscall: Thread run valid"));
 
@@ -406,7 +406,7 @@ int thread_self(int4 int_sp)
 int thread_yield(int4 int_sp)
 {
     // dispatch directly
-    theOS->getCPUDispatcher()->dispatch(theOS->getClock()->getTimeSinceStartup() - lastCycleStamp);
+    theOS->getCPUDispatcher()->dispatch((unint4) (theOS->getClock()->getTimeSinceStartup() - lastCycleStamp));
     return (cOk);
 }
 #endif

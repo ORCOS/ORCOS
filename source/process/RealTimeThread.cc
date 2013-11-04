@@ -42,9 +42,12 @@ RealTimeThread::RealTimeThread( void* p_startRoutinePointer, void* p_exitRoutine
 			this->executionTime = ((unint8) attr->executionTime) * (CLOCK_RATE / 1000000);
 			this->period = ((unint8) attr->period) * (CLOCK_RATE / 1000000);
 		#else
-			this->relativeDeadline = (unint8) (((float)attr->deadline) * ((float) CLOCK_RATE / 1000000.0f));
-			this->executionTime = (unint8) (((float)attr->executionTime) * ((float) CLOCK_RATE / 1000000.0f));
-			this->period = (unint8) (((float)attr->period) * ((float) CLOCK_RATE / 1000000.0f));
+			//this->relativeDeadline = (unint8) (((float)attr->deadline) * ((float) CLOCK_RATE / 1000000.0f));
+			//this->executionTime = (unint8) (((float)attr->executionTime) * ((float) CLOCK_RATE / 1000000.0f));
+			//this->period = (unint8) (((float)attr->period) * ((float) CLOCK_RATE / 1000000.0f));
+			this->relativeDeadline = (unint8) ((attr->deadline * CLOCK_RATE) /  1000000U);
+			this->executionTime = (unint8) ((attr->executionTime * CLOCK_RATE) /  1000000U);
+			this->period = (unint8) ((attr->period * CLOCK_RATE) /  1000000U);
 		#endif
 
         LOG(PROCESS,WARN,( PROCESS, WARN, "RealtimeThread:() period: %d",this->period));
@@ -62,10 +65,6 @@ RealTimeThread::RealTimeThread( void* p_startRoutinePointer, void* p_exitRoutine
     }
     this->instance = 1;
     this->arguments = 0;
-
-#ifdef AIS
-    lasterror = *((unsigned int*)FAIL_ADDR);
-#endif
 
     theScheduler->computePriority(this);
 }

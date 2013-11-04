@@ -195,8 +195,10 @@ int sendtoSyscall( int4 int_sp ) {
     SYSCALLGETPARAMS4(int_sp,socket,buffer,length,dest_addr);
 
     VALIDATE_IN_PROCESS(buffer);
-    //VALIDATE_IN_PROCESS(dest_addr);
     VALIDATE_IN_PROCESS((unint4) buffer + length);
+    if (dest_addr != 0) {
+    	VALIDATE_IN_PROCESS(dest_addr);
+    }
 
     Resource* res;
     res = pCurrentRunningTask->getOwnedResourceById( socket );
@@ -207,7 +209,7 @@ int sendtoSyscall( int4 int_sp ) {
         // resource valid and owned
         // check if resource is a socket
         if ( res->getType() == cSocket ) {
-            retval = ( (Socket*) res )->sendto( buffer, length, dest_addr );
+            retval = ( (Socket*) res )->sendto( buffer, (unint2) length, dest_addr );
 
         }
         else

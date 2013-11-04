@@ -254,7 +254,7 @@ netif_find(char *name)
     return NULL;
   }
 
-  num = name[2] - '0';
+  num = (u8_t) (name[2] - '0');
 
   for(netif = netif_list; netif != NULL; netif = netif->next) {
     if (num == netif->num &&
@@ -475,7 +475,7 @@ void netif_set_down(struct netif *netif)
 {
   if ( netif->flags & NETIF_FLAG_UP )
     {
-      netif->flags &= ~NETIF_FLAG_UP;
+      netif->flags &= (u8_t) ~NETIF_FLAG_UP;
 #if LWIP_SNMP
       snmp_get_sysuptime(&netif->ts);
 #endif

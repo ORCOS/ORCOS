@@ -101,7 +101,7 @@ void ethar_tmr(void) {
     }
 }
 
-void ethar_init() {
+void ethar_init(void) {
 	int i;
 
 #if AR_QUEUEING
@@ -138,12 +138,13 @@ static void free_ethar_q(struct ethar_q_entry *q) {
 #endif
 
 s8_t find_entry(struct ip_addr *ipaddr, u8_t flags) {
-    s8_t old_pending = AR_TABLE_SIZE, old_stable = AR_TABLE_SIZE;
-    s8_t empty = AR_TABLE_SIZE;
+    u8_t old_pending = AR_TABLE_SIZE, old_stable = AR_TABLE_SIZE;
+    u8_t empty = AR_TABLE_SIZE;
     u8_t i = 0, age_pending = 0, age_stable = 0;
+
 #if AR_QUEUEING
     /* oldest entry with packets on queue */
-    s8_t old_queue = AR_TABLE_SIZE;
+    u8_t old_queue = AR_TABLE_SIZE;
     /* its age */
     u8_t age_queue = 0;
 #endif
@@ -174,18 +175,8 @@ s8_t find_entry(struct ip_addr *ipaddr, u8_t flags) {
         {
             /* the cached entry is stable */
         	if (ip_addr_cmp( ipaddr,&ar_table[ethar_cached_entry].ipaddr_f)) {
-        		return ethar_cached_entry;
+        		return ((s8_t) (ethar_cached_entry));
         	}
-
-            /*if (ar_table[ethar_cached_entry].v == 0)
-            {
-                if (ip4_addr_cmp( &ipaddr->addr.ip4addr, &ar_table[ethar_cached_entry].ipaddr_f.ip4addr))
-                    return ethar_cached_entry;
-            }
-            else if (ip6_addr_cmp(&ipaddr->addr.ip6addr,
-                    &ar_table[ethar_cached_entry].ipaddr_f.ip6addr))
-                return ethar_cached_entry;*/
-
         }
 #endif /* #if LWIP_NETIF_HWADDRHINT */
     }
@@ -220,16 +211,6 @@ s8_t find_entry(struct ip_addr *ipaddr, u8_t flags) {
         {
             u8_t match = ip_addr_cmp( ipaddr,&ar_table[i].ipaddr_f);
 
-            /* if given, does IP address match IP address in ARP entry? */
-           /* if (ar_table[i].v == 0)
-            {
-                if (ip4_addr_cmp( &ipaddr->addr.ip4addr, &ar_table[i].ipaddr_f.ip4addr))
-                    match = 1;
-            }
-            else if (ip6_addr_cmp(&ipaddr->addr.ip6addr,
-                     &ar_table[i].ipaddr_f.ip6addr))
-                match = 1;*/
-
             if (match == 1)
             {
                 LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE, ("find_entry: found matching pending entry %"U16_F"\r\n", (u16_t)i));
@@ -239,7 +220,7 @@ s8_t find_entry(struct ip_addr *ipaddr, u8_t flags) {
 #else /* #if LWIP_NETIF_HWADDRHINT */
                 ethar_cached_entry = i;
 #endif /* #if LWIP_NETIF_HWADDRHINT */
-                return i;
+                return ((s8_t) i);
 #if AR_QUEUEING
                 /* pending with queued packets? */
             }
@@ -268,15 +249,6 @@ s8_t find_entry(struct ip_addr *ipaddr, u8_t flags) {
             /* if given, does IP address match IP address in ARP entry? */
             u8_t match =  ip_addr_cmp( ipaddr,&ar_table[i].ipaddr_f);
 
-          /*  if (ar_table[i].v == 0)
-            {
-                if (ip4_addr_cmp(&ipaddr->addr.ip4addr, &ar_table[i].ipaddr_f.ip4addr))
-                    match = 1;
-            }
-            else if (ip6_addr_cmp(&ipaddr->addr.ip4addr,
-                     &ar_table[i].ipaddr_f.ip4addr))
-                match = 1;*/
-
             if (match == 1)
             {
                 LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE, ("find_entry: found matching stable entry %"U16_F"\r\n", (u16_t)i));
@@ -286,7 +258,7 @@ s8_t find_entry(struct ip_addr *ipaddr, u8_t flags) {
 #else /* #if LWIP_NETIF_HWADDRHINT */
                 ethar_cached_entry = i;
 #endif /* #if LWIP_NETIF_HWADDRHINT */
-                return i;
+                return ((s8_t)i);
                 /* remember entry with oldest stable entry in oldest, its age in maxtime */
             }
             else if (ar_table[i].ctime >= age_stable)

@@ -105,7 +105,7 @@ void icmp6_input(struct pbuf *p, struct netif *inp) {
              {
              iecho->chksum += htons(ICMP6_ECHO << 8);
              }*/
-            iecho->chksum -= htons(0x100);
+            iecho->chksum = (u16_t) (iecho->chksum - htons(0x100));
             //LWIP_DEBUGF(ICMP_DEBUG, ("icmp_input: checksum failed for received ICMP echo (%"X16_F")\n", inet_chksum_pseudo(p, &(iphdr->src), &(iphdr->dest), IP_PROTO_ICMP, p->tot_len)));
             ICMP_STATS_INC(icmp.xmit);
 

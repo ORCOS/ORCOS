@@ -169,7 +169,7 @@ typedef struct {
  */
 typedef struct packet_layer {
     struct packet_layer*  next;// next packet layer
-    char*  bytes;       // pointer to the block
+    const char*  bytes;       // pointer to the block
     unint2 total_size;  // total size of all blocks in the linked list starting with this packet
     unint2 size;        // size of this block
 } packet_layer;

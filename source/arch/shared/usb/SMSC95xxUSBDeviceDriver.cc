@@ -312,6 +312,7 @@ static int smsc95xx_wait_eeprom(USBDevice *dev)
 	return 0;
 }
 
+#if 0
 static int smsc95xx_read_eeprom(USBDevice *dev, unint4 offset, unint4 length,
 				unint1 *data)
 {
@@ -339,6 +340,7 @@ static int smsc95xx_read_eeprom(USBDevice *dev, unint4 offset, unint4 length,
 	}
 	return 0;
 }
+#endif
 
 /*
  * mii_nway_restart - restart NWay (autonegotiation) for this interface
@@ -379,6 +381,9 @@ static int smsc95xx_phy_initialize(USBDevice *dev)
 	return 0;
 }
 
+
+#if 0
+/* read mac address out of eeprom */
 static int smsc95xx_init_mac_address(char* ethaddr, USBDevice *dev)
 {
 
@@ -398,6 +403,7 @@ static int smsc95xx_init_mac_address(char* ethaddr, USBDevice *dev)
 	 */
 	return (-1);
 }
+#endif
 
 
 static inline unint2 __get_unaligned_le16(unint1 *p)
@@ -735,7 +741,7 @@ struct netif tEMAC0Netif;
 ErrorT SMSC95xxUSBDeviceDriver::recv(unint4 recv_len)
 {
 
-	unint2 packet_len;
+	unint4 packet_len;
 
 	LOG(ARCH,TRACE,(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: Packet received.. USB-Len %x",recv_len));
 
@@ -746,7 +752,7 @@ ErrorT SMSC95xxUSBDeviceDriver::recv(unint4 recv_len)
 		memcpy(&packet_len, &dev->endpoints[this->bulkin_ep].recv_buffer[recvd_bytes], sizeof(packet_len));
 
 		// cpu to le
-		//packet_len = tole32(packet_len);
+		packet_len = cputole32(packet_len);
 
 		if (packet_len & RX_STS_ES_) {
 			LOG(ARCH,WARN,(ARCH,WARN,"SMSC95xxUSBDeviceDriver: RX packet header Error: %x",packet_len));
@@ -848,7 +854,7 @@ static err_t smsc95xx_low_level_output(struct netif *netif, struct pbuf *p) {
 	while (curp != 0) {
 		memcpy(&data[pos],curp->payload,curp->len);
 
-		pos  += curp->len;
+		pos  = (unint2) (pos + curp->len);
 		curp = curp->next;
 	}
 

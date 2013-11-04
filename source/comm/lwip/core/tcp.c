@@ -430,7 +430,7 @@ u32_t tcp_update_rcv_ann_wnd(struct tcp_pcb *pcb)
       pcb->rcv_ann_wnd = 0;
     } else {
       /* keep the right edge of window constant */
-      pcb->rcv_ann_wnd = pcb->rcv_ann_right_edge - pcb->rcv_nxt;
+      pcb->rcv_ann_wnd = (u16_t) (pcb->rcv_ann_right_edge - pcb->rcv_nxt);
     }
     return 0;
   }
@@ -447,7 +447,7 @@ u32_t tcp_update_rcv_ann_wnd(struct tcp_pcb *pcb)
 void
 tcp_recved(struct tcp_pcb *pcb, u16_t len)
 {
-  int wnd_inflation;
+  u32_t wnd_inflation;
 
   LWIP_ASSERT("tcp_recved: len would wrap rcv_wnd\r\n",
               len <= 0xffff - pcb->rcv_wnd );
@@ -863,10 +863,10 @@ tcp_segs_free(struct tcp_seg *seg)
   struct tcp_seg *next;
   while (seg != NULL) {
     next = seg->next;
-    count += tcp_seg_free(seg);
+    count = (u8_t) (count + tcp_seg_free(seg));
     seg = next;
   }
-  return count;
+  return (count);
 }
 
 /**
@@ -894,7 +894,7 @@ tcp_seg_free(struct tcp_seg *seg)
     }
     memp_free(MEMP_TCP_SEG, seg);
   }
-  return count;
+  return (count);
 }
 
 /**

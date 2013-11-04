@@ -31,15 +31,11 @@ WorkerTask::WorkerTask() :
     // create some worker threads
     for ( int i = 0; i < NUM_WORKERTHREADS; i++ ) {
         pWThread = new WorkerThread( this );
-        // anounce the workerthread to the dispatcher by blocking it
+        // announce the workerthread to the dispatcher by blocking it
         pWThread->block();
     }
 
     LOG(KERNEL,INFO,(KERNEL,INFO,"WorkerTask(): Workerthread Ids: 1-%d", pWThread->getId()));
-
-#ifdef HAS_Board_HatLayerCfd
-   // theOS->getHatLayer()->map((void*) 0,(void*) 0, 0 ,7,3,this->getId(), !ICACHE_ENABLE);
-#endif
 
     this->memManager = theOS->getMemoryManager();
 
@@ -48,13 +44,14 @@ WorkerTask::WorkerTask() :
 WorkerTask::~WorkerTask() {
 }
 
-WorkerThread* WorkerTask::addJob( int id, int pid, void* param, unint priority_param ) {
-	//LOG(PROCESS,INFO,(PROCESS,INFO,"WorkerTask::addJob(): job %d",id));
+WorkerThread* WorkerTask::addJob( unint1 id, unint1 pid, void* param, unint priority_param ) {
+	LOG(PROCESS,DEBUG,(PROCESS,DEBUG,"WorkerTask::addJob(): job %d",id));
 
     // find a available workerthread and assign the job
     LinkedListDatabaseItem* litem = this->threadDb.getHead();
 
-    // while weve got a workerthread thats working get the next one
+    // find a workerthread that is not assigned to a job yet
+    // TODO: we can enhance this by using a non-working queue
     while ( (litem != 0) &&  (  ( (WorkerThread*) litem->getData() )->hasJob())  )
         litem = litem->getSucc();
 
@@ -63,7 +60,7 @@ WorkerThread* WorkerTask::addJob( int id, int pid, void* param, unint priority_p
         pWThread->setJob( id, param );
         pWThread->setPID( pid );
 
-       // LOG(PROCESS,INFO,(PROCESS,INFO,"WorkerTask::addJob() assigned thread %d for job %d",pWThread->getId(),id));
+        LOG(PROCESS,DEBUG,(PROCESS,DEBUG,"WorkerTask::addJob() assigned thread %d for job %d",pWThread->getId(),id));
 
         // get the current cycles
         unint8 currentCycles = theClock->getTimeSinceStartup();
@@ -73,7 +70,7 @@ WorkerThread* WorkerTask::addJob( int id, int pid, void* param, unint priority_p
         pWThread->setInitialPriority( priority_param );
         pWThread->setEffectivePriority( priority_param );
     #else
-        // set the instance to 1
+        // reset the instance to 1
         pWThread->instance = 1;
 
 		#if CLOCK_RATE >= (1 MHZ)
@@ -82,8 +79,10 @@ WorkerThread* WorkerTask::addJob( int id, int pid, void* param, unint priority_p
              // set period for RM
              pWThread->period = priority_param * (CLOCK_RATE / 1000000)
 		#else
-			pWThread->relativeDeadline = (unint8) (((float)priority_param) * ((float) CLOCK_RATE / 1000000.0f));
-			pWThread->period = (unint8) (((float)priority_param) * ((float) CLOCK_RATE / 1000000.0f));
+			 pWThread->relativeDeadline = (unint8) ((priority_param * CLOCK_RATE) /  1000000U);
+             pWThread->period = (unint8) ((priority_param * CLOCK_RATE) /  1000000U);
+			//pWThread->relativeDeadline = (unint8) (((float)priority_param) * ((float) CLOCK_RATE / 1000000.0f));
+			//pWThread->period = (unint8) (((float)priority_param) * ((float) CLOCK_RATE / 1000000.0f));
 		#endif
 
 

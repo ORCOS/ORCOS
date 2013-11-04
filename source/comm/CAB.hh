@@ -59,8 +59,8 @@ private:
     // Length of the message buffer
     unint4 length;
 
-    // actual buffer
-    unint2 actb;
+    // actual buffer, -1 for none
+    int2 actb;
 
     // a free buffer
     unint2 free;
