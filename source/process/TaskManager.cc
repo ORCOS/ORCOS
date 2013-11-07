@@ -124,7 +124,7 @@ void TaskManager::initialize() {
 	LOG(KERNEL,INFO,(KERNEL,INFO,"Creating Initial Tasks"));
 
 	// create the initial set of tasks
-	for ( unint4 i = 1; i <= num_tasks * 3; i+=3 ) {
+	for ( unint1 i = 1; i <= num_tasks * 3; i+=3 ) {
 
 		// get the taskTable of task number i
 		taskTable* task_info = (taskTable*) *( &tasktable + i );

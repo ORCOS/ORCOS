@@ -33,7 +33,7 @@ extern Task* pCurrentRunningTask;
 
 extern "C" void dumpContext(void* sp_context) {
 
-	printf("Context at 0x%x:\r",sp_context);
+	printf("Context at 0x%x:\r", (unint4) sp_context);
 	printf("PSR: 0x%x\r", ((unint4*) sp_context)[0]);
 
 	for (int i = 1; i < 13; i++) {
@@ -237,7 +237,7 @@ extern "C"void dispatchIRQ(void* sp_int, int mode)
 	if (pCurrentRunningThread != 0)
 		assembler::restoreContext(pCurrentRunningThread);
 	else
-		theOS->getCPUDispatcher()->dispatch( theOS->getClock()->getTimeSinceStartup() - lastCycleStamp );
+		theOS->getCPUDispatcher()->dispatch( (unint4) (theOS->getClock()->getTimeSinceStartup() - lastCycleStamp) );
 
 	// we should never get here
 	while(1);

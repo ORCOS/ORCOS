@@ -275,6 +275,7 @@ static void smsc95xx_mdio_write(USBDevice *dev, int phy_id, int idx,
 		printf("Timed out writing MII reg %02X\n", idx);
 }
 
+#if 0
 static int smsc95xx_eeprom_confirm_not_busy(USBDevice *dev)
 {
 	volatile int4 timeout = 10000;
@@ -312,7 +313,6 @@ static int smsc95xx_wait_eeprom(USBDevice *dev)
 	return 0;
 }
 
-#if 0
 static int smsc95xx_read_eeprom(USBDevice *dev, unint4 offset, unint4 length,
 				unint1 *data)
 {

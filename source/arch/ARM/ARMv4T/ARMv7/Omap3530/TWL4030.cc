@@ -14,7 +14,7 @@ extern Kernel* theOS;
 ErrorT TWL4030::i2c_read_u8(unint1 i2c_num, unint1 *val, unint1 reg) {
 
 	if (i2c_dev == 0) {
-		return cError;
+		return (cError);
 	}
 
 	char i2c_val[8];
@@ -24,13 +24,13 @@ ErrorT TWL4030::i2c_read_u8(unint1 i2c_num, unint1 *val, unint1 reg) {
 	ErrorT  err = i2c_dev->readBytes(i2c_val,length);
 
 	*val = i2c_val[0];
-	return err;
+	return (err);
 }
 
 ErrorT TWL4030::i2c_write_u8(unint1 i2c_num, unint1 val, unint1 reg) {
 
 	if (i2c_dev == 0) {
-		return cError;
+		return (cError);
 	}
 
 	char i2c_val[8];
@@ -40,7 +40,7 @@ ErrorT TWL4030::i2c_write_u8(unint1 i2c_num, unint1 val, unint1 reg) {
 	unint4 length = 3;
 	ErrorT err = i2c_dev->writeBytes(i2c_val,length);
 
-	return err;
+	return (err);
 }
 
 
@@ -48,14 +48,12 @@ void TWL4030::power_reset_init(void)
  {
 	 unint1 val = 0;
 	 if (i2c_read_u8(TWL4030_CHIP_PM_MASTER, &val, TWL4030_PM_MASTER_P1_SW_EVENTS) != cOk) {
-			printf("Error:TWL4030: failed to read the power register\n");
-			printf("Could not initialize hardware reset\n");
+		 LOG(ARCH,WARN,(ARCH,WARN,"TWL4030() failed to write the power register\nCould not initialize hardware reset\n"));
 	 } else {
-			 val |= TWL4030_PM_MASTER_SW_EVENTS_STOPON_PWRON;
-			 if (i2c_write_u8(TWL4030_CHIP_PM_MASTER, val, TWL4030_PM_MASTER_P1_SW_EVENTS) != cOk) {
-					 printf("Error:TWL4030: failed to write the power register\n");
-					 printf("Could not initialize hardware reset\n");
-			}
+		 val |= TWL4030_PM_MASTER_SW_EVENTS_STOPON_PWRON;
+		 if (i2c_write_u8(TWL4030_CHIP_PM_MASTER, val, TWL4030_PM_MASTER_P1_SW_EVENTS) != cOk) {
+			 LOG(ARCH,WARN,(ARCH,WARN,"TWL4030() failed to write the power register\nCould not initialize hardware reset\n"));
+		}
 	 }
  }
 
@@ -67,17 +65,15 @@ void TWL4030::pmrecv_vsel_cfg(unint1 vsel_reg, unint1 vsel_val, unint1 dev_grp, 
 	 ret = i2c_write_u8(TWL4030_CHIP_PM_RECEIVER, vsel_val,
 							  vsel_reg);
 	if (ret != cOk) {
-			 printf("Could not write vsel to reg %02x (%d)\n",
-				   vsel_reg, ret);
-			return;
+		LOG(ARCH,WARN,(ARCH,WARN,"TWL4030()Could not write vsel to reg %02x (%d)\n",vsel_reg, ret));
+		return;
 	}
 
 	/* Select the Device Group (enable the supply if dev_grp_sel != 0) */
 	 ret = i2c_write_u8(TWL4030_CHIP_PM_RECEIVER, dev_grp_sel,
 							dev_grp);
 	 if (ret != cOk)
-			 printf("Could not write grp_sel to reg %02x (%d)\n",
-					 dev_grp, ret);
+		 LOG(ARCH,WARN,(ARCH,WARN,"TWL4030()Could not write grp_sel to reg %02x (%d)\n", dev_grp, ret));
  }
 
 /*static inline int gpio_twl4030_write(unint1 address, unint1 data)
@@ -94,9 +90,9 @@ int TWL4030::usb_write(unint1 address, unint1 data)
 
 	ret = i2c_write_u8(TWL4030_CHIP_USB, data, address);
 	if (ret != 0)
-		printf("TWL4030:USB:Write[0x%x] Error %d\n", address, ret);
+		LOG(ARCH,WARN,(ARCH,WARN,"TWL4030()USB_Write[0x%x] Error %d\n", address, ret));
 
-	return ret;
+	return (ret);
 }
 
 int TWL4030::usb_read(unint1 address)
@@ -108,9 +104,9 @@ int TWL4030::usb_read(unint1 address)
 	if (ret == 0)
 		ret = data;
 	else
-		printf("TWL4030:USB:Read[0x%x] Error %d\n", address, ret);
+		LOG(ARCH,WARN,(ARCH,WARN,"TWL4030()USB_Read[0x%x] Error %d\n", address, ret));
 
-	return ret;
+	return (ret);
 }
 
 void TWL4030::usb_ldo_init(void)
@@ -161,12 +157,12 @@ void TWL4030::phy_power(void)
 {
 	unint1 pwr, clk;
 
-	/* Power the PHY */
-	pwr = usb_read(TWL4030_USB_PHY_PWR_CTRL);
-	pwr &= ~PHYPWD;
+	/* Power the PHY, TODO check for error.. */
+	pwr = (unint1) usb_read(TWL4030_USB_PHY_PWR_CTRL);
+	pwr = (unint1) (pwr & ~PHYPWD);
 	usb_write(TWL4030_USB_PHY_PWR_CTRL, pwr);
 	/* Enable clocks */
-	clk = usb_read(TWL4030_USB_PHY_CLK_CTRL);
+	clk = (unint1) usb_read(TWL4030_USB_PHY_CLK_CTRL);
 	clk |= CLOCKGATING_EN | CLK32K_EN;
 	usb_write(TWL4030_USB_PHY_CLK_CTRL, clk);
 }
@@ -189,23 +185,23 @@ int TWL4030::usb_ulpi_init(void)
 	phy_power();
 
 	/* Enable DPLL to access PHY registers over I2C */
-	clk = usb_read(TWL4030_USB_PHY_CLK_CTRL);
+	clk = (unint1) usb_read(TWL4030_USB_PHY_CLK_CTRL);
 	clk |= REQ_PHY_DPLL_CLK;
 	usb_write(TWL4030_USB_PHY_CLK_CTRL, clk);
 
 	/* Check if the PHY DPLL is locked */
-	sts = usb_read(TWL4030_USB_PHY_CLK_CTRL_STS);
+	sts = (unint1) usb_read(TWL4030_USB_PHY_CLK_CTRL_STS);
 	while (!(sts & PHY_DPLL_CLK) && 0 < timeout) {
 		kwait(1);
-		sts = usb_read(TWL4030_USB_PHY_CLK_CTRL_STS);
+		sts = (unint1) usb_read(TWL4030_USB_PHY_CLK_CTRL_STS);
 		timeout -= 10;
 	}
 
 	/* Final check */
-	sts = usb_read(TWL4030_USB_PHY_CLK_CTRL_STS);
+	sts = (unint1) usb_read(TWL4030_USB_PHY_CLK_CTRL_STS);
 	if (!(sts & PHY_DPLL_CLK)) {
-		printf("Error:TWL4030:USB Timeout setting PHY DPLL clock\n");
-		return -1;
+		LOG(ARCH,WARN,(ARCH,WARN,"TWL4030(): Error:TWL4030:USB Timeout setting PHY DPLL clock"));
+		return (-1);
 	}
 
 	/*
@@ -213,7 +209,7 @@ int TWL4030::usb_ulpi_init(void)
 	 * Carkit and USB OTG.  Disable Carkit and enable USB OTG
 	 */
 	usb_write(TWL4030_USB_IFC_CTRL_CLR, CARKITMODE);
-	pwr = usb_read(TWL4030_USB_POWER_CTRL);
+	pwr = (unint1) usb_read(TWL4030_USB_POWER_CTRL);
 	pwr |= OTG_ENAB;
 	usb_write(TWL4030_USB_POWER_CTRL_SET, pwr);
 
@@ -224,11 +220,11 @@ int TWL4030::usb_ulpi_init(void)
 	usb_write(TWL4030_USB_FUNC_CTRL_CLR, XCVRSELECT_MASK);
 
 	/* Let ULPI control the DPLL clock */
-	clk = usb_read(TWL4030_USB_PHY_CLK_CTRL);
-	clk &= ~REQ_PHY_DPLL_CLK;
+	clk = (unint1) usb_read(TWL4030_USB_PHY_CLK_CTRL);
+	clk = (unint1) (clk & ~REQ_PHY_DPLL_CLK);
 	usb_write(TWL4030_USB_PHY_CLK_CTRL, clk);
 
-	return 0;
+	return (0);
 }
 
 

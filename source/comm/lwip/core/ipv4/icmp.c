@@ -93,7 +93,7 @@ icmp_input(struct pbuf *p, struct netif *inp)
 
   iphdr = p->payload;
   hlen = (u16_t) (IP4H_HL(iphdr) * 4);
-  if (pbuf_header(p, -hlen) || (p->tot_len < sizeof(u16_t)*2)) {
+  if (pbuf_header(p, (s16_t) -hlen) || (p->tot_len < sizeof(u16_t)*2)) {
     LWIP_DEBUGF(ICMP_DEBUG, ("icmp_input: short ICMP (%"U16_F" bytes) received\n", p->tot_len));
     goto lenerr;
   }
@@ -148,7 +148,7 @@ icmp_input(struct pbuf *p, struct netif *inp)
        */
       struct pbuf *r;
       /* switch p->payload to ip header */
-      if (pbuf_header(p, hlen)) {
+      if (pbuf_header(p, (s16_t) hlen)) {
         LWIP_ASSERT("icmp_input: moving p->payload to ip header failed\n", 0);
         goto memerr;
       }
@@ -167,7 +167,7 @@ icmp_input(struct pbuf *p, struct netif *inp)
       }
       iphdr = r->payload;
       /* switch r->payload back to icmp header */
-      if (pbuf_header(r, -hlen)) {
+      if (pbuf_header(r, (s16_t) -hlen)) {
         LWIP_ASSERT("icmp_input: restoring original p->payload failed\n", 0);
         goto memerr;
       }
@@ -193,9 +193,9 @@ icmp_input(struct pbuf *p, struct netif *inp)
     ICMPH_TYPE_SET(iecho, ICMP_ER);
     /* adjust the checksum */
     if (iecho->chksum >= htons(0xffff - (ICMP_ECHO << 8))) {
-      iecho->chksum += htons(ICMP_ECHO << 8) + 1;
+      iecho->chksum = (u16_t) (iecho->chksum + htons(ICMP_ECHO << 8) + 1);
     } else {
-      iecho->chksum += htons(ICMP_ECHO << 8);
+      iecho->chksum = (u16_t) (iecho->chksum + htons(ICMP_ECHO << 8));
     }
 
     /* Set the correct TTL and recalculate the header checksum. */
@@ -211,7 +211,7 @@ icmp_input(struct pbuf *p, struct netif *inp)
     /* increase number of echo replies attempted to send */
     snmp_inc_icmpoutechoreps();
 
-    if(pbuf_header(p, hlen)) {
+    if(pbuf_header(p, (s16_t) hlen)) {
       LWIP_ASSERT("Can't move over header in packet", 0);
     } else {
       err_t ret;

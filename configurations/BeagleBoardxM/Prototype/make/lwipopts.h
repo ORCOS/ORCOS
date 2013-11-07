@@ -7,8 +7,8 @@
 
 #ifndef LWIPOPTS_H_
 #define LWIPOPTS_H_
-#define LWIP_DEBUG
-
+//#define LWIP_DEBUG
+#define  LWIP_NOASSERT
 // includes for memcpy and memset
 #include "inc/memtools.hh"
 
@@ -86,7 +86,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  *    2 byte alignment -> #define MEM_ALIGNMENT 2
  */
 #ifndef MEM_ALIGNMENT
-#define MEM_ALIGNMENT                   4
+#define MEM_ALIGNMENT                   4U
 #endif
 
 /**
@@ -94,7 +94,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * a lot of data that needs to be copied, this should be set high.
  */
 #ifndef MEM_SIZE
-#define MEM_SIZE                        4096*4
+#define MEM_SIZE                        4096U
 #endif
 
 /**
@@ -181,7 +181,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * this should be set high.
  */
 #ifndef MEMP_NUM_PBUF
-#define MEMP_NUM_PBUF                   8
+#define MEMP_NUM_PBUF                   8U
 #endif
 
 /**
@@ -206,7 +206,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * (requires the LWIP_TCP option)
  */
 #ifndef MEMP_NUM_TCP_PCB
-#define MEMP_NUM_TCP_PCB                2
+#define MEMP_NUM_TCP_PCB                2U
 #endif
 
 /**
@@ -214,7 +214,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * (requires the LWIP_TCP option)
  */
 #ifndef MEMP_NUM_TCP_PCB_LISTEN
-#define MEMP_NUM_TCP_PCB_LISTEN         2
+#define MEMP_NUM_TCP_PCB_LISTEN         2U
 #endif
 
 /**
@@ -240,7 +240,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * (requires the ARP_QUEUEING option)
  */
 #ifndef MEMP_NUM_AR_QUEUE
-#define MEMP_NUM_AR_QUEUE              4
+#define MEMP_NUM_AR_QUEUE              4U
 #endif
 
 /**
@@ -250,7 +250,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * (requires the LWIP_IGMP option)
  */
 #ifndef MEMP_NUM_IGMP_GROUP
-#define MEMP_NUM_IGMP_GROUP             4
+#define MEMP_NUM_IGMP_GROUP             4U
 #endif
 
 /**
@@ -258,7 +258,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * (requires NO_SYS==0)
  */
 #ifndef MEMP_NUM_SYS_TIMEOUT
-#define MEMP_NUM_SYS_TIMEOUT            3
+#define MEMP_NUM_SYS_TIMEOUT            3U
 #endif
 
 /**
@@ -283,7 +283,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * (only needed if you use tcpip.c)
  */
 #ifndef MEMP_NUM_TCPIP_MSG_API
-#define MEMP_NUM_TCPIP_MSG_API          4
+#define MEMP_NUM_TCPIP_MSG_API          4U
 #endif
 
 /**
@@ -292,7 +292,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * (only needed if you use tcpip.c)
  */
 #ifndef MEMP_NUM_TCPIP_MSG_INPKT
-#define MEMP_NUM_TCPIP_MSG_INPKT        8
+#define MEMP_NUM_TCPIP_MSG_INPKT        8U
 #endif
 
 /**
@@ -320,7 +320,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * ARP_TABLE_SIZE: Number of active MAC-IP address pairs cached.
  */
 #ifndef AR_TABLE_SIZE
-#define AR_TABLE_SIZE                  4
+#define AR_TABLE_SIZE                  4U
 #endif
 
 /**
@@ -415,7 +415,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * packets even if the maximum amount of fragments is enqueued for reassembly!
  */
 #ifndef IP_REASS_MAX_PBUFS
-#define IP_REASS_MAX_PBUFS              10
+#define IP_REASS_MAX_PBUFS  10U
 #endif
 
 /**
@@ -432,14 +432,14 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * (requires IP_FRAG_USES_STATIC_BUF==1)
  */
 #if IP_FRAG_USES_STATIC_BUF && !defined(IP_FRAG_MAX_MTU)
-#define IP_FRAG_MAX_MTU                 1500
+#define IP_FRAG_MAX_MTU  1500U
 #endif
 
 /**
  * IP_DEFAULT_TTL: Default value for Time-To-Live used by transport layers.
  */
 #ifndef IP_DEFAULT_TTL
-#define IP_DEFAULT_TTL                  255
+#define IP_DEFAULT_TTL  255U
 #endif
 
 /**
@@ -878,7 +878,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * Ethernet.
  */
 #ifndef PBUF_LINK_HLEN
-#define PBUF_LINK_HLEN                  14
+#define PBUF_LINK_HLEN                  14U
 #endif
 
 /**

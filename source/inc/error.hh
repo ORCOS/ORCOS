@@ -79,11 +79,11 @@ class Kernel_ThreadCfdCl;
 // Error indicating that a parameter illegally was a null pointer
 #define cNullPointerProvided (int)-1002
 
-#define cStackOverflow (int)-1003;
+#define cStackOverflow (int)-1003
 
-#define cStackUnderflow (int) -1004;
+#define cStackUnderflow (int)-1004
 
-#define cWrongAlignment (int) -1005;
+#define cWrongAlignment (int)-1005
 
 // The following values with |C(s)| < 1000 are used inside the specific
 // components. Each component has 100 possible |C(s)|.

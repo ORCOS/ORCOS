@@ -40,12 +40,12 @@
 extern "C" {
 #endif
 
-#define PBUF_TRANSPORT_HLEN 20
+#define PBUF_TRANSPORT_HLEN 20U
 // TODO: enhance the memory performance here.. we may waste 20 bytes most of the time
-#define PBUF_IP_HLEN       40 // assume we are using IPv6
+#define PBUF_IP_HLEN       40U // assume we are using IPv6
 
-#define PBUF_IP4_HLEN      20 // assume we are using IPv6
-#define PBUF_IP6_HLEN      40 // assume we are using IPv6
+#define PBUF_IP4_HLEN      20U // assume we are using IPv6
+#define PBUF_IP6_HLEN      40U // assume we are using IPv6
 
 typedef enum {
   PBUF_TRANSPORT,

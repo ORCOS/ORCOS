@@ -214,7 +214,7 @@ ip4_input(struct pbuf *p, struct netif *inp)
   /* obtain IP header length in number of 32-bit words */
   iphdr_hlen = IP4H_HL(iphdr);
   /* calculate IP header length in bytes */
-  iphdr_hlen *= 4;
+  iphdr_hlen = (u16_t) (iphdr_hlen * 4);
   /* obtain ip length in bytes */
   iphdr_len = ntohs(IP4H_LEN(iphdr));
 
@@ -561,7 +561,7 @@ err_t ip_output_if_opt(struct pbuf *p, struct ip_addr *src, struct ip4_addr *des
 
     ip4_addr_set(&(iphdr->dest), dest);
 
-    IP4H_VHLTOS_SET(iphdr, 4, ip_hlen / 4, tos);
+    IP4H_VHLTOS_SET(iphdr, 4, ip_hlen >> 2, tos);
     IP4H_LEN_SET(iphdr, htons(p->tot_len));
     IP4H_OFFSET_SET(iphdr, 0);
     IP4H_ID_SET(iphdr, htons(ip_id));

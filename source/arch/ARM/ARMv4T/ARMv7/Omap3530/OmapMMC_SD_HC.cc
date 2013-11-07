@@ -18,9 +18,9 @@ extern Kernel* theOS;
 
 unint4 buf[256];
 
-OmapMMC_SD_HC::OmapMMC_SD_HC(T_OmapMMC_SD_HC_Init *init) : BlockDeviceDriver("mmc")
+OmapMMC_SD_HC::OmapMMC_SD_HC(T_OmapMMC_SD_HC_Init *p_init) : BlockDeviceDriver("mmc")
 {
-	baseAddress = init->Address;
+	baseAddress = p_init->Address;
 
 	// enable MMC1-3 interface clocks
 	unint4 CM_ICLKEN1_CORE = INW(0x48004a10);
@@ -151,7 +151,7 @@ void OmapMMC_SD_HC::init()
 		if (sendCommand(0x01020000,0) == cError) {
 			LOG(ARCH,ERROR,(ARCH,ERROR,"MMC/SD HC() Error on MMC Card Init: CMD1 failed.."));
 		} else {
-			unint4 value = INW(baseAddress + MMCHS_RSP10);
+			//unint4 value = INW(baseAddress + MMCHS_RSP10);
 			// todo wait until card is ready
 		}
 	} else {
@@ -215,21 +215,21 @@ void OmapMMC_SD_HC::init()
 	unint4 serial = (value >> 24) | ((value2 & 0xffffff) << 8);
 
 	LOG(ARCH,INFO,(ARCH,INFO,"MMC/SD HC() MDT=0x%x, Product Serial: 0x%x",mdt,serial));
-	unint4 revision = (value2 >> 8) & 0xff;
+	//unint4 revision = (value2 >> 8) & 0xff;
 	// get product name
 	unint4 value3 = INW(baseAddress + MMCHS_RSP54);
 	unint4 value4 = INW(baseAddress + MMCHS_RSP76);
-	char name[6];
-	memcpy(&name[1],&value3,4);
-	name[0] = value4 & 0xff;
-	name[5] = 0x0;
+	char p_name[6];
+	memcpy(&p_name[1],&value3,4);
+	p_name[0] = value4 & 0xff;
+	p_name[5] = 0x0;
 
-	LOG(ARCH,INFO,(ARCH,INFO,"MMC/SD HC() Product Name: %s",name));
+	LOG(ARCH,INFO,(ARCH,INFO,"MMC/SD HC() Product Name: %s",p_name));
 
 	// ask CARD for relative card address (RCA)
 	sendCommand(0x031a0000,0x1 << 16);
 	value = INW(baseAddress + MMCHS_RSP10);
-	this->rca = value >> 16;
+	this->rca = (unint2) (value >> 16);
 
 	LOG(ARCH,DEBUG,(ARCH,DEBUG,"MMC/SD HC() RCA: 0x%x",rca));
 
@@ -318,7 +318,7 @@ ErrorT OmapMMC_SD_HC::sendCommand(unint4 cmd, unint4 arg) {
 		LOG(ARCH,DEBUG,(ARCH,DEBUG,"MMC/SD HC() CMD ERROR: 0x%x",value));
 	}
 
-	if ( ((INW(baseAddress + MMCHS_STAT) & (STAT_CC)) == 0x1)) return cOk;
+	if ( ((INW(baseAddress + MMCHS_STAT) & (STAT_CC)) == 0x1)) return (cOk);
 
 	LOG(ARCH,WARN,(ARCH,WARN,"MMC/SD HC() CMD timed out"));
 
@@ -327,7 +327,7 @@ ErrorT OmapMMC_SD_HC::sendCommand(unint4 cmd, unint4 arg) {
 	while ( (INW(baseAddress + MMCHS_SYSCTL) & (1 << 25))  == 0x1) {};
 
 
-	return cError;
+	return (cError);
 }
 
 ErrorT OmapMMC_SD_HC::readBlock(unint4 blockNum, unint1* buffer, unint4 length) {
@@ -344,11 +344,11 @@ ErrorT OmapMMC_SD_HC::readBlock(unint4 blockNum, unint1* buffer, unint4 length) 
 
 	// CMD 17 (send single block)
 	if (sendCommand(0x113a0010,blockNum) == cError) {
-		return cError;
+		return (cError);
 	}
 
 	// buffer must be 4 bytes aligned
-	unint4* buf = (unint4*) buffer;
+	unint4* p_buf = (unint4*) buffer;
 
 	unint4 timeout = 100;
 	// TODO: remove 1 ms wait .. we could be much faster
@@ -357,24 +357,24 @@ ErrorT OmapMMC_SD_HC::readBlock(unint4 blockNum, unint1* buffer, unint4 length) 
 	unint4 mmc_stat = INW(baseAddress + MMCHS_STAT);
 	if (mmc_stat & (1<< 15)) {
 		LOG(ARCH,WARN,(ARCH,WARN,"MMC/SD HC()::readBlock failed: STAT: %x",mmc_stat));
-		return cError;
+		return (cError);
 	}
 
 	if (timeout == 0) {
 		LOG(ARCH,WARN,(ARCH,WARN,"MMC/SD HC()::readBlock timeout.."));
-		return cError;
+		return (cError);
 	}
 
 	while ((INW(baseAddress + MMCHS_PSTATE) & (1<<11)) == 0) {};
 
 	// check brr
 	while ((length > 0)) {
-		*buf = INW(baseAddress + MMCHS_DATA);
-		buf++;
+		*p_buf = INW(baseAddress + MMCHS_DATA);
+		p_buf++;
 		length -= 4;
 	}
 
-	return cOk;
+	return (cOk);
 
 	// CMD 12 (Stop transmission)
 	//sendCommand(0x0c1a0000,0x0);
@@ -395,7 +395,7 @@ ErrorT OmapMMC_SD_HC::writeBlock(unint4 blockNum, unint1* buffer, unint4 length)
 
 	// CMD 24 (write single block)
 	if (sendCommand(0x183a0000,blockNum) == cError) {
-		return cError;
+		return (cError);
 	}
 
 	unint4 timeout = 100;
@@ -406,27 +406,27 @@ ErrorT OmapMMC_SD_HC::writeBlock(unint4 blockNum, unint1* buffer, unint4 length)
 	unint4 mmc_stat = INW(baseAddress + MMCHS_STAT);
 	if (mmc_stat & (1<< 15)) {
 		LOG(ARCH,WARN,(ARCH,WARN,"MMC/SD HC()::writeBlock failed: STAT: %x",mmc_stat));
-		return cError;
+		return (cError);
 	}
 
 	if (timeout == 0) {
 		LOG(ARCH,WARN,(ARCH,WARN,"MMC/SD HC()::writeBlock timeout.."));
-		return cError;
+		return (cError);
 	}
 
 	// no error.. start writing data .. first wait until we are allowed to write
 	while ((INW(baseAddress + MMCHS_PSTATE) & (1<<10)) == 0) {};
 
-	unint4* buf = (unint4*) buffer;
+	unint4* p_buf = (unint4*) buffer;
 
 	// now write everything
 	while ((length > 0)) {
-		OUTW(baseAddress + MMCHS_DATA,*buf);
-		buf++;
+		OUTW(baseAddress + MMCHS_DATA,*p_buf);
+		p_buf++;
 		length -= 4;
 	}
 
-	return cOk;
+	return (cOk);
 
 
 }

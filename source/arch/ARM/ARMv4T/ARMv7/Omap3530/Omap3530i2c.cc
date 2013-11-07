@@ -32,7 +32,7 @@ void Omap3530i2c::wait_for_bus (void)
 	}
 
 	if (timeout <= 0) {
-		printf ("timed out in wait_for_bb: I2C_STAT=%x\n\r", INW (I2C_STAT));
+		LOG(ARCH,ERROR,(ARCH,ERROR,"Omap3530i2c::timed out in wait_for_bb: I2C_STAT=%x\n\r", INW (I2C_STAT)));
 	}
 	OUTW(I2C_STAT,0xFFFF);	 /* clear delayed stuff*/
 }
@@ -44,18 +44,18 @@ unint2 Omap3530i2c::wait_for_pin (void)
 
 	do {
 		kwait (10);
-		status = INW (I2C_STAT);
+		status = (unint2) INW (I2C_STAT);
 	} while (  !(status &
 		   (I2C_STAT_ROVR | I2C_STAT_XUDF | I2C_STAT_XRDY |
 		    I2C_STAT_RRDY | I2C_STAT_ARDY | I2C_STAT_NACK |
 		    I2C_STAT_AL)) && timeout--);
 
 	if (timeout <= 0) {
-		printf ("timed out in wait_for_pin: I2C_STAT=%x\n\r",INW (I2C_STAT));
+		LOG(ARCH,ERROR,(ARCH,ERROR,"Omap3530i2c::timed out in wait_for_pin: I2C_STAT=%x\n\r",INW (I2C_STAT)));
 		OUTW(I2C_STAT,0xFFFF);
 	}
 
-	return status;
+	return (status);
 }
 
 void Omap3530i2c::flush_fifo(void)
@@ -66,13 +66,12 @@ void Omap3530i2c::flush_fifo(void)
 	 * you get a bus error
 	 */
 	while(1){
-		stat = INW(I2C_STAT);
+		stat = (unint2) INW(I2C_STAT);
 		if(stat == I2C_STAT_RRDY){
             INW(I2C_DATA);
-
 			OUTW(I2C_STAT,I2C_STAT_RRDY);
-			kwait(1);
-		}else
+			//kwait(1);
+		} else
 			return;
 	}
 }
@@ -114,7 +113,7 @@ void Omap3530i2c::i2c_init(unint4 speed) {
 		psc = 2;
 
 	speed = speed/1000;		    	/* 100 or 400 kHz */
-	scl = ((fclk_rate/(speed*2)) - 7) + psc;	/* use 7 when PSC = 0 */
+	scl = (unint2) (((fclk_rate/(speed*2)) - 7) + psc);	/* use 7 when PSC = 0 */
 
 	OUTH (I2C_SCLL,scl);		// low level signal length
 	OUTH (I2C_SCLH,scl);		// high level signal length
@@ -125,7 +124,7 @@ void Omap3530i2c::i2c_init(unint4 speed) {
 	#define RTRSH 4
 	#define XTRSH 4
 	// setup and clear FIFO
-	unint4 buf = (RTRSH - 1) << 8 | 1 << 6 |
+	unint2 buf = (RTRSH - 1) << 8 | 1 << 6 |
 				(XTRSH - 1) | 1 << 14;
 	OUTH (I2C_BUF, buf);
 
@@ -160,8 +159,8 @@ ErrorT Omap3530i2c::i2c_read_byte (unint1 devaddr, unint1 regoffset, unint1 *val
 	OUTH (I2C_SA,devaddr);
 
 	// setup and clear FIFO
-	unint4 buf = (1 - 1) << 8 | I2C_BUF_RXFIFO_CLR | I2C_BUF_TXFIFO_CLR | (1 - 1);
-	OUTH (I2C_BUF, buf);
+	unint2 clearcmd = (1 - 1) << 8 | I2C_BUF_RXFIFO_CLR | I2C_BUF_TXFIFO_CLR | (1 - 1);
+	OUTH (I2C_BUF, clearcmd);
 	/* no stop bit needed here */
 	OUTH ( I2C_CON, I2C_CON_EN | I2C_CON_MST | I2C_CON_STT | I2C_CON_TRX);
 
@@ -196,7 +195,7 @@ ErrorT Omap3530i2c::i2c_read_byte (unint1 devaddr, unint1 regoffset, unint1 *val
 		//	unint4 buf = (length - 1) << 8 | I2C_BUF_RXFIFO_CLR | I2C_BUF_TXFIFO_CLR | (length - 1);
 
 		// for receiving somehow rx and tx threshold 1 only works
-		unint4 buf = (1 - 1) << 8 | I2C_BUF_RXFIFO_CLR | I2C_BUF_TXFIFO_CLR | (1 - 1);
+		unint2 buf = (1 - 1) << 8 | I2C_BUF_RXFIFO_CLR | I2C_BUF_TXFIFO_CLR | (1 - 1);
 		OUTH (I2C_BUF, buf);
 		/* stop bit needed here */
 		OUTH ( I2C_CON, I2C_CON_EN | I2C_CON_MST | I2C_CON_STT | I2C_CON_STP);
@@ -233,7 +232,7 @@ ErrorT Omap3530i2c::i2c_read_byte (unint1 devaddr, unint1 regoffset, unint1 *val
 	flush_fifo();
 	OUTH ( I2C_STAT, 0xFFFF);
 	OUTH ( I2C_CNT, 0);
-	return i2c_error;
+	return (i2c_error);
 }
 
 
@@ -261,17 +260,18 @@ ErrorT Omap3530i2c::readBytes(char* bytes, unint4& length) {
 
 	unint1 slave_address = bytes[0];
 	unint1 offset = bytes[1];
+	if (length > 32) return (cInvalidArgument);
 
 	LOG(ARCH,DEBUG,(ARCH,DEBUG,"Omap3530i2c::readBytes from client %d, offset %d, length %d",slave_address,offset, length));
 
-	if (isError(i2c_read_byte (slave_address, offset , (unint1*) bytes, length))) {
+	if (isError(i2c_read_byte (slave_address, offset , (unint1*) bytes, (unint1) length))) {
 		LOG(ARCH,WARN,(ARCH,WARN,"Omap3530i2c::readBytes I/O Error.. resetting I2C"));
 		i2c_init(OMAP_I2C_STANDARD);
 		length = 0;
-		return cError;
+		return (cError);
 	}
 
-	return cOk;
+	return (cOk);
 }
 
 ErrorT Omap3530i2c::i2c_write_bytes (unint1 devaddr, const char* value, unint1 length)
@@ -287,7 +287,7 @@ ErrorT Omap3530i2c::i2c_write_bytes (unint1 devaddr, const char* value, unint1 l
 	OUTH (I2C_SA, devaddr);
 
 	// setup and clear FIFO
-	unint4 buf = (length - 1) << 8 | I2C_BUF_RXFIFO_CLR | I2C_BUF_TXFIFO_CLR | (length - 1);
+	unint2 buf = (unint2) ((length - 1) << 8 | I2C_BUF_RXFIFO_CLR | I2C_BUF_TXFIFO_CLR | (length - 1));
 	OUTH (I2C_BUF, buf);
 
 	/* stop bit needed here */
@@ -338,7 +338,7 @@ ErrorT Omap3530i2c::i2c_write_bytes (unint1 devaddr, const char* value, unint1 l
 	flush_fifo();
 	OUTH (I2C_STAT, 0xFFFF);
 	OUTH (I2C_CNT, 0);
-	return i2c_error;
+	return (i2c_error);
 }
 
 ErrorT Omap3530i2c::writeBytes(const char* bytes, unint4 length) {
@@ -347,21 +347,21 @@ ErrorT Omap3530i2c::writeBytes(const char* bytes, unint4 length) {
 
 	if (length < 3) {
 		LOG(ARCH,WARN,(ARCH,WARN,"Omap3530i2c::writeBytes invalid data length. must be > 2"));
-		return cInvalidArgument;
+		return (cInvalidArgument);
 	}
 
 	if (length > 32) {
-		return cInvalidArgument;
+		return (cInvalidArgument);
 	}
 
 
-	if (isError(i2c_write_bytes (bytes[0], &bytes[1],length - 1))) {
-		// error occuredd .. reset i2c
+	if (isError(i2c_write_bytes (bytes[0], &bytes[1], (unint1) (length - 1)))) {
+		// error occurred .. reset i2c
 		LOG(ARCH,WARN,(ARCH,WARN,"Omap3530i2c::writeBytes I/O Error.. resetting I2C"));
 		i2c_init(OMAP_I2C_STANDARD);
-		return cError;
+		return (cError);
 	}
 
-	return cOk;
+	return (cOk);
 
 }

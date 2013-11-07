@@ -148,12 +148,12 @@ PACK_STRUCT_END
 #define IP4H_PROTO(hdr) (ntohs((hdr)->_ttl_proto) & 0xff)
 #define IP4H_CHKSUM(hdr) ((hdr)->_chksum)
 
-#define IP4H_VHLTOS_SET(hdr, v, hl, tos) (hdr)->_v_hl_tos = (htons(((v) << 12) | ((hl) << 8) | (tos)))
+#define IP4H_VHLTOS_SET(hdr, v, hl, tos) (hdr)->_v_hl_tos = (htons((u16_t) (  ((v) << 12) | ((hl) << 8) | (tos))))
 #define IP4H_LEN_SET(hdr, len) (hdr)->_len = (len)
 #define IP4H_ID_SET(hdr, id) (hdr)->_id = (id)
 #define IP4H_OFFSET_SET(hdr, off) (hdr)->_offset = (off)
-#define IP4H_TTL_SET(hdr, ttl) (hdr)->_ttl_proto = (htons(IP4H_PROTO(hdr) | ((u16_t)(ttl) << 8)))
-#define IP4H_PROTO_SET(hdr, proto) (hdr)->_ttl_proto = (htons((proto) | (IP4H_TTL(hdr) << 8)))
+#define IP4H_TTL_SET(hdr, ttl) (hdr)->_ttl_proto = (htons((u16_t) ( IP4H_PROTO(hdr) | ((u16_t)(ttl) << 8))))
+#define IP4H_PROTO_SET(hdr, proto) (hdr)->_ttl_proto = (htons((u16_t) ((proto) | (IP4H_TTL(hdr) << 8))))
 #define IP4H_CHKSUM_SET(hdr, chksum) (hdr)->_chksum = (chksum)
 
 /** The interface that provided the packet for the current callback invocation. */

@@ -90,10 +90,7 @@ u32_t chksum(u16_t *data, u16_t len) {
 	} pad;
 
 	// check alignment
-	/*if ((u16_t) data & 0x1) {
-
-		data = ((u16_t) data + 1);
-	}*/
+	//ASSERT( ((u16_t) data & 0x1) == 0);
 
 	while (len > 1) {
 		sum += *data++;
@@ -101,9 +98,12 @@ u32_t chksum(u16_t *data, u16_t len) {
 	}
 
 	if (len == 1) {
-		// TODO: does this work for both endianesses???? i dont think so
-		pad.b[0] = *(u16_t *) data;
-		pad.b[1] = 0;
+		// drop the 8 bits not belonging to the data, should work for both endiannesses
+		// TODO: verify this sum on big endian machines
+		pad.s = (u16_t) ((u8_t)( *(u16_t *) data));
+
+		//pad.b[0] = (u8_t) ( *(u16_t *) data);
+		//pad.b[1] = 0;
 		sum += pad.s;
 	}
 
@@ -239,7 +239,7 @@ u16_t inet_chksum_pbuf(struct pbuf *p) {
  */
 u16_t htons(u16_t n)
 {
-	return ((n & 0xff) << 8) | ((n & 0xff00) >> 8);
+	return ((u16_t) (((n & 0xff) << 8) | ((n & 0xff00) >> 8)));
 }
 
 /**
@@ -250,10 +250,10 @@ u16_t htons(u16_t n)
  */
 u32_t htonl(u32_t n)
 {
-	return ((n & 0xff) << 24) |
+	return (((n & 0xff) << 24) |
 	((n & 0xff00) << 8) |
 	((n & 0xff0000UL) >> 8) |
-	((n & 0xff000000UL) >> 24);
+	((n & 0xff000000UL) >> 24));
 }
 
 /**

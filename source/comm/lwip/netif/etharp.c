@@ -386,8 +386,8 @@ etharp_output(struct netif *netif, struct pbuf *q, struct ip4_addr *ipaddr)
     mcastaddr.addr[1] = 0x00;
     mcastaddr.addr[2] = 0x5e;
     mcastaddr.addr[3] = ip4_addr2(ipaddr) & 0x7f;
-    mcastaddr.addr[4] = ip4_addr3(ipaddr);
-    mcastaddr.addr[5] = ip4_addr4(ipaddr);
+    mcastaddr.addr[4] = (u8_t) ip4_addr3(ipaddr);
+    mcastaddr.addr[5] = (u8_t) ip4_addr4(ipaddr);
     /* destination Ethernet address is multicast */
     dest = &mcastaddr;
   /* unicast destination IP address? */
@@ -495,8 +495,8 @@ etharp_raw(struct netif *netif, const struct eth_addr *ethsrc_addr,
 #endif /* LWIP_AUTOIP */
     ethhdr->src.addr[k]  = ethsrc_addr->addr[k];
   }
-  hdr->sipaddr = *(struct ip4_addr2 *)ipsrc_addr;
-  hdr->dipaddr = *(struct ip4_addr2 *)ipdst_addr;
+  hdr->sipaddr = *(const struct ip4_addr2 *)ipsrc_addr;
+  hdr->dipaddr = *(const struct ip4_addr2 *)ipdst_addr;
 
   hdr->hwtype = htons(HWTYPE_ETHERNET);
   hdr->proto = htons(ETHTYPE_IPV4);

@@ -93,11 +93,11 @@ void  mem_free(void *mem);
 #endif /* MEM_LIBC_MALLOC */
 
 #ifndef LWIP_MEM_ALIGN_SIZE
-#define LWIP_MEM_ALIGN_SIZE(size) (((size) + MEM_ALIGNMENT - 1) & ~(MEM_ALIGNMENT-1))
+#define LWIP_MEM_ALIGN_SIZE(size) (( (size) + MEM_ALIGNMENT - 1) & (~(MEM_ALIGNMENT-1)))
 #endif
 
 #ifndef LWIP_MEM_ALIGN
-#define LWIP_MEM_ALIGN(addr) ((void *)(((mem_ptr_t)(addr) + MEM_ALIGNMENT - 1) & ~(mem_ptr_t)(MEM_ALIGNMENT-1)))
+#define LWIP_MEM_ALIGN(addr) ((void *)(((mem_ptr_t)(addr) + MEM_ALIGNMENT - 1) & (~(mem_ptr_t)(MEM_ALIGNMENT-1))))
 #endif
 
 #ifdef __cplusplus

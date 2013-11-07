@@ -116,7 +116,8 @@ tcp_input(struct pbuf *p, struct netif *inp)
 #endif
 
   /* remove header from payload */
-  if (pbuf_header(p, -((s16_t)(IPH_HL(iphdr) ))) || (p->tot_len < sizeof(struct tcp_hdr))) {
+  if (pbuf_header(p, (s16_t) -(IPH_HL(iphdr)) ) ||
+		  (p->tot_len < sizeof(struct tcp_hdr))) {
     /* drop short packets */
     LWIP_DEBUGF(TCP_INPUT_DEBUG, ("tcp_input: short packet (%"U16_F" bytes) discarded\r\n", p->tot_len));
     TCP_STATS_INC(tcp.lenerr);
@@ -159,10 +160,11 @@ tcp_input(struct pbuf *p, struct netif *inp)
   }
 #endif
 
+
   /* Move the payload pointer in the pbuf so that it points to the
      TCP data instead of the TCP header. */
   hdrlen = TCPH_HDRLEN(tcphdr);
-  if(pbuf_header(p, -(hdrlen * 4))){
+  if(pbuf_header(p, (s16_t) -(hdrlen * 4))){
     /* drop short packets */
     LWIP_DEBUGF(TCP_INPUT_DEBUG, ("tcp_input: short packet\r\n"));
     TCP_STATS_INC(tcp.lenerr);
@@ -180,7 +182,7 @@ tcp_input(struct pbuf *p, struct netif *inp)
   tcphdr->wnd = ntohs(tcphdr->wnd);
 
   flags = TCPH_FLAGS(tcphdr);
-  tcplen = p->tot_len + ((flags & (TCP_FIN | TCP_SYN)) ? 1 : 0);
+  tcplen = (u16_t) (p->tot_len + ((flags & (TCP_FIN | TCP_SYN)) ? 1 : 0));
 
   /* Demultiplex an incoming segment. First, we check if it is destined
      for an active connection. */
@@ -558,7 +560,7 @@ tcp_process(struct tcp_pcb *pcb)
       LWIP_DEBUGF(TCP_INPUT_DEBUG, ("tcp_process: Connection RESET\r\n"));
       LWIP_ASSERT("tcp_input: pcb->state != CLOSED", pcb->state != CLOSED);
       recv_flags |= TF_RESET;
-      pcb->flags &= ~TF_ACK_DELAY;
+      pcb->flags =  pcb->flags & ((u8_t) ~TF_ACK_DELAY);
       return ERR_RST;
     } else {
       LWIP_DEBUGF(TCP_INPUT_DEBUG, ("tcp_process: unacceptable reset seqno %"U32_F" rcv_nxt %"U32_F"\r\n",
@@ -603,9 +605,9 @@ tcp_process(struct tcp_pcb *pcb)
 
       /* Set ssthresh again after changing pcb->mss (already set in tcp_connect
        * but for the default value of pcb->mss) */
-      pcb->ssthresh = pcb->mss * 10;
+      pcb->ssthresh = (u16_t) (pcb->mss * 10);
 
-      pcb->cwnd = ((pcb->cwnd == 1) ? (pcb->mss * 2) : pcb->mss);
+      pcb->cwnd = (u16_t) (((pcb->cwnd == 1) ? (pcb->mss * 2) : pcb->mss));
       LWIP_ASSERT("pcb->snd_queuelen > 0", (pcb->snd_queuelen > 0));
       --pcb->snd_queuelen;
       LWIP_DEBUGF(TCP_QLEN_DEBUG, ("tcp_process: SYN-SENT --queuelen %"U16_F"\r\n", (u16_t)pcb->snd_queuelen));
@@ -664,7 +666,7 @@ tcp_process(struct tcp_pcb *pcb)
           pcb->acked--;
         }
 
-        pcb->cwnd = ((old_cwnd == 1) ? (pcb->mss * 2) : pcb->mss);
+        pcb->cwnd = (u16_t) (((old_cwnd == 1) ? (pcb->mss * 2) : pcb->mss));
 
         if (recv_flags & TF_GOT_FIN) {
           tcp_ack_now(pcb);
@@ -875,7 +877,7 @@ tcp_receive(struct tcp_pcb *pcb)
                 /* Inflate the congestion window, but not if it means that
                    the value overflows. */
                 if ((u16_t)(pcb->cwnd + pcb->mss) > pcb->cwnd) {
-                  pcb->cwnd += pcb->mss;
+                  pcb->cwnd = (u16_t) (pcb->cwnd + pcb->mss);
                 }
               } else if (pcb->dupacks == 3) {
                 /* Do fast retransmit */
@@ -897,7 +899,7 @@ tcp_receive(struct tcp_pcb *pcb)
          in fast retransmit. Also reset the congestion window to the
          slow start threshold. */
       if (pcb->flags & TF_INFR) {
-        pcb->flags &= ~TF_INFR;
+        pcb->flags = (u8_t) (pcb->flags & ~TF_INFR);
         pcb->cwnd = pcb->ssthresh;
       }
 
@@ -905,12 +907,12 @@ tcp_receive(struct tcp_pcb *pcb)
       pcb->nrtx = 0;
 
       /* Reset the retransmission time-out. */
-      pcb->rto = (pcb->sa >> 3) + pcb->sv;
+      pcb->rto = (s16_t) ((pcb->sa >> 3) + pcb->sv);
 
       /* Update the send buffer space. Diff between the two can never exceed 64K? */
       pcb->acked = (u16_t)(ackno - pcb->lastack);
 
-      pcb->snd_buf += pcb->acked;
+      pcb->snd_buf = (u16_t) (pcb->snd_buf + pcb->acked);
 
       /* Reset the fast retransmit variables. */
       pcb->dupacks = 0;
@@ -921,11 +923,11 @@ tcp_receive(struct tcp_pcb *pcb)
       if (pcb->state >= ESTABLISHED) {
         if (pcb->cwnd < pcb->ssthresh) {
           if ((u16_t)(pcb->cwnd + pcb->mss) > pcb->cwnd) {
-            pcb->cwnd += pcb->mss;
+            pcb->cwnd = (u16_t) (pcb->cwnd + pcb->mss);
           }
           LWIP_DEBUGF(TCP_CWND_DEBUG, ("tcp_receive: slow start cwnd %"U16_F"\r\n", pcb->cwnd));
         } else {
-          u16_t new_cwnd = (pcb->cwnd + pcb->mss * pcb->mss / pcb->cwnd);
+          u16_t new_cwnd =  (u16_t) (pcb->cwnd + pcb->mss * pcb->mss / pcb->cwnd);
           if (new_cwnd > pcb->cwnd) {
             pcb->cwnd = new_cwnd;
           }
@@ -942,8 +944,7 @@ tcp_receive(struct tcp_pcb *pcb)
       /* Remove segment from the unacknowledged list if the incoming
          ACK acknowlegdes them. */
       while (pcb->unacked != NULL &&
-             TCP_SEQ_LEQ(ntohl(pcb->unacked->tcphdr->seqno) +
-                         TCP_TCPLEN(pcb->unacked), ackno)) {
+             TCP_SEQ_LEQ( ntohl(pcb->unacked->tcphdr->seqno) + TCP_TCPLEN(pcb->unacked) , ackno)) {
         LWIP_DEBUGF(TCP_INPUT_DEBUG, ("tcp_receive: removing %"U32_F":%"U32_F" from pcb->unacked\r\n",
                                       ntohl(pcb->unacked->tcphdr->seqno),
                                       ntohl(pcb->unacked->tcphdr->seqno) +
@@ -959,7 +960,7 @@ tcp_receive(struct tcp_pcb *pcb)
           pcb->acked--;
         }
 
-        pcb->snd_queuelen -= pbuf_clen(next->p);
+        pcb->snd_queuelen = (u16_t) (pcb->snd_queuelen - pbuf_clen(next->p));
         tcp_seg_free(next);
 
         LWIP_DEBUGF(TCP_QLEN_DEBUG, ("%"U16_F" (after freeing unacked)\r\n", (u16_t)pcb->snd_queuelen));
@@ -1003,7 +1004,7 @@ tcp_receive(struct tcp_pcb *pcb)
       if ((pcb->acked != 0) && ((TCPH_FLAGS(next->tcphdr) & TCP_FIN) != 0)) {
         pcb->acked--;
       }
-      pcb->snd_queuelen -= pbuf_clen(next->p);
+      pcb->snd_queuelen = (u16_t) (pcb->snd_queuelen - pbuf_clen(next->p));
       tcp_seg_free(next);
       LWIP_DEBUGF(TCP_QLEN_DEBUG, ("%"U16_F" (after freeing unsent)\r\n", (u16_t)pcb->snd_queuelen));
       if (pcb->snd_queuelen != 0) {
@@ -1211,6 +1212,7 @@ tcp_receive(struct tcp_pcb *pcb)
               next = next->next;
               tcp_seg_free(old_seg);
             }
+
             /* rcv_nxt
              * .             |--ooseq--|
              * .==seg============|
@@ -1451,7 +1453,7 @@ tcp_parseopt(struct tcp_pcb *pcb)
 
   /* Parse the TCP MSS option, if present. */
   if(TCPH_HDRLEN(tcphdr) > 0x5) {
-    max_c = (TCPH_HDRLEN(tcphdr) - 5) << 2;
+    max_c = (u16_t) ((TCPH_HDRLEN(tcphdr) - 5) << 2);
     for (c = 0; c < max_c; ) {
       opt = opts[c];
       switch (opt) {
@@ -1472,11 +1474,11 @@ tcp_parseopt(struct tcp_pcb *pcb)
           return;
         }
         /* An MSS option with the right option length. */
-        mss = (opts[c + 2] << 8) | opts[c + 3];
+        mss = (u16_t) ((opts[c + 2] << 8) | opts[c + 3]);
         /* Limit the mss to the configured TCP_MSS and prevent division by zero */
-        pcb->mss = ((mss > TCP_MSS) || (mss == 0)) ? TCP_MSS : mss;
+        pcb->mss = (u16_t) (((mss > TCP_MSS) || (mss == 0)) ? TCP_MSS : mss);
         /* Advance to next option */
-        c += 0x04;
+        c = (u16_t) (c + 0x04);
         break;
 #if LWIP_TCP_TIMESTAMPS
       case 0x08:
@@ -1509,7 +1511,7 @@ tcp_parseopt(struct tcp_pcb *pcb)
         }
         /* All other options have a length field, so that we easily
            can skip past them. */
-        c += opts[c + 1];
+        c = (u16_t) (c + opts[c + 1]);
       }
     }
   }

@@ -55,23 +55,27 @@ OmapGPIO::~OmapGPIO() {
 }
 
 ErrorT OmapGPIO::readBytes(char* bytes, unint4& length) {
-	if (length < 4) return cError;
+	if (length < 4) return (cError);
 	// check alignment
-	if ( ( ((unint4)bytes) & 0x3) != 0) return cWrongAlignment;
+	if ( ( ((unint4)bytes) & 0x3) != 0) {
+		return (cWrongAlignment);
+	}
 
 	 * ((unint4*) bytes) = INW(this->baseAddress + 0x38);
 
 	length = 4;
-	return cOk;
+	return (cOk);
 
 }
 
 ErrorT OmapGPIO::writeBytes(const char* bytes, unint4 length) {
-	if (length != 4) return cError;
+	if (length != 4) return (cError);
 	// check alignment
-	if ( ( ((unint4)bytes) & 0x3) != 0) return cWrongAlignment;
+	if ( ( ((unint4)bytes) & 0x3) != 0) {
+		return (cWrongAlignment);
+	}
 
-	unint4 val = * ((unint4*) bytes);
+	unint4 val = * ((const unint4*) bytes);
 
 	// set data out for all 1 bits
 	OUTW(this->baseAddress + 0x94, val);

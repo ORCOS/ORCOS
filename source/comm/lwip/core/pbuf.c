@@ -187,20 +187,21 @@ pbuf_alloc(pbuf_layer layer, u16_t length, pbuf_type type)
   s32_t rem_len; /* remaining length */
   LWIP_DEBUGF(PBUF_DEBUG | LWIP_DBG_TRACE, ("pbuf_alloc(length=%"U16_F")\n", length));
 
+
   /* determine header offset */
   offset = 0;
   switch (layer) {
   case PBUF_TRANSPORT:
     /* add room for transport (often TCP) layer header */
-    offset += PBUF_TRANSPORT_HLEN;
+    offset = (u16_t) (offset + PBUF_TRANSPORT_HLEN);
     /* FALLTHROUGH */
   case PBUF_IP:
     /* add room for IP layer header */
-    offset += PBUF_IP_HLEN;
+    offset =  (u16_t) (offset + PBUF_IP_HLEN);
     /* FALLTHROUGH */
   case PBUF_LINK:
     /* add room for link layer header */
-    offset += PBUF_LINK_HLEN;
+    offset =  (u16_t) (offset + PBUF_LINK_HLEN);
     break;
   case PBUF_RAW:
     break;
@@ -228,7 +229,7 @@ pbuf_alloc(pbuf_layer layer, u16_t length, pbuf_type type)
     /* the total length of the pbuf chain is the requested size */
     p->tot_len = length;
     /* set the length of the first pbuf in the chain */
-    p->len = LWIP_MIN(length, PBUF_POOL_BUFSIZE_ALIGNED - LWIP_MEM_ALIGN_SIZE(offset));
+    p->len = (u16_t) LWIP_MIN(length, PBUF_POOL_BUFSIZE_ALIGNED - LWIP_MEM_ALIGN_SIZE(offset));
     LWIP_ASSERT("check p->payload + p->len does not overflow pbuf",
                 ((u8_t*)p->payload + p->len <=
                  (u8_t*)p + SIZEOF_STRUCT_PBUF + PBUF_POOL_BUFSIZE_ALIGNED));
@@ -262,7 +263,7 @@ pbuf_alloc(pbuf_layer layer, u16_t length, pbuf_type type)
       LWIP_ASSERT("rem_len < max_u16_t", rem_len < 0xffff);
       q->tot_len = (u16_t)rem_len;
       /* this pbuf length is pool size, unless smaller sized tail */
-      q->len = LWIP_MIN((u16_t)rem_len, PBUF_POOL_BUFSIZE_ALIGNED);
+      q->len = (u16_t) LWIP_MIN((u16_t)rem_len, PBUF_POOL_BUFSIZE_ALIGNED);
       q->payload = (void *)((u8_t *)q + SIZEOF_STRUCT_PBUF);
       LWIP_ASSERT("pbuf_alloc: pbuf q->payload properly aligned",
               ((mem_ptr_t)q->payload % MEM_ALIGNMENT) == 0);
@@ -281,7 +282,7 @@ pbuf_alloc(pbuf_layer layer, u16_t length, pbuf_type type)
     break;
   case PBUF_RAM:
     /* If pbuf is to be allocated in RAM, allocate memory for it. */
-    p = (struct pbuf*)mem_malloc(LWIP_MEM_ALIGN_SIZE(SIZEOF_STRUCT_PBUF + offset) + LWIP_MEM_ALIGN_SIZE(length));
+    p = (struct pbuf*)mem_malloc((mem_size_t) (LWIP_MEM_ALIGN_SIZE(SIZEOF_STRUCT_PBUF + offset) + LWIP_MEM_ALIGN_SIZE(length)));
     if (p == NULL) {
       return NULL;
     }
@@ -369,10 +370,10 @@ pbuf_realloc(struct pbuf *p, u16_t new_len)
   /* should this pbuf be kept? */
   while (rem_len > q->len) {
     /* decrease remaining length by pbuf length */
-    rem_len -= q->len;
+    rem_len = (u16_t) (rem_len - q->len);
     /* decrease total length indicator */
     LWIP_ASSERT("grow < max_u16_t", grow < 0xffff);
-    q->tot_len += (u16_t)grow;
+    q->tot_len = (u16_t) (q->tot_len + (u16_t)grow);
     /* proceed to next pbuf in chain */
     q = q->next;
     LWIP_ASSERT("pbuf_realloc: q != NULL", q != NULL);
@@ -384,7 +385,7 @@ pbuf_realloc(struct pbuf *p, u16_t new_len)
   /* (other types merely adjust their length fields */
   if ((q->type == PBUF_RAM) && (rem_len != q->len)) {
     /* reallocate and adjust the length of the pbuf that will be split */
-    q = mem_realloc(q, (u8_t *)q->payload - (u8_t *)q + rem_len);
+    q = mem_realloc(q, (mem_size_t) ((u8_t *)q->payload - (u8_t *)q + rem_len));
     LWIP_ASSERT("mem_realloc give q == NULL", q != NULL);
   }
   /* adjust length fields for new last pbuf */
@@ -433,11 +434,11 @@ pbuf_header(struct pbuf *p, s16_t header_size_increment)
     return 0;
  
   if (header_size_increment < 0){
-    increment_magnitude = -header_size_increment;
+    increment_magnitude = (u16_t) (-header_size_increment);
     /* Check that we aren't going to move off the end of the pbuf */
     LWIP_ERROR("increment_magnitude <= p->len", (increment_magnitude <= p->len), return 1;);
   } else {
-    increment_magnitude = header_size_increment;
+    increment_magnitude = (u16_t) (header_size_increment);
 #if 0
     /* Can't assert these as some callers speculatively call
          pbuf_header() to see if it's OK.  Will return 1 below instead. */
@@ -486,8 +487,8 @@ pbuf_header(struct pbuf *p, s16_t header_size_increment)
     return 1;
   }
   /* modify pbuf length fields */
-  p->len += header_size_increment;
-  p->tot_len += header_size_increment;
+  p->len =  (u16_t) (p->len + header_size_increment);
+  p->tot_len = (u16_t) (p->tot_len + header_size_increment);
 
   LWIP_DEBUGF(PBUF_DEBUG | LWIP_DBG_TRACE, ("pbuf_header: old %p new %p (%"S16_F")\n",
     (void *)payload, (void *)p->payload, header_size_increment));
@@ -656,13 +657,13 @@ pbuf_cat(struct pbuf *h, struct pbuf *t)
   /* proceed to last pbuf of chain */
   for (p = h; p->next != NULL; p = p->next) {
     /* add total length of second chain to all totals of first chain */
-    p->tot_len += t->tot_len;
+    p->tot_len = (u16_t) ( p->tot_len + t->tot_len);
   }
   /* { p is last pbuf of first h chain, p->next == NULL } */
   LWIP_ASSERT("p->tot_len == p->len (of last pbuf in chain)", p->tot_len == p->len);
   LWIP_ASSERT("p->next == NULL", p->next == NULL);
   /* add total length of second chain to last pbuf total of first chain */
-  p->tot_len += t->tot_len;
+  p->tot_len = (u16_t)  (p->tot_len + t->tot_len);
   /* chain last pbuf of head (p) with first of tail (t) */
   p->next = t;
   /* p->next now references t, but the caller will drop its reference to t,
@@ -715,7 +716,7 @@ pbuf_dechain(struct pbuf *p)
     /* assert tot_len invariant: (p->tot_len == p->len + (p->next? p->next->tot_len: 0) */
     LWIP_ASSERT("p->tot_len == p->len + q->tot_len", q->tot_len == p->tot_len - p->len);
     /* enforce invariant if assertion is disabled */
-    q->tot_len = p->tot_len - p->len;
+    q->tot_len = (u16_t) ( p->tot_len - p->len);
     /* decouple pbuf from remainder */
     p->next = NULL;
     /* total length of pbuf p is its own length only */
@@ -771,14 +772,14 @@ pbuf_copy(struct pbuf *p_to, struct pbuf *p_from)
     /* copy one part of the original chain */
     if ((p_to->len - offset_to) >= (p_from->len - offset_from)) {
       /* complete current p_from fits into current p_to */
-      len = p_from->len - offset_from;
+      len = (u16_t) (p_from->len - offset_from);
     } else {
       /* current p_from does not fit into current p_to */
-      len = p_to->len - offset_to;
+      len = (u16_t) ( p_to->len - offset_to);
     }
     MEMCPY((u8_t*)p_to->payload + offset_to, (u8_t*)p_from->payload + offset_from, len);
-    offset_to += len;
-    offset_from += len;
+    offset_to   = (u16_t) (offset_to + len);
+    offset_from = (u16_t) (offset_from +len);
     LWIP_ASSERT("offset_to <= p_to->len", offset_to <= p_to->len);
     if (offset_to == p_to->len) {
       /* on to next p_to (if any) */
@@ -839,21 +840,21 @@ pbuf_copy_partial(struct pbuf *buf, void *dataptr, u16_t len, u16_t offset)
   for(p = buf; len != 0 && p != NULL; p = p->next) {
     if ((offset != 0) && (offset >= p->len)) {
       /* don't copy from this buffer -> on to the next */
-      offset -= p->len;
+      offset = (u16_t) (offset - p->len);
     } else {
       /* copy from this buffer. maybe only partially. */
-      buf_copy_len = p->len - offset;
+      buf_copy_len = (u16_t) (p->len - offset);
       if (buf_copy_len > len)
           buf_copy_len = len;
       /* copy the necessary parts of the buffer */
       MEMCPY(&((char*)dataptr)[left], &((char*)p->payload)[offset], buf_copy_len);
-      copied_total += buf_copy_len;
-      left += buf_copy_len;
-      len -= buf_copy_len;
+      copied_total = (u16_t) (copied_total + buf_copy_len);
+      left = (u16_t) (left + buf_copy_len);
+      len = (u16_t) (len - buf_copy_len);
       offset = 0;
     }
   }
-  return copied_total;
+  return (copied_total);
 }
 
 /**
@@ -890,9 +891,9 @@ pbuf_take(struct pbuf *buf, const void *dataptr, u16_t len)
       buf_copy_len = p->len;
     }
     /* copy the necessary parts of the buffer */
-    MEMCPY(p->payload, &((char*)dataptr)[copied_total], buf_copy_len);
-    total_copy_len -= buf_copy_len;
-    copied_total += buf_copy_len;
+    MEMCPY(p->payload, &((const char*)dataptr)[copied_total], buf_copy_len);
+    total_copy_len = (u16_t) (total_copy_len - buf_copy_len);
+    copied_total = (u16_t) (copied_total + buf_copy_len);
   }
   LWIP_ASSERT("did not copy all data", total_copy_len == 0 && copied_total == len);
   return ERR_OK;

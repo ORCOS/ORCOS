@@ -357,7 +357,7 @@ ErrorT ARMv7HatLayer::disableHAT() {
 		:
 		: "r0","r1"
 		);
-	return cOk;
+	return (cOk);
 }
 
 void* ARMv7HatLayer::getLogicalAddress( void* physAddr ) {
@@ -388,7 +388,7 @@ void* ARMv7HatLayer::getLogicalAddress( void* physAddr ) {
 	if ( t == 4096) return 0;
 
 	logAddr = (unint*) ((t << 20) * 4);
-    return (void*)(logAddr + (((unint)physAddr << 12) >> 12));
+    return ((void*)(logAddr + (((unint)physAddr << 12) >> 12)));
 }
 
 void* ARMv7HatLayer::getPhysicalAddress( void* log_addr)
@@ -428,14 +428,14 @@ void* ARMv7HatLayer::getPhysicalAddress( void* log_addr)
 		this->dumpPageTable(pid);
 	}
 
-	return (void*) ret;
+	return ((void*) ret);
 }
 
 void ARMv7HatLayer::initialize() {
 
 	// clear page table area and make entries fault entries
-    volatile void* addr = (void*) &__PageTableSec_start;
-    volatile int* endaddr = (int*) &__PageTableSec_end;
+    void* addr = (void*) &__PageTableSec_start;
+    int* endaddr = (int*) &__PageTableSec_end;
 
     while (addr < endaddr)
     {

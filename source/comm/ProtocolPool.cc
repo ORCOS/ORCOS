@@ -44,12 +44,12 @@ ProtocolPool::getAddressProtocolbyId( unint2 id ) {
     // search database for protocol with id 'id'
 
     for ( int i = 0; i < addressprotocols->size(); i++ ) {
-        AddressProtocol* ap = (AddressProtocol*) addressprotocols->getItemAt( i );
+        AddressProtocol* ap = (AddressProtocol*) (addressprotocols->getItemAt( i ));
         if ( ap->getId() == id )
-            return ap;
+            return (ap);
     }
 
-    return 0;
+    return (0);
 }
 
 TransportProtocol*
@@ -59,8 +59,8 @@ ProtocolPool::getTransportProtocolbyId( unint2 id ) {
     for ( int i = 0; i < transportprotocols->size(); i++ ) {
         TransportProtocol* tp = (TransportProtocol*) transportprotocols->getItemAt( i );
         if ( tp->getId() == id )
-            return tp;
+            return (tp);
     }
 
-    return 0;
+    return (0);
 }
