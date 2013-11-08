@@ -14,16 +14,8 @@
 
 extern Kernel* theOS;
 
-#define DOS_PART_DISKSIG_OFFSET	0x1b8
-#define DOS_PART_TBL_OFFSET	0x1be
-#define DOS_PART_MAGIC_OFFSET	0x1fe
-#define DOS_PBR_FSTYPE_OFFSET	0x36
-#define DOS_PBR32_FSTYPE_OFFSET	0x52
-#define DOS_PBR_MEDIA_TYPE_OFFSET	0x15
-#define DOS_MBR	0
-#define DOS_PBR	1
 
-static unsigned char buffer[1024] __attribute__((aligned(4)));
+static unsigned char buffer[512] __attribute__((aligned(4)));
 
 static inline int is_extended(int part_type)
 {
@@ -90,7 +82,7 @@ ErrorT PartitionManager::handleEFIPartitionTable(BlockDeviceDriver* bdev) {
 
 ErrorT PartitionManager::tryDOSMBR(BlockDeviceDriver* bdev) {
 
-	memset(buffer,0,1024);
+	memset(buffer,0,sizeof(buffer));
 	// read first sector
 	int error = bdev->readBlock(0,buffer,1);
 	if (error < 0) return (cError);

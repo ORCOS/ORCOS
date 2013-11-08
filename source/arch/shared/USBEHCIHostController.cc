@@ -81,38 +81,37 @@ extern void kwait(int millseconds);
 
 
 // The main QH we are enqueing to
-QH QHmain __attribute__((aligned(32)));
+volatile QH QHmain __attribute__((aligned(32)));
 
-USB_EHCI_Host_Controller::USB_EHCI_Host_Controller(unint4 ehci_dev_base, void* p_memory_base, unint4 u_memory_size) {
+#define FRAME_LIST_SIZE 256
+unint4 framelist[FRAME_LIST_SIZE] __attribute__((aligned(0x1000)));
 
-	this->memory_base = p_memory_base;
-	this->memory_size = u_memory_size;
+USB_EHCI_Host_Controller::USB_EHCI_Host_Controller(unint4 ehci_dev_base) {
+
 	this->operational = false;
-	this->frame_list_size = 1024;
 	this->async_qh_reg = 0;
 
-	LOG(ARCH,INFO,(ARCH,INFO,"USB_EHCI_Host_Controller() creating HC at addr: %x",ehci_dev_base));
-	LOG(ARCH,INFO,(ARCH,INFO,"USB_EHCI_Host_Controller() periodic list at: %x",(unint4) p_memory_base));
+	LOG(ARCH,DEBUG,(ARCH,DEBUG,"USB_EHCI_Host_Controller() creating HC at addr: %x",ehci_dev_base));
 
 	hc_base = ehci_dev_base;
 
 	// Initialize the periodic list
-	for (int i = 0; i < 1024; i++) {
-		((volatile unint4*)memory_base)[i] = QT_NEXT_TERMINATE;
+	for (int i = 0; i < FRAME_LIST_SIZE; i++) {
+		framelist[i] = QT_NEXT_TERMINATE;
 	}
 
 	for (int i=0; i < 10; i++) {
 		registered_devices[i] = 0;
 	}
 
-	memset(&QHmain,0,sizeof(QH));
+	memset((void*) &QHmain,0,sizeof(QH));
 	QHmain.qh_endpt1 = QH_ENDPT1_H(1) | QH_ENDPT1_I(1);
 	QHmain.qh_curtd = QT_NEXT_TERMINATE;
 	QHmain.qh_overlay.qt_next = QT_NEXT_TERMINATE;
 	QHmain.qh_overlay.qt_altnext = QT_NEXT_TERMINATE;
 	QH_LINK(&QHmain, &QHmain);
 
-	LOG(ARCH,INFO,(ARCH,INFO,"USB_EHCI_Host_Controller() QHMain: 0x%x",&QHmain));
+	LOG(ARCH,DEBUG,(ARCH,DEBUG,"USB_EHCI_Host_Controller() QHMain: 0x%x",&QHmain));
 
 }
 
@@ -180,15 +179,13 @@ ErrorT USB_EHCI_Host_Controller::Init() {
 
 	LOG(ARCH,INFO,(ARCH,INFO,"USB_EHCI_Host_Controller::Init() resetting HC.."));
 
-
-	SETBITS(usbcmd_val,3,2,0);  // set frame list size to 1024
+	usbcmd_val = 0;
 	SETBITS(usbcmd_val,1,1,1);  // start hcreset
 	SETBITS(usbcmd_val,4,4,0);  // stop periodic schedule
 	SETBITS(usbcmd_val,5,5,0);  // stop asynch schedule
 	SETBITS(usbcmd_val,6,6,0);  // stop asynch schedule
 
 	OUTW(operational_register_base + USBCMD_OFFSET,usbcmd_val);
-	frame_list_size = 1024;
 
 	// wait for reset
 	volatile unint4 timeout = 100000;
@@ -204,7 +201,7 @@ ErrorT USB_EHCI_Host_Controller::Init() {
 	// set all frame list entries to invalid
 
 	// initialize the working queues
-	OUTW(operational_register_base + PERIODICLISTBASE_OFFSET,(unint4) this->memory_base);
+	OUTW(operational_register_base + PERIODICLISTBASE_OFFSET,(unint4) &framelist[0]);
 
 	OUTW(operational_register_base + ASYNCLISTADDR_OFFSET, (unint4) &QHmain);
 	// allow interrupts
@@ -212,15 +209,14 @@ ErrorT USB_EHCI_Host_Controller::Init() {
 	OUTW(operational_register_base + USBINTR_OFFSET,0x0);
 
 	// start the HC + enable asynchronous park mode so we can transfer multiple packets per frame
-	OUTW(operational_register_base + USBCMD_OFFSET,0x080b01);
+	OUTW(operational_register_base + USBCMD_OFFSET,0x080b09); // 256 frame list elements
+	//OUTW(operational_register_base + USBCMD_OFFSET,0x080b01); // 1024 frame list elements
 
 	OUTW(operational_register_base + USBSTS_OFFSET, 0x3f);
 
 	// route everything to us!
 	OUTW(operational_register_base + CONFIGFLAG_OFFSET,1);
 
-	volatile unint4 cmd = INW(operational_register_base + USBCMD_OFFSET);
-	LOG(ARCH,TRACE,(ARCH,TRACE,"USB_EHCI_Host_Controller::Init() USBCMD: %x",cmd));
 
 	// Initalize power of each port!
 	if (power_control) {
@@ -394,6 +390,7 @@ int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1
 		qtd2->qt_token 		= QT_TOKEN_DT(toggle) | QT_TOKEN_CERR(3) | QT_TOKEN_IOC(0) | QT_TOKEN_PID(dir)
 					 			 | QT_TOKEN_STATUS_ACTIVE | QT_TOKEN_TOTALBYTES(current_len);
 		qtd2->qt_buffer[0] 	= (unint4) data; // set control message to send
+		qtd2->qt_buffer[0] 	= (unint4) alignCeil((char*)data,4096); // set control message to send
 
 		QT_LINK(qtd_last,qtd2);
 
@@ -463,7 +460,6 @@ int USB_EHCI_Host_Controller::sendUSBControlMsg(USBDevice *dev, unint1 endpoint,
 	volatile qTD* qtd  =  &qtds[0];
 	volatile qTD* qtd2 =  &qtds[1];
 	volatile qTD* qtd3 =  &qtds[2];
-
 	volatile qTD* lastqtd = qtd2;
 
 	// SETUP TOKEN
@@ -474,11 +470,13 @@ int USB_EHCI_Host_Controller::sendUSBControlMsg(USBDevice *dev, unint1 endpoint,
 	qtd->qt_token 		= QT_TOKEN_DT(0) | QT_TOKEN_CERR(3) | QT_TOKEN_IOC(0) | QT_TOKEN_PID(QT_TOKEN_PID_SETUP)
 				 			 | QT_TOKEN_STATUS_ACTIVE | QT_TOKEN_TOTALBYTES(8);
 	qtd->qt_buffer[0] 	= (unint4) control_msg; // set control message to send
+	qtd->qt_buffer[1] 	= (unint4) alignCeil((char*)control_msg,4096); // set control message to send
 
 	unint1 dir = QT_TOKEN_PID_IN;
 	if (direction == USB_DIR_OUT) dir = QT_TOKEN_PID_OUT;
 
 	// IN Packet
+	qtd2->qt_next 		= QT_NEXT_TERMINATE;
 	qtd2->qt_altnext	= QT_NEXT_TERMINATE;
 	qtd2->qt_token 		= QT_TOKEN_DT(1) | QT_TOKEN_CERR(3) | QT_TOKEN_IOC(0) | QT_TOKEN_PID(dir)
 				 			 | QT_TOKEN_STATUS_ACTIVE | QT_TOKEN_TOTALBYTES(data_len);
@@ -511,6 +509,7 @@ int USB_EHCI_Host_Controller::sendUSBControlMsg(USBDevice *dev, unint1 endpoint,
 	volatile unint4 timeout = 400;
 	while (( QT_TOKEN_GET_STATUS(INW(&lastqtd->qt_token)) == 0x80  ) && timeout) {
 		timeout--;
+		// TODO: optimize?
 		kwait(1);
 	};
 
@@ -604,7 +603,6 @@ ErrorT USB_EHCI_Host_Controller::enumerateDevice(USBDevice *dev) {
 	OUTW(dev->endpoints[0].queue_head+4,cap_token);
 
 	dev->endpoints[0].max_packet_size = dev->dev_descr.bMaxPacketSize;
-	kwait(2);
 
 	// set the device address!
 	int4 error = dev->setAddress(next_device_addr);
@@ -677,7 +675,7 @@ ErrorT USB_EHCI_Host_Controller::enumerateDevice(USBDevice *dev) {
 
 		dev->endpoints[i+1].address			= descr->bEndpointAddress & 0xf;
 
-		LOG(ARCH,DEBUG,(ARCH,DEBUG,"USB_EHCI_Host_Controller: Endpoint Adress: %d, Dir: %d",dev->endpoints[i+1].address,dev->endpoints[i+1].direction));
+		LOG(ARCH,INFO,(ARCH,INFO,"USB_EHCI_Host_Controller: Endpoint Adress: %d, Dir: %d",dev->endpoints[i+1].address,dev->endpoints[i+1].direction));
 
 		//if (dev->endpoints[i+1].max_packet_size  < 0x40) dev->endpoints[i+1].max_packet_size  = 40;
 
@@ -697,7 +695,7 @@ ErrorT USB_EHCI_Host_Controller::enumerateDevice(USBDevice *dev) {
 	}
 
 	// Done Enumeration. Now set the configuration
-	kwait(2);
+
 	unint1 msg4[8] = USB_SETCONFIGURATION_REQUEST(1);
 	error = this->sendUSBControlMsg(dev,0,(unint1*) &msg4);
 
@@ -786,22 +784,22 @@ void USB_EHCI_Host_Controller::insertPeriodicQH(QH* qh, int poll_rate) {
 
 	qh->qh_link = QH_LINK_TERMINATE;
 
-	for (int i = poll_rate; i < 1024; i+= poll_rate) {
+	for (int i = poll_rate; i < FRAME_LIST_SIZE; i+= poll_rate) {
 
-		if (((unint4*)memory_base)[i] != QH_LINK_TERMINATE) {
+		if (framelist[i] != QH_LINK_TERMINATE) {
 			// insert into list close behind this element
 			// we keep at maximum one element per periodic entry and do
 			// not create a list as we would have to create lots of
 			// additional queue heads and track them
 			for (int j = 1; j < poll_rate; j++) {
-				if (((unint4*)memory_base)[i+j] != QH_LINK_TERMINATE) {
-					((unint4*)memory_base)[i+j] = (unint4) qh | QH_LINK_TYPE_QH;
+				if (framelist[i+j] != QH_LINK_TERMINATE) {
+					framelist[i+j] = (unint4) qh | QH_LINK_TYPE_QH;
 					break;
 				}
 			}
 
 		} else {
-			((unint4*)memory_base)[i] = (unint4) qh | QH_LINK_TYPE_QH;
+			framelist[i] = (unint4) qh | QH_LINK_TYPE_QH;
 
 		}
 	}
@@ -809,15 +807,15 @@ void USB_EHCI_Host_Controller::insertPeriodicQH(QH* qh, int poll_rate) {
 
 void USB_EHCI_Host_Controller::removefromPeriodic(QH* qh, int poll_rate) {
 
-	for (int i = poll_rate; i < 1024; i++) {
+	for (int i = poll_rate; i < FRAME_LIST_SIZE; i++) {
 
-		if (((unint4*)memory_base)[i] != QH_LINK_TERMINATE) {
+		if (framelist[i] != QH_LINK_TERMINATE) {
 
-			QH* current_qh = (QH*) (((unint4*)memory_base)[i] & ~0x1f);
+			QH* current_qh = (QH*) (framelist[i] & ~0x1f);
 
 			if (current_qh == qh) {
 				// remove this qh reference here
-				((unint4*)memory_base)[i] = QH_LINK_TERMINATE;
+				framelist[i] = QH_LINK_TERMINATE;
 			}
 
 		}
@@ -908,16 +906,15 @@ ErrorT USBHub::enumerate() {
 	// power on ports..
 	for (unint1 i= 1; i <= hub_descr.bnrPorts; i++) {
 		// individual power control... power all ports
-		unint1 msg2[8] __attribute__((aligned(4))) = USB_SETPORT_FEATURE(PORT_POWER);
+		unint1 msg2[8] = USB_SETPORT_FEATURE(PORT_POWER);
 		msg2[4] = i;
-
-		error = controller->sendUSBControlMsg(dev,0,(unint1*) &msg2);
+		error = controller->sendUSBControlMsg(dev,0,(unint1*) &msg2,USB_DIR_IN,0,(unint1*) &recv_buf);
 		if (error < 0) {
 			LOG(ARCH,ERROR,(ARCH,ERROR,"USB_EHCI_Host_Controller: Hub Port %d PowerOn failed.. ",i));
+		} else {
+			// we may stop if port power is ganged as all other ports are now also powered
+			if (port_power_control == 0) break;
 		}
-
-		// we may stop if port power is ganged as all other ports are now also powered
-		if (port_power_control == 0) break;
 	}
 
 	OUTW(controller->operational_register_base + USBSTS_OFFSET, 0x3f);

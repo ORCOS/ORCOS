@@ -33,10 +33,10 @@ typedef signed     int     s32_t;
 typedef unsigned long mem_ptr_t;
 
 /* Define (sn)printf formatters for these lwIP types */
-#define U16_F "d"
+#define U16_F "u"
 #define S16_F "d"
 #define X16_F "x"
-#define U32_F "d"
+#define U32_F "u"
 #define S32_F "d"
 #define X32_F "x"
 

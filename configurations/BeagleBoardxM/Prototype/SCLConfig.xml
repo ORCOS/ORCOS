@@ -12,7 +12,7 @@
       <Log Prefix="HAL" Level="WARN" />
       <Log Prefix="ARCH" Level="INFO" />
       <Log Prefix="FILESYSTEM" Level="WARN" />
-      <Log Prefix="COMM" Level="WARN" />
+      <Log Prefix="COMM" Level="TRACE" />
     </Logging>
   </Options>
   <!-- ************************************

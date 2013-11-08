@@ -822,9 +822,9 @@ int i;
 }*/
 
 static err_t smsc95xx_low_level_output(struct netif *netif, struct pbuf *p) {
-	LOG(ARCH,TRACE,(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: sending packet.."));
+	LOG(ARCH,INFO,(ARCH,INFO,"SMSC95xxUSBDeviceDriver: sending packet.."));
 
-	//memset(data,0,64);
+	memset(data,0,64);
 
 	if (p->tot_len > 1500) {
 		//pbuf_free(p);

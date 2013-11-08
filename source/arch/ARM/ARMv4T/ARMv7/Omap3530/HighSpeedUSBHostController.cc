@@ -10,8 +10,6 @@
 #include "inc/memio.h"
 #include "kernel/Kernel.hh"
 
-// define a huge memory area useable by the ehci controller
-static unint1 ehci_memory[8000] __attribute__((aligned(0x1000)));
 extern Kernel* theOS;
 
 extern void kwait(int milliseconds);
@@ -292,7 +290,7 @@ static inline void omap_ehci_phy_reset(int on, int delay)
 
 
 HighSpeedUSBHostController::HighSpeedUSBHostController(T_HighSpeedUSBHostController_Init *init) :
-		USB_EHCI_Host_Controller(0x48064800,&ehci_memory,8000)
+		USB_EHCI_Host_Controller(0x48064800)
 {
 	// do some omap stuff here
 	// be sure the functional clocks of the usb host subsystem are enabled!

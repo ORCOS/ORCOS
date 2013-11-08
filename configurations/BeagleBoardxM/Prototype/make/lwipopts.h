@@ -7,8 +7,8 @@
 
 #ifndef LWIPOPTS_H_
 #define LWIPOPTS_H_
-//#define LWIP_DEBUG
-#define  LWIP_NOASSERT
+#define LWIP_DEBUG
+//#define  LWIP_NOASSERT
 // includes for memcpy and memset
 #include "inc/memtools.hh"
 
@@ -1568,7 +1568,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * CHECKSUM_CHECK_TCP==1: Check checksums in software for incoming TCP packets.
  */
 #ifndef CHECKSUM_CHECK_TCP
-#define CHECKSUM_CHECK_TCP  0
+#define CHECKSUM_CHECK_TCP  			0
 #endif
 
 /*
@@ -1590,7 +1590,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * debug messages of certain types.
  */
 #ifndef LWIP_DBG_TYPES_ON
-#define LWIP_DBG_TYPES_ON               LWIP_DBG_OFF
+#define LWIP_DBG_TYPES_ON               LWIP_DBG_ON
 #endif
 
 /**
@@ -1604,14 +1604,14 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * NETIF_DEBUG: Enable debugging in netif.c.
  */
 #ifndef NETIF_DEBUG
-#define NETIF_DEBUG  LWIP_DBG_OFF
+#define NETIF_DEBUG  LWIP_DBG_ON
 #endif
 
 /**
  * PBUF_DEBUG: Enable debugging in pbuf.c.
  */
 #ifndef PBUF_DEBUG
-#define PBUF_DEBUG                      LWIP_DBG_OFF
+#define PBUF_DEBUG                      LWIP_DBG_ON
 #endif
 
 /**
@@ -1660,7 +1660,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * IP_DEBUG: Enable debugging for IP.
  */
 #ifndef IP_DEBUG
-#define IP_DEBUG  LWIP_DBG_OFF
+#define IP_DEBUG  LWIP_DBG_ON
 #endif
 
 /**
@@ -1681,14 +1681,14 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * MEM_DEBUG: Enable debugging in mem.c.
  */
 #ifndef MEM_DEBUG
-#define MEM_DEBUG                       LWIP_DBG_OFF
+#define MEM_DEBUG                       LWIP_DBG_ON
 #endif
 
 /**
  * MEMP_DEBUG: Enable debugging in memp.c.
  */
 #ifndef MEMP_DEBUG
-#define MEMP_DEBUG                      LWIP_DBG_OFF
+#define MEMP_DEBUG                      LWIP_DBG_ON
 #endif
 
 /**
@@ -1702,14 +1702,14 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * TCP_DEBUG: Enable debugging for TCP.
  */
 #ifndef TCP_DEBUG
-#define TCP_DEBUG  LWIP_DBG_OFF
+#define TCP_DEBUG  LWIP_DBG_ON
 #endif
 
 /**
  * TCP_INPUT_DEBUG: Enable debugging in tcp_in.c for incoming debug.
  */
 #ifndef TCP_INPUT_DEBUG
-#define TCP_INPUT_DEBUG  LWIP_DBG_OFF
+#define TCP_INPUT_DEBUG  LWIP_DBG_ON
 #endif
 
 /**
@@ -1745,7 +1745,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * TCP_OUTPUT_DEBUG: Enable debugging in tcp_out.c output functions.
  */
 #ifndef TCP_OUTPUT_DEBUG
-#define TCP_OUTPUT_DEBUG  LWIP_DBG_OFF
+#define TCP_OUTPUT_DEBUG  LWIP_DBG_ON
 #endif
 
 /**
@@ -1773,7 +1773,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * TCPIP_DEBUG: Enable debugging in tcpip.c.
  */
 #ifndef TCPIP_DEBUG
-#define TCPIP_DEBUG  LWIP_DBG_OFF
+#define TCPIP_DEBUG  LWIP_DBG_ON
 #endif
 
 /**

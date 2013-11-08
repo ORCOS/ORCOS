@@ -70,7 +70,7 @@ void Omap3530i2c::flush_fifo(void)
 		if(stat == I2C_STAT_RRDY){
             INW(I2C_DATA);
 			OUTW(I2C_STAT,I2C_STAT_RRDY);
-			//kwait(1);
+			kwait(1);
 		} else
 			return;
 	}

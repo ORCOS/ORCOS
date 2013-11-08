@@ -71,7 +71,6 @@ tcp_output_set_header(struct tcp_pcb *pcb, struct pbuf *p, int optlen,
   TCPH_FLAGS_SET(tcphdr, TCP_ACK);
   tcphdr->wnd = htons(pcb->rcv_ann_wnd);
   tcphdr->urgp = 0;
-  TCPH_HDRLEN_SET(tcphdr, (5 + (optlen >> 2)));
   tcphdr->chksum = 0;
 
   /* If we're sending a packet, update the announced right window edge */
@@ -119,7 +118,7 @@ err_t
 tcp_write(struct tcp_pcb *pcb, struct pbuf* p_data, u16_t len, u8_t apiflags)
 
 {
-  LWIP_DEBUGF(TCP_OUTPUT_DEBUG, ("tcp_write(pcb=%p, data=%p, len=%"U16_F", apiflags=%"U16_F")\r\n", (void *)pcb,
+  LWIP_DEBUGF(TCP_OUTPUT_DEBUG, ("tcp_write(pcb=%x, data=%x, len=%"U16_F", apiflags=%"U16_F")\r", (void *)pcb,
     p_data, len, (u16_t)apiflags));
   /* connection is in valid state for data transmission? */
   if (pcb->state == ESTABLISHED ||
@@ -136,7 +135,7 @@ tcp_write(struct tcp_pcb *pcb, struct pbuf* p_data, u16_t len, u8_t apiflags)
     }
     return ERR_OK;
   } else {
-    LWIP_DEBUGF(TCP_OUTPUT_DEBUG | LWIP_DBG_STATE | LWIP_DBG_LEVEL_SEVERE, ("tcp_write() called in invalid state\r\n"));
+    LWIP_DEBUGF(TCP_OUTPUT_DEBUG | LWIP_DBG_STATE | LWIP_DBG_LEVEL_SEVERE, ("tcp_write() called in invalid state\r"));
     return ERR_CONN;
   }
 }
@@ -173,7 +172,7 @@ tcp_enqueue(struct tcp_pcb *pcb, struct pbuf *p_input, u16_t len,
   u8_t optlen;
 
   LWIP_DEBUGF(TCP_OUTPUT_DEBUG, 
-              ("tcp_enqueue(pcb=%x, arg=%x, len=%"U16_F", flags=%"X16_F", apiflags=%"U16_F")\r\n",
+              ("tcp_enqueue(pcb=%x, arg=%x, len=%"U16_F", flags=%"X16_F", apiflags=%"U16_F")\r",
                (u32_t)pcb, (u32_t) p_input, len, (u16_t)flags, (u16_t)apiflags));
   LWIP_ERROR("tcp_enqueue: packet needs payload, options, or SYN/FIN (programmer violates API)",
              ((len != 0) || (optflags != 0) || ((flags & (TCP_SYN | TCP_FIN)) != 0)),
@@ -184,7 +183,7 @@ tcp_enqueue(struct tcp_pcb *pcb, struct pbuf *p_input, u16_t len,
   /* fail on too much data */
   if (len > pcb->snd_buf) {
     LWIP_DEBUGF(TCP_OUTPUT_DEBUG | LWIP_DBG_LEVEL_WARNING,
-      ("tcp_enqueue: too much data (len=%"U16_F" > snd_buf=%"U16_F")\r\n", len, pcb->snd_buf));
+      ("tcp_enqueue: too much data (len=%"U16_F" > snd_buf=%"U16_F")\r", len, pcb->snd_buf));
     pcb->flags |= TF_NAGLEMEMERR;
     return ERR_MEM;
   }
@@ -204,7 +203,7 @@ tcp_enqueue(struct tcp_pcb *pcb, struct pbuf *p_input, u16_t len,
    * by the call to this function. */
   seqno = pcb->snd_lbb;
 
-  LWIP_DEBUGF(TCP_QLEN_DEBUG, ("tcp_enqueue: queuelen: %"U16_F"\r\n", (u16_t)pcb->snd_queuelen));
+  LWIP_DEBUGF(TCP_QLEN_DEBUG, ("tcp_enqueue: queuelen: %"U16_F"\r", (u16_t)pcb->snd_queuelen));
 
   /* If total number of pbufs on the unsent/unacked queues exceeds the
    * configured maximum, return an error */
@@ -212,7 +211,7 @@ tcp_enqueue(struct tcp_pcb *pcb, struct pbuf *p_input, u16_t len,
   /* check for configured max queuelen and possible overflow */
   if ((queuelen >= TCP_SND_QUEUELEN) || (queuelen > TCP_SNDQUEUELEN_OVERFLOW)) {
     LWIP_DEBUGF(TCP_OUTPUT_DEBUG | LWIP_DBG_LEVEL_WARNING,
-      ("tcp_enqueue: too long queue %"U16_F" (max %"U16_F")\r\n", queuelen, TCP_SND_QUEUELEN));
+      ("tcp_enqueue: too long queue %"U16_F" (max %"U16_F")\r", queuelen, TCP_SND_QUEUELEN));
     TCP_STATS_INC(tcp.memerr);
     pcb->flags |= TF_NAGLEMEMERR;
     return ERR_MEM;
@@ -231,13 +230,13 @@ tcp_enqueue(struct tcp_pcb *pcb, struct pbuf *p_input, u16_t len,
   seglen = 0;
   while (queue == NULL || left > 0) {
     /* The segment length (including options) should be at most the MSS */
-    seglen = (u16_t) (left > (pcb->mss - optlen) ? (pcb->mss - optlen) : left);
+    seglen = left > (pcb->mss - optlen) ? (pcb->mss - optlen) : left;
 
     /* Allocate memory for tcp_seg, and fill in fields. */
     seg = memp_malloc(MEMP_TCP_SEG);
     if (seg == NULL) {
       LWIP_DEBUGF(TCP_OUTPUT_DEBUG | LWIP_DBG_LEVEL_SERIOUS, 
-                  ("tcp_enqueue: could not allocate memory for tcp_seg\r\n"));
+                  ("tcp_enqueue: could not allocate memory for tcp_seg\r"));
       goto memerr;
     }
     seg->next = NULL;
@@ -267,7 +266,7 @@ tcp_enqueue(struct tcp_pcb *pcb, struct pbuf *p_input, u16_t len,
     /*if (apiflags & TCP_WRITE_FLAG_COPY) {
       if ((seg->p = pbuf_alloc(PBUF_TRANSPORT, seglen + optlen, PBUF_RAM)) == NULL) {
         LWIP_DEBUGF(TCP_OUTPUT_DEBUG | LWIP_DBG_LEVEL_SERIOUS, 
-                    ("tcp_enqueue : could not allocate memory for pbuf copy size %"U16_F"\r\n", seglen));
+                    ("tcp_enqueue : could not allocate memory for pbuf copy size %"U16_F"\r", seglen));
         goto memerr;
       }
       LWIP_ASSERT("check that first pbuf can hold the complete seglen",
@@ -288,10 +287,10 @@ tcp_enqueue(struct tcp_pcb *pcb, struct pbuf *p_input, u16_t len,
       /* First, allocate a pbuf for the headers. */
       if ((seg->p = pbuf_alloc(PBUF_TRANSPORT, optlen, PBUF_RAM)) == NULL) {
         LWIP_DEBUGF(TCP_OUTPUT_DEBUG | LWIP_DBG_LEVEL_SERIOUS, 
-                    ("tcp_enqueue: could not allocate memory for header pbuf\r\n"));
+                    ("tcp_enqueue: could not allocate memory for header pbuf\r"));
         goto memerr;
       }
-      queuelen = (u16_t) (queuelen + pbuf_clen(seg->p));
+      queuelen += pbuf_clen(seg->p);
 
       /* Second, allocate a pbuf for holding the data.
        * since the referenced data is available at least until it is sent out on the
@@ -304,7 +303,7 @@ tcp_enqueue(struct tcp_pcb *pcb, struct pbuf *p_input, u16_t len,
           pbuf_free(seg->p);
           seg->p = NULL;
           LWIP_DEBUGF(TCP_OUTPUT_DEBUG | LWIP_DBG_LEVEL_SERIOUS, 
-                      ("tcp_enqueue: could not allocate memory for zero-copy pbuf\r\n"));
+                      ("tcp_enqueue: could not allocate memory for zero-copy pbuf\r"));
           goto memerr;
         }
         ++queuelen;
@@ -328,7 +327,7 @@ tcp_enqueue(struct tcp_pcb *pcb, struct pbuf *p_input, u16_t len,
     length of the queue exceeds the configured maximum or overflows. */
     if ((queuelen > TCP_SND_QUEUELEN) || (queuelen > TCP_SNDQUEUELEN_OVERFLOW)) {
       LWIP_DEBUGF(TCP_OUTPUT_DEBUG | LWIP_DBG_LEVEL_SERIOUS,
-        ("tcp_enqueue: queue too long %"U16_F" (%"U16_F")\r\n", queuelen, TCP_SND_QUEUELEN));
+        ("tcp_enqueue: queue too long %"U16_F" (%"U16_F")\r", queuelen, TCP_SND_QUEUELEN));
       goto memerr;
     }
 
@@ -340,7 +339,7 @@ tcp_enqueue(struct tcp_pcb *pcb, struct pbuf *p_input, u16_t len,
 
     /* build TCP header */
     if (pbuf_header(seg->p, TCP_HLEN)) {
-      LWIP_DEBUGF(TCP_OUTPUT_DEBUG | LWIP_DBG_LEVEL_SERIOUS, ("tcp_enqueue: no room for TCP header in pbuf.\r\n"));
+      LWIP_DEBUGF(TCP_OUTPUT_DEBUG | LWIP_DBG_LEVEL_SERIOUS, ("tcp_enqueue: no room for TCP header in pbuf.\r"));
       TCP_STATS_INC(tcp.err);
       goto memerr;
     }
@@ -360,13 +359,13 @@ tcp_enqueue(struct tcp_pcb *pcb, struct pbuf *p_input, u16_t len,
     if (p_input != NULL) pbuf_ref(p_input);
 
     /* Set the length of the header */
-    TCPH_HDRLEN_SET(seg->tcphdr, (5 + (optlen >> 2)));
-    LWIP_DEBUGF(TCP_OUTPUT_DEBUG | LWIP_DBG_TRACE, ("tcp_enqueue: queueing seg: %x %"U32_F":%"U32_F" (0x%"X16_F")\r\n", (u32_t) seg,
+    TCPH_HDRLEN_SET(seg->tcphdr, (5 + optlen / 4));
+    LWIP_DEBUGF(TCP_OUTPUT_DEBUG | LWIP_DBG_TRACE, ("tcp_enqueue: queueing seg: %x %"U32_F":%"U32_F" (0x%"X16_F")\r", (u32_t) seg,
       ntohl(seg->tcphdr->seqno),
       ntohl(seg->tcphdr->seqno) + TCP_TCPLEN(seg),
       (u16_t)flags));
 
-    left = (u16_t) (left - seglen);
+    left -= seglen;
     seqno += seglen;
     ptr = (void *)((u8_t *)ptr + seglen);
   }
@@ -400,9 +399,9 @@ tcp_enqueue(struct tcp_pcb *pcb, struct pbuf *p_input, u16_t len,
     /* segments are consecutive */
     (ntohl(useg->tcphdr->seqno) + useg->len == ntohl(queue->tcphdr->seqno)) ) {
     /* Remove TCP header from first segment of our to-be-queued list */
-    if(pbuf_header(queue->p, (s16_t) -(TCP_HLEN + optlen))) {
+    if(pbuf_header(queue->p, -(TCP_HLEN + optlen))) {
       /* Can we cope with this failing?  Just assert for now */
-      LWIP_ASSERT("pbuf_header failed\r\n", 0);
+      LWIP_ASSERT("pbuf_header failed\r", 0);
       TCP_STATS_INC(tcp.err);
       goto memerr;
     }
@@ -423,11 +422,11 @@ tcp_enqueue(struct tcp_pcb *pcb, struct pbuf *p_input, u16_t len,
       pbuf_cat(useg->p, queue->p);
       // append the p_input pbuf to the useg p_input pbuf chain
       pbuf_cat(useg->p_input,queue->p_input);
-      useg->len = (u16_t) (useg->len + queue->len);
+      useg->len += queue->len;
       useg->next = queue->next;
     }
 
-    LWIP_DEBUGF(TCP_OUTPUT_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_STATE, ("tcp_enqueue: chaining segments, new len %"U16_F"\r\n", useg->len));
+    LWIP_DEBUGF(TCP_OUTPUT_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_STATE, ("tcp_enqueue: chaining segments, new len %"U16_F"\r", useg->len));
     if (seg == queue) {
       seg = useg;
       seglen = useg->len;
@@ -453,11 +452,11 @@ tcp_enqueue(struct tcp_pcb *pcb, struct pbuf *p_input, u16_t len,
   }
   pcb->snd_lbb += len;
 
-  pcb->snd_buf = (u16_t) (pcb->snd_buf - len);
+  pcb->snd_buf -= len;
 
   /* update number of segments on the queues */
   pcb->snd_queuelen = queuelen;
-  LWIP_DEBUGF(TCP_QLEN_DEBUG, ("tcp_enqueue: %"S16_F" (after enqueued)\r\n", pcb->snd_queuelen));
+  LWIP_DEBUGF(TCP_QLEN_DEBUG, ("tcp_enqueue: %"S16_F" (after enqueued)\r", pcb->snd_queuelen));
   if (pcb->snd_queuelen != 0) {
     LWIP_ASSERT("tcp_enqueue: valid queue length",
       pcb->unacked != NULL || pcb->unsent != NULL);
@@ -481,7 +480,7 @@ memerr:
     LWIP_ASSERT("tcp_enqueue: valid queue length", pcb->unacked != NULL ||
       pcb->unsent != NULL);
   }
-  LWIP_DEBUGF(TCP_QLEN_DEBUG | LWIP_DBG_STATE, ("tcp_enqueue: %"S16_F" (with mem err)\r\n", pcb->snd_queuelen));
+  LWIP_DEBUGF(TCP_QLEN_DEBUG | LWIP_DBG_STATE, ("tcp_enqueue: %"S16_F" (with mem err)\r", pcb->snd_queuelen));
   return ERR_MEM;
 }
 
@@ -518,15 +517,15 @@ tcp_send_empty_ack(struct tcp_pcb *pcb)
     optlen = LWIP_TCP_OPT_LENGTH(TF_SEG_OPTS_TS);
   }
 #endif
-  p = pbuf_alloc(PBUF_IP, (u16_t) (TCP_HLEN + optlen), PBUF_RAM);
+  p = pbuf_alloc(PBUF_IP, TCP_HLEN + optlen, PBUF_RAM);
   if (p == NULL) {
-    LWIP_DEBUGF(TCP_OUTPUT_DEBUG, ("tcp_output: (ACK) could not allocate pbuf\r\n"));
+    LWIP_DEBUGF(TCP_OUTPUT_DEBUG, ("tcp_output: (ACK) could not allocate pbuf\r"));
     return ERR_BUF;
   }
   LWIP_DEBUGF(TCP_OUTPUT_DEBUG, 
-              ("tcp_output: sending ACK for %"U32_F"\r\n", pcb->rcv_nxt));
+              ("tcp_output: sending ACK for %"U32_F"\r", pcb->rcv_nxt));
   /* remove ACK flags from the PCB, as we send an empty ACK now */
-  pcb->flags = pcb->flags & ((u8_t) ~(TF_ACK_DELAY | TF_ACK_NOW));
+  pcb->flags &= ~(TF_ACK_DELAY | TF_ACK_NOW);
 
   tcphdr = tcp_output_set_header(pcb, p, optlen, htonl(pcb->snd_nxt));
 
@@ -608,7 +607,7 @@ tcp_output(struct tcp_pcb *pcb)
 
 /*#if TCP_OUTPUT_DEBUG
   if (seg == NULL) {
-    LWIP_DEBUGF(TCP_OUTPUT_DEBUG, ("tcp_output: nothing to send (%p)\r\n",
+    LWIP_DEBUGF(TCP_OUTPUT_DEBUG, ("tcp_output: nothing to send (%p)\r",
                                    (void*)pcb->unsent));
   }
 #endif*/ /* TCP_OUTPUT_DEBUG */
@@ -616,12 +615,12 @@ tcp_output(struct tcp_pcb *pcb)
   if (seg == NULL) {
     LWIP_DEBUGF(TCP_CWND_DEBUG, ("tcp_output: snd_wnd %"U16_F
                                  ", cwnd %"U16_F", wnd %"U32_F
-                                 ", seg == NULL, ack %"U32_F"\r\n",
+                                 ", seg == NULL, ack %"U32_F"\r",
                                  pcb->snd_wnd, pcb->cwnd, wnd, pcb->lastack));
   } else {
     LWIP_DEBUGF(TCP_CWND_DEBUG, 
                 ("tcp_output: snd_wnd %"U16_F", cwnd %"U16_F", wnd %"U32_F
-                 ", effwnd %"U32_F", seq %"U32_F", ack %"U32_F"\r\n",
+                 ", effwnd %"U32_F", seq %"U32_F", ack %"U32_F"\r",
                  pcb->snd_wnd, pcb->cwnd, wnd,
                  ntohl(seg->tcphdr->seqno) - pcb->lastack + seg->len,
                  ntohl(seg->tcphdr->seqno), pcb->lastack));
@@ -644,7 +643,7 @@ tcp_output(struct tcp_pcb *pcb)
       break;
     }
 #if TCP_CWND_DEBUG
-    LWIP_DEBUGF(TCP_CWND_DEBUG, ("tcp_output: snd_wnd %"U16_F", cwnd %"U16_F", wnd %"U32_F", effwnd %"U32_F", seq %"U32_F", ack %"U32_F", i %"S16_F"\r\n",
+    LWIP_DEBUGF(TCP_CWND_DEBUG, ("tcp_output: snd_wnd %"U16_F", cwnd %"U16_F", wnd %"U32_F", effwnd %"U32_F", seq %"U32_F", ack %"U32_F", i %"S16_F"\r",
                             pcb->snd_wnd, pcb->cwnd, wnd,
                             ntohl(seg->tcphdr->seqno) + seg->len -
                             pcb->lastack,
@@ -656,7 +655,7 @@ tcp_output(struct tcp_pcb *pcb)
 
     if (pcb->state != SYN_SENT) {
       TCPH_SET_FLAG(seg->tcphdr, TCP_ACK);
-      pcb->flags =  pcb->flags & ((u8_t) ~(TF_ACK_DELAY | TF_ACK_NOW));
+      pcb->flags &= ~(TF_ACK_DELAY | TF_ACK_NOW);
     }
 
     tcp_output_segment(seg, pcb);
@@ -705,7 +704,7 @@ tcp_output(struct tcp_pcb *pcb)
     pcb->persist_backoff = 1;
   }
 
-  pcb->flags = pcb->flags & ((u8_t) ~TF_NAGLEMEMERR);
+  pcb->flags &= ~TF_NAGLEMEMERR;
   return ERR_OK;
 }
 
@@ -780,16 +779,16 @@ tcp_output_segment(struct tcp_seg *seg, struct tcp_pcb *pcb)
     pcb->rttest = tcp_ticks;
     pcb->rtseq = ntohl(seg->tcphdr->seqno);
 
-    LWIP_DEBUGF(TCP_RTO_DEBUG, ("tcp_output_segment: rtseq %"U32_F"\r\n", pcb->rtseq));
+    LWIP_DEBUGF(TCP_RTO_DEBUG, ("tcp_output_segment: rtseq %"U32_F"\r", pcb->rtseq));
   }
-  LWIP_DEBUGF(TCP_OUTPUT_DEBUG, ("tcp_output_segment: %"U32_F":%"U32_F"\r\n",
+  LWIP_DEBUGF(TCP_OUTPUT_DEBUG, ("tcp_output_segment: %"U32_F":%"U32_F"\r",
           htonl(seg->tcphdr->seqno), htonl(seg->tcphdr->seqno) +
           seg->len));
 
   len = (u16_t)((u8_t *)seg->tcphdr - (u8_t *)seg->p->payload);
 
-  seg->p->len = (u16_t) (seg->p->len - len);
-  seg->p->tot_len = (u16_t) (seg->p->tot_len - len);
+  seg->p->len -= len;
+  seg->p->tot_len -= len;
 
   seg->p->payload = seg->tcphdr;
 
@@ -849,7 +848,7 @@ tcp_rst(u32_t seqno, u32_t ackno,
   struct tcp_hdr *tcphdr;
   p = pbuf_alloc(PBUF_IP, TCP_HLEN, PBUF_RAM);
   if (p == NULL) {
-      LWIP_DEBUGF(TCP_DEBUG, ("tcp_rst: could not allocate memory for pbuf\r\n"));
+      LWIP_DEBUGF(TCP_DEBUG, ("tcp_rst: could not allocate memory for pbuf\r"));
       return;
   }
   LWIP_ASSERT("check that first pbuf can hold struct tcp_hdr",
@@ -887,7 +886,7 @@ tcp_rst(u32_t seqno, u32_t ackno,
 
 
   pbuf_free(p);
-  LWIP_DEBUGF(TCP_RST_DEBUG, ("tcp_rst: seqno %"U32_F" ackno %"U32_F".\r\n", seqno, ackno));
+  LWIP_DEBUGF(TCP_RST_DEBUG, ("tcp_rst: seqno %"U32_F" ackno %"U32_F".\r", seqno, ackno));
 }
 
 /**
@@ -979,7 +978,7 @@ tcp_rexmit_fast(struct tcp_pcb *pcb)
     /* This is fast retransmit. Retransmit the first unacked segment. */
     LWIP_DEBUGF(TCP_FR_DEBUG, 
                 ("tcp_receive: dupacks %"U16_F" (%"U32_F
-                 "), fast retransmit %"U32_F"\r\n",
+                 "), fast retransmit %"U32_F"\r",
                  (u16_t)pcb->dupacks, pcb->lastack,
                  ntohl(pcb->unacked->tcphdr->seqno)));
     tcp_rexmit(pcb);
@@ -987,20 +986,20 @@ tcp_rexmit_fast(struct tcp_pcb *pcb)
     /* Set ssthresh to half of the minimum of the current
      * cwnd and the advertised window */
     if (pcb->cwnd > pcb->snd_wnd)
-      pcb->ssthresh = pcb->snd_wnd >> 1;
+      pcb->ssthresh = pcb->snd_wnd / 2;
     else
-      pcb->ssthresh = pcb->cwnd >> 1;
+      pcb->ssthresh = pcb->cwnd / 2;
     
     /* The minimum value for ssthresh should be 2 MSS */
-    if (pcb->ssthresh < pcb->mss << 1) {
+    if (pcb->ssthresh < 2*pcb->mss) {
       LWIP_DEBUGF(TCP_FR_DEBUG, 
                   ("tcp_receive: The minimum value for ssthresh %"U16_F
-                   " should be min 2 mss %"U16_F"...\r\n",
-                   pcb->ssthresh, pcb->mss << 1));
-      pcb->ssthresh = (u16_t) (pcb->mss << 1);
+                   " should be min 2 mss %"U16_F"...\r",
+                   pcb->ssthresh, 2*pcb->mss));
+      pcb->ssthresh = 2*pcb->mss;
     }
     
-    pcb->cwnd = (u16_t) (pcb->ssthresh + 3 * pcb->mss);
+    pcb->cwnd = pcb->ssthresh + 3 * pcb->mss;
     pcb->flags |= TF_INFR;
   } 
 }
@@ -1020,18 +1019,18 @@ tcp_keepalive(struct tcp_pcb *pcb)
   struct pbuf *p;
   struct tcp_hdr *tcphdr;
 
- /* LWIP_DEBUGF(TCP_DEBUG, ("tcp_keepalive: sending KEEPALIVE probe to %"U16_F".%"U16_F".%"U16_F".%"U16_F"\r\n",
+ /* LWIP_DEBUGF(TCP_DEBUG, ("tcp_keepalive: sending KEEPALIVE probe to %"U16_F".%"U16_F".%"U16_F".%"U16_F"\r",
                           ip4_addr1(&pcb->remote_ip), ip4_addr2(&pcb->remote_ip),
                           ip4_addr3(&pcb->remote_ip), ip4_addr4(&pcb->remote_ip)));*/
 
-  LWIP_DEBUGF(TCP_DEBUG, ("tcp_keepalive: tcp_ticks %"U32_F"   pcb->tmr %"U32_F" pcb->keep_cnt_sent %"U16_F"\r\n",
+  LWIP_DEBUGF(TCP_DEBUG, ("tcp_keepalive: tcp_ticks %"U32_F"   pcb->tmr %"U32_F" pcb->keep_cnt_sent %"U16_F"\r",
                           tcp_ticks, pcb->tmr, pcb->keep_cnt_sent));
    
   p = pbuf_alloc(PBUF_IP, TCP_HLEN, PBUF_RAM);
    
   if(p == NULL) {
     LWIP_DEBUGF(TCP_DEBUG, 
-                ("tcp_keepalive: could not allocate memory for pbuf\r\n"));
+                ("tcp_keepalive: could not allocate memory for pbuf\r"));
     return;
   }
   LWIP_ASSERT("check that first pbuf can hold struct tcp_hdr",
@@ -1059,11 +1058,13 @@ tcp_keepalive(struct tcp_pcb *pcb)
    ip6_output(p, &(pcb->local_ip.addr.ip6addr),&(pcb->remote_ip.addr.ip6addr), pcb->ttl,
             IP6_PROTO_TCP);
 
+
+  //ip_output(p, &pcb->local_ip, &pcb->remote_ip, pcb->ttl, 0, IP_PROTO_TCP);
 #endif /* LWIP_NETIF_HWADDRHINT*/
 
   pbuf_free(p);
 
-  LWIP_DEBUGF(TCP_DEBUG, ("tcp_keepalive: seqno %"U32_F" ackno %"U32_F".\r\n",
+  LWIP_DEBUGF(TCP_DEBUG, ("tcp_keepalive: seqno %"U32_F" ackno %"U32_F".\r",
                           pcb->snd_nxt - 1, pcb->rcv_nxt));
 }
 
@@ -1087,13 +1088,13 @@ tcp_zero_window_probe(struct tcp_pcb *pcb)
 
  /* LWIP_DEBUGF(TCP_DEBUG,
               ("tcp_zero_window_probe: sending ZERO WINDOW probe to %"
-               U16_F".%"U16_F".%"U16_F".%"U16_F"\r\n",
+               U16_F".%"U16_F".%"U16_F".%"U16_F"\r",
                ip4_addr1(&pcb->remote_ip), ip4_addr2(&pcb->remote_ip),
                ip4_addr3(&pcb->remote_ip), ip4_addr4(&pcb->remote_ip)));*/
 
   LWIP_DEBUGF(TCP_DEBUG, 
               ("tcp_zero_window_probe: tcp_ticks %"U32_F
-               "   pcb->tmr %"U32_F" pcb->keep_cnt_sent %"U16_F"\r\n",
+               "   pcb->tmr %"U32_F" pcb->keep_cnt_sent %"U16_F"\r",
                tcp_ticks, pcb->tmr, pcb->keep_cnt_sent));
 
   seg = pcb->unacked;
@@ -1109,7 +1110,7 @@ tcp_zero_window_probe(struct tcp_pcb *pcb)
 
   p = pbuf_alloc(PBUF_IP, len, PBUF_RAM);
   if(p == NULL) {
-    LWIP_DEBUGF(TCP_DEBUG, ("tcp_zero_window_probe: no memory for pbuf\r\n"));
+    LWIP_DEBUGF(TCP_DEBUG, ("tcp_zero_window_probe: no memory for pbuf\r"));
     return;
   }
   LWIP_ASSERT("check that first pbuf can hold struct tcp_hdr",
@@ -1151,7 +1152,7 @@ tcp_zero_window_probe(struct tcp_pcb *pcb)
   pbuf_free(p);
 
   LWIP_DEBUGF(TCP_DEBUG, ("tcp_zero_window_probe: seqno %"U32_F
-                          " ackno %"U32_F".\r\n",
+                          " ackno %"U32_F".\r",
                           pcb->snd_nxt - 1, pcb->rcv_nxt));
 }
 #endif /* LWIP_TCP */

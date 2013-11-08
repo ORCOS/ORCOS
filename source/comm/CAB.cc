@@ -28,11 +28,11 @@ CAB::CAB( void* p_bufferstart, unint4 u_length, Task* p_ownerTask ) {
 
 #ifdef HAS_Board_HatLayerCfd
     // well be working on the physical address when storing only
-    this->bufferstart_physical = (char*) theOS->getHatLayer()->getPhysicalAddress(bufferstart);
-    ASSERT(bufferstart_physical == 0);
+    this->bufferstart_physical = (char*) theOS->getHatLayer()->getPhysicalAddress(p_bufferstart);
+    ASSERT(bufferstart_physical != 0);
 #endif
 
-    ASSERT(bufferstart);
+    ASSERT(p_bufferstart);
     this->bufferstart = p_bufferstart;
     this->length = u_length;
 

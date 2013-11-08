@@ -442,13 +442,6 @@ class USB_EHCI_Host_Controller {
 private:
 	unint4 			hc_base;
 
-	unint4 			frame_list_size;
-
-	// address are which is used for the asynchronous and periodic lists
-	void* 			memory_base;
-
-	unint4 			memory_size;
-
 	// this flag indicates whether this object is operational
 	bool 			operational;
 
@@ -470,7 +463,7 @@ public:
 	// address of the async queue head base registers
 	unint4 	async_qh_reg;
 
-	USB_EHCI_Host_Controller(unint4 ehci_dev_base, void* memory_base, unint4 memory_size);
+	USB_EHCI_Host_Controller(unint4 ehci_dev_base);
 
 	// tries to enumerate a given device and load the driver
 	ErrorT 	enumerateDevice(USBDevice *dev);
