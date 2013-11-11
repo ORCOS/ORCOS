@@ -1,0 +1,102 @@
+Gestartet durch vorgelagertes Projekt "[8mha:AAAArB+LCAAAAAAAAP9b85aBtbiIQTGjNKU4P08vOT+vOD8nVc83PyU1x6OyILUoJzMv2y+/JJUBAhiZGBgqihhk0NSjKDWzXb3RdlLBUSYGJk8GtpzUvPSSDB8G5tKinBIGIZ+sxLJE/ZzEvHT94JKizLx0a6BxUmjGOUNodHsLgAypEgYF/az8JH3/IGf/4PjgyuLkxJwcn8ykosSiynjHIN8yc30AJebJetUAAAA=[0mORCOS_SyscallLibrary_ARMv7", Build [8mha:AAAArh+LCAAAAAAAAP9b85aBtbiIQTGjNKU4P08vOT+vOD8nVc83PyU1x6OyILUoJzMv2y+/JJUBAhiZGBgqihhk0NSjKDWzXb3RdlLBUSYGJk8GtpzUvPSSDB8G5tKinBIGIZ+sxLJE/ZzEvHT94JKizLx0a6BxUmjGOUNodHsLgAymEgYl/az8JH3/IGf/4PjgyuLkxJwcn8ykosSiynjHIN8yc30jUwDkTx4d1wAAAA==[0m25
+originally caused by:
+ Gestartet durch vorgelagertes Projekt "[8mha:AAAApB+LCAAAAAAAAP9b85aBtbiIQTGjNKU4P08vOT+vOD8nVc83PyU1x6OyILUoJzMv2y+/JJUBAhiZGBgqihhk0NSjKDWzXb3RdlLBUSYGJk8GtpzUvPSSDB8G5tKinBIGIZ+sxLJE/ZzEvHT94JKizLx0a6BxUmjGOUNodHsLgAz+EgZJ/az8JH3/IGf/YFUjA/fMEiDpnJOfl6oPAGrAXgXOAAAA[0mORCOS Git Clone", Build [8mha:AAAAph+LCAAAAAAAAP9b85aBtbiIQTGjNKU4P08vOT+vOD8nVc83PyU1x6OyILUoJzMv2y+/JJUBAhiZGBgqihhk0NSjKDWzXb3RdlLBUSYGJk8GtpzUvPSSDB8G5tKinBIGIZ+sxLJE/ZzEvHT94JKizLx0a6BxUmjGOUNodHsLgAymEgZp/az8JH3/IGf/YFUjA/fMEiDpnJOfl6pvaAwAv8cOfdAAAAA=[0m13
+ originally caused by:
+  Build wurde zeitgesteuert ausgelöst.
+Building in workspace /home/pi/build
+[build] $ /bin/sh -xe /tmp/hudson1012376895883387586.sh
++ cd tasks/framebuffer_task
++ make all GCC_LIB_DIR=/home/pi/orcos_arm LIBC_DIR=/home/pi/orcos_arm CC=/usr/bin/gcc CXX=/usr/bin/c++ AS=/usr/bin/as AR=/usr/bin/ar SIZE=/usr/bin/size OBJDUMP=/usr/bin/objdump LD=/usr/bin/ld OBJCOPY=/usr/bin/objcopy STRIP=/usr/bin/strip KERNEL_LIB_DIR=/home/pi/build/library/bin/armv7/ CFLAGS=-c -I/home/pi/build/library/inc/ -msoft-float -fno-exceptions -fno-rtti -O2 -mthumb -ffunction-sections
+@/usr/bin/c++ -c -I/home/pi/build/library/inc/ -msoft-float -fno-exceptions -fno-rtti -O2 -mthumb -ffunction-sections -g task_main.cc -o task_main.o
+task.mk: Compiling task_main.o
+task.mk: Linking task.elf
+/usr/bin/ld --verbose --script=task.ld task_main.o -o task.elf -L/home/pi/build/library/bin/armv7/ -L/home/pi/orcos_arm -lorcos -lgcc 
+GNU ld (GNU Binutils for Debian) 2.22
+  Supported emulations:
+   armelf_linux_eabi
+   armelfb_linux_eabi
+opened script file task.ld
+using external linker script:
+==================================================
+
+OUTPUT_FORMAT("elf32-littlearm", "elf32-littlearm", "elf32-littlearm")
+OUTPUT_ARCH(arm)
+
+MEMORY
+{
+  ram (rwx) : ORIGIN = 0x100000, LENGTH = 0x08000000
+}
+
+/* Offset to RAM origin.  */
+ramOffset = 0x100000;
+
+SECTIONS
+{
+ . = ramOffset;
+  
+ .CB 0x100000 : {
+    LONG(0x230f7ae9);  /* ORCOS Task MAGIC value */
+    LONG(0x0);		   /* no next header field, RTparams are mandatory */
+    LONG(0x101);	   /* PLATFORM ARM, T BIT set*/
+      
+    /* Task CB types.hh: struct taskTable */
+    LONG(0x100000);   /* start address */
+    LONG(task_main);  /* entry address */
+    LONG(0x177000);  /* heap start address */
+    LONG(0x18f000);  /* heap end address */
+    LONG(TASK_DATA_END);
+    LONG(thread_exit);
+    
+    /* Task CB Priority and RealtimeThread Parameters: struct RTThreadAttrs  */
+    LONG(0);
+    LONG(0);
+    LONG(0);
+    LONG(0);
+    LONG(0);   
+   
+   }
+   
+.text . : {
+	static.o(*.text*)
+	*(.text*)	
+ }
+ 
+ .rodata . : {
+	*(.rodata*)
+ }
+ 
+ .data . : {
+ 	*(.data*)
+ }
+ 
+ .bss . : {
+ 	*(.bss*)
+ }
+
+ TASK_DATA_END = .;
+}
+
+
+==================================================
+attempt to open static.o failed
+attempt to open /home/pi/build/library/bin/armv7//static.o succeeded
+static.o (/home/pi/build/library/bin/armv7//static.o)
+attempt to open task_main.o succeeded
+task_main.o
+attempt to open /home/pi/build/library/bin/armv7//liborcos.so failed
+attempt to open /home/pi/build/library/bin/armv7//liborcos.a succeeded
+(/home/pi/build/library/bin/armv7//liborcos.a)mem.o
+(/home/pi/build/library/bin/armv7//liborcos.a)threads.o
+(/home/pi/build/library/bin/armv7//liborcos.a)syscall.o
+(/home/pi/build/library/bin/armv7//liborcos.a)string.o
+(/home/pi/build/library/bin/armv7//liborcos.a)io.o
+attempt to open /home/pi/build/library/bin/armv7//libgcc.so failed
+attempt to open /home/pi/build/library/bin/armv7//libgcc.a failed
+attempt to open /home/pi/orcos_arm/libgcc.so failed
+attempt to open /home/pi/orcos_arm/libgcc.a succeeded
+(/home/pi/orcos_arm/libgcc.a)_divsi3.o
+(/home/pi/orcos_arm/libgcc.a)_dvmd_tls.o
+/usr/bin/ld: warning: /home/pi/build/library/bin/armv7//liborcos.a(mem.o) uses variable-size enums yet the output is to use 32-bit enums; use of enum values across objects may fail
+/usr/bin/ld: warning: /home/pi/build/library/bin/armv7//liborcos.a(threads.o) uses variable-size enums yet the output is to use 32-bit enums; use of enum values across objects may fail
+/usr/bin/ld: warning: /home/pi/build/library/bin/armv7//liborcos.a(string.o) uses variable-size enums yet the output is to use 32-bit enums; use of enum values across objects may fail
+Finished: SUCCESS
