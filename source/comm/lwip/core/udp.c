@@ -102,8 +102,7 @@ udp_input(struct pbuf *p, struct netif *inp)
 
   /* Check minimum length (IP header + UDP header)
    * and move payload pointer to UDP header */
-  if (p->tot_len < (IPH_HL(iphdr) + UDP_HLEN) ||
-		  pbuf_header(p, (s16_t) -(IPH_HL(iphdr)))) {
+  if (p->tot_len < (IPH_HL(iphdr) + UDP_HLEN) || pbuf_header(p, -(s16_t)(IPH_HL(iphdr)))) {
     /* drop short packets */
     LWIP_DEBUGF(UDP_DEBUG,
                 ("udp_input: short UDP datagram (%"U16_F" bytes) discarded\n", p->tot_len));
@@ -310,7 +309,7 @@ udp_input(struct pbuf *p, struct netif *inp)
       if (!broadcast &&
           !ip_addr_ismulticast(&dest_ipaddr)) {
         /* move payload pointer back to ip header */
-        pbuf_header(p, (s16_t) ((IPH_HL(iphdr)) + UDP_HLEN));
+        pbuf_header(p, (IPH_HL(iphdr)) + UDP_HLEN);
         LWIP_ASSERT("p->payload == iphdr", (p->payload == iphdr));
         icmp_dest_unreach(p, ICMP_DUR_PORT);
       }
@@ -782,7 +781,7 @@ udp_disconnect(struct udp_pcb *pcb)
   //ip4_addr_set(&pcb->remote_ip, IP4_ADDR_ANY);
   pcb->remote_port = 0;
   /* mark PCB as unconnected */
-  pcb->flags &= (u8_t) (~UDP_FLAGS_CONNECTED);
+  pcb->flags &= ~UDP_FLAGS_CONNECTED;
 }
 
 /**

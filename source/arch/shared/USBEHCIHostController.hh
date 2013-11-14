@@ -275,16 +275,22 @@ enum TransferDirection {Out, In, Both, UnknownDir};
 
 typedef struct {
 
-	// the endpoint descriptor
+   // the endpoint descriptor
    EndpointDescriptor descriptor __attribute__((aligned(4)));
 
    // each endpoint gets its own queue head
    QH* queue_head;
 
+   // the interrupt transfer qtd of this endpoint. Only valid if Type Interrupt
    qTD* q_int_transfer;
 
+   // receive buffer for interrupt transfers
+   unint1 *recv_buffer;
+
+   // The transfer type of this endpoint
    TransferType type;
 
+   // The direction of this endpoint
    TransferDirection direction;
 
    // the address of this endpoint at the device
@@ -294,18 +300,10 @@ typedef struct {
    unint1 poll_frequency;
 
    // expected maximum receive size for interrupt transfers
-   unint2 max_packet_size;
-
-   // receive buffer for interrupt transfers
-   unint1 *recv_buffer;
-
-   unint1 setup_toggle;
+   unint2 interrupt_receive_size;
 
    // data toggle used for bulk out transfers
    unint1 data_toggle;
-
-   // data toggle used for bulk in transfers
-   unint1 status_toggle;
 
 } DeviceEndpoint;
 

@@ -241,7 +241,7 @@ plug_holes(struct mem *mem)
       lfree = mem;
     }
     mem->next = nmem->next;
-    ((struct mem *)&ram[nmem->next])->prev = (mem_size_t) ((u8_t *)mem - ram);
+    ((struct mem *)&ram[nmem->next])->prev = (u8_t *)mem - ram;
   }
 
   /* plug hole backward */
@@ -252,7 +252,7 @@ plug_holes(struct mem *mem)
       lfree = pmem;
     }
     pmem->next = mem->next;
-    ((struct mem *)&ram[mem->next])->prev = (mem_size_t) ((u8_t *)pmem - ram);
+    ((struct mem *)&ram[mem->next])->prev = (u8_t *)pmem - ram;
   }
 }
 
@@ -320,9 +320,8 @@ mem_free(void *rmem)
   }
   /* protect the heap from concurrent access */
   LWIP_MEM_FREE_PROTECT();
-
   /* Get the corresponding struct mem ... */
-  mem = (struct mem *)((u32_t)rmem - (u32_t)SIZEOF_STRUCT_MEM);
+  mem = (struct mem *)((u8_t *)rmem - SIZEOF_STRUCT_MEM);
   /* ... which has to be in a used state ... */
   LWIP_ASSERT("mem_free: mem->used", mem->used);
   /* ... and is now unused. */
@@ -368,7 +367,7 @@ mem_realloc(void *rmem, mem_size_t newsize)
 
   /* Expand the size of the allocated memory region so that we can
      adjust for alignment. */
-  newsize = (mem_size_t) LWIP_MEM_ALIGN_SIZE(newsize);
+  newsize = LWIP_MEM_ALIGN_SIZE(newsize);
 
   if(newsize < MIN_SIZE_ALIGNED) {
     /* every data block must be at least MIN_SIZE_ALIGNED long */
@@ -394,9 +393,9 @@ mem_realloc(void *rmem, mem_size_t newsize)
   /* Get the corresponding struct mem ... */
   mem = (struct mem *)((u8_t *)rmem - SIZEOF_STRUCT_MEM);
   /* ... and its offset pointer */
-  ptr = (mem_size_t) ((u8_t *)mem - ram);
+  ptr = (u8_t *)mem - ram;
 
-  size =(mem_size_t) ( mem->next - ptr - (mem_size_t)SIZEOF_STRUCT_MEM);
+  size = mem->next - ptr - SIZEOF_STRUCT_MEM;
   LWIP_ASSERT("mem_realloc can only shrink memory", newsize <= size);
   if (newsize > size) {
     /* not supported */
@@ -419,10 +418,9 @@ mem_realloc(void *rmem, mem_size_t newsize)
     /* remember the old next pointer */
     next = mem2->next;
     /* create new struct mem which is moved directly after the shrinked mem */
-    ptr2 = (mem_size_t) (ptr + SIZEOF_STRUCT_MEM + newsize);
+    ptr2 = ptr + SIZEOF_STRUCT_MEM + newsize;
     if (lfree == mem2) {
       lfree = (struct mem *)&ram[ptr2];
-
     }
     mem2 = (struct mem *)&ram[ptr2];
     mem2->used = 0;
@@ -447,7 +445,7 @@ mem_realloc(void *rmem, mem_size_t newsize)
      * @todo we could leave out MIN_SIZE_ALIGNED. We would create an empty
      *       region that couldn't hold data, but when mem->next gets freed,
      *       the 2 regions would be combined, resulting in more free memory */
-    ptr2 = (mem_size_t) (ptr + (mem_size_t)SIZEOF_STRUCT_MEM + newsize);
+    ptr2 = ptr + SIZEOF_STRUCT_MEM + newsize;
     mem2 = (struct mem *)&ram[ptr2];
     if (mem2 < lfree) {
       lfree = mem2;
@@ -499,7 +497,7 @@ mem_malloc(mem_size_t size)
 
   /* Expand the size of the allocated memory region so that we can
      adjust for alignment. */
-  size = (mem_size_t) LWIP_MEM_ALIGN_SIZE(size);
+  size = LWIP_MEM_ALIGN_SIZE(size);
 
   if(size < MIN_SIZE_ALIGNED) {
     /* every data block must be at least MIN_SIZE_ALIGNED long */
@@ -522,7 +520,7 @@ mem_malloc(mem_size_t size)
     /* Scan through the heap searching for a free block that is big enough,
      * beginning with the lowest free block.
      */
-    for (ptr = (mem_size_t)((u8_t *)lfree - ram); ptr < MEM_SIZE_ALIGNED - size;
+    for (ptr = (u8_t *)lfree - ram; ptr < MEM_SIZE_ALIGNED - size;
          ptr = ((struct mem *)&ram[ptr])->next) {
       mem = (struct mem *)&ram[ptr];
 #if LWIP_ALLOW_MEM_FREE_FROM_OTHER_CONTEXT
@@ -552,7 +550,7 @@ mem_malloc(mem_size_t size)
            *       region that couldn't hold data, but when mem->next gets freed,
            *       the 2 regions would be combined, resulting in more free memory
            */
-          ptr2 = (mem_size_t) (ptr + SIZEOF_STRUCT_MEM + size);
+          ptr2 = ptr + SIZEOF_STRUCT_MEM + size;
           /* create mem2 struct */
           mem2 = (struct mem *)&ram[ptr2];
           mem2->used = 0;
@@ -630,10 +628,10 @@ void *mem_calloc(mem_size_t count, mem_size_t size)
   void *p;
 
   /* allocate 'count' objects of size 'size' */
-  p = mem_malloc((mem_size_t)(count * size));
+  p = mem_malloc(count * size);
   if (p) {
     /* zero the memory */
-    memset(p, 0, (mem_size_t)(count * size));
+    memset(p, 0, count * size);
   }
   return p;
 }

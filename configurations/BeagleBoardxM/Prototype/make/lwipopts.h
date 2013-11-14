@@ -7,8 +7,8 @@
 
 #ifndef LWIPOPTS_H_
 #define LWIPOPTS_H_
-#define LWIP_DEBUG
-//#define  LWIP_NOASSERT
+//#define LWIP_DEBUG
+#define  LWIP_NOASSERT
 // includes for memcpy and memset
 #include "inc/memtools.hh"
 
@@ -86,7 +86,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  *    2 byte alignment -> #define MEM_ALIGNMENT 2
  */
 #ifndef MEM_ALIGNMENT
-#define MEM_ALIGNMENT                   4U
+#define MEM_ALIGNMENT                   4
 #endif
 
 /**
@@ -94,7 +94,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * a lot of data that needs to be copied, this should be set high.
  */
 #ifndef MEM_SIZE
-#define MEM_SIZE                        4096U
+#define MEM_SIZE                        4096*2
 #endif
 
 /**
@@ -181,7 +181,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * this should be set high.
  */
 #ifndef MEMP_NUM_PBUF
-#define MEMP_NUM_PBUF                   8U
+#define MEMP_NUM_PBUF                   16
 #endif
 
 /**
@@ -206,7 +206,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * (requires the LWIP_TCP option)
  */
 #ifndef MEMP_NUM_TCP_PCB
-#define MEMP_NUM_TCP_PCB                2U
+#define MEMP_NUM_TCP_PCB                2
 #endif
 
 /**
@@ -214,7 +214,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * (requires the LWIP_TCP option)
  */
 #ifndef MEMP_NUM_TCP_PCB_LISTEN
-#define MEMP_NUM_TCP_PCB_LISTEN         2U
+#define MEMP_NUM_TCP_PCB_LISTEN         2
 #endif
 
 /**
@@ -240,7 +240,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * (requires the ARP_QUEUEING option)
  */
 #ifndef MEMP_NUM_AR_QUEUE
-#define MEMP_NUM_AR_QUEUE              4U
+#define MEMP_NUM_AR_QUEUE              4
 #endif
 
 /**
@@ -250,7 +250,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * (requires the LWIP_IGMP option)
  */
 #ifndef MEMP_NUM_IGMP_GROUP
-#define MEMP_NUM_IGMP_GROUP             4U
+#define MEMP_NUM_IGMP_GROUP             4
 #endif
 
 /**
@@ -258,7 +258,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * (requires NO_SYS==0)
  */
 #ifndef MEMP_NUM_SYS_TIMEOUT
-#define MEMP_NUM_SYS_TIMEOUT            3U
+#define MEMP_NUM_SYS_TIMEOUT            3
 #endif
 
 /**
@@ -283,7 +283,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * (only needed if you use tcpip.c)
  */
 #ifndef MEMP_NUM_TCPIP_MSG_API
-#define MEMP_NUM_TCPIP_MSG_API          4U
+#define MEMP_NUM_TCPIP_MSG_API          0
 #endif
 
 /**
@@ -292,14 +292,14 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * (only needed if you use tcpip.c)
  */
 #ifndef MEMP_NUM_TCPIP_MSG_INPKT
-#define MEMP_NUM_TCPIP_MSG_INPKT        8U
+#define MEMP_NUM_TCPIP_MSG_INPKT        0
 #endif
 
 /**
  * PBUF_POOL_SIZE: the number of buffers in the pbuf pool.
  */
 #ifndef PBUF_POOL_SIZE
-#define PBUF_POOL_SIZE                  4
+#define PBUF_POOL_SIZE                  16
 #endif
 
 
@@ -320,7 +320,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * ARP_TABLE_SIZE: Number of active MAC-IP address pairs cached.
  */
 #ifndef AR_TABLE_SIZE
-#define AR_TABLE_SIZE                  4U
+#define AR_TABLE_SIZE                  4
 #endif
 
 /**
@@ -775,7 +775,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  */
 #ifndef TCP_MSS
 //#define TCP_MSS                         202
-#define TCP_MSS                           512
+#define TCP_MSS                           1440
 //#define TCP_MSS                         1440
 #endif
 
@@ -808,7 +808,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  */
 #ifndef TCP_SND_QUEUELEN
 //#define TCP_SND_QUEUELEN                (2 * (TCP_SND_BUF)/(TCP_MSS))
-#define TCP_SND_QUEUELEN                (2 * 6)
+#define TCP_SND_QUEUELEN                (2 * 10)
 #endif
 
 /**
@@ -878,7 +878,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * Ethernet.
  */
 #ifndef PBUF_LINK_HLEN
-#define PBUF_LINK_HLEN                  14U
+#define PBUF_LINK_HLEN                  14
 #endif
 
 /**
@@ -1590,7 +1590,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * debug messages of certain types.
  */
 #ifndef LWIP_DBG_TYPES_ON
-#define LWIP_DBG_TYPES_ON               LWIP_DBG_ON
+#define LWIP_DBG_TYPES_ON               LWIP_DBG_OFF
 #endif
 
 /**
@@ -1604,7 +1604,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * NETIF_DEBUG: Enable debugging in netif.c.
  */
 #ifndef NETIF_DEBUG
-#define NETIF_DEBUG  LWIP_DBG_ON
+#define NETIF_DEBUG  LWIP_DBG_OFF
 #endif
 
 /**
@@ -1660,7 +1660,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * IP_DEBUG: Enable debugging for IP.
  */
 #ifndef IP_DEBUG
-#define IP_DEBUG  LWIP_DBG_ON
+#define IP_DEBUG  LWIP_DBG_OFF
 #endif
 
 /**
@@ -1681,14 +1681,14 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * MEM_DEBUG: Enable debugging in mem.c.
  */
 #ifndef MEM_DEBUG
-#define MEM_DEBUG                       LWIP_DBG_ON
+#define MEM_DEBUG                       LWIP_DBG_OFF
 #endif
 
 /**
  * MEMP_DEBUG: Enable debugging in memp.c.
  */
 #ifndef MEMP_DEBUG
-#define MEMP_DEBUG                      LWIP_DBG_ON
+#define MEMP_DEBUG                      LWIP_DBG_OFF
 #endif
 
 /**
@@ -1702,14 +1702,14 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * TCP_DEBUG: Enable debugging for TCP.
  */
 #ifndef TCP_DEBUG
-#define TCP_DEBUG  LWIP_DBG_ON
+#define TCP_DEBUG  LWIP_DBG_OFF
 #endif
 
 /**
  * TCP_INPUT_DEBUG: Enable debugging in tcp_in.c for incoming debug.
  */
 #ifndef TCP_INPUT_DEBUG
-#define TCP_INPUT_DEBUG  LWIP_DBG_ON
+#define TCP_INPUT_DEBUG  LWIP_DBG_OFF
 #endif
 
 /**
@@ -1745,7 +1745,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * TCP_OUTPUT_DEBUG: Enable debugging in tcp_out.c output functions.
  */
 #ifndef TCP_OUTPUT_DEBUG
-#define TCP_OUTPUT_DEBUG  LWIP_DBG_ON
+#define TCP_OUTPUT_DEBUG  LWIP_DBG_OFF
 #endif
 
 /**
@@ -1773,7 +1773,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * TCPIP_DEBUG: Enable debugging in tcpip.c.
  */
 #ifndef TCPIP_DEBUG
-#define TCPIP_DEBUG  LWIP_DBG_ON
+#define TCPIP_DEBUG  LWIP_DBG_OFF
 #endif
 
 /**

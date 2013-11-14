@@ -27,6 +27,9 @@ public:
 	// interrupt endpoint number
 	unint1 int_ep;
 
+	/*! The network interface for this eem module inside lwip */
+	struct netif tEMAC0Netif;
+
 private:
 	// Receive the current packet
 	ErrorT recv(unint4 recv_len);

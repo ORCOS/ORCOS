@@ -430,7 +430,7 @@ u32_t tcp_update_rcv_ann_wnd(struct tcp_pcb *pcb)
       pcb->rcv_ann_wnd = 0;
     } else {
       /* keep the right edge of window constant */
-      pcb->rcv_ann_wnd = (u16_t) (pcb->rcv_ann_right_edge - pcb->rcv_nxt);
+      pcb->rcv_ann_wnd = pcb->rcv_ann_right_edge - pcb->rcv_nxt;
     }
     return 0;
   }
@@ -447,12 +447,12 @@ u32_t tcp_update_rcv_ann_wnd(struct tcp_pcb *pcb)
 void
 tcp_recved(struct tcp_pcb *pcb, u16_t len)
 {
-  u32_t wnd_inflation;
+  int wnd_inflation;
 
   LWIP_ASSERT("tcp_recved: len would wrap rcv_wnd\r\n",
               len <= 0xffff - pcb->rcv_wnd );
 
-  pcb->rcv_wnd = (u16_t) (pcb->rcv_wnd + len);
+  pcb->rcv_wnd += len;
   if (pcb->rcv_wnd > TCP_WND)
     pcb->rcv_wnd = TCP_WND;
 
@@ -555,7 +555,7 @@ tcp_connect(struct tcp_pcb *pcb, struct ip_addr *ipaddr, u16_t port,
   pcb->mss = tcp_eff_send_mss(pcb->mss, ipaddr);
 #endif /* TCP_CALCULATE_EFF_SEND_MSS */
   pcb->cwnd = 1;
-  pcb->ssthresh = (u16_t) (pcb->mss * 10);
+  pcb->ssthresh = pcb->mss * 10;
   pcb->state = SYN_SENT;
 #if LWIP_CALLBACK_API  
   pcb->connected = connected;
@@ -654,7 +654,7 @@ tcp_slowtmr(void)
           eff_wnd = LWIP_MIN(pcb->cwnd, pcb->snd_wnd);
           pcb->ssthresh = eff_wnd >> 1;
           if (pcb->ssthresh < pcb->mss) {
-            pcb->ssthresh = (u16_t) (pcb->mss * 2);
+            pcb->ssthresh = pcb->mss * 2;
           }
           pcb->cwnd = pcb->mss;
           LWIP_DEBUGF(TCP_CWND_DEBUG, ("tcp_slowtmr: cwnd %"U16_F
@@ -716,8 +716,7 @@ tcp_slowtmr(void)
        be retransmitted). */
 #if TCP_QUEUE_OOSEQ    
     if (pcb->ooseq != NULL &&
-    		((u32_t)tcp_ticks - pcb->tmr) >=
-    		(pcb->rto * TCP_OOSEQ_TIMEOUT)) {
+        (u32_t)tcp_ticks - pcb->tmr >= pcb->rto * TCP_OOSEQ_TIMEOUT) {
       tcp_segs_free(pcb->ooseq);
       pcb->ooseq = NULL;
       LWIP_DEBUGF(TCP_CWND_DEBUG, ("tcp_slowtmr: dropping OOSEQ queued data \r\r\n "));
@@ -846,7 +845,7 @@ tcp_fasttmr(void)
       LWIP_DEBUGF(TCP_DEBUG, ("tcp_fasttmr: delayed ACK \r\r\n "));
       //tcp_ack(pcb);
       tcp_ack_now(pcb);
-      pcb->flags = pcb->flags & ((u8_t) ~(TF_ACK_DELAY | TF_ACK_NOW));
+      pcb->flags &= ~(TF_ACK_DELAY | TF_ACK_NOW);
     }
   }
 }
@@ -864,10 +863,10 @@ tcp_segs_free(struct tcp_seg *seg)
   struct tcp_seg *next;
   while (seg != NULL) {
     next = seg->next;
-    count = (u8_t) (count + tcp_seg_free(seg));
+    count += tcp_seg_free(seg);
     seg = next;
   }
-  return (count);
+  return count;
 }
 
 /**
@@ -895,7 +894,7 @@ tcp_seg_free(struct tcp_seg *seg)
     }
     memp_free(MEMP_TCP_SEG, seg);
   }
-  return (count);
+  return count;
 }
 
 /**
@@ -1352,17 +1351,17 @@ tcp_debug_state_str(enum tcp_state s)
 void
 tcp_debug_print(struct tcp_hdr *tcphdr)
 {
-  LWIP_DEBUGF(TCP_DEBUG, ("TCP header:\r\r\n "));
-  LWIP_DEBUGF(TCP_DEBUG, ("+-------------------------------+\r\r\n"));
-  LWIP_DEBUGF(TCP_DEBUG, ("|    %5"U16_F"      |    %5"U16_F"      | (src port, dest port)\r\r\n",
+  LWIP_DEBUGF(TCP_DEBUG, ("TCP header:\r "));
+  LWIP_DEBUGF(TCP_DEBUG, ("+-------------------------------+\r"));
+  LWIP_DEBUGF(TCP_DEBUG, ("|    %5"U16_F"      |    %5"U16_F"      | (src port, dest port)\r",
          ntohs(tcphdr->src), ntohs(tcphdr->dest)));
-  LWIP_DEBUGF(TCP_DEBUG, ("+-------------------------------+\r\r\n"));
-  LWIP_DEBUGF(TCP_DEBUG, ("|           %010"U32_F"          | (seq no)\r\r\n",
+  LWIP_DEBUGF(TCP_DEBUG, ("+-------------------------------+\r"));
+  LWIP_DEBUGF(TCP_DEBUG, ("|           %010"U32_F"          | (seq no)\r",
           ntohl(tcphdr->seqno)));
   LWIP_DEBUGF(TCP_DEBUG, ("+-------------------------------+\r\n"));
-  LWIP_DEBUGF(TCP_DEBUG, ("|           %010"U32_F"          | (ack no)\r\r\n",
+  LWIP_DEBUGF(TCP_DEBUG, ("|           %010"U32_F"          | (ack no)\r",
          ntohl(tcphdr->ackno)));
-  LWIP_DEBUGF(TCP_DEBUG, ("+-------------------------------+\r\r\n"));
+  LWIP_DEBUGF(TCP_DEBUG, ("+-------------------------------+\r"));
   LWIP_DEBUGF(TCP_DEBUG, ("| %2"U16_F" |   |%"U16_F"%"U16_F"%"U16_F"%"U16_F"%"U16_F"%"U16_F"|     %5"U16_F"     | (hdrlen, flags (",
        TCPH_HDRLEN(tcphdr),
          TCPH_FLAGS(tcphdr) >> 5 & 1,
@@ -1373,11 +1372,11 @@ tcp_debug_print(struct tcp_hdr *tcphdr)
          TCPH_FLAGS(tcphdr) & 1,
          ntohs(tcphdr->wnd)));
   tcp_debug_print_flags(TCPH_FLAGS(tcphdr));
-  LWIP_DEBUGF(TCP_DEBUG, ("), win)\r\r\n"));
-  LWIP_DEBUGF(TCP_DEBUG, ("+-------------------------------+\r\r\n"));
-  LWIP_DEBUGF(TCP_DEBUG, ("|    0x%04"X16_F"     |     %5"U16_F"     | (chksum, urgp)\r\r\n",
+  LWIP_DEBUGF(TCP_DEBUG, ("), win)\r"));
+  LWIP_DEBUGF(TCP_DEBUG, ("+-------------------------------+\r"));
+  LWIP_DEBUGF(TCP_DEBUG, ("|    0x%04"X16_F"     |     %5"U16_F"     | (chksum, urgp)\r",
          ntohs(tcphdr->chksum), ntohs(tcphdr->urgp)));
-  LWIP_DEBUGF(TCP_DEBUG, ("+-------------------------------+\r\r\n"));
+  LWIP_DEBUGF(TCP_DEBUG, ("+-------------------------------+\r"));
 }
 
 /**

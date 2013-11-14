@@ -114,7 +114,7 @@ tcp_write(struct tcp_pcb *pcb, struct pbuf* p_data, u16_t len, u8_t apiflags);
 
 void             tcp_setprio (struct tcp_pcb *pcb, u8_t prio);
 
-void			tcp_init(void);
+void			tcp_init();
 
 #define TCP_PRIO_MIN    1
 #define TCP_PRIO_NORMAL 64
@@ -153,10 +153,10 @@ u32_t            tcp_update_rcv_ann_wnd(struct tcp_pcb *pcb);
 #define tcp_output_nagle(tpcb) (tcp_do_output_nagle(tpcb) ? tcp_output(tpcb) : ERR_OK)
 
 
-#define TCP_SEQ_LT(a,b)     ((s32_t)(((int)a)-((int)b)) < 0)
-#define TCP_SEQ_LEQ(a,b)    ((s32_t)(((int)a)-((int)b)) <= 0)
-#define TCP_SEQ_GT(a,b)     ((s32_t)(((int)a)-((int)b)) > 0)
-#define TCP_SEQ_GEQ(a,b)    ((s32_t)(((int)a)-((int)b)) >= 0)
+#define TCP_SEQ_LT(a,b)     ((s32_t)((a)-(b)) < 0)
+#define TCP_SEQ_LEQ(a,b)    ((s32_t)((a)-(b)) <= 0)
+#define TCP_SEQ_GT(a,b)     ((s32_t)((a)-(b)) > 0)
+#define TCP_SEQ_GEQ(a,b)    ((s32_t)((a)-(b)) >= 0)
 /* is b<=a<=c? */
 #if 0 /* see bug #10548 */
 #define TCP_SEQ_BETWEEN(a,b,c) ((c)-(b) >= (a)-(b))
@@ -174,10 +174,10 @@ u32_t            tcp_update_rcv_ann_wnd(struct tcp_pcb *pcb);
 #define TCP_FLAGS 0x3fU
 
 /* Length of the TCP header, excluding options. */
-#define TCP_HLEN 20U
+#define TCP_HLEN 20
 
 #ifndef TCP_TMR_INTERVAL
-#define TCP_TMR_INTERVAL       250U  /* The TCP timer interval in milliseconds. */
+#define TCP_TMR_INTERVAL       250  /* The TCP timer interval in milliseconds. */
 #endif /* TCP_TMR_INTERVAL */
 
 #ifndef TCP_FAST_INTERVAL
@@ -188,8 +188,8 @@ u32_t            tcp_update_rcv_ann_wnd(struct tcp_pcb *pcb);
 #define TCP_SLOW_INTERVAL      (2*TCP_TMR_INTERVAL)  /* the coarse grained timeout in milliseconds */
 #endif /* TCP_SLOW_INTERVAL */
 
-#define TCP_FIN_WAIT_TIMEOUT 20000U /* milliseconds */
-#define TCP_SYN_RCVD_TIMEOUT 20000U /* milliseconds */
+#define TCP_FIN_WAIT_TIMEOUT 20000 /* milliseconds */
+#define TCP_SYN_RCVD_TIMEOUT 20000 /* milliseconds */
 
 #define TCP_OOSEQ_TIMEOUT        6U /* x RTO */
 
@@ -235,16 +235,16 @@ PACK_STRUCT_END
 #endif
 
 #define TCPH_OFFSET(phdr) (ntohs((phdr)->_hdrlen_rsvd_flags) >> 8)
-#define TCPH_HDRLEN(phdr) ((u8_t) (ntohs((phdr)->_hdrlen_rsvd_flags) >> 12))
+#define TCPH_HDRLEN(phdr) (ntohs((phdr)->_hdrlen_rsvd_flags) >> 12)
 #define TCPH_FLAGS(phdr)  (ntohs((phdr)->_hdrlen_rsvd_flags) & TCP_FLAGS)
 
-#define TCPH_OFFSET_SET(phdr, offset) (phdr)->_hdrlen_rsvd_flags = htons((u16_t) ( ((offset) << 8) | TCPH_FLAGS(phdr)))
-#define TCPH_HDRLEN_SET(phdr, len) (phdr)->_hdrlen_rsvd_flags = htons((u16_t) ( ((len) << 12) | TCPH_FLAGS(phdr)))
-#define TCPH_FLAGS_SET(phdr, flags) (phdr)->_hdrlen_rsvd_flags = (u16_t) (((phdr)->_hdrlen_rsvd_flags & htons((u16_t)(~(u16_t)(TCP_FLAGS)))) | htons((u16_t) (flags)))
-#define TCPH_SET_FLAG(phdr, flags ) (phdr)->_hdrlen_rsvd_flags = ((phdr)->_hdrlen_rsvd_flags | htons((u16_t) (flags)))
+#define TCPH_OFFSET_SET(phdr, offset) (phdr)->_hdrlen_rsvd_flags = htons(((offset) << 8) | TCPH_FLAGS(phdr))
+#define TCPH_HDRLEN_SET(phdr, len) (phdr)->_hdrlen_rsvd_flags = htons(((len) << 12) | TCPH_FLAGS(phdr))
+#define TCPH_FLAGS_SET(phdr, flags) (phdr)->_hdrlen_rsvd_flags = (((phdr)->_hdrlen_rsvd_flags & htons((u16_t)(~(u16_t)(TCP_FLAGS)))) | htons(flags))
+#define TCPH_SET_FLAG(phdr, flags ) (phdr)->_hdrlen_rsvd_flags = ((phdr)->_hdrlen_rsvd_flags | htons(flags))
 #define TCPH_UNSET_FLAG(phdr, flags) (phdr)->_hdrlen_rsvd_flags = htons(ntohs((phdr)->_hdrlen_rsvd_flags) | (TCPH_FLAGS(phdr) & ~(flags)) )
 
-#define TCP_TCPLEN(seg)  ((u16_t) ((seg)->len + ((TCPH_FLAGS((seg)->tcphdr) & (TCP_FIN | TCP_SYN)) != 0)))
+#define TCP_TCPLEN(seg) ((seg)->len + ((TCPH_FLAGS((seg)->tcphdr) & (TCP_FIN | TCP_SYN)) != 0))
 
 enum tcp_state {
   CLOSED      = 0,
@@ -538,8 +538,8 @@ struct tcp_seg {
 };
 
 #define LWIP_TCP_OPT_LENGTH(flags)              \
-  (u8_t) ((flags & TF_SEG_OPTS_MSS ? 4  : 0) +          \
-          (flags & TF_SEG_OPTS_TS  ? 12 : 0))
+  (flags & TF_SEG_OPTS_MSS ? 4  : 0) +          \
+  (flags & TF_SEG_OPTS_TS  ? 12 : 0)
 
 /** This returns a TCP header option for MSS in an u32_t */
 #define TCP_BUILD_MSS_OPTION(x) (x) = htonl(((u32_t)2 << 24) |          \
@@ -559,7 +559,7 @@ struct tcp_seg *tcp_seg_copy(struct tcp_seg *seg);
 #define tcp_ack(pcb)                               \
   do {                                             \
     if((pcb)->flags & TF_ACK_DELAY) {              \
-      (pcb)->flags = (pcb)->flags & (u8_t) (~TF_ACK_DELAY);               \
+      (pcb)->flags &= ~TF_ACK_DELAY;               \
       (pcb)->flags |= TF_ACK_NOW;                  \
       tcp_output(pcb);                             \
     }                                              \

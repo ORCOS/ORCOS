@@ -254,7 +254,7 @@ netif_find(char *name)
     return NULL;
   }
 
-  num = (u8_t) (name[2] - '0');
+  num = name[2] - '0';
 
   for(netif = netif_list; netif != NULL; netif = netif->next) {
     if (num == netif->num &&
@@ -428,8 +428,8 @@ void netif_set_up(struct netif *netif)
 
         netif->ip6_addr.addr[0] = htonl(0xFE800000); // link local address prefix (32 bit)
         netif->ip6_addr.addr[1] = 0x0;        //  ( 64 bit)
-        netif->ip6_addr.addr[2] = htonl((u32_t) (((netif->hwaddr[0] | 2)  << 24 ) | (netif->hwaddr[1] << 16) | (netif->hwaddr[2] << 8) | 0xFF )) ;  //  ( 96 bit)
-        netif->ip6_addr.addr[3] = htonl((u32_t) ((0xFE << 24) | (netif->hwaddr[3] << 16) | (netif->hwaddr[4] << 8) | netif->hwaddr[5]));           //  ( 128 bit)
+        netif->ip6_addr.addr[2] = htonl(((netif->hwaddr[0] | 2)  << 24 ) | (netif->hwaddr[1] << 16) | (netif->hwaddr[2] << 8) | 0xFF ) ;  //  ( 96 bit)
+        netif->ip6_addr.addr[3] = htonl((0xFE << 24) | (netif->hwaddr[3] << 16) | (netif->hwaddr[4] << 8) | netif->hwaddr[5]);           //  ( 128 bit)
         netif->ip6_addr_state = IP6_ADDR_STATE_TENTATIVE;
 
         // now send the NSM to do DAD
@@ -475,7 +475,7 @@ void netif_set_down(struct netif *netif)
 {
   if ( netif->flags & NETIF_FLAG_UP )
     {
-      netif->flags &= (u8_t) ~NETIF_FLAG_UP;
+      netif->flags &= ~NETIF_FLAG_UP;
 #if LWIP_SNMP
       snmp_get_sysuptime(&netif->ts);
 #endif

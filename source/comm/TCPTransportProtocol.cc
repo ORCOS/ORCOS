@@ -47,42 +47,45 @@ TCPTransportProtocol::~TCPTransportProtocol() {
 ErrorT TCPTransportProtocol::sendto( packet_layer* payload, const sockaddr* fromaddr,
                 const sockaddr *dest_addr, AddressProtocol* NextLayer, Socket* fromsock ) {
 
-	return cError;
+	// no sendto on connection oriented protocols
+	return (cError);
 }
 
 ErrorT TCPTransportProtocol::send(packet_layer* payload, AddressProtocol* NextLayer, Socket* fromsock) {
-	//LOG(KERNEL,INFO,(KERNEL,INFO,"TCP:send(): size: %d!",payload->size));
+	LOG(COMM,INFO,(COMM,INFO,"TCP:send(): size: %d",payload->size));
 
-	// lwip TCP stuff
+	// allocate a pbuf
 	struct pbuf *p = pbuf_alloc(PBUF_TRANSPORT, payload->size, PBUF_RAM);
 	if (p != 0) {
+		// unfortunately we need to copy here
 		memcpy(p->payload,payload->bytes,payload->size);
-
-		//LOG(KERNEL,TRACE,(KERNEL,TRACE,"TCP:send(): size: %d!",payload->size));
 		struct tcp_pcb *pcb = (struct tcp_pcb*) fromsock->arg;
 
-
+		// try to write it to the tcp stack
+		// will try to enqueue the packet and maybe merge it with previous ones still on queue
 		int ret = tcp_write(pcb,p,p->len,0);
 
+		// free anyway
 		pbuf_free(p);
 
-		if (ret != ERR_OK) return cError;
+		// check if enqueue operation was successfull
+		if (ret != ERR_OK) return (cError);
 
-		// else output something!
+		// try to send directly
 		tcp_output(pcb);
 
-		return cOk;
+		return (cOk);
 	}
 	else {
 		LOG(COMM,WARN,(COMM,WARN,"TCP:send(): packet dropped.. no more memory..!"));
-		return cError;
+		return (cError);
 	}
 }
 
 ErrorT TCPTransportProtocol::recv( char* packetstart, int packetlength, AddressProtocol* FromLayer,
         sockaddr fromaddr ) {
 
-    return cOk;
+    return (cOk);
 }
 
 

@@ -110,11 +110,11 @@ ethndp_request(struct netif *netif, struct ip6_addr *ipaddr)
    struct ip6_hdr *hdr;
    struct icmp6_nsm_hdr *icmphdr;
 
-   u16_t len = SIZEOF_ETHNSM_PACKET;
+   int len = SIZEOF_ETHNSM_PACKET;
    if (netif->ip6_addr_state == IP6_ADDR_STATE_VALID) {
       // if weve got a valid ip6 address we will send the source link layer address inside an additional
       // option frame
-    len = (u16_t) (len + SIZEOF_ICMP6_OPTIONS_HDR + 6);
+    len += SIZEOF_ICMP6_OPTIONS_HDR + 6;
    }
 
      /* allocate a pbuf for the outgoing ARP request packet */
@@ -137,10 +137,10 @@ ethndp_request(struct netif *netif, struct ip6_addr *ipaddr)
      ethhdr->type = htons(ETHTYPE_IPV6);
      ethhdr->dest.addr[0] = 0xFF;
      ethhdr->dest.addr[1] = 0xFF;
-     ethhdr->dest.addr[2] = (u8_t) ((ipaddr->addr[3] >> 24) & 0xFF);
-     ethhdr->dest.addr[3] = (u8_t) ((ipaddr->addr[3] >> 16) & 0xFF);
-     ethhdr->dest.addr[4] = (u8_t) ((ipaddr->addr[3] >> 8) & 0xFF);
-     ethhdr->dest.addr[5] = (u8_t) (ipaddr->addr[3] & 0xFF);
+     ethhdr->dest.addr[2] = ((ipaddr->addr[3] >> 24) & 0xFF);
+     ethhdr->dest.addr[3] = ((ipaddr->addr[3] >> 16) & 0xFF);
+     ethhdr->dest.addr[4] = ((ipaddr->addr[3] >> 8) & 0xFF);
+     ethhdr->dest.addr[5] = (ipaddr->addr[3] & 0xFF);
 
      for (k = 0; k < 6; k++)
      {
@@ -154,7 +154,7 @@ ethndp_request(struct netif *netif, struct ip6_addr *ipaddr)
      hdr->tclass1 = 0;
      hdr->tclass2 = 0;
      hdr->nexthdr = IP6_PROTO_ICMP; // ICMPv6
-     hdr->len = htons((u16_t) (len - (SIZEOF_ETH_HDR + IP6_HLEN)));
+     hdr->len = htons(len - (SIZEOF_ETH_HDR + IP6_HLEN));
 
      // create the solicited node multicast address based on the target address
      hdr->dest.addr[0] = htonl(0xFF020000);
@@ -236,7 +236,7 @@ err_t ethndp_output(struct netif *netif, struct pbuf *q,
         // See RFC 2464 Chapter 7
         mcastaddr.addr[0] = 0x33;
         mcastaddr.addr[1] = 0x33;
-        mcastaddr.addr[2] = (u8_t) (((ipaddr->addr[3]) >> 24) & 0xFF);
+        mcastaddr.addr[2] = ((ipaddr->addr[3]) >> 24) & 0xFF;
         mcastaddr.addr[3] = (ipaddr->addr[3] >> 16) & 0xFF;
         mcastaddr.addr[4] = (ipaddr->addr[3] >> 8) & 0xFF;
         mcastaddr.addr[5] = ipaddr->addr[3] & 0xFF;

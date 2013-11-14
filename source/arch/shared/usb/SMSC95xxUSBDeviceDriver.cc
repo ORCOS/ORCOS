@@ -20,43 +20,40 @@
 #include "inc/endian.h"
 
 extern Kernel* theOS;
-
-
 extern "C" err_t ethernet_input(struct pbuf *p, struct netif *netif);
 
+/* SMSC LAN95xx based USB 2.0 Ethernet Devices */
 
 
 // Default Mac Address...
 static char default_macaddr[6]  __attribute__((aligned(4))) = {0x1,0x1,0x1,0x1,0x1,0x1};
 
 
-/* SMSC LAN95xx based USB 2.0 Ethernet Devices */
-
 /* Tx command words */
 #define TX_CMD_A_FIRST_SEG_		0x00002000
 #define TX_CMD_A_LAST_SEG_		0x00001000
 
 /* Rx status word */
-#define RX_STS_FL_			0x3FFF0000	/* Frame Length */
-#define RX_STS_ES_			0x00008000	/* Error Summary */
+#define RX_STS_FL_				0x3FFF0000	/* Frame Length */
+#define RX_STS_ES_				0x00008000	/* Error Summary */
 
 /* SCSRs */
-#define ID_REV				0x00
+#define ID_REV					0x00
 
-#define TX_CFG				0x10
-#define TX_CFG_ON_			0x00000004
+#define TX_CFG					0x10
+#define TX_CFG_ON_				0x00000004
 
-#define HW_CFG				0x14
-#define HW_CFG_BIR_			0x00001000
+#define HW_CFG					0x14
+#define HW_CFG_BIR_				0x00001000
 #define HW_CFG_RXDOFF_			0x00000600
-#define HW_CFG_MEF_			0x00000020
-#define HW_CFG_BCE_			0x00000002
+#define HW_CFG_MEF_				0x00000020
+#define HW_CFG_BCE_				0x00000002
 #define HW_CFG_LRST_			0x00000008
 
-#define PM_CTRL				0x20
+#define PM_CTRL					0x20
 #define PM_CTL_PHY_RST_			0x00000010
 
-#define AFC_CFG				0x2C
+#define AFC_CFG					0x2C
 
 /*
  * Hi watermark = 15.5Kb (~10 mtu pkts)
@@ -66,18 +63,18 @@ static char default_macaddr[6]  __attribute__((aligned(4))) = {0x1,0x1,0x1,0x1,0
  */
 #define AFC_CFG_DEFAULT			0x00F830A1
 
-#define E2P_CMD				0x30
+#define E2P_CMD					0x30
 #define E2P_CMD_BUSY_			0x80000000
 #define E2P_CMD_READ_			0x00000000
 #define E2P_CMD_TIMEOUT_		0x00000400
 #define E2P_CMD_LOADED_			0x00000200
 #define E2P_CMD_ADDR_			0x000001FF
 
-#define E2P_DATA			0x34
+#define E2P_DATA				0x34
 
-#define BURST_CAP			0x38
+#define BURST_CAP				0x38
 
-#define INT_EP_CTL			0x68
+#define INT_EP_CTL				0x68
 #define INT_EP_CTL_PHY_INT_		0x00008000
 
 
@@ -97,11 +94,11 @@ static char default_macaddr[6]  __attribute__((aligned(4))) = {0x1,0x1,0x1,0x1,0
 
 /* MAC CSRs */
 #define MAC_CR				0x100
-#define MAC_CR_MCPAS_			0x00080000
-#define MAC_CR_PRMS_			0x00040000
-#define MAC_CR_HPFILT_			0x00002000
-#define MAC_CR_TXEN_			0x00000008
-#define MAC_CR_RXEN_			0x00000004
+#define MAC_CR_MCPAS_		0x00080000
+#define MAC_CR_PRMS_		0x00040000
+#define MAC_CR_HPFILT_		0x00002000
+#define MAC_CR_TXEN_		0x00000008
+#define MAC_CR_RXEN_		0x00000004
 
 #define ADDRH				0x104
 
@@ -167,7 +164,7 @@ struct smsc95xx_private {
 };
 
 
-unint4 tmpbuf[40] __attribute__((aligned(4)));
+unint4 tmpbuf[2] __attribute__((aligned(4)));
 
 /*
  * Smsc95xx infrastructure commands
@@ -175,9 +172,7 @@ unint4 tmpbuf[40] __attribute__((aligned(4)));
 static int smsc95xx_write_reg(USBDevice *dev, unint2 index, unint4 data)
 {
 
-	//data = ___swab32(data);
 	tmpbuf[0] = data;
-
 	index = cputobe16(index);
 
 	unint1 msg[8] = {USB_TYPE_VENDOR | USB_RECIP_DEVICE, USB_VENDOR_REQUEST_WRITE_REGISTER,0x0,0x0, (unint1) ((index & 0xff00) >> 8),(unint1) (index & 0xff), sizeof(data),0x0};
@@ -188,29 +183,25 @@ static int smsc95xx_write_reg(USBDevice *dev, unint2 index, unint4 data)
 		printf("smsc95xx_write_reg failed: index=%d, data=%d, len=%d\r\n", index, data, sizeof(data));
 		return (-1);
 	}
-	return cOk;
+	return (cOk);
 
 }
 
 
 static int smsc95xx_read_reg(USBDevice *dev, unint2 index, unint4 *data)
 {
-
 	index = cputobe16(index);
-
 	unint1 msg[8] = {0x80 | USB_TYPE_VENDOR | USB_RECIP_DEVICE, USB_VENDOR_REQUEST_READ_REGISTER,0x0,0x0,(unint1) ((index & 0xff00) >> 8),(unint1) (index & 0xff),sizeof(data),0x0};
 
 	int4 error = dev->controller->sendUSBControlMsg(dev,0,(unint1*)&msg,USB_DIR_IN,sizeof(data),(unint1*)&tmpbuf);
 
 	if (error != 4) {
 		printf("smsc95xx_read_reg failed: index=%d, data=%d, len=%d, error=%d", index, *data, sizeof(data),error);
-		return -1;
+		return (cError);
 	}
 
 	*data = tmpbuf[0];
-	//*data = tole32(*data);
-	return cOk;
-
+	return (cOk);
 }
 
 /* Loop until the read is completed with timeout */
@@ -620,8 +611,8 @@ ErrorT SMSC95xxUSBDeviceDriver::init()
 		return (ret);
 	LOG(ARCH,TRACE,(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: Read Value from BURST_CAP after writing: 0x%08x", read_buf));
 
-	//read_buf = DEFAULT_BULK_IN_DELAY;
-	read_buf = 0x1000;
+	read_buf = DEFAULT_BULK_IN_DELAY;
+	//read_buf = 0x1000;
 	ret = smsc95xx_write_reg(dev, BULK_IN_DLY, read_buf);
 	if (ret < 0)
 		return (ret);
@@ -685,7 +676,7 @@ ErrorT SMSC95xxUSBDeviceDriver::init()
 		return (ret);
 
 	/* Disable checksum offload engines */
-	ret = smsc95xx_set_csums(dev, 1, 0);
+	ret = smsc95xx_set_csums(dev, 1, 1);
 	if (ret < 0) {
 		LOG(ARCH,ERROR,(ARCH,ERROR,"SMSC95xxUSBDeviceDriver: Failed to set csum offload: %d", ret));
 		return (ret);
@@ -734,16 +725,12 @@ ErrorT SMSC95xxUSBDeviceDriver::init()
 
 #define PKTSIZE			1518
 
-/*! The network interface for this eem module inside lwip */
-// TODO: not multi interface capable.. store this inside the class
-struct netif tEMAC0Netif;
-
 ErrorT SMSC95xxUSBDeviceDriver::recv(unint4 recv_len)
 {
 
 	unint4 packet_len;
 
-	LOG(ARCH,TRACE,(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: Packet received.. USB-Len %x",recv_len));
+	LOG(ARCH,DEBUG,(ARCH,DEBUG,"SMSC95xxUSBDeviceDriver: Packet received.. USB-Len %d",recv_len));
 
 	unint4 recvd_bytes = 0;
 
@@ -755,16 +742,16 @@ ErrorT SMSC95xxUSBDeviceDriver::recv(unint4 recv_len)
 		packet_len = cputole32(packet_len);
 
 		if (packet_len & RX_STS_ES_) {
-			LOG(ARCH,WARN,(ARCH,WARN,"SMSC95xxUSBDeviceDriver: RX packet header Error: %x",packet_len));
+			LOG(ARCH,DEBUG,(ARCH,DEBUG,"SMSC95xxUSBDeviceDriver: RX packet header Error: %x",packet_len));
 			return (cError);
 		}
 		// extract packet_len
 		packet_len = ((packet_len & RX_STS_FL_) >> 16);
 
-		LOG(ARCH,TRACE,(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: Packet received.. Packet-Len %x",packet_len));
+		LOG(ARCH,DEBUG,(ARCH,DEBUG,"SMSC95xxUSBDeviceDriver: Packet received.. Packet-Len %d",packet_len));
 
-		if (packet_len > 1500) {
-			LOG(ARCH,WARN,(ARCH,WARN,"SMSC95xxUSBDeviceDriver: Length Validation failed: %d",packet_len));
+		if ((packet_len > 1500) || (packet_len == 0)) {
+			LOG(ARCH,DEBUG,(ARCH,DEBUG,"SMSC95xxUSBDeviceDriver: Length Validation failed: %d",packet_len));
 			return (cError);
 		}
 
@@ -788,6 +775,7 @@ ErrorT SMSC95xxUSBDeviceDriver::recv(unint4 recv_len)
 		}
 
 		recvd_bytes += packet_len + 4;
+		recvd_bytes = (recvd_bytes + 3) & (~3);
 	}
 
 	return (cOk);
@@ -821,29 +809,28 @@ int i;
   return(crc);
 }*/
 
-static err_t smsc95xx_low_level_output(struct netif *netif, struct pbuf *p) {
-	LOG(ARCH,INFO,(ARCH,INFO,"SMSC95xxUSBDeviceDriver: sending packet.."));
+unint4 dummyFrame[2] = { (TX_CMD_A_FIRST_SEG_ | TX_CMD_A_LAST_SEG_), 0x0};
 
-	memset(data,0,64);
+static err_t smsc95xx_low_level_output(struct netif *netif, struct pbuf *p) {
+	LOG(ARCH,DEBUG,(ARCH,DEBUG,"SMSC95xxUSBDeviceDriver: sending packet of length: %d",p->tot_len));
 
 	if (p->tot_len > 1500) {
 		//pbuf_free(p);
 		LOG(ARCH,WARN,(ARCH,WARN,"SMSC95xxUSBDeviceDriver: not sending packet. Len > 1500."));
 		return (ERR_MEM);
 	}
+	if (p == 0) return (ERR_ARG);
 
 	unint2 pos = 0;
-
 	struct pbuf *curp = p;
+    unint2 len = p->tot_len;
+	//if (len <= 64) len = 64;
 
 	unint4 tx_cmd_a;
 	unint4 tx_cmd_b;
 
-	// TODO: CPU to le
-	tx_cmd_a = ((unint4)p->tot_len) | TX_CMD_A_FIRST_SEG_ | TX_CMD_A_LAST_SEG_;
-	tx_cmd_b = ((unint4)p->tot_len);
-	//tx_cmd_a = tole32(tx_cmd_a);
-	//tx_cmd_b = tole32(tx_cmd_b);
+	tx_cmd_a = cputole32(((unint4)len) | TX_CMD_A_FIRST_SEG_ | TX_CMD_A_LAST_SEG_);
+	tx_cmd_b = cputole32((unint4)len);
 
 	/* prepend cmd_a and cmd_b */
 	memcpy(&data[0], &tx_cmd_a, sizeof(tx_cmd_a));
@@ -851,9 +838,9 @@ static err_t smsc95xx_low_level_output(struct netif *netif, struct pbuf *p) {
 
 	pos = sizeof(tx_cmd_a) + sizeof(tx_cmd_b);
 
+
 	while (curp != 0) {
 		memcpy(&data[pos],curp->payload,curp->len);
-
 		pos  = (unint2) (pos + curp->len);
 		curp = curp->next;
 	}
@@ -861,7 +848,11 @@ static err_t smsc95xx_low_level_output(struct netif *netif, struct pbuf *p) {
 	SMSC95xxUSBDeviceDriver *driver =  (SMSC95xxUSBDeviceDriver*) netif->state;
 
 	if (driver != 0) {
-		driver->dev->controller->USBBulkMsg(driver->dev,driver->bulkout_ep,USB_DIR_OUT,pos,(unint1*) data);
+		// send a short frame to be sure the last packet is send ...
+		// without this the smsc stalls with too much data send .. ?
+		driver->dev->controller->USBBulkMsg(driver->dev,driver->bulkout_ep,USB_DIR_OUT,8,(unint1*) dummyFrame);
+		// now send the data
+		driver->dev->controller->USBBulkMsg(driver->dev,driver->bulkout_ep,USB_DIR_OUT,(unint2) (len+8),(unint1*) data);
 	}
 	return (ERR_OK);
 }
@@ -884,6 +875,7 @@ err_t smsc9x_ethernetif_init(struct netif *netif) {
 
     netif->name[0] = 'U';
     netif->name[1] = '0';
+
     /* We directly use etharp_output() here to save a function call.
      * You can instead declare your own function an call etharp_output()
      * from it if you have to do some checks before sending (e.g. if link
@@ -895,23 +887,21 @@ err_t smsc9x_ethernetif_init(struct netif *netif) {
 #endif
     netif->input = ethernet_input;
     netif->linkoutput = smsc95xx_low_level_output;
-
     netif->hwaddr_len = 6;
 
     for (int i = 0; i < netif->hwaddr_len; i++)
-       {
-           netif->hwaddr[i] = default_macaddr[i];
-       }
+    {
+       netif->hwaddr[i] = default_macaddr[i];
+    }
 
-       /* maximum transfer unit */
-       netif->mtu = 1500; //MAX_FRAME_SIZE;
+   /* maximum transfer unit */
+   netif->mtu = 1500; //MAX_FRAME_SIZE;
 
-       /* device capabilities */
-       /* don't set NETIF_FLAG_ETHARP if this device is not an ethernet one */
-       netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP
-               | NETIF_FLAG_LINK_UP;
+   /* device capabilities */
+   /* don't set NETIF_FLAG_ETHARP if this device is not an ethernet one */
+   netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_LINK_UP;
 
-       return (cOk);
+   return (cOk);
 }
 
 
@@ -935,6 +925,7 @@ ErrorT SMSC95xxUSBDeviceDriver::initialize() {
 				bulkin_ep =  i;
 				bulkinep = true;
 				// internally handle RX transfer as interrupt requests
+				dev->endpoints[bulkin_ep].interrupt_receive_size = HS_USB_PKT_SIZE;
 				dev->endpoints[bulkin_ep].type = Interrupt;
 				dev->endpoints[bulkin_ep].poll_frequency = 5;
 			}
@@ -1023,13 +1014,13 @@ ErrorT SMSC95xxUSBDeviceDriver::handleInterrupt() {
 		}
 
 		// set qtd back to active
-		qtd2->qt_token = QT_TOKEN_DT(1) | QT_TOKEN_CERR(0) | QT_TOKEN_IOC(1) | QT_TOKEN_PID(QT_TOKEN_PID_IN)
-						 			 | QT_TOKEN_STATUS_ACTIVE | QT_TOKEN_TOTALBYTES(dev->endpoints[int_ep].max_packet_size);
+		/*qtd2->qt_token = QT_TOKEN_DT(1) | QT_TOKEN_CERR(0) | QT_TOKEN_IOC(1) | QT_TOKEN_PID(QT_TOKEN_PID_IN)
+						 			 | QT_TOKEN_STATUS_ACTIVE | QT_TOKEN_TOTALBYTES(dev->endpoints[int_ep].interrupt_receive_size);
 
-		qh->qh_overlay.qt_next = (unint4) qtd2;
+		qh->qh_overlay.qt_next = (unint4) qtd2;*/
 
 		// clear received data
-		memset(&dev->endpoints[this->int_ep].recv_buffer[0],0,dev->endpoints[this->int_ep].max_packet_size);
+		memset(&dev->endpoints[this->int_ep].recv_buffer[0],0,dev->endpoints[this->int_ep].interrupt_receive_size);
 
 		dev->activateEndpoint(int_ep);
 
@@ -1044,23 +1035,22 @@ ErrorT SMSC95xxUSBDeviceDriver::handleInterrupt() {
 	if ( ((unint4)qtd2 > QT_NEXT_TERMINATE) && (QT_TOKEN_GET_STATUS(qh->qh_overlay.qt_token) != 0x80)) {
 		LOG(ARCH,TRACE,(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: Packet received: status %x",QT_TOKEN_GET_STATUS(qh->qh_overlay.qt_token)));
 
-
-		unint4 len = dev->endpoints[bulkin_ep].max_packet_size - QT_TOKEN_GET_TOTALBYTES(qtd2->qt_token);
+		unint4 len =  dev->endpoints[bulkin_ep].interrupt_receive_size - QT_TOKEN_GET_TOTALBYTES(qtd2->qt_token);
 		// handle received data
 		if (len > 0)
 			recv(len);
 
 		// clear received data
-		memset(&dev->endpoints[bulkin_ep].recv_buffer[0],0,dev->endpoints[bulkin_ep].max_packet_size);
+		memset(&dev->endpoints[bulkin_ep].recv_buffer[0],0,dev->endpoints[bulkin_ep].interrupt_receive_size);
 		// set qtd back to active
 
-		dev->endpoints[bulkin_ep].status_toggle ^= 1;
+		dev->endpoints[bulkin_ep].data_toggle ^= 1;
 		dev->activateEndpoint(bulkin_ep);
 
 		ret = cOk;
 	}
 
-	return ret;
+	return (ret);
 }
 
 

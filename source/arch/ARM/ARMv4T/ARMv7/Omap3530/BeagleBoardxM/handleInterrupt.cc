@@ -51,7 +51,7 @@ extern "C" void dumpContext(void* sp_context) {
 extern "C" void handleDataAbort(int addr, int instr, int context, int spsr) {
 	LOG(ARCH,ERROR,(ARCH,ERROR,"Data Abort at address: 0x%x , instr: 0x%x, SPSR: 0x%x",addr,instr,spsr));
 
-	for (int i = 0; i < 12; i++) {
+	for (int i = -1; i <= 13; i++) {
 			LOG(ARCH,ERROR,(ARCH,ERROR,"r%d : %x",i,((unint4*) context)[i]));
 		}
 
