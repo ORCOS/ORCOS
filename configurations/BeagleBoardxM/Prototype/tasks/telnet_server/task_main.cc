@@ -44,10 +44,10 @@
  / / /___/ / // / /\\ \\ \\  / / /________  / / /___/ / //_/\\__/ / / "LINEFEED"\
 / / /____\\/ // / /  \\ \\ \\/ / /_________\\/ / /____\\/ / \\ \\/___/ / "LINEFEED"\
 \\/_________/ \\/_/    \\_\\/\\/____________/\\/_________/   \\_____\\/ "LINEFEED"\
-"LINEFEED"Welcome.. Terminal running."LINEFEED"/$ "
+"LINEFEED"Welcome.. Terminal running.."LINEFEED"/$ "
 
 
-char* welcome_msg = orcos_string;
+const char* welcome_msg = orcos_string;
 
 #define MAX_COMMAND_HISTORY 10
 
@@ -72,11 +72,11 @@ static char current_dir[100];
 // last directory
 static char last_dir[100];
 
-static char* unknown_command = "Unknown Command\r";
+static const char* unknown_command = "Unknown Command\r";
 
-static char* dir_error = "Could not open Directory..\r";
+static const char* dir_error = "Could not open Directory..\r";
 
-static char* help_msg = "OCROS Telnet Terminal\r\rSupported commands:\r"
+static const char* help_msg = "OCROS Telnet Terminal\r\rSupported commands:\r"
 						"help      - Shows this message\r"
 						"cd        - Change Directory\r"
 						"ls        - List Directory\r"
@@ -93,7 +93,7 @@ static char temp_msg[200];
 
 static int cmd_pos = 0;
 
-char* types[11] = {
+const char* types[11] = {
 		"Directory",
 		"StreamDevice",
 		"CommDevice",
@@ -169,6 +169,8 @@ void compactPath(char* path) {
 	memcpy(path,newpath,strlen(newpath)+1);
 }
 
+
+
 void sendMsg(int socket, char* msg) {
 	sprintf(return_msg,msg);
 	int end = strlen(return_msg);
@@ -176,7 +178,6 @@ void sendMsg(int socket, char* msg) {
 	return_msg[end+1] = '\0';
 	sendto(socket,return_msg,end+1,0);
 }
-
 
 void sendUnknownCommand(int socket) {
 	memcpy(&return_msg[0],unknown_command,strlen(unknown_command));
@@ -199,26 +200,26 @@ int handleTelnetCommand(int socket, char* bytes) {
 
 
 	switch (bytes[0]) {
-	case 241 : return 1;
+	case 241 : return 0;
 	case 246 : {
 		telnetcommand[0] = 0xff;
 		telnetcommand[1] = 249;
 		sendto(socket,telnetcommand,2,0);
-		return 1;
+		return 0;
 	}
 	case 247 : {
 		if (cmd_pos > 0) {
 			command[cmd_pos--] = 0;
 			if (doecho) sendto(socket,&back_sequence,3,0);
 		}
-		return 1;
+		return 0;
 	}
 	case WILL : {
 		telnetcommand[0] = 0xff;
 		telnetcommand[1] = DONT;
 		telnetcommand[2] = bytes[1];
 		sendto(socket,telnetcommand,3,0);
-		return 2;
+		return 1;
 	}
 	case DO : {
 		telnetcommand[0] = 0xff;
@@ -230,20 +231,20 @@ int handleTelnetCommand(int socket, char* bytes) {
 
 		telnetcommand[2] = bytes[1];
 		sendto(socket,telnetcommand,3,0);
-		return 2;
+		return 1;
 	}
 	case DONT : {
 		if (bytes[1] == 1) {
 			doecho = 0;
 		}
 
-		return 2;
+		return 1;
 	}
 	case WONT : {
-		return 2;
+		return 1;
 	}
 
-	default : return 1;
+	default : return 0;
 
 
 	}
@@ -251,6 +252,8 @@ int handleTelnetCommand(int socket, char* bytes) {
 }
 
 void makeTelnetCharCompatible(char* msg, int len) {
+	if (msg == 0) return;
+
 	for (int i= 0; i < len; i++) {
 		if (msg[i] =='\r') continue;
 		if (msg[i] =='\n') continue;
@@ -262,6 +265,8 @@ void makeTelnetCharCompatible(char* msg, int len) {
 }
 
 void makeHexCharCompatible(char* msg, int len) {
+	if (msg == 0) return;
+
 	for (int i= 0; i < len; i++) {
 		if (msg[i] < 32)  msg[i] = '.';
 		if (msg[i] > 126) msg[i] = '.';
@@ -335,24 +340,26 @@ void handleCommand(int socket, int command_length) {
 		if (mydirhandle == 0) return;
 
 		//printf("reading dir handle %d..\r",mydirhandle);
-		int ret = fread(dir_content,4096,1,mydirhandle);
+		int ret = fread(dir_content,4000,1,mydirhandle);
 		if (ret > 0) {
 			//printf("data len: %d\r",ret);
 			// interpret data
 			if (dir_content[0] == cDirTypeORCOS) {
 				// display directory content
 
-				int pos = 1;
+				unint2 pos = 1;
 				// for each directory send a message
 				char* retmsg = return_msg;
 				retmsg[0] = '\r';
 				retmsg[1] = 0;
 				retmsg += 2;
 
-				int msglen = 2;
-				while (pos < ret) {
-					int namelen = dir_content[pos];
-					char* typestr = "Unknown";
+				unint2 msglen = 2;
+
+				while ((pos < ret) && (pos < 4000)) {
+					unint1 namelen = (unint1) dir_content[pos];
+					if (namelen > 100) return;
+					const char* typestr = "Unknown";
 
 					int dirtype = dir_content[pos+2+namelen];
 
@@ -375,18 +382,19 @@ void handleCommand(int socket, int command_length) {
 
 					if (dirtype == 1) {
 						sprintf(retmsg,ESC_CYAN);
-						msglen += strlen(ESC_CYAN);
-						retmsg += strlen(ESC_CYAN);
+						msglen += sizeof(ESC_CYAN)-1;
+						retmsg += sizeof(ESC_CYAN)-1;
 					}
 
-					sprintf(retmsg,"%-30s %4d %3d %-15s %-8d %-8x\r",&dir_content[pos+1],dir_content[pos+3+namelen],dir_content[pos+2+namelen],typestr,filesize,flags);
+					makeTelnetCharCompatible(&dir_content[pos+1],namelen);
+					sprintf(retmsg,"%-30s %4d %3d %-15s %-8d %-8x\r",&dir_content[pos+1],(unint4)dir_content[pos+3+namelen],(unint4)dir_content[pos+2+namelen],typestr,filesize,flags);
 					msglen += 39 + 25 + 10;
 					retmsg += 39 + 25 + 10;
 
 					if (dirtype == 1) {
 						sprintf(retmsg,ESC_WHITE);
-						msglen += strlen(ESC_WHITE);
-						retmsg += strlen(ESC_WHITE);
+						msglen += sizeof(ESC_WHITE)-1;
+						retmsg += sizeof(ESC_WHITE)-1;
 					}
 
 					//printf(return_msg,strlen(return_msg));
@@ -407,11 +415,10 @@ void handleCommand(int socket, int command_length) {
 
 			}
 
-			if (ret > 4000) {
+			if (ret >= 4000 ) {
 				sprintf(return_msg,"\rMore files..\r");
 				sendto(socket,return_msg,strlen(return_msg)+1,0);
 			}
-
 			return;
 
 		} else {
@@ -591,6 +598,7 @@ void handleCommand(int socket, int command_length) {
 		}
 	}
 
+
 	if (strpos("touch",command) == 0) {
 		int arg = strpos(" ",command);
 		if (arg > 0) {
@@ -687,7 +695,6 @@ void handleCommand(int socket, int command_length) {
 
 extern "C" int task_main()
 {
-
 	int i = 0;
 
 	char* mysocketbuffer = (char*) malloc(800);

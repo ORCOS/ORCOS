@@ -101,11 +101,14 @@ static err_t tcp_recv_wrapper(void *arg, struct tcp_pcb *pcb, struct pbuf *p, er
 	Socket *sock = (Socket*) arg;
 
 	if (p != 0) {
-		sock->addMessage((char*) p->payload,p->len,0);
+		if (sock != 0)
+			sock->addMessage((char*) p->payload,p->len,0);
+
 		tcp_recved(pcb,p->len);
 		pbuf_free(p);
 	} else {
-		sock->disconnected(error);
+		if (sock != 0)
+			sock->disconnected(error);
 		LOG(COMM,DEBUG,(COMM,DEBUG,"TCP: closing pcb: %x",pcb));
 		tcp_close(pcb);
 	}
@@ -233,9 +236,10 @@ ErrorT TCPTransportProtocol::unregister_socket( Socket* socket ) {
 
 	if (socket->arg != 0){
 		tcp_close((struct tcp_pcb*) socket->arg);
-		return cOk;
+		tcp_arg((struct tcp_pcb*) socket->arg,0);
+		return (cOk);
 	}
-    return cError;
+    return (cError);
 }
 
 #endif

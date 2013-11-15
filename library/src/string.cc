@@ -40,6 +40,8 @@ extern"C" void __stack_chk_fail()
     while(1);
 }
 
+
+
 void strreverse( char* begin, char* end ) {
     char aux;
     while ( end > begin )
@@ -84,14 +86,20 @@ int atoi(char *p) {
  return k;
 }
 
-static void printchar( char **str, int c ) {
-    if ( str ) {
+
+static void printchar( char **str, char c ) {
+    if ( str && *str) {
         **str = c;
         ++( *str );
     }
 }
 static void prints( char **out, const char *string, int width, int pad ) {
-    register int padchar = ' ';
+    register char padchar = ' ';
+
+    //if (width > 8) return;
+    if (string == 0) return;
+    if (out == 0) return;
+    if (*out == 0) return;
 
     if ( width > 0 ) {
         register int len = 0;
@@ -123,10 +131,11 @@ static void prints( char **out, const char *string, int width, int pad ) {
 
 }
 
-void print( char **out, const char *format, va_list args ) {
+extern "C" void print( char **out, const char *format, va_list args ) {
     register int width;
     register int pad;
     char scr[ 2 ];
+    char print_buf[ PRINT_BUF_LEN ];
 
     for ( ; *format != 0; ++format ) {
         if ( *format == '%' ) {
@@ -134,8 +143,10 @@ void print( char **out, const char *format, va_list args ) {
             width = pad = 0;
             if ( *format == '\0' )
                 break;
-            if ( *format == '%' )
-                goto out;
+            if ( *format == '%' ) {
+            	printchar( out, *format );
+            	continue;
+            }
             if ( *format == '-' ) {
                 ++format;
                 pad = PAD_RIGHT;
@@ -149,31 +160,25 @@ void print( char **out, const char *format, va_list args ) {
                 width += *format - '0';
             }
             if ( *format == 's' ) {
-                register char *s = (char*) va_arg( args, int );
+                register char *s = va_arg( args, char* );
                 prints( out, s ? s : "(null)", width, pad );
                 continue;
             }
             if ( *format == 'd' ) {
-                char print_buf[ PRINT_BUF_LEN ];
                 itoa( va_arg( args, int ), print_buf, 10 );
-                prints( out, print_buf, width, pad );
+                prints( out,  &print_buf[0], width, pad );
                 continue;
             }
             if( *format == 'x' ) {
-                char print_buf[ PRINT_BUF_LEN ];
                 itoa( va_arg( args, int ), print_buf, 16 );
-                prints( out, print_buf, width, pad );
-             continue;
-             }
-            /*
-             if( *format == 'X' ) {
-             printi (out,  va_arg( args, int ), 16, width, pad);
-             continue;
-             }
-             if( *format == 'u' ) {
-             printi (out,  va_arg( args, int ), 10, width, pad);
-             continue;
-             }*/
+                prints( out, &print_buf[0], width, pad );
+                continue;
+            }
+            if( *format == 'u' ) {
+            	 itoa( va_arg( args, unsigned int ), print_buf, 10 );
+            	 prints( out,  &print_buf[0], width, pad );
+            	 continue;
+            }
             if ( *format == 'c' ) {
                 /* char are converted to int then pushed on the stack */
                 scr[ 0 ] = va_arg( args, int );
@@ -183,10 +188,10 @@ void print( char **out, const char *format, va_list args ) {
             }
         }
         else {
-            out: printchar( out, *format );
+            printchar( out, *format );
         }
     }
-    if ( out )
+    if ( out && *out )
         **out = '\0';
 
 }
@@ -199,7 +204,7 @@ void print( char **out, const char *format, va_list args ) {
  * \param format    The format string to use
  * \param ...       Arguments for the format string
  */
-int sprintf( char *out, const char *format, ... ) {
+int sprintf( char *out, char *format, ... ) {
 	char* orig_out = out;
     va_list args;
     va_start( args, format );
@@ -213,7 +218,7 @@ int sprintf( char *out, const char *format, ... ) {
 // create a temporary buffer on the stack
 static char tmp[256];
 
-int printf( const char *format, ... )
+int printf( char *format, ... )
 {
     char* out = tmp;
 
@@ -227,6 +232,7 @@ int printf( const char *format, ... )
     printToStdOut(tmp,size);
     return (size);
 }
+
 
 /**
  * \brief memcpy - Copies a memory area into another
@@ -278,7 +284,7 @@ size_t strlen(const char * s){
 
     for (sc = s; *sc != '\0'; ++sc)
         /* nothing */;
-    return sc - s;
+    return (sc - s);
 }
 
 
@@ -390,6 +396,10 @@ char* strtok( char *s, const char *delim ) {
     /* NOTREACHED */
 }
 
+
+
 extern "C" int puts(const char *s) {
 	return (printToStdOut(s,strlen(s)));
 }
+
+

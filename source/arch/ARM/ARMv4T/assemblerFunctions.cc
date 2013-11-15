@@ -86,6 +86,7 @@ extern "C" void restoreContext(Thread*  t)
     LOG(HAL,DEBUG,(HAL,DEBUG,"Restore Context: t: %x, sp@ 0x%x, mode:%d" , t,sp, mode));
 
     //LOG(HAL,WARN,(HAL,WARN,"Return Value: %d" , t->returnValue ));
+    register void* returnval = t->returnValue;
 
 #if HAS_Board_HatLayerCfd
 	ptStartAddr = (void*) ((unint)&__PageTableSec_start + pid*0x4000);
@@ -121,14 +122,14 @@ extern "C" void restoreContext(Thread*  t)
 		"MCR p15, 0, r2, c7, c5, 4;"	// Ensure completion of the CP15 write (ISB not working)
 
 #endif
-
+		//"NOP;"
 		//"bl  dumpContext;"
 		"MOV r0, %0;"
 		"MOV r1, %3;"	// set restore context mode
 		"str %4, [%0, #4];"
 		"b 	 restoreThreadContext;"
 		:
-		: "r" (sp), "r" (ptStartAddr), "r" (pid) ,"r" (mode) ,"r" (t->returnValue)
+		: "r" (sp), "r" (ptStartAddr), "r" (pid) ,"r" (mode) ,"r" (returnval)
 		: "r0", "r1", "r2"
 	);
 

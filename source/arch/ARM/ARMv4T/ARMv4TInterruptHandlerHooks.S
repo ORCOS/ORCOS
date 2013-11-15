@@ -36,6 +36,9 @@ restoreThreadContext:
 	MSR 	CPSR_c, #(undef_mode)|CPSR_DISINT
 	mov		sp, r0
 
+	// be sure interrupts are still disabled when we
+	// temporarily switch to target mode to setup the lr,sp and fp
+    ORR		r1, r1, #0xC0
 	MSR 	CPSR_c, r1
 
 	ldr		lr,[r0,#60] // restore lr
@@ -49,8 +52,9 @@ restoreThreadContext:
 	msr		SPSR, r0
 
     // load all other registers + restore PSR + jump to pc
-	ldmfd   sp!, {r0-r12,pc}^
+	ldmfd   sp, {r0-r12,pc}^
 	nop
+    nop
 
 	.section	.irq,  "ax", "progbits"
 

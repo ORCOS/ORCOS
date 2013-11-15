@@ -8,9 +8,9 @@
 #ifndef STRING_HH_
 #define STRING_HH_
 
-extern "C" int 		sprintf( char *out, const char *format, ... );
+extern "C" int		sprintf( char *out, char *format, ... );
 
-extern "C" int	 	printf( const char *format, ... );
+extern "C" int	 	printf( char *format, ... );
 
 extern "C" int 		strcmp( const char *s1, char const *s2 );
 

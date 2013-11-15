@@ -27,7 +27,7 @@
  *  define 10 buffers inside the cab
  *  this means the cab needs
  */
-#define MAX_BUF 4
+#define MAX_BUF 8
 
 /*!
  * \brief A Cyclic Asynchronous Buffer fopr Message Storage
