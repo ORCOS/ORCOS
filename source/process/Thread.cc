@@ -31,7 +31,6 @@ extern Board_ClockCfdCl* theClock;
 extern unint8  lastCycleStamp;
 extern Task* pCurrentRunningTask;
 
-
 // static non-const member variable initialization
 // will be executed in ctor
 ThreadIdT Thread::globalThreadIdCounter;
@@ -193,7 +192,6 @@ void Thread::block() {
 
         // Save Register and msr like the context save method in an interrupt handler would do
         SAVE_CONTEXT_AT(&buf);
-
         ASSERT(isOk(this->pushStackPointer( stackpointer )));
 
         #ifdef PLATFORM_ARM
@@ -210,7 +208,6 @@ void Thread::block() {
 
         // dont put anything behind here! since optimized code may use variables inside register
         // that have been initialized only after the context was saved at SAVE_CONTEXT!
-        //LOG(PROCESS,DEBUG,(PROCESS,DEBUG,"Thread::block() returned!"));
     }
 
 }

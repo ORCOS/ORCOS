@@ -39,6 +39,7 @@ restoreThreadContext:
 	// be sure interrupts are still disabled when we
 	// temporarily switch to target mode to setup the lr,sp and fp
     ORR		r1, r1, #0xC0
+    BIC  	r1, r1, #0x220						// Clear Bits: Thumb and Big Endian
 	MSR 	CPSR_c, r1
 
 	ldr		lr,[r0,#60] // restore lr

@@ -50,20 +50,12 @@ void SequentialFitMemManager::split( Chunk_Header* chunk, size_t size ) {
         next_ch->state 			= FREE;
         next_ch->size 			= chunk->size - size - sizeof(Chunk_Header);
 
-       /* if (((unint4) next_ch->next_chunk <= (unint4) next_ch) && (next_ch->next_chunk != 0)) {
-				//printf("Error in chunk list...");
-				while(1);
-        }*/
-
         chunk->next_chunk 	=  next_ch;
         chunk->state 		= OCCUPIED;
       //  chunk->size 		= ((unint4) next_ch - (unint4) chunk) - sizeof(Chunk_Header);
         chunk->size 		= size;
 
-      /*  if (((unint4) chunk->next_chunk <= (unint4) chunk) && ((unint4) chunk->next_chunk != 0)) {
-			//printf("Error in chunk list...");
-			while(1);
-		}*/
+        ASSERT( ! (((unint4) chunk->next_chunk <= (unint4) chunk) && ((unint4) chunk->next_chunk != 0)));
 
         // add the new chunk header as overhead ..
         // TODO: we actually missing out alignment overheads..
@@ -269,19 +261,13 @@ void* SequentialFitMemManager::alloc( size_t size, bool aligned, unint4 align_va
 
 	}
 
-	// put some buffer between to avoid erronous program access
-	//size = size + 40;
+	/* put some buffer between to avoid erroneous program access */
+	size = size + SAFETY_BUFFER;
 
     Chunk_Header* chunk =  getFittingChunk( size, aligned, align_val );
     void* addr = (void*) ((unint4) chunk + sizeof(Chunk_Header));
 
-    // Alignment must be correct otherwise algorithm is incorrect
-    // To be tested!
-   /* if (( ((unint4)addr) & (align_val-1)) != 0)
-    {
-    	LOG(MEM,WARN,(MEM,WARN," SequentialFitMemManager::alloc() Error in alignment..."));
-    	return (0);
-    }*/
+    ASSERT( !(( ((unint4)addr) & (align_val-1)) != 0));
 
     if ( chunk != 0) {
         split( chunk, size );

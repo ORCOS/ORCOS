@@ -121,7 +121,7 @@ ErrorT PartitionManager::tryDOSMBR(BlockDeviceDriver* bdev) {
 				case 0xee: {
 					// handle efi partition tables here
 					// EFI Partition mit Legacy MBR
-					return handleEFIPartitionTable(bdev);
+					return (handleEFIPartitionTable(bdev));
 					break;
 				}
 				default: {
@@ -132,7 +132,7 @@ ErrorT PartitionManager::tryDOSMBR(BlockDeviceDriver* bdev) {
 		}
 
 
-		return cOk; /* is PBR */
+		return (cOk); /* is PBR */
 	}
 
 	dos_partition_t *pt;
@@ -185,7 +185,7 @@ ErrorT PartitionManager::tryDOSMBR(BlockDeviceDriver* bdev) {
 	}
 
 
-	return cOk;
+	return (cOk);
 }
 
 PartitionManager::PartitionManager() : Directory("partitions") {

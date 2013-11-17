@@ -117,7 +117,7 @@ void WorkerThread::work() {
         Thread::sleep( (unint4) (pcall->functioncall.time - theOS->getClock()->getTimeSinceStartup()) );
     }
     else {
-       this->jobid = -1;
+       this->jobid = None;
        this->stop();
     }
 }

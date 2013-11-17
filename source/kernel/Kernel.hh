@@ -19,30 +19,28 @@
 #ifndef KERNEL_H_
 #define KERNEL_H_
 
+/* Main Configuration Include */
 #include "SCLConfig.hh"
 
+/***************************************
+ *             Includes
+ ***************************************/
+#include "inc/types.hh"
 #include Kernel_MemoryManager_hh
 #include BoardCfd_hh
 #include Board_HatLayer_hh
-
 #include "db/LinkedListDatabase.hh"
-#include "inc/types.hh"
-
-// also includes Thread.hh
 #include "process/Task.hh"
 #include "comm/ProtocolPool.hh"
-
 #if USE_WORKERTASK
 #include "process/WorkerTask.hh"
 #endif
-
 #include Kernel_Scheduler_hh
 #include "scheduler/SingleCPUDispatcher.hh"
 #include "filesystem/SimpleFileManager.hh"
 #include "filesystem/PartitionManager.hh"
 #include "mem/PagedRamMemManager.hh"
 #include "robust/TaskErrorHandler.hh"
-
 #include Kernel_TaskManager_hh
 #include Kernel_Logger_hh
 #include Kernel_PowerManager_hh
@@ -53,9 +51,9 @@
 #include "debug/Trace.hh"
 #endif
 
-//------------------------------------------------------
-//                  USB Imports
-//------------------------------------------------------
+/*------------------------------------------------------
+ *                  USB Imports
+ * ------------------------------------------------------ */
 #if USB_SUPPORT_ENABLED
 #include "arch/shared/usb/USBDriverLibrary.hh"
 // TODO: add configurable driver selection
@@ -63,9 +61,17 @@
 #include "arch/shared/usb/MassStorageSCSIUSBDeviceDriver.hh"
 #endif
 
-#include "inc/putc.hh"
 #include "comm/lwipTMR.hh"
 
+/*------------------------------------------------------
+ *               Main Kernel Methods
+ * ------------------------------------------------------ */
+
+void kwait(int milliseconds);
+
+/*------------------------------------------------------
+ *               The KERNEL class
+ * ------------------------------------------------------ */
 
 
 
@@ -167,13 +173,13 @@ public:
 
     //! The timer device of the system
     Board_TimerCfdCl* getTimerDevice() {
-        return board->getTimer();
+        return (board->getTimer());
     }
     ;
 
     //! The clock of the system
     Board_ClockCfdCl* getClock() {
-        return board->getClock();
+        return (board->getClock());
     }
     ;
 
@@ -185,48 +191,48 @@ public:
     Kernel_SchedulerCfdCl* getCPUScheduler();
 
     SingleCPUDispatcher* getCPUDispatcher() {
-        return this->cpuManager;
+        return (this->cpuManager);
     }
     ;
 
     ProtocolPool* getProtocolPool() {
-        return this->protopool;
+        return (this->protopool);
     }
     ;
 
     PartitionManager* getPartitionManager() {
-    	return this->partitionManager;
+    	return (this->partitionManager);
     }
 
 
     PagedRamMemManager* getRamManager() {
-    	return this->ramManager;
+    	return (this->ramManager);
     }
 
     SimpleFileManager* getFileManager() {
-        return this->fileManager;
+        return (this->fileManager);
     }
     ;
 
 #if USE_WORKERTASK
-    //! Returns the worker thread of the kernel
-    WorkerTask* getWorkerTask() {return this->theWorkerTask;};
+    /* Returns the worker thread of the kernel */
+    WorkerTask* getWorkerTask() {
+    	return (this->theWorkerTask);
+    };
 #endif
 
     //! Returns the database of all registered tasks
     LinkedListDatabase* getTaskDatabase() {
-        return this->taskManager->getTaskDatabase();
+        return (this->taskManager->getTaskDatabase());
     }
     ;
 
-
-
     TaskManager* getTaskManager() {
-    	return this->taskManager;
+    	return (this->taskManager);
     }
 
     TaskErrorHandler* getErrorHandler() {
-    	return this->errorHandler;
+    	return (this->errorHandler);
     }
 
     void setStdOutputDevice( CharacterDeviceDriver* outputDevice );
@@ -235,11 +241,13 @@ public:
 
 #if USB_SUPPORT_ENABLED
     //! Returns the usb driver library of the kernel
-    USBDriverLibrary* getUSBDriverLibrary() { return usbDriverLib; }
+    USBDriverLibrary* getUSBDriverLibrary() {
+    	return (usbDriverLib);
+    }
 #endif
 
     BoardCfdCl* getBoard() {
-        return board;
+        return (board);
     }
 
 #if USE_TRACE

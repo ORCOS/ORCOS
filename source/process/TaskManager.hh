@@ -36,26 +36,26 @@ private:
 
 public:
     TaskManager() {
-    	// create the task Database
+    	/* create the task Database */
     	this->taskDatabase 	= new LinkedListDatabase( );
     }
     ;
-    ~TaskManager() {
-    }
-    ;
 
-    // Per-Initialization reoutine which registers the
-    // memory pages of tasks loaded at boot time
+    virtual ~TaskManager() {
+    };
+
+
+    /* Per-Initialization reoutine which registers the
+       memory pages of tasks loaded at boot time */
     void registerMemPages();
 
-    // Initializes the task manager and creates the initially loaded tasks
+    /* Initializes the task manager and creates the initially loaded tasks */
     void initialize();
 
-   //! Returns the database of all registered tasks
+   /* Returns the database of all registered tasks */
    LinkedListDatabase* getTaskDatabase() {
-	   return this->taskDatabase;
+	   return (this->taskDatabase);
    }
-   ;
 
    /*!
     * Tests a given task by its task control block on sanity

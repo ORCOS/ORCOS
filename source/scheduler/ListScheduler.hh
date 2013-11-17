@@ -28,11 +28,11 @@
  * \brief Base class which uses lists to store threads.
  *
  */
-class ListScheduler //: public Scheduler // Scheduler is just an interface
+class ListScheduler
 {
 public:
-//protected:
-    //! the list of schedulableitems that will be scheduled
+
+    /* the list of schedulableitems that will be scheduled */
     LinkedListDatabase database;
 
 public:
@@ -48,7 +48,7 @@ public:
      */
     ErrorT enter( ScheduleableItem* item ) {
         ASSERT(item);
-        return this->database.addTail( item );
+        return (this->database.addTail( item ));
     }
     ;
 
@@ -59,7 +59,7 @@ public:
      */
     ErrorT enter( LinkedListDatabaseItem* item ) {
         ASSERT(item);
-        return this->database.addTail( item );
+        return (this->database.addTail( item ));
     }
     ;
 
@@ -70,16 +70,16 @@ public:
         LinkedListDatabaseItem* item = (LinkedListDatabaseItem*) this->database.getItem( it );
         if ( item != 0 ) {
             item->remove();
-            return item;
+            return (item);
         }
-        return 0;
+        return (0);
     }
 
     /*!
      * \brief Returns true if at least one element is in the queue.
      */
     bool isEmpty() {
-        return this->database.isEmpty();
+        return (this->database.isEmpty());
     }
 
 };

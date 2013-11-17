@@ -67,7 +67,10 @@ int runTask(int4 sp_int) {
 	{
 		// on failure return the error number
 		if (isOk(retval)) retval = taskId;
-		pCurrentRunningThread->setReturnValue((void*)retval);
+
+		void* sp_int;
+		GET_RETURN_CONTEXT(pCurrentRunningThread,sp_int);
+		SET_RETURN_VALUE(sp_int,retval);
 	}
 
 	// new task may have higher priority so dispatch now!

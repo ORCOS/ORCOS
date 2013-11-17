@@ -63,7 +63,9 @@ void Resource::aquire( Thread* pThread, bool blocking ) {
        if (result < 0) retval = result;
     }
 
-    pCurrentRunningThread->returnValue = (void*) retval;
+    void* sp_int;
+    GET_RETURN_CONTEXT(pCurrentRunningThread,sp_int);
+    SET_RETURN_VALUE(sp_int,retval);
 
 #if ENABLE_NESTED_INTERRUPTS
     // first to do is disable interrupts now since we are going to restore the context now

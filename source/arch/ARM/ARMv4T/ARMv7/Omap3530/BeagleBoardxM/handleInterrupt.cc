@@ -249,7 +249,7 @@ extern "C"void dispatchSWI(void* sp_int, int mode)
     // we want nested interrupts so enable interrupts again
     _enableInterrupts();
 #endif
-	LOG(HAL,TRACE,(HAL,TRACE,"SWI: stack 0x%x mode 0x%x",sp_int,mode));
+	//LOG(HAL,WARN,(HAL,WARN,"SWI: stack 0x%x mode 0x%x",sp_int,mode));
 	//dumpContext(sp_int);
 
 	ASSERT(isOk(pCurrentRunningThread->pushStackPointer(sp_int)));

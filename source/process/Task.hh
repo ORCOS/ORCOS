@@ -132,7 +132,7 @@ public:
     Task( Kernel_MemoryManagerCfdCl* memoryManager, taskTable* tasktbl );
 
     /*!
-     * \brief Constructor for derived classes e.g. WorkerTask
+     * \brief Constructor only used for derived classes e.g. WorkerTask
      */
     Task();
 
@@ -141,16 +141,18 @@ public:
      */
     ~Task();
 
-    //! initialize
+    /*!
+     * static Task initialization.
+     */
     static void initialize() {
         globalTaskIdCounter = cFirstTask;
         freeTaskIDs = new ArrayDatabase(20);
 
-        // workertasks must be mapped to PID 0
-        // to ensure they are running with kernel mappings
-        // under virtual memory
-        // user tasks must start at PID 1 to ensure
-        // the kernel page table to be not overwritten
+        /* Workertasks must be mapped to PID 0
+           to ensure they are running with kernel mappings
+           under virtual memory
+           user tasks must start at PID 1 to ensure
+           the kernel page table to be not overwritten */
 		#if USE_WORKERTASK
         for (unint4 i = 0; i < 20; i++) {
 		#else

@@ -50,7 +50,7 @@ Task::Task( Kernel_MemoryManagerCfdCl* memoryManager, taskTable* tasktbl ) :
 }
 
 Task::Task() :
-    aquiredResources( 10 )
+	aquiredResources( 10 )
 {
 	tasktable = 0;
 	myTaskId = (TaskIdT) ((unint4) Task::freeTaskIDs->removeHead());
@@ -244,8 +244,7 @@ Kernel_ThreadCfdCl* Task::getThreadbyId( ThreadIdT threadid ) {
 }
 
 TaskIdT Task::getIdOfNextCreatedTask() {
-  //  return ( Task::globalTaskIdCounter );
-	  return ( (TaskIdT) ((unint4) Task::freeTaskIDs->getHead() ));
+  	  return ( (TaskIdT) ((unint4) Task::freeTaskIDs->getHead() ));
 }
 
 void Task::stop() {

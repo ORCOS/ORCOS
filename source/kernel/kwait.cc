@@ -23,20 +23,19 @@
 
 #include Kernel_Thread_hh
 
-
 extern Kernel* theOS;
 
 /*
  * Kernel wait function. Uses the Board Clock to wait for a given time
- * in milliseconds.
+ * in milliseconds. This is a blocking wait if we can not be preempted.
  *
  */
 void kwait(int milliseconds) {
-	// check if we have a board and clock
-	// if not we are probably initializing them
+	/* check if we have a board and clock
+	   if not we are probably initializing them */
 	if ((theOS == 0) || (theOS->board == 0) || (theOS->getClock() == 0)) {
-		// fallback if the clock is not set
-		volatile unint4 i = 0;
+		/* fallback if the clock is not set */
+		volatile unint4 i = 0;  /* volatile so this is not optimized out  */
 		while ( i < 100000) i++;
 	} else {
 		volatile unint8 now = theOS->getClock()->getTimeSinceStartup();

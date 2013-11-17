@@ -35,6 +35,13 @@ typedef struct Chunk_Header {
 // possible States of a memory chunk
 #define FREE 0
 #define OCCUPIED 1
+
+/*
+ * Defines the number of bytes placed between two consecutive chunks
+ * in order to cope with erroneous data bounds accesses.
+ */
+#define SAFETY_BUFFER 0x0
+
 // size of the Chunk Header
 #define SZ_HEADER 16
 // Minimum payload needed for a chunk when splitting

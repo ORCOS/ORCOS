@@ -20,7 +20,6 @@
 #include <kernel/Kernel.hh>
 #include "inc/newlib/newlib_helper.hh"
 #include Kernel_MemoryManager_hh
-#include <assembler.h>
 #include "inc/memtools.hh"
 #include "inc/memio.h"
 
@@ -76,6 +75,6 @@ extern "C"void kernelmain()
     theOS->initialize();
 
     // we shouldn't get here!
-    while (true) {NOP;}
+    while (true) {}
 }
 

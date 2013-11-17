@@ -44,6 +44,15 @@ extern void* __PageTableSec_start;
 										: \
 									)
 
+/*
+ * \brief Gets the current top return context stack pointer of Thread t into sp_int
+ *
+ * sp_int: The return stack pointer
+ * t	 : The Thread
+ **/
+#define GET_RETURN_CONTEXT(t,sp_int)  sp_int = t->threadStack.stackptrs[t->threadStack.top-2]
+
+
 #define GET_METHOD_RETURN_VALUE(variable) \
                                         asm volatile( \
                                         "mov %0, r1;" \
@@ -222,6 +231,15 @@ extern void* __PageTableSec_start;
 		: "r" (stack_addr)\
 		: \
 		)\
+
+#define GETSTACKPTR(variable) \
+		asm volatile(\
+			"mov %0, sp;"\
+			: "=&r" (variable) \
+			: \
+			: \
+			)\
+
 
 /*!
  * Resets the stack pointer to the address right after the context save based on the sp address at interruption.

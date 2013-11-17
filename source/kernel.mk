@@ -50,7 +50,8 @@ KOBJ += Socket.o CAB.o
 KOBJ += ArrayDatabase.o LinkedListDatabase.o
 
 #debug
-KOBJ += Logger.o Trace.o ETHLogger.o
+KOBJ += Logger.o
+# Trace.o ETHLogger.o
 
 #filesystem
 KOBJ += File.o Directory.o Filemanager.o Resource.o SimpleFileManager.o PartitionManager.o DOSPartition.o FileSystemBase.o FATFileSystem.o SharedMemResource.o

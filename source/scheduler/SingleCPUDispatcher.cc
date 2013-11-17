@@ -88,27 +88,15 @@ void SingleCPUDispatcher::dispatch( unint4 dt ) {
         ASSERT(pCurrentRunningThread);
         ASSERT(pCurrentRunningTask);
 
-#if HAS_Kernel_LoggerCfd
         int tid = pCurrentRunningThread->getId();
-#endif
         pRunningThreadDbItem = nextThreadDbItem;
 
         if ( pCurrentRunningThread->isNew() ) {
-
             LOG(SCHEDULER,DEBUG,(SCHEDULER,DEBUG,"SingleCPUDispatcher: start Thread %d at %x, stack [0x%x - 0x%x]", tid, pCurrentRunningThread,pCurrentRunningThread->threadStack.startAddr,pCurrentRunningThread->threadStack.endAddr));
-#if USE_TRACE
-            theOS->getTrace()->addExecutionTrace(tid,lastCycleStamp);
-#endif
-
             pCurrentRunningThread->callMain();
         }
         else {
-
             LOG(SCHEDULER,DEBUG,(SCHEDULER,DEBUG,"SingleCPUDispatcher: resume Thread %d at %x",tid, pCurrentRunningThread));
-#if USE_TRACE
-            theOS->getTrace()->addExecutionTrace(tid,lastCycleStamp);
-#endif
-
             assembler::restoreContext( pCurrentRunningThread );
         }
     }
@@ -119,13 +107,7 @@ void SingleCPUDispatcher::dispatch( unint4 dt ) {
         pCurrentRunningTask = 0;
         pRunningThreadDbItem = 0;
 
-        //LOG(KERNEL,DEBUG,(KERNEL,DEBUG,"SingleCPUDispatcher: Idle Thread running"));
-#if USE_TRACE
-        theOS->getTrace()->addExecutionTrace(0,lastCycleStamp);
-#endif
-
-        // reset back to the virtual memory of the kernel
-
+        LOG(KERNEL,TRACE,(KERNEL,TRACE,"SingleCPUDispatcher: Idle Thread running"));
         // non returning run()
         idleThread->run();
     }
@@ -334,7 +316,10 @@ void SingleCPUDispatcher::signal( void* sig, int sigvalue ) {
                 LOG(SCHEDULER,TRACE,(SCHEDULER,TRACE,"SingleCPUDispatcher::signal() signal to thread %d", pThread->getId()));
 
                 pThread->status.clearBits( cSignalFlag );
-                pCurrentRunningThread->setReturnValue((void*)sigvalue);
+                /* Set the signal return value */
+                void* sp_int;
+                GET_RETURN_CONTEXT(pCurrentRunningThread,sp_int);
+                SET_RETURN_VALUE(sp_int,sigvalue);
 
                 if ( !pThread->status.areSet( cStopped ) ) {
 

@@ -26,62 +26,65 @@ ErrorT EarliestDeadlineFirstThreadScheduler::enter( LinkedListDatabaseItem* item
     ASSERT(item);
     RealTimeThread* pRTThread = static_cast< RealTimeThread* > ( item->getData() );
 
-    // If a phase has been specified, put the thread to sleep for the specified duration.
+    /* If a phase has been specified, put the thread to sleep for the specified duration. */
     if ( pRTThread->phase > 0 ) {
         pRTThread->sleep( (unint4) pRTThread->phase, item );
         pRTThread->phase = 0;
         return (cOk);
     }
 
-    // enter Thread in the database in accordance with it's priority
+    /* enter Thread in the database in accordance with it's priority */
     return (PriorityThreadScheduler::enter( item ));
 
 }
 
 unint4 EarliestDeadlineFirstThreadScheduler::getNextTimerEvent( LinkedListDatabase* sleepList,unint4 dt ) {
     ASSERT(sleepList);
-    // it makes no sense to return an unint8 here, since theOS->getTimerDevice()->setTimer(nextevent) will take
-    // a unint4 anyways (and the return value of this function is used to set the timer event).
+    /* it makes no sense to return an unint8 here, since theOS->getTimerDevice()->setTimer(nextevent) will take
+       a unint4 anyways (and the return value of this function is used to set the timer event). */
     int4 sleeptime = MAX_INT4 -1;
 
-    // only return a value smaller than sleeptime if there is some other competing threads inside the sleeplist!
+    /* only return a value smaller than sleeptime if there is some other competing threads inside the sleeplist! */
     LinkedListDatabaseItem* pDBSleepItem = sleepList->getHead();
     if ( pDBSleepItem != 0 ) {
-        LinkedListDatabaseItem* pDBNextItem = database.getHead();
 
-        // set variables which are needed to compare to later on, so we do not need to set these for every
-        // iteration of the while loop
-        unint8 nextPriority;
-
-        if ( pDBNextItem != 0 ) {
-            nextPriority = (static_cast< RealTimeThread* > ( pDBNextItem->getData() ))->effectivePriority;
-        }
-        else
-        {
-            nextPriority = 0;
-        }
-
-        // this is the actual computation of the needed intervall. it compares the priority of the current
-        // thread with the future prioritys of the threads in the sleeplist. The smallest time intervall where
-        // the sleeping threads priority is higher than the current priority will be set as sleeptime.
+        /* first update the sleeptime and wake up waiting/sleeping threads */
         do {
             RealTimeThread* pSleepThread = static_cast< RealTimeThread*> ( pDBSleepItem->getData() );
-
             pSleepThread->sleepCycles -= dt;
-             if ( pSleepThread->sleepCycles <= 0 ) {
-                 pSleepThread->status.setBits( cReadyFlag );
-                 LinkedListDatabaseItem* litem2 = pDBSleepItem;
-                 pDBSleepItem = pDBSleepItem->getSucc();
 
-                 this->enter( litem2 );
-             } else
-             {
-                 if ( ( pSleepThread->getSleepTime() < sleeptime ) && ( pSleepThread->effectivePriority > nextPriority ) )
-                         sleeptime = pSleepThread->getSleepTime();
-
+            if ( pSleepThread->sleepCycles <= 0 ) {
+				pSleepThread->status.setBits( cReadyFlag );
+				LinkedListDatabaseItem* litem2 = pDBSleepItem;
+				pDBSleepItem = pDBSleepItem->getSucc();
+				/* This thread is active again. Enter the queue again. If it has the highest
+				 * priority it will be chosen next. */
+				this->enter( litem2 );
+            } else
                 pDBSleepItem = pDBSleepItem->getSucc();
-             }
         } while ( pDBSleepItem != 0 );
+
+        /* set variables which are needed to compare to later on, so we do not need to set these for every
+           iteration of the while loop */
+        unint8 nextPriority = 0;
+        LinkedListDatabaseItem* pDBNextItem = database.getHead();
+
+        if ( pDBNextItem != 0 )
+            nextPriority = (static_cast< RealTimeThread* > ( pDBNextItem->getData() ))->effectivePriority;
+
+        pDBSleepItem = sleepList->getHead();
+
+        /* this is the actual computation of the needed interval. it compares the priority of the current
+           thread with the future priorities of the threads in the sleeplist. The smallest time intervall where
+           the sleeping threads priority is higher than the current priority will be set as sleeptime in
+           order to preempt the running thread at that time point */
+        while ( pDBSleepItem != 0 ) {
+            RealTimeThread* pSleepThread = static_cast< RealTimeThread*> ( pDBSleepItem->getData() );
+			if ( ( pSleepThread->getSleepTime() < sleeptime ) && ( pSleepThread->effectivePriority > nextPriority ) )
+					 sleeptime = pSleepThread->getSleepTime();
+
+			pDBSleepItem = pDBSleepItem->getSucc();
+        }
 
     }
 
@@ -91,8 +94,8 @@ unint4 EarliestDeadlineFirstThreadScheduler::getNextTimerEvent( LinkedListDataba
 
  void EarliestDeadlineFirstThreadScheduler::computePriority( RealTimeThread* item ) {
 
- // for this we first compute the absolute deadline according to the following formular:
- // arrival time + relative deadline (arrival time contains the time the current instance of this thread has arrived)
+	 /* for this we first compute the absolute deadline according to the following formula:
+        arrival time + relative deadline (arrival time contains the time the current instance of this thread has arrived) */
 	if (item->relativeDeadline != 0)
 	{
 		item->absoluteDeadline     = item->arrivalTime + item->relativeDeadline;
@@ -107,7 +110,5 @@ unint4 EarliestDeadlineFirstThreadScheduler::getNextTimerEvent( LinkedListDataba
 	}
 
     LOG(SCHEDULER,DEBUG,(SCHEDULER,DEBUG,"EDF: Thread %d Priority=%x%x",item->getId(), *((unint4*)&item->effectivePriority),*( ((unint4*)&item->effectivePriority) + 1) ));
-
-
- }
+}
 

@@ -46,7 +46,14 @@ private    :
     //! list containing the currently blocked threads
     LinkedListDatabase* blockedList;
 
-    //! List containing the currently sleeping threads
+    /*
+     * List containing the currently sleeping threads.
+     * The ORCOS tasks waiting for their next period to begin
+     * are treated as sleeping threads. This list
+     * is parsed by the scheduler to determine the next
+     * preemption point -> the arrival time of a higher priority
+     * thread.
+     */
     LinkedListDatabase* sleepList;
 
     //! List containing the threads currently waiting for a signal
@@ -60,22 +67,22 @@ private    :
 
 public:
     SingleCPUDispatcher();
+
+
     ~SingleCPUDispatcher();
 
     //! Returns the current number of elements in the dispatchers blockedList
-    unint getSizeOfBlockedList() {return blockedList->getSize();};
+    unint getSizeOfBlockedList() {return (blockedList->getSize());}
 
     //! Returns the current number of elements in the dispatchers sleepList
-    unint getSizeOfSleepList() {return sleepList->getSize();};
+    unint getSizeOfSleepList() {return (sleepList->getSize());}
 
     //! Set the idleThread of this CPU
     inline
-    void setIdleThread(IdleThread* idleT)
-    {   idleThread = idleT;};
+    void setIdleThread(IdleThread* idleT)   {   idleThread = idleT;};
 
     inline
-    LinkedListDatabase* getSleeplist()
-    {   return this->sleepList;}
+    LinkedListDatabase* getSleeplist() {   return (this->sleepList);}
 
     /*!
      * \brief The dispatch function triggered by the TimerDevice on timer interrupt

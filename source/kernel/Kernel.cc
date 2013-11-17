@@ -28,13 +28,6 @@ extern Kernel* theOS;
 Board_ClockCfdCl* theClock = 0;
 Board_TimerCfdCl* theTimer = 0;
 
-/*! The LoopBack network interface for lwip */
-//static struct netif LoopBackNetif;
-
-// set netmask for this device
-//static struct ip4_addr lo_netmask;
-//static struct ip4_addr lo_IpAddr;
-
 extern void* _text_start;
 extern void* _heap_start;
 extern void* _heap_end;
@@ -46,6 +39,11 @@ extern void* __RAM_END;
 extern void* __RAM_START;
 
 extern "C" void lwip_init();
+
+#ifndef PRINT_BOOT_LOGO
+#define PRINT_BOOT_LOGO 1
+#endif
+
 /*--------------------------------------------------------------------------*
  ** Kernel::Kernel
  *
@@ -67,19 +65,21 @@ Kernel::~Kernel() {
  *---------------------------------------------------------------------------*/
 void Kernel::initialize() {
 
-    // set all members to 0 for safety reasons
-    cpuManager 	= 0;
-    fileManager = 0;
-    taskManager = 0;
-    protopool	= 0;
+    /* set all members to 0 for safety reasons */
+    cpuManager 		= 0;
+    fileManager 	= 0;
+    taskManager 	= 0;
+    protopool		= 0;
     stdInputDevice 	= 0;
     stdOutputDevice = 0;
-    board 		= 0;
+    board 			= 0;
+    ramManager		= 0;
+    errorHandler 	= 0;
 
-    //-------------------------------------------------------
-    // Initialize all static member variables here!
-    // Important to do that before creating any objects of that kind
-    //--------------------------------------------------------
+    /*-------------------------------------------------------
+       Initialize all static member variables here!
+       Important to do that before creating any objects of that kind
+      --------------------------------------------------------*/
     Resource::initialize();
     Task::initialize();
     Thread::initialize();
@@ -87,39 +87,44 @@ void Kernel::initialize() {
     BlockDeviceDriver::initialize();
 
     this->errorHandler 		= new TaskErrorHandler();
-    // create the Ram Manager using a simple paging algorithm
+    /* create the Ram Manager using a simple paging algorithm */
     this->ramManager 		= new PagedRamMemManager();
-    // create the cpudispatcher with scheduler
+    /* create the cpudispatcher with scheduler */
     this->cpuManager 		= new SingleCPUDispatcher( );
-    // create the file	manager implementing the filesystem
+    /* create the file	manager implementing the filesystem */
     this->fileManager		= new SimpleFileManager( );
-    // create the PartitionMananger which handles block device partitions
+    /* create the PartitionMananger which handles block device partitions */
     this->partitionManager 	= new PartitionManager();
-    // create the Task Manager which holds the list of all tasks
+    /* create the Task Manager which holds the list of all tasks */
     this->taskManager 		= new TaskManager();
 
-    // be sure the initial loaded set of tasks is registered at the ramManager
+    /* be sure the initial loaded set of tasks is registered at the ramManager */
     taskManager->registerMemPages();
-    // set the idlethread of the cpudispatcher
+    /* Set the idlethread of the cpudispatcher
+     * This can be extended by new idelthreads which do e.g. memory cleanup operations
+     */
     this->cpuManager->setIdleThread( new IdleThread( ) );
 
 #if USB_SUPPORT_ENABLED
     USBDevice::initialize();
 
-    // create the "/usb/" directory which will contain all usb drivers
+    /* create the "/usb/" directory which will contain all usb drivers */
     this->usbDriverLib 		= new USBDriverLibrary();
 
-    // Add support for smsc95xx ethernet over USB devices
+    /*
+     * TODO: Allow configuration of supported drivers
+     */
+
+    /* Add support for smsc95xx ethernet over USB devices */
     new SMSC95xxUSBDeviceDriverFactory("smsc95xx");
 
-    // Add support for USB SCSI Bulk only Mass Storage Devices
+    /* Add support for USB SCSI Bulk only Mass Storage Devices */
     new MassStorageSCSIUSBDeviceDriverFactory("msd_scsi_bot");
-
 #endif
 
 #if USE_TRACE
-    // create the debug trace class
-   // trace = new Trace();
+   /* create the debug trace class */
+   /* trace = new Trace(); */
 #endif
 
 #if HAS_PROCFS_ENABLED
@@ -127,91 +132,75 @@ void Kernel::initialize() {
     fileManager->registerResource(procDir);
 #endif
 
-    // Initialize the Internet Protocol Stack
+    /* Initialize the Internet Protocol Stack */
     lwip_init();
 
-    // now initialize the device drivers
-    // since some thread classes rely on classes like the timer or the clock
+    /* now initialize the device drivers
+       since some thread classes rely on classes like the timer or the clock */
     this->initDeviceDrivers();
 
-    // initialize protocol pool here since it depends on the device drivers
-    // all commdevices need to be created before the protocol pool is created
+    /* initialize protocol pool here since it depends on the device drivers
+       all commdevices need to be created before the protocol pool is created */
     protopool = new ProtocolPool( );
 
 #if HAS_Kernel_LoggerCfd
     LoggerCfd = new NEW_Kernel_LoggerCfd;
 #endif
+
+
     LOG(KERNEL,INFO,(KERNEL,INFO,"Initialized Device Driver"));
     LOG(KERNEL,INFO,(KERNEL,INFO,"Created Protocol Pool"));
-
     LOG(KERNEL,INFO,(KERNEL,INFO,"Platform RAM: [0x%x - 0x%x]",&__RAM_START, &__RAM_END));
-
-    // output some memory layout and usage information
+    /* output some memory layout and usage information */
     LOG(KERNEL,INFO,(KERNEL,INFO,".text_start at 0x%x, .text_end at 0x%x" ,&_text_start,&_text_end));
     LOG(KERNEL,INFO,(KERNEL,INFO,".text size  %d" ,(int) &_text_end - (int) &_text_start));
-
-    if ((int) &_heap_start - (int) &_data_start <= 0) ERROR("Data Area mangled! Check ELF/Linkerscript for used but not specified sections!");
-
     LOG(KERNEL,INFO,(KERNEL,INFO,".data_start at 0x%x, .data_end at 0x%x" ,&_data_start,&_heap_start));
     LOG(KERNEL,INFO,(KERNEL,INFO,".data size  %d" ,(int) &_heap_start - (int) &_data_start));
     LOG(KERNEL,INFO,(KERNEL,INFO,".heap_start at 0x%x, .heap_end at 0x%x" ,&_heap_start,&_heap_end));
     LOG(KERNEL,INFO,(KERNEL,INFO,".heap size  %d" ,(int) &_heap_end - (int) &_heap_start));
-
     LOG(KERNEL,INFO,(KERNEL,INFO,".__stack at 0x%x" ,&__stack));
     LOG(KERNEL,INFO,(KERNEL,INFO,"Kernel Ends at 0x%x" ,&__KERNELEND));
 
+    if ((int) &_heap_start - (int) &_data_start <= 0) ERROR("Data Area mangled! Check ELF/Linkerscript for used but not specified sections!");
+
 #if USE_SAFE_KERNEL_STACKS
+    /* This is a PPC extension for context switches */
     LOG(KERNEL,INFO,(KERNEL,INFO,"Available Safe Kernel Stacks: %d." ,((int) &__stack - (int) &_heap_end) / KERNEL_STACK_SIZE));
 #endif
 
 #ifdef HAS_Board_HatLayerCfd
-    // create the hat layer object.
-    // this will also create the initial memory mappings
+    /* create the hat layer object.
+       this will also create the initial memory mappings */
     Board_HatLayerCfdCl::initialize();
     HatLayerCfd = new Board_HatLayerCfdCl();
 #endif
 
 #ifdef HAS_Board_HatLayerCfd
-    // now enable HAT for the task creation
-    // get a pointer to the hat layer (independent from the MM)
-
+    /* now enable HAT for the task creation */
     LOG(KERNEL,INFO,(KERNEL,INFO,"Enabling HAT."));
     this->getHatLayer()->enableHAT();
-
 #endif
 
+    /*
+     * Initialize Workertask before user tasks
+     */
 #if USE_WORKERTASK
     LOG(KERNEL,INFO,(KERNEL,INFO,"Initializing Workertask."));
     // initialize the worker task
-    theWorkerTask = new WorkerTask();
+    theWorkerTask 				= new WorkerTask();
     this->getTaskDatabase()->addTail(theWorkerTask);
     theWorkerTask->myTaskDbItem = this->getTaskDatabase()->getTail();
 
 #if LWIP_TCP | LWIP_ARP
-	PeriodicFunctionCall* jobparam = new PeriodicFunctionCall;
-	jobparam->functioncall.objectptr = new lwipTMR; // call this object
-	jobparam->functioncall.parameterptr = 0; // store the index of the request
-	jobparam->functioncall.time = theOS->getClock()->getTimeSinceStartup() + 200 ms ; // call the first time in 200 ms
-	jobparam->period = 250 ms ; // set to 200 ms
+	PeriodicFunctionCall* jobparam 		= new PeriodicFunctionCall;
+	jobparam->functioncall.objectptr 	= new lwipTMR;  /* call this object */
+	jobparam->functioncall.parameterptr = 0; 			/* store the index of the request */
+	jobparam->functioncall.time 		= theOS->getClock()->getTimeSinceStartup() + 200 ms ; /* call the first time in 200 ms */
+	jobparam->period 					= 250 ms ; 		/* set to 250 ms */
 
 	theWorkerTask->addJob(PeriodicFunctionCallJob, 0,jobparam, 250000);
 #endif
 
-#ifdef HAS_Board_HCICfd
-    LOG(KERNEL,INFO,(KERNEL,INFO,"Initializing HCI..."));
-
-	/*PeriodicFunctionCall* hcijobparam = new PeriodicFunctionCall;
-	hcijobparam->functioncall.objectptr = new hciTMR; // call this object
-	//hcijobparam->functioncall.parameterptr = 0; // store the index of the request
-	hcijobparam->functioncall.time = theOS->getClock()->getTimeSinceStartup() + 1000 ms ;
-	hcijobparam->period = 1000 ms ;
-
-	theWorkerTask->addJob(PeriodicFunctionCallJob, 0,hcijobparam, 1000000);*/
-
-    HCI* bt_dev = new HCI();
-
-	LOG(KERNEL,INFO,(KERNEL,INFO,"Initialized HCI."));
-#endif
 
 #else
 #if LWIP_TCP | LWIP_ARP
@@ -220,47 +209,47 @@ void Kernel::initialize() {
 #endif
 #endif
 
-	LOG(KERNEL,INFO,(KERNEL,INFO,"Initializing Task Set"));
+	/*
+	 * Now initialize the user tasks deployed within this Image.
+	 * The Task Manager will check the integrity and create memory maps.
+	 */
 
+	LOG(KERNEL,INFO,(KERNEL,INFO,"Initializing Task Set"));
 	taskManager->initialize();
 
-
-
+	/*
+	 * Initialize Service Discovery if configured
+	 */
 #ifdef HAS_Kernel_ServiceDiscoveryCfd
     ServiceDiscoveryCfd = new NEW_Kernel_ServiceDiscoveryCfd;
 	LOG(KERNEL, INFO, (KERNEL, INFO, "ServiceDiscovery at:0x%x",getServiceDiscovery()));
 #endif
 
 
+	/*
+	 * Intitialize the Migration Manager if configured
+	 */
 #ifdef HAS_Kernel_MigrationManagerCfd
     MigrationManagerCfd = new NEW_Kernel_MigrationManagerCfd;
     LOG(KERNEL, INFO, (KERNEL, INFO, "MigrationManager at:0x%x",getMigrationManager()));
-
-    /*sockaddr destination;
-
-    destination.port_data =   1;
-    destination.sa_data =     IP4_ADDR(127,0,0,1);
-
-    Task* t = (Task*) this->taskDatabase->getTail()->getData();
-    MigrationManagerCfd->migrateTask(t,&destination);*/
 #endif
 
-    // Now we are done. start scheduling.
-    // this gives the scheduler the chance to setup
-    // needed components (e.g timer period) and
-    // precalculate the schedule if applicable
+    /* Now we are done. start scheduling.
+       this gives the scheduler the chance to setup
+       needed components (e.g timer period) and
+       precalculate the schedule if applicable */
     this->getCPUScheduler()->startScheduling();
-
     LOG(KERNEL,INFO,(KERNEL,INFO,"Scheduler initialized"));
-
-
-    theTimer->setTimer(0);
-    theTimer->enable();
-
 
     LOG(KERNEL,INFO,(KERNEL,INFO,"Enabled Hardware Timer"));
     LOG(KERNEL,INFO,(KERNEL,INFO,"Starting Dispatch Process"));
     LOG(KERNEL,INFO,(KERNEL,INFO,"ORCOS completely booted"));
+
+    /*
+     * Print some Boot Logo
+     */
+
+#if PRINT_BOOT_LOGO
 
 #define orcos_string "         __           __          __             __           __ "LINEFEED"\
         /\\ \\         /\\ \\        /\\ \\           /\\ \\         / /\\ "LINEFEED"\
@@ -280,8 +269,15 @@ void Kernel::initialize() {
     printf(__DATE__);
     printf(" running.."LINEFEED);
     printf(theOS->getBoard()->getBoardInfo());
+#endif
 
-    // invoke the cpumanager so it starts the first thread
+    /*
+	 * Reset time again
+ 	 */
+    theTimer->setTimer(0);
+    theTimer->enable();
+
+    /* invoke the cpumanager so it starts the first thread */
     this->cpuManager->dispatch( 0 );
     while (true) {}
 }
@@ -291,32 +287,26 @@ void Kernel::initialize() {
  *---------------------------------------------------------------------------*/
 void Kernel::initDeviceDrivers() {
 
-
-    // Instance Board Class
-	// give components of the board a chance to
-	// reference each other by using theOS->board pointer.
+    /* - Instantiate Board Class -
+     * Give components of the board a chance to
+     * reference each other by using theOS->getBoard() pointer. */
     board = new BoardCfdCl( );
-    // now initialize
-    board->initialize();
-    theClock = board->getClock();
+    board->initialize();			/* now initialize */
+    theClock = board->getClock(); 	/* Get global reference to Clock */
+    theTimer = board->getTimer(); 	/* Get global reference to the Timer*/
 
-    // Realtime clock is mandatory!
-    ASSERT(theClock);
-
-    theTimer = board->getTimer();
-
-    // Timer is mandatory!
-    ASSERT(theTimer);
-
+    ASSERT(theClock);	/* Realtime clock is mandatory! */
+    ASSERT(theTimer);	/* Timer is mandatory! */
 
 #ifdef HAS_Kernel_PowerManagerCfd
-    // init the PowerManager
+    /* Initialize the PowerManager */
     PowerManagerCfd = new NEW_Kernel_PowerManagerCfd;
 #endif
 
-    // set StandardOutput
+    /* set StandardOutput */
 #ifdef HAS_Board_UARTCfd
- //  setStdOutputDevice( board->getUART() );
+   // CharacterDeviceDriver* theOS->getFileManager()->getResourceByNameandType(STDOUT,cStreamDevice);
+   //  setStdOutputDevice( board->getUART() );
 #else
     setStdOutputDevice(0);
 #endif

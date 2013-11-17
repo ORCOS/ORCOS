@@ -2,7 +2,7 @@
  * lwipTMR.cc
  *
  *  Created on: 14.07.2011
- *      Author: digitrain
+ *      Author: dbaldin
  */
 
 #include "lwipTMR.hh"
@@ -32,7 +32,7 @@ lwipTMR::~lwipTMR() {
 
 
 void lwipTMR::callbackFunc(void* param) {
-	//LOG(KERNEL,INFO,(KERNEL,INFO,"Kernel: lwipTMR called!"));
+	LOG(COMM,TRACE,(COMM,TRACE,"Kernel: lwipTMR called!"));
 
 	count++;
 #if LWIP_TCP

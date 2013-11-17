@@ -33,7 +33,7 @@ void* operator new( size_t s )
     mm = theOS->getMemoryManager();
     addr = mm->alloc( s, DO_ALIGN);
 
-    return addr;
+    return (addr);
 }
 
 void* operator new( size_t s, bool aligned )
@@ -46,7 +46,7 @@ void* operator new( size_t s, bool aligned )
     mm = theOS->getMemoryManager();
     addr = mm->alloc( s, aligned );
 
-    return addr;
+    return (addr);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -74,7 +74,7 @@ void* operator new[]( size_t s )
     mm = theOS->getMemoryManager();
     addr = mm->alloc( s, NO_ALIGN);
 
-    return addr;
+    return (addr);
 }
 
 void operator delete[]( void* ptr )

@@ -2,7 +2,7 @@
  * lwipTMR.hh
  *
  *  Created on: 14.07.2011
- *      Author: digitrain
+ *      Author: dbaldin
  */
 
 #ifndef LWIPTMR_HH_

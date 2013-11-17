@@ -279,7 +279,7 @@
     </Define>
     <Define>
       <Name>__DEBUG__</Name>
-      <Value>0</Value>
+      <Value>1</Value>
     </Define>
     <Define>
       <Name>RAM_SIZE</Name>

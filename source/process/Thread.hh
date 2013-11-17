@@ -62,8 +62,6 @@ struct ThreadStack {
 
     void* stackptrs[MAXSTACKPTRS]; //!< stack pointer stack. contains pushed stack pointer addresses
     unsigned short  top;
-
-    int2 myKernelStackBucketIndex;
 };
 
 /*!
@@ -90,12 +88,6 @@ public:
 
     //! The pointer to the entry function.
     void* startRoutinePointer;
-
-    //! Pointer to some arbitrary associated data
-    void* pArg;
-
-    //! The current return value of a system call or blockin operation with return value
-    void* returnValue;
 
 private:
 
@@ -207,7 +199,7 @@ public:
             return (cOk);
         } else {
 
-        	return cStackOverflow;
+        	return (cStackOverflow);
         }
 
     }
@@ -218,20 +210,9 @@ public:
 		{
 			threadStack.top--;
 			sp = threadStack.stackptrs[threadStack.top];
-			return cOk;
-		} else return cStackUnderflow;
+			return (cOk);
+		} else return (cStackUnderflow);
 	}
-
-
-#ifdef USE_SAFE_KERNEL_STACKS
-    inline void setKernelStackBucketIndex(int2 index) {
-        threadStack.myKernelStackBucketIndex = index;
-    }
-
-    inline int2 getKernelStackBucketIndex() {
-        return (threadStack.myKernelStackBucketIndex);
-    }
-#endif
 
     //! Returns the addr (pointer) of the startRoutine of this thread
     void* getStartRoutinePointer() const {
@@ -299,12 +280,6 @@ public:
      */
     void terminate();
 
-    /*!
-     * Sets the return value of this thread.
-     */
-    void setReturnValue(void* ret) {
-    	returnValue = ret;
-    }
 
     /*!
      * \brief Calling this method will setup the thread for first time execution and
@@ -313,14 +288,10 @@ public:
      * This method can be overwritten in order to allow other thread classes like e.g.
      * WorkerThread to implement their own behaviour.
      */
-    virtual
-    void callMain();
+    virtual void callMain();
 
-    //! Returns the Id of this Thread.
-    inline
-    ThreadIdT getId() const {
-        return myThreadId;
-    }
+    /* Returns the Id of this Thread. */
+    inline ThreadIdT getId() const { return (myThreadId); }
 
 };
 

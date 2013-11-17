@@ -21,11 +21,11 @@
 #include "inc/const.hh"
 #include "process/RealTimeThread.hh"
 
-extern Kernel* theOS; // the kernel object
+extern Kernel* theOS;
 
 
 void PriorityThreadScheduler::startScheduling() {
-  // nothing to do
+  /* nothing to do */
 }
 
 #ifndef REALTIME
@@ -81,9 +81,9 @@ int PriorityThreadScheduler::getNextTimerEvent(LinkedListDatabase* sleepList,uni
 #endif
 
 DatabaseItem* PriorityThreadScheduler::getNext() {
-    // we can just return the head since the queue is kept sorted by priority by the
-    // enter method of this class.
-    LOG(SCHEDULER,INFO,(SCHEDULER,INFO,"PRIOSCHED: Queue Size: %d", database.getSize() ));
+    /* we can just return the head since the queue is kept sorted by priority by the
+       enter method of this class. */
+    LOG(SCHEDULER,INFO,(SCHEDULER,INFO,"PriorityThreadScheduler: Queue Size: %d", database.getSize() ));
     return (this->database.removeHead());
 }
 
@@ -92,16 +92,18 @@ ErrorT PriorityThreadScheduler::enter( LinkedListDatabaseItem* item ) {
 
     PriorityThread* pPThread = static_cast< PriorityThread* > ( item->getData() );
 
-    // enter Thread in the database in accordance with it's priority
+    /* Enter Thread in the database in accordance with it's priority.
+     * The order will keep threads with the same priority in a round robin fashion due to ">="
+     **/
     LinkedListDatabaseItem* sItem = database.getTail();
     while ( sItem != 0 ) {
-        if ( static_cast< PriorityThread* > ( sItem->getData() )->effectivePriority > pPThread->effectivePriority ) {
+        if ( static_cast< PriorityThread* > ( sItem->getData() )->effectivePriority >= pPThread->effectivePriority ) {
             return (database.insertAfter( item, sItem ));
         }
         sItem = sItem->getPred();
     }
 
-    // if this statement is reached, no thread with a bigger priority then the pRTThread was found,
-    // so we add it at the very front of the queue.
+    /* if this statement is reached, no thread with a bigger priority then the pRTThread was found,
+       so we add it at the very front of the queue. */
     return (database.addHead( item ));
 }

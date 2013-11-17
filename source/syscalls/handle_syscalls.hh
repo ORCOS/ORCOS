@@ -50,7 +50,7 @@ extern unint8       lastCycleStamp;
 #if VALIDATE_SYSCALL_ADDRESS_RANGES
 #define VALIDATE_IN_PROCESS( addr ) \
 	if (((unint4) (addr) < LOG_TASK_SPACE_START) || ((unint4) (addr) > LOG_TASK_SPACE_START + MAX_TASK_SIZE)) { \
-		LOG(SYSCALLS,ERROR,(SYSCALLS,ERROR,"SYSCALL: Address Space Violation: %x",addr));\
+		LOG(SYSCALLS,WARN,(SYSCALLS,WARN,"SYSCALL: Address Space Violation: %x, at %s, %s",addr,__FILE__,__LINE__));\
 		return (cError); \
 	}
 #else
@@ -405,7 +405,7 @@ inline void handleSyscall(int4 sp_int) {
         pCurrentRunningThread->executinginthandler = false;
     #endif
 
-        pCurrentRunningThread->setReturnValue((void*)retval);
+        SET_RETURN_VALUE(sp_int,retval);
         assembler::restoreContext( pCurrentRunningThread );
 }
 

@@ -23,12 +23,11 @@
 #include "assembler.h"
 #include "inc/memio.h"
 
-#define STACK_CONTENT(sp,offset) *( (long*) ( ( (long) sp) + offset)  )
-
 extern Kernel* theOS;
 extern "C" void restoreContext(Thread*  t)  __attribute__((noreturn));
 extern "C" void dumpContext(void* sp_context);
-extern bool	processChanged;
+extern bool		processChanged;
+
 /*!
  * Restores the context of a given thread saved at sp.
  *
@@ -43,25 +42,16 @@ extern "C" void restoreContext(Thread*  t)
     void* ptStartAddr = 0;
     void* mode = 0;
 
-    if (t == 0) {
-    	 ERROR("Thread t == 0!");
-    }
+    ASSERT(t != 0);
 
     if (!isOk(t->popStackPointer(mode)))
-	{
 		 ERROR("Restore Context failed while popping the stack for context restore Mode!");
-	}
 
     if (!isOk(t->popStackPointer(sp)))
-	{
 		 ERROR("Restore Context failed while popping the stack for stack pointer!");
-	}
 
-    ASSERT(sp == 0);
-    if (t->getOwner() == 0) {
-		 ERROR("Thread Owner == 0!");
-    }
-
+    ASSERT(sp != 0);
+    ASSERT(t->getOwner() != 0);
     TaskIdT pid = t->getOwner()->getId();
 
 #if HAS_Board_HatLayerCfd
@@ -81,25 +71,16 @@ extern "C" void restoreContext(Thread*  t)
 
     // indicate no process change from now on until
     // we really dispatch to avoid instruction cache to be flushed again
-    processChanged = false;
 
     LOG(HAL,DEBUG,(HAL,DEBUG,"Restore Context: t: %x, sp@ 0x%x, mode:%d" , t,sp, mode));
 
-    //LOG(HAL,WARN,(HAL,WARN,"Return Value: %d" , t->returnValue ));
-    register void* returnval = t->returnValue;
+    processChanged = false;
 
 #if HAS_Board_HatLayerCfd
 	ptStartAddr = (void*) ((unint)&__PageTableSec_start + pid*0x4000);
 #endif
 
-    #if USE_SAFE_KERNEL_STACKS
-        // we use safe kernel stacks so we must free the stack slot
-        // if we are returning to user space!
-           int2 myBucketIndex =  t->getKernelStackBucketIndex();
-           FREE_KERNEL_STACK_SLOT(myBucketIndex);
-    #endif
-
-    // allow new interrupts
+    // allow new interrupts to happen
     OUTW(MPU_INTCPS_CONTROL, 0x1);
 
 	asm volatile(
@@ -122,15 +103,15 @@ extern "C" void restoreContext(Thread*  t)
 		"MCR p15, 0, r2, c7, c5, 4;"	// Ensure completion of the CP15 write (ISB not working)
 
 #endif
-		//"NOP;"
-		//"bl  dumpContext;"
 		"MOV r0, %0;"
 		"MOV r1, %3;"	// set restore context mode
-		"str %4, [%0, #4];"
+		/*"push {r0-r3};"
+		"bl  dumpContext;"
+		"pop  {r0-r3};"*/
 		"b 	 restoreThreadContext;"
 		:
-		: "r" (sp), "r" (ptStartAddr), "r" (pid) ,"r" (mode) ,"r" (returnval)
-		: "r0", "r1", "r2"
+		: "r" (sp), "r" (ptStartAddr), "r" (pid) ,"r" (mode)
+		: "r0", "r1", "r2" , "r3"
 	);
 
 
