@@ -29,6 +29,11 @@ extern Task* pCurrentRunningTask;
 extern unint4 tasktable;
 extern Kernel* theOS;
 
+#ifndef HAS_Board_HatLayerCfd
+extern void* __KERNELEND;
+extern void* __RAM_END;
+#endif
+
 void TaskManager::registerMemPages() {
 
 	unint4 num_tasks = tasktable;
