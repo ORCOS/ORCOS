@@ -1,0 +1,18 @@
+Gestartet durch vorgelagertes Projekt "[8mha:AAAArB+LCAAAAAAAAP9b85aBtbiIQTGjNKU4P08vOT+vOD8nVc83PyU1x6OyILUoJzMv2y+/JJUBAhiZGBgqihhk0NSjKDWzXb3RdlLBUSYGJk8GtpzUvPSSDB8G5tKinBIGIZ+sxLJE/ZzEvHT94JKizLx0a6BxUmjGOUNodHsLgAypEgYF/az8JH3/IGf/4PjgyuLkxJwcn8ykosSiynjHIN8yc30AJebJetUAAAA=[0mORCOS_SyscallLibrary_ARMv7", Build [8mha:AAAArh+LCAAAAAAAAP9b85aBtbiIQTGjNKU4P08vOT+vOD8nVc83PyU1x6OyILUoJzMv2y+/JJUBAhiZGBgqihhk0NSjKDWzXb3RdlLBUSYGJk8GtpzUvPSSDB8G5tKinBIGIZ+sxLJE/ZzEvHT94JKizLx0a6BxUmjGOUNodHsLgAymEgYl/az8JH3/IGf/4PjgyuLkxJwcn8ykosSiynjHIN8yc30TMwDYuU3S1wAAAA==[0m46
+originally caused by:
+ Gestartet durch vorgelagertes Projekt "[8mha:AAAApB+LCAAAAAAAAP9b85aBtbiIQTGjNKU4P08vOT+vOD8nVc83PyU1x6OyILUoJzMv2y+/JJUBAhiZGBgqihhk0NSjKDWzXb3RdlLBUSYGJk8GtpzUvPSSDB8G5tKinBIGIZ+sxLJE/ZzEvHT94JKizLx0a6BxUmjGOUNodHsLgAz+EgZJ/az8JH3/IGf/YFUjA/fMEiDpnJOfl6oPAGrAXgXOAAAA[0mORCOS Git Clone", Build [8mha:AAAAph+LCAAAAAAAAP9b85aBtbiIQTGjNKU4P08vOT+vOD8nVc83PyU1x6OyILUoJzMv2y+/JJUBAhiZGBgqihhk0NSjKDWzXb3RdlLBUSYGJk8GtpzUvPSSDB8G5tKinBIGIZ+sxLJE/ZzEvHT94JKizLx0a6BxUmjGOUNodHsLgAymEgZp/az8JH3/IGf/YFUjA/fMEiDpnJOfl6pvbAIAnjBc0dAAAAA=[0m34
+ originally caused by:
+  Build wurde zeitgesteuert ausgelöst.
+Building in workspace /home/pi/build
+[build] $ /bin/sh -xe /tmp/hudson4315363173241618915.sh
++ cd tasks/coreutils
++ mkdir -p bin
++ make all GCC_LIB_DIR=/home/pi/orcos_arm LIBC_DIR=/home/pi/orcos_arm CC=/usr/bin/gcc CXX=/usr/bin/c++ AS=/usr/bin/as AR=/usr/bin/ar SIZE=/usr/bin/size OBJDUMP=/usr/bin/objdump LD=/usr/bin/ld OBJCOPY=/usr/bin/objcopy STRIP=/usr/bin/strip KERNEL_LIB_DIR=/home/pi/build/library/bin/armv7/ CFLAGS=-c -I/home/pi/build/library/inc/ -msoft-float -fno-exceptions -fno-rtti -O2 -mthumb -ffunction-sections
+@/usr/bin/c++ -c -I/home/pi/build/library/inc/ -msoft-float -fno-exceptions -fno-rtti -O2 -mthumb -ffunction-sections -g cp.cc -o cp.o
+task.mk: Compiling cp.o
+cp.cc: In function ‘int task_main(char*)’:
+cp.cc:117:34: warning: deprecated conversion from string constant to ‘char*’ [-Wwrite-strings]
+/usr/bin/ld: warning: /home/pi/build/library/bin/armv7//liborcos.a(mem.o) uses variable-size enums yet the output is to use 32-bit enums; use of enum values across objects may fail
+/usr/bin/ld: warning: /home/pi/build/library/bin/armv7//liborcos.a(static.o) uses variable-size enums yet the output is to use 32-bit enums; use of enum values across objects may fail
+/usr/bin/ld: warning: /home/pi/build/library/bin/armv7//liborcos.a(string.o) uses variable-size enums yet the output is to use 32-bit enums; use of enum values across objects may fail
+Finished: SUCCESS
