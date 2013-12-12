@@ -1,0 +1,679 @@
+Gestartet durch vorgelagertes Projekt "[8mha:AAAApB+LCAAAAAAAAP9b85aBtbiIQTGjNKU4P08vOT+vOD8nVc83PyU1x6OyILUoJzMv2y+/JJUBAhiZGBgqihhk0NSjKDWzXb3RdlLBUSYGJk8GtpzUvPSSDB8G5tKinBIGIZ+sxLJE/ZzEvHT94JKizLx0a6BxUmjGOUNodHsLgAz+EgZJ/az8JH3/IGf/YFUjA/fMEiDpnJOfl6oPAGrAXgXOAAAA[0mORCOS Git Clone", Build [8mha:AAAAph+LCAAAAAAAAP9b85aBtbiIQTGjNKU4P08vOT+vOD8nVc83PyU1x6OyILUoJzMv2y+/JJUBAhiZGBgqihhk0NSjKDWzXb3RdlLBUSYGJk8GtpzUvPSSDB8G5tKinBIGIZ+sxLJE/ZzEvHT94JKizLx0a6BxUmjGOUNodHsLgAymEgZp/az8JH3/IGf/YFUjA/fMEiDpnJOfl6pvYgIAWaYdntAAAAA=[0m44
+originally caused by:
+ Build wurde zeitgesteuert ausgelöst.
+Building in workspace /home/pi/build
+[build] $ /bin/sh -xe /tmp/hudson8318735518828865603.sh
++ cd /home/pi/build/configurations/BeagleBoardxM/Prototype
++ make scl GCC_LIB_DIR=/home/pi/orcos_arm LIBC_DIR=/home/pi/orcos_arm CC=/usr/bin/gcc CXX=/usr/bin/c++ AS=/usr/bin/as AR=/usr/bin/ar SIZE=/usr/bin/size OBJDUMP=/usr/bin/objdump LD=/usr/bin/ld OBJCOPY=/usr/bin/objcopy STRIP=/usr/bin/strip KERNEL_DIR=/home/pi/build/source/ KERNEL_LIB_DIR=/home/pi/build/library/bin/armv7/ OPT_FLAGS=-O2 -mthumb -mcpu=cortex-a8  -mthumb-interwork -DARM_THUMB=1
+----------------- SCLTool -------------------
+kernel.mk: Reading config file SCLConfig.xml
+Transforming file: /home/pi/build/configurations/BeagleBoardxM/Prototype/SCLConfig.xml
+Using XSD file: /home/pi/build/configurations/BeagleBoardxM/Prototype/../../../tools/SCL/dist/scl2.xsd
+SCL configuration is valid!
+Checking Superclass: arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardxM/BeagleBoardxM
+Checked member: Processor ::= arch/ARM/ARMv4T/ARMv4TProcessor
+Checked member: InterruptHandler ::= arch/ARM/ARMv4T/ARMv4TInterruptHandler
+Checked member: Timer ::= arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardGPTimer2
+Checked member: HatLayer ::= arch/ARM/ARMv4T/ARMv7/ARMv7HatLayer
+Checked member: Clock ::= arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530Clock
+Checked member: DSS ::= arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardDSS
+Checked member: UART ::= arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardUART
+Checked member: UART2 ::= arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530i2c
+Checked member: GPIO1 ::= arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO
+Checked member: GPIO2 ::= arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO
+Checked member: GPIO3 ::= arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO
+Checked member: GPIO4 ::= arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO
+Checked member: GPIO5 ::= arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO
+Checked member: GPIO6 ::= arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO
+Checked member: USB_HC ::= arch/ARM/ARMv4T/ARMv7/Omap3530/HighSpeedUSBHostController
+Checked member: InterruptController ::= arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardInterruptController
+Checked member: ExtPowerControl ::= arch/ARM/ARMv4T/ARMv7/Omap3530/TWL4030
+Checked member: MMC ::= arch/ARM/ARMv4T/ARMv7/Omap3530/OmapMMC_SD_HC
+Superclass #define created for: arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardxM/BeagleBoardxM
+ARCH_DIR: arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardxM
+Processing 'Processor' (arch/ARM/ARMv4T/ARMv4TProcessor)
+Processing 'InterruptHandler' (arch/ARM/ARMv4T/ARMv4TInterruptHandler)
+Processing 'Timer' (arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardGPTimer2)
+Processing 'HatLayer' (arch/ARM/ARMv4T/ARMv7/ARMv7HatLayer)
+Processing 'Clock' (arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530Clock)
+Processing 'DSS' (arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardDSS)
+Processing 'UART' (arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardUART)
+Processing 'UART2' (arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530i2c)
+Processing 'GPIO1' (arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO)
+Processing 'GPIO2' (arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO)
+Processing 'GPIO3' (arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO)
+Processing 'GPIO4' (arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO)
+Processing 'GPIO5' (arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO)
+Processing 'GPIO6' (arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO)
+Processing 'USB_HC' (arch/ARM/ARMv4T/ARMv7/Omap3530/HighSpeedUSBHostController)
+Processing 'InterruptController' (arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardInterruptController)
+Processing 'ExtPowerControl' (arch/ARM/ARMv4T/ARMv7/Omap3530/TWL4030)
+Processing 'MMC' (arch/ARM/ARMv4T/ARMv7/Omap3530/OmapMMC_SD_HC)
+Checking Superclass: kernel/Kernel
+Checked member: MigrationManager ::= migration/MigrationManager
+Checked member: ServiceDiscovery ::= comm/servicediscovery/SNServiceDiscovery
+Checked member: MemoryManager ::= mem/SequentialFitMemManager
+Checked member: Thread ::= process/RealTimeThread
+Checked member: Dispatcher ::= scheduler/SingleCPUDispatcher
+Checked member: Scheduler ::= scheduler/EarliestDeadlineFirstThreadScheduler
+Checked member: Logger ::= debug/Logger
+Checked member: PowerManager ::= hal/PowerManager
+Checked member: TaskManager ::= process/TaskManager
+Superclass #define created for: kernel/Kernel
+Processing 'MigrationManager' (migration/MigrationManager)
+Processing 'ServiceDiscovery' (comm/servicediscovery/SNServiceDiscovery)
+Processing 'MemoryManager' (mem/SequentialFitMemManager)
+Processing 'Thread' (process/RealTimeThread)
+Processing 'Dispatcher' (scheduler/SingleCPUDispatcher)
+Processing 'Scheduler' (scheduler/EarliestDeadlineFirstThreadScheduler)
+Processing 'Logger' (debug/Logger)
+Processing 'PowerManager' (hal/PowerManager)
+Processing 'TaskManager' (process/TaskManager)
+Checking Superclass: syscalls/SyscallManager
+Superclass #define created for: syscalls/SyscallManager
+Processing 'sleep' ()
+Processing 'thread_create' ()
+Processing 'thread_run' ()
+Processing 'thread_self' ()
+Processing 'thread_yield' ()
+Processing 'signal_wait' ()
+Processing 'signal_signal' ()
+Processing 'fputc' ()
+Processing 'fgetc' ()
+Processing 'fcreate' ()
+Processing 'fopen' ()
+Processing 'fclose' ()
+Processing 'fwrite' ()
+Processing 'fread' ()
+Processing 'new' ()
+Processing 'delete' ()
+Processing 'socket' ()
+Processing 'connect' ()
+Processing 'listen' ()
+Processing 'bind' ()
+Processing 'sendto' ()
+Processing 'recv' ()
+Processing 'add_devaddr' ()
+Processing 'task_stop' ()
+Processing 'task_resume' ()
+Processing 'ioctl' ()
+Files written to: /home/pi/build/configurations/BeagleBoardxM/Prototype
+Configuration valid! Files created for compilation.
+---------------------------------------------
+
++ make all GCC_LIB_DIR=/home/pi/orcos_arm LIBC_DIR=/home/pi/orcos_arm CC=/usr/bin/gcc CXX=/usr/bin/c++ AS=/usr/bin/as AR=/usr/bin/ar SIZE=/usr/bin/size OBJDUMP=/usr/bin/objdump LD=/usr/bin/ld OBJCOPY=/usr/bin/objcopy STRIP=/usr/bin/strip KERNEL_DIR=/home/pi/build/source/ KERNEL_LIB_DIR=/home/pi/build/library/bin/armv7/ OPT_FLAGS=-O2 -mthumb -mcpu=cortex-a8  -mthumb-interwork -DARM_THUMB=1
+
+----------------------------------
+     Checking for tools
+----------------------------------
+java version "1.7.0_45"
+Java(TM) SE Runtime Environment (build 1.7.0_45-b18)
+Java HotSpot(TM) Client VM (build 24.45-b08, mixed mode)
+All tools installed...
+
+Please be sure to use relative path names for WINDOWS/CYGIN
+----------------------------------
+     Building Modules
+----------------------------------
+----------------------------------
+     Building the Kernel
+----------------------------------
+kernel.mk[AS] : Assembling output/_startup.o
+kernel.mk[AS] : Assembling output/tasktable.o
+kernel.mk[C++]: Compiling output/ARMv4TProcessor.o
+kernel.mk[C++]: Compiling output/ARMv4TInterruptHandler.o
+kernel.mk[C++]: Compiling output/BeagleBoardGPTimer2.o
+kernel.mk[C++]: Compiling output/ARMv7HatLayer.o
+kernel.mk[C++]: Compiling output/Omap3530Clock.o
+kernel.mk[C++]: Compiling output/BeagleBoardUART.o
+kernel.mk[C++]: Compiling output/Omap3530i2c.o
+kernel.mk[C++]: Compiling output/OmapGPIO.o
+/home/pi/build/source/arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO.cc: In member function ‘virtual ErrorT OmapGPIO::readBytes(char*, unint4&)’:
+/home/pi/build/source/arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO.cc:64:16: warning: cast from ‘char*’ to ‘unint4* {aka unsigned int*}’ increases required alignment of target type [-Wcast-align]
+/home/pi/build/source/arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO.cc: In member function ‘virtual ErrorT OmapGPIO::writeBytes(const char*, unint4)’:
+/home/pi/build/source/arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO.cc:78:34: warning: cast from ‘const char*’ to ‘const unint4* {aka const unsigned int*}’ increases required alignment of target type [-Wcast-align]
+kernel.mk[C++]: Compiling output/HighSpeedUSBHostController.o
+kernel.mk[C++]: Compiling output/BeagleBoardInterruptController.o
+kernel.mk[C++]: Compiling output/TWL4030.o
+kernel.mk[C++]: Compiling output/OmapMMC_SD_HC.o
+/home/pi/build/source/arch/ARM/ARMv4T/ARMv7/Omap3530/OmapMMC_SD_HC.cc: In member function ‘virtual ErrorT OmapMMC_SD_HC::readBlock(unint4, unint1*, unint4)’:
+/home/pi/build/source/arch/ARM/ARMv4T/ARMv7/Omap3530/OmapMMC_SD_HC.cc:351:28: warning: cast from ‘unint1* {aka unsigned char*}’ to ‘unint4* {aka unsigned int*}’ increases required alignment of target type [-Wcast-align]
+/home/pi/build/source/arch/ARM/ARMv4T/ARMv7/Omap3530/OmapMMC_SD_HC.cc: In member function ‘virtual ErrorT OmapMMC_SD_HC::writeBlock(unint4, unint1*, unint4)’:
+/home/pi/build/source/arch/ARM/ARMv4T/ARMv7/Omap3530/OmapMMC_SD_HC.cc:420:28: warning: cast from ‘unint1* {aka unsigned char*}’ to ‘unint4* {aka unsigned int*}’ increases required alignment of target type [-Wcast-align]
+kernel.mk[C++]: Compiling output/BeagleBoardxM.o
+kernel.mk[C++]: Compiling output/handleInterrupt.o
+kernel.mk[C++]: Compiling output/assemblerFunctions.o
+kernel.mk[AS] : Assembling output/ARMv4TInterruptHandlerHooks.o
+kernel.mk[C++]: Compiling output/startThread.o
+kernel.mk[C++]: Compiling output/__cxa_pure_virtual.o
+kernel.mk[C++]: Compiling output/ProtocolPool.o
+/home/pi/build/source/comm/ProtocolPool.cc: In member function ‘AddressProtocol* ProtocolPool::getAddressProtocolbyId(unint2)’:
+/home/pi/build/source/comm/ProtocolPool.cc:47:83: warning: cast from ‘DatabaseItem*’ to ‘AddressProtocol*’ increases required alignment of target type [-Wcast-align]
+/home/pi/build/source/comm/ProtocolPool.cc: In member function ‘TransportProtocol* ProtocolPool::getTransportProtocolbyId(unint2)’:
+/home/pi/build/source/comm/ProtocolPool.cc:60:87: warning: cast from ‘DatabaseItem*’ to ‘TransportProtocol*’ increases required alignment of target type [-Wcast-align]
+kernel.mk[C++]: Compiling output/TCPTransportProtocol.o
+kernel.mk[C++]: Compiling output/IPv4AddressProtocol.o
+kernel.mk[C] : Compiling output/etharp.o
+In file included from /home/pi/build/source/comm/lwip/include/netif/etharp.h:48:0,
+                 from /home/pi/build/source/comm/lwip/netif/etharp.c:56:
+/home/pi/build/source/comm/lwip/include/netif/ethar.h:104:1: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+/home/pi/build/source/comm/lwip/netif/etharp.c: In function ‘etharp_output’:
+/home/pi/build/source/comm/lwip/netif/etharp.c:381:12: warning: cast discards ‘__attribute__((const))’ qualifier from pointer target type [-Wcast-qual]
+/home/pi/build/source/comm/lwip/netif/etharp.c:389:25: warning: conversion to ‘u8_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/netif/etharp.c:390:25: warning: conversion to ‘u8_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/netif/etharp.c: In function ‘etharp_raw’:
+/home/pi/build/source/comm/lwip/netif/etharp.c:498:19: warning: cast discards ‘__attribute__((const))’ qualifier from pointer target type [-Wcast-qual]
+/home/pi/build/source/comm/lwip/netif/etharp.c:499:19: warning: cast discards ‘__attribute__((const))’ qualifier from pointer target type [-Wcast-qual]
+kernel.mk[C] : Compiling output/ethernet.o
+In file included from /home/pi/build/source/comm/lwip/include/netif/etharp.h:48:0,
+                 from /home/pi/build/source/comm/lwip/netif/ethernet.c:10:
+/home/pi/build/source/comm/lwip/include/netif/ethar.h:104:1: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+/home/pi/build/source/comm/lwip/netif/ethernet.c:24:7: warning: no previous prototype for ‘ethernet_input’ [-Wmissing-prototypes]
+kernel.mk[C] : Compiling output/ip.o
+/home/pi/build/source/comm/lwip/core/ip.c: In function ‘IPH_HL’:
+/home/pi/build/source/comm/lwip/core/ip.c:114:2: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/core/ip.c: In function ‘IPH_PROTO’:
+/home/pi/build/source/comm/lwip/core/ip.c:120:29: warning: statement with no effect [-Wunused-value]
+/home/pi/build/source/comm/lwip/core/ip.c:122:1: warning: control reaches end of non-void function [-Wreturn-type]
+kernel.mk[C] : Compiling output/init.o
+In file included from /home/pi/build/source/comm/lwip/core/init.c:52:0:
+/home/pi/build/source/comm/lwip/include/lwip/tcp.h:117:1: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+In file included from /home/pi/build/source/comm/lwip/include/netif/etharp.h:48:0,
+                 from /home/pi/build/source/comm/lwip/core/init.c:57:
+/home/pi/build/source/comm/lwip/include/netif/ethar.h:104:1: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+kernel.mk[C] : Compiling output/mem.o
+/home/pi/build/source/comm/lwip/core/mem.c:176:44: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/core/mem.c: In function ‘plug_holes’:
+/home/pi/build/source/comm/lwip/core/mem.c:244:58: warning: conversion to ‘mem_size_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/mem.c:255:58: warning: conversion to ‘mem_size_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/mem.c: In function ‘mem_free’:
+/home/pi/build/source/comm/lwip/core/mem.c:324:39: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/core/mem.c: In function ‘mem_realloc’:
+/home/pi/build/source/comm/lwip/core/mem.c:370:13: warning: conversion to ‘mem_size_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/mem.c:394:39: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/core/mem.c:396:21: warning: conversion to ‘mem_size_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/mem.c:398:28: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/core/mem.c:398:20: warning: conversion to ‘unsigned int’ from ‘int’ may change the sign of the result [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/core/mem.c:398:26: warning: conversion to ‘mem_size_t’ from ‘unsigned int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/mem.c:421:18: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/core/mem.c:421:36: warning: conversion to ‘mem_size_t’ from ‘unsigned int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/mem.c:440:24: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/core/mem.c:448:18: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/core/mem.c:448:36: warning: conversion to ‘mem_size_t’ from ‘unsigned int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/mem.c: In function ‘mem_malloc’:
+/home/pi/build/source/comm/lwip/core/mem.c:500:10: warning: conversion to ‘mem_size_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/mem.c:523:30: warning: conversion to ‘mem_size_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/mem.c:538:31: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/core/mem.c:542:32: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/core/mem.c:542:62: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/core/mem.c:553:24: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/core/mem.c:553:42: warning: conversion to ‘mem_size_t’ from ‘unsigned int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/mem.c:601:30: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/core/mem.c: In function ‘mem_calloc’:
+/home/pi/build/source/comm/lwip/core/mem.c:631:24: warning: conversion to ‘mem_size_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/mem.c:634:24: warning: conversion to ‘unsigned int’ from ‘int’ may change the sign of the result [-Wsign-conversion]
+kernel.mk[C] : Compiling output/memp.o
+In file included from /home/pi/build/source/comm/lwip/core/memp.c:47:0:
+/home/pi/build/source/comm/lwip/include/lwip/tcp.h:117:1: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+In file included from /home/pi/build/source/comm/lwip/include/netif/etharp.h:48:0,
+                 from /home/pi/build/source/comm/lwip/core/memp.c:54:
+/home/pi/build/source/comm/lwip/include/netif/ethar.h:104:1: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+In file included from /home/pi/build/source/comm/lwip/core/memp.c:128:0:
+/home/pi/build/source/comm/lwip/include/lwip/memp_std.h:38:1: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/include/lwip/memp_std.h:42:1: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/include/lwip/memp_std.h:43:1: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/include/lwip/memp_std.h:44:1: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/include/lwip/memp_std.h:63:1: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/include/lwip/memp_std.h:84:1: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/include/lwip/memp_std.h:84:1: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/include/lwip/memp_std.h:85:1: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/include/lwip/memp_std.h:85:1: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+In file included from /home/pi/build/source/comm/lwip/core/memp.c:150:0:
+/home/pi/build/source/comm/lwip/include/lwip/memp_std.h:38:1: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/include/lwip/memp_std.h:38:1: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/include/lwip/memp_std.h:42:1: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/include/lwip/memp_std.h:42:1: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/include/lwip/memp_std.h:43:1: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/include/lwip/memp_std.h:43:1: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/include/lwip/memp_std.h:44:1: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/include/lwip/memp_std.h:44:1: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/include/lwip/memp_std.h:63:1: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/include/lwip/memp_std.h:63:1: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/include/lwip/memp_std.h:84:1: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/include/lwip/memp_std.h:84:1: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/include/lwip/memp_std.h:84:1: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/include/lwip/memp_std.h:85:1: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/include/lwip/memp_std.h:85:1: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/include/lwip/memp_std.h:85:1: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/core/memp.c: In function ‘memp_overflow_check_element’:
+/home/pi/build/source/comm/lwip/core/memp.c:190:18: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/core/memp.c:198:18: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/core/memp.c: In function ‘memp_overflow_check_all’:
+/home/pi/build/source/comm/lwip/core/memp.c:223:37: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/core/memp.c:223:11: warning: cast increases required alignment of target type [-Wcast-align]
+/home/pi/build/source/comm/lwip/core/memp.c: In function ‘memp_overflow_init’:
+/home/pi/build/source/comm/lwip/core/memp.c:243:22: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/core/memp.c:247:22: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/core/memp.c:250:37: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/core/memp.c:250:11: warning: cast increases required alignment of target type [-Wcast-align]
+/home/pi/build/source/comm/lwip/core/memp.c: In function ‘memp_init’:
+/home/pi/build/source/comm/lwip/core/memp.c:282:45: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/core/memp.c:282:14: warning: cast increases required alignment of target type [-Wcast-align]
+/home/pi/build/source/comm/lwip/core/memp.c: In function ‘memp_malloc_fn’:
+/home/pi/build/source/comm/lwip/core/memp.c:336:41: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/core/memp.c:336:12: warning: cast increases required alignment of target type [-Wcast-align]
+/home/pi/build/source/comm/lwip/core/memp.c: In function ‘memp_free’:
+/home/pi/build/source/comm/lwip/core/memp.c:369:39: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/core/memp.c:369:10: warning: cast increases required alignment of target type [-Wcast-align]
+kernel.mk[C] : Compiling output/pbuf.o
+In file included from /home/pi/build/source/comm/lwip/core/pbuf.c:74:0:
+/home/pi/build/source/comm/lwip/include/lwip/tcp.h:117:1: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+/home/pi/build/source/comm/lwip/core/pbuf.c: In function ‘pbuf_alloc’:
+/home/pi/build/source/comm/lwip/core/pbuf.c:195:12: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/pbuf.c:199:12: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/pbuf.c:203:12: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/pbuf.c:225:18: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/core/pbuf.c:231:14: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/pbuf.c:265:16: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/pbuf.c:266:41: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/core/pbuf.c:284:34: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/core/pbuf.c:284:34: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/core/pbuf.c:284:85: warning: conversion to ‘unsigned int’ from ‘int’ may change the sign of the result [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/core/pbuf.c:284:83: warning: conversion to ‘mem_size_t’ from ‘unsigned int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/pbuf.c:289:18: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/core/pbuf.c: In function ‘pbuf_realloc’:
+/home/pi/build/source/comm/lwip/core/pbuf.c:372:13: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/pbuf.c:375:16: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/pbuf.c:387:55: warning: conversion to ‘mem_size_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/pbuf.c: In function ‘pbuf_header’:
+/home/pi/build/source/comm/lwip/core/pbuf.c:436:27: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/pbuf.c:440:5: warning: conversion to ‘u16_t’ from ‘s16_t’ may change the sign of the result [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/core/pbuf.c:462:42: warning: negative integer implicitly converted to unsigned type [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/core/pbuf.c:489:10: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/pbuf.c:490:14: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/pbuf.c: In function ‘pbuf_cat’:
+/home/pi/build/source/comm/lwip/core/pbuf.c:659:16: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/pbuf.c:665:14: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/pbuf.c: In function ‘pbuf_dechain’:
+/home/pi/build/source/comm/lwip/core/pbuf.c:718:29: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/pbuf.c: In function ‘pbuf_copy’:
+/home/pi/build/source/comm/lwip/core/pbuf.c:774:25: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/pbuf.c:777:23: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/pbuf.c:780:15: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/pbuf.c:781:17: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/pbuf.c: In function ‘pbuf_copy_partial’:
+/home/pi/build/source/comm/lwip/core/pbuf.c:842:14: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/pbuf.c:845:29: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/pbuf.c:850:20: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/pbuf.c:851:12: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/pbuf.c:852:11: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/pbuf.c: In function ‘pbuf_take’:
+/home/pi/build/source/comm/lwip/core/pbuf.c:893:5: warning: cast discards ‘__attribute__((const))’ qualifier from pointer target type [-Wcast-qual]
+/home/pi/build/source/comm/lwip/core/pbuf.c:894:20: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/pbuf.c:895:18: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/pbuf.c: In function ‘pbuf_coalesce’:
+/home/pi/build/source/comm/lwip/core/pbuf.c:917:9: warning: variable ‘err’ set but not used [-Wunused-but-set-variable]
+kernel.mk[C] : Compiling output/netif.o
+In file included from /home/pi/build/source/comm/lwip/core/netif.c:46:0:
+/home/pi/build/source/comm/lwip/include/lwip/tcp.h:117:1: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+In file included from /home/pi/build/source/comm/lwip/include/netif/etharp.h:48:0,
+                 from /home/pi/build/source/comm/lwip/core/netif.c:49:
+/home/pi/build/source/comm/lwip/include/netif/ethar.h:104:1: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+/home/pi/build/source/comm/lwip/core/netif.c: In function ‘netif_find’:
+/home/pi/build/source/comm/lwip/core/netif.c:257:17: warning: conversion to ‘u8_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/netif.c: In function ‘netif_set_up’:
+/home/pi/build/source/comm/lwip/core/netif.c:431:127: warning: conversion to ‘u32_t’ from ‘int’ may change the sign of the result [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/core/netif.c:432:107: warning: conversion to ‘u32_t’ from ‘int’ may change the sign of the result [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/core/netif.c: In function ‘netif_set_down’:
+/home/pi/build/source/comm/lwip/core/netif.c:478:20: warning: conversion to ‘u8_t’ from ‘unsigned int’ may alter its value [-Wconversion]
+kernel.mk[C] : Compiling output/udp.o
+/home/pi/build/source/comm/lwip/core/udp.c: In function ‘udp_input’:
+/home/pi/build/source/comm/lwip/core/udp.c:105:65: warning: conversion to ‘s16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/udp.c:312:40: warning: conversion to ‘s16_t’ from ‘u32_t’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/udp.c: In function ‘udp_disconnect’:
+/home/pi/build/source/comm/lwip/core/udp.c:784:14: warning: conversion to ‘u8_t’ from ‘unsigned int’ may alter its value [-Wconversion]
+kernel.mk[C] : Compiling output/tcp.o
+In file included from /home/pi/build/source/comm/lwip/core/tcp.c:51:0:
+/home/pi/build/source/comm/lwip/include/lwip/tcp.h:117:1: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+/home/pi/build/source/comm/lwip/core/tcp.c:97:6: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+/home/pi/build/source/comm/lwip/core/tcp.c: In function ‘tcp_update_rcv_ann_wnd’:
+/home/pi/build/source/comm/lwip/core/tcp.c:433:50: warning: conversion to ‘u16_t’ from ‘u32_t’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp.c: In function ‘tcp_recved’:
+/home/pi/build/source/comm/lwip/core/tcp.c:455:16: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp.c:459:41: warning: conversion to ‘int’ from ‘u32_t’ may change the sign of the result [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/core/tcp.c: In function ‘tcp_connect’:
+/home/pi/build/source/comm/lwip/core/tcp.c:558:28: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp.c: In function ‘tcp_slowtmr’:
+/home/pi/build/source/comm/lwip/core/tcp.c:647:51: warning: conversion to ‘s16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp.c:657:38: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp.c:719:9: warning: conversion to ‘unsigned int’ from ‘s16_t’ may change the sign of the result [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/core/tcp.c: In function ‘tcp_fasttmr’:
+/home/pi/build/source/comm/lwip/core/tcp.c:848:18: warning: conversion to ‘u8_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp.c: In function ‘tcp_segs_free’:
+/home/pi/build/source/comm/lwip/core/tcp.c:866:11: warning: conversion to ‘u8_t’ from ‘int’ may alter its value [-Wconversion]
+kernel.mk[C] : Compiling output/sys.o
+kernel.mk[C] : Compiling output/inet.o
+/home/pi/build/source/comm/lwip/core/inet.c: In function ‘chksum’:
+/home/pi/build/source/comm/lwip/core/inet.c:109:7: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/inet.c:116:2: warning: conversion to ‘u32_t’ from ‘int’ may change the sign of the result [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/core/inet.c: In function ‘inet_chksum_pseudo’:
+/home/pi/build/source/comm/lwip/core/inet.c:197:16: warning: conversion to ‘u8_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/inet.c:212:2: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/inet.c:213:2: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/inet.c:231:9: warning: conversion to ‘u16_t’ from ‘u32_t’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/inet.c: In function ‘inet_chksum’:
+/home/pi/build/source/comm/lwip/core/inet.c:247:9: warning: conversion to ‘u16_t’ from ‘u32_t’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/inet.c: In function ‘inet_chksum_pbuf’:
+/home/pi/build/source/comm/lwip/core/inet.c:263:16: warning: conversion to ‘u8_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/inet.c:271:9: warning: conversion to ‘u16_t’ from ‘u32_t’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/inet.c: In function ‘htons’:
+/home/pi/build/source/comm/lwip/core/inet.c:297:27: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+kernel.mk[C] : Compiling output/ip4_addr.o
+kernel.mk[C] : Compiling output/ip4.o
+In file included from /home/pi/build/source/comm/lwip/core/ipv4/ip4.c:52:0:
+/home/pi/build/source/comm/lwip/include/lwip/tcp.h:117:1: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+/home/pi/build/source/comm/lwip/core/ipv4/ip4.c: In function ‘ip4_input’:
+/home/pi/build/source/comm/lwip/core/ipv4/ip4.c:217:14: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/ipv4/ip4.c: In function ‘ip4_output_if’:
+/home/pi/build/source/comm/lwip/core/ipv4/ip4.c:559:5: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/ipv4/ip4.c:560:5: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/ipv4/ip4.c:564:5: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+kernel.mk[C] : Compiling output/ip4_frag.o
+kernel.mk[C] : Compiling output/tcp_in.o
+In file included from /home/pi/build/source/comm/lwip/core/tcp_in.c:51:0:
+/home/pi/build/source/comm/lwip/include/lwip/tcp.h:117:1: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+/home/pi/build/source/comm/lwip/core/tcp_in.c: In function ‘tcp_input’:
+/home/pi/build/source/comm/lwip/core/tcp_in.c:119:22: warning: conversion to ‘s16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:164:12: warning: conversion to ‘u8_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:165:21: warning: conversion to ‘s16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:183:23: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_in.c: In function ‘tcp_process’:
+/home/pi/build/source/comm/lwip/core/tcp_in.c:561:18: warning: conversion to ‘u8_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:606:32: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:608:54: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:668:55: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_in.c: In function ‘tcp_oos_insert_segment’:
+/home/pi/build/source/comm/lwip/core/tcp_in.c:773:9: warning: conversion to ‘u16_t’ from ‘unsigned int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_in.c: In function ‘tcp_receive’:
+/home/pi/build/source/comm/lwip/core/tcp_in.c:879:29: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:901:20: warning: conversion to ‘u8_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:909:33: warning: conversion to ‘s16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:914:20: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:925:23: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:929:39: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:946:14: warning: conversion to ‘u32_t’ from ‘int’ may change the sign of the result [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:963:27: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:993:12: warning: conversion to ‘u32_t’ from ‘int’ may change the sign of the result [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:1007:25: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:1032:13: warning: conversion to ‘s16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:1033:15: warning: conversion to ‘s16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:1035:13: warning: conversion to ‘s16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:1037:13: warning: conversion to ‘s16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:1038:15: warning: conversion to ‘s16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:1039:33: warning: conversion to ‘s16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:1102:26: warning: conversion to ‘s32_t’ from ‘u32_t’ may change the sign of the result [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:1131:17: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:1153:18: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:1168:23: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:1171:20: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:1207:17: warning: conversion to ‘u16_t’ from ‘unsigned int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:1209:26: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:1225:27: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:1228:24: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:1241:22: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:1275:27: warning: conversion to ‘u32_t’ from ‘int’ may change the sign of the result [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:1278:24: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:1307:9: warning: conversion to ‘u8_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_in.c: In function ‘tcp_parseopt’:
+/home/pi/build/source/comm/lwip/core/tcp_in.c:1455:39: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:1476:34: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:1478:62: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:1480:11: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:1513:11: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+kernel.mk[C] : Compiling output/tcp_out.o
+In file included from /home/pi/build/source/comm/lwip/core/tcp_out.c:45:0:
+/home/pi/build/source/comm/lwip/include/lwip/tcp.h:117:1: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+/home/pi/build/source/comm/lwip/core/tcp_out.c: In function ‘tcp_output_set_header’:
+/home/pi/build/source/comm/lwip/core/tcp_out.c:74:3: warning: conversion to ‘unsigned int’ from ‘int’ may change the sign of the result [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/core/tcp_out.c:74:3: warning: conversion to ‘u16_t’ from ‘unsigned int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_out.c: In function ‘tcp_enqueue’:
+/home/pi/build/source/comm/lwip/core/tcp_out.c:200:12: warning: conversion to ‘u8_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_out.c:232:63: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_out.c:290:16: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_out.c:357:5: warning: conversion to ‘unsigned int’ from ‘int’ may change the sign of the result [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/core/tcp_out.c:357:5: warning: conversion to ‘u16_t’ from ‘unsigned int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_out.c:363:10: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_out.c:397:30: warning: conversion to ‘s16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_out.c:420:17: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_out.c:450:16: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_out.c: In function ‘tcp_send_empty_ack’:
+/home/pi/build/source/comm/lwip/core/tcp_out.c:515:36: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_out.c:523:14: warning: conversion to ‘u8_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_out.c: In function ‘tcp_output’:
+/home/pi/build/source/comm/lwip/core/tcp_out.c:653:18: warning: conversion to ‘u8_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_out.c:657:43: warning: conversion to ‘u32_t’ from ‘int’ may change the sign of the result [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/core/tcp_out.c:702:14: warning: conversion to ‘u8_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_out.c: In function ‘tcp_output_segment’:
+/home/pi/build/source/comm/lwip/core/tcp_out.c:733:10: warning: cast increases required alignment of target type [-Wcast-align]
+/home/pi/build/source/comm/lwip/core/tcp_out.c:785:15: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_out.c:786:19: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_out.c: In function ‘tcp_rst’:
+/home/pi/build/source/comm/lwip/core/tcp_out.c:860:3: warning: conversion to ‘u16_t’ from ‘unsigned int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_out.c: In function ‘tcp_rexmit_fast’:
+/home/pi/build/source/comm/lwip/core/tcp_out.c:994:24: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/tcp_out.c:997:31: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+kernel.mk[C] : Compiling output/stats.o
+kernel.mk[C] : Compiling output/icmp.o
+/home/pi/build/source/comm/lwip/core/ipv4/icmp.c: In function ‘icmp_input’:
+/home/pi/build/source/comm/lwip/core/ipv4/icmp.c:95:25: warning: conversion to ‘s16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/ipv4/icmp.c:96:22: warning: conversion to ‘s16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/ipv4/icmp.c:170:26: warning: conversion to ‘s16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/ipv4/icmp.c:196:21: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/ipv4/icmp.c:198:21: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/ipv4/icmp.c:202:5: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+kernel.mk[C] : Compiling output/ip6_addr.o
+kernel.mk[C] : Compiling output/ip6.o
+In file included from /home/pi/build/source/comm/lwip/core/ipv6/ip6.c:51:0:
+/home/pi/build/source/comm/lwip/include/lwip/tcp.h:117:1: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+/home/pi/build/source/comm/lwip/core/ipv6/ip6.c: In function ‘ip6_input’:
+/home/pi/build/source/comm/lwip/core/ipv6/ip6.c:224:28: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/ipv6/ip6.c: In function ‘ip6_output_if’:
+/home/pi/build/source/comm/lwip/core/ipv6/ip6.c:302:35: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+kernel.mk[C] : Compiling output/dhcp.o
+kernel.mk[C] : Compiling output/icmp6.o
+In file included from /home/pi/build/source/comm/lwip/core/ipv6/icmp6.c:46:0:
+/home/pi/build/source/comm/lwip/include/netif/ethar.h:104:1: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+/home/pi/build/source/comm/lwip/core/ipv6/icmp6.c: In function ‘icmp6_input’:
+/home/pi/build/source/comm/lwip/core/ipv6/icmp6.c:108:27: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+kernel.mk[C] : Compiling output/ethar.o
+In file included from /home/pi/build/source/comm/lwip/netif/ethar.c:9:0:
+/home/pi/build/source/comm/lwip/include/netif/ethar.h:104:1: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+/home/pi/build/source/comm/lwip/netif/ethar.c:104:6: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+/home/pi/build/source/comm/lwip/netif/ethar.c: In function ‘find_entry’:
+/home/pi/build/source/comm/lwip/netif/ethar.c:177:11: warning: conversion to ‘s8_t’ from ‘u8_t’ may change the sign of the result [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/netif/ethar.c:216:13: warning: conversion to ‘s8_t’ from ‘u8_t’ may change the sign of the result [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/netif/ethar.c:242:17: warning: conversion to ‘s8_t’ from ‘u8_t’ may change the sign of the result [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/netif/ethar.c:250:21: warning: conversion to ‘s8_t’ from ‘u8_t’ may change the sign of the result [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/netif/ethar.c:260:21: warning: conversion to ‘s8_t’ from ‘u8_t’ may change the sign of the result [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/netif/ethar.c:289:17: warning: conversion to ‘s8_t’ from ‘u8_t’ may change the sign of the result [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/netif/ethar.c:294:17: warning: conversion to ‘s8_t’ from ‘u8_t’ may change the sign of the result [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/netif/ethar.c:322:9: warning: conversion to ‘u8_t’ from ‘s8_t’ may change the sign of the result [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/netif/ethar.c:329:9: warning: conversion to ‘u8_t’ from ‘s8_t’ may change the sign of the result [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/netif/ethar.c:340:9: warning: conversion to ‘u8_t’ from ‘s8_t’ may change the sign of the result [-Wsign-conversion]
+/home/pi/build/source/comm/lwip/netif/ethar.c:348:9: warning: conversion to ‘u8_t’ from ‘s8_t’ may change the sign of the result [-Wsign-conversion]
+kernel.mk[C] : Compiling output/ethndp.o
+In file included from /home/pi/build/source/comm/lwip/core/ipv6/ethndp.c:9:0:
+/home/pi/build/source/comm/lwip/include/netif/ethar.h:104:1: warning: function declaration isn’t a prototype [-Wstrict-prototypes]
+/home/pi/build/source/comm/lwip/core/ipv6/ethndp.c: In function ‘ethndp_request’:
+/home/pi/build/source/comm/lwip/core/ipv6/ethndp.c:121:6: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/ipv6/ethndp.c:140:54: warning: conversion to ‘u8_t’ from ‘u32_t’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/ipv6/ethndp.c:157:27: warning: conversion to ‘u16_t’ from ‘int’ may alter its value [-Wconversion]
+/home/pi/build/source/comm/lwip/core/ipv6/ethndp.c: In function ‘ethndp_output’:
+/home/pi/build/source/comm/lwip/core/ipv6/ethndp.c:239:55: warning: conversion to ‘u8_t’ from ‘u32_t’ may alter its value [-Wconversion]
+kernel.mk[C++]: Compiling output/lwipTMR.o
+kernel.mk[C++]: Compiling output/WorkerThread.o
+kernel.mk[C++]: Compiling output/WorkerTask.o
+kernel.mk[C] : Compiling output/crc32.o
+kernel.mk[C++]: Compiling output/USBEHCIHostController.o
+kernel.mk[C++]: Compiling output/Socket.o
+kernel.mk[C++]: Compiling output/CAB.o
+kernel.mk[C++]: Compiling output/ArrayDatabase.o
+kernel.mk[C++]: Compiling output/LinkedListDatabase.o
+kernel.mk[C++]: Compiling output/Logger.o
+kernel.mk[C++]: Compiling output/File.o
+kernel.mk[C++]: Compiling output/Directory.o
+kernel.mk[C++]: Compiling output/Filemanager.o
+kernel.mk[C++]: Compiling output/Resource.o
+kernel.mk[C++]: Compiling output/SimpleFileManager.o
+kernel.mk[C++]: Compiling output/PartitionManager.o
+kernel.mk[C++]: Compiling output/DOSPartition.o
+kernel.mk[C++]: Compiling output/FileSystemBase.o
+kernel.mk[C++]: Compiling output/FATFileSystem.o
+/home/pi/build/source/filesystem/FATFileSystem.cc: In member function ‘unint4 FATFileSystem::allocateCluster()’:
+/home/pi/build/source/filesystem/FATFileSystem.cc:146:59: warning: cast from ‘unsigned char*’ to ‘unint4* {aka unsigned int*}’ increases required alignment of target type [-Wcast-align]
+/home/pi/build/source/filesystem/FATFileSystem.cc:146:60: warning: dereferencing type-punned pointer will break strict-aliasing rules [-Wstrict-aliasing]
+/home/pi/build/source/filesystem/FATFileSystem.cc:159:41: warning: cast from ‘unsigned char*’ to ‘unint4* {aka unsigned int*}’ increases required alignment of target type [-Wcast-align]
+/home/pi/build/source/filesystem/FATFileSystem.cc:159:42: warning: dereferencing type-punned pointer will break strict-aliasing rules [-Wstrict-aliasing]
+/home/pi/build/source/filesystem/FATFileSystem.cc: In member function ‘unint4 FATFileSystem::getFATTableEntry(unint4, bool)’:
+/home/pi/build/source/filesystem/FATFileSystem.cc:207:59: warning: cast from ‘unsigned char*’ to ‘unint2* {aka short unsigned int*}’ increases required alignment of target type [-Wcast-align]
+/home/pi/build/source/filesystem/FATFileSystem.cc:207:60: warning: dereferencing type-punned pointer will break strict-aliasing rules [-Wstrict-aliasing]
+/home/pi/build/source/filesystem/FATFileSystem.cc:214:39: warning: cast from ‘unsigned char*’ to ‘unint2* {aka short unsigned int*}’ increases required alignment of target type [-Wcast-align]
+/home/pi/build/source/filesystem/FATFileSystem.cc:214:40: warning: dereferencing type-punned pointer will break strict-aliasing rules [-Wstrict-aliasing]
+/home/pi/build/source/filesystem/FATFileSystem.cc:221:60: warning: cast from ‘unsigned char*’ to ‘unint4* {aka unsigned int*}’ increases required alignment of target type [-Wcast-align]
+/home/pi/build/source/filesystem/FATFileSystem.cc:221:61: warning: dereferencing type-punned pointer will break strict-aliasing rules [-Wstrict-aliasing]
+/home/pi/build/source/filesystem/FATFileSystem.cc:227:39: warning: cast from ‘unsigned char*’ to ‘unint4* {aka unsigned int*}’ increases required alignment of target type [-Wcast-align]
+/home/pi/build/source/filesystem/FATFileSystem.cc:227:40: warning: dereferencing type-punned pointer will break strict-aliasing rules [-Wstrict-aliasing]
+/home/pi/build/source/filesystem/FATFileSystem.cc: In function ‘unsigned char ChkSum(unsigned char*)’:
+/home/pi/build/source/filesystem/FATFileSystem.cc:414:56: warning: conversion to ‘unsigned char’ from ‘int’ may alter its value [-Wconversion]
+kernel.mk[C++]: Compiling output/SharedMemResource.o
+/home/pi/build/source/filesystem/SharedMemResource.cc: In destructor ‘virtual SharedMemResource::~SharedMemResource()’:
+/home/pi/build/source/filesystem/SharedMemResource.cc:42:46: warning: cast from ‘DatabaseItem*’ to ‘Mapping*’ increases required alignment of target type [-Wcast-align]
+/home/pi/build/source/filesystem/SharedMemResource.cc: In member function ‘ErrorT SharedMemResource::unmapFromTask(Task*)’:
+/home/pi/build/source/filesystem/SharedMemResource.cc:72:46: warning: cast from ‘DatabaseItem*’ to ‘Mapping*’ increases required alignment of target type [-Wcast-align]
+kernel.mk[C++]: Compiling output/SimpleProcfs.o
+kernel.mk[C++]: Compiling output/SimpleDebugCollector.o
+kernel.mk[C++]: Compiling output/PowerManager.o
+kernel.mk[C++]: Compiling output/CharacterDeviceDriver.o
+kernel.mk[C++]: Compiling output/BlockDeviceDriver.o
+kernel.mk[C++]: Compiling output/TimerDevice.o
+kernel.mk[C++]: Compiling output/CommDeviceDriver.o
+kernel.mk[C++]: Compiling output/USCommDeviceDriver.o
+kernel.mk[C++]: Compiling output/Clock.o
+kernel.mk[C++]: Compiling output/USBDriverLibrary.o
+kernel.mk[C++]: Compiling output/USBDeviceDriverFactory.o
+kernel.mk[C++]: Compiling output/SMSC95xxUSBDeviceDriver.o
+/home/pi/build/source/arch/shared/usb/SMSC95xxUSBDeviceDriver.cc: In member function ‘virtual ErrorT SMSC95xxUSBDeviceDriver::handleInterrupt()’:
+/home/pi/build/source/arch/shared/usb/SMSC95xxUSBDeviceDriver.cc:998:81: warning: cast from ‘unint1* {aka unsigned char*}’ to ‘unint4* {aka unsigned int*}’ increases required alignment of target type [-Wcast-align]
+kernel.mk[C++]: Compiling output/MassStorageSCSIUSBDeviceDriver.o
+kernel.mk[C++]: Compiling output/stringtools.o
+kernel.mk[C++]: Compiling output/memtools.o
+kernel.mk[C++]: Compiling output/sprintf.o
+kernel.mk[C++]: Compiling output/putc.o
+kernel.mk[C++]: Compiling output/libgccmath.o
+kernel.mk[C] : Compiling output/endian.o
+kernel.mk[C++]: Compiling output/newlib_helper.o
+kernel.mk[C++]: Compiling output/kwait.o
+kernel.mk[C++]: Compiling output/kernelmain.o
+kernel.mk[C++]: Compiling output/Kernel.o
+kernel.mk[C++]: Compiling output/LinearMemManager.o
+kernel.mk[C++]: Compiling output/new.o
+kernel.mk[C++]: Compiling output/SequentialFitMemManager.o
+/home/pi/build/source/mem/SequentialFitMemManager.cc: In member function ‘void SequentialFitMemManager::split(Chunk_Header*, size_t)’:
+/home/pi/build/source/mem/SequentialFitMemManager.cc:51:68: warning: conversion to ‘unsigned int:30’ from ‘size_t {aka unsigned int}’ may alter its value [-Wconversion]
+/home/pi/build/source/mem/SequentialFitMemManager.cc:56:25: warning: conversion to ‘unsigned int:30’ from ‘size_t {aka unsigned int}’ may alter its value [-Wconversion]
+/home/pi/build/source/mem/SequentialFitMemManager.cc: In member function ‘void SequentialFitMemManager::merge(Chunk_Header*)’:
+/home/pi/build/source/mem/SequentialFitMemManager.cc:88:56: warning: conversion to ‘unsigned int:30’ from ‘unsigned int’ may alter its value [-Wconversion]
+/home/pi/build/source/mem/SequentialFitMemManager.cc:106:58: warning: conversion to ‘unsigned int:30’ from ‘unsigned int’ may alter its value [-Wconversion]
+/home/pi/build/source/mem/SequentialFitMemManager.cc: In member function ‘Chunk_Header* SequentialFitMemManager::getFittingChunk(size_t, bool, unint4)’:
+/home/pi/build/source/mem/SequentialFitMemManager.cc:185:111: warning: cast from ‘byte* {aka char*}’ to ‘unint4* {aka unsigned int*}’ increases required alignment of target type [-Wcast-align]
+/home/pi/build/source/mem/SequentialFitMemManager.cc:193:25: warning: conversion to ‘unsigned int:30’ from ‘unint4 {aka unsigned int}’ may alter its value [-Wconversion]
+/home/pi/build/source/mem/SequentialFitMemManager.cc:203:21: warning: conversion to ‘unsigned int:30’ from ‘unint4 {aka unsigned int}’ may alter its value [-Wconversion]
+/home/pi/build/source/mem/SequentialFitMemManager.cc: In member function ‘void* SequentialFitMemManager::alloc(size_t, bool, unint4)’:
+/home/pi/build/source/mem/SequentialFitMemManager.cc:260:41: warning: conversion to ‘unsigned int:30’ from ‘size_t {aka unsigned int}’ may alter its value [-Wconversion]
+kernel.mk[C++]: Compiling output/PagedRamMemManager.o
+kernel.mk[C++]: Compiling output/IdleThread.o
+kernel.mk[C++]: Compiling output/Task.o
+kernel.mk[C++]: Compiling output/Thread.o
+kernel.mk[C++]: Compiling output/PriorityThread.o
+kernel.mk[C++]: Compiling output/TaskManager.o
+kernel.mk[C++]: Compiling output/RealTimeThread.o
+kernel.mk[C++]: Compiling output/Module.o
+kernel.mk[C++]: Compiling output/RoundRobinThreadScheduler.o
+kernel.mk[C++]: Compiling output/PriorityThreadScheduler.o
+kernel.mk[C++]: Compiling output/RateMonotonicThreadScheduler.o
+kernel.mk[C++]: Compiling output/EarliestDeadlineFirstThreadScheduler.o
+/home/pi/build/source/scheduler/EarliestDeadlineFirstThreadScheduler.cc: In member function ‘void EarliestDeadlineFirstThreadScheduler::computePriority(RealTimeThread*)’:
+/home/pi/build/source/scheduler/EarliestDeadlineFirstThreadScheduler.cc:112:5: warning: dereferencing type-punned pointer will break strict-aliasing rules [-Wstrict-aliasing]
+kernel.mk[C++]: Compiling output/SingleCPUDispatcher.o
+kernel.mk[C++]: Compiling output/TaskErrorHandler.o
+kernel.mk[C++]: Compiling output/Mutex.o
+kernel.mk[C++]: Compiling output/sc_common.o
+kernel.mk[C++]: Compiling output/sc_io.o
+kernel.mk[C++]: Compiling output/sc_mem.o
+kernel.mk[C++]: Compiling output/sc_net.o
+kernel.mk[C++]: Compiling output/sc_process.o
+/home/pi/build/source/syscalls/sc_process.cc: In function ‘int runTask(int4)’:
+/home/pi/build/source/syscalls/sc_process.cc:71:9: warning: declaration of ‘void* sp_int’ shadows a parameter [-Wshadow]
+/home/pi/build/source/syscalls/sc_process.cc:30:18: warning: shadowed declaration is here [-Wshadow]
+/home/pi/build/source/syscalls/sc_process.cc: In function ‘int thread_run(int4)’:
+/home/pi/build/source/syscalls/sc_process.cc:360:17: warning: dereferencing type-punned pointer will break strict-aliasing rules [-Wstrict-aliasing]
+kernel.mk[C++]: Compiling output/sc_synchro.o
+
+Creating static library liborcoskernel.a
+
+kernel.mk[LD] : Linking output/kernel.elf
+/usr/bin/ld: warning: /home/pi/orcos_arm/libgcc.a(bpabi.o) uses variable-size enums yet the output is to use 32-bit enums; use of enum values across objects may fail
+/usr/bin/ld: warning: /home/pi/orcos_arm/libgcc.a(_divdi3.o) uses variable-size enums yet the output is to use 32-bit enums; use of enum values across objects may fail
+/usr/bin/ld: warning: /home/pi/orcos_arm/libgcc.a(_udivdi3.o) uses variable-size enums yet the output is to use 32-bit enums; use of enum values across objects may fail
+   text	   data	    bss	    dec	    hex	filename
+ 109320	    276	  27100	 136696	  215f8	./output/kernel.elf
+----------------------------------
+     Building Tasks
+----------------------------------
+Creating ./tasks/telnet_server/
+@/usr/bin/c++ -c -I../..//home/pi/build/library/bin/armv7//../../inc -fno-exceptions -fno-rtti -O2 -march=armv7-a -mthumb -mthumb-interwork -mno-unaligned-access -g task_main.cc -o task_main.o
+task.mk: Compiling task_main.o
+cc1plus: error: unrecognized command line option ‘-mno-unaligned-access’
+make[2]: *** [task_main.o] Fehler 1
+
+----------------------------------
+      Building the uImage
+----------------------------------
+
+[uImage] Creating Uboot Firmware Image...
+------------------------------------------------------------
+IMPORTANT:
+Be sure the Binary Image is not overlapping the boot_params address of
+the Uboot Loader!.. This tool can not check this as the boot_params address
+is hard coded into the Uboot binary ..
+------------------------------------------------------------
+[uImage] Number of Tasks     : 1
+[uImage] Architecture		   : arm
+[uImage] Kernel Size       : 109596
+[uImage] Kernel Load Address : 0x81000000
+[uImage] Entry Address       : 0x81000158
+[uImage] Kernel End Address  : 0x810B4000
+627684+0 Datensätze ein
+627684+0 Datensätze aus
+627684 Bytes (628 kB) kopiert, 17,1731 s, 36,6 kB/s
+[uImage] Current Address : 0x810B4000
+[uImage] Appending Task ./tasks/telnet_server/ @81100000
+[uImage] 311296 zeros needed ... (304 Kb)
+311296+0 Datensätze ein
+311296+0 Datensätze aus
+311296 Bytes (311 kB) kopiert, 9,10259 s, 34,2 kB/s
+stat: Aufruf von stat für „./tasks/telnet_server//task.bin“ nicht möglich: Datei oder Verzeichnis nicht gefunden
+[uImage] Task Size: 
+cat: ./tasks/telnet_server//task.bin: Datei oder Verzeichnis nicht gefunden
+../../../source/uImage.sh: Zeile 88: 2165309440 +  : Syntax Fehler: Operator erwartet. (Fehlerverursachendes Zeichen ist \"+  \").
+[uImage] Compressing Image...
+[uImage] Creating Uboot uImage
+mkimage -A arm -T kernel -C gzip -a 0x81000000 -e 0x81000158 -n ORCOS -d image.gz output/uImage
+Image Name:   ORCOS
+Created:      Thu Dec 12 00:14:18 2013
+Image Type:   ARM Linux Kernel Image (gzip compressed)
+Data Size:    73440 Bytes = 71.72 kB = 0.07 MB
+Load Address: 81000000
+Entry Point:  81000158
+All done .. Images can be found inside the output directory..
+Finished: SUCCESS
