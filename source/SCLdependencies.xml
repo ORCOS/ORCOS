@@ -72,6 +72,7 @@
           </Defaults>
         </MemberRef>
         <MemberRef Name="HatLayer"/>
+        <MemberRef Name="Cache"/>	
         <MemberRef Name="Clock" optional="false">
 			<Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530Clock">
 				<PropertyValue Name="Name" Value="sysclock0"/>
@@ -189,6 +190,7 @@
             <PropertyValue Name="Length" Value="4096" />
           </Defaults>
         </MemberRef>
+        <MemberRef Name="Cache"/>	
          <MemberRef Name="UART">
           <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardUART">
 		   <!--  First value of set is the default value, rest enum values -->
@@ -257,6 +259,7 @@
 				<PropertyValue Name="Name" Value="sysclock0"/>
 			</Defaults>
 		</MemberRef>
+		<MemberRef Name="Cache"/>						
         <MemberRef Name="Processor" optional="false"/>
         <!-- No Wachdog support -->
         <MemberRef Name="DSS">
@@ -395,6 +398,13 @@
         <Class Requires="Leon3"  Name="arch/Leon3/Leon3HatLayer"/>
         <Class Requires="CortexA8" Name="arch/ARM/ARMv4T/ARMv7/ARMv7HatLayer"/>
         <Class Name="hal/HatLayer"/>
+      </Classes>
+    </Member>
+    <Member>
+      <Name>Cache</Name>
+      <Classes>        
+        <Class Requires="CortexA8" Name="arch/ARM/ARMv4T/ARMv7/ARMv7Cache"/>
+        <Class Name="hal/Cache"/>
       </Classes>
     </Member>
     <Member>

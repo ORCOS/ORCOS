@@ -365,6 +365,15 @@ void BeagleBoardxM::initialize() {
  	// GPIO5
  	OUTW(0x49056000 + 0x34,~(GPIO31 | GPIO30 | GPIO29 | GPIO11 | GPIO28 | GPIO22 | GPIO21 | GPIO15 | GPIO14 | GPIO13 | GPIO12));
 
+    // Clock
+#ifdef HAS_Board_ClockCfd
+    LOG(ARCH,INFO,(ARCH,INFO,"BeagleBoardxM: Board Clock [" STRINGIZE(Board_ClockCfdCl) "]") );
+    INIT_Board_ClockCfd;
+    ClockCfd = new NEW_Board_ClockCfd;
+    theClock = ClockCfd; // clock is now available for other devices
+#endif
+
+
     // Processor
 #ifdef HAS_Board_ProcessorCfd
      LOG(ARCH,INFO,(ARCH,INFO,"BeagleBoardxM: Board Processor [" STRINGIZE(Board_ProcessorCfdCl) "]" ));
@@ -384,12 +393,10 @@ void BeagleBoardxM::initialize() {
     TimerCfd = new NEW_Board_TimerCfd;
 #endif
 
-    // Clock
-#ifdef HAS_Board_ClockCfd
-    LOG(ARCH,INFO,(ARCH,INFO,"BeagleBoardxM: Board Clock [" STRINGIZE(Board_ClockCfdCl) "]") );
-    INIT_Board_ClockCfd;
-    ClockCfd = new NEW_Board_ClockCfd;
-    theClock = ClockCfd; // clock is now available for other devices
+#ifdef HAS_Board_CacheCfd
+    LOG(ARCH,INFO,(ARCH,INFO,"BeagleBoardxM: Board Cache [" STRINGIZE(Board_CacheCfdCl) "]") );
+    INIT_Board_CacheCfd;
+    CacheCfd = new NEW_Board_CacheCfd;
 #endif
 
 

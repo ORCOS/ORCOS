@@ -255,6 +255,7 @@ extern "C" int 		fgetc(int stream);
  */
 extern "C" size_t 	fwrite(const void *ptr, size_t size, size_t nitems, int stream);
 
+extern "C" int fstat(int fd, stat_t* stat);
 
 /*!
  * \brief Request an I/O Control operation on the device opened with handle 'fd'.

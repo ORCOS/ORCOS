@@ -99,6 +99,7 @@
 #define cShmMapId				33
 
 #define cThread_WaitPID			34
+#define cFStatId				35
 
 #define ErrorToString(s) #s
 

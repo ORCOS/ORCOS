@@ -56,9 +56,6 @@ extern Kernel* theOS;
 #define USB_SET_INDEX_FIELD(req,index) *((unint2*)(&req[4])) = htons(index)
 #define USB_SET_VALUE_FIELD(req,value) *((unint2*)(&req[2])) = htons(value)
 
-static unint1 recv_buf[256] __attribute__((aligned(4)));
-volatile static qTD qtds[4] __attribute__((aligned(32)));
-static int qtdnum = 0;
 
 char* bDeviceClassStr[16] = {
 		"Device",
@@ -95,10 +92,15 @@ char* bmTransferTypeStr[4] = {
 extern void kwait(int millseconds);
 
 // The main QH we are enqueing to
-volatile QH QHmain __attribute__((aligned(32)));
+volatile QH QHmain __attribute__((aligned(32))) ATTR_CACHE_INHIBIT;
 
 #define FRAME_LIST_SIZE 256
-unint4 framelist[FRAME_LIST_SIZE] __attribute__((aligned(0x1000)));
+unint4 framelist[FRAME_LIST_SIZE] __attribute__((aligned(0x1000))) ATTR_CACHE_INHIBIT;
+
+static unint1 recv_buf[256] __attribute__((aligned(4))) ATTR_CACHE_INHIBIT;
+volatile static qTD qtds[4] __attribute__((aligned(32))) ATTR_CACHE_INHIBIT;
+static int ATTR_CACHE_INHIBIT qtdnum = 0 ;
+
 
 USB_EHCI_Host_Controller::USB_EHCI_Host_Controller(unint4 ehci_dev_base) {
 
@@ -413,7 +415,7 @@ int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1
 
 	// wait for completion of usb transaction
 	volatile unint4 timeout = 200;
-	while (( QT_TOKEN_GET_STATUS(qtd_last->qt_token) == 0x80 ) && timeout) {timeout--;  kwait(1);};
+	while (( QT_TOKEN_GET_STATUS(qtd_last->qt_token) == 0x80 ) && timeout) {timeout--;  kwait_us(10);};
 
 	// get number of bytes transferred
 	unint4 num = 0;
@@ -944,6 +946,10 @@ ErrorT USBHub::enumerate() {
 	return (cOk);
 }
 
+
+static unint1 u_recv_buf[20] ATTR_CACHE_INHIBIT;
+unint1 port_status[4] ATTR_CACHE_INHIBIT;
+
 /*!
  * Generic Handler for Hub Port State Changes.
  *
@@ -952,16 +958,16 @@ ErrorT USBHub::enumerate() {
 void USBHub::handleStatusChange() {
 	ErrorT error;
 
-	unint1 u_recv_buf[20];
-
 	for (unint1 i = 1; i <= hub_descr.bnrPorts; i++) {
 		if ((dev->endpoints[1].recv_buffer[0] &  (1 << i)) != 0)  {
 
 			// get status of port
 			unint1 msg4[8] = USB_GETPORT_STATUS();
 			msg4[4] = i;
-
-			unint1 port_status[4] = {0,0,0,0};
+			port_status[0] = 0;
+			port_status[1] = 0;
+			port_status[2] = 0;
+			port_status[3] = 0;
 
 			error = controller->sendUSBControlMsg(dev,0,(unint1*) &msg4,USB_DIR_IN,4,(unint1*) &port_status);
 
@@ -1252,14 +1258,17 @@ ErrorT USBDevice::reactivateEp(int num) {
 	return (cError);
 }
 
-ErrorT USBDevice::activateEndpoint(int num) {
+ErrorT USBDevice::activateEndpoint(int num, QH* pqh, qTD* pqtd) {
 	if (num > 4) return (cError);
 
 	if (endpoints[num].queue_head != 0) return (reactivateEp(num));
 
 	// create a queue head and insert it into the list
 	// generate a queue head for this device inside the asynchronous list
-	QH* queue_head_new =  (QH*) theOS->getMemoryManager()->alloc(48,1,32);	// delete @ USBDevice::deactivate
+	QH* queue_head_new = pqh;
+	if (pqh == 0)
+	  queue_head_new =  (QH*) theOS->getMemoryManager()->alloci(48,1,32);	// delete @ USBDevice::deactivate
+
 	// store address and clear area
 	endpoints[num].queue_head = queue_head_new;
 	memset((void*) queue_head_new,0,48);
@@ -1288,7 +1297,9 @@ ErrorT USBDevice::activateEndpoint(int num) {
 	} else {
 		// Interrupt Endpoint
 		// generate one qtd for the polling transfer
-		qTD* qtd  =  (qTD*) theOS->getMemoryManager()->alloc(32,1,32);		// delete @ USBDevice::deactivate
+		qTD* qtd  = pqtd;
+		if (pqtd == 0)
+			qtd  = (qTD*) theOS->getMemoryManager()->alloci(32,1,32);		// delete @ USBDevice::deactivate
 
 		queue_head_new->qh_overlay.qt_next = (unint4) qtd;
 		queue_head_new->qh_endpt2 |= num; // S-Mask
@@ -1301,7 +1312,7 @@ ErrorT USBDevice::activateEndpoint(int num) {
 		queue_head_new->qh_overlay.qt_altnext = QT_NEXT_TERMINATE;
 
 		// get interrupt receive buffer
-		endpoints[num].recv_buffer =  (unint1*) theOS->getMemoryManager()->alloc(endpoints[num].interrupt_receive_size,1,4); // delete @ USBDevice::deactivate
+		endpoints[num].recv_buffer =  (unint1*) theOS->getMemoryManager()->alloci(endpoints[num].interrupt_receive_size,1,4); // delete @ USBDevice::deactivate
 		memset(endpoints[num].recv_buffer,0,endpoints[num].interrupt_receive_size);
 
 		qtd->qt_buffer[0] = (unint4) endpoints[num].recv_buffer;
@@ -1342,6 +1353,7 @@ USBDevice::USBDevice(USB_EHCI_Host_Controller *p_controller, USBDevice *p_parent
 		endpoints[i].queue_head 	= 0;
 		endpoints[i].q_int_transfer = 0;
 		endpoints[i].data_toggle 	= 0;
+		endpoints[i].recv_buffer 	= 0;
 		endpoints[i].type 			= UnknownTT;
 		endpoints[i].direction 		= UnknownDir;
 		// intitialize with some valid values before we have received

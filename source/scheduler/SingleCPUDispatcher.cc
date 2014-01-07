@@ -37,7 +37,6 @@ Kernel_SchedulerCfdCl* theScheduler;
 Kernel_ThreadCfdCl*    pCurrentRunningThread = 0;
 Task*           pCurrentRunningTask = 0;
 unint8          lastCycleStamp = 0;
-bool			processChanged = true;
 
 
 SingleCPUDispatcher::SingleCPUDispatcher() :
@@ -45,11 +44,11 @@ SingleCPUDispatcher::SingleCPUDispatcher() :
 
 	// initialize the scheduler with 0, needed for the new Operator!
     SchedulerCfd = new NEW_Kernel_SchedulerCfd;
-
     theScheduler = SchedulerCfd;
     pRunningThreadDbItem = 0;
     pCurrentRunningThread = 0;
     pCurrentRunningTask = 0;
+    idleThread = new IdleThread();
 }
 
 SingleCPUDispatcher::~SingleCPUDispatcher() {
@@ -68,7 +67,7 @@ void SingleCPUDispatcher::dispatch( unint4 dt ) {
 
     // get the next timer event the scheduler wants to be called
     int nextevent = this->SchedulerCfd->getNextTimerEvent(sleepList,dt);
-    LOG(SCHEDULER,TRACE,(SCHEDULER,TRACE,"SingleCPUDispatcher: next Timer %d", nextevent));
+    LOG(SCHEDULER,DEBUG,(SCHEDULER,TRACE,"SingleCPUDispatcher: next Timer %d", nextevent));
     theTimer->setTimer( nextevent );
 
     // get the next ready thread
@@ -78,8 +77,7 @@ void SingleCPUDispatcher::dispatch( unint4 dt ) {
 
      // set the time stamp
     lastCycleStamp = theClock->getTimeSinceStartup();
-    // indicate a process change
-    processChanged = true;
+
 
     if ( nextThreadDbItem != 0 ) {
         pCurrentRunningThread = (Kernel_ThreadCfdCl*) nextThreadDbItem->getData();
@@ -107,7 +105,7 @@ void SingleCPUDispatcher::dispatch( unint4 dt ) {
         pCurrentRunningTask = 0;
         pRunningThreadDbItem = 0;
 
-        LOG(KERNEL,TRACE,(KERNEL,TRACE,"SingleCPUDispatcher: Idle Thread running"));
+        LOG(KERNEL,DEBUG,(KERNEL,DEBUG,"SingleCPUDispatcher: Idle Thread running"));
         // non returning run()
         idleThread->run();
     }
@@ -166,7 +164,7 @@ void SingleCPUDispatcher::block( Thread* thread ) {
 
     _disableInterrupts();
 #endif
-    LOG(SCHEDULER,TRACE,(SCHEDULER,TRACE,"SingleCPUDispatcher::block() blocking Thead %d", thread->getId()));
+    LOG(SCHEDULER,DEBUG,(SCHEDULER,DEBUG,"SingleCPUDispatcher::block() blocking Thead %d", thread->getId()));
 
     if ( thread == pCurrentRunningThread ) {
         this->blockedList->addTail( pRunningThreadDbItem );
@@ -217,7 +215,7 @@ void SingleCPUDispatcher::unblock( Thread* thread ) {
     _disableInterrupts();
 
 #endif
-
+    LOG(SCHEDULER,DEBUG,(SCHEDULER,DEBUG,"SingleCPUDispatcher::unblock() unblocking Thead %d", thread->getId()));
     LinkedListDatabaseItem* litem = this->blockedList->getItem( thread );
 
     if ( litem != 0 ) {
@@ -318,8 +316,10 @@ void SingleCPUDispatcher::signal( void* sig, int sigvalue ) {
                 pThread->status.clearBits( cSignalFlag );
                 /* Set the signal return value */
                 void* sp_int;
-                GET_RETURN_CONTEXT(pCurrentRunningThread,sp_int);
-                SET_RETURN_VALUE(sp_int,sigvalue);
+
+                //TODO: we cant set this here.. we are not inside the address space of the thread ...
+               // GET_RETURN_CONTEXT(pCurrentRunningThread,sp_int);
+                //SET_RETURN_VALUE(sp_int,sigvalue);
 
                 if ( !pThread->status.areSet( cStopped ) ) {
 

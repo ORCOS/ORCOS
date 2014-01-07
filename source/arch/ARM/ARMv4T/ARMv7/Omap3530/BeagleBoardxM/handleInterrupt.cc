@@ -21,6 +21,7 @@
 #include "inc/error.hh"
 #include "OMAP3530.h"
 #include "BeagleBoardxM.hh"
+#include "inc/crc32.h"
 
 #define STACK_CONTENT(sp_int,offset) *( (long*) ( ( (long) sp_int) + offset)  )
 
@@ -55,14 +56,23 @@ extern "C" void handleDataAbort(int addr, int instr, int context, int spsr) {
 			LOG(ARCH,ERROR,(ARCH,ERROR,"r%d : %x",i,((unint4*) context)[i]));
 		}
 
-	memdump(instr-16,8);
+	//memdump(instr-16,8);
 
 	int tid = 0;
 	if (pCurrentRunningTask != 0)
 		tid = pCurrentRunningTask->getId();
 
 
-	LOG(ARCH,ERROR,(ARCH,ERROR,"TID: %d",tid));
+	int dfsr;
+	asm (
+		"MRC p15,0,%0,c5,c0,0;"
+		: "=&r" (dfsr)
+		:
+		:
+		);
+
+
+	LOG(ARCH,ERROR,(ARCH,ERROR,"TID: %d, DFSR: %x",tid, dfsr));
 
 	#ifdef HAS_Board_HatLayerCfd
 
@@ -121,6 +131,11 @@ extern "C" void handleUndefinedIRQ(int addr, int spsr, int context) {
 
 	LOG(ARCH,ERROR,(ARCH,ERROR,"TID: %d",tid));
 
+	/*taskTable* tt = pCurrentRunningTask->getTaskTable();
+	unint4 crc = crc32((char*) tt->task_start_addr,tt->task_data_end- tt->task_start_addr);
+	LOG(ARCH,ERROR,(ARCH,ERROR,"CRC32: 0x%x",crc));*/
+
+
 	#ifdef HAS_Board_HatLayerCfd
 
 		int asid = -1;
@@ -166,9 +181,69 @@ extern "C" void handleFIQ() {
 	while (true) {};
 }
 
-extern "C" void handlePrefetchAbort(int instr) {
+extern "C" void handlePrefetchAbort(int instr, int context) {
 	LOG(ARCH,ERROR,(ARCH,ERROR,"Prefetch Abort IRQ. instr: 0x%x",instr));
-	while (true) {};
+
+	for (int i = -1; i <= 13; i++) {
+		LOG(ARCH,ERROR,(ARCH,ERROR,"r%d : %x",i,((unint4*) context)[i]));
+	}
+
+	int tid = 0;
+	if (pCurrentRunningTask != 0)
+		tid = pCurrentRunningTask->getId();
+
+	int ifar,ifsr;
+	asm (
+		"MRC p15,0,%0,c6,c0,2;"
+	    "MRC p15,0,%1,c5,c0,1;"
+		: "=&r" (ifar), "=&r" (ifsr)
+		:
+		:
+		);
+
+	LOG(ARCH,ERROR,(ARCH,ERROR,"TID: %d, IFAR: %x, IFSR: %x",tid, ifar, ifsr));
+
+	taskTable* tt = pCurrentRunningTask->getTaskTable();
+	/*unint4 crc = crc32((char*) tt->task_start_addr,tt->task_data_end- tt->task_start_addr);
+	LOG(ARCH,ERROR,(ARCH,ERROR,"CRC32: 0x%x",crc));*/
+
+
+	#ifdef HAS_Board_HatLayerCfd
+
+		int asid = -1;
+		unint4 tbb0 = 0;
+		unint4 paget =	((unint4)(&__PageTableSec_start)) + tid*0x4000;
+
+		asm (
+		#ifdef ARM_THUMB
+			".align 4;"
+			"mov    r0,pc;"
+			"bx     r0;"
+			".code 32;"
+		#endif
+
+			"MRC p15,0,%0,c13,c0,1;" // ; Read CP15 Context ID Register
+			"MRC p15,0,%1,c2,c0,0;" // ; Read CP15 Translation Table Base Register 0
+
+		#ifdef ARM_THUMB
+			"add r0, pc,#1;"
+			"bx  r0;"
+			".code 16;"
+		#endif
+			: "=&r" (asid), "=&r" (tbb0)
+			:
+			: "r0"
+		);
+
+		LOG(ARCH,ERROR,(ARCH,ERROR,"ASID: %d %d, TBB0: 0x%x, Task PT: 0x%x",asid >> 8, asid & 0xff,tbb0,paget));
+
+		theOS->getHatLayer()->dumpPageTable(tid);
+
+		// dump TLB
+	#endif
+
+
+	theOS->getErrorHandler()->handleError();
 }
 
 extern "C"void dispatchIRQ(void* sp_int, int mode)
@@ -181,8 +256,9 @@ extern "C"void dispatchIRQ(void* sp_int, int mode)
 	int irqSrc;
 
 	irqSrc = theOS->getBoard()->getInterruptController()->getIRQStatusVector();
-	LOG(HAL,TRACE,(HAL,TRACE,"IRQ number: %d, sp_int %x, mode: %d",irqSrc, sp_int, mode));
+	//LOG(HAL,WARN,(HAL,WARN,"IRQ number: %d, sp_int %x, mode: %d",irqSrc, sp_int, mode));
 	//dumpContext(sp_int);
+	theOS->getBoard()->getInterruptController()->clearIRQ(irqSrc);
 
 	// jump to interrupt handler according to active interrupt
 	switch (irqSrc)
@@ -232,12 +308,11 @@ extern "C"void dispatchIRQ(void* sp_int, int mode)
 	    }
 
 
-	theOS->getBoard()->getInterruptController()->clearIRQ(irqSrc);
 
-	if (pCurrentRunningThread != 0)
-		assembler::restoreContext(pCurrentRunningThread);
-	else
-		theOS->getCPUDispatcher()->dispatch( (unint4) (theOS->getClock()->getTimeSinceStartup() - lastCycleStamp) );
+	/* Dispatch directly as a blocked thread might have been unblock by this irq handling */
+	/* If the same thread is resumed we unfortunately lost some time, by not calling
+	 * assemblerfunctions::resumeThread directly */
+	theOS->getCPUDispatcher()->dispatch( (unint4) (theOS->getClock()->getTimeSinceStartup() - lastCycleStamp) );
 
 	// we should never get here
 	while(1);

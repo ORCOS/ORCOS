@@ -25,8 +25,6 @@ extern "C" err_t ethernet_input(struct pbuf *p, struct netif *netif);
 /* SMSC LAN95xx based USB 2.0 Ethernet Devices */
 
 
-// Default Mac Address...
-static char default_macaddr[6]  __attribute__((aligned(4))) = {0x1,0x1,0x1,0x1,0x1,0x1};
 
 
 /* Tx command words */
@@ -164,7 +162,13 @@ struct smsc95xx_private {
 };
 
 
-unint4 tmpbuf[2] __attribute__((aligned(4)));
+ // Default Mac Address...
+ static char default_macaddr[6]  ATTR_CACHE_INHIBIT __attribute__((aligned(4))) = {0x1,0x1,0x1,0x1,0x1,0x1};
+
+ static unsigned char tmp_data[1500] ATTR_CACHE_INHIBIT;
+
+
+unint4 tmpbuf[2] __attribute__((aligned(4))) ATTR_CACHE_INHIBIT;
 
 /*
  * Smsc95xx infrastructure commands
@@ -794,7 +798,7 @@ SMSC95xxUSBDeviceDriver::SMSC95xxUSBDeviceDriver(USBDevice* p_dev)
 
 }
 
-static unsigned char data[1500];
+
 
 /*******************************************************************/
 //unint4 crc32(unint4 crc, unint1 byte)
@@ -833,14 +837,14 @@ static err_t smsc95xx_low_level_output(struct netif *netif, struct pbuf *p) {
 	tx_cmd_b = cputole32((unint4)len);
 
 	/* prepend cmd_a and cmd_b */
-	memcpy(&data[0], &tx_cmd_a, sizeof(tx_cmd_a));
-	memcpy(&data[0] + sizeof(tx_cmd_a), &tx_cmd_b, sizeof(tx_cmd_b));
+	memcpy(&tmp_data[0], &tx_cmd_a, sizeof(tx_cmd_a));
+	memcpy(&tmp_data[0] + sizeof(tx_cmd_a), &tx_cmd_b, sizeof(tx_cmd_b));
 
 	pos = sizeof(tx_cmd_a) + sizeof(tx_cmd_b);
 
 
 	while (curp != 0) {
-		memcpy(&data[pos],curp->payload,curp->len);
+		memcpy(&tmp_data[pos],curp->payload,curp->len);
 		pos  = (unint2) (pos + curp->len);
 		curp = curp->next;
 	}
@@ -848,11 +852,12 @@ static err_t smsc95xx_low_level_output(struct netif *netif, struct pbuf *p) {
 	SMSC95xxUSBDeviceDriver *driver =  (SMSC95xxUSBDeviceDriver*) netif->state;
 
 	if (driver != 0) {
-		// send a short frame to be sure the last packet is send ...
-		// without this the smsc stalls with too much data send .. ?
 		driver->dev->controller->USBBulkMsg(driver->dev,driver->bulkout_ep,USB_DIR_OUT,8,(unint1*) dummyFrame);
 		// now send the data
-		driver->dev->controller->USBBulkMsg(driver->dev,driver->bulkout_ep,USB_DIR_OUT,(unint2) (len+8),(unint1*) data);
+		driver->dev->controller->USBBulkMsg(driver->dev,driver->bulkout_ep,USB_DIR_OUT,(unint2) (len+8),(unint1*) tmp_data);
+		// send a short frame to be sure the last packet is send ...
+		// without this the smsc stalls with too much data send .. ?
+
 	}
 	return (ERR_OK);
 }
@@ -905,8 +910,6 @@ err_t smsc9x_ethernetif_init(struct netif *netif) {
 }
 
 
-
-
 ErrorT SMSC95xxUSBDeviceDriver::initialize() {
 	// try to initialize the device
 
@@ -921,6 +924,7 @@ ErrorT SMSC95xxUSBDeviceDriver::initialize() {
 			if (dev->endpoints[i].direction == Out) {
 				bulkout_ep =  i;
 				bulkoutep = true;
+
 			} else {
 				bulkin_ep =  i;
 				bulkinep = true;
@@ -928,6 +932,7 @@ ErrorT SMSC95xxUSBDeviceDriver::initialize() {
 				dev->endpoints[bulkin_ep].interrupt_receive_size = HS_USB_PKT_SIZE;
 				dev->endpoints[bulkin_ep].type = Interrupt;
 				dev->endpoints[bulkin_ep].poll_frequency = 5;
+
 			}
 
 			dev->activateEndpoint(i);
@@ -995,7 +1000,10 @@ ErrorT SMSC95xxUSBDeviceDriver::handleInterrupt() {
 
 
 	if ( ((unint4)qtd2 > QT_NEXT_TERMINATE) && (QT_TOKEN_GET_STATUS(qh->qh_overlay.qt_token) != 0x80)) {
-		unint4 interrupt_sts = *((unint4*) &dev->endpoints[this->int_ep].recv_buffer[0]);
+		LOG(ARCH,DEBUG,(ARCH,DEBUG,"SMSC95xxUSBDeviceDriver: PHY Interrupt"));
+
+		if (dev->endpoints[this->int_ep].recv_buffer == 0) return (cError);
+		unint4 interrupt_sts = *((unint4*) dev->endpoints[this->int_ep].recv_buffer);
 
 
 		LOG(ARCH,DEBUG,(ARCH,DEBUG,"SMSC95xxUSBDeviceDriver: PHY Interrupt: %x",interrupt_sts));

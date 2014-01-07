@@ -19,6 +19,8 @@
 #ifndef IDLETHREAD_HH_
 #define IDLETHREAD_HH_
 
+#include "hal/CallableObject.hh"
+
 /*!
  * \brief The Idle Thread class that is executed whenever there is no thread to execute.
  *

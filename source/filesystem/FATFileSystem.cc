@@ -15,7 +15,7 @@ extern Kernel* theOS;
 
 // TODO: optimize memory usage .. remove temporary buffers
 
-static unsigned char buffer[1024];
+static unsigned char buffer[1024] ATTR_CACHE_INHIBIT;
 
 FATFileSystem::FATFileSystem(Partition* p_myPartition) : FileSystemBase(p_myPartition) {
 

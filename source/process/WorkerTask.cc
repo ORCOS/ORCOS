@@ -102,6 +102,7 @@ WorkerThread* WorkerTask::addJob( unint1 id, unint1 pid, void* param, unint prio
         else
             pWThread->sleepCycles = 0;
 
+
         // unblock the workerthread
         // this will cause the thread
         // either to be scheduled directly

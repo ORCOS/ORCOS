@@ -69,6 +69,8 @@
 
 void kwait(int milliseconds);
 
+void kwait_us(int microseconds);
+
 /*------------------------------------------------------
  *               The KERNEL class
  * ------------------------------------------------------ */
@@ -179,7 +181,9 @@ public:
 
     //! The clock of the system
     Board_ClockCfdCl* getClock() {
-        return (board->getClock());
+    	if (board != 0)
+    		return (board->getClock());
+    	return 0;
     }
     ;
 

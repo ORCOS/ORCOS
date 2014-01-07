@@ -24,7 +24,7 @@
 #include Kernel_Thread_hh
 
 typedef enum {
-    ExternalDeviceJob, TimedFunctionCallJob, PeriodicFunctionCallJob, None
+    ExternalDeviceJob, TimedFunctionCallJob, PeriodicFunctionCallJob, None , IdleJob
 } JOBS;
 
 /*!

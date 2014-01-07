@@ -152,6 +152,8 @@ int shm_mapSyscall(int4 sp_int);
     int freadSyscall( int4 int_sp );
 #endif
 
+    int fstatSyscall( int4 int_sp );
+
 #ifdef HAS_SyscallManager_newCfd
     int newSyscall( int4 int_sp );
 #endif
@@ -193,11 +195,12 @@ inline void handleSyscall(int4 sp_int) {
         int retval = -1;
 
         // check sanity of sp_int
+#if SYSCALL_ADDITIONAL_SANITY_CHECK
         if (((unint4) pCurrentRunningThread->threadStack.startAddr > (unint4) sp_int) || ( (unint4) pCurrentRunningThread->threadStack.endAddr < (unint4) sp_int)) {
         	LOG(SYSCALLS,ERROR,(SYSCALLS,ERROR,"handleSyscall: sp_int corrupt: %x",sp_int));
             pCurrentRunningThread->terminate();
         }
-
+#endif
 
         GET_SYSCALL_NUM(sp_int,(void*) syscallnum);
 
@@ -390,6 +393,10 @@ inline void handleSyscall(int4 sp_int) {
 
 			case cThread_WaitPID:
 				retval = thread_wait(sp_int);
+				break;
+
+			case cFStatId:
+				retval = fstatSyscall(sp_int);
 				break;
 
 			default:

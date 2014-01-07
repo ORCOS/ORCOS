@@ -20,6 +20,10 @@
 #include <stdarg.h>
 #include <sprintf.hh>
 #include <putc.hh>
+#include "kernel/Kernel.hh"
+
+extern Kernel* theOS;
+
 
 extern Kernel_ThreadCfdCl*    pCurrentRunningThread;
 
@@ -50,6 +54,12 @@ void Logger::log( Prefix prefix, Level level, const char* msg, ... ) {
     }
 #endif
 
+
+    unint4 time = 0;
+    if (theOS != 0 && theOS->getClock() != 0)
+    	time =(unint4) theOS->getClock()->getTimeSinceStartup();
+
+    printf("[%08u]",time);
 
     if (pCurrentRunningThread != 0)
     	 printf("[%1d][%s] ", pCurrentRunningThread->getId(), levelStrings[ level ]);

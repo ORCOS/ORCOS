@@ -120,7 +120,7 @@ MassStorageSCSIUSBDeviceDriver::MassStorageSCSIUSBDeviceDriver(MassStorageSCSIUS
 }
 
 // TODO: not multi threading capable
-static unsigned char csw[13];
+static unsigned char csw[13] ATTR_CACHE_INHIBIT;
 
 ErrorT MassStorageSCSIUSBDeviceDriver::performTransaction(unsigned char* bot_cbw, unsigned char* data,unint2 length) {
 
@@ -216,6 +216,8 @@ ErrorT MassStorageSCSIUSBDeviceDriver::ResetRecovery() {
 
 }
 
+unint4 lun ATTR_CACHE_INHIBIT;
+
 ErrorT MassStorageSCSIUSBDeviceDriver::initialize() {
 	// try to initialize the device
 
@@ -249,10 +251,10 @@ ErrorT MassStorageSCSIUSBDeviceDriver::initialize() {
 		return cError;
 	}
 
+	lun = 1;
 	dev->dev_priv = 0;
 
 	// try getting the number of logical units
-	unint4 lun = 1;
 	unint1 msg2[8] = {0xa1,0xfe,0x00, 0x00, 0x00, 0x00, 0x01, 0x00};
 
 	int error = dev->controller->sendUSBControlMsg(dev,0,(unint1*) &msg2,USB_DIR_IN,1,(unint1*)&lun);

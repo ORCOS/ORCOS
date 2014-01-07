@@ -3,33 +3,33 @@ task.elf:     file format elf32-littlearm
 
 Sections:
 Idx Name          Size      VMA       LMA       File off  Algn
-  0 .CB           0000003c  00100000  81100000  00008000  2**0
+  0 .CB           00000038  00100000  81200000  00008000  2**0
                   CONTENTS, ALLOC, LOAD, DATA
-  1 .text         00001b98  00100040  81100040  00008040  2**3
+  1 .text         00001c38  00100038  81200038  00008038  2**3
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  2 .rodata       00000778  00101bd8  81101bd8  00009bd8  2**2
+  2 .rodata       0000077c  00101c70  81201c70  00009c70  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  3 .data         0000003c  00102350  81102350  0000a350  2**2
+  3 .data         0000003c  001023ec  812023ec  0000a3ec  2**2
                   CONTENTS, ALLOC, LOAD, DATA
-  4 .bss          00001908  0010238c  8110238c  0000a38c  2**2
+  4 .bss          00001520  00102428  81202428  0000a428  2**2
                   ALLOC
-  5 .debug_info   00003ac9  00000000  00000000  0000a38c  2**0
+  5 .debug_info   00003b65  00000000  00000000  0000a428  2**0
                   CONTENTS, READONLY, DEBUGGING
-  6 .debug_abbrev 00000c93  00000000  00000000  0000de55  2**0
+  6 .debug_abbrev 00000cb2  00000000  00000000  0000df8d  2**0
                   CONTENTS, READONLY, DEBUGGING
-  7 .debug_loc    00002bee  00000000  00000000  0000eae8  2**0
+  7 .debug_loc    00002c10  00000000  00000000  0000ec3f  2**0
                   CONTENTS, READONLY, DEBUGGING
-  8 .debug_aranges 00000290  00000000  00000000  000116d8  2**3
+  8 .debug_aranges 00000298  00000000  00000000  00011850  2**3
                   CONTENTS, READONLY, DEBUGGING
-  9 .debug_ranges 00000828  00000000  00000000  00011968  2**0
+  9 .debug_ranges 00000860  00000000  00000000  00011ae8  2**0
                   CONTENTS, READONLY, DEBUGGING
- 10 .debug_line   00000c6a  00000000  00000000  00012190  2**0
+ 10 .debug_line   00000ca7  00000000  00000000  00012348  2**0
                   CONTENTS, READONLY, DEBUGGING
- 11 .debug_str    0000092b  00000000  00000000  00012dfa  2**0
+ 11 .debug_str    00000930  00000000  00000000  00012fef  2**0
                   CONTENTS, READONLY, DEBUGGING
- 12 .comment      00000070  00000000  00000000  00013725  2**0
+ 12 .comment      00000070  00000000  00000000  0001391f  2**0
                   CONTENTS, READONLY
- 13 .ARM.attributes 00000033  00000000  00000000  00013795  2**0
+ 13 .ARM.attributes 00000033  00000000  00000000  0001398f  2**0
                   CONTENTS, READONLY
- 14 .debug_frame  00000628  00000000  00000000  000137c8  2**2
+ 14 .debug_frame  00000628  00000000  00000000  000139c4  2**2
                   CONTENTS, READONLY, DEBUGGING

@@ -20,12 +20,12 @@
          ************************************ -->
   <Tasks>
     <Task>
-      <Start>0x81100000</Start>
-      <End>0x8117FFFF</End>
-      <Heap>0x81177000</Heap>
+      <Start>0x81200000</Start>
+      <End>0x81300000</End>
+      <Heap>0x81220000</Heap>
       <Path>./tasks/telnet_server/</Path>
       <PriorityOptions>
-        <InitialPriority>0</InitialPriority>
+        <InitialPriority>1</InitialPriority>
         <Phase>0</Phase>
         <RealTimeOptions>
           <Period>500000</Period>
@@ -121,6 +121,7 @@
       <Member Name="MMC" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapMMC_SD_HC" None="false" UserSpace="false" PhyLoadAddress="0x0">
         <PropertyValue Name="Address" Value="0x4809C000" Type="unsigned int" />
       </Member>
+      <Member Name="Cache" Class="arch/ARM/ARMv4T/ARMv7/ARMv7Cache" None="false" UserSpace="false" PhyLoadAddress="0x0" />
     </Skeleton>
     <!-- ************************************
     			Skeleton Kernel
@@ -190,7 +191,7 @@
     </Define>
     <Define>
       <Name>NUM_WORKERTHREADS</Name>
-      <Value>2</Value>
+      <Value>3</Value>
     </Define>
     <!-- logical Memory addresses -->
     <Define>
@@ -284,6 +285,14 @@
     <Define>
       <Name>RAM_SIZE</Name>
       <Value>512 MB</Value>
+    </Define>
+    <Define>
+      <Name>MEM_CACHE_INHIBIT</Name>
+      <Value>1</Value>
+    </Define>
+    <Define>
+      <Name>ENABLE_BRANCH_PREDICTION</Name>
+      <Value>0</Value>
     </Define>
   </SCL>
 </Configuration>

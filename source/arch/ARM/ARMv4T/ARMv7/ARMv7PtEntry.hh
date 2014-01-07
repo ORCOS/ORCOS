@@ -44,6 +44,10 @@ public:
 	~ARMv7PtEntry() {
 	}
 
+	void Clear() {
+		ptL1Descriptor.clear();
+	}
+
 	Bitmap getDesc(void)
 	{
 		return ptL1Descriptor;

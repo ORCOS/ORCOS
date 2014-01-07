@@ -12,6 +12,9 @@
 extern void* __KERNELEND;
 extern void* __RAM_END;
 extern void* __RAM_START;
+#if MEM_CACHE_INHIBIT
+extern void* __cache_inihibit_end;
+#endif
 
 // check PAGESIZE define
 #ifndef PAGESIZE
@@ -22,7 +25,7 @@ extern void* __RAM_START;
 #error "RAMSIZE must be defined by the taget architecture."
 #endif
 
-#define NUM_PAGES ((RAM_SIZE / PAGESIZE) -1)
+#define NUM_PAGES ((RAM_SIZE / PAGESIZE) -2)
 
 // map of used memory pages by tasks .. starting at the page after __KERNELEND
 // this map must be big enough to cover all possible locations of tasks inside the memory
@@ -37,7 +40,11 @@ PagedRamMemManager::PagedRamMemManager() {
 	}
 
 	// calculate free memory area (useable by tasks)
+#if MEM_CACHE_INHIBIT
+	MemStart = (unint4) alignCeil((char*) &__cache_inihibit_end,PAGESIZE);
+#else
 	MemStart = (unint4) alignCeil((char*) &__KERNELEND,PAGESIZE);
+#endif
 }
 
 PagedRamMemManager::~PagedRamMemManager() {

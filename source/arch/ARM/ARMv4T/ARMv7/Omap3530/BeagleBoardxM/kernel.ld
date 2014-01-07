@@ -135,16 +135,27 @@ SECTIONS
   PROVIDE(_heap_end = .);
   . += _kernelStackSize;
   PROVIDE(__stack = .);	
- 
-
-  /* put page table in memory (16k alignment) */
-  . = ALIGN(0x4000);
   
-  PROVIDE (__PageTableSec_start = .);
-  . += (__PtSize * __MaxNumPts);
-  PROVIDE (__PageTableSec_end = .);
+ __KERNELEND = .;
+ 
+  /* put page table in memory (16k alignment) */
 
-  __KERNELEND = .;
+  . = ALIGN(0x1000000);
+
+ .cache_inhibit . (NOLOAD) : { 
+  PROVIDE(__cache_inihibit_start = .);	
+ 
+   PROVIDE (__PageTableSec_start = .);
+   . += (__PtSize * __MaxNumPts);
+   PROVIDE (__PageTableSec_end = .);
+ 
+  *(.cache_inhibit)
+  PROVIDE(__cache_inihibit_end = .);
+  PROVIDE (_heapi_start = .);
+    . += _kernelHeapSize;
+  PROVIDE(_heapi_end = .);
+ }
+
 
   /DISCARD/ : {
   	*(.eh_frame) 	/* Discarding ErrorHandling Frame */

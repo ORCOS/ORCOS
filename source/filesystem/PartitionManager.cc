@@ -15,7 +15,7 @@
 extern Kernel* theOS;
 
 
-static unsigned char buffer[512] __attribute__((aligned(4)));
+static unsigned char buffer[512] __attribute__((aligned(4))) ATTR_CACHE_INHIBIT;
 
 static inline int is_extended(int part_type)
 {

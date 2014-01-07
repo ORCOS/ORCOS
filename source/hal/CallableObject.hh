@@ -33,7 +33,7 @@
 class CallableObject {
 public:
     // Destructor
-    ~CallableObject() {
+    virtual ~CallableObject() {
     }
     ;
 

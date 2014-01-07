@@ -13,12 +13,13 @@ SECTIONS
     
     /* Task CB types.hh: struct taskTable */
     LONG(TASK_VMA);
+    
     LONG(task_main);
-    LONG( TASK_VMA + (TASK_HEAP - TASK_START) );
-    LONG( TASK_VMA + (TASK_END - TASK_START));
-    LONG(TASK_DATA_END);
     LONG(thread_exit);
     
+    LONG(TASK_HEAP );
+    LONG(TASK_END);
+           
     /* Task CB Priority and RealtimeThread Parameters: struct RTThreadAttrs  */
     LONG(INITIAL_PRIORITY);
     LONG(PHASE);
@@ -36,12 +37,13 @@ SECTIONS
  .rodata : {
 	*(.rodata*)
  }
+ 
  .data : {
  	*(.data*)
  }
  .bss : {
  	*(.bss*)
  }
- TASK_DATA_END = .;
+ TASK_DATA_START = ALIGN(0x1000);
 }
 

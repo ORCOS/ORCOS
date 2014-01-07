@@ -67,11 +67,20 @@ FUNC_START(startORCOS)
 	BIC r1, r1, #0x1;
 	MCR p15, 0, r1, c1, c0, 0; // disabled
 
-
+#if ENABLE_BRANCH_PREDICTION
 	MRC	p15, 0, r0, c1, c0, 0	// read Control Register
 	MOV	r1, #0x800				// load enable branch prediction
 	ORR	r1, r0, r1				// enable bit
 	MCR p15, 0, r1, c1, c0, 0	// write Control Register
+#else
+	MRC	p15, 0, r0, c1, c0, 0	// read Control Register
+	MVN	r1, #0x800				// load enable branch prediction
+	AND	r1, r0, r1				// enable bit
+	MCR p15, 0, r1, c1, c0, 0	// write Control Register
+#endif
+
+	MOV r0, #0
+	MCR p15, 0, r0, c7 , c5, 0 	// invalidate whole instruction cache
 
 // Instruction cache
 #ifndef ICACHE_ENABLE
@@ -124,7 +133,7 @@ FUNC_START(startORCOS)
 	ldr r0,=0xe59ff014			// load instruction "LDR PC, [PC+20]" to r0
 	ldr r1,=0x4020FFC8			// load RAM Exception Vector Table start address to r1
 
-	ADD r2, r1, #0x1C	// end address for loop
+	ADD r2, r1, #0x20	// end address for loop
 
 // set arm instruction: load into the PC the value in the next seven addresses
 loopSetInstr:
@@ -152,12 +161,16 @@ loopSetInstr:
 	MOV r1, #0x3
 	STR r1, [r0]
 
+	LDR r0, =undefinedIRQHandler
+	LDR r1, =0x4020ffe4
+	STR r0, [r1]
+
 	ldr r0,=jumpToSwiHandler
 	ldr r1,=0x4020FFE8			// load Software Interrupt (SWI) vector table address
 	STR r0, [r1]
 
-	ldr r0,=jumpToIrqHandler
-	ldr r1,=0x4020FFF8			// load Interrupt Request (IRQ) vector table address
+	LDR r0, =prefetchIRQHandler
+	LDR r1, =0x4020ffec
 	STR r0, [r1]
 
 	LDR r0, =_data_abort_start
@@ -165,15 +178,11 @@ loopSetInstr:
 	STR r0, [r1]
 
 	LDR r0, =undefinedIRQHandler
-	LDR r1, =0x4020ffe4
-	STR r0, [r1]
-
-	LDR r0, =prefetchIRQHandler
-	LDR r1, =0x4020ffec
-	STR r0, [r1]
-
-	LDR r0, =undefinedIRQHandler
 	LDR r1, =0x4020fff4
+	STR r0, [r1]
+
+	ldr r0,=jumpToIrqHandler
+	ldr r1,=0x4020FFF8			// load Interrupt Request (IRQ) vector table address
 	STR r0, [r1]
 
 	LDR r0, =fiqIRQHandler
@@ -243,27 +252,27 @@ doneSBSS:
 // initialize user stack
 // should be done when jumping to user code
 	MSR   CPSR_c, #31|CPSR_DISINT	// system mode shares registers with user mode
-	LDR	sp, =0x80000F00
+	LDR	sp, =__stack
 	//MSR   CPSR_c, #19|CPSR_DISINT	// supervisor mode
 
 // set irq stack
 	MSR   CPSR_c, #18|CPSR_DISINT	// irq mode
-	LDR	  sp, =0x80000F00	//
+	LDR	  sp, =__stack	//
 	//MSR   CPSR_c, #19|CPSR_DISINT	// supervisor mode
 
 // set fiq stack
 	MSR   CPSR_c, #17|CPSR_DISINT	// irq mode
-	LDR	  sp, =0x80000F00	//	//
+	LDR	  sp, =__stack	//	//
 	//MSR   CPSR_c, #19|CPSR_DISINT	// supervisor mode
 
 // set abort stack
 	MSR   CPSR_c, #23|CPSR_DISINT	// irq mode
-	LDR	  sp, =0x80000F00	//	//
+	LDR	  sp, =__stack	//	//
 	//MSR   CPSR_c, #19|CPSR_DISINT	// supervisor mode
 
 // set undefined stack
 	MSR   CPSR_c, #27|CPSR_DISINT	// irq mode
-	LDR	  sp, =0x80000F00	//
+	LDR	  sp, =__stack	//
 	//MSR   CPSR_c, #19|CPSR_DISINT	// supervisor mode
 
 	MSR   CPSR_c, #19|CPSR_DISINT	// supervisor mode

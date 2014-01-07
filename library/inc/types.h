@@ -52,6 +52,11 @@ typedef struct {
     service_name    name_data;      //!< socket name, maximum 16 chars
 } sockaddr;
 
+//! File statistics
+typedef struct {
+	unint4 st_size;
+} stat_t;
+
 /*!
  * \brief Service description structure which can be used to create a socket
  * in order to communicate with the service.
