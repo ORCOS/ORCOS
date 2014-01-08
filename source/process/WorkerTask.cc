@@ -63,7 +63,7 @@ WorkerThread* WorkerTask::addJob( unint1 id, unint1 pid, void* param, unint prio
         LOG(PROCESS,DEBUG,(PROCESS,DEBUG,"WorkerTask::addJob() assigned thread %d for job %d",pWThread->getId(),id));
 
         // get the current cycles
-        unint8 currentCycles = theClock->getTimeSinceStartup();
+        TimeT currentCycles = theClock->getTimeSinceStartup();
 
 #ifdef HAS_PRIORITY
     #ifndef REALTIME
@@ -79,8 +79,8 @@ WorkerThread* WorkerTask::addJob( unint1 id, unint1 pid, void* param, unint prio
              // set period for RM
              pWThread->period = priority_param * (CLOCK_RATE / 1000000)
 		#else
-			 pWThread->relativeDeadline = (unint8) ((priority_param * CLOCK_RATE) /  1000000U);
-             pWThread->period = (unint8) ((priority_param * CLOCK_RATE) /  1000000U);
+			 pWThread->relativeDeadline = (TimeT) ((priority_param * CLOCK_RATE) /  1000000U);
+             pWThread->period = (TimeT) ((priority_param * CLOCK_RATE) /  1000000U);
 			//pWThread->relativeDeadline = (unint8) (((float)priority_param) * ((float) CLOCK_RATE / 1000000.0f));
 			//pWThread->period = (unint8) (((float)priority_param) * ((float) CLOCK_RATE / 1000000.0f));
 		#endif
@@ -97,7 +97,7 @@ WorkerThread* WorkerTask::addJob( unint1 id, unint1 pid, void* param, unint prio
             // until the the function can be called
             TimedFunctionCall* funcCall = (TimedFunctionCall*) param;
             // when are wo going to be called the first time? sleep until that point in time
-            pWThread->sleepCycles = (unint4) (funcCall->time - currentCycles);
+            pWThread->sleepCycles = (TimeT) (funcCall->time - currentCycles);
         }
         else
             pWThread->sleepCycles = 0;

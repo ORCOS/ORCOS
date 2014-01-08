@@ -38,17 +38,17 @@ public:
     /*!
      *  The Phase of this PriorityThread which is the earliest start time.
      */
-    unint8 phase;
+	TimeT phase;
 
     /*!
      *  The initial priority.
      */
-    unint8 initialPriority;
+	TimeT initialPriority;
 
     /*!
      *  The actual/effective priority.
      */
-    unint8 effectivePriority;
+	TimeT effectivePriority;
 
 
     /*!

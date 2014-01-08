@@ -18,13 +18,12 @@
 
 #include "handle_syscalls.hh"
 #include Kernel_Thread_hh
-#include "assembler.h"
-
+#include "assemblerFunctions.hh"
 
 
 int getTime(int4 sp_int)
 {
-	unint8* time;
+	TimeT* time;
 	SYSCALLGETPARAMS1(sp_int,time);
 	*time = theOS->getBoard()->getClock()->getTimeSinceStartup();
 	return (cOk);
@@ -46,7 +45,7 @@ int printToStdOut(int4 int_sp )
 void thread_exitSyscall(int4 sp_int)
 {
 	int exitCode;
-	SYSCALLGETPARAMS1(sp_int,(void*) exitCode);
+	SYSCALLGETPARAMS1(sp_int,exitCode);
 
 	pCurrentRunningTask->exitValue = exitCode;
 	pCurrentRunningThread->terminate();

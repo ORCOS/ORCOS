@@ -85,10 +85,10 @@ ErrorT SimpleDebugCollector::readBytes( char *bytes, unint4 &length ) {
         }
 
         Board_ClockCfdCl* clock = theOS->getClock();
-        volatile unint8 passedTime = clock->getTimeSinceStartup();
+        volatile TimeT passedTime = clock->getTimeSinceStartup();
 
-        unint4 seconds_passed = (unint4) (passedTime / CLOCK_RATE);
-        unint4 milliseconds = ((unint4) (passedTime - (seconds_passed * CLOCK_RATE))) / (CLOCK_RATE / 1000);
+        TimeT seconds_passed = (TimeT) (passedTime / CLOCK_RATE);
+        TimeT milliseconds = ((TimeT) (passedTime - (seconds_passed * CLOCK_RATE))) / (CLOCK_RATE / 1000);
 
         char time[ 16 ];
         itoa( passedTime, time, 10 );

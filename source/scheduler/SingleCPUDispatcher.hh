@@ -56,8 +56,10 @@ private    :
      */
     LinkedListDatabase* sleepList;
 
+#ifdef ORCOS_SUPPORT_SIGNALS
     //! List containing the threads currently waiting for a signal
     LinkedListDatabase* waitList;
+#endif
 
     //! The idle Thread
     IdleThread* idleThread;
@@ -116,6 +118,7 @@ public:
      */
     void unblock(Thread* thread);
 
+#ifdef ORCOS_SUPPORT_SIGNALS
     /*!
      *  \brief Indicates to the dispatch that the given thread is waiting on a signal
      *
@@ -130,6 +133,7 @@ public:
      * will be set as return value.
      */
     void signal(void* sig, int signalvalue = cOk);
+#endif
 
     /*!
      * \brief Terminates the given thread

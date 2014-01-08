@@ -45,7 +45,7 @@
  */
 class EarliestDeadlineFirstThreadScheduler_TBS: public PriorityThreadScheduler {
 private:
-    unint4 lastdeadline;
+    TimeT lastdeadline;
     float  inverse_utilization;
 public:
 
@@ -110,7 +110,7 @@ inline void EarliestDeadlineFirstThreadScheduler_TBS::computePriority( RealTimeT
      item->absoluteDeadline = MAX(item->arrivaltime,lastdeadline) + item->executionTime * inverse_utilization;
  }
 
- item->effectivePriority    = MAX_UNINT8 - item->absoluteDeadline;
+ item->effectivePriority    = (( 1 << sizeof(TimeT)) -1) - item->absoluteDeadline;
  item->initialPriority      = item->effectivePriority;
 
 }

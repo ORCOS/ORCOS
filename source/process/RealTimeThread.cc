@@ -24,7 +24,7 @@
 
 // Kernel definition, needed for clock
 extern Kernel* theOS;
-extern unint8   lastCycleStamp;
+extern TimeT   lastCycleStamp;
 extern Board_ClockCfdCl* theClock;
 extern Kernel_SchedulerCfdCl* theScheduler;
 
@@ -38,21 +38,21 @@ RealTimeThread::RealTimeThread( void* p_startRoutinePointer, void* p_exitRoutine
         // set the parameters and convert them from µs to cylces
     	thread_attr_t* attr = static_cast< thread_attr_t* > ( RTThreadAttributes );
 		#if CLOCK_RATE >= (1 MHZ)
-			this->relativeDeadline = ((unint8) attr->deadline) * (CLOCK_RATE / 1000000);
-			this->executionTime = ((unint8) attr->executionTime) * (CLOCK_RATE / 1000000);
-			this->period = ((unint8) attr->period) * (CLOCK_RATE / 1000000);
+			this->relativeDeadline = ((TimeT) attr->deadline) * (CLOCK_RATE / 1000000);
+			this->executionTime = ((TimeT) attr->executionTime) * (CLOCK_RATE / 1000000);
+			this->period = ((TimeT) attr->period) * (CLOCK_RATE / 1000000);
 		#else
 			//this->relativeDeadline = (unint8) (((float)attr->deadline) * ((float) CLOCK_RATE / 1000000.0f));
 			//this->executionTime = (unint8) (((float)attr->executionTime) * ((float) CLOCK_RATE / 1000000.0f));
 			//this->period = (unint8) (((float)attr->period) * ((float) CLOCK_RATE / 1000000.0f));
-			this->relativeDeadline = (unint8) ((attr->deadline * CLOCK_RATE) /  1000000U);
-			this->executionTime = (unint8) ((attr->executionTime * CLOCK_RATE) /  1000000U);
-			this->period = (unint8) ((attr->period * CLOCK_RATE) /  1000000U);
+			this->relativeDeadline = (TimeT) ((attr->deadline * CLOCK_RATE) /  1000000U);
+			this->executionTime = (TimeT) ((attr->executionTime * CLOCK_RATE) /  1000000U);
+			this->period = (TimeT) ((attr->period * CLOCK_RATE) /  1000000U);
 		#endif
 
         LOG(PROCESS,WARN,( PROCESS, WARN, "RealtimeThread:() period: %d",this->period));
 
-        unint8 currentCycles = theClock->getTimeSinceStartup();
+        TimeT currentCycles = theClock->getTimeSinceStartup();
         // set the new arrivaltime of this thread
         this->arrivalTime = currentCycles + attr->phase;
         this->absoluteDeadline = this->arrivalTime + this->relativeDeadline;
@@ -96,11 +96,12 @@ void RealTimeThread::terminate() {
            FREE_KERNEL_STACK_SLOT(myBucketIndex);
         #endif
 
-        unint8 currentCycles = theClock->getTimeSinceStartup();
+        TimeT currentCycles = theClock->getTimeSinceStartup();
+        TimeT sleepcycles = 0;
+        if ((currentCycles - arrivalTime) > period)
+        	// Compute the remaining time left till the next instance of this thread is due to start.
+        	sleepcycles = (TimeT) period - ((TimeT) currentCycles - (TimeT) arrivalTime);
 
-        // Compute the remaining time left till the next instance of this thread is due to start.
-        int8 sleepcycles = (int8) period - ((int8) currentCycles - (int8) arrivalTime);
-        if (sleepcycles < 0) sleepcycles = 0;
 
 #if HAS_Kernel_LoggerCfd
         // check if we missed our deadline
@@ -123,7 +124,7 @@ void RealTimeThread::terminate() {
         theScheduler->computePriority(this);
 
         // sleep for the computed interval.
-        this->sleep( (unint4) sleepcycles );
+        this->sleep( (TimeT) sleepcycles );
     }
     else {
         LOG(PROCESS,WARN,( PROCESS, WARN, "RealtimeThread::terminate() lateness: %d",(int4) (theClock->getTimeSinceStartup() - this->absoluteDeadline) ));

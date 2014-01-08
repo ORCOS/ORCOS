@@ -20,7 +20,7 @@
 
 #include "handle_syscalls.hh"
 #include Kernel_Thread_hh
-#include "assembler.h"
+#include "assemblerFunctions.hh"
 
 
 /*******************************************************************

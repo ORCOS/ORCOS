@@ -9,7 +9,7 @@
 #include "kernel/Kernel.hh"
 
 extern Kernel* 	theOS;
-extern unint8 	lastCycleStamp;
+extern TimeT 	lastCycleStamp;
 extern Task* 	pCurrentRunningTask;
 extern Thread* 	pCurrentRunningThread;
 extern LinkedListDatabaseItem* pRunningThreadDbItem;

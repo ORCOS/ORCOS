@@ -40,17 +40,12 @@ friend class WorkerTask;
 friend class Task;
 
 public:
-    unint8 period;              //!< The period of the real time thread. 0 means it isn't periodic.
-    unint8 relativeDeadline;    //!< The relative deadline of the thread for every instance.
-    unint8 absoluteDeadline;    //!< The current absolute deadline of the thread
-    unint8 executionTime;       //!< The execution time of the thread if it's known (otherwise 0).
-    unint8 arrivalTime;         //!< The arrival time of the current instance
+	TimeT period;              //!< The period of the real time thread. 0 means it isn't periodic.
+	TimeT relativeDeadline;    //!< The relative deadline of the thread for every instance.
+	TimeT absoluteDeadline;    //!< The current absolute deadline of the thread
+	TimeT executionTime;       //!< The execution time of the thread if it's known (otherwise 0).
+	TimeT arrivalTime;         //!< The arrival time of the current instance
     int instance;               //!< The instance of this realtime thread
-
-
-#ifdef AIS
-    unint4 lasterror;
-#endif
 
 public:
     /*! \brief This constructor provides default values for periode and executionTime.

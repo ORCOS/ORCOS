@@ -30,7 +30,7 @@ void SequentialFitMemManager::split( Chunk_Header* chunk, size_t size ) {
 
 	// be sure the next address is at least 4 bytes aligned
 	// chunk is aligned and SZ_HEADER is a multiple of 4 so this works
-	size = (size_t) alignCeil((char*)size,4);
+	size = (size_t) alignCeil((byte*)size,4);
 
 	free_mem -= size;
 
@@ -170,7 +170,7 @@ Chunk_Header* SequentialFitMemManager::getFittingChunk( size_t size, bool aligne
 
 	while (current_chunk != 0) {
 		// calculate fragmentation amount due to alignment
-		fragmentation = ((unint4) alignCeil((char*) ((unint4) current_chunk + sizeof(Chunk_Header)),align_val))
+		fragmentation = ((unint4) alignCeil((byte*) ((unint4) current_chunk + sizeof(Chunk_Header)),align_val))
 					  - ((unint4) current_chunk + sizeof(Chunk_Header));
 
 		// check if we can reuse this chunk
@@ -182,7 +182,7 @@ Chunk_Header* SequentialFitMemManager::getFittingChunk( size_t size, bool aligne
 			if (fragmentation == 0) return (current_chunk);
 
 			// move chunk to new alignment
-			unint4* newchunk 	 =  (unint4*) alignCeil((char*) ((unint4) current_chunk + sizeof(Chunk_Header)),align_val);
+			unint4* newchunk 	 =  (unint4*) alignCeil((byte*) ((unint4) current_chunk + sizeof(Chunk_Header)),align_val);
 			Chunk_Header *new_ch =  (Chunk_Header*) ((unint4) newchunk - sizeof(Chunk_Header));
 
 			// adopt next pointer of prev chunk in list

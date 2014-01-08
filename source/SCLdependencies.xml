@@ -17,6 +17,9 @@
       
       <Superclass Provides="PPC405,Virtex2,FPGA" Name="arch/PPC40x/Virtex2/Virtex2Board"></Superclass>
 
+	  <Superclass Provides="AVR,ATMEGA328" Name="arch/Atmel/ATMEGA328/RN-MicroFunk/MicroFunkBoard"></Superclass>
+	
+
 
       <!-- #################################################### 
   						RaptorBoard Definition and Default Values
@@ -374,6 +377,7 @@
       <Classes>
         <Class Requires="PPC405" Name="arch/PPC40x/PPC405ProgrammableIntervalTimer"/>
         <Class Requires="PPC405" Name="arch/PPC40x/PPC405FixedIntervalTimer"/>
+        <Class Requires="ATMEGA328" Name="arch/Atmel/ATMEGA328/Timer1"/>
         <Class Requires="Leon3" Name="arch/Leon3/Leon3IntervalTimer">
           <Property Name="Address" Type="unsigned int" Optional="false" />
           <Property Name="Length" Type="unsigned int" Optional="false" />
@@ -400,6 +404,7 @@
     <Member>
       <Name>Clock</Name>
         <Classes>
+          <Class Name="hal/EmulatedClock"/>
           <Class Requires="PPC405" Name="arch/PPC40x/PPC405Clock"/>
           <Class Requires="Leon3" Name="arch/Leon3/Leon3Clock"/>
           <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530Clock">		  
@@ -413,6 +418,7 @@
         <Class Requires="PPC405" Name="arch/PPC40x/PPC405FXProcessor"/>
         <Class Requires="Leon3" Name="arch/Leon3/Leon3Processor"/>
         <Class Requires="CortexA8" Name="arch/ARM/ARMv4T/ARMv4TProcessor"/>
+        <Class Requires="ATMEGA328" Name="arch/Atmel/ATMEGA328/ATMEGA328Processor"/>
       </Classes>
     </Member>
     <Member>
@@ -725,6 +731,7 @@
         <MemberRef Name="TaskManager" optional="false"/>
         <MemberRef Name="MigrationManager"/>
         <MemberRef Name="ServiceDiscovery"/>
+        <MemberRef Name="RamManager"/>
       </Superclass>
 	  
     </Superclasses>
@@ -754,6 +761,7 @@
     <Member>
       <Name>Scheduler</Name>
        <Classes>
+         <Class Name="scheduler/SingleThreadScheduler"/>
          <Class Name="scheduler/RoundRobinThreadScheduler"/>
          <Class Name="scheduler/PriorityThreadScheduler"/>
          <Class Name="scheduler/RateMonotonicThreadScheduler"/>
@@ -766,6 +774,13 @@
       <Classes>
         <Class Name="debug/Logger"/>
         <Class Name="debug/ETHLogger"/>
+      </Classes>
+    </Member>
+    <Member>
+      <Name>RamManager</Name>
+      <Classes>
+        <Class Name="mem/PagedRamManager"/>
+        <Class Name="mem/NoRamManager"/>
       </Classes>
     </Member>
     <Member>

@@ -66,7 +66,7 @@ unint4 EarliestDeadlineFirstThreadScheduler::getNextTimerEvent( LinkedListDataba
 
         /* set variables which are needed to compare to later on, so we do not need to set these for every
            iteration of the while loop */
-        unint8 nextPriority = 0;
+        TimeT nextPriority = 0;
         LinkedListDatabaseItem* pDBNextItem = database.getHead();
 
         if ( pDBNextItem != 0 )
@@ -99,7 +99,7 @@ unint4 EarliestDeadlineFirstThreadScheduler::getNextTimerEvent( LinkedListDataba
 	if (item->relativeDeadline != 0)
 	{
 		item->absoluteDeadline     = item->arrivalTime + item->relativeDeadline;
-		item->effectivePriority    = MAX_UNINT8 - item->absoluteDeadline;
+		item->effectivePriority    = (( 1 << sizeof(TimeT)) -1) - item->absoluteDeadline;
 		item->initialPriority      = item->effectivePriority;
 	}
 	else

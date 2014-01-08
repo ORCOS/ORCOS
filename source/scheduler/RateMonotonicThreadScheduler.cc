@@ -35,7 +35,7 @@ int RateMonotonicThreadScheduler::getNextTimerEvent( LinkedListDatabase* sleepLi
 
          // set variables which are needed to compare to later on, so we do not need to set these for every
          // iteration of the while loop
-         unint8 nextPriority;
+         TimeT nextPriority;
 
          if ( pDBNextItem != 0 ) {
              nextPriority = (static_cast< RealTimeThread* > ( pDBNextItem->getData() ))->effectivePriority;
@@ -79,9 +79,9 @@ ErrorT RateMonotonicThreadScheduler::enter( LinkedListDatabaseItem* item ) {
     // set priority if it has not been set yet.
     if ( pRTThread->instance == 1 ) {
         // This computation assures, that a smaller period will result in a higher priority
-    	unint8 priority = 0;
+    	TimeT priority = 0;
     	if (pRTThread->period != 0)
-    		priority = MAX_UNINT8 - pRTThread->period;
+    		priority = (( 1 << sizeof(TimeT)) -1) - pRTThread->period;
 
         pRTThread->initialPriority = priority;
         pRTThread->effectivePriority = priority ;

@@ -39,7 +39,7 @@
 #include "scheduler/SingleCPUDispatcher.hh"
 #include "filesystem/SimpleFileManager.hh"
 #include "filesystem/PartitionManager.hh"
-#include "mem/PagedRamMemManager.hh"
+#include Kernel_RamManager_hh
 #include "robust/TaskErrorHandler.hh"
 #include Kernel_TaskManager_hh
 #include Kernel_Logger_hh
@@ -108,8 +108,7 @@ private:
 
     DEF_Board_HatLayerCfd;
 
-    // Memory Manager for the rest of the ram
-    PagedRamMemManager*		ramManager;
+    DEF_Kernel_RamManagerCfd;
 
     // The error Handler for fata task and system errors
     TaskErrorHandler*		errorHandler;
@@ -204,10 +203,6 @@ public:
     	return (this->partitionManager);
     }
 
-
-    PagedRamMemManager* getRamManager() {
-    	return (this->ramManager);
-    }
 
     SimpleFileManager* getFileManager() {
         return (this->fileManager);

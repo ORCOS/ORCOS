@@ -74,12 +74,14 @@ void* memsetlong( void* ptr, int c, size_t n ) {
     return (save);
 }
 
+#if 0
 void makeHexCharCompatible(char* msg, int len) {
 	for (int i= 0; i < len; i++) {
 		if (msg[i] < 32)  msg[i] = '.';
 		if (msg[i] > 126) msg[i] = '.';
 	}
 }
+
 
 void memdump(int addr,int length) {
 
@@ -105,5 +107,6 @@ void memdump(int addr,int length) {
 
 
 }
+#endif
 
 //char null_buffer[4] = {0,0,0,0};

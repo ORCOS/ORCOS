@@ -243,12 +243,14 @@ public:
      *
      * Involves informing the scheduler.
      */
-    void sleep( unint4 t, LinkedListDatabaseItem* item = pRunningThreadDbItem );
+    void sleep( TimeT t, LinkedListDatabaseItem* item = pRunningThreadDbItem );
 
+#ifdef ORCOS_SUPPORT_SIGNALS
     /*!
      * Blocks the thread until the sig is signaled from some other thread.
      */
     void sigwait( void* sig );
+#endif
 
     /*!
      * \brief Blocks the current thread.

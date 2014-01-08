@@ -36,6 +36,7 @@ extern void* __RAM_END;
 
 void TaskManager::registerMemPages() {
 
+#ifdef HAS_Kernel_RamManagerCfd
 	unint4 num_tasks = tasktable;
 	for ( unint4 i = 1; i <= num_tasks * 3; i+=3 ) {
 
@@ -45,6 +46,7 @@ void TaskManager::registerMemPages() {
 
 		theOS->getRamManager()->markAsUsed((unint4) task_info,task_end,-1);
 	}
+#endif
 }
 
 
@@ -61,7 +63,9 @@ Task* TaskManager::getTask( int taskId ) {
 }
 
 ErrorT handleTaskHeader(taskTable* taskCB, void* &taskHead, unint4 &nextHeader) {
+
 	if (nextHeader == TASK_CB_CRC32) {
+#ifdef TASK_CRC32
 		taskCRCHeader* crcHeader = (taskCRCHeader*) taskHead;
 
 		unint4 crc = crc32((char*) taskCB->task_start_addr,taskCB->task_data_end- taskCB->task_start_addr);
@@ -69,6 +73,7 @@ ErrorT handleTaskHeader(taskTable* taskCB, void* &taskHead, unint4 &nextHeader) 
 
 		taskHead = crcHeader++;
 		nextHeader = crcHeader->next_header;
+#endif
 		return (cOk);
 	}
 
@@ -119,7 +124,7 @@ ErrorT TaskManager::checkValidTask(taskTable* taskCB) {
 }
 
 void TaskManager::initialize() {
-    unint4 num_tasks = tasktable;
+    unint1 num_tasks = tasktable;
 	register Kernel_MemoryManagerCfdCl* OSMemManager = theOS->getMemoryManager();
 
 	LOG(KERNEL,INFO,(KERNEL,INFO,"Creating Initial Tasks"));
@@ -218,11 +223,16 @@ ErrorT TaskManager::removeTask(Task* task) {
 
 	LOG(KERNEL,INFO,(KERNEL,INFO,"TaskManager::removeTask: removing task"));
 
+#ifdef HAS_Kernel_RamManagerCfd
 	// mark the used pages as free
 	theOS->getRamManager()->freeAll(task->getId());
+#endif
 
 	task->terminate();
+
+#ifdef ORCOS_SUPPORT_SIGNALS
 	theOS->getCPUDispatcher()->signal(task,task->exitValue);
+#endif
 
 	LOG(KERNEL,TRACE,(KERNEL,TRACE,"TaskManager::removeTask: deleting task"));
 	// now remove all its threads from the scheduler
@@ -232,6 +242,10 @@ ErrorT TaskManager::removeTask(Task* task) {
 }
 
 ErrorT TaskManager::loadTaskFromFile(File* file, TaskIdT& tid, char* arguments,unint2 arg_length) {
+
+	#ifndef HAS_Kernel_RamManagerCfd
+		return cError;
+	#endif
 
 	// task loading only supported if virtual memory is activated
 	#ifndef HAS_Board_HatLayerCfd

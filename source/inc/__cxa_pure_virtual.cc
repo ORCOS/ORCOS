@@ -29,6 +29,6 @@ extern "C" void __stack_chk_fail()
 
 extern "C" void __cxa_pure_virtual()
 {
-    ERROR("Pure-Virtual method called!")
+
     while(1);
 }

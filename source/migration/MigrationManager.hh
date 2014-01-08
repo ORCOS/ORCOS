@@ -10,7 +10,7 @@
 
 #include "comm/Socket.hh"
 #include "process/Thread.hh"
-
+#include "hal/CallableObject.hh"
 
 #define MM_TYPE_REQUEST     1
 #define MM_TYPE_REPLY       2

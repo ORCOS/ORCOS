@@ -152,7 +152,7 @@ void print( char **out, const char *format, va_list args ) {
     va_end( args );
 }
 
-
+#if 0
 int printf( const char *format, ... ) {
     va_list args;
     va_start( args, format );
@@ -172,3 +172,4 @@ int sprintf( char *out, const char *format, ... ) {
     print( &out, format, args );
     return (0);
 }
+#endif

@@ -36,12 +36,17 @@ LinkedListDatabaseItem* pRunningThreadDbItem;
 Kernel_SchedulerCfdCl* theScheduler;
 Kernel_ThreadCfdCl*    pCurrentRunningThread = 0;
 Task*           pCurrentRunningTask = 0;
-unint8          lastCycleStamp = 0;
+TimeT           lastCycleStamp = 0;
 bool			processChanged = true;
 
 
 SingleCPUDispatcher::SingleCPUDispatcher() :
-    blockedList( new LinkedListDatabase ), sleepList( new LinkedListDatabase ), waitList( new LinkedListDatabase ) {
+  blockedList( new LinkedListDatabase )
+, sleepList( new LinkedListDatabase )
+#ifdef ORCOS_SUPPORT_SIGNALS
+,waitList( new LinkedListDatabase )
+#endif
+{
 
 	// initialize the scheduler with 0, needed for the new Operator!
     SchedulerCfd = new NEW_Kernel_SchedulerCfd;
@@ -240,6 +245,9 @@ void SingleCPUDispatcher::unblock( Thread* thread ) {
 #endif
 }
 
+
+#ifdef ORCOS_SUPPORT_SIGNALS
+
 void SingleCPUDispatcher::sigwait( Thread* thread ) {
     // be sure that this critical area cant be interrupted
 #if ENABLE_NESTED_INTERRUPTS
@@ -348,6 +356,8 @@ void SingleCPUDispatcher::signal( void* sig, int sigvalue ) {
 
 #endif
 }
+
+#endif
 
 void SingleCPUDispatcher::terminate_thread( Thread* thread ) {
     if ( pCurrentRunningThread == thread ) {

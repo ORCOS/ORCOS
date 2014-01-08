@@ -38,7 +38,7 @@ extern Kernel* theOS;
 // Global Variables to speed up access to these objects
 extern Kernel_ThreadCfdCl* pCurrentRunningThread;
 extern Task*        pCurrentRunningTask;
-extern unint8       lastCycleStamp;
+extern TimeT       lastCycleStamp;
 
 #define VALIDATE_SYSCALL_ADDRESS_RANGES 1
 
@@ -199,7 +199,7 @@ inline void handleSyscall(int4 sp_int) {
         }
 
 
-        GET_SYSCALL_NUM(sp_int,(void*) syscallnum);
+        GET_SYSCALL_NUM(sp_int,syscallnum);
 
         // if all syscall numbers are together (eg. 0 - 20)
         // than gcc will convert this switch statements into a jump table!

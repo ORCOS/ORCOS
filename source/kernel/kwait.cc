@@ -38,7 +38,7 @@ void kwait(int milliseconds) {
 		volatile unint4 i = 0;  /* volatile so this is not optimized out  */
 		while ( i < 100000) i++;
 	} else {
-		volatile unint8 now = theOS->getClock()->getTimeSinceStartup();
+		volatile TimeT now = theOS->getClock()->getTimeSinceStartup();
 		while (theOS->getClock()->getTimeSinceStartup() < (now + (milliseconds * 33))) {};
 	}
 

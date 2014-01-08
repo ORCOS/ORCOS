@@ -30,26 +30,28 @@
 struct serializedThread {
     ThreadStack threadStack;
     Bitmap status;
-    int4 sleepCycles;
+    TimeT sleepCycles;
     void* arguments;
 #ifdef HAS_PRIORITY
-    unint8 phase;
-    unint8 initialPriority;
-    unint8 effectivePriority;
+    TimeT phase;
+    TimeT initialPriority;
+    TimeT effectivePriority;
 #endif
 #ifdef REALTIME
-    unint8 period;
-    unint8 relativeDeadline;
-    unint8 absoluteDeadline;
-    unint8 executionTime;
-    unint8 arrivalTime;
+    TimeT period;
+    TimeT relativeDeadline;
+    TimeT absoluteDeadline;
+    TimeT executionTime;
+    TimeT arrivalTime;
     int instance;
 #endif
 };
 
 class Resource;
 
-
+#ifndef MAX_NUM_TASKS
+#define MAX_NUM_TASKS 16
+#endif
 
 /*!
  * \brief Task CB Class which holds information about a task and its threads.
@@ -146,7 +148,7 @@ public:
      */
     static void initialize() {
         globalTaskIdCounter = cFirstTask;
-        freeTaskIDs = new ArrayDatabase(20);
+        freeTaskIDs = new ArrayDatabase(MAX_NUM_TASKS);
 
         /* Workertasks must be mapped to PID 0
            to ensure they are running with kernel mappings
@@ -154,9 +156,9 @@ public:
            user tasks must start at PID 1 to ensure
            the kernel page table to be not overwritten */
 		#if USE_WORKERTASK
-        for (unint4 i = 0; i < 20; i++) {
+        for (unint2 i = 0; i < MAX_NUM_TASKS; i++) {
 		#else
-        for (unint4 i = 1; i < 20; i++) {
+        for (unint2 i = 1; i < MAX_NUM_TASKS; i++) {
 		#endif
         	freeTaskIDs->addTail((DatabaseItem*) i);
         }

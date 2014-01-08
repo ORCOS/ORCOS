@@ -19,15 +19,16 @@
  */
 
 
-
 #include "handle_syscalls.hh"
 #include Kernel_Thread_hh
-#include "assembler.h"
+#include "assemblerFunctions.hh"
 #include "filesystem/SharedMemResource.hh"
 
+#ifdef HAS_Board_HatLayer
 /*******************************************************************
  *				MAP MEMORY Syscall
  *******************************************************************/
+#ifdef HAS_SyscallManager_mapMemoryCfd
 int mapMemory(int4 sp_int)
 {
 	 const char* log_start;
@@ -49,11 +50,12 @@ int mapMemory(int4 sp_int)
 
      return cError;
 }
-
+#endif
 
 /*******************************************************************
  *				SHM_MAP  Syscall
  *******************************************************************/
+#ifdef HAS_SyscallManager_shm_mapCfd
 int shm_mapSyscall(int4 sp_int) {
 	const char* file;
 	unint4* mapped_address;
@@ -86,6 +88,7 @@ int shm_mapSyscall(int4 sp_int) {
 
 }
 
+
 /*******************************************************************
  *				SHM_UNMAP  Syscall
  *******************************************************************/
@@ -97,7 +100,9 @@ int shm_unmapSyscall(int4 sp_int) {
 	return (cError);
 
 }
+#endif
 
+#endif // check if hat layer is available
 
 /*******************************************************************
  *				DELETE Syscall
@@ -105,7 +110,7 @@ int shm_unmapSyscall(int4 sp_int) {
 #ifdef HAS_SyscallManager_deleteCfd
 int deleteSyscall( int4 int_sp ) {
     void* addr;
-    SYSCALLGETPARAMS1(int_sp,(void*) addr);
+    SYSCALLGETPARAMS1(int_sp,addr);
     int retval;
 
     VALIDATE_IN_PROCESS(addr);
@@ -129,7 +134,7 @@ int deleteSyscall( int4 int_sp ) {
 #ifdef HAS_SyscallManager_newCfd
 int newSyscall( int4 int_sp ) {
     size_t size;
-    SYSCALLGETPARAMS1(int_sp,(void*) size);
+    SYSCALLGETPARAMS1(int_sp,size);
     int retval;
 
     LOG(SYSCALLS,TRACE,(SYSCALLS,TRACE,"Syscall: Thread new called. size: %d",size));

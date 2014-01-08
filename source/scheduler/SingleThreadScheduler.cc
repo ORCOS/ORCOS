@@ -25,15 +25,25 @@ SingleThreadScheduler::SingleThreadScheduler() {
 SingleThreadScheduler::~SingleThreadScheduler() {
 }
 
-ErrorT SingleThreadScheduler::enter( ScheduleableItem* item ) {
-    this->singleThread = (ThreadCfdCl*) item;
+ErrorT SingleThreadScheduler::enter( LinkedListDatabaseItem* item ) {
+    this->singleThread =  item;
     return cOk;
 }
 
-DatabaseItem* SingleThreadScheduler::getNext() {
-  ThreadCfdCl* ret = this->singleThread;
+LinkedListDatabaseItem* SingleThreadScheduler::getNext() {
+  LinkedListDatabaseItem* ret = this->singleThread;
   this->singleThread = 0;
   return ret;
+}
+
+LinkedListDatabaseItem* SingleThreadScheduler::remove(DatabaseItem* item) {
+
+  if (this->singleThread->getData() == item) {
+	  LinkedListDatabaseItem* ret = this->singleThread;
+	  singleThread = 0;
+	  return ret;
+  }
+  return 0;
 }
 
 
@@ -44,7 +54,7 @@ int SingleThreadScheduler::getNextTimerEvent(LinkedListDatabase* sleepList,unint
 
     LinkedListDatabaseItem* pDBSleepItem = sleepList->getHead();
     if ( pDBSleepItem != 0 ) {
-        RealTimeThread* pSleepThread = static_cast< ThreadCfdCl*> ( pDBSleepItem->getData() );
+        Kernel_ThreadCfdCl* pSleepThread = static_cast< Kernel_ThreadCfdCl*> ( pDBSleepItem->getData() );
 
          pSleepThread->sleepCycles -= dt;
           if ( pSleepThread->sleepCycles <= 0 ) {

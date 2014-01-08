@@ -41,7 +41,7 @@ int PriorityThreadScheduler::getNextTimerEvent(LinkedListDatabase* sleepList,uni
 
          // set variables which are needed to compare to later on, so we do not need to set these for every
          // iteration of the while loop
-         unint8 nextPriority;
+         TimeT nextPriority;
 
          if ( pDBNextItem != 0 ) {
              nextPriority = (static_cast< PriorityThread* > ( pDBNextItem->getData() ))->effectivePriority;

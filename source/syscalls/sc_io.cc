@@ -22,12 +22,13 @@
 
 #include "handle_syscalls.hh"
 #include Kernel_Thread_hh
-#include "assembler.h"
+#include "assemblerFunctions.hh"
 
 
 /*******************************************************************
  *				I/O CONTROL Syscall
  *******************************************************************/
+#ifdef HAS_SyscallManager_ioctlCfd
 int ioctl(int4 int_sp) {
 
 	 ResourceIdT file_id;
@@ -49,6 +50,7 @@ int ioctl(int4 int_sp) {
 	 }
 	 else return (cInvalidResource);
 }
+#endif
 
 /*******************************************************************
  *				FPUTC Syscall
@@ -136,7 +138,7 @@ int fcreateSyscall( int4 int_sp ) {
     char* path;
     Resource* res;
 
-    SYSCALLGETPARAMS2(int_sp,(void*) filename, (void*) path);
+    SYSCALLGETPARAMS2(int_sp,filename, path);
 
     VALIDATE_IN_PROCESS(filename);
     VALIDATE_IN_PROCESS(path);
@@ -172,7 +174,7 @@ int fopenSyscall( int4 int_sp ) {
     Resource* res;
     int blocking;
 
-    SYSCALLGETPARAMS2(int_sp,(void*) filename,(void*) blocking);
+    SYSCALLGETPARAMS2(int_sp,filename,blocking);
     VALIDATE_IN_PROCESS(filename);
 
     LOG(SYSCALLS,TRACE,(SYSCALLS,TRACE,"Syscall: fopen(%s)",filename));

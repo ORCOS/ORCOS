@@ -63,7 +63,7 @@ ErrorT Directory::remove(Resource *res) {
 	return (cError);
 }
 
-Resource* Directory::get( const char* p_name ) {
+Resource* Directory::get( const char* p_name, unint1 name_len ) {
     // parse the whole dir_content db for an item with name 'name'
     LinkedListDatabaseItem* litem = dir_content.getHead();
     Resource* res;
@@ -72,7 +72,7 @@ Resource* Directory::get( const char* p_name ) {
         // not found yet and we got anther entry in our database
         res = (Resource*) litem->getData();
         // compare names
-        if ( strcmp( p_name, res->getName() ) == 0 )
+        if ( strcmp( p_name, res->getName(), name_len ) == 0 )
             return (res);
         litem = litem->getSucc();
     }

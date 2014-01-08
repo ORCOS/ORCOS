@@ -31,20 +31,20 @@ KOBJ += tasktable.o __cxa_pure_virtual.o
 
 #protocols
 #KOBJ += ARP.o SimpleTransportProtocol.o SimpleAddressProtocol.o IPv4AddressProtocol.o UDP.o
-KOBJ += ProtocolPool.o TCPTransportProtocol.o IPv4AddressProtocol.o
-KOBJ += etharp.o ethernet.o ip.o init.o mem.o memp.o pbuf.o  netif.o udp.o tcp.o sys.o inet.o ip4_addr.o ip4.o ip4_frag.o tcp_in.o tcp_out.o stats.o icmp.o ip6_addr.o ip6.o dhcp.o
-KOBJ += icmp6.o ethar.o ethndp.o lwipTMR.o 
-KOBJ += WorkerThread.o WorkerTask.o crc32.o
+#KOBJ += ProtocolPool.o TCPTransportProtocol.o IPv4AddressProtocol.o
+#KOBJ += etharp.o ethernet.o ip.o init.o mem.o memp.o pbuf.o  netif.o udp.o tcp.o sys.o inet.o ip4_addr.o ip4.o ip4_frag.o tcp_in.o tcp_out.o stats.o icmp.o ip6_addr.o ip6.o dhcp.o
+#KOBJ += icmp6.o ethar.o ethndp.o lwipTMR.o 
+#KOBJ += WorkerThread.o WorkerTask.o crc32.o
 #SNServiceDiscovery.o 
 
 #bluetooth
 #KOBJ += HCI.o
 
 #EHCI
-KOBJ+=USBEHCIHostController.o
+#KOBJ+=USBEHCIHostController.o
 
 #socket
-KOBJ += Socket.o CAB.o  
+#KOBJ += Socket.o CAB.o  
 
 #db
 KOBJ += ArrayDatabase.o LinkedListDatabase.o
@@ -54,16 +54,15 @@ KOBJ += Logger.o
 # Trace.o ETHLogger.o
 
 #filesystem
-KOBJ += File.o Directory.o Filemanager.o Resource.o SimpleFileManager.o PartitionManager.o DOSPartition.o FileSystemBase.o FATFileSystem.o SharedMemResource.o
+KOBJ += File.o Directory.o Filemanager.o Resource.o SimpleFileManager.o 
+#PartitionManager.o 
+#DOSPartition.o FileSystemBase.o FATFileSystem.o SharedMemResource.o
 
 #procfs
-KOBJ += SimpleProcfs.o SimpleDebugCollector.o
+#KOBJ += SimpleProcfs.o SimpleDebugCollector.o
 
 #hal
 KOBJ += PowerManager.o CharacterDeviceDriver.o BlockDeviceDriver.o TimerDevice.o CommDeviceDriver.o USCommDeviceDriver.o Clock.o
-
-#usb
-KOBJ += USBDriverLibrary.o USBDeviceDriverFactory.o SMSC95xxUSBDeviceDriver.o MassStorageSCSIUSBDeviceDriver.o
 
 #inc
 #__udivdi3.o
@@ -76,13 +75,26 @@ KOBJ += newlib_helper.o
 KOBJ += kwait.o kernelmain.o Kernel.o 
 
 #mem
-KOBJ += LinearMemManager.o new.o SequentialFitMemManager.o PagedRamMemManager.o
+KOBJ +=  new.o LinearMemManager.o
+
+#configurable or dependent classes
+#SequentialFitMemManager.o 
+
+#LinearMemManager.o PagedRamMemManager.o NoRamManager.o
+# RoundRobinThreadScheduler.o PriorityThreadScheduler.o RateMonotonicThreadScheduler.o EarliestDeadlineFirstThreadScheduler.o
+
+#PriorityThread.o RealTimeThread.o 
+#usb
+#KOBJ += USBDriverLibrary.o USBDeviceDriverFactory.o SMSC95xxUSBDeviceDriver.o MassStorageSCSIUSBDeviceDriver.o
+
+#PartitionManager.o 
+#DOSPartition.o FileSystemBase.o FATFileSystem.o SharedMemResource.o
 
 #process
-KOBJ += IdleThread.o Task.o Thread.o PriorityThread.o TaskManager.o RealTimeThread.o Module.o
+KOBJ += IdleThread.o Task.o Thread.o TaskManager.o  Module.o
 
 #scheduler
-KOBJ += RoundRobinThreadScheduler.o PriorityThreadScheduler.o RateMonotonicThreadScheduler.o EarliestDeadlineFirstThreadScheduler.o SingleCPUDispatcher.o 
+KOBJ += SingleCPUDispatcher.o SingleThreadScheduler.o
 
 #robustness
 KOBJ += TaskErrorHandler.o 

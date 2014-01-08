@@ -40,7 +40,7 @@ ErrorT EarliestDeadlineFirstThreadScheduler_TBS::enter( LinkedListDatabaseItem* 
 unint4 EarliestDeadlineFirstThreadScheduler_TBS::getNextTimerEvent( LinkedListDatabase* sleepList,unint4 dt ) {
     // it makes no sense to return an unint8 here, since theOS->getTimerDevice()->setTimer(nextevent) will take
     // a unint4 anyways (and the return value of this function is used to set the timer event).
-    int4 sleeptime = MAX_INT4;
+    TimeT sleeptime = (( 1 << sizeof(TimeT)) -1);
 
     // only return a value smaller than sleeptime if there is some other competing threads inside the sleeplist!
     LinkedListDatabaseItem* pDBSleepItem = sleepList->getHead();
@@ -49,7 +49,7 @@ unint4 EarliestDeadlineFirstThreadScheduler_TBS::getNextTimerEvent( LinkedListDa
 
         // set variables which are needed to compare to later on, so we do not need to set these for every
         // iteration of the while loop
-        unint8 nextPriority;
+        TimeT nextPriority;
 
         if ( pDBNextItem != 0 ) {
             nextPriority = (static_cast< RealTimeThread* > ( pDBNextItem->getData() ))->effectivePriority;

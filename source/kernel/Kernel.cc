@@ -73,7 +73,6 @@ void Kernel::initialize() {
     stdInputDevice 	= 0;
     stdOutputDevice = 0;
     board 			= 0;
-    ramManager		= 0;
     errorHandler 	= 0;
 
     /*-------------------------------------------------------
@@ -87,14 +86,16 @@ void Kernel::initialize() {
     BlockDeviceDriver::initialize();
 
     this->errorHandler 		= new TaskErrorHandler();
+#ifdef HAS_Kernel_RamManagerCfd
     /* create the Ram Manager using a simple paging algorithm */
-    this->ramManager 		= new PagedRamMemManager();
+    this->ramManager 		= new NEW_Kernel_RamManagerCfd();
+#endif
     /* create the cpudispatcher with scheduler */
     this->cpuManager 		= new SingleCPUDispatcher( );
     /* create the file	manager implementing the filesystem */
     this->fileManager		= new SimpleFileManager( );
     /* create the PartitionMananger which handles block device partitions */
-    this->partitionManager 	= new PartitionManager();
+   // this->partitionManager 	= new PartitionManager();
     /* create the Task Manager which holds the list of all tasks */
     this->taskManager 		= new TaskManager();
 
@@ -133,7 +134,7 @@ void Kernel::initialize() {
 #endif
 
     /* Initialize the Internet Protocol Stack */
-    lwip_init();
+   // lwip_init();
 
     /* now initialize the device drivers
        since some thread classes rely on classes like the timer or the clock */
@@ -141,7 +142,7 @@ void Kernel::initialize() {
 
     /* initialize protocol pool here since it depends on the device drivers
        all commdevices need to be created before the protocol pool is created */
-    protopool = new ProtocolPool( );
+  //  protopool = new ProtocolPool( );
 
 #if HAS_Kernel_LoggerCfd
     LoggerCfd = new NEW_Kernel_LoggerCfd;
@@ -161,7 +162,7 @@ void Kernel::initialize() {
     LOG(KERNEL,INFO,(KERNEL,INFO,".__stack at 0x%x" ,&__stack));
     LOG(KERNEL,INFO,(KERNEL,INFO,"Kernel Ends at 0x%x" ,&__KERNELEND));
 
-    if ((int) &_heap_start - (int) &_data_start <= 0) ERROR("Data Area mangled! Check ELF/Linkerscript for used but not specified sections!");
+   // if ((int) &_heap_start - (int) &_data_start <= 0) ERROR("Data Area mangled! Check ELF/Linkerscript for used but not specified sections!");
 
 #if USE_SAFE_KERNEL_STACKS
     /* This is a PPC extension for context switches */
@@ -264,11 +265,11 @@ void Kernel::initialize() {
 \\/_________/ \\/_/    \\_\\/\\/____________/\\/_________/   \\_____\\/ "LINEFEED"\
 "LINEFEED""
 
-    printf(orcos_string);
-    printf("              v1.2a ");
-    printf(__DATE__);
-    printf(" running.."LINEFEED);
-    printf(theOS->getBoard()->getBoardInfo());
+    printf_p(orcos_string);
+    printf_p(" v1.2a ");
+    printf_p(__DATE__);
+    printf_p(" running.."LINEFEED);
+    printf_p(theOS->getBoard()->getBoardInfo());
 #endif
 
     /*

@@ -27,7 +27,7 @@
 // include syscall library types
 #include "inc/types.h"
 
-//#include <archtypes.hh>
+#include <archtypes.h>
 #define MB * 0x100000
 #define KB * 0x400
 
@@ -38,7 +38,7 @@ typedef unsigned int size_t;
  * various integer types
  * <group>
  */
-typedef char int1;
+/*typedef char int1;
 typedef short int2;
 typedef int int4;
 typedef long long int8;
@@ -46,6 +46,7 @@ typedef unsigned char unint1;
 typedef unsigned short unint2;
 typedef unsigned int unint4;
 typedef unsigned long long unint8;
+*/
 
 typedef int ErrorT;
 typedef unint2 EndianT;
@@ -55,10 +56,10 @@ typedef unint2 CpuVersionT;
 /*!
  *  Type-defines for process management
  */
-typedef int1 TaskIdT;
-typedef int1 ThreadIdT;
-typedef int1 ResourceIdT;
-typedef int1 SocketIdT;
+typedef unint1 TaskIdT;
+typedef unint1 ThreadIdT;
+typedef unint1 ResourceIdT;
+typedef unint1 SocketIdT;
 
 /*!
  * General type defines
@@ -68,7 +69,7 @@ typedef unsigned short unshort;
 typedef unsigned int unint;
 typedef unsigned long unlong;
 typedef unint4 BitmapT;
-typedef int1 byte;
+typedef unint1 byte;
 typedef void* PhysAddrT;
 
 /* types for time representations */

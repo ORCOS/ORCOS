@@ -28,7 +28,7 @@ extern void startThread( Thread* thread );
 extern Kernel* theOS;
 extern Thread* pCurrentRunningThread;
 extern Board_ClockCfdCl* theClock;
-extern unint8  lastCycleStamp;
+extern TimeT  lastCycleStamp;
 extern Task* pCurrentRunningTask;
 
 // static non-const member variable initialization
@@ -133,13 +133,13 @@ void Thread::callMain() {
 /*--------------------------------------------------------------------------*
  ** Thread::sleep
  *---------------------------------------------------------------------------*/
-void Thread::sleep( unint4 t, LinkedListDatabaseItem* item ) {
+void Thread::sleep( TimeT t, LinkedListDatabaseItem* item ) {
 
 	// prepare for sleep list update on dispatch call following
 	// which will subtract the passed time from all sleeping
 	// threads!
-	unint8 passedtime = theClock->getTimeSinceStartup() - lastCycleStamp;
-	this->sleepCycles = t + (unint4) passedtime;
+	TimeT passedtime = theClock->getTimeSinceStartup() - lastCycleStamp;
+	this->sleepCycles = t + (TimeT) passedtime;
 
     LOG(SCHEDULER,INFO,(SCHEDULER,INFO,"Thread::sleep() t=%d",this->sleepCycles));
     // unset the ready flag since we are not ready to run
@@ -154,6 +154,7 @@ void Thread::sleep( unint4 t, LinkedListDatabaseItem* item ) {
 /*--------------------------------------------------------------------------*
  ** Thread::sigwait
  *---------------------------------------------------------------------------*/
+#ifdef ORCOS_SUPPORT_SIGNALS
 void Thread::sigwait( void* sig ) {
     signal = sig;
 
@@ -162,7 +163,12 @@ void Thread::sigwait( void* sig ) {
 
     theOS->getCPUDispatcher()->sigwait( this );
 }
+#endif
 
+
+/*--------------------------------------------------------------------------*
+ ** Thread::getMemManager
+ *---------------------------------------------------------------------------*/
 Kernel_MemoryManagerCfdCl* Thread::getMemManager() {
     return (owner->getMemManager());
 }
@@ -263,9 +269,11 @@ void Thread::terminate() {
     this->status.clear();
     this->status.setBits( cTermFlag );
 
+#ifdef ORCOS_SUPPORT_SIGNALS
     // be sure only threads inside our tasks are signalled as signal is global
     unint4 signal_value = (this->owner->getId() << 16) | (SIG_CHILD_TERMINATED);
     theOS->getCPUDispatcher()->signal((void*) signal_value,cOk);
+#endif
 
     // finally tell cpudispatcher that im gone..
     theOS->getCPUDispatcher()->terminate_thread( this );

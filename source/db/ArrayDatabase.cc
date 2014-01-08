@@ -136,6 +136,7 @@ DatabaseItem* ArrayDatabase::removeItemAt( int at ) {
     return (ret);
 }
 
+
 ErrorT ArrayDatabase::insertItemAt( int at, DatabaseItem* item ) {
 
     if ( numEntries + 1 > maxEntries ) {
@@ -157,6 +158,7 @@ ErrorT ArrayDatabase::insertItemAt( int at, DatabaseItem* item ) {
     return (cOk);
 
 }
+
 
 DatabaseItem* ArrayDatabase::getItemAt( int i ) {
     return (entries[ MODULO(( headPointer + i ) , maxEntries) ]);

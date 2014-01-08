@@ -20,13 +20,13 @@
 
 #include "handle_syscalls.hh"
 #include Kernel_Thread_hh
-#include "assembler.h"
+#include "assemblerFunctions.hh"
 #include "inc/stringtools.hh"
 
 /*******************************************************************
  *				RUNTASK Syscall
  *******************************************************************/
-
+#ifdef HAS_SyscallManager_runTaskCfd
 int runTask(int4 sp_int) {
 
 	int retval = 0;
@@ -78,7 +78,9 @@ int runTask(int4 sp_int) {
 
 	return cError;
 }
+#endif
 
+#ifdef HAS_SyscallManager_thread_waitCfd
 int thread_wait(int4 sp_int) {
 
 	int pid;
@@ -98,12 +100,12 @@ int thread_wait(int4 sp_int) {
 
 	return (cError);
 }
-
+#endif
 
 /*******************************************************************
  *				TASK_KILL Syscall
  *******************************************************************/
-
+#ifdef HAS_SyscallManager_task_killCfd
 int task_killSyscall(int4 sp_int) {
 
 	int	taskid;
@@ -126,7 +128,7 @@ int task_killSyscall(int4 sp_int) {
 
 	return cOk;
 }
-
+#endif
 
 /*******************************************************************
  *				TASK_STOP Syscall
@@ -197,7 +199,7 @@ int task_resumeSyscall(int4 int_sp)
 #ifdef HAS_SyscallManager_sleepCfd
 int sleepSyscall( int4 int_sp ) {
     int t;
-    SYSCALLGETPARAMS1(int_sp,(void*)t);
+    SYSCALLGETPARAMS1(int_sp,t);
 
     LOG(SYSCALLS,DEBUG,(SYSCALLS,DEBUG,"Syscall: sleep(%d)",t));
 
@@ -263,13 +265,13 @@ int thread_createSyscall( int4 int_sp ) {
 			 rt->instance = 1;
 
 		#if CLOCK_RATE >= (1 MHZ)
-			rt->relativeDeadline = ((unint8) attr->deadline) * (CLOCK_RATE / 1000000);
-			rt->executionTime = ((unint8) attr->executionTime) * (CLOCK_RATE / 1000000);
-			rt->period = ((unint8) attr->period) * (CLOCK_RATE / 1000000);
+			rt->relativeDeadline = ((TimeT) attr->deadline) * (CLOCK_RATE / 1000000);
+			rt->executionTime = ((TimeT) attr->executionTime) * (CLOCK_RATE / 1000000);
+			rt->period = ((TimeT) attr->period) * (CLOCK_RATE / 1000000);
 		#else
-			rt->relativeDeadline = (unint8) (((float)attr->deadline) * ((float) CLOCK_RATE / 1000000.0f));
-			rt->executionTime = (unint8) (((float)attr->executionTime) * ((float) CLOCK_RATE / 1000000.0f));
-			rt->period = (unint8) (((float)attr->period) * ((float) CLOCK_RATE / 1000000.0f));
+			rt->relativeDeadline = (TimeT) (((float)attr->deadline) * ((float) CLOCK_RATE / 1000000.0f));
+			rt->executionTime = (TimeT) (((float)attr->executionTime) * ((float) CLOCK_RATE / 1000000.0f));
+			rt->period = (TimeT) (((float)attr->period) * ((float) CLOCK_RATE / 1000000.0f));
 		#endif
 
 		#endif
@@ -279,7 +281,7 @@ int thread_createSyscall( int4 int_sp ) {
     }
     else
     newthread =
-            new ThreadCfdCl( start_routine, (void*) tasktable->task_thread_exit_addr, pCurrentRunningTask, pCurrentRunningTask->getMemManager(), attr->stack_size, attr );
+            new Kernel_ThreadCfdCl( start_routine, (void*) tasktable->task_thread_exit_addr, pCurrentRunningTask, pCurrentRunningTask->getMemManager(), attr->stack_size, attr );
 
 #else
 

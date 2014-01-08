@@ -82,13 +82,14 @@ public:
     size_t getUsedMemSize(int* fragmentation = 0);
 
 
+#ifdef SERIALIZE
     /*!
     * \brief serialization method of this mem manager
     */
     bool serialize(void* &serialized_object, unint2 &length);
 
     static LinearMemManager* deserialize(void* serialized_object, unint2 length);
-
+#endif
 };
 
 #endif /*LINEARMEMMANAGER_HH_*/

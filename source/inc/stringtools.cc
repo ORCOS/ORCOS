@@ -20,6 +20,7 @@
 
 #define MODULO(a,b)  a % b
 
+#if 0
 void strreverse( char* begin, char* end ) {
     char aux;
     while ( end > begin )
@@ -71,15 +72,7 @@ char* strcpy( char *dst0, const char *src0 ) {
     return s;
 }
 
-// newlib strcmp method
-int strcmp( const char *s1, const char *s2 ) {
-    while ( *s1 != '\0' && *s1 == *s2 ) {
-        s1++;
-        s2++;
-    }
 
-    return ( *(unsigned const char *) s1 ) - ( *(unsigned const char *) s2 );
-}
 
 char* strtok( char *s, const char *delim ) {
     const char *spanp;
@@ -159,4 +152,33 @@ char* strcat( char *s1, const char *s2 ) {
     *s1 = 0;
 
     return s;
+}
+
+#endif
+
+
+// newlib strcmp method
+int strcmp( const char *s1, const char *s2, unint1 name_len ) {
+
+	// max string length check if no length is given
+	if (name_len == 0) name_len = 255;
+
+    while ( *s1 != '\0' && *s1 == *s2 && name_len > 0) {
+        s1++;
+        s2++;
+        name_len--;
+    }
+
+    return ( *(unsigned const char *) s1 ) - ( *(unsigned const char *) s2 );
+}
+
+int strpos(const char*s, char c) {
+	const char *sc;
+
+	for (sc = s; *sc != c; ++sc) {
+		if (*sc == '\0') return -1;
+	}
+
+	/* nothing */;
+	return (sc - s);
 }

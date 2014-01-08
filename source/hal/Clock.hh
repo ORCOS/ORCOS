@@ -61,7 +61,7 @@ public:
      * abstract function to get the time since system startup in [us] since
      * system startup.
      */
-    virtual unint8 getTimeSinceStartup() {
+    virtual TimeT getTimeSinceStartup() {
         return cNotImplemented;
     }
     ;

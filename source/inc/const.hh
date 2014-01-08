@@ -26,8 +26,8 @@
 #include "error.hh"
 
 static const unint8 MAX_UNINT8 = 18446744073709551615ULL;
-static const unint4 MAX_UNINT4 = 4294967295UL;
-static const int4 MAX_INT4 = 2147483647;
+static const unint4 MAX_UNINT4 = (1 << sizeof(unint4))-1; //4294967295UL;
+static const int4 MAX_INT4 = (1 << sizeof(int4))-2; //2147483647;
 
 #define cFirstThread 1
 #define cFirstTask 1

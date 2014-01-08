@@ -20,7 +20,9 @@
 #define SINGLETHREADSCHEDULER_H_
 
 #include <SCLConfig.hh>
-#include ThreadCfd_hh
+#include Kernel_Thread_hh
+
+
 
 /*!
  * \ingroup scheduler
@@ -28,26 +30,34 @@
  *
  */
 class SingleThreadScheduler {
-    ThreadCfdCl* singleThread;
+	LinkedListDatabaseItem* singleThread;
+	LinkedListDatabaseItem wrappingItem;
 public:
     SingleThreadScheduler();
     ~SingleThreadScheduler();
 
-    inline void computePriority( ThreadCfdCl* item ) {};
+    inline void computePriority( Kernel_ThreadCfdCl* item ) {};
 
     /*!
      * Due this Scheduler is for singlethreading, only one thread could be set.
      */
-    ErrorT enter( ScheduleableItem* item );
+    ErrorT enter( LinkedListDatabaseItem* item );
+
+    ErrorT enter( DatabaseItem* item ) {
+		wrappingItem.setData(item);
+		return this->enter(&wrappingItem);
+    }
+
+    LinkedListDatabaseItem* remove(DatabaseItem* item);
 
      /*!
      * Start the scheduling.
      */
     void startScheduling() {};
 
-    int getNextTimerEvent(LinkedListDatabase* sleepList,unint4 dt );
+    int getNextTimerEvent(LinkedListDatabase* sleepList, unint4 dt );
 
-    DatabaseItem* getNext();
+    LinkedListDatabaseItem* getNext();
 
 };
 

@@ -59,7 +59,7 @@ size_t LinearMemManager::getUsedMemSize(int* fragmentation) {
     return ( FreeHeadPtr - (byte*) Segment.getStartAddr() );
 }
 
-
+#ifdef SERIALIZE
 bool LinearMemManager::serialize(void* &serialized_object, unint2 &length)
 {
     serialized_object = this;
@@ -75,3 +75,4 @@ LinearMemManager* LinearMemManager::deserialize(void* serialized_object, unint2 
     memcpy(newobject,serialized_object,length);
     return newobject;
 }
+#endif

@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:schemaLocation="http://orcos.cs.uni-paderborn.de/SCL http://orcos.cs.uni-paderborn.de/SCL/scl2.xsd">
+  <Options>
+    <Logging>
+      <Log Prefix="KERNEL" Level="INFO" />
+      <Log Prefix="MEM" Level="WARN" />
+      <Log Prefix="PROCESS" Level="WARN" />
+      <Log Prefix="SCHEDULER" Level="WARN" />
+      <Log Prefix="SYNCHRO" Level="WARN" />
+      <Log Prefix="SYSCALLS" Level="WARN" />
+      <Log Prefix="DB" Level="WARN" />
+      <Log Prefix="HAL" Level="WARN" />
+      <Log Prefix="ARCH" Level="INFO" />
+      <Log Prefix="FILESYSTEM" Level="WARN" />
+      <Log Prefix="COMM" Level="WARN" />
+    </Logging>
+  </Options>
+  <!-- ************************************
+    					Tasks
+         ************************************ -->
+  <Tasks>
+    
+  </Tasks>
+  <SCL>
+    <!-- ************************************
+    			Skeleton Board
+         ************************************ -->
+    <Skeleton>
+      <Name>Board</Name>
+      <Superclass>arch/Atmel/ATMEGA328/RN-MicroFunk/MicroFunkBoard</Superclass>
+      <Member Name="HatLayer" Class="hal/HatLayer" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="Clock" Class="hal/EmulatedClock" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="Processor" Class="arch/Atmel/ATMEGA328/ATMEGA328Processor" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="Timer" Class="arch/Atmel/ATMEGA328/Timer1" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+   
+     
+    </Skeleton>
+    <!-- ************************************
+    			Skeleton Kernel
+         ************************************ -->
+    <Skeleton>
+      <Name>Kernel</Name>
+      <Superclass>kernel/Kernel</Superclass>
+      <Member Name="MigrationManager" Class="migration/MigrationManager" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="ServiceDiscovery" Class="comm/servicediscovery/SNServiceDiscovery" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="MemoryManager" Class="mem/LinearMemManager" None="false" UserSpace="false" PhyLoadAddress="0x0">
+        <PropertyValue Name="LastFit" Value="0" Type="unsigned int" />
+      </Member>
+      <Member Name="Thread" Class="process/Thread" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="Dispatcher" Class="scheduler/SingleCPUDispatcher" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="Scheduler" Class="scheduler/SingleThreadScheduler" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="Logger" Class="debug/Logger" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="PowerManager" Class="hal/PowerManager" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="TaskManager" Class="process/TaskManager" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      
+      <Member Name="RamManager" Class="mem/NoRamManager" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+    </Skeleton>
+    <!-- ************************************
+    			Skeleton SyscallManager
+         ************************************ -->
+    <Skeleton>
+      <Name>SyscallManager</Name>
+      <Superclass>syscalls/SyscallManager</Superclass>
+      <Member Name="sleep" None="true" />
+      <Member Name="thread_create" None="true" />
+      <Member Name="thread_run" None="true" />
+      <Member Name="thread_self" None="false" />
+      <Member Name="thread_yield" None="false" />
+      <Member Name="signal_wait" None="true" />
+      <Member Name="signal_signal" None="true" />
+      <Member Name="fputc" None="false" />
+      <Member Name="fgetc" None="false" />
+      <Member Name="fcreate" None="false" />
+      <Member Name="fopen" None="false" />
+      <Member Name="fclose" None="false" />
+      <Member Name="fwrite" None="false" />
+      <Member Name="fread" None="false" />
+      <Member Name="new" None="false" />
+      <Member Name="delete" None="false" />
+      <Member Name="socket" None="true" />
+      <Member Name="connect" None="true" />
+      <Member Name="listen" None="true" />
+      <Member Name="bind" None="true" />
+      <Member Name="sendto" None="true" />
+      <Member Name="recv" None="true" />
+      <Member Name="add_devaddr" None="true" />
+      <Member Name="task_stop" None="true" />
+      <Member Name="task_resume" None="true" />
+      <Member Name="ioctl" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+    </Skeleton>
+    <!--  DEFINES -->
+    <Define>
+      <Name>ENABLE_NESTED_INTERRUPTS</Name>
+      <Value>0</Value>
+    </Define>
+    <!-- PROCFS -->
+    <Define>
+      <Name>HAS_PROCFS_ENABLED</Name>
+      <Value>0</Value>
+    </Define>
+    <!--  Worker Task configuration -->
+    <Define>
+      <Name>USE_WORKERTASK</Name>
+      <Value>0</Value>
+    </Define>
+    <Define>
+      <Name>NUM_WORKERTHREADS</Name>
+      <Value>2</Value>
+    </Define>
+    <!-- logical Memory addresses -->
+    <Define>
+      <Name>LOG_TASK_SPACE_START</Name>
+      <Value>0x100000</Value>
+    </Define>
+    <Define>
+      <Name>NUM_ADDRESS_PROTOCOLS</Name>
+      <Value>0</Value>
+    </Define>
+    <Define>
+      <Name>NUM_TRANSPORT_PROTOCOLS</Name>
+      <Value>0</Value>
+    </Define>
+    <Define>
+      <Name>USE_SIMPLEADDRESSPROTOCOL</Name>
+      <Value>0</Value>
+    </Define>
+    <Define>
+      <Name>USE_ARP</Name>
+      <Value>0</Value>
+    </Define>
+    <Define>
+      <Name>USE_SIMPLETRANSPORTPROTOCOL</Name>
+      <Value>0</Value>
+    </Define>
+    <Define>
+      <Name>MMIO_START_ADDRESS</Name>
+      <Value>0x48000000</Value>
+    </Define>
+    <Define>
+      <Name>MMIO_AREA_LENGTH</Name>
+      <Value>0xFFFFFF</Value>
+    </Define>
+    <Define>
+      <Name>ICACHE_ENABLE</Name>
+      <Value>1</Value>
+    </Define>
+    <Define>
+      <Name>DCACHE_ENABLE</Name>
+      <Value>1</Value>
+    </Define>
+    <Define>
+      <Name>DEFAULT_USER_STACK_SIZE</Name>
+      <Value>4096</Value>
+    </Define>
+    <Define>
+      <Name>STACK_GROWS_DOWNWARDS</Name>
+      <Value>1</Value>
+    </Define>
+    <Define>
+      <Name>RESERVED_BYTES_FOR_STACKFRAME</Name>
+      <Value>12</Value>
+    </Define>
+    <Define>
+      <Name>CLEAR_THREAD_STACKS</Name>
+      <Value>1</Value>
+    </Define>
+    <Define>
+      <Name>WORKERTHREAD_STACK_SIZE</Name>
+      <Value>4096</Value>
+    </Define>
+    <Define>
+      <Name>WORKERTHREAD_UART_PRIORITY_PARAM</Name>
+      <Value>5000</Value>
+    </Define>
+    <Define>
+      <Name>WORKERTHREAD_ETH_PRIORITY_PARAM</Name>
+      <Value>2000</Value>
+    </Define>
+    <Define>
+      <Name>USE_SAFE_KERNEL_STACKS</Name>
+      <Value>0</Value>
+    </Define>
+    <Define>
+      <Name>KERNEL_STACK_SIZE</Name>
+      <Value>256</Value>
+    </Define>
+    <Define>
+      <Name>ALIGN_VAL</Name>
+      <Value>1</Value>
+    </Define>
+    <Define>
+      <Name>__EARLY_SERIAL_SUPPORT__</Name>
+      <Value>1</Value>
+    </Define>
+    <Define>
+      <Name>__DEBUG__</Name>
+      <Value>0</Value>
+    </Define>
+    <Define>
+      <Name>RAM_SIZE</Name>
+      <Value>512 MB</Value>
+    </Define>
+     <Define>
+      <Name>MAX_NUM_TASKS</Name>
+      <Value>1</Value>
+    </Define>
+     <Define>
+      <Name>PRINT_BOOT_LOGO</Name>
+      <Value>0</Value>
+    </Define>
+  </SCL>
+</Configuration>
+

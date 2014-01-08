@@ -29,7 +29,7 @@ typedef struct Chunk_Header {
 	Chunk_Header *prev_chunk;
 	Chunk_Header *next_chunk;
 	unint1 state : 1;
-	unint4 size : 30;
+	unint4 size : (sizeof(unint4)-1);
 } __attribute__((packed)) Chunk_Header;
 
 // possible States of a memory chunk

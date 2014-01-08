@@ -52,7 +52,7 @@ public:
     virtual ErrorT remove(Resource *res);
 
     //! gets the resource with name 'name'. Maybe null if nonexistent
-    virtual Resource* get( const char* name );
+    virtual Resource* get( const char* name, unint1 name_len = 0 );
 
     //! Returns the amount of entries in this directory
     virtual int getNumEntries() {

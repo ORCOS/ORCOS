@@ -110,21 +110,21 @@ SimpleFileManager::getResourceByNameandType( const char* pathname, ResourceType 
     register Resource* res = &rootDir;
     register Directory* dir;
 
-    // TODO add a length check first
-    // 50 bytes on the stack may be enough
-    char str[ 100 ];
-    // copy the pathname to a temporary str
-    // since the string will be broken by the string tokenizer afterwards
-    if (strlen(pathname) > 100) return (0);
-    strcpy( str, pathname );
+    /*
+     * The following code parses the pathname string on substrings
+     * by the character '/'. No copy operation is done. It is assumed
+     * that the pathname is accessible in data memory.
+     */
 
-    // be sure that the leading "/" is omitted if existent
-    char* token;
-    token = strtok( str, "/" );
+    char* token = const_cast<char*> (pathname);
+    int tokenlen;
+    tokenlen = strpos( pathname, '/' );
+    // if not found return
+    if (tokenlen < 0) return (0);
 
     // check for root dir match
-    if (token == 0) {
-    	// str == "/";
+    if (tokenlen == 0) {
+    	// pathname == "/";
     	 if ( ( res->getType() & typefilter ) != 0 )
 			{
 				LOG(FILESYSTEM,DEBUG,(FILESYSTEM,DEBUG,"Filesystem: Resource %s found",pathname));
@@ -141,13 +141,14 @@ SimpleFileManager::getResourceByNameandType( const char* pathname, ResourceType 
     while ( token != 0 ) {
         // if we got here res is another directory and we haven't finished searching
         dir = static_cast< Directory* > ( res );
-        res = dir->get( token );
+        res = dir->get( token, tokenlen );
         if ( res != 0 ) {
             // the directory contains the next token
             // check if this is the last token
-            token = strtok( 0, "/" );
+            token += tokenlen;
+            tokenlen = strpos(token,'/');
 
-            if ( token == 0 ) {
+            if ( tokenlen < 0 ) {
                 // end of pathname
                 // check whether the resource we found is of correct type
                 if ( ( res->getType() & typefilter ) != 0 )
@@ -176,7 +177,7 @@ SimpleFileManager::getResourceByNameandType( const char* pathname, ResourceType 
         else {
                 // path/file not found
             LOG(FILESYSTEM,ERROR,(FILESYSTEM,ERROR,"Filesystem: Directory or File not found %s!",token));
-            return 0;
+            return (0);
         }
     }
 

@@ -20,7 +20,7 @@
 #include "kernel/Kernel.hh"
 #include <memtools.hh>
 #include <assemblerFunctions.hh>
-#include <assembler.h>
+//#include <assembler.h>
 #include "inc/stringtools.hh"
 #include "inc/defines.h"
 

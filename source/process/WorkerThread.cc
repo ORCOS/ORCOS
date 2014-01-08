@@ -20,7 +20,7 @@
 #include "hal/CommDeviceDriver.hh"
 #include "kernel/Kernel.hh"
 #include <assemblerFunctions.hh>
-#include <assembler.h>
+//#include <assembler.h>
 
 extern Kernel* theOS;
 
