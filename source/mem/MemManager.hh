@@ -28,6 +28,9 @@
 //forward declaration of configured Threadtype
 class Kernel_ThreadCfdCl;
 
+#if !MEM_CACHE_INHIBIT
+#define alloci alloc
+#endif
 
 /*!
  * \ingroup memmanager

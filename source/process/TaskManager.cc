@@ -83,25 +83,20 @@ ErrorT TaskManager::checkValidTask(taskTable* taskCB) {
 	if ((taskCB->platform & 0xff) != PLATFORM) return (cInvalidCBHeader);
 
 	#ifndef HAS_Board_HatLayerCfd
-		if ((void*) taskCB->task_heap_start < &__KERNELEND) return cInvalidCBHeader;
-		if ((void*) taskCB->task_heap_end < &__KERNELEND) return cInvalidCBHeader;
-		if ((void*) taskCB->task_heap_start > &__RAM_END) return cInvalidCBHeader;
-		if ((void*) taskCB->task_heap_end > &__RAM_END) return cInvalidCBHeader;
+		if ((void*) taskCB->task_heap_start < &__KERNELEND) return (cInvalidCBHeader);
+		if ((void*) taskCB->task_heap_start > &__RAM_END) return (cInvalidCBHeader);
 
-		if ((void*) taskCB->task_start_addr < &__KERNELEND) return cInvalidCBHeader;
-		if ((void*) taskCB->task_start_addr > &__RAM_END) return cInvalidCBHeader;
-		if ((void*) taskCB->task_data_end < &__KERNELEND) return cInvalidCBHeader;
+		if ((void*) taskCB->task_entry_addr < &__KERNELEND) return (cInvalidCBHeader);
+		if ((void*) taskCB->task_entry_addr > &__RAM_END) return (cInvalidCBHeader);
 
 		// check for overlapping tasks if we do not virtual memoryS
 		for ( LinkedListDatabaseItem* lldi = this->taskDatabase->getHead(); lldi != 0; lldi = lldi->getSucc() ) {
 			Task* task = (Task*) lldi->getData();
 			// the only task holding no task table would be the workertask!
 			if (task->tasktable != 0) {
-				if (   task->tasktable->task_start_addr > taskCB->task_start_addr
-					&& task->tasktable->task_start_addr < taskCB->task_data_end) return cInvalidCBHeader;
+				if (   task->tasktable->task_start >= taskCB->task_start
+					&& task->tasktable->task_start < taskCB->task_end) return (cInvalidCBHeader);
 
-				if (   task->tasktable->task_data_end > taskCB->task_start_addr
-					&& task->tasktable->task_data_end < taskCB->task_data_end) return cInvalidCBHeader;
 			}
 		}
 	#endif
@@ -137,7 +132,7 @@ void TaskManager::initialize() {
 
 		#ifndef HAS_Board_HatLayerCfd
 			Kernel_MemoryManagerCfdCl* task_memManager =
-					   new ( memaddr ) Kernel_MemoryManagerCfdCl( (void*) task_info->task_heap_start, (void*) task_info->task_heap_end);
+					   new ( memaddr ) Kernel_MemoryManagerCfdCl( (void*) task_info->task_heap_start, (void*) task_info->task_end);
 
 
 			if (checkValidTask(task_info) != cOk) {
@@ -152,9 +147,9 @@ void TaskManager::initialize() {
 		   Task* task = new Task( task_memManager, task_info );
 
 		   LOG(KERNEL,INFO,(KERNEL,INFO,"TaskID %d:" ,task->getId()));
-		   LOG(KERNEL,INFO,(KERNEL,INFO,"start at 0x%x, end  at 0x%x" , task->getTaskTable()->task_start_addr, task->getTaskTable()->task_heap_end));
+		   LOG(KERNEL,INFO,(KERNEL,INFO,"start at 0x%x, end  at 0x%x" , task->getTaskTable()->task_start, task->getTaskTable()->task_end));
 		   LOG(KERNEL,INFO,(KERNEL,INFO,"entry at 0x%x, exit at 0x%x" , task->getTaskTable()->task_entry_addr, task->getTaskTable()->task_thread_exit_addr));
-		   LOG(KERNEL,INFO,(KERNEL,INFO,"heap  at 0x%x, size %d" , task->getTaskTable()->task_heap_start, (int) task->getTaskTable()->task_heap_end - (int)  task->getTaskTable()->task_heap_start));
+		   LOG(KERNEL,INFO,(KERNEL,INFO,"heap  at 0x%x, size %d" , task->getTaskTable()->task_heap_start, (int) task->getTaskTable()->task_end - (int)  task->getTaskTable()->task_heap_start));
 
 		#else
 		   // we get the ID of the task we will create next
@@ -240,7 +235,7 @@ ErrorT TaskManager::loadTaskFromFile(File* file, TaskIdT& tid, char* arguments,u
 
 	// task loading only supported if virtual memory is activated
 	#ifndef HAS_Board_HatLayerCfd
-		return cError;
+		return (cError);
 	#endif
 
 	LOG(KERNEL,DEBUG,(KERNEL,DEBUG,"TaskManager::loadTaskFromFile: loading file."));
@@ -253,8 +248,11 @@ ErrorT TaskManager::loadTaskFromFile(File* file, TaskIdT& tid, char* arguments,u
 	}
 	// be sure tlb entries are unmapped for tid
 	theOS->getHatLayer()->unmapAll(tid);
+
+#ifdef HAS_Board_CacheCfd
 	// invalidate cache entries of the new task id (asid)
 	theOS->getBoard()->getCache()->invalidate(tid);
+#endif
 
 	unint4 task_start = (unint4) theOS->getRamManager()->alloc(file->getFileSize(),tid);
 	LOG(KERNEL,INFO,(KERNEL,INFO,"TaskManager: new Task will be placed at 0x%x", task_start));

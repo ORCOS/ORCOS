@@ -153,10 +153,14 @@ SequentialFitMemManager::SequentialFitMemManager( void* startAddr, void* endAddr
 	overhead   = 0;
 	lastAllocatedChunk = 0;
 
+#if MEM_CACHE_INHIBIT
 	startIChunk = 0;
 	lastAllocatedIChunk = 0;
+#endif
+
 }
 
+#if MEM_CACHE_INHIBIT
 SequentialFitMemManager::SequentialFitMemManager( void* startAddr, void* endAddr, void* istartAddr, void* iendAddr) :
 		MemManager( startAddr, endAddr, istartAddr, iendAddr ) {
 
@@ -171,6 +175,7 @@ SequentialFitMemManager::SequentialFitMemManager( void* startAddr, void* endAddr
 	startIChunk = 0;
 	lastAllocatedIChunk = 0;
 }
+#endif
 
 // new version
 Chunk_Header* SequentialFitMemManager::getFittingChunk( size_t size, bool aligned, unint4 align_val , Chunk_Header* current_chunk) {
