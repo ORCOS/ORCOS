@@ -1,8 +1,8 @@
 STACK_USAGE = python $(STACK_USAGE_SCRIPT)
 
-OUTPUTFILE = cp
+OUTPUTFILE = cp crc32
 
-OBJS 	=  cp.o 
+OBJS 	=  cp.o crc32.o
 LIBOBJS =  $(KERNEL_LIB_DIR)/static.o 
 # all provided defines are relative to the main makefile (usually two directories lower)
 # exception is GCC_LIB_DIR which is usually absolute
@@ -32,10 +32,10 @@ KERNEL_LIB_DIR = C:/git/orcos_github/library/bin/armv7
 KERNEL_INC_DIR = C:/git/orcos_github/library/inc
 
 GCC_VERSION=4.7.4
-GCC_LIB_DIR=C:/gcc-arm-none-eabi/lib/gcc/arm-none-eabi/$(GCC_VERSION)/
+GCC_LIB_DIR=C:/gcc-arm-none-eabi/lib/gcc/arm-none-eabi/$(GCC_VERSION)/armv7-ar/thumb/
 
 AFLAGS =
-CFLAGS = -c -I$(KERNEL_INC_DIR) -fno-exceptions -fno-rtti -O2 -mno-unaligned-access -mthumb -ffunction-sections
+CFLAGS = -c -I$(KERNEL_INC_DIR) -fno-exceptions -fno-rtti -O2 -mcpu=cortex-a8  -mthumb -mthumb-interwork -mno-unaligned-access
 CPPFLAGS = $(CFLAGS) -g  
 	
 all: $(OBJS) 
@@ -70,6 +70,14 @@ cp.o: cp.cc
 	@$(CXX) $(CPPFLAGS) $< -o bin/$@
 	@$(LD) bin/$@ --script=task.ld  -o bin/cp.elf -Map cp.map -L$(KERNEL_LIB_DIR) -L$(GCC_LIB_DIR) -lorcos  -lgcc
 	@$(OBJCOPY) -O binary bin/cp.elf bin/cp
+
+crc32.o: crc32.cc
+	@echo @$(CXX) $(CPPFLAGS) $< -o $@
+	@echo task.mk: Compiling $@
+	@$(CXX) $(CPPFLAGS) $< -o bin/$@
+	@$(LD) bin/$@ --script=task.ld  -o bin/crc32.elf -Map crc32.map -L$(KERNEL_LIB_DIR) -L$(GCC_LIB_DIR) -lorcos  -lgcc
+	@$(OBJCOPY) -O binary bin/crc32.elf bin/crc32
+
 
 %.o: %.S
 	@echo task.mk: Assembling $@

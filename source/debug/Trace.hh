@@ -64,8 +64,8 @@ typedef struct {
 #define TRACE_THREADSTACK() { unint4 sp = GETSTACKPTR(); \
 						      theOS->getTrace()->trace_threadInfo(TRACE_THREAD_STACK,sp,0); }
 
-#define TRACE_MEMALLOC(address,size) theOS->getTrace()->trace_threadInfo(TRACE_MEM_ALLOC,address,size)
-#define TRACE_MEMFREE(address,size) theOS->getTrace()->trace_threadInfo(TRACE_MEM_FREE,address,0)
+#define TRACE_MEMALLOC(address,size) theOS->getTrace()->trace_memAlloc(address,size)
+#define TRACE_MEMFREE(address) theOS->getTrace()->trace_memFree(address)
 
 class Trace {
 private:

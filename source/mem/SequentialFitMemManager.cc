@@ -152,16 +152,34 @@ SequentialFitMemManager::SequentialFitMemManager( void* startAddr, void* endAddr
 	free_mem   = this->Segment.getSize();
 	overhead   = 0;
 	lastAllocatedChunk = 0;
+
+#if MEM_CACHE_INHIBIT
+	startIChunk = 0;
+	lastAllocatedIChunk = 0;
+#endif
+
 }
 
-// new version
-Chunk_Header* SequentialFitMemManager::getFittingChunk( size_t size, bool aligned, unint4 align_val ) {
+#if MEM_CACHE_INHIBIT
+SequentialFitMemManager::SequentialFitMemManager( void* startAddr, void* endAddr, void* istartAddr, void* iendAddr) :
+		MemManager( startAddr, endAddr, istartAddr, iendAddr ) {
 
-#if MEM_LAST_FIT == 1
-	Chunk_Header* current_chunk = lastAllocatedChunk;
-#else
-	Chunk_Header* current_chunk = startChunk;
+
+	// we do not write into the memory area here as we might not be running
+	// in the correct task context! intialization is done on demand!
+	startChunk = 0;
+	free_mem   = this->Segment.getSize();
+	overhead   = 0;
+	lastAllocatedChunk = 0;
+
+	startIChunk = 0;
+	lastAllocatedIChunk = 0;
+}
 #endif
+
+// new version
+Chunk_Header* SequentialFitMemManager::getFittingChunk( size_t size, bool aligned, unint4 align_val , Chunk_Header* current_chunk) {
+
 
 	if (align_val < 4) align_val = 4;
 
@@ -263,8 +281,12 @@ void* SequentialFitMemManager::alloc( size_t size, bool aligned, unint4 align_va
 
 	/* put some buffer between to avoid erroneous program access */
 	size = size + SAFETY_BUFFER;
+#if MEM_LAST_FIT == 1
+	Chunk_Header* chunk =  getFittingChunk( size, aligned, align_val,lastAllocatedChunk );
+#else
+	 Chunk_Header* chunk =  getFittingChunk( size, aligned, align_val,startChunk);
+#endif
 
-    Chunk_Header* chunk =  getFittingChunk( size, aligned, align_val );
     void* addr = (void*) ((unint4) chunk + sizeof(Chunk_Header));
 
     ASSERT( !(( ((unint4)addr) & (align_val-1)) != 0));
@@ -272,6 +294,7 @@ void* SequentialFitMemManager::alloc( size_t size, bool aligned, unint4 align_va
     if ( chunk != 0) {
         split( chunk, size );
         lastAllocatedChunk = chunk;
+        memset(addr,0,size);
         LOG(MEM,DEBUG,(MEM,DEBUG," SequentialFitMemManager::alloc() addr: 0x%x (%d)",(unint4) addr, size));
         return (addr);
     } else {
@@ -284,6 +307,62 @@ void* SequentialFitMemManager::alloc( size_t size, bool aligned, unint4 align_va
 
     return (0);
 }
+
+#if MEM_CACHE_INHIBIT
+void* SequentialFitMemManager::alloci( size_t size, bool aligned, unint4 align_val ) {
+	if (this->Segment_Cache_Inhibit.getStartAddr() == 0)
+		return (alloc(size,aligned,align_val));
+
+
+	// initialization is done here as we are running in the right context
+		// and can access the correct memory region with VM
+		// this takes some performance per mem alloc, however this is much safer!
+		// be sure memory sement is never starting at 0!
+		// address 0 -> x shall be used to detect null pointers!
+		if (startIChunk == 0) {
+			startIChunk = (Chunk_Header*) ( (int) Segment_Cache_Inhibit.getStartAddr());
+			startIChunk = (Chunk_Header*) align( (byte*) startIChunk, ALIGN_VAL);
+
+	#if MEM_LAST_FIT == 1
+		    lastAllocatedIChunk = startIChunk;
+	#endif
+
+		    startIChunk->state = FREE;
+		    startIChunk->next_chunk = 0;
+		    startIChunk->prev_chunk = 0;
+		    startIChunk->size = Segment.getSize();
+
+		}
+
+		/* put some buffer between to avoid erroneous program access */
+		size = size + SAFETY_BUFFER;
+	#if MEM_LAST_FIT == 1
+		Chunk_Header* chunk =  getFittingChunk( size, aligned, align_val,lastAllocatedIChunk );
+	#else
+		 Chunk_Header* chunk =  getFittingChunk( size, aligned, align_val,startIChunk);
+	#endif
+
+	    void* addr = (void*) ((unint4) chunk + sizeof(Chunk_Header));
+
+	    ASSERT( !(( ((unint4)addr) & (align_val-1)) != 0));
+
+	    if ( chunk != 0) {
+	        split( chunk, size );
+	        lastAllocatedIChunk = chunk;
+	        memset(addr,0,size);
+	        LOG(MEM,DEBUG,(MEM,DEBUG," SequentialFitMemManager::alloci() addr: 0x%x (%d)",(unint4) addr, size));
+	        return (addr);
+	    } else {
+	        unint4 memused = this->Segment_Cache_Inhibit.getSize() - free_mem;
+	        LOG(MEM,ERROR,(MEM,ERROR,"SequentialFitMemManager::alloci() No more free memory..."));
+	        LOG(MEM,ERROR,(MEM,ERROR,"UsedMem: %d", memused));
+	        LOG(MEM,ERROR,(MEM,ERROR,"Overhead: %d", overhead));
+	    	return (0);
+	    }
+
+	    return (0);
+}
+#endif
 
 ErrorT SequentialFitMemManager::free( void* chunk ) {
 	LOG(MEM,DEBUG,(MEM,DEBUG,"SequentialFitMemManager::free() chunk: %x\r",(unint4) chunk));

@@ -32,6 +32,7 @@
 #define IPV4 0x800
 #define TCP 0x6
 
+
 #define LINEFEED "\r"
 #define orcos_string "         __           __          __             __           __ "LINEFEED"\
         /\\ \\         /\\ \\        /\\ \\           /\\ \\         / /\\ "LINEFEED"\
@@ -49,7 +50,7 @@
 
 const char* welcome_msg = orcos_string;
 
-#define MAX_COMMAND_HISTORY 10
+#define MAX_COMMAND_HISTORY 16
 
 // the current index inside the command history
 static char ci = 0;
@@ -280,7 +281,7 @@ void handleCommand(int socket, int command_length) {
 		history_count++;
 	}
 
-	memcpy(&command_history[ci][0],&command[0],command_length);
+	//memcpy(&command_history[ci][0],&command[0],command_length);
 	ci = (ci +1) % MAX_COMMAND_HISTORY;
 
 	// do a command str compare

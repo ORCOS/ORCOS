@@ -196,6 +196,8 @@ FUNC_START(abortIRQHandler)
 
 	MSR CPSR_c, #svc_mode|CPSR_DISINT	// switch to supervisor mode
 
+	LDR		sp, =__stack
+
 	// Read CP15 Data Fault Address Register and copy to r0
 	MRC p15,0,r0,c6,c0,0
 
@@ -221,10 +223,11 @@ undefinedIRQHandler:
  	mov		r2, sp
 	MSR CPSR_c, #undef_mode|CPSR_DISINT	// switch to supervisor mode
 
-	MOV	r0, lr
+	SUB	r0, lr, #4
 	MRS	r1, SPSR
 
 	MSR CPSR_c, #svc_mode|CPSR_DISINT	// switch to supervisor mode
+	LDR		sp, =__stack
 
 	b	FUNC_NAME(handleUndefinedIRQ)
 	nop
@@ -260,14 +263,19 @@ prefetchIRQHandler:
 	// fetch the instruction again..
 	// usually caused by a wrong branch prediction!
 
-	SUBS PC, LR, #4
+	MSR CPSR_c, #system_mode|CPSR_DISINT	// switch to supervisor mode
 
-	/*MOV	r1,lr
-	MSR CPSR_c, #svc_mode|CPSR_DISINT	// switch to supervisor mode
+	LDR		sp, =__stack - 0x200
+	stmfd   sp!, {r0-r12}
+ 	mov		r1, sp
 
-	AND	r1, sp, #7
-	SUB	sp, sp, r1						// be sure we are 8 bytes aligned!
+	MSR CPSR_c, #abort_mode|CPSR_DISINT	// switch to supervisor mode
+	SUB		r0,lr, #4
 
-	b	FUNC_NAME(handlePrefetchAbort)*/
+
+	MSR 	CPSR_c, #svc_mode|CPSR_DISINT	// switch to supervisor mode
+	LDR		sp, =__stack
+
+	b	FUNC_NAME(handlePrefetchAbort)
 
 

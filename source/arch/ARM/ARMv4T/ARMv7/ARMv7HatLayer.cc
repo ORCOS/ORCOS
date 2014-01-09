@@ -29,6 +29,9 @@ extern void* __stack;
 extern void* _irq_start;
 extern void* _swi_end;
 
+extern void* __cache_inihibit_start;
+extern void* __cache_inihibit_end;
+
 extern void* __PageTableSec_start;
 extern void* __PageTableSec_end;
 extern void* __MaxNumPts;
@@ -64,7 +67,7 @@ void* ARMv7HatLayer::map( void* logBaseAddr, void* physBaseAddr, size_t size, Bi
         bool cache_inhibit ) {
 
 	createPT(logBaseAddr, physBaseAddr, size, protection, zsel, pid, cache_inhibit, true);
-	return physBaseAddr;
+	return (physBaseAddr);
 }
 
 void* ARMv7HatLayer::map( void* phyBaseAddr, size_t size, BitmapT protection, byte zsel, int pid,  bool cache_inhibit ) {
@@ -99,12 +102,12 @@ void* ARMv7HatLayer::map( void* phyBaseAddr, size_t size, BitmapT protection, by
 		}
 	}
 
-	if (area_start == -1) return 0;
+	if (area_start == -1) return (0);
 
 	// else map this one
 
 	this->map((void*) area_start,phyBaseAddr,size,protection,zsel,pid,cache_inhibit);
-	return (void*) area_start;
+	return ((void*) area_start);
 
 }
 
@@ -114,13 +117,17 @@ void ARMv7HatLayer::mapKernel(BitmapT protection, int pid, bool nonGlobal) {
 	// TODO: this is architecture specific!
 	// get the values from the arch mk file!
 	// map page containing OMAP3630 ROM vectors
-	this->createPT( (void*) 0x0, (void*) 0x0, 0xFFFFF, protection, 0, pid, !ICACHE_ENABLE,  nonGlobal);
+	this->createPT( (void*) 0x0, (void*) 0x0, 0xFFFFF, protection, 0, pid, true,  nonGlobal);
 
 	// Just map first MB 1:1 starting at 0x80000000. Kernel text and data and interrupt routines lying here (see linker script)
-	this->createPT( (void*) &__LOADADDRESS, (void*) &__LOADADDRESS, (unint4 ) &__KERNELEND - (unint4) &__LOADADDRESS, protection, 0, pid, true, nonGlobal );
+	// this area may only contain cachable data!
+	this->createPT( (void*) &__LOADADDRESS, (void*) &__LOADADDRESS, (unint4 ) &__KERNELEND - (unint4) &__LOADADDRESS, protection, 0, pid, !ICACHE_ENABLE, nonGlobal );
+
+	// Create the page with non cachable data
+	this->createPT( (void*) &__cache_inihibit_start, (void*) &__cache_inihibit_start, (unint4 ) &__cache_inihibit_end - (unint4) &__cache_inihibit_start, protection, 0, pid, true, nonGlobal );
 
 	// 1:1 mapping of internal SRAM (interrupt vectors lying here) (64 kB)
-	this->createPT( (void*) 0x40200000, (void*) 0x40200000, 0xFFFF, protection, 0, pid, !ICACHE_ENABLE, nonGlobal );
+	this->createPT( (void*) 0x40200000, (void*) 0x40200000, 0xFFFF, protection, 0, pid, true, nonGlobal );
 
 	// 1:1 mapping of memory-mapped I/O (L4 core only) (16MB)
 	this->createPT( (void*) MMIO_START_ADDRESS, (void*) MMIO_START_ADDRESS, MMIO_AREA_LENGTH, 3, 0, pid, true, nonGlobal );
@@ -135,6 +142,7 @@ void ARMv7HatLayer::mapKernel(BitmapT protection, int pid, bool nonGlobal) {
 void* ARMv7HatLayer::createPT(void* logBaseAddr, void* physBaseAddr, size_t size, BitmapT protection, byte zsel, int pid,
         bool cache_inhibit, bool nonGlobal ) {
 	ARMv7PtEntry pte;
+	pte.Clear();
 	unint ptStartAddr = 0;
 
 	// set up page tables
@@ -180,19 +188,18 @@ void* ARMv7HatLayer::createPT(void* logBaseAddr, void* physBaseAddr, size_t size
 		// cache not completly functional this way ...
 		// process change causes data aborts.. need to further investigate
 		// if data cache needs to be flushed ..
-		// set l2 cache to write-back, write allocate
-		/*pte.setTex(0x5);
-		// set l1 cache to write-back, write allocate
-		pte.setCBit(0);
-		pte.setBBit(1);*/
+		// set l2 cache to write-through, no write allocate
+		pte.setTex(0x6);
+		// set l1 cache to write-through, no write allocate
+		// to be sure on task load that instructions are correctly fetched
+		pte.setCBit(1);
+		pte.setBBit(0);
 	}
 
 	// write descriptor to page table in memory (index depending on logBaseAddr)
 	// TODO make page table placement by the OS and get the address by task->getPageTable() method
 	// also change this in startThread!
-	ptStartAddr = (unint)&__PageTableSec_start + pid*0x4000;
-	//unint showaddr = ptStartAddr + (((unint)logBaseAddr >> 20) << 2);
-	//unint showdesc = pte.getDesc();
+	ptStartAddr = ((unint)&__PageTableSec_start) + pid*0x4000;
 
 	OUTW(ptStartAddr + (((unint)logBaseAddr >> 20) << 2) , pte.getDesc() );
 
@@ -214,9 +221,6 @@ ErrorT ARMv7HatLayer::unmap( void* logBaseAddr, unint1 tid ) {
 	// be sure we have the page address
 	unint4 logpageaddr = ((unint4) logBaseAddr) >> 20;
 
-	// get table entry
-	unint4 addr = logpageaddr * 4;
-
 	unint4 ptStartAddr = 0;
 
 	unint4 pid;
@@ -228,9 +232,7 @@ ErrorT ARMv7HatLayer::unmap( void* logBaseAddr, unint1 tid ) {
 
 	ptStartAddr = ((unint4)(&__PageTableSec_start)) + pid*0x4000;
 
-	addr = (ptStartAddr + addr);
-	// invalidate entry
-	*((unint4*)addr) = 0;
+	OUTW(ptStartAddr + (((unint)logBaseAddr >> 20) << 2) ,0 );
 
 	logpageaddr = (logpageaddr << 20) | pid;
 
@@ -246,11 +248,11 @@ ErrorT ARMv7HatLayer::unmap( void* logBaseAddr, unint1 tid ) {
 	"bx  r0;"
 	".code 16;"
 		:
-		: "r" (logpageaddr)
+		: "l" (logpageaddr)
 		: "r0"
 	);
 
-	return cOk;
+	return (cOk);
 }
 
 ErrorT ARMv7HatLayer::unmapAll(int pid) {
@@ -265,6 +267,11 @@ ErrorT ARMv7HatLayer::unmapAll(int pid) {
 		addr = (unint4*) (ptStartAddr + 4*t);
 		*addr = 0;
 	}
+
+	// be sure Kernel is mapped
+	mapKernel(7, pid, false);
+
+	unint4 asid = pid | pid << 8;
 
 	// invalidate tlb of asid
 	// invalidate tlb entry
@@ -281,11 +288,11 @@ ErrorT ARMv7HatLayer::unmapAll(int pid) {
 		"bx  r0;"
 		".code 16;"
 		:
-		: "r" (pid)
+		: "r" (asid)
 		:  "r0"
 	);
 
-	return cOk;
+	return (cOk);
 }
 
 ErrorT ARMv7HatLayer::enableHAT() {
@@ -334,7 +341,7 @@ ErrorT ARMv7HatLayer::enableHAT() {
 		: "r0","r1"
 	);
 
-	return cOk;
+	return (cOk);
 }
 
 ErrorT ARMv7HatLayer::disableHAT() {
@@ -385,7 +392,7 @@ void* ARMv7HatLayer::getLogicalAddress( void* physAddr ) {
 	}
 
 	// no address found..
-	if ( t == 4096) return 0;
+	if ( t == 4096) return (0);
 
 	logAddr = (unint*) ((t << 20) * 4);
     return ((void*)(logAddr + (((unint)physAddr << 12) >> 12)));

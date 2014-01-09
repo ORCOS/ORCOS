@@ -32,6 +32,8 @@
 #define KB * 0x400
 
 
+#define ATTR_CACHE_INHIBIT __attribute__((section (".cache_inhibit")))
+
 typedef unsigned int size_t;
 
 /*!
@@ -210,17 +212,24 @@ typedef struct packet_layer {
  *
  * This structure is used to read informations written by the linker about
  * the initial tasks linked into the binary file.
+ *
+ * logical == virtual (if MMU enabled), physical otherwise
  */
 typedef struct {
 	unint4 task_magic_word;   	// needs to be 0x230f7ae9
     unint4 task_next_header;	// defines the following task header field
     unint4 platform;			// platform identifier, see platform defines
-    long task_start_addr;   	// physical start address
+
+    long task_start;   			// logical task start address
+    //long task_text_end;   	// logical text end address
+
     long task_entry_addr;   	// logical entry function address
-    long task_heap_start;   	// physical heap start address
-    long task_heap_end;     	// first physical addr that doesnt!! belong to this heap
-    long task_data_end;     	// the first logical address that is no data of the task any more (.text | .data  | .bss ...)
     long task_thread_exit_addr; // logical addr of the thread_exit method inside the task
+
+    long task_heap_start;   	// logical data start address
+    long task_end;     			// logical task end address
+  //  long task_heap;     		// the first logical address that is no data of the task any more (.data  | .bss ...) == heap start
+
     thread_attr_t initial_thread_attr; 	// attributes of the initial thread
 } taskTable;
 

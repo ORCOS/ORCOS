@@ -30,6 +30,7 @@
 #include Board_InterruptController_hh
 #include Board_Timer_hh
 #include Board_Clock_hh
+#include Board_Cache_hh
 #include Board_USB_HC_hh
 #include Board_GPIO1_hh
 #include Board_GPIO2_hh
@@ -936,6 +937,7 @@ class BeagleBoardxM {
     DEF_Board_GPIO6Cfd
     DEF_Board_InterruptControllerCfd
     DEF_Board_TimerCfd
+    DEF_Board_CacheCfd
     DEF_Board_ClockCfd
     DEF_Board_USB_HCCfd
     DEF_Board_DSSCfd

@@ -47,6 +47,9 @@ extern void* __PageTableSec_start;
 /*
  * \brief Gets the current top return context stack pointer of Thread t into sp_int
  *
+ *TODO: we need to be sure this is the stack address the context from user space was
+ * 		saved at.. this will not work with nested interrupts otherwise!
+ *
  * sp_int: The return stack pointer
  * t	 : The Thread
  **/
@@ -419,5 +422,6 @@ namespace assembler {
  *
  */
 extern "C" void restoreContext(Thread* t);
+
 }
 #endif

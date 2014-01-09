@@ -89,4 +89,7 @@ extern "C"int fgetc(int stream) {
     return syscall(cFGetcSysCallId,stream);
 }
 
+extern "C" int fstat(int fd, stat_t* stat) {
+    return syscall(cFStatId,fd,stat);
+}
 

@@ -104,7 +104,7 @@ void Kernel::initialize() {
     /* Set the idlethread of the cpudispatcher
      * This can be extended by new idelthreads which do e.g. memory cleanup operations
      */
-    this->cpuManager->setIdleThread( new IdleThread( ) );
+    //this->cpuManager->setIdleThread( new IdleThread( ) );
 
 #if USB_SUPPORT_ENABLED
     USBDevice::initialize();
@@ -133,6 +133,10 @@ void Kernel::initialize() {
     fileManager->registerResource(procDir);
 #endif
 
+#if HAS_Kernel_LoggerCfd
+    LoggerCfd = new NEW_Kernel_LoggerCfd;
+#endif
+
     /* Initialize the Internet Protocol Stack */
    // lwip_init();
 
@@ -143,10 +147,6 @@ void Kernel::initialize() {
     /* initialize protocol pool here since it depends on the device drivers
        all commdevices need to be created before the protocol pool is created */
   //  protopool = new ProtocolPool( );
-
-#if HAS_Kernel_LoggerCfd
-    LoggerCfd = new NEW_Kernel_LoggerCfd;
-#endif
 
 
     LOG(KERNEL,INFO,(KERNEL,INFO,"Initialized Device Driver"));

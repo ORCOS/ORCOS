@@ -29,7 +29,7 @@ IdleThread::IdleThread() {
 IdleThread::~IdleThread() {
 }
 
-void IdleThread::run() {
+void IdleThread::run( ) {
 
 	// reset the stack pointer to the context address since we don't want to waste memory
 	// and cant access the stack from the previous thread

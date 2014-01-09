@@ -32,6 +32,12 @@ Kernel* theOS = 0;
 extern void* _heap_start;
 extern void* _heap_end;
 
+// heap_start and heap_end address used to clear the memory
+#if MEM_CACHE_INHIBIT
+extern void* _heapi_start;
+extern void* _heapi_end;
+#endif
+
 void abort() {
  for (;;) {};
 }
@@ -64,9 +70,16 @@ extern "C"void kernelmain()
 
     theOS = 0;
 
+#if MEM_CACHE_INHIBIT
+    Kernel_MemoryManagerCfdCl* memMan = new(&_heap_start)
+    		Kernel_MemoryManagerCfdCl(&_heap_start  +  sizeof(Kernel_MemoryManagerCfdCl) ,
+    								  &_heap_end,
+    								  &_heapi_start,
+    								  &_heapi_end);
+#else
     // create MM working directly with the real physical addresses
     Kernel_MemoryManagerCfdCl* memMan = new(&_heap_start) Kernel_MemoryManagerCfdCl(&_heap_start  +  sizeof(Kernel_MemoryManagerCfdCl) ,&_heap_end);
-
+#endif
     // use the MM at its logical address for creating the kernel object
     theOS = (Kernel*) memMan->alloc(sizeof(Kernel)+ 16);
     theOS->setMemoryManager(memMan);

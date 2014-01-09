@@ -28,6 +28,9 @@
 //forward declaration of configured Threadtype
 class Kernel_ThreadCfdCl;
 
+#if !MEM_CACHE_INHIBIT
+#define alloci alloc
+#endif
 
 /*!
  * \ingroup memmanager
@@ -44,6 +47,10 @@ protected:
     //! the memory segment to be managed
     MemResource Segment;
 
+#if MEM_CACHE_INHIBIT
+    MemResource Segment_Cache_Inhibit;
+#endif
+
 public:
 
     /*!
@@ -54,8 +61,23 @@ public:
     MemManager(void* saddr, void* eaddr) {
         Segment.startAddr = saddr;
         Segment.memSegSize = (byte*)eaddr - (byte*)saddr;
-        //SegCfd = new(physaddr) MemoryManager_SegCfdCl((byte*)saddr , (byte*)eaddr - (byte*)saddr);
+
+#if MEM_CACHE_INHIBIT
+        Segment_Cache_Inhibit.startAddr = 0;
+        Segment_Cache_Inhibit.memSegSize = 0;
+#endif
     }
+
+#if MEM_CACHE_INHIBIT
+    MemManager(void* saddr, void* eaddr, void* isaddr, void* ieaddr) {
+           Segment.startAddr = saddr;
+           Segment.memSegSize = (byte*)eaddr - (byte*)saddr;
+
+           Segment_Cache_Inhibit.startAddr = isaddr;
+           Segment_Cache_Inhibit.memSegSize = (byte*)ieaddr - (byte*)isaddr;
+       }
+#endif
+
 
     //! new-Operator for Memory Managers, to place it directly at an desired address
     void* operator new(size_t s,void* addr)

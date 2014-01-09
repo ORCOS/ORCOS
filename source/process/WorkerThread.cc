@@ -92,7 +92,7 @@ void WorkerThread::work() {
         // communication device may now throw interrupts again
         comm_dev->enableIRQ();
     }
-    else if ( jobid == TimedFunctionCallJob ) {
+    else if ( (jobid == TimedFunctionCallJob) ) {
         TimedFunctionCall* funcCall = (TimedFunctionCall*) param;
         // call the callbackFunction of that object
         ( funcCall->objectptr )->callbackFunc( funcCall->parameterptr );

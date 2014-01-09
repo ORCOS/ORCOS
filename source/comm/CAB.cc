@@ -100,9 +100,9 @@ ErrorT CAB::store( char* pmsg, int msglen ) {
     unint4 phypage = (((unint4)bufferstart_physical) >> 20) << 20;
     unint4 offset = (unint4)bufferstart_physical - (unint4)phypage;
 
-    void* realPage = theOS->getHatLayer()->map((void*) 0x2000000,(void*) phypage, 0x200000-1 ,7,3,pid, !ICACHE_ENABLE);
+    void* realPage = theOS->getHatLayer()->map((void*) 0x7000000,(void*) phypage, 0x700000-1 ,7,3,pid, !ICACHE_ENABLE);
 
-    dest = ((unint4) 0x2000000 + offset + this->free * this->dim_buf);
+    dest = ((unint4) 0x7000000 + offset + this->free * this->dim_buf);
 
     void* dest_phy = theOS->getHatLayer()->getPhysicalAddress( (void*) dest);
 
@@ -119,8 +119,8 @@ ErrorT CAB::store( char* pmsg, int msglen ) {
     memcpy( (void*) ( dest +  4 ), (void*) pmsg, msglen );
 
 #ifdef HAS_Board_HatLayerCfd
-    theOS->getHatLayer()->unmap((void*) 0x2000000);
-    theOS->getHatLayer()->unmap((void*) 0x2100000);
+    theOS->getHatLayer()->unmap((void*) 0x7000000);
+    theOS->getHatLayer()->unmap((void*) 0x7100000);
 #endif
     if ( int_enabled ) {
                _enableInterrupts();

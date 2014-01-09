@@ -45,5 +45,19 @@ void kwait(int milliseconds) {
 }
 
 
+void kwait_us(int us) {
+	/* check if we have a board and clock
+	   if not we are probably initializing them */
+	if ((theOS == 0) || (theOS->board == 0) || (theOS->getClock() == 0)) {
+		/* fallback if the clock is not set */
+		volatile unint4 i = 0;  /* volatile so this is not optimized out  */
+		while ( i < 10000) i++;
+	} else {
+		volatile unint8 now = theOS->getClock()->getTimeSinceStartup();
+		// TODO: make portable by define
+		while (theOS->getClock()->getTimeSinceStartup() < (now + (us >> 5) + 1)) {};
+	}
+
+}
 
 

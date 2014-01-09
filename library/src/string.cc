@@ -220,6 +220,9 @@ static char tmp[256];
 
 int printf( char *format, ... )
 {
+	for (int i = 0; i < 256; i++)
+		tmp[i] = 0;
+
     char* out = tmp;
 
     va_list args;

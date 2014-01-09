@@ -26,7 +26,6 @@
 extern Kernel* theOS;
 extern "C" void restoreContext(Thread*  t)  __attribute__((noreturn));
 extern "C" void dumpContext(void* sp_context);
-extern bool		processChanged;
 
 /*!
  * Restores the context of a given thread saved at sp.
@@ -55,33 +54,30 @@ extern "C" void restoreContext(Thread*  t)
     TaskIdT pid = t->getOwner()->getId();
 
 #if HAS_Board_HatLayerCfd
-    // if the process changed we MUST invalidate the instruction cache as we do not have
-    // support for fast context switching extension yet
-    if (processChanged) {
-    	LOG(HAL,TRACE,(HAL,TRACE,"flushing instruction cache!"));
+#if ENABLE_BRANCH_PREDICTION
+    	/*
+    	 * On Context Restore we must invalidate the branch prediction array as
+    	 * otherwise we may get invalid instruction aborts..
+    	 */
+    	LOG(HAL,TRACE,(HAL,TRACE,"flushing branch prediction array!"));
     	asm volatile(
-			"MOV r0, #0;"
-    		"MCR p15, 0, r0, c7 , c5, 0;" 	// invalidate whole instruction cache
+    		"MCR p15, 0, r0, c7 , c5, 6;" 	// invalidate whole branch predictor array
 			:
 			:
 			: "r0"
     		);
-    }
+#endif
 #endif
 
     // indicate no process change from now on until
     // we really dispatch to avoid instruction cache to be flushed again
 
-    LOG(HAL,DEBUG,(HAL,DEBUG,"Restore Context: t: %x, sp@ 0x%x, mode:%d" , t,sp, mode));
-
-    processChanged = false;
+    LOG(HAL,TRACE,(HAL,TRACE,"Restore Context: t: %x, sp@ 0x%x, mode:%x" , t,sp, mode));
 
 #if HAS_Board_HatLayerCfd
-	ptStartAddr = (void*) ((unint)&__PageTableSec_start + pid*0x4000);
+	ptStartAddr = (void*) (((unint)&__PageTableSec_start) + pid*0x4000);
 #endif
 
-    // allow new interrupts to happen
-    OUTW(MPU_INTCPS_CONTROL, 0x1);
 
 	asm volatile(
 		// thumb to arm mode code
@@ -98,16 +94,22 @@ extern "C" void restoreContext(Thread*  t)
 		"MOV r2, #0x0;"
 		"ORR r1, r1, %2, lsl #8;"
 		"MCR p15, 0, r1, c13, c0, 1;"	// set ASID and PROCID field of CONTEXTIDR register
+		//"ISB;"
 		"MCR p15, 0, r2, c7, c5, 4;"	// Ensure completion of the CP15 write (ISB not working)
 		"MCR p15, 0, %1, c2, c0, 0;"	// set TBBR0
+		//"ISB;"
 		"MCR p15, 0, r2, c7, c5, 4;"	// Ensure completion of the CP15 write (ISB not working)
 
 #endif
+		"LDR	sp, =__stack - 0x20;" // temporary accessible stack position for jump to task
+
 		"MOV r0, %0;"
 		"MOV r1, %3;"	// set restore context mode
+
 		/*"push {r0-r3};"
 		"bl  dumpContext;"
 		"pop  {r0-r3};"*/
+
 		"b 	 restoreThreadContext;"
 		:
 		: "r" (sp), "r" (ptStartAddr), "r" (pid) ,"r" (mode)
@@ -118,3 +120,5 @@ extern "C" void restoreContext(Thread*  t)
 
     while(1);
 }
+
+

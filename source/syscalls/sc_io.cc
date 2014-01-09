@@ -346,3 +346,29 @@ int freadSyscall( int4 int_sp ) {
 }
 #endif
 
+
+int fstatSyscall( int4 int_sp ) {
+
+	ResourceIdT file_id;
+	stat_t* stat;
+    Resource* res;
+
+    SYSCALLGETPARAMS2(int_sp,file_id,stat);
+    VALIDATE_IN_PROCESS(stat);
+
+    LOG(SYSCALLS,DEBUG,(SYSCALLS,DEBUG,"Syscall: fstat(%d)",file_id));
+
+    res = pCurrentRunningTask->getOwnedResourceById( file_id );
+    if ( res != 0 ) {
+
+    	stat->st_size = 0;
+    	if (res->getType() & cFile) {
+    		stat->st_size =  ((File*) res)->getFileSize();
+    	}
+
+       return (cOk);
+    }
+
+    return (cResourceNotOwned);
+}
+

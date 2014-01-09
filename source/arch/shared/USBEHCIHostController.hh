@@ -377,7 +377,11 @@ public:
   USBDeviceDriver		*driver;
 
   // activates the endpoint and creates a queue head for async transfer
-  ErrorT activateEndpoint(int num);
+  /*
+   * If QH or qtd is given it will be used instead.
+   *
+   */
+  ErrorT activateEndpoint(int num, QH* qh = 0, qTD* qtd = 0);
 
   // deactivates the device and stops all transfers
   ErrorT deactivate();

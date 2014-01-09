@@ -102,6 +102,10 @@ private:
     //! Pointer to the first memory chunk in the linked list
     Chunk_Header* startChunk;
 
+#if MEM_CACHE_INHIBIT
+    Chunk_Header* startIChunk;
+#endif
+
     unint4 free_mem;
 
     unint4 overhead;
@@ -157,11 +161,16 @@ private:
      * The chunk is chosen according to the configured placement policy (which can be configured by the user using SCL).
      *
      */
-    Chunk_Header* getFittingChunk( size_t, bool, unint4 );
+    Chunk_Header* getFittingChunk( size_t, bool, unint4, Chunk_Header* );
 
 #if MEM_LAST_FIT == 1
     //! Pointer to the memory chunk which has been lastly allocated - only used for NextFit-Policy
     Chunk_Header* lastAllocatedChunk;
+
+	#if MEM_CACHE_INHIBIT
+		Chunk_Header* lastAllocatedIChunk;
+	#endif
+
 #endif
 protected:
 
@@ -176,6 +185,10 @@ public:
      */
     SequentialFitMemManager( void* startAddr, void* endAddr);
 
+#if MEM_CACHE_INHIBIT
+    SequentialFitMemManager( void* startAddr, void* endAddr, void* istartAddr, void* iendAddr);
+#endif
+
     /*!
      * \brief allocates memory of given size from the managed memory segment
      *
@@ -186,6 +199,13 @@ public:
      * After that a split operation is performed by calling the split method on the allocated chunk: the chunk is divided into two chunks (if possible)
      */
     void* alloc( size_t, bool = true, unint4 align_val = ALIGN_VAL);
+
+#if MEM_CACHE_INHIBIT
+    /*!
+     *Allows allocation inside the Cache Inhibit data section
+     */
+    void* alloci( size_t, bool = true, unint4 align_val = ALIGN_VAL);
+#endif
 
     /*!
      * \brief releases allocated memory

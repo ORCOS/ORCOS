@@ -21,19 +21,23 @@
 
 char* extractNextArg(char* &str) {
 
-	while (str[0] == ' ') str++;
+	while (*str == ' ') {
+		*str = 0;
+		str++;
+	}
 
-	if (str[0] == '"') {
-		str = &str[1];
+	if (*str == '"') {
+		*str = 0;
+		str++;
 		int len = strpos("\"",str);
 		if (len < 0) return (0);
 		str[len] = 0;
 		return (&str[len+1]);
 	}
 
+	// first char != 0 & != '"'
 	int len = strpos(" ",str);
 	if (len < 0) {
-		len = strlen(str);
 		return (0);
 	}
 
@@ -54,17 +58,15 @@ int parseArgs(char* str, char** &argv) {
 		curstr = extractNextArg(curstr);
 	}
 
+	argv = (char**) malloc(sizeof(char*) * (arg_count+2));
+	for (int i = 0; i < arg_count+2; i++)
+		argv[i] = 0;
 
-	argv = (char**) malloc(sizeof(char*) * (arg_count+1));
-	argv[0] = str;
 	char* pos = str;
-
-	for (int i = 1; i <= arg_count; i++) {
-		while (*pos != 0) pos++;
-
-		pos++;
+	for (int i = 0; i < arg_count; i++) {
+		while (*pos == 0) pos++;
 		argv[i] = pos;
-
+		while (*pos != 0) pos++;
 	}
 
 	return (arg_count+1);
@@ -113,8 +115,10 @@ extern "C" int task_main(char* args)
 	char** argv;
 	int argc = parseArgs(args,argv);
 
+	printf("args %d:\r",argc);
+
 	for (int i = 0; i < argc; i++) {
-		printf("arg %d: %s\r",i,argv[i]);
+		printf("argv[%d] = 0x%x\r",i, (unint4) argv[i]);
 	}
 
 

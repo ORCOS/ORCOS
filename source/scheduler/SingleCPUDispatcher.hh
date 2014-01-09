@@ -23,6 +23,7 @@
 #include "db/LinkedListDatabase.hh"
 #include "process/Task.hh"
 #include Kernel_Scheduler_hh
+#include "process/WorkerThread.hh"
 
 /*!
  * \brief Class managing the execution of threads on a single cpu.
@@ -61,11 +62,10 @@ private    :
     LinkedListDatabase* waitList;
 #endif
 
-    //! The idle Thread
-    IdleThread* idleThread;
-
     //! The shortest sleeptime of all threads currently at sleep
     unint4 shortest_sleepcycles;
+
+    IdleThread* idleThread;
 
 public:
     SingleCPUDispatcher();
@@ -79,12 +79,8 @@ public:
     //! Returns the current number of elements in the dispatchers sleepList
     unint getSizeOfSleepList() {return (sleepList->getSize());}
 
-    //! Set the idleThread of this CPU
-    inline
-    void setIdleThread(IdleThread* idleT)   {   idleThread = idleT;};
 
-    inline
-    LinkedListDatabase* getSleeplist() {   return (this->sleepList);}
+    inline LinkedListDatabase* getSleeplist() {   return (this->sleepList);}
 
     /*!
      * \brief The dispatch function triggered by the TimerDevice on timer interrupt

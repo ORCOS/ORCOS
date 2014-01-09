@@ -73,6 +73,7 @@ Task::~Task() {
 	delete this->myTaskDbItem;
 
 	delete this->memManager;
+
 }
 
 
@@ -164,8 +165,15 @@ void Task::terminate()
 	 }
 
 #ifdef HAS_Board_HatLayerCfd
-	 if (pCurrentRunningTask != this)
-      theOS->getHatLayer()->unmapAll(this->getId());
+	 /* We may only unmap the entries of the task
+	  * if we are not executing in its address space..
+	  * The Kernel code would be unaccessible then. We may also
+	  * be running on the tasks stack..
+	  **/
+	 /*if (pCurrentRunningTask != this)
+		 theOS->getHatLayer()->unmap((void*)this->tasktable->task_start_addr,this->getId());*/
+      //theOS->getHatLayer()->unmapAll(this->getId());
+
 #endif
 
 }
