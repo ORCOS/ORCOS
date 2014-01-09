@@ -14,4 +14,4 @@ ARCH_VPATH = $(KERNEL_DIR)arch/Atmel/ $(KERNEL_DIR)arch/Atmel/ATMEGA328/ $(KERNE
 #Where to look for header files in the architecture directories.
 ARCH_INCLUDES = -I$(KERNEL_DIR)arch/Atmel/ -I$(KERNEL_DIR)arch/Atmel/ATMEGA328/ -I$(KERNEL_DIR)arch/Atmel/ATMEGA328/RN-MicroFunk/
 
-UIMAGE_ARCH=atmega
+UIMAGE_ARCH=avr32

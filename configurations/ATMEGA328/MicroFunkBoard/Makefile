@@ -9,11 +9,12 @@ RELATIVE_SOURCE_PATH = ../../..
 #                                                      Tools Settings
 #---------------------------------------------------------------------------------------------------------------------------------------
 #GCC SETTINGS
-GCC_VERSION=4.8.1
-GCC_DIR=/usr/local/CrossPack-AVR/bin/
+GCC_VERSION=4.7.2
+#GCC_DIR=/usr/local/CrossPack-AVR/bin/
+GCC_DIR=/cygdrive/c/avr-gcc-4.7.2-mingw32/bin/
 
 # for windows we must specify the ld directory with absolute path 
-GCC_LIB_DIR=/usr/local/CrossPack-AVR/lib/gcc/avr/4.8.1/
+GCC_LIB_DIR=C:/avr-gcc-4.7.2-mingw32/lib/gcc/avr/4.7.2/
 #C:/gcc-arm-none-eabi/lib/gcc/arm-none-eabi/$(GCC_VERSION)/armv7-ar/thumb/
 LIBC_DIR=. 
 #C:/gcc-arm-none-eabi/arm-none-eabi/lib/armv7-ar/thumb/
@@ -60,7 +61,7 @@ MODULES_DIR = ./modules/
 LINKERSCRIPT = $(ARCH_DIR)/kernel.ld   
 
 # if thumb mode is activated set this define to 1!
-CPU_FLAGS =  -I/usr/local/CrossPack-AVR/avr/include
+CPU_FLAGS =  -I/cygdrive/c/avr-gcc-4.7.2-mingw32/avr/include/
  
 #Optimization flag
 OPT_FLAGS = -Os -mmcu=atmega328
