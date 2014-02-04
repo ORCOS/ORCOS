@@ -41,7 +41,7 @@
 class LinearMemManager: public MemManager {
 private:
     //! Pointer to the beginning of the free memory space of the managed memory segment
-    byte* FreeHeadPtr;
+	char* FreeHeadPtr;
 
 public:
 
@@ -53,7 +53,7 @@ public:
      */
     LinearMemManager( void* startAddr, void* endAddr) :
         MemManager( startAddr, endAddr ) {
-        FreeHeadPtr = (byte*) Segment.getStartAddr();
+        FreeHeadPtr = (char*) Segment.getStartAddr();
     }
 
     /*!

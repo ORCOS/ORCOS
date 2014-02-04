@@ -68,25 +68,37 @@ extern TimeT       lastCycleStamp;
  */
 void thread_exitSyscall(int4 sp_int);
 
+#ifdef HAS_SyscallManager_thread_waitCfd
 int thread_wait(int4 sp_int);
+#endif
 
+#ifdef HAS_SyscallManager_task_waitCfd
 int task_wait(int4 sp_int);
+#endif
 
 int printToStdOut(int4 sp_int );
 
+#ifdef HAS_SyscallManager_ioctlCfd
 int ioctl(int4 sp_int);
-
-int mallocp(int4 sp_int);
+#endif
 
 int getTime(int4 sp_int);
 
+#ifdef HAS_SyscallManager_mapMemoryCfd
 int mapMemory(int4 sp_int);
+#endif
 
+#ifdef HAS_SyscallManager_task_runCfd
 int runTask(int4 sp_int);
+#endif
 
+#ifdef HAS_SyscallManager_task_killCfd
 int task_killSyscall(int4 sp_int);
+#endif
 
+#ifdef HAS_SyscallManager_shm_mapCfd
 int shm_mapSyscall(int4 sp_int);
+#endif
 
 #ifdef HAS_SyscallManager_task_stopCfd
     int task_stopSyscall(int4 int_sp);
@@ -152,7 +164,9 @@ int shm_mapSyscall(int4 sp_int);
     int freadSyscall( int4 int_sp );
 #endif
 
+#ifdef HAS_SyscallManager_fstatCfd
     int fstatSyscall( int4 int_sp );
+#endif
 
 #ifdef HAS_SyscallManager_newCfd
     int newSyscall( int4 int_sp );
@@ -319,37 +333,37 @@ inline void handleSyscall(int4 sp_int) {
                 break;
     #endif
 
-    #ifdef HAS_SyscallManager_socketCfd
+    #if HAS_SyscallManager_socketCfd  && ENABLE_NETWORKING
 			case cSocketSyscallId:
 				retval = socketSyscall( sp_int );
 				break;
     #endif
 
-	#ifdef HAS_SyscallManager_connectCfd
+	#if HAS_SyscallManager_connectCfd  && ENABLE_NETWORKING
 		   case cConnectSyscallId:
 			   retval = connectSyscall( sp_int );
 			   break;
     #endif
 
-	#ifdef HAS_SyscallManager_listenCfd
+	#if HAS_SyscallManager_listenCfd  && ENABLE_NETWORKING
            case cListenSyscallId:
 			   retval = listenSyscall( sp_int );
 			   break;
 	#endif
 
-    #ifdef HAS_SyscallManager_bindCfd
+    #if HAS_SyscallManager_bindCfd  && ENABLE_NETWORKING
 			case cBindSyscallId:
 				retval = bindSyscall( sp_int );
 				break;
     #endif
 
-    #ifdef HAS_SyscallManager_sendtoCfd
+    #if HAS_SyscallManager_sendtoCfd  && ENABLE_NETWORKING
 			case cSendtoSyscallId:
 				retval = sendtoSyscall( sp_int );
 				break;
     #endif
 
-    #ifdef HAS_SyscallManager_recvCfd
+    #if HAS_SyscallManager_recvCfd && ENABLE_NETWORKING
 			case cRecvFromSyscallId:
 				retval = recvSyscall( sp_int );
 				break;
@@ -359,46 +373,49 @@ inline void handleSyscall(int4 sp_int) {
 				retval = printToStdOut( sp_int );
 				break;
 
-			case cNewProtSysCallId:
-				retval = cError;
-				break;
-
 			case cGetTimeSyscallId:
 				retval = getTime(sp_int);
 				break;
 
+	#ifdef HAS_SyscallManager_mapMemoryCfd
 			case cMapMemorySyscallId:
 				retval = mapMemory(sp_int);
 				break;
-
+	#endif
 			case cModuleReturnId:
 				((Module*) pCurrentRunningTask)->moduleReturn();
 				break;
 
+	#ifdef HAS_SyscallManager_task_runCfd
 			case cRunTaskId:
 				runTask(sp_int);
 				break;
-
+	#endif
+	#ifdef HAS_SyscallManager_task_killCfd
 			case cTask_KillSysCallId:
 				retval = task_killSyscall(sp_int);
 				break;
-
+	#endif
+	#ifdef HAS_SyscallManager_shm_mapCfd
 			case cShmMapId:
 				retval = shm_mapSyscall(sp_int);
 				break;
-
+	#endif
+	#ifdef HAS_SyscallManager_ioctlCfd
 			case cIOControl:
 				retval = ioctl(sp_int);
 				break;
-
+	#endif
+	#ifdef HAS_SyscallManager_thread_waitCfd
 			case cThread_WaitPID:
 				retval = thread_wait(sp_int);
 				break;
-
+	#endif
+	#ifdef HAS_SyscallManager_fstatCfd
 			case cFStatId:
 				retval = fstatSyscall(sp_int);
 				break;
-
+	#endif
 			default:
 				LOG(SYSCALLS,ERROR,(SYSCALLS,ERROR,"invalid syscall %d",syscallnum));
 				retval = -1;

@@ -516,8 +516,59 @@ public class SCLReader {
 	 */
 	private static void processDefineNode(Element defineNode,
 			StringBuffer outBuffer) {
+		
 		outBuffer.append("\r\n#define " + defineNode.getChildText("Name") + " "
 				+ defineNode.getChildText("Value") + "\r\n");
+		
+		if (defineNode.getChildText("Name").equals("ENABLE_NETWORKING") && defineNode.getChildText("Value").equals("1"))
+		{
+			// add networking objects
+			arch_objects.add("Socket.o");
+			arch_objects.add("ProtocolPool.o");
+			arch_objects.add("TCPTransportProtocol.o");
+			arch_objects.add("IPv4AddressProtocol.o");
+			arch_objects.add("etharp.o");
+			arch_objects.add("ip.o");
+			arch_objects.add("init.o");
+			arch_objects.add("mem.o");
+			arch_objects.add("memp.o");
+			arch_objects.add("pbuf.o");
+			arch_objects.add("netif.o");
+			arch_objects.add("udp.o");
+			arch_objects.add("tcp.o");
+			arch_objects.add("sys.o");
+			arch_objects.add("inet.o");
+			arch_objects.add("ethernet.o");
+			arch_objects.add("ip4_addr.o");
+			arch_objects.add("ip4.o");
+			arch_objects.add("ip4_frag.o");
+			arch_objects.add("tcp_in.o");
+			arch_objects.add("tcp_out.o");
+			arch_objects.add("stats.o");
+			arch_objects.add("icmp.o");
+			arch_objects.add("ip6_addr.o");
+			arch_objects.add("ip6.o");
+			arch_objects.add("dhcp.o");
+			arch_objects.add("icmp.o");
+			arch_objects.add("icmp6.o");
+			arch_objects.add("ethar.o");
+			arch_objects.add("ethndp.o");
+			arch_objects.add("lwipTMR.o");		
+			arch_objects.add("CAB.o");		
+		}
+		
+		// add workertask files
+		if (defineNode.getChildText("Name").equals("USE_WORKERTASK") && defineNode.getChildText("Value").equals("1"))
+		{
+			arch_objects.add("WorkerThread.o");
+			arch_objects.add("WorkerTask.o");		
+		}
+		if (defineNode.getChildText("Name").equals("HAS_PROCFS_ENABLED") && defineNode.getChildText("Value").equals("1"))
+		{
+			arch_objects.add("SimpleDebugCollector.o");
+			arch_objects.add("SimpleProcfs.o");	
+		}
+		
 	}
 
 	/**
@@ -739,6 +790,31 @@ public class SCLReader {
 					}
 					
 				}
+			}
+			
+			if (!isNone && !className.equals("SyscallManager")){
+				// this class is configured so we must compile it
+				if (!memberClassFileName.contains("Dummy")) {
+					arch_objects.add(memberClassFileName + ".o");	
+				}
+			}
+			
+			
+			if (superClassName.contains("usb/")){			
+				if (!isNone ){					
+					arch_objects.add("USBDriverLibrary.o");	
+				}
+			}
+			
+			
+			if (className.equals("Kernel") && !isNone) {
+								
+				if (memberName.equals("Thread")) {
+					if (memberClassFileName.contains("RealTimeThread"))
+						arch_objects.add("PriorityThread.o");
+					
+				}
+				
 			}
 			
 			//Element deviceNode = memberNode.getChild("Device");

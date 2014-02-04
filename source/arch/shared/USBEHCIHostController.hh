@@ -126,7 +126,7 @@
 /* Queue Element Transfer Descriptor (qTD). */
 typedef struct {
 	/* this part defined by EHCI spec */
-	unint4 qt_next;			/* see EHCI 3.5.1 */
+	unint4 qt_next;				/* see EHCI 3.5.1 */
 
 	unint4 qt_altnext;			/* see EHCI 3.5.2 */
 	unint4 qt_token;			/* see EHCI 3.5.3 */
@@ -135,7 +135,7 @@ typedef struct {
 	unint4 qt_buffer_hi[QT_BUFFER_CNT];	/* Appendix B */
 	/* pad struct for 32 byte alignment */
 	unint4 unused[3];
-} qTD;
+} qTD __attribute__((aligned(4)));
 
 #define	QH_LINK_TERMINATE	1
 #define	QH_LINK_TYPE_ITD	0

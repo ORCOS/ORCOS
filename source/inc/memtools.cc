@@ -74,7 +74,7 @@ void* memsetlong( void* ptr, int c, size_t n ) {
     return (save);
 }
 
-#if 0
+#if 1
 void makeHexCharCompatible(char* msg, int len) {
 	for (int i= 0; i < len; i++) {
 		if (msg[i] < 32)  msg[i] = '.';

@@ -29,7 +29,7 @@ typedef struct Chunk_Header {
 	Chunk_Header *prev_chunk;
 	Chunk_Header *next_chunk;
 	unint1 state : 1;
-	unint4 size : (sizeof(unint4)-1);
+	unint4 size  : 31; //(sizeof(unint4)-1);
 } __attribute__((packed)) Chunk_Header;
 
 // possible States of a memory chunk
@@ -43,7 +43,7 @@ typedef struct Chunk_Header {
 #define SAFETY_BUFFER 0x0
 
 // size of the Chunk Header
-#define SZ_HEADER 16
+//#define SZ_HEADER 16
 // Minimum payload needed for a chunk when splitting
 #define MINIMUM_PAYLOAD 0x20
 

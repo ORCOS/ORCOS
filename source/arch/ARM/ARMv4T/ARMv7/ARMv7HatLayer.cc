@@ -394,7 +394,7 @@ void* ARMv7HatLayer::getLogicalAddress( void* physAddr ) {
 	// no address found..
 	if ( t == 4096) return (0);
 
-	logAddr = (unint*) ((t << 20) * 4);
+	logAddr = (unint4*) ((t << 20) * 4);
     return ((void*)(logAddr + (((unint)physAddr << 12) >> 12)));
 }
 

@@ -12,17 +12,18 @@
 extern void* __KERNELEND;
 extern void* __RAM_END;
 extern void* __RAM_START;
+
 #if MEM_CACHE_INHIBIT
 extern void* __cache_inihibit_end;
 #endif
 
 // check PAGESIZE define
 #ifndef PAGESIZE
-#error "PAGESIZE must be defined by the taget architecture. Usually inside the HAT-Layer Implementation if existend."
+#error "PAGESIZE must be defined by the target architecture. Usually inside the HAT-Layer Implementation if existend."
 #endif
 
 #ifndef RAM_SIZE
-#error "RAMSIZE must be defined by the taget architecture."
+#error "RAMSIZE must be defined by the target architecture."
 #endif
 
 #define NUM_PAGES ((RAM_SIZE / PAGESIZE) -2)

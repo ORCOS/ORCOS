@@ -26,7 +26,7 @@
 /*******************************************************************
  *				RUNTASK Syscall
  *******************************************************************/
-#ifdef HAS_SyscallManager_runTaskCfd
+#ifdef HAS_SyscallManager_task_runCfd
 int runTask(int4 sp_int) {
 
 	int retval = 0;

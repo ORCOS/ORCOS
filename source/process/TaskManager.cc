@@ -250,7 +250,7 @@ ErrorT TaskManager::loadTaskFromFile(File* file, TaskIdT& tid, char* arguments,u
 	// task loading only supported if virtual memory is activated
 	#ifndef HAS_Board_HatLayerCfd
 		return (cError);
-	#endif
+	#else
 
 	LOG(KERNEL,DEBUG,(KERNEL,DEBUG,"TaskManager::loadTaskFromFile: loading file."));
 
@@ -379,5 +379,5 @@ ErrorT TaskManager::loadTaskFromFile(File* file, TaskIdT& tid, char* arguments,u
 
 
 	return (cOk);
-
+#endif
 }

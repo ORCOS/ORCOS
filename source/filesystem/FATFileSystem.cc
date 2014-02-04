@@ -553,7 +553,7 @@ void FATDirectory::populateDirectory() {
 
 }
 
-Resource* FATDirectory::get(const char* p_name) {
+Resource* FATDirectory::get(const char* p_name, unint1 name_len  ) {
 	// if this directory is already populated forward to base class
 	if (!populated) populateDirectory();
 
@@ -561,7 +561,7 @@ Resource* FATDirectory::get(const char* p_name) {
 	//TODO: we might return a single resource without populating the whole directory
 	// just lookup the entries on the block devices partition and create a resource for it.
 
-	return (Directory::get(p_name));
+	return (Directory::get(p_name, name_len));
 
 
 }

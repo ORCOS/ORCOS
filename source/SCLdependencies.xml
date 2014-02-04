@@ -789,7 +789,7 @@
     <Member>
       <Name>RamManager</Name>
       <Classes>
-        <Class Name="mem/PagedRamManager"/>
+        <Class Name="mem/PagedRamMemManager"/>
         <Class Name="mem/NoRamManager"/>
       </Classes>
     </Member>
@@ -818,6 +818,59 @@
       </Classes>
     </Member>
   </Skeleton>
+ 
+  <!-- #################################################### 
+  						      FileSystem Skeleton
+	        #################################################### -->
+	<Skeleton>
+	    <Name>FileSystems</Name>
+	    <Superclasses>
+			<Superclass Name="filesystem/SimpleFileManager">
+				<MemberRef Name="PartitionManager" optional="true"/>		
+				<MemberRef Name="DOSPartition"/>	
+				<MemberRef Name="FATFileSystem"/>
+			</Superclass>
+		</Superclasses>
+		<Member>
+	      <Name>PartitionManager</Name>
+	      <Classes> <Class Name="filesystem/PartitionManager"/> </Classes>
+	    </Member>
+	    <Member>
+	      <Name>DOSPartition</Name>
+	      <Classes> <Class Name="filesystem/DOSPartition"/> </Classes>
+	    </Member>
+	    <Member>
+	      <Name>FATFileSystem</Name>
+	      <Classes> <Class Name="filesystem/FATFileSystem"/> </Classes>
+	    </Member>    
+	</Skeleton> 
+	
+	 <!-- #################################################### 
+  						      USBDriver Skeleton
+	        #################################################### -->
+	
+	<Skeleton>
+	    <Name>USBDriver</Name>
+	    <Superclasses>
+			<Superclass Name="usb/USBDeviceDriverLibrary">
+				<MemberRef Name="Factory"/>		
+				<MemberRef Name="SMSC95xx"/>	
+				<MemberRef Name="MassStorage"/>
+			</Superclass>
+		</Superclasses>
+		<Member>
+	      <Name>Factory</Name>
+	      <Classes> <Class Name="usb/USBDeviceDriverFactory"/> </Classes>
+	    </Member>
+	    <Member>
+	      <Name>SMSC95xx</Name>
+	      <Classes> <Class Name="usb/SMSC95xxUSBDeviceDriver"/> </Classes>
+	    </Member>
+	    <Member>
+	      <Name>MassStorage</Name>
+	      <Classes> <Class Name="usb/MassStorageSCSIUSBDeviceDriver"/> </Classes>
+	    </Member>    
+	</Skeleton> 
  
      <!-- #################################################### 
   						      SyscallManager Skeleton
@@ -852,6 +905,12 @@
 		<MemberRef Name="task_stop"/>
 		<MemberRef Name="task_resume"/>
 		<MemberRef Name="ioctl"/>
+		<MemberRef Name="fstat"/>
+		<MemberRef Name="thread_wait"/>
+		<MemberRef Name="task_run"/>
+		<MemberRef Name="task_kill"/>
+		<MemberRef Name="shm_map"/>
+		<MemberRef Name="mapMemory"/>
       </Superclass>
     </Superclasses>
     <Member>
@@ -863,12 +922,9 @@
     <Member>
       <Name>thread_run</Name>      
     </Member>
-    <Member>
-      <Name>thread_self</Name>
-    </Member>
-    <Member>
-      <Name>thread_yield</Name>
-    </Member>
+    <Member> <Name>thread_self</Name> </Member>
+    <Member>   <Name>thread_yield</Name> </Member>
+    <Member>   <Name>thread_wait</Name> </Member>
     <Member>
       <Name>signal_wait</Name>
     </Member>
@@ -893,9 +949,8 @@
     <Member>
       <Name>fwrite</Name>
     </Member>
-    <Member>
-      <Name>fread</Name>
-    </Member>
+    <Member> <Name>fread</Name></Member>
+    <Member> <Name>fstat</Name></Member>
     <Member>
       <Name>new</Name>
     </Member>
@@ -920,15 +975,13 @@
     <Member>
       <Name>recv</Name>
     </Member>   
-    <Member>
-      <Name>task_stop</Name>
-    </Member>
-    <Member>
-      <Name>task_resume</Name>
-    </Member>
-	<Member>
-      <Name>ioctl</Name>
-    </Member>
+    <Member> <Name>task_stop</Name> </Member>
+    <Member> <Name>task_resume</Name></Member>
+    <Member> <Name>task_run</Name> </Member>
+    <Member> <Name>task_kill</Name> </Member>
+	<Member> <Name>ioctl</Name> </Member>
+	<Member> <Name>mapMemory</Name> </Member>	
+	<Member> <Name>shm_map</Name> </Member>
     </Skeleton>
     
     <Defines>
@@ -1063,7 +1116,31 @@
         </Define>
         <Define>
             <Name>SHM_START</Name>
-            <Description>Start of shared memory area used for multiprocessor communication</Description>
+            <Description>Start of shared memory area used for multiprocessor communication. Only used on MP configurations.</Description>
+        </Define>
+        <Define>
+            <Name>ORCOS_SUPPORT_SIGNALS</Name>
+            <Description>Enables the Support of Signals (signal_wait, signal_signal e.t.c.)</Description>
+        </Define>
+        <Define>        
+            <Name>ENABLE_BRANCH_PREDICTION</Name>
+            <Description>Enables the Hardware Branch Prediction Unit if available and supported on the current platform.</Description>
+        </Define>
+        <Define>        
+            <Name>RAM_SIZE</Name>
+            <Description>Defines the size of available local RAM. Mandatory if PagedRamManager is configured.</Description>
+        </Define>
+        <Define>
+            <Name>MEM_CACHE_INHIBIT</Name>
+            <Description>Enables memory allocation (alloci(..)) into a non-cachable memory area. Important for data structures that are shared by the hardware as e.g. EHCI Data Structures.</Description>
+        </Define>
+        <Define>
+            <Name>ENABLE_NETWORKING</Name>
+            <Description>Enables the Network Stack (Sockets, TCP/IP ..)</Description>
+        </Define>
+         <Define>
+            <Name>ALIGN_VAL</Name>
+            <Description>Minimal alignment value for memory allocations.</Description>
         </Define>
     </Defines>
 </Dependencies>

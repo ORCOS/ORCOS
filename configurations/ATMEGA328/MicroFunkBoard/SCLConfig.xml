@@ -18,9 +18,7 @@
   <!-- ************************************
     					Tasks
          ************************************ -->
-  <Tasks>
-    
-  </Tasks>
+  <Tasks />
   <SCL>
     <!-- ************************************
     			Skeleton Board
@@ -32,8 +30,6 @@
       <Member Name="Clock" Class="hal/EmulatedClock" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="Processor" Class="arch/Atmel/ATMEGA328/ATMEGA328Processor" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="Timer" Class="arch/Atmel/ATMEGA328/Timer1" None="false" UserSpace="false" PhyLoadAddress="0x0" />
-   
-     
     </Skeleton>
     <!-- ************************************
     			Skeleton Kernel
@@ -52,8 +48,21 @@
       <Member Name="Logger" Class="debug/Logger" None="true" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="PowerManager" Class="hal/PowerManager" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="TaskManager" Class="process/TaskManager" None="false" UserSpace="false" PhyLoadAddress="0x0" />
-      
       <Member Name="RamManager" Class="mem/NoRamManager" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+    </Skeleton>
+    <Skeleton>
+      <Name>FileSystems</Name>
+      <Superclass>filesystem/SimpleFileManager</Superclass>
+      <Member Name="PartitionManager" Class="filesystem/PartitionManager" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="DOSPartition" Class="filesystem/DOSPartition" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="FATFileSystem" Class="filesystem/FATFileSystem" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+    </Skeleton>
+    <Skeleton>
+      <Name>USBDriver</Name>
+      <Superclass>usb/USBDeviceDriverLibrary</Superclass>
+      <Member Name="Factory" Class="usb/USBDeviceDriverFactory" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="SMSC95xx" Class="usb/SMSC95xxUSBDeviceDriver" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="MassStorage" Class="usb/MassStorageSCSIUSBDeviceDriver" None="true" UserSpace="false" PhyLoadAddress="0x0" />
     </Skeleton>
     <!-- ************************************
     			Skeleton SyscallManager
@@ -87,6 +96,12 @@
       <Member Name="task_stop" None="true" />
       <Member Name="task_resume" None="true" />
       <Member Name="ioctl" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="thread_wait" Class="" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="fstat" Class="" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="task_run" Class="" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="task_kill" Class="" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="mapMemory" Class="" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="shm_map" Class="" None="true" UserSpace="false" PhyLoadAddress="0x0" />
     </Skeleton>
     <!--  DEFINES -->
     <Define>
@@ -200,11 +215,11 @@
       <Name>RAM_SIZE</Name>
       <Value>512 MB</Value>
     </Define>
-     <Define>
+    <Define>
       <Name>MAX_NUM_TASKS</Name>
       <Value>1</Value>
     </Define>
-     <Define>
+    <Define>
       <Name>PRINT_BOOT_LOGO</Name>
       <Value>0</Value>
     </Define>

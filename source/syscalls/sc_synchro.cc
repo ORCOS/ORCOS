@@ -40,9 +40,13 @@ int signal_wait( int4 int_sp ) {
     }
 #endif //HAS_Board_HatLayerCfd
 
+#ifdef ORCOS_SUPPORT_SIGNALS
     pCurrentRunningThread->sigwait( sig );
 
     return cOk;
+#else
+    return cError;
+#endif
 }
 #endif
 
@@ -64,8 +68,12 @@ int signal_signal( int4 int_sp ) {
     }
 #endif //HAS_Board_HatLayerCfd
 
+#ifdef ORCOS_SUPPORT_SIGNALS
     theOS->getCPUDispatcher()->signal( sig, cOk );
 
     return cOk;
+#else
+   return cError;
+#endif
 }
 #endif

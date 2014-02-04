@@ -20,7 +20,6 @@
 #include "process/Thread.hh"
 #include "inc/const.hh"
 #include "kernel/Kernel.hh"
-#include "assembler.h"
 
 // the kernel object
 extern Kernel* theOS;

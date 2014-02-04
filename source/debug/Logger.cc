@@ -76,6 +76,6 @@ void Logger::log( Prefix prefix, Level level, const char* msg, ... ) {
     }
 #endif
 
-    printf( "\r\n" );
+    printf( "\r" );
 }
 

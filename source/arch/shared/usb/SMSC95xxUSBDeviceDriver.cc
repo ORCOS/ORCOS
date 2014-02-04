@@ -22,10 +22,12 @@
 extern Kernel* theOS;
 extern "C" err_t ethernet_input(struct pbuf *p, struct netif *netif);
 
+
+#if !ENABLE_NETWORKING
+#error "SMSC95xx requires Networking to be enabled. Either remove the SMSC95xx from this configuration or enable networking"
+#endif
+
 /* SMSC LAN95xx based USB 2.0 Ethernet Devices */
-
-
-
 
 /* Tx command words */
 #define TX_CMD_A_FIRST_SEG_		0x00002000

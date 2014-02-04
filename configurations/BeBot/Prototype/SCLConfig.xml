@@ -91,6 +91,7 @@
         <PropertyValue Name="Length" Value="1024" Type="unsigned int" />
         <PropertyValue Name="Name" Value="led0" Type="char*" />
       </Member>
+      <Member Name="Cache" Class="hal/Cache" None="true" UserSpace="false" PhyLoadAddress="0x0" />
     </Skeleton>
     <!-- ************************************
     			Skeleton Kernel
@@ -109,6 +110,21 @@
       <Member Name="TaskManager" Class="process/TaskManager" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="MigrationManager" Class="migration/MigrationManager" None="true" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="ServiceDiscovery" Class="comm/servicediscovery/SNServiceDiscovery" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="RamManager" Class="mem/NoRamManager" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+    </Skeleton>
+    <Skeleton>
+      <Name>FileSystems</Name>
+      <Superclass>filesystem/SimpleFileManager</Superclass>
+      <Member Name="PartitionManager" Class="filesystem/PartitionManager" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="DOSPartition" Class="filesystem/DOSPartition" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="FATFileSystem" Class="filesystem/FATFileSystem" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+    </Skeleton>
+    <Skeleton>
+      <Name>USBDriver</Name>
+      <Superclass>usb/USBDeviceDriverLibrary</Superclass>
+      <Member Name="Factory" Class="usb/USBDeviceDriverFactory" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="SMSC95xx" Class="usb/SMSC95xxUSBDeviceDriver" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="MassStorage" Class="usb/MassStorageSCSIUSBDeviceDriver" None="true" UserSpace="false" PhyLoadAddress="0x0" />
     </Skeleton>
     <!-- ************************************
     			Skeleton SyscallManager
@@ -244,6 +260,10 @@
     </Define>
     <Define>
       <Name>__EARLY_SERIAL_SUPPORT__</Name>
+      <Value>1</Value>
+    </Define>
+    <Define>
+      <Name>ENABLE_NETWORKING</Name>
       <Value>1</Value>
     </Define>
   </SCL>

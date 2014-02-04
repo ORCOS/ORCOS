@@ -364,7 +364,7 @@ int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1
 				 			 | QT_TOKEN_STATUS_ACTIVE | QT_TOKEN_TOTALBYTES(qtd_data_len);
 	qtd->qt_buffer[0] 	= (unint4) data; // set data to send
 	qtd->qt_buffer_hi[0]= 0x0;
-	qtd->qt_buffer[1] 	= (unint4) alignCeil((byte*)data,4096); // align next part of the data
+	qtd->qt_buffer[1] 	= (unint4) alignCeil((char*)data,4096); // align next part of the data
 	qtd->qt_buffer_hi[1]= 0x0;
 
 	qtd_last = qtd;
@@ -478,7 +478,7 @@ int USB_EHCI_Host_Controller::sendUSBControlMsg(USBDevice *dev, unint1 endpoint,
 	qtd->qt_token 		= QT_TOKEN_DT(0) | QT_TOKEN_CERR(3) | QT_TOKEN_IOC(0) | QT_TOKEN_PID(QT_TOKEN_PID_SETUP)
 				 			 | QT_TOKEN_STATUS_ACTIVE | QT_TOKEN_TOTALBYTES(8);
 	qtd->qt_buffer[0] 	= (unint4) control_msg; // set control message to send
-	qtd->qt_buffer[1] 	= (unint4) alignCeil((byte*)control_msg,4096); // set control message to send
+	qtd->qt_buffer[1] 	= (unint4) alignCeil((char*)control_msg,4096); // set control message to send
 
 	unint1 dir = QT_TOKEN_PID_IN;
 	if (direction == USB_DIR_OUT) dir = QT_TOKEN_PID_OUT;
@@ -489,7 +489,7 @@ int USB_EHCI_Host_Controller::sendUSBControlMsg(USBDevice *dev, unint1 endpoint,
 	qtd2->qt_token 		= QT_TOKEN_DT(1) | QT_TOKEN_CERR(3) | QT_TOKEN_IOC(0) | QT_TOKEN_PID(dir)
 				 			 | QT_TOKEN_STATUS_ACTIVE | QT_TOKEN_TOTALBYTES(data_len);
 	qtd2->qt_buffer[0] 	= (unint4) data; // set data buffer
-	qtd2->qt_buffer[1] 	= (unint4) alignCeil((byte*)data,4096); // set control message to send
+	qtd2->qt_buffer[1] 	= (unint4) alignCeil((char*)data,4096); // set control message to send
 
 	if (data_len > 0 && direction == USB_DIR_IN) {
 		QT_LINK(qtd2,qtd3);
@@ -1245,7 +1245,7 @@ ErrorT USBDevice::reactivateEp(int num) {
 						 			 | QT_TOKEN_STATUS_ACTIVE | QT_TOKEN_TOTALBYTES(endpoints[num].interrupt_receive_size);
 
 		qtd2->qt_buffer[0] = (unint4) endpoints[num].recv_buffer;
-		qtd2->qt_buffer[1] = (unint4) alignCeil((byte*) endpoints[num].recv_buffer,4096);
+		qtd2->qt_buffer[1] = (unint4) alignCeil((char*) endpoints[num].recv_buffer,4096);
 
 		qh->qh_curtd = QT_NEXT_TERMINATE;
 		qh->qh_overlay.qt_token = 0;
@@ -1316,7 +1316,7 @@ ErrorT USBDevice::activateEndpoint(int num, QH* pqh, qTD* pqtd) {
 		memset(endpoints[num].recv_buffer,0,endpoints[num].interrupt_receive_size);
 
 		qtd->qt_buffer[0] = (unint4) endpoints[num].recv_buffer;
-		qtd->qt_buffer[1] = (unint4) alignCeil((byte*) endpoints[num].recv_buffer,4096);
+		qtd->qt_buffer[1] = (unint4) alignCeil((char*) endpoints[num].recv_buffer,4096);
 
 		// setup interrupt transfer qtd .. try to receive interrupt_receive_size bytes
 		qtd->qt_token = QT_TOKEN_DT(1) | QT_TOKEN_CERR(0) | QT_TOKEN_IOC(1) | QT_TOKEN_PID(QT_TOKEN_PID_IN)

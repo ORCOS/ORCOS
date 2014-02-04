@@ -156,9 +156,9 @@ public:
            user tasks must start at PID 1 to ensure
            the kernel page table to be not overwritten */
 		#if USE_WORKERTASK
-        for (unint2 i = 0; i < MAX_NUM_TASKS; i++) {
+        for (unint4 i = 0; i < MAX_NUM_TASKS; i++) {
 		#else
-        for (unint2 i = 1; i < MAX_NUM_TASKS; i++) {
+        for (unint4 i = 1; i < MAX_NUM_TASKS; i++) {
 		#endif
         	freeTaskIDs->addTail((DatabaseItem*) i);
         }

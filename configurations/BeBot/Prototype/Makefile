@@ -61,7 +61,7 @@ LINKERSCRIPT = $(ARCH_DIR)/kernel.ld
 #CPU_FLAGS =  -mthumb -mcpu=cortex-a8  -mno-unaligned-access -DARM_THUMB=1
  
 #Optimization flag
-OPT_FLAGS = -O2  -mthumb -mthumb-interwork -mno-unaligned-access -DARM_THUMB=1
+OPT_FLAGS = -O2  -mthumb -mthumb-interwork -mno-unaligned-access -DARM_THUMB=1 -fno-builtin
 # User Library Optimization Flag. Keep as is
 USER_LIB_OPT_FLAGS = -O2 -mno-unaligned-access
 

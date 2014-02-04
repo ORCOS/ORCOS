@@ -51,10 +51,10 @@ CAB::~CAB() {
 /*!
  * pmsg can point to either:
  * 	- address in tasks heap (if the communication is local)
- *  - address in kernel heap (if message was received from a remot peer)
+ *  - address in kernel heap (if message was received from a remote peer)
  *
  */
-ErrorT CAB::store( char* pmsg, int msglen ) {
+ErrorT CAB::store( char* pmsg, unsigned int msglen ) {
    ASSERT(pmsg);
 
    if( msglen > this->dim_buf ) {
@@ -72,7 +72,7 @@ ErrorT CAB::store( char* pmsg, int msglen ) {
        LOG( COMM, DEBUG,(COMM, DEBUG, "CAB::store(): actb=%d, free=%d", actb, free) );
    }
 
-   if ( free == actb ) {
+   if ( (int) free == actb ) {
            // increment actb so it points to the second oldest and now new oldest msg
 	   	   actb++;
 	   	   if ( actb == MAX_BUF) actb = 0;
@@ -80,11 +80,11 @@ ErrorT CAB::store( char* pmsg, int msglen ) {
 
 
    unint4 dest;
-	 bool int_enabled;
-	 GET_INTERRUPT_ENABLE_BIT(int_enabled);
+   bool int_enabled;
+   GET_INTERRUPT_ENABLE_BIT(int_enabled);
 
-	 // TODO: disable interrupts for the complete memcpy may take too long
-	 _disableInterrupts();
+   // TODO: disable interrupts for the complete memcpy may take too long
+   _disableInterrupts();
 
 
 #ifdef HAS_Board_HatLayerCfd
@@ -165,7 +165,7 @@ int2 CAB::get( char** addressof_ret_ptrtomsg, int2 &buffer ) {
         if (actb == MAX_BUF) actb = 0;
 
         // check if next buffer to read has message
-        if ( actb == free )
+        if ( (unsigned int) actb == free )
             actb = -1;
     }
     else {

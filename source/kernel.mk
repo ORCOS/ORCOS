@@ -14,8 +14,7 @@
 -include $(ARCH_DIR)/arch.mk
 
 KOBJ 	= $(notdir $(KASRC:.S=.o)) $(ARCH_OBJ)
-OBJ = $(addprefix $(OUTPUT_DIR),$(KOBJ))
-
+OBJ 	= $(addprefix $(OUTPUT_DIR),$(KOBJ))
 MODULES = $(addprefix $(MODULES_DIR),$(MODULE_OBJ))
 
 # KOBJ and ARCH_OBJ specify the object-files used for linking.
@@ -25,41 +24,20 @@ MODULES = $(addprefix $(MODULES_DIR),$(MODULE_OBJ))
 # It would make sense to exclude the latter list in an own file, as soon as more 
 # than one platform is supported.
 
-#TODO: let the scl configuration tool generate the list of objects to create!
+# the scl configuration tool generates the configurable list of objects to create
+# the following list only contains the base classes or non configurable components
+
 #config dir
 KOBJ += tasktable.o __cxa_pure_virtual.o
-
-#protocols
-#KOBJ += ARP.o SimpleTransportProtocol.o SimpleAddressProtocol.o IPv4AddressProtocol.o UDP.o
-#KOBJ += ProtocolPool.o TCPTransportProtocol.o IPv4AddressProtocol.o
-#KOBJ += etharp.o ethernet.o ip.o init.o mem.o memp.o pbuf.o  netif.o udp.o tcp.o sys.o inet.o ip4_addr.o ip4.o ip4_frag.o tcp_in.o tcp_out.o stats.o icmp.o ip6_addr.o ip6.o dhcp.o
-#KOBJ += icmp6.o ethar.o ethndp.o lwipTMR.o 
-#KOBJ += WorkerThread.o WorkerTask.o crc32.o
-#SNServiceDiscovery.o 
-
-#bluetooth
-#KOBJ += HCI.o
-
-#EHCI
-#KOBJ+=USBEHCIHostController.o
-
-#socket
-#KOBJ += Socket.o CAB.o  
 
 #db
 KOBJ += ArrayDatabase.o LinkedListDatabase.o
 
 #debug
 KOBJ += Logger.o
-# Trace.o ETHLogger.o
 
 #filesystem
-KOBJ += File.o Directory.o Filemanager.o Resource.o SimpleFileManager.o 
-#PartitionManager.o 
-#DOSPartition.o FileSystemBase.o FATFileSystem.o SharedMemResource.o
-
-#procfs
-#KOBJ += SimpleProcfs.o SimpleDebugCollector.o
+KOBJ += File.o Directory.o Filemanager.o Resource.o SimpleFileManager.o SharedMemResource.o FileSystemBase.o
 
 #hal
 KOBJ += PowerManager.o CharacterDeviceDriver.o BlockDeviceDriver.o TimerDevice.o CommDeviceDriver.o USCommDeviceDriver.o Clock.o
@@ -75,26 +53,13 @@ KOBJ += newlib_helper.o
 KOBJ += kwait.o kernelmain.o Kernel.o 
 
 #mem
-KOBJ +=  new.o LinearMemManager.o
+KOBJ +=  new.o 
 
-#configurable or dependent classes
-#SequentialFitMemManager.o 
-
-#LinearMemManager.o PagedRamMemManager.o NoRamManager.o
-# RoundRobinThreadScheduler.o PriorityThreadScheduler.o RateMonotonicThreadScheduler.o EarliestDeadlineFirstThreadScheduler.o
-
-#PriorityThread.o RealTimeThread.o 
-#usb
-#KOBJ += USBDriverLibrary.o USBDeviceDriverFactory.o SMSC95xxUSBDeviceDriver.o MassStorageSCSIUSBDeviceDriver.o
-
-#PartitionManager.o 
-#DOSPartition.o FileSystemBase.o FATFileSystem.o SharedMemResource.o
+# scheduler
+KOBJ += RoundRobinThreadScheduler.o PriorityThreadScheduler.o RateMonotonicThreadScheduler.o EarliestDeadlineFirstThreadScheduler.o
 
 #process
 KOBJ += IdleThread.o Task.o Thread.o TaskManager.o  Module.o
-
-#scheduler
-KOBJ += SingleCPUDispatcher.o SingleThreadScheduler.o
 
 #robustness
 KOBJ += TaskErrorHandler.o 
@@ -109,10 +74,7 @@ KOBJ += sc_common.o sc_io.o sc_mem.o sc_net.o sc_process.o sc_synchro.o
 #depending on whether they are common kernel code or specific to the archectiture.
 VPATH = $(addprefix $(KERNEL_DIR), $(KERNEL_VPATH)) $(ARCH_VPATH) make/
 
-
-#LWIP_VPATH = comm/lwip/core/ comm/lwip/core/ipv4/ comm/lwip/netif/ comm/lwip/arch/ comm/lwip/include/
 KERNEL_VPATH = db/ debug/ filesystem/ hal/ inc/ inc/newlib/ kernel/ robust/ mem/ process/ scheduler/ syscalls/ synchro/ comm/ migration/ comm/servicediscovery/ comm/lwip/core/ comm/lwip/core/ipv4/ comm/lwip/netif/ comm/lwip/arch/ comm/lwip/core/ipv6/ comm/hcibluetooth/ arch/shared/ arch/shared/usb
-#$(LWIP_VPATH) 
 
 #---------------------------------------------------------------------------------------------------------------------------------------
 #                                                      Pre-Build Checks
@@ -189,12 +151,12 @@ all: check_dirs scl check_defines
 	@make -s  $(OUTPUT_DIR)kernel.elf
 	@make -s binary 
 	@make -s size
-	@make -s uImage
-	@echo All done .. Images can be found inside the output directory..
+#	@make -s uImage
+#	@echo All done .. Images can be found inside the output directory..
 
 
 #---------------------------------------------------------------------------------------------------------------------------------------
-#                        Target: cleane 
+#                        Target: clean
 #---------------------------------------------------------------------------------------------------------------------------------------
 
 clean: tasks_clean

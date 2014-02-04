@@ -69,7 +69,6 @@ void Kernel::initialize() {
     cpuManager 		= 0;
     fileManager 	= 0;
     taskManager 	= 0;
-    protopool		= 0;
     stdInputDevice 	= 0;
     stdOutputDevice = 0;
     board 			= 0;
@@ -88,39 +87,42 @@ void Kernel::initialize() {
     this->errorHandler 		= new TaskErrorHandler();
 #ifdef HAS_Kernel_RamManagerCfd
     /* create the Ram Manager using a simple paging algorithm */
-    this->ramManager 		= new NEW_Kernel_RamManagerCfd();
+    this->RamManagerCfd 		= new NEW_Kernel_RamManagerCfd;
 #endif
     /* create the cpudispatcher with scheduler */
     this->cpuManager 		= new SingleCPUDispatcher( );
     /* create the file	manager implementing the filesystem */
     this->fileManager		= new SimpleFileManager( );
     /* create the PartitionMananger which handles block device partitions */
+#ifdef HAS_FileSystems_PartitionManagerCfd
+    /* create the Ram Manager using a simple paging algorithm */
+    this->PartitionManagerCfd 	= new NEW_FileSystems_PartitionManagerCfd;
+#endif
+
    // this->partitionManager 	= new PartitionManager();
     /* create the Task Manager which holds the list of all tasks */
     this->taskManager 		= new TaskManager();
 
     /* be sure the initial loaded set of tasks is registered at the ramManager */
     taskManager->registerMemPages();
-    /* Set the idlethread of the cpudispatcher
-     * This can be extended by new idelthreads which do e.g. memory cleanup operations
-     */
-    //this->cpuManager->setIdleThread( new IdleThread( ) );
 
-#if USB_SUPPORT_ENABLED
+#if HAS_Board_USB_HCCfd
     USBDevice::initialize();
 
+#if HAS_USBDriver_FactoryCfd
     /* create the "/usb/" directory which will contain all usb drivers */
     this->usbDriverLib 		= new USBDriverLibrary();
+#endif
 
-    /*
-     * TODO: Allow configuration of supported drivers
-     */
-
-    /* Add support for smsc95xx ethernet over USB devices */
+#if HAS_USBDriver_SMSC95xxCfd
+   /* Add support for smsc95xx ethernet over USB devices */
     new SMSC95xxUSBDeviceDriverFactory("smsc95xx");
+#endif
 
+#if HAS_USBDriver_MassStorageCfd
     /* Add support for USB SCSI Bulk only Mass Storage Devices */
     new MassStorageSCSIUSBDeviceDriverFactory("msd_scsi_bot");
+#endif
 #endif
 
 #if USE_TRACE
@@ -138,16 +140,20 @@ void Kernel::initialize() {
 #endif
 
     /* Initialize the Internet Protocol Stack */
-   // lwip_init();
+#if ENABLE_NETWORKING
+    lwip_init();
+#endif
 
     /* now initialize the device drivers
        since some thread classes rely on classes like the timer or the clock */
     this->initDeviceDrivers();
 
+
     /* initialize protocol pool here since it depends on the device drivers
        all commdevices need to be created before the protocol pool is created */
-  //  protopool = new ProtocolPool( );
-
+#if ENABLE_NETWORKING
+    protopool = new ProtocolPool( );
+#endif
 
     LOG(KERNEL,INFO,(KERNEL,INFO,"Initialized Device Driver"));
     LOG(KERNEL,INFO,(KERNEL,INFO,"Created Protocol Pool"));
@@ -192,7 +198,7 @@ void Kernel::initialize() {
     this->getTaskDatabase()->addTail(theWorkerTask);
     theWorkerTask->myTaskDbItem = this->getTaskDatabase()->getTail();
 
-#if LWIP_TCP | LWIP_ARP
+#if (LWIP_TCP | LWIP_ARP) && ENABLE_NETWORKING
 	PeriodicFunctionCall* jobparam 		= new PeriodicFunctionCall;
 	jobparam->functioncall.objectptr 	= new lwipTMR;  /* call this object */
 	jobparam->functioncall.parameterptr = 0; 			/* store the index of the request */
@@ -204,7 +210,7 @@ void Kernel::initialize() {
 
 
 #else
-#if LWIP_TCP | LWIP_ARP
+#if (LWIP_TCP | LWIP_ARP) && ENABLE_NETWORKING
 	LOG(KERNEL,WARN,(KERNEL,WARN,"TCP and ARP will not work correctly without workerthreads!!"));
 	#warning "LWIP_TCP or LWIP_ARP defined without supporting Workerthreads.. \n The IPstack will not work correctly without workerthreads.."
 #endif

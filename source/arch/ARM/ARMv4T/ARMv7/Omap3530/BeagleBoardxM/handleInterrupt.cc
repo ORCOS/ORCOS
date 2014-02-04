@@ -203,8 +203,8 @@ extern "C" void handlePrefetchAbort(int instr, int context) {
 
 	LOG(ARCH,ERROR,(ARCH,ERROR,"TID: %d, IFAR: %x, IFSR: %x",tid, ifar, ifsr));
 
-	taskTable* tt = pCurrentRunningTask->getTaskTable();
-	/*unint4 crc = crc32((char*) tt->task_start_addr,tt->task_data_end- tt->task_start_addr);
+	/*taskTable* tt = pCurrentRunningTask->getTaskTable();
+	unint4 crc = crc32((char*) tt->task_start_addr,tt->task_data_end- tt->task_start_addr);
 	LOG(ARCH,ERROR,(ARCH,ERROR,"CRC32: 0x%x",crc));*/
 
 
@@ -296,8 +296,10 @@ extern "C"void dispatchIRQ(void* sp_int, int mode)
 			}
 			case EHCI_IRQ:
 			{
+			#if HAS_Board_USB_HCCfd
 				((BeagleBoardxM*) theOS->getBoard())->getUSB_HC()->handleInterrupt();
 				break;
+			#endif
 			}
 			default:
 			{

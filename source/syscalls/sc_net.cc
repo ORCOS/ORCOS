@@ -24,6 +24,7 @@
 #include Kernel_Thread_hh
 #include "assemblerFunctions.hh"
 
+#if ENABLE_NETWORKING
 
 /*******************************************************************
  *				SOCKET Syscall
@@ -271,5 +272,8 @@ int recvSyscall( int4 int_sp) {
     return (retval);
 }
 #endif
+
+
+#endif // networking enabled
 
 

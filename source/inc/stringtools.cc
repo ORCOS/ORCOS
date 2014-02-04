@@ -20,7 +20,7 @@
 
 #define MODULO(a,b)  a % b
 
-#if 0
+#if 1
 void strreverse( char* begin, char* end ) {
     char aux;
     while ( end > begin )
@@ -163,7 +163,7 @@ int strcmp( const char *s1, const char *s2, unint1 name_len ) {
 	// max string length check if no length is given
 	if (name_len == 0) name_len = 255;
 
-    while ( *s1 != '\0' && *s1 == *s2 && name_len > 0) {
+    while ( *s1 != '\0' && *s1 == *s2 && name_len > 1) {
         s1++;
         s2++;
         name_len--;
@@ -182,3 +182,17 @@ int strpos(const char*s, char c) {
 	/* nothing */;
 	return (sc - s);
 }
+
+int strpos2(const char*s, char c) {
+	const char *sc;
+
+	for (sc = s; *sc != c; ++sc) {
+		if (*sc == '\0') return (sc - s);
+	}
+
+	/* nothing */;
+	return (sc - s);
+}
+
+
+

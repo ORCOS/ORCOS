@@ -104,6 +104,7 @@ ErrorT PartitionManager::tryDOSMBR(BlockDeviceDriver* bdev) {
 			switch(pt_entry->type) {
 				case 0: break;
 
+#if HAS_FileSystems_FATFileSystemCfd
 				case 6: // FAT 16
 				case 12 : // FAT 32
 				case 13 : // FAT 32 (LBA)
@@ -118,6 +119,7 @@ ErrorT PartitionManager::tryDOSMBR(BlockDeviceDriver* bdev) {
 
 					break;
 				}
+#endif
 				case 0xee: {
 					// handle efi partition tables here
 					// EFI Partition mit Legacy MBR
@@ -151,6 +153,8 @@ ErrorT PartitionManager::tryDOSMBR(BlockDeviceDriver* bdev) {
 			(!is_extended (pt->sys_ind)) ) */{
 
 			switch (pt->sys_ind) {
+
+#if HAS_FileSystems_FATFileSystemCfd
 				case 6: // FAT 16
 				case 12 :
 				case 13 : // FAT 32 (LBA)
@@ -159,12 +163,13 @@ ErrorT PartitionManager::tryDOSMBR(BlockDeviceDriver* bdev) {
 					Partition* partition = new DOSPartition(bdev,pt,part_num,disksig);
 					this->add(partition);	    /* Is MBR */
 
+
 					// FAT Filesystem
 					FileSystemBase* fs = new FATFileSystem(partition);
 					if (fs->isValidFileSystem()) fs->initialize();
-
 					break;
 				}
+#endif
 				case 0xee: {
 					// handle efi partition tables here
 					// EFI Partition mit Legacy MBR

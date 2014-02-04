@@ -17,7 +17,7 @@ ENTRY(startORCOS)
 /* If you change any of these values, make sure you change them
    in the MEMORY part as well!  */
 ramOrigin = 0x80000000;
-ramLength = 0x08000000; /* 128 MB */
+ramLength = 0x20000000; /* 512 MB */
 
 /* Offset to RAM origin.  */
 ramOffset = 0x81000000;
@@ -39,7 +39,7 @@ PROVIDE(__RAM_START = ramOrigin );
 
 MEMORY
 {
-  ram (rwx) : ORIGIN = 0x80000000, LENGTH = 0x08000000
+  ram (rwx) : ORIGIN = 0x80000000, LENGTH = 0x20000000
 }
 
 

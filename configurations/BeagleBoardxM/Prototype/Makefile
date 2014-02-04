@@ -61,20 +61,20 @@ LINKERSCRIPT = $(ARCH_DIR)/kernel.ld
 #CPU_FLAGS =  -mthumb -mcpu=cortex-a8  -mno-unaligned-access -DARM_THUMB=1
  
 #Optimization flag
-OPT_FLAGS = -O2  -mthumb -mcpu=cortex-a8  -mthumb-interwork -mno-unaligned-access -DARM_THUMB=1
+OPT_FLAGS = -O2  -mthumb -mcpu=cortex-a8  -mthumb-interwork -mno-unaligned-access -DARM_THUMB=1 -fno-builtin
 # User Library Optimization Flag. Keep as is
 USER_LIB_OPT_FLAGS = -O2 -mcpu=cortex-a8 -mno-unaligned-access
 
 #Command line arguments to compile .c files.
 CFLAGS = -Wall -g -I$(KERNEL_DIR)inc/ -I./make/ -I$(KERNEL_DIR)comm/lwip/include/ -I$(KERNEL_DIR)comm/lwip/ -I. -I$(KERNEL_DIR) -I$(KERNEL_LIB_DIR)/../../ $(ARCH_INCLUDES) -ffunction-sections -flto -fno-exceptions -fno-unwind-tables -msoft-float -fno-stack-protector -Wno-write-strings -c $(CPU_FLAGS) 
-CFLAGS +=  -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wstrict-prototypes -Wmissing-prototypes -Wconversion
+#CFLAGS +=  -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wstrict-prototypes -Wmissing-prototypes -Wconversion
 
 #Command line arguments to compile .cc files.
 CPFLAGS = -Wall -g -I$(KERNEL_DIR)inc/ -I./make/ -I$(KERNEL_DIR)comm/lwip/include/ -I$(KERNEL_DIR)comm/lwip/ -I. -I$(KERNEL_DIR) -I$(KERNEL_LIB_DIR)/../../ $(ARCH_INCLUDES) -ffunction-sections  -flto -fno-exceptions -fno-unwind-tables -fno-rtti -msoft-float -fno-stack-protector -c -Wno-write-strings -Wuninitialized -Woverloaded-virtual $(CPU_FLAGS) 
-CPFLAGS +=  -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wconversion
+#CPFLAGS +=  -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wconversion
 
 #Command line arguments to the linker.
-LDFLAGS = -o output/kernel.elf -L$(LIBC_DIR) -L$(GCC_LIB_DIR) -Map output/kernel.map  -lgcc --script=$(LINKERSCRIPT)
+LDFLAGS = -o output/kernel.elf -L$(LIBC_DIR) -L$(GCC_LIB_DIR) -Map output/kernel.map  -lgcc   --script=$(LINKERSCRIPT)
 
 #Command line arguments for the gcc to assemble .S files.
 ASFLAGS = -c -g -I$(KERNEL_DIR)inc/ -I. -I./make/ -I$(KERNEL_DIR) $(ARCH_INCLUDES) -flto  -fno-exceptions -fno-rtti -msoft-float -fno-stack-protector -mcpu=cortex-a8

@@ -29,7 +29,7 @@
 #include "logger_config.hh"
 
 #ifdef HAS_Kernel_LoggerCfd
-#define LOG(prefix,level,msg) if ((int) level <= (int) prefix)  theOS->getLogger()->log msg
+#define LOG(prefix,level,msg) if ((int) level <= (int) prefix) { if (theOS != 0 && theOS->getLogger() != 0) theOS->getLogger()->log msg ;}
 #else
 #define LOG(prefix,level,msg)
 #endif

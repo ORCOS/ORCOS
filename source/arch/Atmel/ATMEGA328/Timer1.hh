@@ -23,7 +23,8 @@
 #include <types.hh>
 #include <hal/TimerDevice.hh>
 
-#define CLOCK_RATE 32768
+#define ms * 1000
+#define CLOCK_RATE 1000
 #define MHZ * 100000
 
 

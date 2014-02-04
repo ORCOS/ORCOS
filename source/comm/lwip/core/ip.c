@@ -117,7 +117,7 @@ u32_t IPH_HL(struct ip_hdr* iphdr)
 u16_t IPH_PROTO(struct ip_hdr* iphdr)
 {
 	if (iphdr->v == IPV4) return ((struct ip4_hdr*) iphdr)->_ttl_proto;
-	else if (iphdr->v == IPV6) ((struct ip6_hdr*) iphdr)->nexthdr;
+	else if (iphdr->v == IPV6) return ((struct ip6_hdr*) iphdr)->nexthdr;
 	else return 0;
 }
 

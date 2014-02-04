@@ -24,7 +24,7 @@
 #include "assemblerFunctions.hh"
 #include "filesystem/SharedMemResource.hh"
 
-#ifdef HAS_Board_HatLayer
+#ifdef HAS_Board_HatLayerCfd
 /*******************************************************************
  *				MAP MEMORY Syscall
  *******************************************************************/

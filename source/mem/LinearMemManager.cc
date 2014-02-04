@@ -27,7 +27,7 @@ extern Kernel* theOS;
 
 void* LinearMemManager::alloc( size_t size, bool aligned, unint align_value ) {
 
-    register byte* ptr;
+    register char* ptr;
     register void* retval;
 
     ATOMAR(
@@ -38,7 +38,7 @@ void* LinearMemManager::alloc( size_t size, bool aligned, unint align_value ) {
         ptr = FreeHeadPtr;
 
     // see if we fit into our memory segment
-    if ( ptr + size <= (byte*) Segment.getEndAddr() ) {
+    if ( ptr + size <= (char*) Segment.getEndAddr() ) {
         FreeHeadPtr = ptr + size;
         retval =(void*) ptr;
     }
@@ -56,7 +56,7 @@ void* LinearMemManager::alloc( size_t size, bool aligned, unint align_value ) {
 
 size_t LinearMemManager::getUsedMemSize(int* fragmentation) {
 	if (fragmentation != 0) *fragmentation = 0;
-    return ( FreeHeadPtr - (byte*) Segment.getStartAddr() );
+    return ( FreeHeadPtr - (char*) Segment.getStartAddr() );
 }
 
 #ifdef SERIALIZE

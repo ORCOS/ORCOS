@@ -1,8 +1,8 @@
 STACK_USAGE = python $(STACK_USAGE_SCRIPT)
 
-OUTPUTFILE = task
+OUTPUTFILE 	= task
 
-OBJS 	= task_main.o 
+OBJS 		= task_main.o 
 
 # all provided defines are relative to the main makefile (usually two directories lower)
 # exception is GCC_LIB_DIR which is usually absolute
@@ -20,7 +20,7 @@ OBJS 	= task_main.o
 
 AFLAGS =
 #CFLAGS = -c -I../../$(KERNEL_LIB_DIR) -fno-exceptions -fno-rtti -O2 -mthumb -mcpu=cortex-a8 -mthumb-interwork -mno-unaligned-access
-CFLAGS = -c -I../../$(KERNEL_LIB_DIR)/../../inc -fno-exceptions -fno-rtti -O2 -march=armv7-a -mthumb -mthumb-interwork -mno-unaligned-access
+CFLAGS = -c -I../../$(KERNEL_LIB_DIR)/../../inc -I../../$(KERNEL_LIB_DIR)/../../inc/arm -fno-exceptions -fno-rtti -O2 -march=armv7-a -mthumb -mthumb-interwork -mno-unaligned-access
 CPPFLAGS = $(CFLAGS) -g  
 
 LIBC_DIR=C:/gcc-arm-none-eabi/arm-none-eabi/lib/thumb/

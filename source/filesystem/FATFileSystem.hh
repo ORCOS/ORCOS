@@ -264,7 +264,7 @@ public:
    //ErrorT add( Resource* res ) { };
 
     //! gets the resource with name 'name'. Maybe null if nonexistent
-   Resource* get( const char* name );
+   Resource* get( const char* name, unint1 name_len = 0 );
 
    //! Returns the amount of entries in this directory
    int getNumEntries() {

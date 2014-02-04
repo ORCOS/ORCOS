@@ -8,7 +8,7 @@
 ARCH_OBJ += _startup.o
 ARCH_OBJ += ARMv4TInterruptHandler.o 
 ARCH_OBJ += BeagleBoardxM.o 
-ARCH_OBJ += BeagleBoardInterruptController.o handleInterrupt.o
+ARCH_OBJ += BeagleBoardInterruptController.o handleInterrupt.o USBEHCIHostController.o
 #ARCH_OBJ += BeagleBoardUARTforHCI.o
 ARCH_OBJ += assemblerFunctions.o handleInterrupt.o ARMv4TInterruptHandlerHooks.o
 ARCH_OBJ += startThread.o

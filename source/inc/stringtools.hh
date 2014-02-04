@@ -51,7 +51,7 @@ char* strcat( char *s1, const char *s2 );
 size_t strlen(const char * s);
 
 int strpos(const char*s, char c);
-
+int strpos2(const char*s, char c);
 #ifdef __cplusplus
 }
 #endif

@@ -112,6 +112,8 @@ private:
 
     DEF_Kernel_RamManagerCfd;
 
+    DEF_FileSystems_PartitionManagerCfd;
+
     // The error Handler for fata task and system errors
     TaskErrorHandler*		errorHandler;
 
@@ -123,11 +125,12 @@ private:
     WorkerTask* theWorkerTask;
 #endif
 
-
+#if ENABLE_NETWORKING
     /*!
      * \brief the Protocol Pool of the kernel which holds the references to all protocols available in the os.
      */
     ProtocolPool* protopool;
+#endif
 
 #if USE_TRACE
     // The execution tracer
@@ -198,14 +201,12 @@ public:
     }
     ;
 
+#if ENABLE_NETWORKING
     ProtocolPool* getProtocolPool() {
         return (this->protopool);
     }
     ;
-
-    PartitionManager* getPartitionManager() {
-    	return (this->partitionManager);
-    }
+#endif
 
 
     SimpleFileManager* getFileManager() {
