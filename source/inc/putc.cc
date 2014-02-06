@@ -21,7 +21,7 @@
 
 extern "C"Kernel* theOS;
 
-void putc( char c ) {
+void putchar( char c ) {
 #ifdef HAS_Board_UARTCfd
     // output device may not be initilized yet
 	if (theOS != 0)
