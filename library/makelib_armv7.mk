@@ -40,10 +40,10 @@ OPT_FLAGS = -O2   -mcpu=cortex-a8  -mthumb-interwork -mno-unaligned-access -DARM
 USER_LIB_OPT_FLAGS = -O2 -mcpu=cortex-a8 -mno-unaligned-access 
 
 #Command line arguments to compile .c files.
-CFLAGS = -Wall -g -Iinc/ -I../source/inc -ffunction-sections -fdata-sections -fno-exceptions -fno-unwind-tables -msoft-float -fno-stack-protector -Wno-write-strings -c $(CPU_FLAGS) 
+CFLAGS = -Wall -g -Iinc/ -Iinc/arm/ -ffunction-sections -fdata-sections -fno-exceptions -fno-unwind-tables -msoft-float -fno-stack-protector -Wno-write-strings -c $(CPU_FLAGS) 
 
 #Command line arguments to compile .cc files.
-CPFLAGS = -Wall -g -Iinc/ -I../source/inc -ffunction-sections -fdata-sections -fno-exceptions -fno-unwind-tables -fno-rtti -msoft-float -fno-stack-protector -c -Wno-write-strings -Wuninitialized -Woverloaded-virtual $(CPU_FLAGS) 
+CPFLAGS = -Wall -g -Iinc/ -Iinc/arm/ -ffunction-sections -fdata-sections -fno-exceptions -fno-unwind-tables -fno-rtti -msoft-float -fno-stack-protector -c -Wno-write-strings -Wuninitialized -Woverloaded-virtual $(CPU_FLAGS) 
 
 #Command line arguments for the gcc to assemble .S files.
 ASFLAGS = -c -g -Iinc/ -fno-exceptions -fno-rtti -msoft-float -fno-stack-protector -mcpu=cortex-a8

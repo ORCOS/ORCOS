@@ -28,14 +28,14 @@ LD		= /cygdrive/c/gcc-arm-none-eabi/bin/arm-none-eabi-ld
 OBJCOPY = /cygdrive/c/gcc-arm-none-eabi/bin/arm-none-eabi-objcopy 
 STRIP   = /cygdrive/c/gcc-arm-none-eabi/bin/arm-none-eabi-strip
 
-KERNEL_LIB_DIR = C:/git/orcos_github/library/bin/armv7
-KERNEL_INC_DIR = C:/git/orcos_github/library/inc
+KERNEL_LIB_DIR = ../../library/bin/armv7
+KERNEL_INC = -I../../library/inc -I../../library/inc/arm
 
 GCC_VERSION=4.7.4
 GCC_LIB_DIR=C:/gcc-arm-none-eabi/lib/gcc/arm-none-eabi/$(GCC_VERSION)/armv7-ar/thumb/
 
 AFLAGS =
-CFLAGS = -c -I$(KERNEL_INC_DIR) -fno-exceptions -fno-rtti -O2 -mcpu=cortex-a8  -mthumb -mthumb-interwork -mno-unaligned-access
+CFLAGS = -c $(KERNEL_INC) -fno-exceptions -fno-rtti -O2 -mcpu=cortex-a8  -mthumb -mthumb-interwork -mno-unaligned-access
 CPPFLAGS = $(CFLAGS) -g  
 	
 all: $(OBJS) 
