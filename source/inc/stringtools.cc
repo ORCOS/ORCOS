@@ -158,7 +158,7 @@ char* strcat( char *s1, const char *s2 ) {
 
 
 // newlib strcmp method
-int strcmp( const char *s1, const char *s2, unint1 name_len ) {
+int strcmp2( const char *s1, const char *s2, unint1 name_len ) {
 
 	// max string length check if no length is given
 	if (name_len == 0) name_len = 255;

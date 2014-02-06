@@ -42,7 +42,7 @@ void itoa( int8 value, char* str, int base );
 
 char* strcpy( char *dst0, char const *src0 );
 
-int strcmp( const char *s1, char const *s2, unint1 s1_len);
+int strcmp2( const char *s1, char const *s2, unint1 s1_len);
 
 char* strtok( char *s, char const *delim );
 
@@ -51,7 +51,9 @@ char* strcat( char *s1, const char *s2 );
 size_t strlen(const char * s);
 
 int strpos(const char*s, char c);
+
 int strpos2(const char*s, char c);
+
 #ifdef __cplusplus
 }
 #endif

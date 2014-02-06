@@ -71,8 +71,8 @@ Resource* Directory::get( const char* p_name, unint1 name_len ) {
     while ( litem != 0 ) {
         // not found yet and we got anther entry in our database
         res = (Resource*) litem->getData();
-        // compare names
-        if ( strcmp( p_name, res->getName(), name_len ) == 0 )
+        // compare names. zse res->GetName() as second paramtere as that string is limited
+        if ( strcmp2( p_name, res->getName(), strlen(res->getName())) == 0 )
             return (res);
         litem = litem->getSucc();
     }

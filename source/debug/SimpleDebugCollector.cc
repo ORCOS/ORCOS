@@ -92,7 +92,7 @@ ErrorT SimpleDebugCollector::readBytes( char *bytes, unint4 &length ) {
 
         char time[ 16 ];
         itoa( passedTime, time, 10 );
-        sprintf( tmpBuf, "Time since startup: %6d,%03d s [Cyles: %s]",seconds_passed,milliseconds,time);
+        sprintf( tmpBuf, "Time since startup: %6d,%03d s [Cyles: %s]",(unint4) seconds_passed,(unint4) milliseconds,time);
         strcat( outputMsg, tmpBuf );
 
         lastReadOffset = 0;
