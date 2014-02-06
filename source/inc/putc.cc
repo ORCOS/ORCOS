@@ -19,7 +19,7 @@
 #include "putc.hh"
 #include "kernel/Kernel.hh"
 
-extern "C"Kernel* theOS;
+extern "C" Kernel* theOS;
 
 void putchar( char c ) {
 #ifdef HAS_Board_UARTCfd

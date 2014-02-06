@@ -28,7 +28,7 @@
 #define PRINT_BUF_LEN 12
 
 // externals
-extern void putchar( char c ); //< puts the character to the standard output device
+extern "C" void putchar( char c ); //< puts the character to the standard output device
 extern void itoa( int8 value, char* str, int base );
 
 static void printchar( char **str, char c ) {
