@@ -646,7 +646,7 @@ extern struct tcp_pcb *tcp_tmp_pcb;      /* Only used for temporary storage. */
 
 /* Define two macros, TCP_REG and TCP_RMV that registers a TCP PCB
    with a PCB list or removes a PCB from a list, respectively. */
-#if 0
+#if 1
 #define TCP_REG(pcbs, npcb) do {\
                             LWIP_DEBUGF(TCP_DEBUG, ("TCP_REG %p local port %d\n", npcb, npcb->local_port)); \
                             for(tcp_tmp_pcb = *pcbs; \
@@ -654,7 +654,6 @@ extern struct tcp_pcb *tcp_tmp_pcb;      /* Only used for temporary storage. */
         tcp_tmp_pcb = tcp_tmp_pcb->next) { \
                                 LWIP_ASSERT("TCP_REG: already registered\n", tcp_tmp_pcb != npcb); \
                             } \
-                            LWIP_ASSERT("TCP_REG: pcb->state != CLOSED", npcb->state != CLOSED); \
                             npcb->next = *pcbs; \
                             LWIP_ASSERT("TCP_REG: npcb->next != npcb", npcb->next != npcb); \
                             *(pcbs) = npcb; \

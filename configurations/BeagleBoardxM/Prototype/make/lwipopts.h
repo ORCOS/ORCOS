@@ -7,8 +7,8 @@
 
 #ifndef LWIPOPTS_H_
 #define LWIPOPTS_H_
-//#define LWIP_DEBUG
-#define  LWIP_NOASSERT
+#define LWIP_DEBUG
+//#define  LWIP_NOASSERT
 // includes for memcpy and memset
 #include "inc/memtools.hh"
 
@@ -94,7 +94,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * a lot of data that needs to be copied, this should be set high.
  */
 #ifndef MEM_SIZE
-#define MEM_SIZE                        4096*2
+#define MEM_SIZE  4096*4
 #endif
 
 /**
@@ -198,7 +198,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * (requires the LWIP_UDP option)
  */
 #ifndef MEMP_NUM_UDP_PCB
-#define MEMP_NUM_UDP_PCB                1
+#define MEMP_NUM_UDP_PCB                5
 #endif
 
 /**
@@ -206,7 +206,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * (requires the LWIP_TCP option)
  */
 #ifndef MEMP_NUM_TCP_PCB
-#define MEMP_NUM_TCP_PCB                2
+#define MEMP_NUM_TCP_PCB                10
 #endif
 
 /**
@@ -214,7 +214,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * (requires the LWIP_TCP option)
  */
 #ifndef MEMP_NUM_TCP_PCB_LISTEN
-#define MEMP_NUM_TCP_PCB_LISTEN         2
+#define MEMP_NUM_TCP_PCB_LISTEN         4
 #endif
 
 /**
@@ -299,7 +299,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * PBUF_POOL_SIZE: the number of buffers in the pbuf pool.
  */
 #ifndef PBUF_POOL_SIZE
-#define PBUF_POOL_SIZE                  2
+#define PBUF_POOL_SIZE                  10
 #endif
 
 
@@ -741,7 +741,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * (2 * TCP_MSS) for things to work well
  */
 #ifndef TCP_WND
-#define TCP_WND                         2*TCP_MSS
+#define TCP_WND  4*TCP_MSS
 #endif
 
 /**
@@ -799,7 +799,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  */
 #ifndef TCP_SND_BUF
 //#define TCP_SND_BUF                     TCP_MSS*4//768
-#define TCP_SND_BUF                     4*TCP_MSS//768
+#define TCP_SND_BUF  8*TCP_MSS//768
 #endif
 
 /**
@@ -1568,7 +1568,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * CHECKSUM_CHECK_TCP==1: Check checksums in software for incoming TCP packets.
  */
 #ifndef CHECKSUM_CHECK_TCP
-#define CHECKSUM_CHECK_TCP  			0
+#define CHECKSUM_CHECK_TCP  1
 #endif
 
 /*
@@ -1660,7 +1660,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * IP_DEBUG: Enable debugging for IP.
  */
 #ifndef IP_DEBUG
-#define IP_DEBUG  LWIP_DBG_OFF
+#define IP_DEBUG  LWIP_DBG_ON
 #endif
 
 /**

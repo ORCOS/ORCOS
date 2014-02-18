@@ -35,6 +35,22 @@
       </PriorityOptions>
       <Vma>0x100000</Vma>
     </Task>
+    <Task>
+      <Start>0x81300000</Start>
+      <End>0x81400000</End>
+      <Heap>0x81320000</Heap>
+      <Path>./tasks/ftp_server/</Path>
+      <PriorityOptions>
+        <InitialPriority>1</InitialPriority>
+        <Phase>0</Phase>
+        <RealTimeOptions>
+          <Period>500000</Period>
+          <Deadline>500000</Deadline>
+          <ExecutionTime>0</ExecutionTime>
+        </RealTimeOptions>
+      </PriorityOptions>
+      <Vma>0x100000</Vma>
+    </Task>
   </Tasks>
   <SCL>
     <!-- ************************************

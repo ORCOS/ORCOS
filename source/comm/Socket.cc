@@ -28,23 +28,14 @@ extern Kernel* theOS;
 
 extern Task* pCurrentRunningTask;
 
-Socket::Socket( unint2 domain, SOCK_TYPE e_type, unint2 protocol, void* bufferstart, unint4 bufferlen ) :
+Socket::Socket( unint2 domain, SOCK_TYPE e_type, unint2 protocol) :
     Resource( cSocket, false ) {
 
-    if ( bufferstart == 0 ) {
-        // create a new buffer
-        #ifdef HAS_Board_HatLayerCfd
-               ERROR("Socket::Socket() Providing no buffer for message storage is only allowed if no MMU is used!");
-        #endif
-
-        if ( bufferlen <= 0 )
-            bufferlen = DEFAULT_BUFFERSIZE;
-        bufferstart = (char*) theOS->getMemoryManager()->alloc( bufferlen, false );
-    }
 
     // create the message buffer
     this->ownerTask 			= pCurrentRunningTask;
-    this->messageBuffer 		= new CAB( bufferstart, bufferlen , pCurrentRunningTask );
+    //this->messageBuffer 		= new CAB( bufferstart, bufferlen , pCurrentRunningTask );
+    this->messageBuffer 		= new FixedSizePBufList(40);
     this->arg					= 0;
     this->newSocketID			= -1;
 
@@ -57,11 +48,13 @@ Socket::Socket( unint2 domain, SOCK_TYPE e_type, unint2 protocol, void* bufferst
     ASSERT(this->tproto);
 
     this->type 					= (SOCK_TYPE) e_type;
-    this->sendBuffer 			= bufferstart;
+
     this->blockedThread 		= 0;
     this->socket_connected 		= 0;
 	this->hasListeningThread 	= false;
     this->myboundaddr.sa_data 	= 0;
+
+
 
 #ifdef HAS_Kernel_ServiceDiscoveryCfd
     this->sd.address.name_data[0] = '\0'; // <- mark as free
@@ -73,11 +66,10 @@ Socket::~Socket() {
 
 	 LOG(KERNEL,INFO,(KERNEL,INFO,"Socket::~Socket(): being destroyed!"));
 
-//	  if (myboundaddr.sa_data != 0)
-//	  {
+	 if (this->socket_connected) {
 		  this->aproto->unbind(&myboundaddr,this);
 		  this->tproto->unregister_socket(this);
-//	  }
+	  }
 
 #ifdef HAS_Kernel_ServiceDiscoveryCfd
 	// remove service from service discovery if weve got a service descriptor
@@ -219,6 +211,7 @@ int Socket::listen(Kernel_ThreadCfdCl* thread) {
 
 }
 
+#if 0
 ErrorT Socket::addMessage( char* msgstart, unint2 msglength, sockaddr *fromaddr ) {
 
 	if (fromaddr != 0) {
@@ -243,6 +236,42 @@ ErrorT Socket::addMessage( char* msgstart, unint2 msglength, sockaddr *fromaddr 
 		memcpy(&senderaddr[buffer],fromaddr,sizeof(sockaddr));
 	} else
 		memcpy(&senderaddr[buffer],&connected_socket,sizeof(sockaddr));
+
+	if ( this->blockedThread != 0 ) {
+		LOG(COMM,DEBUG,(COMM,DEBUG,"Socket::addMessage(): unblocked thread %d",blockedThread->getId()));
+		// the length of the message stored into register so it works with disabled vm
+
+		this->blockedThread->unblock();
+		this->blockedThread = 0;
+	}
+
+
+    return (cOk);
+}
+#endif
+
+
+ErrorT  Socket::addMessage( pbuf* p, sockaddr *fromaddr ) {
+
+	if (fromaddr != 0) {
+		// be sure service name is unset!
+		fromaddr->name_data[0] = '\0';
+		LOG(COMM,DEBUG,(COMM,DEBUG,"Socket::addMessage(): adding msg len: %d, from: 0x%x port: %d",p->len,fromaddr->sa_data,fromaddr->port_data));
+	}
+	ErrorT res;
+
+	LOG(COMM,DEBUG,(COMM,DEBUG,"Socket::addMessage(): adding message %x with len: %d",p,p->len));
+
+
+	if ( this->type == SOCK_DGRAM ) {
+	    res = messageBuffer->addPbuf(p,fromaddr);
+	} else
+		res = messageBuffer->addPbuf(p,&connected_socket);
+
+	if (isError(res)){
+		LOG(COMM,ERROR,(COMM,ERROR,"Socket::addMessage(): messageBuffer->add result: %d",res));
+		return (res);
+	}
 
 	if ( this->blockedThread != 0 ) {
 		LOG(COMM,DEBUG,(COMM,DEBUG,"Socket::addMessage(): unblocked thread %d",blockedThread->getId()));
@@ -322,13 +351,21 @@ int Socket::sendto( const void* buffer, unint2 length, const sockaddr *dest_addr
     return (cError);
 }
 
-size_t Socket::recvfrom( Kernel_ThreadCfdCl* thread, char** addressof_ret_ptrtomsg, unint4 flags, sockaddr* addr ) {
+size_t Socket::recvfrom( Kernel_ThreadCfdCl* thread, char* data_addr, size_t data_size,  unint4 flags, sockaddr* addr ) {
 
     LOG(COMM,TRACE,(COMM,TRACE,"Socket::recvfrom()"));
 
     if ( !messageBuffer->hasData() ) {
+
+    	if (this->type == SOCK_STREAM && this->socket_connected == 0) {
+			// we were disconnected
+			// tell thread we are disconnected
+			return (-1);
+		}
+
         // no data available. block thread if no other thread is already waiting for data on this socket
-        if ( blockedThread == 0 && ( ( flags & MSG_WAIT ) == MSG_WAIT ) ) {
+        if ( flags & MSG_WAIT  ) {
+        	if (blockedThread == 0) {
 
             LOG(COMM,DEBUG, (COMM,DEBUG,"Socket::recvfrom(): blocked thread %d",thread->getId()) );
 
@@ -347,27 +384,25 @@ size_t Socket::recvfrom( Kernel_ThreadCfdCl* thread, char** addressof_ret_ptrtom
             // we got unblocked! now there is some data!
             LOG(COMM,DEBUG,(COMM,DEBUG,"Socket::recvfrom(): got unblocked! can finalize recv()."));
 
+        	}
         }
         else {
-            // only one thread may read from a socket
-            // so return 0
-            *addressof_ret_ptrtomsg = 0;
-            addr = 0;
             return (0);
         }
     }
 
     size_t len = 0;
-    int2 buffer;
+    pbuf* pb = 0;
 
-    len = messageBuffer->get( addressof_ret_ptrtomsg, buffer );
+    len = messageBuffer->getFirst( data_addr, data_size, addr,pb);
+    // tell lower layer that this data has been received
+    if (len > 0 && pb != 0) {
+    	LOG(COMM,DEBUG,(COMM,DEBUG,"Socket::recvfrom(): received %x with len: %d",pb,pb->len));
+    	this->tproto->received(this,pb);
+    } else
+    	LOG( COMM, ERROR,(COMM, ERROR,"Socket::recvfrom(): messageBuffer->getFirst() returned len %d",len));
 
-    LOG( COMM, DEBUG,(COMM, DEBUG,"Socket::recvfrom(): CAB::get() returned len %d, buffer %d",len,buffer));
 
-    if (addr!= 0) {
-        // fill the provided sock_addr structure with the address of the sender
-        memcpy(addr,&senderaddr[buffer],sizeof(sockaddr));
-    }
 
     return (len);
 }

@@ -93,3 +93,7 @@ extern "C" int fstat(int fd, stat_t* stat) {
     return syscall(cFStatId,fd,stat);
 }
 
+extern "C" int 	fremove(const char* filename, const char* path) {
+	return (syscall(cFRemoveID,filename,path));
+}
+

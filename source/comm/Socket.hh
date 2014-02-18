@@ -27,9 +27,12 @@
 #include "inc/const.hh"
 #include "comm/CAB.hh"
 #include "filesystem/Resource.hh"
+#include "lwip/pbuf.h"
+#include "FixedSizePBufList.h"
 
 #define SENDBUF_SIZE 1200
 #define DEFAULT_BUFFERSIZE 1200
+
 
 
 
@@ -47,13 +50,14 @@ private:
     TransportProtocol* tproto;
 
     //! the message buffer
-    CAB* messageBuffer;
+    //CAB* messageBuffer;
+    FixedSizePBufList* messageBuffer;
 
     //! the sender addresses for every message we received
     sockaddr senderaddr[MAX_BUF];
 
     //! the send buffer which is used by the protocols to wrap the message
-    void* sendBuffer;
+   // void* sendBuffer;
 
     //! The type of the socket (SOCK_STREAM, SOCK_DGRAM)
     SOCK_TYPE type;
@@ -86,7 +90,7 @@ public:
 public:
 	 void*	arg;
 
-	Socket( unint2 domain, SOCK_TYPE e_type, unint2 protocol, void* bufferstart, unint4 bufferlen);
+	Socket( unint2 domain, SOCK_TYPE e_type, unint2 protocol);
     ~Socket();
 
     //! bind the socket to an addr
@@ -111,13 +115,15 @@ public:
     void disconnected(int error);
 
     //! method which is called from the transport protocol whenever this socket receives a message
-    ErrorT addMessage( char* msgstart, unint2 msglength, sockaddr *fromaddr );
+    //ErrorT addMessage( char* msgstart, unint2 msglength, sockaddr *fromaddr );
+    ErrorT addMessage( pbuf* p, sockaddr *fromaddr );
 
     //! method which is called by syscalles in order to receive a message and the address the method came from
-    size_t recvfrom( Kernel_ThreadCfdCl* thread, char** addressof_ret_ptrtomsg, unint4 flags, sockaddr* addr );
+   // size_t recvfrom( Kernel_ThreadCfdCl* thread, char** addressof_ret_ptrtomsg, unint4 flags, sockaddr* addr );
+    size_t recvfrom( Kernel_ThreadCfdCl* thread, char* data_addr, size_t data_size,  unint4 flags, sockaddr* addr ) ;
 
     //! method which is called by syscalles in order to receive a message
-    size_t recv( Kernel_ThreadCfdCl* thread, char** addressof_ret_ptrtomsg, unint4 flags );
+    //size_t recv( Kernel_ThreadCfdCl* thread, char** addressof_ret_ptrtomsg, unint4 flags );
 
     //! Returns the type of this socket
     inline

@@ -22,9 +22,9 @@
 #include "./orcos.hh"
 
 
-extern "C"int socket(int domain, int type, int protocol, char* buffer, int buffersize)
+extern "C"int socket(int domain, int type, int protocol)
 {
-    return syscall(cSocketSyscallId,domain,type,protocol,buffer,buffersize);
+    return syscall(cSocketSyscallId,domain,type,protocol);
 }
 
 extern "C"int connect(int socket, const sockaddr *toaddress)
@@ -47,13 +47,13 @@ extern "C"int4 sendto(int socket, const void *buffer, size_t length, const socka
     return syscall(cSendtoSyscallId,socket,buffer,length,dest_addr);
 }
 
-extern "C"size_t recv(int socket,char** msgptr,int flags)
+extern "C"size_t recv(int socket,char* data,int len, int flags)
 {
-    return syscall(cRecvFromSyscallId,socket,msgptr,flags,0);
+    return syscall(cRecvFromSyscallId,socket,data,len,flags,0);
 }
 
-extern "C"size_t recvfrom(int socket,char** msgptr,int flags,sockaddr* sender)
+extern "C"size_t recvfrom(int socket,char* data,int len,int flags, sockaddr* sender)
 {
-    return syscall(cRecvFromSyscallId,socket,msgptr,flags,sender);
+    return syscall(cRecvFromSyscallId,socket,data,len,flags,sender);
 }
 

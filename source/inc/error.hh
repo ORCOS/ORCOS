@@ -84,6 +84,12 @@ class Kernel_ThreadCfdCl;
 #define cStackUnderflow (int)-1004
 
 #define cWrongAlignment (int)-1005
+// Error indicating that the resource can not be removed
+#define cResourceNotRemovable (int) -1006
+// A wrong resource type has been passed to a method.
+#define cWrongResourceType (int) -1007
+
+#define cInvalidPath		(int) -1008
 
 // The following values with |C(s)| < 1000 are used inside the specific
 // components. Each component has 100 possible |C(s)|.
@@ -126,10 +132,12 @@ class Kernel_ThreadCfdCl;
 // Communication            400 <= |C(s)| < 500
 //-----------------------------------------------------
 // Warning or Status Value
-#define cNotConnected   (int)-400
-#define cTransportProtocolNotAvailable (int)-401
-#define cAddressProtocolNotAvailable (int)-402
-#define cSocketAlreadyBoundError (int)-403
+#define cNotConnected   				(int)-400
+#define cTransportProtocolNotAvailable 	(int)-401
+#define cAddressProtocolNotAvailable 	(int)-402
+#define cSocketAlreadyBoundError 		(int)-403
+#define cTCPEnqueueFailed 				(int)-404
+#define cPBufNoMoreMemory 				(int)-405
 // Error
 
 //-----------------------------------------------------

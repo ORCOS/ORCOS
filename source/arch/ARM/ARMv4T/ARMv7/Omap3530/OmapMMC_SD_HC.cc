@@ -398,9 +398,8 @@ ErrorT OmapMMC_SD_HC::writeBlock(unint4 blockNum, unint1* buffer, unint4 length)
 		return (cError);
 	}
 
-	unint4 timeout = 100;
-	// TODO: remove 1 ms wait .. we could be much faster
-	while (((INW(baseAddress + MMCHS_STAT) & (1 << 4)) == 0) && (timeout)) {timeout--; kwait(1);};
+	unint4 timeout = 1000;
+	while (((INW(baseAddress + MMCHS_STAT) & (1 << 4)) == 0) && (timeout)) {timeout--; kwait_us(30);};
 
 	// test error bit
 	unint4 mmc_stat = INW(baseAddress + MMCHS_STAT);

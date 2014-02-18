@@ -45,7 +45,7 @@ public:
 
     virtual ~Directory();
 
-    //! Adds another resource to this directory
+    //! Adds another existing resource to this directory
     virtual ErrorT add( Resource* res );
 
     //! Tries to remove the Resource from the directory

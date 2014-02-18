@@ -57,11 +57,11 @@ typedef unsigned long mem_ptr_t;
 //#if 1
 
 /* Plaform specific diagnostic output */
-#define LWIP_PLATFORM_DIAG(x)	printf x
+#define LWIP_PLATFORM_DIAG(x)	do { printf("%s\r\n", x);} while(0)
 //#define LWIP_PLATFORM_DIAG(x)
 
 
-#define LWIP_PLATFORM_ASSERT(x) do { printf("Assertion \"%s\" failed at line %d in %s\n", x, __LINE__, __FILE__);} while(0)
+#define LWIP_PLATFORM_ASSERT(x) do { printf("Assertion \"%s\" failed at line %d in %s\r\n", x, __LINE__, __FILE__);} while(0)
 
 #include "logger_config.hh"
 #define LOGC(prefix,level,msg) if ((int) level <= (int) prefix) printf msg

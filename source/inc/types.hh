@@ -253,6 +253,7 @@ typedef enum {
     cBlockDevice	= 1 << 7,
     cPartition		= 1 << 8,
     cSharedMem		= 1 << 9,
+    cNonRemovableResource =     cStreamDevice| cCommDevice| cGenericDevice | cSocket | cUSBDriver | cBlockDevice | cPartition | cSharedMem,
     cAnyNoDirectory = cStreamDevice | cCommDevice | cGenericDevice | cFile | cSocket | cUSBDriver | cBlockDevice | cSharedMem,
     cAnyResource 	= cStreamDevice | cCommDevice | cGenericDevice | cFile | cSocket | cUSBDriver | cDirectory | cBlockDevice | cSharedMem
 } ResourceType;

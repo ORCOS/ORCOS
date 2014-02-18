@@ -204,8 +204,11 @@ int sleepSyscall( int4 int_sp ) {
     LOG(SYSCALLS,DEBUG,(SYSCALLS,DEBUG,"Syscall: sleep(%d)",t));
 
     // sleep time is expected to be us
+#if CLOCK_RATE >= (1 MHZ)
     pCurrentRunningThread->sleep( (t * (CLOCK_RATE / 1000000)));
-
+#else
+    pCurrentRunningThread->sleep( ((t * CLOCK_RATE) / 1000000));
+#endif
     // return will not be called
     // if the system works correctly
     return (cOk);

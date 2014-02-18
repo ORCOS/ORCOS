@@ -23,6 +23,7 @@
 #include "inc/const.hh"
 #include "comm/AddressProtocol.hh"
 #include "inc/types.hh"
+#include "lwip/pbuf.h"
 
 class Socket;
 
@@ -65,6 +66,8 @@ public:
     virtual
     ErrorT recv( char* packetstart, int packetlength, AddressProtocol* FromLayer, sockaddr fromaddr ) = 0;
 
+
+    virtual void received(Socket* socket, pbuf* p) = 0;
 
     virtual
     ErrorT recv( packet_layer* packet, AddressProtocol* FromLayer, sockaddr fromaddr ) = 0;

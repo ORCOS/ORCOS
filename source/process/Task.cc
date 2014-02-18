@@ -112,6 +112,14 @@ ErrorT Task::releaseResource( Resource* res, Thread* t ) {
     //REMARK: check wheter t is a thread belonging to this task
     // get the resource to close by id from the tasks owned resource database
     if ( res != 0 ) {
+	   if ( res->getType() == cSocket ) {
+		    res->release( t );
+			Socket* s = (Socket*) res;
+			LOG(KERNEL,DEBUG,(KERNEL,DEBUG,"Task::removeThread(): destroying socket!"));
+			delete s;
+			return (cOk);
+		}
+
         return (res->release( t ));
     }
 

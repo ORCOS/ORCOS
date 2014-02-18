@@ -194,7 +194,7 @@ public:
 };
 
 class FATFile: public File {
-
+friend class FATDirectory;
 private:
 	// The start cluster of this file
 	unint4 clusterStart;
@@ -236,61 +236,70 @@ public:
 class FATDirectory : public Directory {
 
 private:
-	// shortcut to my directory entry cluter number
-	unint4 mycluster_num;
 
-	// the starting sector of this director
-	unint4 sector;
+	//! shortcut to my directory entry cluter number
+	unint4	mycluster_num;
 
-	// pointer to the filesystem we are located in
+	//! the starting sector of this director
+	unint4 	sector;
+
+	//! Entry number of the last entry inside this FAT directory structure
+	unint4  last_entry;
+
+	//! pointer to the Filesystem we are located in
 	FATFileSystem* myFS;
 
-	// has this directory been populated?
+	//! has this directory been populated?
 	bool 	populated;
 
-	// reads the file system directory and creates
-	// ORCOS directory objects for them
+	/*!
+	 * Reads the file system directory and creates
+	*  ORCOS directory objects for them
+	* */
 	void 	populateDirectory();
 
+	//! Generates the windows 8.3 shortname for a given long name
 	void 	generateShortName(unsigned char* shortname, char* name);
 
 public:
+	// FAT Directory Constructor for FAT32 filesystems
 	FATDirectory(FATFileSystem* parentFileSystem, unint4 cluster_num,  const char* name);
 
-	// FAT Directory Constructor for FAT16 Fs
+	// FAT Directory Constructor for FAT16 filesystems
 	FATDirectory(FATFileSystem* parentFileSystem, unint4 cluster_num,  const char* name, unint4 sector_num);
 
-    //! Adds another resource to this directory
-   //ErrorT add( Resource* res ) { };
+	// Destructor
+	~FATDirectory();
+
+   //! Tries to delete the resource from the directory
+   ErrorT 		remove(Resource *res);
 
     //! gets the resource with name 'name'. Maybe null if nonexistent
-   Resource* get( const char* name, unint1 name_len = 0 );
+   Resource* 	get( const char* name, unint1 name_len = 0 );
 
    //! Returns the amount of entries in this directory
-   int getNumEntries() {
+   int 			getNumEntries() {
 	   if (!populated) populateDirectory();
-
-	   return num_entries;
+	   return (num_entries);
    }
 
    //! Returns the content of this directory
    LinkedListDatabase* getContent() {
 	   if (!populated) populateDirectory();
-
-	   return &dir_content;
+	   return (&dir_content);
    }
 
     //! Returns the contents information of this directory as encoded string
-    ErrorT readBytes( char *bytes, unint4 &length );
+    ErrorT 		readBytes( char *bytes, unint4 &length );
 
     /*
      * Creates a new FAT File inside this directory..
      * Updates the FAT Directory entry and allocates a cluster for it.
      * Updates the FAT as well.
      */
-    File* createFile(char* name, unint4 flags);
+    File* 		createFile(char* name, unint4 flags);
 
-	~FATDirectory();
+
 };
 
 

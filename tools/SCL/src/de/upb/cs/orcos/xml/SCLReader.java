@@ -554,7 +554,7 @@ public class SCLReader {
 			arch_objects.add("ethar.o");
 			arch_objects.add("ethndp.o");
 			arch_objects.add("lwipTMR.o");		
-			arch_objects.add("CAB.o");		
+			arch_objects.add("FixedSizePBufList.o");		
 		}
 		
 		// add workertask files

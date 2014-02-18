@@ -35,18 +35,12 @@ int socketSyscall( int4 int_sp ) {
     unint2 domain;
     SOCK_TYPE type;
     unint2 protocol;
-    char* buffer;
-    int buffersize;
 
-    SYSCALLGETPARAMS5(int_sp,domain,type,protocol,buffer,buffersize);
+    SYSCALLGETPARAMS3(int_sp,domain,type,protocol);
 
-    if (buffer != 0) {
-    	VALIDATE_IN_PROCESS(buffer);
-    	VALIDATE_IN_PROCESS((unint4) buffer + buffersize);
-    }
 
     // create new Socket
-    Socket* s = new Socket( domain, type, protocol, buffer, buffersize );
+    Socket* s = new Socket( domain, type, protocol );
     pCurrentRunningTask->aquiredResources.addTail( (DatabaseItem*) s );
 
     LOG(SYSCALLS,TRACE,(SYSCALLS,TRACE,"Syscall: Socket created with id %d",s->getId()));
@@ -238,17 +232,18 @@ int sendtoSyscall( int4 int_sp ) {
 int recvSyscall( int4 int_sp) {
 
 	ResourceIdT socketid;
-    char** addressofptrtomsg;
+    char* data_addr;
+    size_t data_len;
     int flags;
     int retval;
     sockaddr* sender;
 
-    SYSCALLGETPARAMS4(int_sp,socketid,addressofptrtomsg,flags,sender);
+    SYSCALLGETPARAMS5(int_sp,socketid,data_addr,data_len,flags,sender);
 
-    VALIDATE_IN_PROCESS(addressofptrtomsg);
+    VALIDATE_IN_PROCESS(data_addr);
     //VALIDATE_IN_PROCESS(sender);
 
-    LOG(SYSCALLS,DEBUG,(SYSCALLS,DEBUG,"Syscall: recv: socketid %d, msg_addr: 0x%x, flags: %x, sockaddr_ptr: 0x%x",socketid,addressofptrtomsg,flags,sender));
+    LOG(SYSCALLS,DEBUG,(SYSCALLS,DEBUG,"Syscall: recv: socketid %d, msg_addr: 0x%x, flags: %x, sockaddr_ptr: 0x%x",socketid,data_addr,flags,sender));
 
     Resource* res;
     res = pCurrentRunningTask->getOwnedResourceById( socketid );
@@ -259,7 +254,7 @@ int recvSyscall( int4 int_sp) {
         // resource valid and owned
         // check if resource is a socket
         if ( res->getType() == cSocket ) {
-            retval = ( (Socket*) res )->recvfrom( pCurrentRunningThread, addressofptrtomsg, flags, sender );
+            retval = ( (Socket*) res )->recvfrom( pCurrentRunningThread, data_addr,data_len, flags, sender );
         }
         else
         retval = cError;

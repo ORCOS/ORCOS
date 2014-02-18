@@ -255,7 +255,23 @@ extern "C" int 		fgetc(int stream);
  */
 extern "C" size_t 	fwrite(const void *ptr, size_t size, size_t nitems, int stream);
 
-extern "C" int fstat(int fd, stat_t* stat);
+
+/*!
+ *\brief The fstat method returns the file statistics of a resource given by its handle fd.
+ */
+extern "C" int 		fstat(int fd, stat_t* stat);
+
+
+/*!
+ * \brief Tries to remove a resource given by its absolute path.
+ *
+ * The method fails (return value < 0) if the resource can not be found,
+ * the resource is not removable or it can not be removed due to other reasons.
+ * If the rousource is locked by any other thread the operation will fail.
+ *
+ */
+extern "C" int 		fremove(const char* filename, const char* path);
+
 
 /*!
  * \brief Request an I/O Control operation on the device opened with handle 'fd'.
@@ -335,7 +351,7 @@ extern "C" unint8 	getTime();
  *
  * \return				Id of the created socket on success
  */
-extern "C" int 		socket(int domain, int type, int protocol, char* buffer = 0, int buffersize = 0);
+extern "C" int 		socket(int domain, int type, int protocol);
 
 
 /*!
@@ -394,13 +410,13 @@ extern "C" int 		bind(int socket, const sockaddr* address);
  * If this method is used in a connection oriented socket the message will be send to the connected socket.
  *
  * \param socket	The id of the socket the data shall be used for sending
- * \param buffer	Pointer to the buffer containing the data to be send
+ * \param data		Pointer to the data to be send
  * \param length	The amount of data the be send in the buffer
  * \param dest_addr Pointer to the sockaddr structure containing the destination socket address or null if the connection is type STREAM
  *
  * \return			length on succes, -1 on error (timeout)
  */
-extern "C" int4 	sendto(int socket, const void* buffer, size_t length, const sockaddr* dest_addr);
+extern "C" int4 	sendto(int socket, const void* data, size_t length, const sockaddr* dest_addr);
 
 /*!
  * \brief Receive method on socket.
@@ -415,7 +431,7 @@ extern "C" int4 	sendto(int socket, const void* buffer, size_t length, const soc
  *
  * \return			The size/length of the received message in bytes. -1 on connection disconnect
  */
-extern "C" size_t 	recv(int socket,char** msgptr,int flags);
+extern "C" size_t 	recv(int socket,char* data,int len, int flags);
 
 
 /*!
@@ -432,7 +448,7 @@ extern "C" size_t 	recv(int socket,char** msgptr,int flags);
  *
  * \return          The size/length of the recieved message in bytes. -1 on connection disconnect
  */
-extern "C" size_t 	recvfrom(int socket,char** msgptr,int flags,sockaddr* sender);
+extern "C" size_t 	recvfrom(int socket,char* data, int len,int flags, sockaddr* sender);
 
 /*!
  * \brief Trys to find the service specified by a name in the network. Calling thread will be blocked.

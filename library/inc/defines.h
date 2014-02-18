@@ -100,6 +100,7 @@
 
 #define cThread_WaitPID			34
 #define cFStatId				35
+#define cFRemoveID				36
 
 #define ErrorToString(s) #s
 

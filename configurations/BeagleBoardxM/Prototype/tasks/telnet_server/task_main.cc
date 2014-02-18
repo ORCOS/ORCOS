@@ -694,14 +694,16 @@ void handleCommand(int socket, int command_length) {
 }
 
 
+char recvMsg[100];
+
 extern "C" int task_main()
 {
 	int i = 0;
 
-	char* mysocketbuffer = (char*) malloc(800);
+	//char* mysocketbuffer = (char*) malloc(800);
 	// then create a socket
 
-	int mysock = socket(IPV4,SOCK_STREAM,TCP,mysocketbuffer,800);
+	int mysock = socket(IPV4,SOCK_STREAM,TCP);
 
 	// bind our socket to some address
 	sockaddr* addr = (sockaddr*) malloc(sizeof(sockaddr));
@@ -737,7 +739,8 @@ extern "C" int task_main()
 		//printf("handle: %d\r\n", mydirhandle);
 
 		while (1) {
-			int msglen = recv(newsock,&msgptr,MSG_WAIT);
+			msgptr = recvMsg;
+			int msglen = recv(newsock,msgptr,100,MSG_WAIT);
 			if (msglen == -1) {
 				// disconnected
 				printf("Terminal disconnected..");

@@ -68,17 +68,12 @@ public:
 	/*!
 	 * Tries to read the given sector of this partition into the buffer.
 	 */
-	ErrorT readSectors(unint4 sector_start, unint1* buffer, unint4 num_sectors) {
-		if (sector_start + num_sectors < sectors)
-			return (myBlockDevice->readBlock(this->lba_start + sector_start,buffer, num_sectors));
-		else return (cError);
-	}
+	ErrorT readSectors(unint4 sector_start, unint1* buffer, unint4 num_sectors);
 
-	ErrorT writeSectors(unint4 sector_start, unint1* buffer, unint4 num_sectors) {
-		if (sector_start + num_sectors < sectors)
-			return (myBlockDevice->writeBlock(this->lba_start + sector_start,buffer, num_sectors));
-		else return (cError);
-	}
+	/*!
+	 * Tries to write the given sector of this partition into the buffer
+	 */
+	ErrorT writeSectors(unint4 sector_start, unint1* buffer, unint4 num_sectors);
 
 	/*!
 	 * Returns the Starting Logical Block Address of this partition.

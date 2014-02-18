@@ -69,7 +69,7 @@ ErrorT TCPTransportProtocol::send(packet_layer* payload, AddressProtocol* NextLa
 		pbuf_free(p);
 
 		// check if enqueue operation was successfull
-		if (ret != ERR_OK) return (cError);
+		if (ret != ERR_OK) return (cTCPEnqueueFailed);
 
 		// try to send directly
 		tcp_output(pcb);
@@ -78,7 +78,7 @@ ErrorT TCPTransportProtocol::send(packet_layer* payload, AddressProtocol* NextLa
 	}
 	else {
 		LOG(COMM,WARN,(COMM,WARN,"TCP:send(): packet dropped.. no more memory..!"));
-		return (cError);
+		return (cPBufNoMoreMemory);
 	}
 }
 
@@ -102,19 +102,29 @@ static err_t tcp_recv_wrapper(void *arg, struct tcp_pcb *pcb, struct pbuf *p, er
 
 	if (p != 0) {
 		if (sock != 0)
-			sock->addMessage((char*) p->payload,p->len,0);
+			sock->addMessage(p,0);
+			//sock->addMessage((char*) p->payload,p->len,0);
 
-		tcp_recved(pcb,p->len);
-		pbuf_free(p);
+		//tcp_recved(pcb,p->len);
+		//pbuf_free(p);
 	} else {
 		if (sock != 0)
 			sock->disconnected(error);
+
 		LOG(COMM,DEBUG,(COMM,DEBUG,"TCP: closing pcb: %x",pcb));
 		tcp_close(pcb);
 	}
 
 	return ERR_OK;
 }
+
+void TCPTransportProtocol::received(Socket* socket, pbuf* p) {
+	struct tcp_pcb* pcb = (struct tcp_pcb*) socket->arg;
+	// indicate that we received
+	tcp_recved(pcb,p->len);
+	pbuf_free(p);
+}
+
 
 static err_t tcp_connected(void *arg, struct tcp_pcb *pcb, err_t err) {
 	LOG(COMM,TRACE,(COMM,TRACE,"TCP: connected!"));
@@ -147,12 +157,12 @@ static err_t  tcp_accept_wrapper(void *arg, struct tcp_pcb *newpcb,err_t err)
     // get tasks memory manager and allocate memory for buffer
 	// we need to run with the process id of the listening task
 	// so we can access its memory
-	SETPID(oldsock->getOwnerTask()->getId());
+	/*SETPID(oldsock->getOwnerTask()->getId());
 	bufferlen = DEFAULT_BUFFERSIZE;
-	bufferstart = (char*) oldsock->getOwnerTask()->getMemManager()->alloc( bufferlen, false );
+	bufferstart = (char*) oldsock->getOwnerTask()->getMemManager()->alloc( bufferlen, false );*/
 #endif
 
-	Socket* newsock = new Socket(oldsock->getAProto()->getId(), oldsock->getType(), oldsock->getTProto()->getId(), bufferstart, bufferlen);
+	Socket* newsock = new Socket(oldsock->getAProto()->getId(), oldsock->getType(), oldsock->getTProto()->getId());
 	newsock->connected(cOk);
 
 	oldsock->newSocketID = newsock->getId();
@@ -164,13 +174,13 @@ static err_t  tcp_accept_wrapper(void *arg, struct tcp_pcb *newpcb,err_t err)
 
 #ifdef HAS_Board_HatLayerCfd
 	// switch back to the mode of the workerthread
-	if (pCurrentRunningTask != 0)
+	/*if (pCurrentRunningTask != 0)
 			{
 			SETPID(pCurrentRunningTask->getId());
 			}
 		else {
 			SETPID(0);
-		}
+		}*/
 #endif
 
 	return ERR_OK;

@@ -52,6 +52,8 @@ public:
     //! Receive method for packets using the packet_layer structure
     ErrorT recv( packet_layer* packet, AddressProtocol* FromLayer, sockaddr fromaddr );
 
+    void received(Socket* socket, pbuf* p);
+
     //! Register a socket on the following so it can receive messages
     ErrorT register_socket( unint2 port, Socket* socket );
 

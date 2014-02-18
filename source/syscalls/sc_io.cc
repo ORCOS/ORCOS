@@ -372,3 +372,27 @@ int fstatSyscall( int4 int_sp ) {
     return (cResourceNotOwned);
 }
 
+int fremoveSyscall( int4 int_sp ) {
+
+	ResourceIdT file_id;
+	const char* filename;
+	const char* path;
+	Resource* res;
+
+	SYSCALLGETPARAMS2(int_sp,filename,path);
+	VALIDATE_IN_PROCESS(filename);
+	VALIDATE_IN_PROCESS(path);
+
+	LOG(SYSCALLS,DEBUG,(SYSCALLS,DEBUG,"Syscall: fremove(%s, %s)",filename,path));
+	res = theOS->getFileManager()->getResource( path );
+
+	// directory found?
+	if ((res == 0) || (! (res->getType() & cDirectory)))  return (cInvalidPath);
+
+	Directory* dir 		= (Directory*) res;
+	Resource* res_file 	= dir->get(filename,strlen(filename));
+	// resource found?
+	if (res == 0) return (cInvalidPath);
+
+	return (dir->remove(res_file));
+}

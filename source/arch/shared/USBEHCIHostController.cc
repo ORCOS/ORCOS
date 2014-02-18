@@ -440,8 +440,8 @@ int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1
 		num = -1;
 		dev->endpoints[endpoint].data_toggle = 1;
 
-		unint1 msg[8] = USB_CLEAR_FEATURE(0x0,endpoint);
-		this->sendUSBControlMsg(dev,0x0,(unint1*) &msg);
+		//unint1 msg[8] = USB_CLEAR_FEATURE(0x0,endpoint);
+		//this->sendUSBControlMsg(dev,0x0,(unint1*) &msg);
 
 
 	}

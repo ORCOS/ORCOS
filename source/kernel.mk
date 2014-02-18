@@ -37,7 +37,7 @@ KOBJ += ArrayDatabase.o LinkedListDatabase.o
 KOBJ += Logger.o
 
 #filesystem
-KOBJ += File.o Directory.o Filemanager.o Resource.o SimpleFileManager.o SharedMemResource.o FileSystemBase.o
+KOBJ += File.o Directory.o Filemanager.o Resource.o SimpleFileManager.o SharedMemResource.o FileSystemBase.o Partition.o
 
 #hal
 KOBJ += PowerManager.o CharacterDeviceDriver.o BlockDeviceDriver.o TimerDevice.o CommDeviceDriver.o USCommDeviceDriver.o Clock.o
