@@ -20,9 +20,9 @@ public:
 
 	virtual ~File();
 
-	unint4 getFileSize() { return this->filesize;}
+	unint4 getFileSize() { return (this->filesize);}
 
-	unint4 getFlags() { return this->flags; }
+	unint4 getFlags() { return (this->flags); }
 };
 
 #endif /* FILE_HH_ */

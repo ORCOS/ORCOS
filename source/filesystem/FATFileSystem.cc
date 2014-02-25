@@ -310,12 +310,12 @@ ErrorT FATFileSystem::initialize() {
 
 	if (this->isValid) {
 
-		// get orcos mount directory
+		/* get orcos mount directory */
 		Directory* mntdir = theOS->getFileManager()->getDirectory("/mnt/");
 
 		if (myFatType == FAT32) {
 
-			// get FSInfo
+			/* get FSInfo */
 			unint4 fsinfo_lba = myFATxx_BPB.myFAT32_BPB.BPB_FSInfo * ( myFAT_BPB.BPB_BytsPerSec / this->myPartition->getSectorSize());
 			int error = myPartition->readSectors(fsinfo_lba,buffer,1);
 			if (error < 0) return cError;
@@ -328,7 +328,7 @@ ErrorT FATFileSystem::initialize() {
 				LOG(ARCH,WARN,(ARCH,WARN,"FATFileSystem: FS_INFO Struc Sig Validation failed: %x != 0x61417272",fsinfo->FSI_StrucSig));
 			}
 
-			LOG(ARCH,INFO,(ARCH,INFO,"FATFileSystem: First free Cluster: %x",fsinfo->FSI_FreeCount));
+			LOG(ARCH,INFO,(ARCH,INFO,"FATFileSystem: First Cluster Count: %x",fsinfo->FSI_FreeCount));
 
 
 			if (mntdir == 0) {
@@ -336,23 +336,36 @@ ErrorT FATFileSystem::initialize() {
 				return cError;
 			}
 
+
 			char *name = (char*) theOS->getMemoryManager()->alloc(12);
 			name[11] = 0;
 			memcpy(name,myFATxx_BPB.myFAT32_BPB.BS_VolLab,11);
-
 			FAT_SHORTNAME_STRIP(name,10);
+
+			if (! (strcmp2("NO NAME",  myFATxx_BPB.myFAT32_BPB.BS_VolLab,7 ) != 0)) {
+				/* Read the volume label from the root directory */
+				int error = myPartition->readSectors(ClusterToSector(myFATxx_BPB.myFAT32_BPB.BPB_RootClus),buffer,1);
+				if (error < 0) return (cError);
+				FAT32_DirEntry *fsrootdir_entry = (FAT32_DirEntry *) &buffer[0];
+				if (fsrootdir_entry->DIR_Attr & ATTR_VOLUME_ID) {
+					/* take this entry name */
+					memcpy(name,fsrootdir_entry->DIR_Name,11);
+					FAT_SHORTNAME_STRIP(name,10);
+				}
+
+			}
 
 			LOG(ARCH,INFO,(ARCH,INFO,"FATFileSystem: Volume: '%s' ID: %x",name,myFATxx_BPB.myFAT32_BPB.BS_VolID));
 
-			// add root directory to system
+			/* add root directory to system */
 			rootDir = new FATDirectory(this,myFATxx_BPB.myFAT32_BPB.BPB_RootClus,name);
 
 			mntdir->add(rootDir);
 
 			LOG(ARCH,INFO,(ARCH,INFO,"FATFileSystem: FAT Filesystem mounted to '/mnt/%s/'.",name));
 
-			// go on and mount this fs
-			return cOk;
+			/* go on and mount this fs */
+			return (cOk);
 		} else {
 			// FAT 16
 
@@ -979,10 +992,10 @@ ErrorT FATFile::writeBytes(const char* bytes, unint4 length) {
 		LOG(ARCH,DEBUG,(ARCH,DEBUG,"FATFile::writeBytes sector: %u, cluster: %u, length: %u",currentSector,currentCluster,sector_write_len));
 
 		// read the sector if we are overwriting something
-		//if (!new_sector) {
+		if (!new_sector) {
 			error = myFS->myPartition->readSectors(currentSector,buffer,1);
 			if (error < 0) return (error);
-		//}
+		}
 
 		// copy the desired bytes in this sector into the buffer
 		memcpy(&buffer[sector_pos],&bytes[pos],sector_write_len);

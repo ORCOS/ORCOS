@@ -239,11 +239,11 @@ int ReceiveFile(int controlsock, int datasock, sockaddr *dataremote, char* file)
 			}
 		} else {
 			// write to file
-			printf("RX: %d\r",msglen);
-
-			//hexdump(dataptr,msglen);
-
+		//	long long t1 = getTime();
 			fwrite(dataptr,msglen,1,res);
+		//	long long t2 = getTime();
+		//	printf("Time %d\r",(int) (t1));
+		//	printf("%d\r",(int) (t2-t1));
 			timeout = 300;
 		}
 

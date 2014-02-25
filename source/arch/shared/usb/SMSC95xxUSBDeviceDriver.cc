@@ -168,7 +168,7 @@ struct smsc95xx_private {
  // Default Mac Address...
  static char default_macaddr[6]  ATTR_CACHE_INHIBIT __attribute__((aligned(4))) = {0x1,0x1,0x1,0x1,0x1,0x1};
 
- static unsigned char tmp_data[1500] ATTR_CACHE_INHIBIT;
+ static unsigned char tmp_data[2048] ATTR_CACHE_INHIBIT;
  //static unsigned char rxbuffer[2048] ATTR_CACHE_INHIBIT;
 
 unint4 tmpbuf[2] __attribute__((aligned(4))) ATTR_CACHE_INHIBIT;
@@ -730,6 +730,29 @@ ErrorT SMSC95xxUSBDeviceDriver::init()
 	return (0);
 }
 
+
+char line[100];
+
+void hexdump(char* dataptr,int msglen) {
+
+	int num = 0;
+	int num2 = 0;
+
+	while( num < msglen) {
+		num2 = num + 16;
+		if (num2 >= msglen) num2= msglen;
+
+		for (int i = num; i < num2; i++) {
+			sprintf(&line[(i-num)*3],"%02x  ",dataptr[i]);
+		}
+
+		line[(num2-num)*3 +1] = 0;
+		printf("%s\r",line);
+		num += 16;
+	}
+
+}
+
 #define PKTSIZE			1518
 
 struct pbuf* last_pbuf = 0;
@@ -749,9 +772,9 @@ ErrorT SMSC95xxUSBDeviceDriver::recv(unint4 recv_len)
 	//recv_len = dev->controller->USBBulkMsg(dev,bulkin_ep,USB_DIR_IN,2048,rxbuffer);
 	if (recv_len <= 0) return -1;
 
-	//memdump((unint4) &rxbuffer[recvd_bytes],recv_len / 4);
 
 	while (recvd_bytes < recv_len) {
+		//LOG(ARCH,ERROR,(ARCH,ERROR,"SMSC95xxUSBDeviceDriver: recvd_bytes %d, recv_len %d, remaining: %d",recvd_bytes, recv_len, remaining_len));
 
 		if (remaining_len > 0) {
 
@@ -791,7 +814,8 @@ ErrorT SMSC95xxUSBDeviceDriver::recv(unint4 recv_len)
 			packet_len = cputole32(packet_len);
 
 			if (packet_len & RX_STS_ES_) {
-				LOG(ARCH,DEBUG,(ARCH,DEBUG,"SMSC95xxUSBDeviceDriver: RX packet header Error: %x",packet_len));
+				LOG(ARCH,ERROR,(ARCH,ERROR,"SMSC95xxUSBDeviceDriver: RX packet header Error: %x",packet_len));
+				hexdump(rxbuffer,recv_len);
 				return (cError);
 			}
 			// extract packet_len
@@ -800,7 +824,7 @@ ErrorT SMSC95xxUSBDeviceDriver::recv(unint4 recv_len)
 			LOG(ARCH,DEBUG,(ARCH,DEBUG,"SMSC95xxUSBDeviceDriver: Packet received.. Packet-Len %d",packet_len));
 
 			if ((packet_len > 1500) || (packet_len == 0)) {
-				LOG(ARCH,DEBUG,(ARCH,DEBUG,"SMSC95xxUSBDeviceDriver: Length Validation failed: %d",packet_len));
+				LOG(ARCH,ERROR,(ARCH,ERROR,"SMSC95xxUSBDeviceDriver: Length Validation failed: %d",packet_len));
 				return (cError);
 			}
 
@@ -820,7 +844,36 @@ ErrorT SMSC95xxUSBDeviceDriver::recv(unint4 recv_len)
 					last_pbuf = ptBuf;
 					cur_len = r_len;
 					remaining_len = packet_len - cur_len;
-					LOG(ARCH,DEBUG,(ARCH,DEBUG,"SMSC95xxUSBDeviceDriver: waiting for more bytes %d",remaining_len));
+
+					dev->endpoints[bulkin_ep].data_toggle = dev->endpoints[4].data_toggle;
+
+					recv_len = dev->controller->USBBulkMsg(dev,bulkin_ep,USB_DIR_IN,512,tmp_data);
+					if (recv_len >= remaining_len) {
+						//LOG(ARCH,ERROR,(ARCH,ERROR,"SMSC95xxUSBDeviceDriver: Read more %d",recv_len));
+						dev->endpoints[4].data_toggle = dev->endpoints[bulkin_ep].data_toggle;
+
+						char* p = (char*) last_pbuf->payload;
+						memcpy(&p[cur_len],tmp_data, remaining_len );
+						recvd_bytes = 0;
+						packet_len = remaining_len - 4;
+						remaining_len = 0;
+						cur_len = 0;
+						rxbuffer = (char*) tmp_data;
+						ethernet_input(last_pbuf,&tEMAC0Netif);
+						pbuf_free(last_pbuf);
+					} else if (recv_len > 0) {
+						//LOG(ARCH,ERROR,(ARCH,ERROR,"SMSC95xxUSBDeviceDriver: Read more %d",recv_len));
+						dev->endpoints[4].data_toggle = dev->endpoints[bulkin_ep].data_toggle;
+						// more packets
+						char* p = (char*) last_pbuf->payload;
+						memcpy(&p[cur_len],tmp_data,recv_len);
+						remaining_len -= recv_len;
+						cur_len += recv_len;
+
+						recvd_bytes += recv_len;
+						recvd_bytes = (recvd_bytes + 3) & (~3);
+					}
+					//LOG(ARCH,DEBUG,(ARCH,DEBUG,"SMSC95xxUSBDeviceDriver: waiting for more bytes %d",remaining_len));
 				}
 
 
@@ -837,71 +890,6 @@ ErrorT SMSC95xxUSBDeviceDriver::recv(unint4 recv_len)
 	return (cOk);
 }
 
-#if 0
-ErrorT SMSC95xxUSBDeviceDriver::recv(unint4 recv_len)
-{
-
-	unint4 packet_len;
-
-	LOG(ARCH,ERROR,(ARCH,ERROR,"SMSC95xxUSBDeviceDriver: RX IRQ"));
-
-	unint4 recvd_bytes = 0;
-
-
-	while (recvd_bytes < recv_len) {
-
-		memcpy(&packet_len, &dev->endpoints[this->bulkin_ep].recv_buffer[recvd_bytes], sizeof(packet_len));
-
-		// cpu to le
-		packet_len = cputole32(packet_len);
-
-		if (packet_len & RX_STS_ES_) {
-			LOG(ARCH,DEBUG,(ARCH,DEBUG,"SMSC95xxUSBDeviceDriver: RX packet header Error: %x",packet_len));
-			return (cError);
-		}
-		// extract packet_len
-		packet_len = ((packet_len & RX_STS_FL_) >> 16);
-
-		LOG(ARCH,ERROR,(ARCH,ERROR,"SMSC95xxUSBDeviceDriver: Packet received.. Packet-Len %d",packet_len));
-
-		if ((packet_len > 1500) || (packet_len == 0)) {
-			LOG(ARCH,ERROR,(ARCH,ERROR,"SMSC95xxUSBDeviceDriver: Length Validation failed: %d",packet_len));
-			return (cError);
-		}
-
-		// deliver packet to upper layer
-		struct pbuf* ptBuf = pbuf_alloc(PBUF_RAW, (unint2) ( packet_len+10), PBUF_RAM);
-		if (ptBuf != 0) {
-
-			// check if packet is complete
-			if (packet_len < recv_len) {
-				memcpy(ptBuf->payload, &dev->endpoints[bulkin_ep].recv_buffer[recvd_bytes+4], packet_len );
-				ethernet_input(ptBuf,&tEMAC0Netif);
-			}
-			else {
-				// more bytes to receive
-				LOG(ARCH,WARN,(ARCH,WARN,"SMSC95xxUSBDeviceDriver: reading more bytes %d",packet_len - recv_len));
-				memcpy(ptBuf->payload, &dev->endpoints[bulkin_ep].recv_buffer[recvd_bytes+4], recv_len );
-				int4 error = dev->controller->USBBulkMsg(dev,bulkin_ep,USB_DIR_IN,packet_len - recv_len,&((unint1*) ptBuf->payload)[recv_len]);
-				if (error < 0) {
-					LOG(ARCH,WARN,(ARCH,WARN,"SMSC95xxUSBDeviceDriver: Packet lost %d",error));
-				} else
-					ethernet_input(ptBuf,&tEMAC0Netif);
-			}
-
-			pbuf_free(ptBuf);
-
-		} else {
-			LOG(ARCH,ERROR,(ARCH,ERROR,"SMSC95xxUSBDeviceDriver: no memory for pbuf!"));
-		}
-
-		recvd_bytes += packet_len + 4;
-		recvd_bytes = (recvd_bytes + 3) & (~3);
-	}
-
-	return (cOk);
-}
-#endif
 
 SMSC95xxUSBDeviceDriver::SMSC95xxUSBDeviceDriver(USBDevice* p_dev)
 :  USBDeviceDriver(), CommDeviceDriver("eth0")
@@ -936,16 +924,15 @@ static err_t smsc95xx_low_level_output(struct netif *netif, struct pbuf *p) {
 	LOG(ARCH,DEBUG,(ARCH,DEBUG,"SMSC95xxUSBDeviceDriver: sending packet of length: %d",p->tot_len));
 
 	if (p->tot_len > 1500) {
-		//pbuf_free(p);
 		LOG(ARCH,WARN,(ARCH,WARN,"SMSC95xxUSBDeviceDriver: not sending packet. Len > 1500."));
 		return (ERR_MEM);
 	}
+
 	if (p == 0) return (ERR_ARG);
 
-	unint2 pos = 0;
-	struct pbuf *curp = p;
-    unint2 len = p->tot_len;
-	//if (len <= 64) len = 64;
+	unint2 pos 			= 0;
+	struct pbuf *curp 	= p;
+    unint2 len 			= p->tot_len;
 
 	unint4 tx_cmd_a;
 	unint4 tx_cmd_b;
@@ -953,28 +940,36 @@ static err_t smsc95xx_low_level_output(struct netif *netif, struct pbuf *p) {
 	tx_cmd_a = cputole32(((unint4)len) | TX_CMD_A_FIRST_SEG_ | TX_CMD_A_LAST_SEG_);
 	tx_cmd_b = cputole32((unint4)len);
 
+	char* data;
+
+	//if (curp->tot_len != curp->len) {
+
+		pos  = sizeof(tx_cmd_a) + sizeof(tx_cmd_b);
+		data = (char*) tmp_data;
+
+		while (curp != 0) {
+			memcpy(&tmp_data[pos],curp->payload,curp->len);
+			pos  = (unint2) (pos + curp->len);
+			curp = curp->next;
+		}
+
+	/*} else {
+		pbuf_header(curp,8);
+		data = (char*) curp->payload;
+	}*/
+
 	/* prepend cmd_a and cmd_b */
-	memcpy(&tmp_data[0], &tx_cmd_a, sizeof(tx_cmd_a));
-	memcpy(&tmp_data[0] + sizeof(tx_cmd_a), &tx_cmd_b, sizeof(tx_cmd_b));
-
-	pos = sizeof(tx_cmd_a) + sizeof(tx_cmd_b);
-
-
-	while (curp != 0) {
-		memcpy(&tmp_data[pos],curp->payload,curp->len);
-		pos  = (unint2) (pos + curp->len);
-		curp = curp->next;
-	}
+	memcpy(&data[0], &tx_cmd_a, sizeof(tx_cmd_a));
+	memcpy(&data[0] + sizeof(tx_cmd_a), &tx_cmd_b, sizeof(tx_cmd_b));
 
 	SMSC95xxUSBDeviceDriver *driver =  (SMSC95xxUSBDeviceDriver*) netif->state;
 
 	if (driver != 0) {
 		driver->dev->controller->USBBulkMsg(driver->dev,driver->bulkout_ep,USB_DIR_OUT,8,(unint1*) dummyFrame);
 		// now send the data
-		driver->dev->controller->USBBulkMsg(driver->dev,driver->bulkout_ep,USB_DIR_OUT,(unint2) (len+8),(unint1*) tmp_data);
+		driver->dev->controller->USBBulkMsg(driver->dev,driver->bulkout_ep,USB_DIR_OUT,(unint2) (len+8),(unint1*) data);
 		// send a short frame to be sure the last packet is send ...
 		// without this the smsc stalls with too much data send .. ?
-
 	}
 	return (ERR_OK);
 }
@@ -1075,7 +1070,7 @@ ErrorT SMSC95xxUSBDeviceDriver::initialize() {
 	dev->endpoints[4].queue_head = 0;
 	dev->endpoints[4].interrupt_receive_size = 512;
 	dev->endpoints[4].type = Interrupt;
-	dev->endpoints[4].poll_frequency = 5;
+	dev->endpoints[4].poll_frequency = 2;
 	dev->activateEndpoint(4);
 
 	dev->dev_priv = theOS->getMemoryManager()->alloc(sizeof(struct smsc95xx_private));
@@ -1173,6 +1168,7 @@ ErrorT SMSC95xxUSBDeviceDriver::handleInterrupt() {
 		LOG(ARCH,TRACE,(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: Packet received: status %x",QT_TOKEN_GET_STATUS(qh->qh_overlay.qt_token)));
 
 		unint4 len =  dev->endpoints[4].interrupt_receive_size - QT_TOKEN_GET_TOTALBYTES(qtd2->qt_token);
+		dev->endpoints[4].data_toggle ^= 1;
 
 		// handle received data
 		if (len > 0)
@@ -1182,7 +1178,6 @@ ErrorT SMSC95xxUSBDeviceDriver::handleInterrupt() {
 		memset(&dev->endpoints[4].recv_buffer[0],0,dev->endpoints[4].interrupt_receive_size);
 		// set qtd back to active
 
-		dev->endpoints[4].data_toggle ^= 1;
 		//dev->activateEndpoint(bulkin_ep);
 		dev->activateEndpoint(4);
 

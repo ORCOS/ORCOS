@@ -225,6 +225,8 @@ public:
 	ErrorT writeBytes( const char *bytes, unint4 length );
 
 	ErrorT resetPosition();
+
+    ErrorT seek(int4 seek_value) {return (cError);};
 };
 
 

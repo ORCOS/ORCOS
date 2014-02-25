@@ -156,9 +156,9 @@ ErrorT PartitionManager::tryDOSMBR(BlockDeviceDriver* bdev) {
 
 #if HAS_FileSystems_FATFileSystemCfd
 				case 6: // FAT 16
-				case 12 :
-				case 13 : // FAT 32 (LBA)
-				case 14 : // FAT 16 (LBA)
+				case 0xb :
+				case 0xc : // FAT 32 (LBA)
+				case 0xe : // FAT 16 (LBA)
 					{
 					Partition* partition = new DOSPartition(bdev,pt,part_num,disksig);
 					this->add(partition);	    /* Is MBR */

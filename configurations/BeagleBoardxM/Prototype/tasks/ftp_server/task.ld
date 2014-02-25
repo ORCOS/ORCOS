@@ -18,13 +18,13 @@ SECTIONS
     LONG(thread_exit);
     
     LONG(0x81320000 );
-    LONG(0x81400000);
+    LONG(0x813fFFFF);
            
     /* Task CB Priority and RealtimeThread Parameters: struct RTThreadAttrs  */
-    LONG(1);
     LONG(0);
-    LONG(500000);
-    LONG(500000);
+    LONG(0);
+    LONG(0);
+    LONG(0);
     LONG(0);
     LONG(4096);   
     

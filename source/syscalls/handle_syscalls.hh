@@ -168,7 +168,9 @@ int shm_mapSyscall(int4 sp_int);
     int fstatSyscall( int4 int_sp );
 #endif
 
+#ifdef HAS_SyscallManager_fremoveCfd
     int fremoveSyscall( int4 int_sp );
+#endif
 
 #ifdef HAS_SyscallManager_newCfd
     int newSyscall( int4 int_sp );
@@ -418,12 +420,12 @@ inline void handleSyscall(int4 sp_int) {
 				retval = fstatSyscall(sp_int);
 				break;
 	#endif
-
+	#ifdef HAS_SyscallManager_fremoveCfd
 			case cFRemoveID:
 				retval = fremoveSyscall(sp_int);
 				break;
 				break;
-
+	#endif
 			default:
 				LOG(SYSCALLS,ERROR,(SYSCALLS,ERROR,"invalid syscall %d",syscallnum));
 				retval = -1;

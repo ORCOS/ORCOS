@@ -1,3 +1,3 @@
 TASKS=(./tasks/telnet_server/ ./tasks/ftp_server/ )
 TASKS_START=(0x81200000 0x81300000 )
-TASK_END=(0x81300000 0x81400000 )
+TASK_END=(0x812fFFFF 0x813fFFFF )

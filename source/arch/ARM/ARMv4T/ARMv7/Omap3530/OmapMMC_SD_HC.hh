@@ -50,6 +50,8 @@
 #define STAT_ERRI (1 << 15)
 #define STAT_CTO (1 << 16)
 
+
+
 class OmapMMC_SD_HC: public BlockDeviceDriver {
 private:
 	unint4 baseAddress;

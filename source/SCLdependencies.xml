@@ -737,6 +737,7 @@
         <MemberRef Name="Dispatcher" optional="false"/>
         <MemberRef Name="Scheduler" optional="false"/>
         <MemberRef Name="Logger"/>
+        <MemberRef Name="Ramdisk"/>
         <MemberRef Name="PowerManager"/>
         <MemberRef Name="TaskManager" optional="false"/>
         <MemberRef Name="MigrationManager"/>
@@ -791,6 +792,15 @@
       <Classes>
         <Class Name="mem/PagedRamMemManager"/>
         <Class Name="mem/NoRamManager"/>
+      </Classes>
+    </Member>
+     <Member>
+      <Name>Ramdisk</Name>
+      <Classes>
+        <Class Name="filesystem/Ramdisk">
+         <Property Name="StartAddress" Type="unsigned int" Optional="false" Description="Memory Start Address of the Ram Disk."/>
+         <Property Name="Size" Type="unsigned int" Optional="false" Description="Size of the memory disk in Bytes."/>
+        </Class>
       </Classes>
     </Member>
     <Member>
@@ -894,6 +904,7 @@
 		<MemberRef Name="fclose"/>
 		<MemberRef Name="fwrite"/>
 		<MemberRef Name="fread"/>
+		<MemberRef Name="fremove"/>
 		<MemberRef Name="new"/>
 		<MemberRef Name="delete"/>
 		<MemberRef Name="socket"/>
@@ -913,75 +924,38 @@
 		<MemberRef Name="mapMemory"/>
       </Superclass>
     </Superclasses>
-    <Member>
-      <Name>sleep</Name>
-    </Member>
-    <Member>
-      <Name>thread_create</Name>
-    </Member>
-    <Member>
-      <Name>thread_run</Name>      
-    </Member>
-    <Member> <Name>thread_self</Name> </Member>
-    <Member>   <Name>thread_yield</Name> </Member>
-    <Member>   <Name>thread_wait</Name> </Member>
-    <Member>
-      <Name>signal_wait</Name>
-    </Member>
-    <Member>
-      <Name>signal_signal</Name>
-    </Member>
-    <Member>
-      <Name>fputc</Name>
-    </Member>
-    <Member>
-      <Name>fgetc</Name>
-    </Member>
-    <Member>
-      <Name>fcreate</Name>
-    </Member>
-    <Member>
-      <Name>fopen</Name>
-    </Member>
-    <Member>
-      <Name>fclose</Name>
-    </Member>
-    <Member>
-      <Name>fwrite</Name>
-    </Member>
-    <Member> <Name>fread</Name></Member>
-    <Member> <Name>fstat</Name></Member>
-    <Member>
-      <Name>new</Name>
-    </Member>
-    <Member>
-      <Name>delete</Name>
-    </Member>
-    <Member>
-      <Name>socket</Name>
-    </Member>
-    <Member>
-      <Name>connect</Name>
-    </Member>
-    <Member>
-      <Name>listen</Name>
-    </Member>
-    <Member>
-      <Name>bind</Name>
-    </Member>
-    <Member>
-      <Name>sendto</Name>
-    </Member>
-    <Member>
-      <Name>recv</Name>
-    </Member>   
-    <Member> <Name>task_stop</Name> </Member>
-    <Member> <Name>task_resume</Name></Member>
-    <Member> <Name>task_run</Name> </Member>
-    <Member> <Name>task_kill</Name> </Member>
-	<Member> <Name>ioctl</Name> </Member>
-	<Member> <Name>mapMemory</Name> </Member>	
-	<Member> <Name>shm_map</Name> </Member>
+    <Member><Name>sleep</Name></Member>
+    <Member><Name>thread_create</Name></Member>
+    <Member><Name>thread_run</Name></Member>
+    <Member><Name>thread_self</Name></Member>
+    <Member><Name>thread_yield</Name></Member>
+    <Member><Name>thread_wait</Name></Member>
+    <Member><Name>signal_wait</Name></Member>
+    <Member><Name>signal_signal</Name></Member>
+    <Member><Name>fputc</Name></Member>
+    <Member><Name>fgetc</Name></Member>
+    <Member><Name>fcreate</Name></Member>
+    <Member><Name>fopen</Name></Member>
+    <Member><Name>fclose</Name></Member>
+    <Member><Name>fwrite</Name></Member>
+    <Member><Name>fread</Name></Member>
+    <Member><Name>fstat</Name></Member>
+    <Member><Name>fremove</Name></Member>
+    <Member><Name>new</Name></Member>
+    <Member><Name>delete</Name></Member>
+    <Member><Name>socket</Name></Member>
+    <Member><Name>connect</Name></Member>
+    <Member><Name>listen</Name></Member>
+    <Member><Name>bind</Name></Member>
+    <Member><Name>sendto</Name></Member>
+    <Member><Name>recv</Name></Member>   
+    <Member><Name>task_stop</Name> </Member>
+    <Member><Name>task_resume</Name></Member>
+    <Member><Name>task_run</Name> </Member>
+    <Member><Name>task_kill</Name> </Member>
+	<Member><Name>ioctl</Name> </Member>
+	<Member><Name>mapMemory</Name> </Member>	
+	<Member><Name>shm_map</Name> </Member>
     </Skeleton>
     
     <Defines>

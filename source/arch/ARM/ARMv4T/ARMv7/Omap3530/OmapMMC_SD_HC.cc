@@ -10,6 +10,7 @@
 
 #include "kernel/Kernel.hh"
 #include "inc/memtools.hh"
+#include "dma.h"
 
 extern void kwait(int milliseconds);
 
@@ -258,7 +259,8 @@ void OmapMMC_SD_HC::init()
 	OUTW(baseAddress + MMCHS_SYSCTL,INW(baseAddress + MMCHS_SYSCTL) & ~(CEN));
 
 	// set clock frequency
-	OUTW(baseAddress + MMCHS_SYSCTL,0x0000a001 | (4 << 16));
+//	OUTW(baseAddress + MMCHS_SYSCTL,0x0000a001 | (4 << 16));
+	OUTW(baseAddress + MMCHS_SYSCTL,0x00000001 | (8 << 16) | (5 << 6));
 
 	// wait until frequency is set
 	while ( (INW(baseAddress + MMCHS_SYSCTL) & (1 << 1)) == 0x0 ) {};
@@ -304,11 +306,11 @@ ErrorT OmapMMC_SD_HC::sendCommand(unint4 cmd, unint4 arg) {
 	OUTW(baseAddress + MMCHS_STAT, 0xffffffff);
 	while (INW(baseAddress + MMCHS_STAT)) {
 		OUTW(baseAddress + MMCHS_STAT, 0xffffffff);
-		kwait(1);
+		kwait_us(10);
 	};
 
 	OUTW(baseAddress + MMCHS_ARG, arg);
-	// send ACMD41
+
 	OUTW(baseAddress + MMCHS_CMD,cmd);
 
 	while ( (INW(baseAddress + MMCHS_STAT) & (STAT_CC | STAT_CTO)) == 0x0 ) {};
@@ -330,6 +332,8 @@ ErrorT OmapMMC_SD_HC::sendCommand(unint4 cmd, unint4 arg) {
 	return (cError);
 }
 
+
+
 ErrorT OmapMMC_SD_HC::readBlock(unint4 blockNum, unint1* buffer, unint4 length) {
 
 	length *= 512;
@@ -342,17 +346,38 @@ ErrorT OmapMMC_SD_HC::readBlock(unint4 blockNum, unint1* buffer, unint4 length) 
 
 	if (isHighCapacity == 0) blockNum *= 512;
 
-	// CMD 17 (send single block)
-	if (sendCommand(0x113a0010,blockNum) == cError) {
-		return (cError);
-	}
 
 	// buffer must be 4 bytes aligned
 	unint4* p_buf = (unint4*) buffer;
 
-	unint4 timeout = 100;
-	// TODO: remove 1 ms wait .. we could be much faster
-	while (((INW(baseAddress + MMCHS_STAT) & (1 << 5)) == 0) && (timeout)) {timeout--; kwait(1);};
+#if 0
+	DMA4_CCR(10) &= ~(1 << 7); /* disable channel */
+	DMA4_CSDP(10) = 0x1C002;
+
+	DMA4_CFN(10) = 0x1;
+
+	DMA4_CCR(10) = 0xC401E;
+	//DMA4_CCR(10) = 0x1000;
+
+	DMA4_CEN(10)  = 512 / 4;
+	DMA4_CDSA(10) = (unint4) p_buf;
+	DMA4_CSSA(10) = baseAddress + MMCHS_DATA;
+	DMA4_CDEI(10) = 1;
+	DMA4_CSEI(10) = 1;
+	DMA4_CDFI(10) = 0x200;
+
+	DMA4_CCR(10) = 0xC409E;
+#endif
+
+
+	if (sendCommand(0x113a0010,blockNum) == cError) {
+	//if (sendCommand(0x113a0011,blockNum) == cError) {
+		return (cError);
+	}
+
+	unint4 timeout = 3000;
+	while (((INW(baseAddress + MMCHS_STAT) & (1 << 5)) == 0) && (timeout)) {timeout--; kwait_us(10);};
+	//while (((INW(baseAddress + MMCHS_STAT) & (STAT_TC)) == 0) && (timeout)) {timeout--; kwait_us(10);};
 
 	unint4 mmc_stat = INW(baseAddress + MMCHS_STAT);
 	if (mmc_stat & (1<< 15)) {
@@ -364,11 +389,11 @@ ErrorT OmapMMC_SD_HC::readBlock(unint4 blockNum, unint1* buffer, unint4 length) 
 		LOG(ARCH,WARN,(ARCH,WARN,"MMC/SD HC()::readBlock timeout.."));
 		return (cError);
 	}
-
-	while ((INW(baseAddress + MMCHS_PSTATE) & (1<<11)) == 0) {};
+	//while(DMA4_CCR(10) & (1<< 7));
 
 	// check brr
 	while ((length > 0)) {
+		while ((INW(baseAddress + MMCHS_PSTATE) & (1<<11)) == 0) {};
 		*p_buf = INW(baseAddress + MMCHS_DATA);
 		p_buf++;
 		length -= 4;
@@ -393,13 +418,40 @@ ErrorT OmapMMC_SD_HC::writeBlock(unint4 blockNum, unint1* buffer, unint4 length)
 
 	if (isHighCapacity == 0) blockNum *= 512;
 
+
+	unint4* p_buf = (unint4*) buffer;
+
+#if 0
+	DMA4_CCR(10) &= ~(1 << 7); /* disable channel */
+	DMA4_CSDP(10) = 0x10182;
+
+	DMA4_CFN(10) = 0x1;
+
+	DMA4_CCR(10) = 0xC101D;
+	//DMA4_CCR(10) = 0x1000;
+
+	DMA4_CEN(10)  = 512 / 4;
+	DMA4_CSSA(10) = (unint4) p_buf;
+	DMA4_CDSA(10) = baseAddress + MMCHS_DATA;
+	DMA4_CDEI(10) = 1;
+	DMA4_CSEI(10) = 1;
+	DMA4_CDFI(10) = 0x200;
+
+	DMA4_CCR(10) = 0xC109D;
+#endif
+		//DMA4_CCR(10) = 0x1080;
+	    //while(DMA4_CCR(10) & (1<< 7));
+
+
+	// TODO: replace by multiple block write support
 	// CMD 24 (write single block)
 	if (sendCommand(0x183a0000,blockNum) == cError) {
+	//if (sendCommand(0x183a0001,blockNum) == cError) {
 		return (cError);
 	}
 
-	unint4 timeout = 1000;
-	while (((INW(baseAddress + MMCHS_STAT) & (1 << 4)) == 0) && (timeout)) {timeout--; kwait_us(30);};
+	unint4 timeout = 3000;
+	while (((INW(baseAddress + MMCHS_STAT) & (1 << 4)) == 0) && (timeout)) {timeout--; kwait_us(10);};
 
 	// test error bit
 	unint4 mmc_stat = INW(baseAddress + MMCHS_STAT);
@@ -413,16 +465,36 @@ ErrorT OmapMMC_SD_HC::writeBlock(unint4 blockNum, unint1* buffer, unint4 length)
 		return (cError);
 	}
 
-	// no error.. start writing data .. first wait until we are allowed to write
-	while ((INW(baseAddress + MMCHS_PSTATE) & (1<<10)) == 0) {};
+	OUTW(baseAddress + MMCHS_STAT, 0xffffffff);
+	//while(DMA4_CCR(10) & (1<< 7));
 
-	unint4* p_buf = (unint4*) buffer;
+	// no error.. start writing data .. first wait until we are allowed to write
+
+
+
+	//TODO replace this by a dma transfer!
+
 
 	// now write everything
 	while ((length > 0)) {
+		while ((INW(baseAddress + MMCHS_PSTATE) & (1<<10)) == 0) {};
 		OUTW(baseAddress + MMCHS_DATA,*p_buf);
 		p_buf++;
 		length -= 4;
+	}
+
+	timeout = 3000;
+	while (((INW(baseAddress + MMCHS_STAT) & (STAT_TC)) == 0) && (timeout)) {timeout--; kwait_us(10);};
+	// test error bit
+	mmc_stat = INW(baseAddress + MMCHS_STAT);
+	if (mmc_stat & (1<< 15)) {
+		LOG(ARCH,WARN,(ARCH,WARN,"MMC/SD HC():: transfer failed: STAT: %x",mmc_stat));
+		return (cError);
+	}
+
+	if (timeout == 0) {
+		LOG(ARCH,WARN,(ARCH,WARN,"MMC/SD HC()::transfer timeout.."));
+		return (cError);
 	}
 
 	return (cOk);

@@ -23,6 +23,8 @@ public:
 	ErrorT free(unint4 start, unint4 end);
 
 	ErrorT freeAll(unint1 pid);
+
+	ErrorT mapKernelPages(int pid);
 };
 
 #endif /* PAGEDRAMMEMMANAGER_HH_ */

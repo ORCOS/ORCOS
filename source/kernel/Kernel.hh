@@ -46,6 +46,7 @@
 #include Kernel_PowerManager_hh
 #include Kernel_MigrationManager_hh
 #include Kernel_ServiceDiscovery_hh
+#include Kernel_Ramdisk_hh
 
 #if USE_TRACE
 #include "debug/Trace.hh"
@@ -261,6 +262,8 @@ public:
     DEF_Kernel_PowerManagerCfd;
 
     DEF_Kernel_MigrationManagerCfd;
+
+    DEF_Kernel_RamdiskCfd;
 
 };
 

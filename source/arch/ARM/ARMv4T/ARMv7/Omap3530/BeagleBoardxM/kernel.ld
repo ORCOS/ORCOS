@@ -140,7 +140,7 @@ SECTIONS
  
   /* put page table in memory (16k alignment) */
 
-  . = ALIGN(0x1000000);
+  . = ALIGN(0x100000);
 
  .cache_inhibit . (NOLOAD) : { 
   PROVIDE(__cache_inihibit_start = .);	

@@ -21,15 +21,15 @@
   <Tasks>
     <Task>
       <Start>0x81200000</Start>
-      <End>0x81300000</End>
+      <End>0x812fFFFF</End>
       <Heap>0x81220000</Heap>
       <Path>./tasks/telnet_server/</Path>
       <PriorityOptions>
         <InitialPriority>1</InitialPriority>
         <Phase>0</Phase>
         <RealTimeOptions>
-          <Period>500000</Period>
-          <Deadline>500000</Deadline>
+          <Period>0</Period>
+          <Deadline>0</Deadline>
           <ExecutionTime>0</ExecutionTime>
         </RealTimeOptions>
       </PriorityOptions>
@@ -37,20 +37,20 @@
     </Task>
     <Task>
       <Start>0x81300000</Start>
-      <End>0x81400000</End>
+      <End>0x813fFFFF</End>
       <Heap>0x81320000</Heap>
       <Path>./tasks/ftp_server/</Path>
       <PriorityOptions>
-        <InitialPriority>1</InitialPriority>
+        <InitialPriority>0</InitialPriority>
         <Phase>0</Phase>
         <RealTimeOptions>
-          <Period>500000</Period>
-          <Deadline>500000</Deadline>
+          <Period>0</Period>
+          <Deadline>0</Deadline>
           <ExecutionTime>0</ExecutionTime>
         </RealTimeOptions>
       </PriorityOptions>
       <Vma>0x100000</Vma>
-    </Task>
+    </Task>   
   </Tasks>
   <SCL>
     <!-- ************************************
@@ -157,6 +157,10 @@
       <Member Name="PowerManager" Class="hal/PowerManager" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="TaskManager" Class="process/TaskManager" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="RamManager" Class="mem/PagedRamMemManager" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="Ramdisk" Class="filesystem/Ramdisk" None="false" UserSpace="false" PhyLoadAddress="0x0">
+        <PropertyValue Name="StartAddress" Value="0x83000000" Type="unsigned int" />
+        <PropertyValue Name="Size" Value="0x04000000" Type="unsigned int" />
+      </Member>
     </Skeleton>
     <Skeleton>
       <Name>FileSystems</Name>
@@ -210,6 +214,7 @@
       <Member Name="task_kill" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="mapMemory" Class="" None="true" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="shm_map" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="fremove" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
     </Skeleton>
     <!--  DEFINES -->
     <Define>

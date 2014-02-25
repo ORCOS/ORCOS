@@ -346,7 +346,7 @@ int freadSyscall( int4 int_sp ) {
 }
 #endif
 
-
+#ifdef HAS_SyscallManager_fstatCfd
 int fstatSyscall( int4 int_sp ) {
 
 	ResourceIdT file_id;
@@ -371,7 +371,9 @@ int fstatSyscall( int4 int_sp ) {
 
     return (cResourceNotOwned);
 }
+#endif
 
+#ifdef HAS_SyscallManager_fremoveCfd
 int fremoveSyscall( int4 int_sp ) {
 
 	ResourceIdT file_id;
@@ -396,3 +398,4 @@ int fremoveSyscall( int4 int_sp ) {
 
 	return (dir->remove(res_file));
 }
+#endif

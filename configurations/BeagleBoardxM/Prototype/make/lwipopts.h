@@ -808,7 +808,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  */
 #ifndef TCP_SND_QUEUELEN
 //#define TCP_SND_QUEUELEN                (2 * (TCP_SND_BUF)/(TCP_MSS))
-#define TCP_SND_QUEUELEN                (2 * 10)
+#define TCP_SND_QUEUELEN  (2 * 10)
 #endif
 
 /**

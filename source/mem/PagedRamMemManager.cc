@@ -9,6 +9,8 @@
 #include "inc/error.hh"
 #include <kernel/Kernel.hh>
 
+extern Kernel* theOS;
+
 extern void* __KERNELEND;
 extern void* __RAM_END;
 extern void* __RAM_START;
@@ -37,7 +39,7 @@ PagedRamMemManager::PagedRamMemManager() {
 	// mark all pages as unused
 
 	for (int i = 0; i< NUM_PAGES; i++) {
-		UsedPageTable[i] = 0;
+		UsedPageTable[i] = -1;
 	}
 
 	// calculate free memory area (useable by tasks)
@@ -49,6 +51,16 @@ PagedRamMemManager::PagedRamMemManager() {
 }
 
 PagedRamMemManager::~PagedRamMemManager() {
+
+}
+
+ErrorT PagedRamMemManager::mapKernelPages(int pid) {
+
+	for (int i = 0; i< NUM_PAGES; i++) {
+		if (UsedPageTable[i] == 0) {
+			theOS->getHatLayer()->map((void*) (MemStart + i*PAGESIZE),(void*) (MemStart + i*PAGESIZE),PAGESIZE,7,0,pid, false);
+		}
+	}
 
 }
 
@@ -75,14 +87,14 @@ ErrorT PagedRamMemManager::free(unint4 start, unint4 end) {
 	int pe_end   = (end_page - MemStart) / PAGESIZE;
 
     // mark the pages as used
-    for (int i = pe_start; i <= pe_end; i++) UsedPageTable[i] = 0;
+    for (int i = pe_start; i <= pe_end; i++) UsedPageTable[i] = -1;
 
     return (cOk);
 }
 
 ErrorT PagedRamMemManager::freeAll(unint1 pid) {
 	for (int i = 0; i< NUM_PAGES; i++) {
-		if (UsedPageTable[i] == pid) UsedPageTable[i] = 0;
+		if (UsedPageTable[i] == pid) UsedPageTable[i] = -1;
 	}
 
 	return (cOk);
@@ -96,7 +108,7 @@ void* PagedRamMemManager::alloc(size_t size, unint1 pid) {
 	for (i = 0; i < NUM_PAGES; i++)
 	{
 		// check if area used
-		if ( UsedPageTable[i] != 0) {
+		if ( UsedPageTable[i] != -1) {
 			area_start = -1;
 			area_size = 0;
 		} else {

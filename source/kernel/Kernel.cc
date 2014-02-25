@@ -175,6 +175,12 @@ void Kernel::initialize() {
     LOG(KERNEL,INFO,(KERNEL,INFO,"Available Safe Kernel Stacks: %d." ,((int) &__stack - (int) &_heap_end) / KERNEL_STACK_SIZE));
 #endif
 
+#ifdef HAS_Kernel_RamdiskCfd
+    INIT_Kernel_RamdiskCfd;
+    this->RamdiskCfd = new NEW_Kernel_RamdiskCfd;
+#endif
+
+
 #ifdef HAS_Board_HatLayerCfd
     /* create the hat layer object.
        this will also create the initial memory mappings */
@@ -182,11 +188,13 @@ void Kernel::initialize() {
     HatLayerCfd = new Board_HatLayerCfdCl();
 #endif
 
+
 #ifdef HAS_Board_HatLayerCfd
     /* now enable HAT for the task creation */
     LOG(KERNEL,INFO,(KERNEL,INFO,"Enabling HAT."));
     this->getHatLayer()->enableHAT();
 #endif
+
 
     /*
      * Initialize Workertask before user tasks
