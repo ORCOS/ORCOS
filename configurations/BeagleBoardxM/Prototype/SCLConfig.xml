@@ -50,7 +50,7 @@
         </RealTimeOptions>
       </PriorityOptions>
       <Vma>0x100000</Vma>
-    </Task>   
+    </Task>
   </Tasks>
   <SCL>
     <!-- ************************************
@@ -138,6 +138,10 @@
         <PropertyValue Name="Address" Value="0x4809C000" Type="unsigned int" />
       </Member>
       <Member Name="Cache" Class="arch/ARM/ARMv4T/ARMv7/ARMv7Cache" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="SPI" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530SPI" None="false" UserSpace="false" PhyLoadAddress="0x0">
+        <PropertyValue Name="Address" Value="MCSPI3" Type="unsigned int" />
+        <PropertyValue Name="Name" Value="spi" Type="char*" />
+      </Member>
     </Skeleton>
     <!-- ************************************
     			Skeleton Kernel

@@ -650,15 +650,15 @@ extern struct tcp_pcb *tcp_tmp_pcb;      /* Only used for temporary storage. */
 #define TCP_REG(pcbs, npcb) do {\
                             LWIP_DEBUGF(TCP_DEBUG, ("TCP_REG %p local port %d\n", npcb, npcb->local_port)); \
                             for(tcp_tmp_pcb = *pcbs; \
-          tcp_tmp_pcb != NULL; \
-        tcp_tmp_pcb = tcp_tmp_pcb->next) { \
+                            		tcp_tmp_pcb != NULL; \
+                            		tcp_tmp_pcb = tcp_tmp_pcb->next) { \
                                 LWIP_ASSERT("TCP_REG: already registered\n", tcp_tmp_pcb != npcb); \
                             } \
                             npcb->next = *pcbs; \
                             LWIP_ASSERT("TCP_REG: npcb->next != npcb", npcb->next != npcb); \
                             *(pcbs) = npcb; \
                             LWIP_ASSERT("TCP_RMV: tcp_pcbs sane", tcp_pcbs_sane()); \
-              tcp_timer_needed(); \
+                            tcp_timer_needed(); \
                             } while(0)
 #define TCP_RMV(pcbs, npcb) do { \
                             LWIP_ASSERT("TCP_RMV: pcbs != NULL", *pcbs != NULL); \

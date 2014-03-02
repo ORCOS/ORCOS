@@ -104,6 +104,10 @@
       <Member Name="MigrationManager" Class="migration/MigrationManager" None="true" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="ServiceDiscovery" Class="comm/servicediscovery/SNServiceDiscovery" None="true" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="RamManager" Class="mem/PagedRamMemManager" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="Ramdisk" Class="filesystem/Ramdisk" None="true" UserSpace="false" PhyLoadAddress="0x0">
+        <PropertyValue Name="StartAddress" Value="Unknown" Type="unsigned int" />
+        <PropertyValue Name="Size" Value="Unknown" Type="unsigned int" />
+      </Member>
     </Skeleton>
     <Skeleton>
       <Name>FileSystems</Name>

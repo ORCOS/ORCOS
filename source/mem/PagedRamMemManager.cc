@@ -62,6 +62,7 @@ ErrorT PagedRamMemManager::mapKernelPages(int pid) {
 		}
 	}
 
+	return (cOk);
 }
 
 

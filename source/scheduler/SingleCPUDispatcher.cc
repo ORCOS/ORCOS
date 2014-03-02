@@ -324,7 +324,7 @@ void SingleCPUDispatcher::signal( void* sig, int sigvalue ) {
 
                 pThread->status.clearBits( cSignalFlag );
                 /* Set the signal return value */
-                void* sp_int;
+                //void* sp_int;
 
                 //TODO: we cant set this here.. we are not inside the address space of the thread ...
                // GET_RETURN_CONTEXT(pCurrentRunningThread,sp_int);

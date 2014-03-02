@@ -376,7 +376,6 @@ int fstatSyscall( int4 int_sp ) {
 #ifdef HAS_SyscallManager_fremoveCfd
 int fremoveSyscall( int4 int_sp ) {
 
-	ResourceIdT file_id;
 	const char* filename;
 	const char* path;
 	Resource* res;

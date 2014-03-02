@@ -53,8 +53,6 @@ FATFileSystem::FATFileSystem(Partition* p_myPartition) : FileSystemBase(p_myPart
 
 			// right now we trust the rest of the table and do checks on demand
 			FAT32_BPB* myFAT32BPB = (FAT32_BPB*) &buffer[36];
-			//FAT16_BPB* myFAT16BPB = (FAT16_BPB*) &buffer[36];
-
 
 			RootDirSectors = (((myFAT_BPB.BPB_RootEntCnt * 32) + (myFAT_BPB.BPB_BytsPerSec - 1)) / myFAT_BPB.BPB_BytsPerSec);
 
@@ -224,6 +222,7 @@ unint4 FATFileSystem::getFATTableEntry(unint4 clusterNum, bool allocate) {
 			// set FAT entry
 			(* ((unint2*)  &buffer[fatentoffset])) = nextCluster;
 			error = myPartition->writeSectors(fatsecnum,buffer,1);
+			if (error < 0) return (EOC);
 		}
 
 		return (nextCluster);
@@ -333,7 +332,7 @@ ErrorT FATFileSystem::initialize() {
 
 			if (mntdir == 0) {
 				LOG(ARCH,ERROR,(ARCH,ERROR,"FATFileSystem: no mount directory '/mnt/' found. Not mounting"));
-				return cError;
+				return (cError);
 			}
 
 

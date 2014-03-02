@@ -296,6 +296,18 @@
             <PropertyValue Name="Name" Value="i2c0"/>
           </Defaults>
         </MemberRef>
+        <MemberRef Name="SPI">
+          <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530SPI">
+		   <!--  First value of set is the default value, rest enum values -->
+            <PropertyValue Name="Address" Value="MCSPI3" />            
+            <PropertyValue Name="Name" Value="spi"/>            
+          </Defaults>
+          <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530i2c">
+            <PropertyValue Name="Address" Value="0x48070000" />
+            <PropertyValue Name="Length" Value="1024" />
+            <PropertyValue Name="Name" Value="i2c0"/>
+          </Defaults>
+        </MemberRef>
         <MemberRef Name="GPIO1">
           <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO">
             <PropertyValue Name="Address" Value="0x48310000" />
@@ -715,6 +727,15 @@
       <Classes>
         <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapMMC_SD_HC">
 		    <Property Name="Address" Type="unsigned int" Optional="false" Description="The MMC controller base address. MMC1-3 are available." />
+ 		</Class>
+      </Classes>	
+	</Member>
+	<Member>
+	<Name>SPI</Name>
+      <Classes>
+        <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530SPI">
+		    <Property Name="Address" Type="unsigned int" Optional="false" Description="The SPI controller base address. SPI1-4 are available.\nUse MCSPI1,MCSPI2,MCSPI3,MCSPI3 as value or specify the address directly." />
+		    <Property Name="Name" Type="char*" Optional="false" Description="The device name as it will be registered under /dev/" />
  		</Class>
       </Classes>	
 	</Member>

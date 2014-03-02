@@ -41,8 +41,8 @@ Ramdisk::Ramdisk(T_Ramdisk_Init* init) {
 		theOS->getRamManager()->markAsUsed(start,end,0);
 	}
 
-	for (int i = 0; i < blockChainEntries; i++)
-		blockChain[i] = -1; // mark as free
+	for (unint4 i = 0; i < blockChainEntries; i++)
+		blockChain[i] = (unint4) -1; // mark as free
 
 	// create the ramdisk mount directory
 	RamdiskDirectory* dir = new RamdiskDirectory(this,"ramdisk");
@@ -51,10 +51,10 @@ Ramdisk::Ramdisk(T_Ramdisk_Init* init) {
 }
 
 unint4 Ramdisk::allocateBlock(unint4 prev) {
-	for (int i = 0; i < blockChainEntries; i++)
-		if (blockChain[i] == -1) {  // -1 == free
+	for (unint4 i = 0; i < blockChainEntries; i++)
+		if (blockChain[i] == (unint4) -1) {  // -1 == free
 			blockChain[i] = 0;  	// 0 == End of Chain
-			if (prev != -1)
+			if (prev != (unint4)-1)
 				blockChain[prev] = i;
 
 			return (i);
@@ -64,13 +64,13 @@ unint4 Ramdisk::allocateBlock(unint4 prev) {
 
 int Ramdisk::freeBlock(unint4 blockNum) {
 
-	if (blockNum != -1) {
+	if (blockNum != (unint4) -1) {
 		unint4 nextBlock = blockChain[blockNum];
 		blockChain[blockNum] = -1;
 
-		while (nextBlock != 0 && nextBlock != -1) {
+		while (nextBlock != 0 && nextBlock != (unint4)-1) {
 			blockNum = blockChain[nextBlock];
-			blockChain[nextBlock] = -1;
+			blockChain[nextBlock] = (unint4)-1;
 			nextBlock = blockNum;
 		}
 
@@ -81,10 +81,10 @@ int Ramdisk::freeBlock(unint4 blockNum) {
 
 unint4 Ramdisk::getNextBlock(unint4 currentBlock, bool allocate) {
 
-	if (currentBlock != -1) {
+	if (currentBlock != (unint4)-1) {
 		unint4 nextBlock = blockChain[currentBlock];
 
-		if ((nextBlock == 0 || nextBlock == -1) && allocate) {
+		if ((nextBlock == 0 || nextBlock == (unint4)-1) && allocate) {
 				return (allocateBlock(currentBlock));
 		} else	return (nextBlock);
 
@@ -111,7 +111,7 @@ File* RamdiskDirectory::createFile(char* name, unint4 flags) {
 
 	// search a free entry
 	unint4 block = this->myRamDisk->allocateBlock(-1);
-	if (block == -1) return (0);
+	if (block == (unint4)-1) return (0);
 
 	RamdiskFile* f = new RamdiskFile(this->myRamDisk, block,name,flags);
 	this->add(f);
@@ -119,61 +119,60 @@ File* RamdiskDirectory::createFile(char* name, unint4 flags) {
 }
 
 ErrorT RamdiskFile::readBytes(char* bytes, unint4& length) {
-	LOG(ARCH,DEBUG,(ARCH,DEBUG,"FATFile::readBytes length: %d",length));
-		unint4 sector_pos;
-		unint4 sector_read_len;
-		unint4 pos = 0;
+	unint4 sector_pos;
+	unint4 sector_read_len;
+	unint4 pos = 0;
 
-		unint4 readlength 	= length;
-		// be sure we are not reading over the end of the file
-		if ((this->filesize - this->position) < readlength) readlength =  (this->filesize - this->position);
+	unint4 readlength 	= length;
+	// be sure we are not reading over the end of the file
+	if ((this->filesize - this->position) < readlength) readlength =  (this->filesize - this->position);
 
-		char* buffer;
-		bool sector_changed = false;
+	char* buffer;
+	bool sector_changed = false;
 
-		while (readlength > 0) {
+	while (readlength > 0) {
 
-			// position inside our current sector
-			//sector_pos 		= this->position % sector_size;
-			// sector size must be a multiple of 2
-			sector_pos 		= this->position & ( BLOCK_SIZE - 1);
+		// position inside our current sector
+		// sector_pos 		= this->position % sector_size;
+		// sector size must be a multiple of 2
+		sector_pos 		= this->position & ( BLOCK_SIZE - 1);
 
-			// set readlength to remaining bytes in this sector
-			sector_read_len = BLOCK_SIZE - sector_pos;
+		// set readlength to remaining bytes in this sector
+		sector_read_len = BLOCK_SIZE - sector_pos;
 
-			// check if we read less than the remaining bytes in this sector
-			if (readlength < sector_read_len) sector_read_len = readlength;
-			else {
-				sector_changed = true;
-			}
-
-			buffer = (char*) ((currentBlock * BLOCK_SIZE)+ myRamDisk->getFirstBlockAddress());
-			// copy the desired bytes in this sector into the buffer
-			memcpy(&bytes[pos],&buffer[sector_pos],sector_read_len);
-
-			// increase position by bytes read
-			this->position += sector_read_len;
-			pos += sector_read_len;
-
-			// check if we reached the sector boundary
-			if (sector_changed) {
-				currentBlock = myRamDisk->getNextBlock(currentBlock,false);
-				if (currentBlock == -1) {
-					// end of file reached
-					length = pos;
-					return (cOk);
-				}
-			}
-
-			sector_changed = false;
-			// decrease total amount to read by read amount of bytes
-			readlength-= sector_read_len;
-
+		// check if we read less than the remaining bytes in this sector
+		if (readlength < sector_read_len) sector_read_len = readlength;
+		else {
+			sector_changed = true;
 		}
 
+		buffer = (char*) ((currentBlock * BLOCK_SIZE)+ myRamDisk->getFirstBlockAddress());
+		// copy the desired bytes in this sector into the buffer
+		memcpy(&bytes[pos],&buffer[sector_pos],sector_read_len);
 
-		length = pos;
-		return (cOk);
+		// increase position by bytes read
+		this->position += sector_read_len;
+		pos += sector_read_len;
+
+		// check if we reached the sector boundary
+		if (sector_changed) {
+			currentBlock = myRamDisk->getNextBlock(currentBlock,false);
+			if (currentBlock == (unint4)-1) {
+				// end of file reached
+				length = pos;
+				return (cOk);
+			}
+		}
+
+		sector_changed = false;
+		// decrease total amount to read by read amount of bytes
+		readlength-= sector_read_len;
+
+	}
+
+
+	length = pos;
+	return (cOk);
 
 }
 
@@ -184,8 +183,6 @@ ErrorT RamdiskFile::writeBytes(const char* bytes, unint4 length) {
 	unint4 sector_write_len;
 	bool 	sector_changed = false;
 	unint4 pos = 0;	// position inside the bytes array
-	bool new_sector = false;
-	int error;
 
 	char* buffer;
 
@@ -214,13 +211,11 @@ ErrorT RamdiskFile::writeBytes(const char* bytes, unint4 length) {
 		if (sector_changed) {
 			// append if neccessary
 			currentBlock = myRamDisk->getNextBlock(currentBlock,true);
-			if (currentBlock == -1) {
+			if (currentBlock == (unint4)-1) {
 				// no more memory..
 				return (cDeviceMemoryExhausted);
 			}
-			// if we reach a new sector and the position > filesize
-			// we can omit reading the contents of that sector
-			new_sector = position > filesize;
+
 		}
 
 		sector_changed = false;

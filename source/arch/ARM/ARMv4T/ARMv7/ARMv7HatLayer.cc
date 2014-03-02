@@ -123,8 +123,10 @@ void ARMv7HatLayer::mapKernel(BitmapT protection, int pid, bool nonGlobal) {
 	// this area may only contain cachable data!
 	this->createPT( (void*) &__LOADADDRESS, (void*) &__LOADADDRESS, (unint4 ) &__KERNELEND - (unint4) &__LOADADDRESS, protection, 0, pid, !ICACHE_ENABLE, nonGlobal );
 
+#if MEM_CACHE_INHIBIT
 	// Create the page with non cachable data
 	this->createPT( (void*) &__cache_inihibit_start, (void*) &__cache_inihibit_start, (unint4 ) &__cache_inihibit_end - (unint4) &__cache_inihibit_start, protection, 0, pid, true, nonGlobal );
+#endif
 
 	// 1:1 mapping of internal SRAM (interrupt vectors lying here) (64 kB)
 	this->createPT( (void*) 0x40200000, (void*) 0x40200000, 0xFFFF, protection, 0, pid, true, nonGlobal );

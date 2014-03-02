@@ -17,10 +17,6 @@
 #ifndef BYTE_ORDER
 #error "No BYTE_ORDER (LITTLE_ENDIAN / BIG_ENDIAN) specified!"
 #endif
-//#ifndef BYTE_ORDER
-//#define BYTE_ORDER LITTLE_ENDIAN
-//#define BYTE_ORDER BIG_ENDIAN
-//#endif /* BYTE_ORDER */
 
 /* Define generic types used in lwIP */
 typedef unsigned   char    u8_t;
@@ -53,12 +49,10 @@ typedef unsigned long mem_ptr_t;
 #define PACK_STRUCT_BEGIN
 #define PACK_STRUCT_END
 
-//#if LOG_ENABLE
-//#if 1
+#ifdef LWIP_DEBUG
 
 /* Plaform specific diagnostic output */
-#define LWIP_PLATFORM_DIAG(x)	do { printf("%s\r\n", x);} while(0)
-//#define LWIP_PLATFORM_DIAG(x)
+#define LWIP_PLATFORM_DIAG(x)  printf x
 
 
 #define LWIP_PLATFORM_ASSERT(x) do { printf("Assertion \"%s\" failed at line %d in %s\r\n", x, __LINE__, __FILE__);} while(0)
@@ -66,14 +60,13 @@ typedef unsigned long mem_ptr_t;
 #include "logger_config.hh"
 #define LOGC(prefix,level,msg) if ((int) level <= (int) prefix) printf msg
 
-/*#else
+#else
 
 #define LWIP_PLATFORM_DIAG(x)
 
 #define LWIP_PLATFORM_ASSERT(x) do {} while(0)
-#endif*/
+#endif
 
-//#define LWIP_PLATFORM_ASSERT(x) libprintf x
 
 #define LWIP_RAND() ((u32_t)rand())
 

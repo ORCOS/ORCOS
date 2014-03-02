@@ -41,6 +41,7 @@
 #include Board_DSS_hh
 #include Board_MMC_hh
 #include Board_ExtPowerControl_hh
+#include Board_SPI_hh
 
 #ifndef RAM_SIZE
 #define RAM_SIZE 	512 MB
@@ -943,6 +944,7 @@ class BeagleBoardxM {
     DEF_Board_DSSCfd
     DEF_Board_MMCCfd
     DEF_Board_ExtPowerControlCfd
+    DEF_Board_SPICfd
 
 public:
     unint4 sys_clock;

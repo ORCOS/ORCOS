@@ -22,7 +22,10 @@
 #define MCSPI_TX(x) (0x38 + 0x14 *x)
 #define MCSPI_RX(x) (0x3c + 0x14 *x)
 
-
+#define MCSPI1 0x48098000
+#define MCSPI2 0x4809A000
+#define MCSPI3 0x480B8000
+#define MCSPI4 0x480BA000
 
 
 class Omap3530SPI: public CharacterDeviceDriver {
@@ -30,7 +33,7 @@ private:
 	unint4 base;
 
 public:
-	Omap3530SPI();
+	Omap3530SPI(T_Omap3530SPI_Init *init);
 	virtual ~Omap3530SPI();
 
 	ErrorT readByte( char* p_byte );

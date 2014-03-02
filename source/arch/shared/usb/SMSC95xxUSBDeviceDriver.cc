@@ -768,13 +768,11 @@ ErrorT SMSC95xxUSBDeviceDriver::recv(unint4 recv_len)
 
 	unint4 recvd_bytes = 0;
 	char* rxbuffer = (char*) &dev->endpoints[4].recv_buffer[0];
-	//memset(rxbuffer,0,4);
-	//recv_len = dev->controller->USBBulkMsg(dev,bulkin_ep,USB_DIR_IN,2048,rxbuffer);
-	if (recv_len <= 0) return -1;
+
+	if (recv_len <= 0) return (-1);
 
 
 	while (recvd_bytes < recv_len) {
-		//LOG(ARCH,ERROR,(ARCH,ERROR,"SMSC95xxUSBDeviceDriver: recvd_bytes %d, recv_len %d, remaining: %d",recvd_bytes, recv_len, remaining_len));
 
 		if (remaining_len > 0) {
 
@@ -834,7 +832,7 @@ ErrorT SMSC95xxUSBDeviceDriver::recv(unint4 recv_len)
 
 				int r_len = (recv_len - (recvd_bytes+4));
 				// check if packet is complete
-				if (packet_len <= r_len) {
+				if ((int) packet_len <= r_len) {
 					memcpy(ptBuf->payload, &rxbuffer[recvd_bytes+4], packet_len );
 					ethernet_input(ptBuf,&tEMAC0Netif);
 					pbuf_free(ptBuf);
@@ -848,8 +846,7 @@ ErrorT SMSC95xxUSBDeviceDriver::recv(unint4 recv_len)
 					dev->endpoints[bulkin_ep].data_toggle = dev->endpoints[4].data_toggle;
 
 					recv_len = dev->controller->USBBulkMsg(dev,bulkin_ep,USB_DIR_IN,512,tmp_data);
-					if (recv_len >= remaining_len) {
-						//LOG(ARCH,ERROR,(ARCH,ERROR,"SMSC95xxUSBDeviceDriver: Read more %d",recv_len));
+					if ((int) recv_len >= remaining_len) {
 						dev->endpoints[4].data_toggle = dev->endpoints[bulkin_ep].data_toggle;
 
 						char* p = (char*) last_pbuf->payload;
@@ -862,7 +859,6 @@ ErrorT SMSC95xxUSBDeviceDriver::recv(unint4 recv_len)
 						ethernet_input(last_pbuf,&tEMAC0Netif);
 						pbuf_free(last_pbuf);
 					} else if (recv_len > 0) {
-						//LOG(ARCH,ERROR,(ARCH,ERROR,"SMSC95xxUSBDeviceDriver: Read more %d",recv_len));
 						dev->endpoints[4].data_toggle = dev->endpoints[bulkin_ep].data_toggle;
 						// more packets
 						char* p = (char*) last_pbuf->payload;
@@ -873,7 +869,6 @@ ErrorT SMSC95xxUSBDeviceDriver::recv(unint4 recv_len)
 						recvd_bytes += recv_len;
 						recvd_bytes = (recvd_bytes + 3) & (~3);
 					}
-					//LOG(ARCH,DEBUG,(ARCH,DEBUG,"SMSC95xxUSBDeviceDriver: waiting for more bytes %d",remaining_len));
 				}
 
 

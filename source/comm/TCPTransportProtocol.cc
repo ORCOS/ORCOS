@@ -33,12 +33,11 @@
 
 extern Kernel* theOS;
 
-extern Task*           pCurrentRunningTask;
+extern Task*   pCurrentRunningTask;
 
 
 TCPTransportProtocol::TCPTransportProtocol() :
     TransportProtocol( 6 ) {
-
 }
 
 TCPTransportProtocol::~TCPTransportProtocol() {
@@ -47,7 +46,7 @@ TCPTransportProtocol::~TCPTransportProtocol() {
 ErrorT TCPTransportProtocol::sendto( packet_layer* payload, const sockaddr* fromaddr,
                 const sockaddr *dest_addr, AddressProtocol* NextLayer, Socket* fromsock ) {
 
-	// no sendto on connection oriented protocols
+	/* no sendto on connection oriented protocols */
 	return (cError);
 }
 
@@ -92,8 +91,7 @@ ErrorT TCPTransportProtocol::recv( char* packetstart, int packetlength, AddressP
 ErrorT TCPTransportProtocol::recv( packet_layer* packet, AddressProtocol* FromLayer,
         sockaddr fromaddr ) {
 
-
-    return cOk;
+    return (cOk);
 }
 
 static err_t tcp_recv_wrapper(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t error) {
@@ -101,13 +99,12 @@ static err_t tcp_recv_wrapper(void *arg, struct tcp_pcb *pcb, struct pbuf *p, er
 	Socket *sock = (Socket*) arg;
 
 	if (p != 0) {
-		if (sock != 0)
-			sock->addMessage(p,0);
-			//sock->addMessage((char*) p->payload,p->len,0);
-
-		//tcp_recved(pcb,p->len);
-		//pbuf_free(p);
+		if (sock != 0) {
+			return (sock->addMessage(p,0));
+		} else
+			return (ERR_BUF);
 	} else {
+		/* p == 0 indicates a disconnect */
 		if (sock != 0)
 			sock->disconnected(error);
 
@@ -115,7 +112,7 @@ static err_t tcp_recv_wrapper(void *arg, struct tcp_pcb *pcb, struct pbuf *p, er
 		tcp_close(pcb);
 	}
 
-	return ERR_OK;
+	return (ERR_OK);
 }
 
 void TCPTransportProtocol::received(Socket* socket, pbuf* p) {
@@ -134,33 +131,22 @@ static err_t tcp_connected(void *arg, struct tcp_pcb *pcb, err_t err) {
 	Socket *sock = (Socket*) arg;
 	sock->connected(cOk);
 	sock->arg = pcb;
-	return ERR_OK;
+	return (ERR_OK);
 }
 
 static err_t  tcp_accept_wrapper(void *arg, struct tcp_pcb *newpcb,err_t err)
 {
 
-	unint4 bufferlen = 0;
-	void* bufferstart = 0;
-
 	Socket* oldsock = (Socket*) arg;
 	LOG(COMM,DEBUG,(COMM,DEBUG,"TCP: accept wrapper: newpcb: %x",newpcb));
 
-	// we are not accepting connections if the thread is not ready and waiting
-	// for connections
+	/* we are not accepting connections if the thread is not ready and waiting
+	   for connections */
 	if (!oldsock->hasListeningThread) return (ERR_ABRT);
 
+	/* Create a new socket for the connection */
 	LOG(COMM,DEBUG,(COMM,DEBUG,"TCP: accepted..."));
 	tcp_recv(newpcb, &tcp_recv_wrapper);
-
-#ifdef HAS_Board_HatLayerCfd
-    // get tasks memory manager and allocate memory for buffer
-	// we need to run with the process id of the listening task
-	// so we can access its memory
-	/*SETPID(oldsock->getOwnerTask()->getId());
-	bufferlen = DEFAULT_BUFFERSIZE;
-	bufferstart = (char*) oldsock->getOwnerTask()->getMemManager()->alloc( bufferlen, false );*/
-#endif
 
 	Socket* newsock = new Socket(oldsock->getAProto()->getId(), oldsock->getType(), oldsock->getTProto()->getId());
 	newsock->connected(cOk);
@@ -172,18 +158,7 @@ static err_t  tcp_accept_wrapper(void *arg, struct tcp_pcb *newpcb,err_t err)
 	oldsock->blockedThread->getOwner()->aquiredResources.addTail((DatabaseItem*) newsock);
 	oldsock->blockedThread->unblock();
 
-#ifdef HAS_Board_HatLayerCfd
-	// switch back to the mode of the workerthread
-	/*if (pCurrentRunningTask != 0)
-			{
-			SETPID(pCurrentRunningTask->getId());
-			}
-		else {
-			SETPID(0);
-		}*/
-#endif
-
-	return ERR_OK;
+	return (ERR_OK);
 }
 
 
@@ -202,10 +177,10 @@ ErrorT TCPTransportProtocol::connect(AddressProtocol* nextLayer, sockaddr *toadd
 		ipaddr.addr.ip4addr.addr = toaddr->sa_data;
 
 		tcp_connect(pcb,&ipaddr,toaddr->port_data,&tcp_connected);
-		return cOk;
+		return (cOk);
 	}
 
-	return cError;
+	return (cError);
 }
 
 ErrorT TCPTransportProtocol::listen( Socket* socket) {
@@ -214,7 +189,7 @@ ErrorT TCPTransportProtocol::listen( Socket* socket) {
 	struct tcp_pcb* pcb = (struct tcp_pcb*) socket->arg;
 	LOG(COMM,DEBUG,(COMM,DEBUG,"TCP: Setting up Listining PCB: %x",pcb));
 
-	// stop if this pcb is already listening for connections
+	/* stop if this pcb is already listening for connections */
 	if (pcb->state == LISTEN) return cOk;
 
 	if (pcb != 0) {
@@ -223,23 +198,24 @@ ErrorT TCPTransportProtocol::listen( Socket* socket) {
 			socket->arg = pcb;
 			LOG(COMM,DEBUG,(COMM,DEBUG,"TCP: PCB set to LISTEN Mode!"));
 			tcp_accept(pcb, &tcp_accept_wrapper);
-			return cOk;
+			return (cOk);
 		}
 	}
 
-	return cError;
+	return (cError);
 }
 
 ErrorT TCPTransportProtocol::register_socket( unint2 port, Socket* socket ) {
 
 	struct tcp_pcb *pcb;
-	pcb = tcp_new(); /* Create a new TCP PCB. */
+	/* Create a new TCP PCB. */
+	pcb = tcp_new();
 	tcp_bind(pcb, 0, port);
 	tcp_arg(pcb,socket);
 
 	socket->arg = pcb;
 
-	return cOk;
+	return (cOk);
 }
 
 ErrorT TCPTransportProtocol::unregister_socket( Socket* socket ) {

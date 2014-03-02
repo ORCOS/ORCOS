@@ -8,7 +8,7 @@
 #include "Omap3530SPI.hh"
 #include "inc/types.hh"
 #include "kernel/Kernel.hh"
-#include "sys/spi.h"
+#include "inc/sys/spi.h"
 
 extern Kernel* theOS;
 
@@ -16,8 +16,9 @@ extern Kernel* theOS;
 
 
 
-Omap3530SPI::Omap3530SPI() {
+Omap3530SPI::Omap3530SPI( T_Omap3530SPI_Init *init) : CharacterDeviceDriver(true,init->Name) {
 
+	this->base = init->Address;
 
 	unint4 coreen = INW(CM_ICLKEN1_CORE);
 	// enable all spi interface clocks
@@ -47,16 +48,20 @@ Omap3530SPI::~Omap3530SPI() {
 }
 
 ErrorT Omap3530SPI::readByte(char* p_byte) {
+	return (cError);
 }
 
 ErrorT Omap3530SPI::writeByte(char c_byte) {
+	return (cError);
 }
 
 ErrorT Omap3530SPI::readBytes(char* bytes, unint4& length) {
 
-	if (INW(base + MCSPI_IRQSTATUS(0) & 0x4)) {
+	int channel = bytes[0];
+
+	if (INW(base + MCSPI_IRQSTATUS) & 0x4) {
 		// data available
-		int data = INW(base+ MCSPI_RX(0));
+		int data = INW(base+ MCSPI_RX(channel));
 		if (length == 1)
 			bytes[0] = data & 0xff;
 		if (length == 2) {
@@ -75,7 +80,7 @@ ErrorT Omap3530SPI::readBytes(char* bytes, unint4& length) {
 			bytes[3] = (data >> 24) & 0xff;
 		}
 
-		OUTW(base+ MCSPI_IRQSTATUS(0),0x4);
+		OUTW(base+ MCSPI_IRQSTATUS,0x4);
 		return (cOk);
 	} else
 		return (cError);
@@ -85,31 +90,35 @@ ErrorT Omap3530SPI::readBytes(char* bytes, unint4& length) {
 ErrorT Omap3530SPI::writeBytes(const char* bytes, unint4 length) {
 	if (length < 2) return (cError);
 
+	/* First byte is the channel we want to communicate with.
+	 * Every device connected to the bus is associated with one channel.
+	 * The number of channels depends on the physical connections the
+	 * controller offers.
+	 **/
 	int channel = bytes[0];
-	if (channel == 0) {
-		OUTW(base+ MCSPI_CHxCTRL(0),1);
-		OUTW(base+ MCSPI_IRQSTATUS(0),1);
+	if (channel > 4) return (cInvalidArgument);
 
-		int data = 0;
-		if (length == 2)
-			data = bytes[1];
-		if (length == 3) {
-			data = bytes[2] | (bytes[1] << 8);
-		}
-		if (length == 4) {
-			data = bytes[3] | (bytes[2] << 8) | (bytes[1] << 16);
-		}
-		if (length == 5) {
-			data = bytes[4] | (bytes[3] << 8) | (bytes[2] << 16) | (bytes[1] << 24);
-		}
+	OUTW(base+ MCSPI_CHxCTRL(channel),1);
+	OUTW(base+ MCSPI_CHxCTRL(0),1);
+	OUTW(base+ MCSPI_IRQSTATUS,1);
 
-		OUTW(base+ MCSPI_TX(0),data);
-
-		while ( !(INW(base + MCSPI_IRQSTATUS(0)) & 1)) {};
-		OUTW(base+ MCSPI_IRQSTATUS(0),1);
-
+	int data = 0;
+	if (length == 2)
+		data = bytes[1];
+	if (length == 3) {
+		data = bytes[2] | (bytes[1] << 8);
+	}
+	if (length == 4) {
+		data = bytes[3] | (bytes[2] << 8) | (bytes[1] << 16);
+	}
+	if (length == 5) {
+		data = bytes[4] | (bytes[3] << 8) | (bytes[2] << 16) | (bytes[1] << 24);
 	}
 
+	OUTW(base+ MCSPI_TX(channel),data);
+
+	while ( !(INW(base + MCSPI_IRQSTATUS) & 1)) {};
+	OUTW(base+ MCSPI_IRQSTATUS,1);
 	return (cOk);
 
 }
@@ -118,6 +127,9 @@ ErrorT Omap3530SPI::ioctl(int request, void* args) {
 
 	if (request == SPI_CONFIGURE_CHANNEL0) {
 		/* configure channel 0*/
-		OUTW(base+ MCSPI_CHxCONF(0),args | (1 << 18) | (1 << 17));
+		OUTW(base+ MCSPI_CHxCONF(0), ((unint4) args) | (1 << 18) | (1 << 17));
+		return (cOk);
 	}
+
+	return (cInvalidArgument);
 }

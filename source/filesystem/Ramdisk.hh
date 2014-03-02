@@ -46,13 +46,13 @@ private:
 
 public:
 
-	   RamdiskDirectory(Ramdisk* myRamDisk, char* name) : Directory(name) { this->myRamDisk = myRamDisk; }
+     RamdiskDirectory(Ramdisk* myRamDisk, char* name) : Directory(name) { this->myRamDisk = myRamDisk; }
 
-	   //! Tries to delete the resource from the directory
-	   ErrorT 		remove(Resource *res);
+     //! Tries to delete the resource from the directory
+     ErrorT 		remove(Resource *res);
 
-	   /* Creates a new File inside the Ramdisk. */
-	   File* 		createFile(char* name, unint4 flags);
+     /* Creates a new File inside the Ramdisk. */
+     File* 		createFile(char* name, unint4 flags);
 
 };
 

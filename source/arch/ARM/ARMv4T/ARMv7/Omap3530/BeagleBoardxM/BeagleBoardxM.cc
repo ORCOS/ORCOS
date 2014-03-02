@@ -406,12 +406,17 @@ void BeagleBoardxM::initialize() {
      LOG(ARCH,INFO,(ARCH,INFO,"BeagleBoardxM: Board UART2: [" STRINGIZE(Board_UART2CfdCl) "]"));
 #endif
 
-#ifdef HAS_Board_UART2Cfd
+#ifdef HAS_Board_ExtPowerControlCfd
  	 INIT_Board_ExtPowerControlCfd;
  	 ExtPowerControlCfd = new NEW_Board_ExtPowerControlCfd;
  	 LOG(ARCH,INFO,(ARCH,INFO,"BeagleBoardxM: Board External Power: [" STRINGIZE(Board_ExtPowerControlCfdCl) "]"));
 #endif
 
+#ifdef HAS_Board_SPICfd
+ 	 INIT_Board_SPICfd;
+     SPICfd = new NEW_Board_SPICfd;
+     LOG(ARCH,INFO,(ARCH,INFO,"BeagleBoardxM: Board SPI: [" STRINGIZE(Board_SPICfdCl) "]"));
+#endif
 
     // LED Interface
 #ifdef HAS_Board_LEDCfd
