@@ -1,22 +1,16 @@
 
-/* OUTPUT_FORMAT("elf32-powerpc", "elf32-powerpc",
-	      "elf32-powerpc") */
-/* OUTPUT_ARCH(powerpc) */
-
 SECTIONS
 {
  . = TASK_START;
  .CB TASK_VMA : AT(TASK_START) {
     LONG(0x230f7ae9);  /* ORCOS Task MAGIC value */
-    LONG(0x0);		   /* no next header field, RTparams are mandatory */
-    LONG(0x101);	   /* PLATFORM ARM, T BIT set*/
+    LONG(NEXT_HEADER); /* next header field */
+    LONG(PLATFORM);	   /* PLATFORM Flags */
     
     /* Task CB types.hh: struct taskTable */
     LONG(TASK_VMA);
-    
     LONG(task_main);
-    LONG(thread_exit);
-    
+    LONG(thread_exit);    
     LONG(TASK_HEAP );
     LONG(TASK_END);
            
@@ -26,8 +20,11 @@ SECTIONS
     LONG(PERIOD);
     LONG(DEADLINE);
     LONG(EXECUTIONTIME);
-    LONG(4096);   
+    /* Stack size of the initial/main thread of this task */
+    LONG(STACK_SIZE);      
     
+    /* Additional header following */
+    ADDITIONAL_HEADER 
    }
    
 .text : {    
@@ -40,10 +37,12 @@ SECTIONS
  
  .data : {
  	*(.data*)
+ 	*(.init*)
  }
  .bss : {
  	*(.bss*)
  }
+ 
  TASK_DATA_START = ALIGN(0x1000);
 }
 

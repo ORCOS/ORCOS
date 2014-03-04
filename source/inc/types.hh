@@ -36,20 +36,6 @@
 
 typedef unsigned int size_t;
 
-/*!
- * various integer types
- * <group>
- */
-/*typedef char int1;
-typedef short int2;
-typedef int int4;
-typedef long long int8;
-typedef unsigned char unint1;
-typedef unsigned short unint2;
-typedef unsigned int unint4;
-typedef unsigned long long unint8;
-*/
-
 typedef int ErrorT;
 typedef unint2 EndianT;
 typedef unint2 CpuClassT;

@@ -1,89 +1,16 @@
-STACK_USAGE = python $(STACK_USAGE_SCRIPT)
+TARGET=armv7
+UTILS=cp crc32
 
-OUTPUTFILE = cp crc32
-
-OBJS 	=  cp.o crc32.o
-LIBOBJS =  $(KERNEL_LIB_DIR)/static.o 
-# all provided defines are relative to the main makefile (usually two directories lower)
-# exception is GCC_LIB_DIR which is usually absolute
-
-#Provided variables:
- #CC, CXX, AS, LD,				: Compiler and linker 
- #OBJCOPY, OBJDUMP				: binutils
- #KERNEL_LIB_DIR				: The directory of the user ORCOS API sources (e.g. orcos.hh)
- #KERNEL_DIR					: The directory of the kernel sources
- #GCC_LIB_DIR					: Directory of libgcc
- #STACK_USAGE_SCRIPT		 	: Stack analyzer script (ppc only)
- #CFLAGS_TASKS= 				: Compile flags for tasks
- #LDFLAGS_TASKS				    : Linker flags for tasks 
- #TASK_DIR   					: This directory
-
-CC      = /cygdrive/c/gcc-arm-none-eabi/bin/arm-none-eabi-gcc
-CXX     = /cygdrive/c/gcc-arm-none-eabi/bin/arm-none-eabi-c++
-AS      = /cygdrive/c/gcc-arm-none-eabi/bin/arm-none-eabi-as
-AR      = /cygdrive/c/gcc-arm-none-eabi/bin/arm-none-eabi-ar
-SIZE	= /cygdrive/c/gcc-arm-none-eabi/bin/arm-none-eabi-size
-OBJDUMP = /cygdrive/c/gcc-arm-none-eabi/bin/arm-none-eabi-objdump
-LD		= /cygdrive/c/gcc-arm-none-eabi/bin/arm-none-eabi-ld
-OBJCOPY = /cygdrive/c/gcc-arm-none-eabi/bin/arm-none-eabi-objcopy 
-STRIP   = /cygdrive/c/gcc-arm-none-eabi/bin/arm-none-eabi-strip
-
-KERNEL_LIB_DIR = ../../library/bin/armv7
-KERNEL_INC = -I../../library/inc -I../../library/inc/arm
-
-GCC_VERSION=4.7.4
-GCC_LIB_DIR=C:/gcc-arm-none-eabi/lib/gcc/arm-none-eabi/$(GCC_VERSION)/armv7-ar/thumb/
-
-AFLAGS =
-CFLAGS = -c $(KERNEL_INC) -fno-exceptions -fno-rtti -O2 -mcpu=cortex-a8  -mthumb -mthumb-interwork -mno-unaligned-access
-CPPFLAGS = $(CFLAGS) -g  
-	
-all: $(OBJS) 
-	
-binary:
-	@$(OBJCOPY) -O binary bin/$(OUTPUTFILE).elf bin/$(OUTPUTFILE)
-	
-stack_usage:
-ifneq ($(STACK_USAGE_SCRIPT),)
-	@$(STACK_USAGE) $(OBJDUMP) $(OUTPUTFILE).elf task_main
-endif
-		
-task.elf: $(OBJS) task.ld
-	@echo task.mk: Linking $(OUTPUTFILE).elf
-	$(LD) $(OBJS) --gc-sections --script=task.ld  -o bin/$(OUTPUTFILE).elf -Map $(OUTPUTFILE).map -L$(KERNEL_LIB_DIR) -L$(GCC_LIB_DIR) -lorcos  -lgcc 
-	
-task.ld: 
-	@echo task.mk: Generating linkerscript task.ld
-	@$(SED) -f task.sed template.ld >task.ld
-	
-%.o: %.cpp
-	@echo task.mk: Compiling $@
-	@$(CXX) $(CPPFLAGS) $< -o bin/$@
-
-%.o: %.c
-	@echo task.mk: Compiling $@
-	@$(CXX) $(CFLAGS) $< -o bin/$@
-
-cp.o: cp.cc
-	@echo @$(CXX) $(CPPFLAGS) $< -o $@
-	@echo task.mk: Compiling $@
-	@$(CXX) $(CPPFLAGS) $< -o bin/$@
-	@$(LD) bin/$@ --script=task.ld  -o bin/cp.elf -Map cp.map -L$(KERNEL_LIB_DIR) -L$(GCC_LIB_DIR) -lorcos  -lgcc
-	@$(OBJCOPY) -O binary bin/cp.elf bin/cp
-
-crc32.o: crc32.cc
-	@echo @$(CXX) $(CPPFLAGS) $< -o $@
-	@echo task.mk: Compiling $@
-	@$(CXX) $(CPPFLAGS) $< -o bin/$@
-	@$(LD) bin/$@ --script=task.ld  -o bin/crc32.elf -Map crc32.map -L$(KERNEL_LIB_DIR) -L$(GCC_LIB_DIR) -lorcos  -lgcc
-	@$(OBJCOPY) -O binary bin/crc32.elf bin/crc32
-
-
-%.o: %.S
-	@echo task.mk: Assembling $@
-	@$(AS) $(AFLAGS) $< -o $@
+all:	
+	@mkdir -p $(TARGET)
+	@for dir in $(UTILS); do \
+	  echo Building $$dir;\
+	  make -s -C $$dir/ TARGET=$(TARGET) POST_BUILD="cp $(TARGET)/$$dir ../$(TARGET)/" all;\
+	done;
 	
 clean:
-	@echo Cleaning up Task files
-	@$(RM) bin/*
-	
+	@for dir in $(UTILS); do \
+	  echo Cleaning $$dir;\
+	  make -s -C $$dir/ clean;\
+	done;
+	@rm -fr $(TARGET)

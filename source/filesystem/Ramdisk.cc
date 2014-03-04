@@ -113,7 +113,10 @@ File* RamdiskDirectory::createFile(char* name, unint4 flags) {
 	unint4 block = this->myRamDisk->allocateBlock(-1);
 	if (block == (unint4)-1) return (0);
 
-	RamdiskFile* f = new RamdiskFile(this->myRamDisk, block,name,flags);
+	char* fileName = (char*) theOS->getMemoryManager()->alloc(strlen(name));
+	strcpy(fileName,name);
+
+	RamdiskFile* f = new RamdiskFile(this->myRamDisk, block,fileName,flags);
 	this->add(f);
 	return (f);
 }

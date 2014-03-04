@@ -286,21 +286,36 @@ $(OUTPUT_DIR)kernel.bin: $(OUTPUT_DIR)kernel.elf
 
 binary: $(OUTPUT_DIR)kernel.bin
 
+
 #---------------------------------------------------------------------------------------------------------------------------------------
 #                         				Initial Tasks Make rules 
 #
 # Tasks build here will be contained inside the uImage boot image and started directly after startup
 #---------------------------------------------------------------------------------------------------------------------------------------
 
+-include make/tasks.in
+
 tasks: scl 
 	@echo "----------------------------------"
 	@echo "     Building Tasks"
 	@echo "----------------------------------"
-	@for i in $(TASKS); do echo Creating $$i; make -s -C $$i CC=$(CC) CXX=$(CXX) AS=$(AS) LD=$(LD) OBJCOPY=$(OBJCOPY) OBJDUMP=$(OBJDUMP) SED=$(SED) KERNEL_LIB_DIR=$(KERNEL_LIB_DIR) KERNEL_DIR=$(KERNEL_DIR) GCC_LIB_DIR=$(GCC_LIB_DIR) STACK_USAGE_SCRIPT=$(STACK_USAGE_SCRIPT) CFLAGS_TASKS=$(CFLAGS_TASKS) LDFLAGS_TASKS="$(LDFLAGS_TASKS)" TASK_DIR="$$i" ; echo ; done
+	@n=0 ; \
+	starts=$(TASKS_START); \
+	ends=$(TASK_END); \
+	for x in $(TASKS); do\
+		echo Creating $$x; \
+		make -s -C $$x OUTPUTFILE=task.image TARGET=$(TARGET) TASK_START=$${starts[$$n]} TASK_END=$${ends[$$n]} all; \
+		$(CP) $$x/$(TARGET)/task.image tasks/task$$n.image; \
+		$(CP) $$x/$(TARGET)/task.image.elf tasks/task$$n.image.elf; \
+		let "n+=1" ; \
+	done;
+	
+#@for i in $(TASKS); do echo Creating $$i; make -s -C $$i CC=$(CC) CXX=$(CXX) AS=$(AS) LD=$(LD) OBJCOPY=$(OBJCOPY) OBJDUMP=$(OBJDUMP) SED=$(SED) KERNEL_LIB_DIR=$(KERNEL_LIB_DIR) KERNEL_DIR=$(KERNEL_DIR) GCC_LIB_DIR=$(GCC_LIB_DIR) STACK_USAGE_SCRIPT=$(STACK_USAGE_SCRIPT) CFLAGS_TASKS=$(CFLAGS_TASKS) LDFLAGS_TASKS="$(LDFLAGS_TASKS)" TASK_DIR="$$i" ; echo ; done
 	
 tasks_clean: 
 	@echo "----------------------------------"
 	@echo "     Cleaning Tasks"
 	@echo "----------------------------------"
 	@for i in $(TASKS); do echo Cleaning $$i; make -s -C $$i TASK_DIR="$$i" clean; done
+	@rm -f tasks/*
 

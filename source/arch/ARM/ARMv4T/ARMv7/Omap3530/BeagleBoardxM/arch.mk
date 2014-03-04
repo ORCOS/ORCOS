@@ -20,4 +20,5 @@ ARCH_VPATH = $(KERNEL_DIR)arch/ARM/ARMv4T $(KERNEL_DIR)arch/ARM/ARMv4T/ARMv7 $(K
 #Where to look for header files in the architecture directories.
 ARCH_INCLUDES = -I$(KERNEL_DIR)arch/ARM/ARMv4T/ -I$(KERNEL_DIR)arch/ARM/ARMv4T/ARMv7 -I$(KERNEL_DIR)arch/ARM/ARMv4T/ARMv7/Omap3530 -I$(KERNEL_DIR)arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardxM/
 
-UIMAGE_ARCH=arm
+UIMAGE_ARCH	= arm
+TARGET  	= armv7

@@ -32,14 +32,14 @@ extern void* __cache_inihibit_end;
 
 // map of used memory pages by tasks .. starting at the page after __KERNELEND
 // this map must be big enough to cover all possible locations of tasks inside the memory
-static unsigned char UsedPageTable[ NUM_PAGES ];
+static unint1 UsedPageTable[ NUM_PAGES ];
 static unint4 MemStart;
 
 PagedRamMemManager::PagedRamMemManager() {
 	// mark all pages as unused
 
 	for (int i = 0; i< NUM_PAGES; i++) {
-		UsedPageTable[i] = -1;
+		UsedPageTable[i] = (unint1) -1;
 	}
 
 	// calculate free memory area (useable by tasks)
@@ -88,14 +88,14 @@ ErrorT PagedRamMemManager::free(unint4 start, unint4 end) {
 	int pe_end   = (end_page - MemStart) / PAGESIZE;
 
     // mark the pages as used
-    for (int i = pe_start; i <= pe_end; i++) UsedPageTable[i] = -1;
+    for (int i = pe_start; i <= pe_end; i++) UsedPageTable[i] = (unint1) -1;
 
     return (cOk);
 }
 
 ErrorT PagedRamMemManager::freeAll(unint1 pid) {
 	for (int i = 0; i< NUM_PAGES; i++) {
-		if (UsedPageTable[i] == pid) UsedPageTable[i] = -1;
+		if (UsedPageTable[i] == pid) UsedPageTable[i] = (unint1) -1;
 	}
 
 	return (cOk);
@@ -109,7 +109,7 @@ void* PagedRamMemManager::alloc(size_t size, unint1 pid) {
 	for (i = 0; i < NUM_PAGES; i++)
 	{
 		// check if area used
-		if ( UsedPageTable[i] != -1) {
+		if ( UsedPageTable[i] != (unint1) -1) {
 			area_start = -1;
 			area_size = 0;
 		} else {
@@ -123,7 +123,7 @@ void* PagedRamMemManager::alloc(size_t size, unint1 pid) {
 		}
 	}
 
-	if (area_start == -1) return 0;
+	if (area_start == -1) return (0);
 
 	// mark as used
 	markAsUsed(area_start, area_start + size, pid);

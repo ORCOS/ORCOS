@@ -125,11 +125,18 @@ ErrorT Omap3530SPI::writeBytes(const char* bytes, unint4 length) {
 
 ErrorT Omap3530SPI::ioctl(int request, void* args) {
 
-	if (request == SPI_CONFIGURE_CHANNEL0) {
-		/* configure channel 0*/
-		OUTW(base+ MCSPI_CHxCONF(0), ((unint4) args) | (1 << 18) | (1 << 17));
-		return (cOk);
-	}
+	int channel = -1;
+	if (request == SPI_CONFIGURE_CHANNEL1) channel = 0;
+	if (request == SPI_CONFIGURE_CHANNEL2) channel = 1;
+	if (request == SPI_CONFIGURE_CHANNEL3) channel = 2;
+	if (request == SPI_CONFIGURE_CHANNEL4) channel = 3;
 
-	return (cInvalidArgument);
+	if (channel < 0) return (cInvalidArgument);
+
+	/* configure channel*/
+	OUTW(base+ MCSPI_CHxCONF(channel), ((unint4) args) | (1 << 18) | (1 << 17));
+	return (cOk);
+
+
+
 }

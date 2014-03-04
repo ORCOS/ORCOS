@@ -1,12 +1,10 @@
-OUTPUTFILE 			= perf_task
+OUTPUTFILE 			= ftp_server
 
 # Define the target ISA here if not provided from outside environment variable
-ifndef TARGET
 TARGET				= armv7
-endif
 
 ORCOS_LIB_DIR 		= C:/git/orcos_github/library/
-#KEEP_TEMP_FILES 	= 1
+KEEP_TEMP_FILES 	= 1
 
 INITIAL_PRIORITY 	= 1000
 PHASE				= 0

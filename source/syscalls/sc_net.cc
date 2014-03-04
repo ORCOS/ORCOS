@@ -241,7 +241,8 @@ int recvSyscall( int4 int_sp) {
     SYSCALLGETPARAMS5(int_sp,socketid,data_addr,data_len,flags,sender);
 
     VALIDATE_IN_PROCESS(data_addr);
-    VALIDATE_IN_PROCESS(sender);
+    if (sender != 0)
+    	VALIDATE_IN_PROCESS(sender);
 
     LOG(SYSCALLS,DEBUG,(SYSCALLS,DEBUG,"Syscall: recv: socketid %d, msg_addr: 0x%x, flags: %x, sockaddr_ptr: 0x%x",socketid,data_addr,flags,sender));
 

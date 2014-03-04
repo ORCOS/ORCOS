@@ -206,7 +206,7 @@ public class SCLReader {
 			output = new FileWriter(outputDir.getAbsolutePath()
 					+ fileSeparator + "/make/tasks.in");
 			bufWrite = new BufferedWriter(output);
-			bufWrite.write(tasksdirbuffer.toString());
+			//bufWrite.write(tasksdirbuffer.toString());
 			bufWrite.write(tasksstartbuffer.toString());
 			bufWrite.write(tasksendbuffer.toString());
 			bufWrite.flush();

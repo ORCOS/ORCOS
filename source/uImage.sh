@@ -2,6 +2,8 @@
 (set -o igncr) 2>/dev/null && set -o igncr; # this comment is needed
 source make/tasks.in
 
+TASKS=( $(ls -tr tasks/*.image) )
+
 echo ""
 echo "[uImage] Creating Uboot Firmware Image..." 
 
@@ -27,7 +29,7 @@ LOAD_ADDRESS=$(readelf -s ${FILENAME}.elf | grep __LOADADDRESS | sed -E "s/.*: (
 KERNELEND=$(readelf -s ${FILENAME}.elf | grep __KERNELEND | sed -E "s/.*: ([0-9abcdef]+) .* __KERNELEND/0x\\1/") 
 
 echo "[uImage] Architecture		   : $1"
-echo "[uImage] Kernel Size       : ${FILESIZE}"
+echo "[uImage] Kernel Size         : ${FILESIZE}"
 echo "[uImage] Kernel Load Address : ${LOAD_ADDRESS}"
 echo "[uImage] Entry Address       : ${ENTRY_ADDRESS}"
 printf "[uImage] Kernel End Address  : 0x"
@@ -45,6 +47,7 @@ mv	image2.bin image.bin
 for (( i = 0 ; i < ${#TASKS[@]} ; i++ )) do
 
 	printf "[uImage] Current Address : 0x%X\n" ${ADDRESS}
+	printf "\n"
 	printf "[uImage] Appending Task ${TASKS[$i]}"
 	printf " @%X\n" ${TASKS_START[$i]}
 
@@ -79,10 +82,10 @@ for (( i = 0 ; i < ${#TASKS[@]} ; i++ )) do
 
 	ADDRESS=$(( ${ADDRESS} + ${ZEROS} ))
 	
-	SIZE=$(stat -c%s "${TASKS[$i]}/task.bin")
+	SIZE=$(stat -c%s "${TASKS[$i]}")
 	echo "[uImage] Task Size: ${SIZE}"
 	
-	cat image.bin "${TASKS[$i]}/task.bin" > image2.bin 
+	cat image.bin "${TASKS[$i]}" > image2.bin 
 	mv	image2.bin image.bin
 	
 	ADDRESS=$(( ${ADDRESS} + ${SIZE} ))
@@ -90,7 +93,7 @@ for (( i = 0 ; i < ${#TASKS[@]} ; i++ )) do
 done
 
 rm -f zeros.tmp
-
+echo ""
 echo "[uImage] Compressing Image..."
 gzip -c image.bin > image.gz 
 

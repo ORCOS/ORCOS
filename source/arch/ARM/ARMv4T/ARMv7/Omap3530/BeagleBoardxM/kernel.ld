@@ -136,8 +136,6 @@ SECTIONS
   . += _kernelStackSize;
   PROVIDE(__stack = .);	
   
- __KERNELEND = .;
- 
   /* put page table in memory (16k alignment) */
 
   . = ALIGN(0x100000);
@@ -154,6 +152,9 @@ SECTIONS
   PROVIDE (_heapi_start = .);
     . += _kernelHeapSize;
   PROVIDE(_heapi_end = .);
+  
+   __KERNELEND = .;
+ 
  }
 
 
