@@ -16,6 +16,17 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+
+/*
+ * This is a very simple telnet server implementation runnable under ORCOS.
+ * This is probably not the nicest code i have ever written ;), however it
+ * it tested and works quite well. A future version should provide support for
+ * multiple connections and should utilse classes or structs as well as seperated
+ * implementation files for modularization.
+ *
+ */
+
+
 #include <orcos.hh>
 #include <string.hh>
 
@@ -54,7 +65,9 @@ const char* welcome_msg = orcos_string;
 
 // the current index inside the command history
 static char ci = 0;
+
 static int history_count = 0;
+
 // the command history
 static char command_history[MAX_COMMAND_HISTORY][100];
 
@@ -276,13 +289,6 @@ void makeHexCharCompatible(char* msg, int len) {
 
 
 void handleCommand(int socket, int command_length) {
-	// fill history
-	if (history_count < MAX_COMMAND_HISTORY) {
-		history_count++;
-	}
-
-	//memcpy(&command_history[ci][0],&command[0],command_length);
-	ci = (ci +1) % MAX_COMMAND_HISTORY;
 
 	// do a command str compare
 	if (strcmp("help",command) == 0) {
@@ -398,8 +404,6 @@ void handleCommand(int socket, int command_length) {
 						retmsg += sizeof(ESC_WHITE)-1;
 					}
 
-					//printf(return_msg,strlen(return_msg));
-					//return_msg[strlen(return_msg)+1] = '\0';
 
 					if (msglen > 250) {
 						return_msg[msglen +1] = '\0';
@@ -690,7 +694,6 @@ void handleCommand(int socket, int command_length) {
 
 	sendUnknownCommand(socket);
 
-
 }
 
 
@@ -700,21 +703,18 @@ extern "C" int task_main()
 {
 	int i = 0;
 
-	//char* mysocketbuffer = (char*) malloc(800);
-	// then create a socket
-
 	int mysock = socket(IPV4,SOCK_STREAM,TCP);
 
 	// bind our socket to some address
 	sockaddr* addr = (sockaddr*) malloc(sizeof(sockaddr));
 
 	addr->port_data = 	23; 			       	   //< the port
-	addr->sa_data = 	IP4ADDR(192,168,1,100);
+	addr->sa_data   =   IP4ADDR(192,168,1,100);
 	memcpy(addr->name_data,"TelnetServer\0",13);   //< register using this service name
 
 	bind(mysock,addr);
 
-	printf("Telnet-Server bound and waiting for clients.\r");
+	puts("Telnet-Server bound and waiting for clients.\r");
 
 	while(1)
 	{
@@ -730,13 +730,15 @@ extern "C" int task_main()
 		telnetcommand[2] = 1; // send will echo
 		sendto(newsock,telnetcommand,3,0);
 
-		printf("New connection!\r");
+		history_count = 0;
+		ci = 0;
+
+		puts("New connection!\r");
 		sendto(newsock,welcome_msg,strlen(welcome_msg),0);
 
 		current_dir[0] = '/';
 		current_dir[1] = '\0';
 		mydirhandle = fopen(current_dir,0);
-		//printf("handle: %d\r\n", mydirhandle);
 
 		while (1) {
 			msgptr = recvMsg;
@@ -778,8 +780,46 @@ extern "C" int task_main()
 								i+=2;
 								if (msgptr[i-1] == 0x5b) {
 									switch (msgptr[i]) {
-										case 0x41: break; // oben
-										case 0x42: break; // unten
+										case 0x41: { // oben
+											if (history_count == 0) break;
+
+											if (ci > 0) ci--;
+											else ci = history_count-1;
+
+											int num_back = cmd_pos;
+
+											strcpy(command,command_history[ci]);
+											cmd_pos=strlen(command);
+
+											if (doecho) {
+												for (int j2 = 0; j2 < num_back; j2++)
+													memcpy(&return_msg[j2*3],&back_sequence,3);
+
+												sendto(newsock,return_msg,num_back*3,0);
+											}
+											if (doecho) sendto(newsock,&command,strlen(command),0);
+											break;
+										}
+										case 0x42: {// unten
+											if (history_count == 0) break;
+
+											ci = (ci+1) & (MAX_COMMAND_HISTORY -1);
+											if (ci > history_count) ci = 0;
+
+											int num_back = cmd_pos;
+
+											strcpy(command,command_history[ci]);
+											cmd_pos=strlen(command);
+
+											if (doecho) {
+												for (int j2 = 0; j2 < num_back; j2++)
+													memcpy(&return_msg[j2*3],&back_sequence,3);
+
+												sendto(newsock,return_msg,num_back*3,0);
+											}
+											if (doecho) sendto(newsock,&command,strlen(command),0);
+											break;
+										}
 										case 0x44: break; // nach links taste
 										case 0x43: break; // rechts
 									}
@@ -793,8 +833,15 @@ extern "C" int task_main()
 							if (msglen - i > 0) {
 								if (msgptr[i] == 0) {
 									command[cmd_pos] = '\0';
-									//printf("Command '%s' \r\n",&command);
+
 									if (doecho) sendto(newsock,&return_sequence,2,0);
+
+									// remember last command
+									strcpy(command_history[ci],command);
+									ci = (ci+1) & (MAX_COMMAND_HISTORY -1);
+
+									if (history_count < MAX_COMMAND_HISTORY)
+										history_count++;
 
 									// handle command
 									handleCommand(newsock,cmd_pos);
@@ -804,10 +851,6 @@ extern "C" int task_main()
 									return_msg[dir_len] = '$';
 									return_msg[dir_len+1] = ' ';
 
-
-									//sendto(newsock,unknown_command,strlen(unknown_command),0);
-									//current_dir[0] = '/';
-									//current_dir[1] = '$';
 									sendto(newsock,&return_msg,dir_len+2,0);
 									cmd_pos = 0;
 								}

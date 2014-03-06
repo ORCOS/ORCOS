@@ -31,10 +31,8 @@ extern Task* pCurrentRunningTask;
 Socket::Socket( unint2 domain, SOCK_TYPE e_type, unint2 protocol) :
     Resource( cSocket, false ) {
 
-
     // create the message buffer
     this->ownerTask 			= pCurrentRunningTask;
-    //this->messageBuffer 		= new CAB( bufferstart, bufferlen , pCurrentRunningTask );
     this->messageBuffer 		= new FixedSizePBufList(40);
     this->arg					= 0;
     this->newSocketID			= -1;
@@ -48,7 +46,6 @@ Socket::Socket( unint2 domain, SOCK_TYPE e_type, unint2 protocol) :
     ASSERT(this->tproto);
 
     this->type 					= (SOCK_TYPE) e_type;
-
     this->blockedThread 		= 0;
     this->socket_connected 		= 0;
 	this->hasListeningThread 	= false;

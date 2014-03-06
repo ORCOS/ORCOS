@@ -245,20 +245,20 @@ extern "C" size_t 	fread(void *ptr, size_t size, size_t nitems, int stream);
  * \brief The fputc() function shall write the byte specified by c (converted to an unsigned char) to the output stream pointed to by stream, at the position indicated by the associated file-position indicator for the stream (if defined), and shall advance the indicator appropriately. If the file cannot support positioning requests, or if the stream was opened with append mode, the byte shall be appended to the output stream.
  *
  * \param c 		The byte/character to be written
- * \param stream 	The id of the stream
+ * \param fd 		The file descriptor to be written to
  *
  * \return			Error Number
  */
-extern "C" int 		fputc(short c, int stream);
+extern "C" int 		fputc(short c, int fd);
 
 /*!
  * \brief Get a byte from a stream
  *
- * \param stream	The id of the stream to be read from
+ * \param fd		The file descriptor to be read from
  *
  * \return			The byte read
  */
-extern "C" int 		fgetc(int stream);
+extern "C" int 		fgetc(int fd);
 
 /*!
  * \brief The fwrite() function shall write, from the array pointed to by ptr, up to nitems elements whose size is specified by size, to the stream pointed to by stream.
@@ -266,11 +266,11 @@ extern "C" int 		fgetc(int stream);
  * \param ptr		Pointer to the data that shall be written
  * \param size		The size of each data element to be written
  * \param nitems	The amount of data elements to be written
- * \param stream	The id of the stream
+ * \param fd		The file descriptor of the stream
  *
  * \return			Amount of data written on success
  */
-extern "C" size_t 	fwrite(const void *ptr, size_t size, size_t nitems, int stream);
+extern "C" size_t 	fwrite(const void *ptr, size_t size, size_t nitems, int fd);
 
 
 /*!

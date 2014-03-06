@@ -176,17 +176,27 @@ int test_files(char* &str) {
 }
 
 
+int test_net(char* &str) {
+	int result;
+
+	result = socket(0,0,0);
+	ASSERT_SMALLER(result,0,"socket(0,0,0) succeeded");
+
+
+	return (OK);
+}
 
 extern "C" int task_main()
 {
 	char* str;
 	puts("Running ORCOS Syscall Tests\r\n");
 
-	TEST(test_new,"SC_NEW");
-	TEST(test_task_run,"SC_TASK_RUN");
-	TEST(test_task_kill,"SC_TASK_KILL");
-	TEST(test_task_stop,"SC_TASK_STOP");
+	TEST(test_new,			"SC_NEW");
+	TEST(test_task_run,		"SC_TASK_RUN");
+	TEST(test_task_kill,	"SC_TASK_KILL");
+	TEST(test_task_stop,	"SC_TASK_STOP");
 	TEST(test_thread_create,"SC_THREAD_CREATE");
-	TEST(test_files,"SC_FILES");
+	TEST(test_files,		"SC_FILES");
+	TEST(test_net,			"SC_NET");
 }
 
