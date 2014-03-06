@@ -50,10 +50,6 @@ extern "C" void 	free(void *s);
  */
 void operator 		delete( void* ptr );
 
-extern "C" void* 	memcpy( void* dst0, const void* src0, size_t len0 );
-
-extern "C" void* 	memset( void* ptr, char c, int n);
-
 
 
 /**************************************
@@ -104,9 +100,30 @@ extern "C" int 		task_resume(int taskid);
  **************************************/
 
 
+/*!
+ * \brief wait method.  Blocks the current calling thread until any other thread inside the current process terminates.
+ *
+ *  The method blocks the current thread until any other thread of the current process terminates. If no other thread exists
+ *  that might terminate this can lead to a endlessly blocked thread. However, another thread from a different process
+ *  may unblock the stuck thread if it issues the correct signal_signal syscall.
+ *  e.g.: signal_signal(ProcessID_To_Unblock() << 16) | (SIG_CHILD_TERMINATED).
+ *  This is possible as orcos uses signals for the wait operation.
+ *
+ * \return			The exit value of the terminated thread.
+ */
 extern "C" int 		wait();
 
-
+/*!
+ * \brief wait method.  Blocks the current calling thread until the process terminates.
+ *
+ *  The method blocks the current thread until the specified process terminates.  If no such process exists
+ *  this can lead to a endlessly blocked thread. However, another thread from a different process
+ *  may unblock the stuck thread if it issues the correct signal_signal syscall.
+ *  e.g.: signal_signal(pid).
+ *  This is possible as orcos uses signals for the wait operation.
+ *
+ * \return			The exit value of the terminated process.
+ */
 extern "C" int		waitpid(unint1 pid);
 
 /*!
@@ -199,18 +216,18 @@ extern "C" int 		fcreate(const char* filename, const char* path);
  * \param filename The resource to be opened given by its path (e.g "/dev/testdev")
  * \param blocking If the resource is owned by another task and this is set to 1 the OS will block the current thread until the resource is available
  *
- * \return Error number indicating wether the call was successfully or not
+ * \return 			The file descriptor on success. Error Code otherwise.
  */
 extern "C" int 		fopen(const char* filename, int blocking = 1);
 
 /*!
  * \brief Close the stream associated with this file handle. May fail if this resource was not aquired
  *
- * \param fileid The if of the resource/file to be closed
+ * \param fileid The file descriptor as returned by fopen() of the resource/file to be closed.
  *
- * \return		 Error Number
+ * \return			cOk on success. Error Code  otherwise.
  */
-extern "C" int 		fclose(int fileid);
+extern "C" int 		fclose(int fd);
 
 /*!
  * \brief The fread() function shall read into the array pointed to by ptr up to nitems elements whose size is specified by size in bytes, from the stream pointed to by stream.
@@ -257,7 +274,11 @@ extern "C" size_t 	fwrite(const void *ptr, size_t size, size_t nitems, int strea
 
 
 /*!
- *\brief The fstat method returns the file statistics of a resource given by its handle fd.
+ * \brief The fstat method returns the file statistics of a resource given by its handle fd.
+ *
+ * \param fd		The file descriptor as returned by fopen()
+ * \param stat		Pointer to a stat_t structure that will be filled with the file statistics.
+ * \return			cOk on success. Error Code otherwise
  */
 extern "C" int 		fstat(int fd, stat_t* stat);
 
@@ -267,7 +288,11 @@ extern "C" int 		fstat(int fd, stat_t* stat);
  *
  * The method fails (return value < 0) if the resource can not be found,
  * the resource is not removable or it can not be removed due to other reasons.
- * If the rousource is locked by any other thread the operation will fail.
+ * If the resource is locked by any other thread the operation will fail.
+ *
+ * \param filename	The name of the file to be removed inside the given path
+ * \param path		The path the file to be removed is located in
+ * \return 			cOk on success. Error Code otherwise
  *
  */
 extern "C" int 		fremove(const char* filename, const char* path);
@@ -291,7 +316,7 @@ extern "C" int		ioctl(int fd, int request, void* args);
  *
  * \param ptr 		Pointer to the string that shall be written
  * \param stream	The id of the stream
- * \param max		Maximum lenght of the string to be written (optional)
+ * \param max		Maximum length of the string to be written (optional)
  *
  * \return 			Amount of bytes written
  */
@@ -312,7 +337,7 @@ extern "C" size_t 	printToStdOut(const void* ptr,size_t max = 256);
  * \param size 			Size of the address space
  * \param protection	Protection mode of the address space
  *
- * \return 				cOk on success, error code otherwise
+ * \return 				cOk on success, Error Code  otherwise
  */
 extern "C" int 		map_logmemory( const char* log_start, const char* phy_start, size_t size, int protection);
 
@@ -329,8 +354,7 @@ extern "C" int 		map_logmemory( const char* log_start, const char* phy_start, si
 extern "C" int 		shm_map(const char* file,unint4* mapped_address, unint4* mapped_size);
 
 /*!
- * \brief Returns the current time since startup if the architecture contains a clock.
- *
+ * \brief Returns the current time since startup in platform clock ticks.
  */
 extern "C" unint8 	getTime();
 
@@ -343,25 +367,15 @@ extern "C" unint8 	getTime();
  * \param domain 		The Domain of the socket to be created. Domains can be e.g IPV4,IPV6 or any other kind of implemented address family
  * \param type			The type of a socket may be connectionless or connection oriented
  * \param protocol		The protocol used for communication e.g TCP or any other protocol implemented in the os
- * \param buffer		Pointer to the buffer that can be used by the socket for data manipulation in the tasks address space (for vm support)
- * \param buffersize 	The size of the buffer
  *
- *  If no buffer is given (buffer == 0) the system will create a buffer for this socket in the kernel addresse space using
- *  the specified size. If the buffersize is not specified or equals 0 the default buffer size will be used.
+ * Successfully created sockets can be destroyed using the flose() syscall. For connection oriented sockets (SOCK_STREAM)
+ * this will also close the connection. After calling fclose() on a socket file descriptor the socket can not be used
+ * afterwards anymore. Thus, closing a connection implicitly destroys the socket.
  *
- * \return				Id of the created socket on success
+ * \return				Id of the created socket on success. Error Code otherwise
  */
 extern "C" int 		socket(int domain, int type, int protocol);
 
-
-/*!
- * \brief Destroys a socket object. Connection oriented sockets are closed.
- *
- * \param The socket handle to be destroyed.
- *
- * \return 			0 (cOk) on success.
- */
-extern "C" int 		socket_destroy(int socket);
 
 /*!
  * \brief Connect to a given destination on the provided socket.
@@ -370,9 +384,10 @@ extern "C" int 		socket_destroy(int socket);
  * \param toaddress		The connection sock address
  *
  *  This call tries to connect to the given destination address using the socket specified. This call is only
- *  valid for connection oriented sockets (SOCK_STREAM) and will block the calling thread until timeout or success.
+ *  valid for connection oriented sockets (SOCK_STREAM) and will block the calling thread until a timeout occurs
+ *  or the connection has been established. The timeout is not configurable and depends on the IP stack configuration.
  *
- * \return				Error Value
+ * \return				cOk on success. Error Code otherwise.
  */
 extern "C" int 		connect(int socket, const sockaddr *toaddress);
 
@@ -382,9 +397,9 @@ extern "C" int 		connect(int socket, const sockaddr *toaddress);
  * \param socket 	The connection oriented socket to listen on
  *
  *  Listen to the specified socket. This call is only valid for connection oriented sockets (SOCK_STREAM).
- *  This call is a blocking call and returns open successfull connection establishment.
+ *  This call is a blocking call and returns upon successful connection establishment.
  *
- * \return			new Socket Handle or Error ( < 0 )
+ * \return			The file descriptor of the socket on success. Error Code otherwise.
  */
 extern "C" int 		listen(int socket);
 
@@ -395,10 +410,10 @@ extern "C" int 		listen(int socket);
  * socket for packet reception on the used transportprotocol and on the other hand set listening parameters in the
  * addressprotocol.
  *
- * \param socket	The id of the socket that shall be bound
+ * \param socket	The file descriptor of the socket that shall be bound
  * \param sockaddr	Pointer to the sockaddr structure containing the address the socket shall be bound to
  *
- * \return			0 on success
+ * \return			cOk on success. Error Code otherwise.
  */
 extern "C" int 		bind(int socket, const sockaddr* address);
 
@@ -414,7 +429,7 @@ extern "C" int 		bind(int socket, const sockaddr* address);
  * \param length	The amount of data the be send in the buffer
  * \param dest_addr Pointer to the sockaddr structure containing the destination socket address or null if the connection is type STREAM
  *
- * \return			length on succes, -1 on error (timeout)
+ * \return			Length of sent data on success. Error Code otherwise: -1 on timeout
  */
 extern "C" int4 	sendto(int socket, const void* data, size_t length, const sockaddr* dest_addr);
 
@@ -446,7 +461,7 @@ extern "C" size_t 	recv(int socket,char* data,int len, int flags);
  * \param flags     flags: MSG_PEEK, MSG_WAIT
  * \param sender    The sock_addr structure in memory that will be filled with the senders address
  *
- * \return          The size/length of the recieved message in bytes. -1 on connection disconnect
+ * \return          The size/length of the received message in bytes. -1 on connection disconnect
  */
 extern "C" size_t 	recvfrom(int socket,char* data, int len,int flags, sockaddr* sender);
 

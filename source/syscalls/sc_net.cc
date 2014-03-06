@@ -78,7 +78,7 @@ int connectSyscall(int4 int_sp) {
 			retval = ( (Socket*) res )->connect(pCurrentRunningThread, addr );
 		}
 		else
-		retval = cError;
+			retval = cError;
 	 }
 	 // maybe resource not owned or resource doesnt exist
 

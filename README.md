@@ -38,6 +38,7 @@ Platform Support:
 	- Ethernet: SMSC USB Ethernet Support
 	- MMC/SD 
 	- TWL4030 Power Control
+	- SPI
 
 - RAPTOR:
 	- Ethernet

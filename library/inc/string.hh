@@ -29,4 +29,9 @@ extern "C" void 	itoa( int value, char* str, int base );
 extern "C" int 		atoi(char *p);
 
 extern "C" int 		puts(const char* s);
+
+extern "C" void* 	memcpy( void* dst0, const void* src0, size_t len0 );
+
+extern "C" void* 	memset( void* ptr, char c, int n);
+
 #endif /* STRING_HH_ */

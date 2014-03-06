@@ -144,13 +144,15 @@ int task_stopSyscall(int4 int_sp)
 
     LOG(SYSCALLS,INFO,(SYSCALLS,INFO,"Syscall: task_stop(%d)",taskid));
 
+    if (taskid <= 0) return (cError);
+
     Task* task = theOS->getTaskManager()->getTask(taskid);
     if (task != 0)
     {
         task->stop();
-        return cOk;
+        return (cOk);
     }
-    return cError;
+    return (cError);
 
 }
 #endif
@@ -244,6 +246,9 @@ int thread_createSyscall( int4 int_sp ) {
     // create the thread CB. First get the tasktable to get the address of the threads exit routine
     register taskTable* tasktable = pCurrentRunningTask->getTaskTable();
 
+    if (attr->stack_size == 0)
+    	attr->stack_size = DEFAULT_USER_STACK_SIZE;
+
     Thread* newthread;
 
 #ifdef MEM_NO_FREE
@@ -294,9 +299,11 @@ int thread_createSyscall( int4 int_sp ) {
 #endif
 
     // set the return value for threadid
-    *threadid = newthread->getId();
+	if (threadid != 0) {
+		 *threadid = newthread->getId();
+		 LOG(SYSCALLS,INFO,(SYSCALLS,INFO,"Syscall: thread_created with id %d",*threadid));
+	}
 
-    LOG(SYSCALLS,INFO,(SYSCALLS,INFO,"Syscall: thread_created with id %d",*threadid));
     LOG(SYSCALLS,INFO,(SYSCALLS,INFO,"Syscall: thread_created stack: %x - %x, top:%d",newthread->threadStack.startAddr,newthread->threadStack.endAddr,newthread->threadStack.top));
 
     // set the arguments of the new thread

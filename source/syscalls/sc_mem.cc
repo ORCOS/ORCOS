@@ -139,10 +139,9 @@ int newSyscall( int4 int_sp ) {
 
     LOG(SYSCALLS,TRACE,(SYSCALLS,TRACE,"Syscall: Thread new called. size: %d",size));
     retval = (int) pCurrentRunningTask->getMemManager()->alloc( size, true );
-    ASSERT(retval);
     LOG(SYSCALLS,TRACE,(SYSCALLS,TRACE,"Syscall: assigned memory at: 0x%x",retval));
 
-    return retval;
+    return (retval);
 }
 #endif
 

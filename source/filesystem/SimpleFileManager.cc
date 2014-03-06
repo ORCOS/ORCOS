@@ -118,7 +118,7 @@ SimpleFileManager::getResourceByNameandType( const char* pathname, ResourceType 
 
     char* token = const_cast<char*> (pathname);
     int tokenlen;
-    if (token[0] == '/') token++;
+    while (token[0] == '/') token++;
     tokenlen = strpos2( token, '/' );
 
     // if not found root dir name assumned
@@ -148,7 +148,7 @@ SimpleFileManager::getResourceByNameandType( const char* pathname, ResourceType 
             // the directory contains the next token
             // check if this is the last token
             token += tokenlen;
-            if (token[0] == '/') token++;
+            while (token[0] == '/') token++;
             tokenlen = strpos2(token,'/');
 
             if ( tokenlen == 0 ) {

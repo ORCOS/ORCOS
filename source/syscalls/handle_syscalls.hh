@@ -50,7 +50,7 @@ extern TimeT       lastCycleStamp;
 #if VALIDATE_SYSCALL_ADDRESS_RANGES
 #define VALIDATE_IN_PROCESS( addr ) \
 	if (((unint4) (addr) < LOG_TASK_SPACE_START) || ((unint4) (addr) > LOG_TASK_SPACE_START + MAX_TASK_SIZE)) { \
-		LOG(SYSCALLS,WARN,(SYSCALLS,WARN,"SYSCALL: Address Space Violation: %x, at %s, %s",addr,__FILE__,__LINE__));\
+		LOG(SYSCALLS,WARN,(SYSCALLS,WARN,"SYSCALL: Address Space Violation: %x, at %s, %d",addr,__FILE__,__LINE__));\
 		return (cError); \
 	}
 #else

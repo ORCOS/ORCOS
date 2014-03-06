@@ -23,7 +23,7 @@
       <Start>0x81200000</Start>
       <End>0x812fFFFF</End>
       <Heap>0x81220000</Heap>
-      <Path>./tasks/telnet_server/</Path>
+      <Path>../../../tasks/telnet_server</Path>
       <PriorityOptions>
         <InitialPriority>1</InitialPriority>
         <Phase>0</Phase>
@@ -39,7 +39,7 @@
       <Start>0x81300000</Start>
       <End>0x813fFFFF</End>
       <Heap>0x81320000</Heap>
-      <Path>./tasks/ftp_server/</Path>
+      <Path>../../../tasks/ftp_server/</Path>
       <PriorityOptions>
         <InitialPriority>0</InitialPriority>
         <Phase>0</Phase>

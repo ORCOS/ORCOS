@@ -119,7 +119,7 @@ $(BUILD_PLATFORM)/$(OUTPUTFILE): $(BUILD_OBJS) $(BUILD_PLATFORM)/task.ld
 	@echo -ne "Linking  [$@]"
 	@$(LD) --script=$(BUILD_PLATFORM)/task.ld $(BUILD_OBJS) -o $(BUILD_PLATFORM)/$(OUTPUTFILE).elf -L$(KERNEL_LIB_DIR) -L$(GCC_LIB_DIR) -lorcos -lgcc
 	@$(OBJCOPY) -O binary $(BUILD_PLATFORM)/$(OUTPUTFILE).elf $(BUILD_PLATFORM)/$(OUTPUTFILE)
-	$(OBJDUMP) -h $(BUILD_PLATFORM)/$(OUTPUTFILE).elf > $(BUILD_PLATFORM)/task.sections
+	@$(OBJDUMP) -h $(BUILD_PLATFORM)/$(OUTPUTFILE).elf > $(BUILD_PLATFORM)/task.sections
 	@echo " DONE "
 ifdef POST_BUILD
 	$(POST_BUILD)

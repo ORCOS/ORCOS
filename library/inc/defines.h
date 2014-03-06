@@ -1,24 +1,24 @@
 
-
 #ifndef DEFINES_H_
 #define DEFINES_H_
 
-
-#define cOk                     (int)0
-#define cError                  (int)-1000
-#define cArrayLengthOutOfBounds (int)-800
-#define cWrongArrayLengthByte   (int)-801
-
+//-----------------------------------------------------
+// Networking
+//-----------------------------------------------------
 #define IP4ADDR(a,b,c,d) \
         (((unint4)((a) & 0xff) << 24) | \
-                               ((unint4)((b) & 0xff) << 16) | \
-                               ((unint4)((c) & 0xff) << 8) | \
-                                (unint4)((d) & 0xff))
+	    ((unint4)((b) & 0xff) << 16) | \
+	    ((unint4)((c) & 0xff) << 8) | \
+		 (unint4)((d) & 0xff))
 
-#define cIPv4AddressProtocol        2048
+
 #define cSimpleTransportProtocol    150
 #define cSimpleAddressProtocol      55555
+
 #define cUDP      					17
+#define cTCP 						0x6
+#define cIPV4 						0x800
+#define cIPv4AddressProtocol        0x800
 
 
 // wait for task to finish?
@@ -27,12 +27,37 @@
 //-----------------------------------------------------
 // Error Messages
 //-----------------------------------------------------
-#define cThreadNotFound             -100
-#define cResourceNotOwned           -101
-#define cResourceNotWriteable       -102
-#define cResourceNotReadable        -103
-#define cInvalidResource            -104
-#define cCanNotAquireResource       -105
+
+#define cOk                     (int)0
+#define cError                  (int)-1000
+
+#define cThreadNotFound         (int)-100
+#define cResourceNotOwned       (int)-101
+#define cResourceNotWriteable   (int)-102
+#define cResourceNotReadable    (int)-103
+#define cInvalidResource        (int)-104
+#define cCanNotAquireResource   (int)-105
+
+#define cArrayLengthOutOfBounds (int)-800
+#define cWrongArrayLengthByte   (int)-801
+
+
+/* Error constant to string conversion */
+#define errstr(s) 				#s
+
+
+//-----------------------------------------------------
+// Filesystem
+//-----------------------------------------------------
+
+/* ORCOS internal dirctory type */
+#define cDirTypeORCOS		1
+/* Directory is a FAT directory */
+#define cDirTypeFAT32		2
+
+//-----------------------------------------------------
+// Syscall IDs
+//-----------------------------------------------------
 
 // keep these syscall ids together in a rang 0 - maxsyscallnum
 // this will drastically speedup the system call handling
@@ -48,9 +73,6 @@
 #define cFPutcSysCallId     4
 #define cFGetcSysCallId     5
 #define cFCreateSysCallId	6
-
-#define cDirTypeORCOS		1
-#define cDirTypeFAT32		2
 
 // Memory related Syscalls
 
@@ -102,6 +124,6 @@
 #define cFStatId				35
 #define cFRemoveID				36
 
-#define ErrorToString(s) #s
+
 
 #endif /* TASKLIB_HH_ */
