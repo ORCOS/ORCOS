@@ -23,6 +23,16 @@ TaskErrorHandler::~TaskErrorHandler() {
 }
 
 void TaskErrorHandler::handleError() {
+
+	/*
+	 * TODO: further analyze the error.
+	 *
+	 * - If the error occured during a syscall we might even return with an error code.
+	 *   for authenticated tasks (signing feature must be provided)
+	 * - For security reasons we might remove the task (default)
+	 * - A task  might provide an error policy
+	 * */
+
 	pRunningThreadDbItem = 0;
 	Task* t = pCurrentRunningTask;
 	//pCurrentRunningTask = 0;  /* < keep as is */

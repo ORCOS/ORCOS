@@ -4,7 +4,6 @@ UTILS=cp crc32
 all:	
 	@mkdir -p $(TARGET)
 	@for dir in $(UTILS); do \
-	  echo Building $$dir;\
 	  make -s -C $$dir/ TARGET=$(TARGET) POST_BUILD="cp $(TARGET)/$$dir ../$(TARGET)/" all;\
 	done;
 	

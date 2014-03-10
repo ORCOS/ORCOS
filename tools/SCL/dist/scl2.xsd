@@ -91,8 +91,8 @@
 		<xs:complexType>
 	    	<xs:sequence>		
 	    		<xs:element name="Start" type="xs:string" maxOccurs="1"	minOccurs="1" />
-	    		<xs:element name="End" type="xs:string" maxOccurs="1"	minOccurs="1" />
-	    		<xs:element name="Heap" type="xs:string" maxOccurs="1"	minOccurs="1" />
+	    		<xs:element name="Size" type="xs:string" maxOccurs="1"	minOccurs="1" />
+	    		<xs:element name="HeapAlign" type="xs:string" maxOccurs="1"	minOccurs="0" />
 	    		<xs:element name="Path" type="xs:string" maxOccurs="1"	minOccurs="1" />
 				<xs:element ref="PriorityOptions" maxOccurs="1" minOccurs="0"/>	
 				<xs:element name="Vma" type="xs:string" maxOccurs="1" minOccurs="0" />

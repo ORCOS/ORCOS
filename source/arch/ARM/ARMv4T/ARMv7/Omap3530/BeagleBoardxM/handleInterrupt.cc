@@ -21,7 +21,6 @@
 #include "inc/error.hh"
 #include "OMAP3530.h"
 #include "BeagleBoardxM.hh"
-#include "inc/crc32.h"
 
 #define STACK_CONTENT(sp_int,offset) *( (long*) ( ( (long) sp_int) + offset)  )
 
@@ -130,10 +129,6 @@ extern "C" void handleUndefinedIRQ(int addr, int spsr, int context) {
 		tid = pCurrentRunningTask->getId();
 
 	LOG(ARCH,ERROR,(ARCH,ERROR,"TID: %d",tid));
-
-	/*taskTable* tt = pCurrentRunningTask->getTaskTable();
-	unint4 crc = crc32((char*) tt->task_start_addr,tt->task_data_end- tt->task_start_addr);
-	LOG(ARCH,ERROR,(ARCH,ERROR,"CRC32: 0x%x",crc));*/
 
 
 	#ifdef HAS_Board_HatLayerCfd
@@ -246,6 +241,13 @@ extern "C" void handlePrefetchAbort(int instr, int context) {
 	theOS->getErrorHandler()->handleError();
 }
 
+/*
+ * This method takes care of the low level IRQ functionality:
+ * - registering the stack pointer and IRQ return mode
+ * - getting the irq number
+ * - dedicated interrupt dispatching for timer interrupts
+ * - forwarding of all other irqs to the generic interrupt manager
+ */
 extern "C"void dispatchIRQ(void* sp_int, int mode)
 {
 	if (pCurrentRunningThread != 0){
@@ -258,7 +260,6 @@ extern "C"void dispatchIRQ(void* sp_int, int mode)
 	irqSrc = theOS->getBoard()->getInterruptController()->getIRQStatusVector();
 	//LOG(HAL,WARN,(HAL,WARN,"IRQ number: %d, sp_int %x, mode: %d",irqSrc, sp_int, mode));
 	//dumpContext(sp_int);
-	theOS->getBoard()->getInterruptController()->clearIRQ(irqSrc);
 
 	// jump to interrupt handler according to active interrupt
 	switch (irqSrc)
@@ -267,49 +268,17 @@ extern "C"void dispatchIRQ(void* sp_int, int mode)
 			case GPT1_IRQ:
 			case GPT2_IRQ:
 			{
+				/* non returning irq ..*/
+				theOS->getBoard()->getInterruptController()->clearIRQ(irqSrc);
 				handleTimerInterrupt(sp_int);
 				break;
 			}
-			// UART Module 1 interrupt
-			case UART1_IRQ:
-			{
-				LOG(ARCH,INFO,(ARCH,INFO,"UART IRQ: No handler implemented. Returning."));
-				break;
-			}
-			case UART2_IRQ:
-			{
-				LOG(ARCH,INFO,(ARCH,INFO,"UART 2 IRQ: No handler implemented. Returning."));
-				break;
-			}
-			case UART3_IRQ:
-			{
-				// the BeagleBoard uses OMAP3530 UART 3 device as serial console
-				LOG(ARCH,INFO,(ARCH,INFO,"UART 3 IRQ"));
-				#if HAS_Board_UARTCfd
-					register CommDeviceDriver* uart = theOS->getBoard()->getUART();
-					uart->clearIRQ();
-					uart->disableIRQ();
-					uart->interruptPending = true;
-					uart->recv();
-					break;
-				#endif
-			}
-			case EHCI_IRQ:
-			{
-			#if HAS_Board_USB_HCCfd
-				((BeagleBoardxM*) theOS->getBoard())->getUSB_HC()->handleInterrupt();
-				break;
-			#endif
-			}
 			default:
 			{
-				LOG(ARCH,ERROR,(ARCH,ERROR,"Unhandled IRQ Request.. IRQ Number: %d",irqSrc));
-				while(true) { }
-				break;
+				ErrorT result = theOS->getInterruptManager()->handleIRQ(irqSrc);
+				theOS->getBoard()->getInterruptController()->clearIRQ(irqSrc);
 			}
 	    }
-
-
 
 	/* Dispatch directly as a blocked thread might have been unblock by this irq handling */
 	/* If the same thread is resumed we unfortunately lost some time, by not calling

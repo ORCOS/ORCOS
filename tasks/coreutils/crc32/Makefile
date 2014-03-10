@@ -13,6 +13,9 @@ DEADLINE 			= 0
 EXECUTIONTIME 		= 0
 STACK_SIZE 			= 4096
 
+# Add the CRC Header to protect against byte errors
+BUILD_CRC32			= 1
+
 POST_BUILD			= 
 
 -include $(ORCOS_LIB_DIR)/Makefile.mk

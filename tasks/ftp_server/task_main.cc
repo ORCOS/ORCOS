@@ -449,7 +449,7 @@ extern "C" int task_main()
 		 // be sure the string is null terminated
 		 msgptr[msglen] = 0;
 		 //int line = strpos(msgptr,"\n\r");
-		 puts(msgptr);
+		// puts(msgptr);
 
 		 if (strpos("USER",msgptr) == 0) {
 			 /***********************************************
@@ -741,12 +741,12 @@ extern "C" int task_main()
 
 			if (handle >= 0) {
 				// success
-				printf("opening '%' successfull\r\n",current_dir);
+				//printf("opening '%s' successfull\r\n",current_dir);
 				if ((mydirhandle != 0) && (mydirhandle != handle )) fclose(mydirhandle);
 				mydirhandle = handle;
 				sendto(newsock,"250 \r\n",6,0);
 			} else {
-				printf("Could not open '%s'. Error: %d\r\n",current_dir,handle);
+				//printf("Could not open '%s'. Error: %d\r\n",current_dir,handle);
 				memcpy(current_dir,last_dir,100);
 				sendto(newsock,"450 \r\n",6,0);
 			}

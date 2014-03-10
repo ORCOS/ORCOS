@@ -70,6 +70,12 @@ public class SCLReader {
 	private static StringBuffer tasksstartbuffer = new StringBuffer();
 	private static StringBuffer tasksendbuffer = new StringBuffer();
 	
+	private static StringBuffer tasksprioritybuffer = new StringBuffer();
+	private static StringBuffer tasksphasebuffer = new StringBuffer();	
+	private static StringBuffer tasksperiodbuffer = new StringBuffer();
+	private static StringBuffer tasksdeadlinedbuffer = new StringBuffer();
+	private static StringBuffer tasksexectimebuffer = new StringBuffer();
+	
 	
 	private static ArrayList<String> typedefs = new ArrayList();
 	
@@ -170,8 +176,13 @@ public class SCLReader {
 
 		 tasksdirbuffer.append("TASKS=(");
 		 tasksstartbuffer.append("TASKS_START=(");
-		 tasksendbuffer.append("TASK_END=(");
-
+		 tasksendbuffer.append("TASKS_SIZE=(");
+		 tasksprioritybuffer.append("TASKS_PRIORITY=(");	 
+		 tasksphasebuffer.append("TASKS_PHASE=(");	
+		 tasksperiodbuffer.append("TASKS_PERIOD=(");
+		 tasksdeadlinedbuffer.append("TASKS_DEADLINE=(");
+		 tasksexectimebuffer.append("TASKS_EXECTIME=("); 
+		 
 		try {
 			// check against deps-xml
 			transformXML(checkAgainstDeps, xmlInputFileName, dependencyXML,
@@ -189,6 +200,11 @@ public class SCLReader {
 		tasksdirbuffer.append(")\n");
 		tasksstartbuffer.append(")\n");
 		tasksendbuffer.append(")\n");
+		tasksprioritybuffer.append(")\n");
+		tasksphasebuffer.append(")\n");
+		tasksperiodbuffer.append(")\n");
+		tasksdeadlinedbuffer.append(")\n");
+		tasksexectimebuffer.append(")\n");
 		
 		// now write the config files
 
@@ -209,6 +225,12 @@ public class SCLReader {
 			//bufWrite.write(tasksdirbuffer.toString());
 			bufWrite.write(tasksstartbuffer.toString());
 			bufWrite.write(tasksendbuffer.toString());
+			bufWrite.write(tasksprioritybuffer.toString());
+			bufWrite.write(tasksphasebuffer.toString());
+			bufWrite.write(tasksperiodbuffer.toString());
+			bufWrite.write(tasksdeadlinedbuffer.toString());
+			bufWrite.write(tasksexectimebuffer.toString());
+			
 			bufWrite.flush();
 			bufWrite.close();
 			output.close();
@@ -580,8 +602,6 @@ public class SCLReader {
 	private static void processTaskNode(Element taskNode,
 			StringBuffer taskBuffer) {
 
-		// TODO: autoadd ending / to path, check addr etc for nullpointers
-
 		String start = taskNode.getChildText("Start");
 		if (start != null) {
 			taskBuffer.append(".long " + start + ";\n");
@@ -590,105 +610,67 @@ public class SCLReader {
 		tasksbuffer.append(taskNode.getChildText("Path") + " ");
 		tasksdirbuffer.append(taskNode.getChildText("Path") + " ");
 		tasksstartbuffer.append(taskNode.getChildText("Start") + " ");
-		tasksendbuffer.append(taskNode.getChildText("End") + " ");
-	
+		tasksendbuffer.append(taskNode.getChildText("Size") + " ");						
+			
+		taskBuffer.append(".long " + taskNode.getChildText("Size") + ";\n");
+		
 		numberOfTasks++;
+		
+		// get PriorityOptions
+		Element priorityOptions = taskNode.getChild("PriorityOptions");
 
-		try {
-			String sedPath = taskNode.getChildText("Path") + TASK_SED_FILENAME;
-			FileWriter fileWriter = new FileWriter(sedPath);
+		if (priorityOptions != null) {
 
-			if (start != null) {
-				fileWriter.write("s/TASK_START/" + start + "/\n");
-			}
-
-			String heap = taskNode.getChildText("Heap");
-			if (heap != null) {
-				fileWriter.write("s/TASK_HEAP/" + heap + "/\n");
-				taskBuffer.append(".long " + heap + ";\n");
-			}
-
-			String vma = taskNode.getChildText("Vma");
-			if (vma == null) {
-				fileWriter.write("s/TASK_VMA/" + start + "/\n");
+			String initialPriority = priorityOptions.getChildText("InitialPriority");
+			if (initialPriority != null) {
+				tasksprioritybuffer.append(initialPriority + " ");
 			} else {
-				fileWriter.write("s/TASK_VMA/" + vma + "/\n");
+				tasksprioritybuffer.append("0 ");
 			}
 
-			String end = taskNode.getChildText("End");
-			if (end != null) {
-				fileWriter.write("s/TASK_END/" + end + "/\n");
-				taskBuffer.append(".long " + end + ";\n");
-			}
-
-			// get PriorityOptions
-
-			Element priorityOptions = taskNode.getChild("PriorityOptions");
-
-			if (priorityOptions != null) {
-
-				String initialPriority = priorityOptions
-						.getChildText("InitialPriority");
-				if (initialPriority != null) {
-					fileWriter.write("s/INITIAL_PRIORITY/" + initialPriority
-							+ "/\n");
-				} else {
-					fileWriter.write("s/INITIAL_PRIORITY/" + 0 + "/\n");
-				}
-
-				String phase = priorityOptions.getChildText("Phase");
-				if (phase != null) {
-					fileWriter.write("s/PHASE/" + phase + "/\n");
-				} else {
-					fileWriter.write("s/PHASE/" + 0 + "/\n");
-				}
-
-				// get <RealTimeOptions>
-				Element realTimeOptions = priorityOptions
-						.getChild("RealTimeOptions");
-
-				if (realTimeOptions != null) {
-					String period = realTimeOptions.getChildText("Period");
-
-					if (period != null) {
-						fileWriter.write("s/PERIOD/" + period + "/\n");
-					} else {
-						fileWriter.write("s/PERIOD/" + 0 + "/\n");
-					}
-
-					String deadline = realTimeOptions.getChildText("Deadline");
-					if (deadline != null) {
-						fileWriter.write("s/DEADLINE/" + deadline + "/\n");
-					} else {
-						fileWriter.write("s/DEADLINE/" + 0 + "/\n");
-					}
-
-					String executionTime = realTimeOptions
-							.getChildText("ExecutionTime");
-					if (executionTime != null) {
-						fileWriter.write("s/EXECUTIONTIME/" + executionTime
-								+ "/\n");
-					} else {
-						fileWriter.write("s/EXECUTIONTIME/" + 0 + "/\n");
-					}
-				}
+			String phase = priorityOptions.getChildText("Phase");
+			if (phase != null) {
+				tasksphasebuffer.append(phase + " ");
 			} else {
-				// write default values for period, deadline, exectime
-				fileWriter.write("s/INITIAL_PRIORITY/" + 0 + "/\n");
-				fileWriter.write("s/PHASE/" + 0 + "/\n");
-
-				fileWriter.write("s/PERIOD/" + 0 + "/\n");
-				fileWriter.write("s/DEADLINE/" + 0 + "/\n");
-				fileWriter.write("s/EXECUTIONTIME/" + 0 + "/\n");
+				tasksphasebuffer.append("0 ");
 			}
 
-			fileWriter.close();
+			// get <RealTimeOptions>
+			Element realTimeOptions = priorityOptions.getChild("RealTimeOptions");
 
-		} catch (IOException ex) {
-			System.out.println("Could not write "
-					+ taskNode.getChildText("Path") + TASK_SED_FILENAME);
-			System.exit(1);
+			if (realTimeOptions != null) {
+				String period = realTimeOptions.getChildText("Period");
+
+				if (period != null) {
+					tasksperiodbuffer.append(period + " ");
+				} else {
+					tasksperiodbuffer.append("0 ");
+				}
+
+				String deadline = realTimeOptions.getChildText("Deadline");
+				if (deadline != null) {
+					tasksdeadlinedbuffer.append(deadline + " ");
+				} else {
+					tasksdeadlinedbuffer.append("0 ");
+				}
+
+				String executionTime = realTimeOptions.getChildText("ExecutionTime");
+				if (executionTime != null) {
+					tasksexectimebuffer.append(executionTime + " ");
+							
+				} else {
+					tasksexectimebuffer.append("0 ");
+				}
+			}
+		} else {
+			// write default values for period, deadline, exectime
+			tasksprioritybuffer.append("0 ");
+			tasksphasebuffer.append("0 ");
+			tasksperiodbuffer.append("0 ");
+			tasksdeadlinedbuffer.append("0 ");
+			tasksexectimebuffer.append("0 ");
 		}
+	
 	}
 
 	/**

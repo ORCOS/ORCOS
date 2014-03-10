@@ -198,10 +198,10 @@ ErrorT BeagleBoardUART::writeBytes(const char* bytes, unint4 length)
 }
 
 /*---------------------------------------------------------------------------*/
-void BeagleBoardUART::recv()
+ErrorT BeagleBoardUART::handleIRQ()
 /*---------------------------------------------------------------------------*/
 {
-
+	return (cError);
 }
 
 /*---------------------------------------------------------------------------*/

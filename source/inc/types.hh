@@ -225,7 +225,9 @@ typedef struct {
  */
 typedef struct {
 	unint4 next_header;
-	unint4 taskCRC32;
+	unint4 crcStart;  /* Start address the checksum is calculated over */
+	unint4 crcEnd;	  /* End address the checksum is calculated over */
+	unint4 taskCRC32; /* The CRC32 value in target architecture endianess */
 } taskCRCHeader;
 
 typedef enum {

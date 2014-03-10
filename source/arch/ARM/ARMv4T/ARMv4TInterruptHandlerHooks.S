@@ -101,14 +101,10 @@ jumpToIrqHandler:
 	stmfd   sp!, {r2} 			// store PSR
 	mov		r0, sp				// get save context address
 
-	//sub		sp,sp,0x100		// safety margin if there are bugs somewhere which use this stack???
-
 	// switch to uninterrupable svc mode for interrupt handling (OS mode)
 	MSR 	CPSR_c, #svc_mode | CPSR_DISINT
 
 	LDR		sp, = __stack - 0x100	// irq handling is done on a seperate stack
-	// TODO: does not work for nested interrups .. check why we cant use
-	// the thread stack instead ?? should be possible...
 
 	// r0 = saved context
 	// r1 = context save mode

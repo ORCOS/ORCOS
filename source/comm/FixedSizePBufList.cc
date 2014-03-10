@@ -32,7 +32,15 @@ FixedSizePBufList::FixedSizePBufList(int size) {
 }
 
 FixedSizePBufList::~FixedSizePBufList() {
+
+	for (size_t i = 0; i < size;i++) {
+		if (pbuf_list[i] != 0) {
+			pbuf_free(pbuf_list[i]);
+		}
+	}
+
 	theOS->getMemoryManager()->free(pbuf_list);
+	theOS->getMemoryManager()->free(addr_list);
 }
 
 

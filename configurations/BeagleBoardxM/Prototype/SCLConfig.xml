@@ -21,8 +21,7 @@
   <Tasks>
     <Task>
       <Start>0x81200000</Start>
-      <End>0x812fFFFF</End>
-      <Heap>0x81220000</Heap>
+      <Size>0x00100000</Size>
       <Path>../../../tasks/telnet_server</Path>
       <PriorityOptions>
         <InitialPriority>1</InitialPriority>
@@ -33,12 +32,10 @@
           <ExecutionTime>0</ExecutionTime>
         </RealTimeOptions>
       </PriorityOptions>
-      <Vma>0x100000</Vma>
     </Task>
     <Task>
       <Start>0x81300000</Start>
-      <End>0x813fFFFF</End>
-      <Heap>0x81320000</Heap>
+      <Size>0x00100000</Size>
       <Path>../../../tasks/ftp_server/</Path>
       <PriorityOptions>
         <InitialPriority>0</InitialPriority>
@@ -49,7 +46,6 @@
           <ExecutionTime>0</ExecutionTime>
         </RealTimeOptions>
       </PriorityOptions>
-      <Vma>0x100000</Vma>
     </Task>
   </Tasks>
   <SCL>
@@ -237,7 +233,7 @@
     </Define>
     <Define>
       <Name>NUM_WORKERTHREADS</Name>
-      <Value>3</Value>
+      <Value>5</Value>
     </Define>
     <!-- logical Memory addresses -->
     <Define>

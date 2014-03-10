@@ -12,6 +12,7 @@
 #include "inc/memio.h"
 #include "inc/error.hh"
 #include "usb/USBDeviceDriverFactory.hh"
+#include "hal/GenericDeviceDriver.hh"
 //----------------------------
 // Defines
 //----------------------------
@@ -440,7 +441,7 @@ typedef struct {
  * \brief Generic USB EHCI Host Controller implementation
  *
  */
-class USB_EHCI_Host_Controller {
+class USB_EHCI_Host_Controller : GenericDeviceDriver {
 private:
 	unint4 			hc_base;
 
@@ -483,7 +484,13 @@ public:
 	ErrorT 	Init();
 
 	// handle EHCI IRQs
-	void 	handleInterrupt();
+	ErrorT 	handleIRQ();
+
+	ErrorT  enableIRQ();
+
+	ErrorT  disableIRQ();
+
+	ErrorT  clearIRQ();
 
 	// destructor
 	virtual ~USB_EHCI_Host_Controller();

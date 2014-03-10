@@ -84,21 +84,18 @@ public:
     ErrorT release( Thread* pThread );
 
     //! Returns the type of this resource which helps to identify this resource
-    inline
-    ResourceType getType() {
-        return restype;
+    inline  ResourceType getType() {
+        return (restype);
     }
 
     //! Returns the id
-    inline
-    ResourceIdT getId() {
-        return this->myResourceId;
+    inline  ResourceIdT getId() {
+        return (this->myResourceId);
     }
 
     //! Returns the name of this resource
-    inline
-    const char* getName() {
-        return name;
+    inline  const char* getName() {
+        return (name);
     }
 };
 

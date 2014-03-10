@@ -26,7 +26,8 @@ SECTIONS
     /* Additional header following */
     ADDITIONAL_HEADER 
    }
-   
+
+CRC_START = .;
 .text : {    
     static.o(.text)
  	*(.text*)
@@ -39,10 +40,12 @@ SECTIONS
  	*(.data*)
  	*(.init*)
  }
+ CRC_END = .;
+ 
  .bss : {
  	*(.bss*)
  }
  
- TASK_DATA_START = ALIGN(0x1000);
+ TASK_HEAP = ALIGN(TASK_HEAP_ALIGN);
 }
 

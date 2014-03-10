@@ -37,7 +37,7 @@ Socket::Socket( unint2 domain, SOCK_TYPE e_type, unint2 protocol) :
     this->arg					= 0;
     this->newSocketID			= -1;
 
-    register ProtocolPool* protopool = theOS->getProtocolPool();
+    ProtocolPool* protopool		= theOS->getProtocolPool();
 
     this->aproto 				= protopool->getAddressProtocolbyId( domain );
     ASSERT(this->aproto);
@@ -50,7 +50,6 @@ Socket::Socket( unint2 domain, SOCK_TYPE e_type, unint2 protocol) :
     this->socket_connected 		= 0;
 	this->hasListeningThread 	= false;
     this->myboundaddr.sa_data 	= 0;
-
 
 
 #ifdef HAS_Kernel_ServiceDiscoveryCfd
@@ -67,6 +66,9 @@ Socket::~Socket() {
 		  this->aproto->unbind(&myboundaddr,this);
 		  this->tproto->unregister_socket(this);
 	  }
+	 if ( this->messageBuffer != 0) {
+		delete messageBuffer;
+	 }
 
 #ifdef HAS_Kernel_ServiceDiscoveryCfd
 	// remove service from service discovery if weve got a service descriptor
@@ -128,7 +130,7 @@ ErrorT Socket::bind( sockaddr* address ) {
     }
 #endif
 
-    return error;
+    return (error);
 }
 
 void Socket::connected(int error) {

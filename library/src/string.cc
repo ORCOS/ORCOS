@@ -48,10 +48,9 @@ void strreverse( char* begin, char* end ) {
         aux = *end, *end-- = *begin, *begin++ = aux;
 }
 
-void itoa( int value, char* str, int base ) {
+void uitoa( unsigned int value, char* str, int base ) {
     static char num[] = "0123456789abcdefghijklmnopqrstuvwxyz";
     char* wstr = str;
-    int sign;
 
     // Validate base
     if ( base < 2 || base > 35 ) {
@@ -59,9 +58,35 @@ void itoa( int value, char* str, int base ) {
         return;
     }
 
-    // Take care of sign
-    if ( ( sign = value ) < 0 )
-        value = -value;
+    // Conversion. Number is reversed.
+    do
+        *wstr++ = num[ value % base ];
+    while ( value /= base );
+
+      *wstr = '\0';
+
+    // Reverse string
+    strreverse( str, wstr - 1 );
+}
+
+
+void itoa( int value, char* str, int base ) {
+    static char num[] = "0123456789abcdefghijklmnopqrstuvwxyz";
+    char* wstr = str;
+    int sign = 0;
+    // for all other bases we interpret value as unsigned!
+    if (base != 10) return (uitoa((unsigned int) value,str,base));
+
+    // Validate base
+    if ( base < 2 || base > 35 ) {
+        *wstr = '\0';
+        return;
+    }
+
+
+	if ( ( sign = value ) < 0 )
+		value = -value;
+
 
     // Conversion. Number is reversed.
     do
@@ -170,12 +195,12 @@ extern "C" void print( char **out, const char *format, va_list args ) {
                 continue;
             }
             if( *format == 'x' ) {
-                itoa( va_arg( args, int ), print_buf, 16 );
+                uitoa( va_arg( args, unsigned int ), print_buf, 16 );
                 prints( out, &print_buf[0], width, pad );
                 continue;
             }
             if( *format == 'u' ) {
-            	 itoa( va_arg( args, unsigned int ), print_buf, 10 );
+            	 uitoa( va_arg( args, unsigned int ), print_buf, 10 );
             	 prints( out,  &print_buf[0], width, pad );
             	 continue;
             }

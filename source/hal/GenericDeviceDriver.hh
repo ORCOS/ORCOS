@@ -63,12 +63,19 @@
 class GenericDeviceDriver: public Resource {
 
 public:
+    // flag whether this device has an interrupt pending
+    bool interruptPending;
+
+    // flag indicating if this device has an workerthread currently assigned to it
+    bool hasAssignedWorkerThread;
 
 	/**
 	 * Constructor for generic devices
 	 */
     GenericDeviceDriver( bool sync_res, const char* p_name ) :
         Resource( cGenericDevice, sync_res, p_name ) {
+    	interruptPending = false;
+    	hasAssignedWorkerThread = false;
     }
     ;
 
@@ -78,6 +85,8 @@ public:
      */
     GenericDeviceDriver( ResourceType rt, bool sync_res, const char* p_name ) :
         Resource( rt, sync_res, p_name ) {
+    	interruptPending = false;
+    	hasAssignedWorkerThread = false;
     }
     ;
 
@@ -105,9 +114,34 @@ public:
     }
     ;
 
+    /*
+     * IRQ Handling method
+     *
+     */
+    virtual ErrorT handleIRQ() {
+    	return (cNotImplemented);
+    }
+
+
+    //! enables the hardware interrupts of this device.
+    virtual  ErrorT enableIRQ() {
+        return (cNotImplemented);
+    }
+
+    //! disables all interrupts of this device (does not clear them!)
+    virtual  ErrorT disableIRQ() {
+        return (cNotImplemented);
+    }
+
+    //! clears all interrupts of this device
+    virtual   ErrorT clearIRQ() {
+        return (cNotImplemented);
+    }
+
     virtual ErrorT ioctl(int request, void* args) {
     	return (cNotImplemented);
     }
+
 
 };
 

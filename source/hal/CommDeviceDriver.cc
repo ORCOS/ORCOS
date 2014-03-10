@@ -29,13 +29,7 @@ int2 CommDeviceDriver::globalCommDeviceIdCounter;
 
 CommDeviceDriver::CommDeviceDriver( const char* p_name ) :
     CharacterDeviceDriver( cCommDevice, false, p_name ) {
-    myId = globalCommDeviceIdCounter;
-    globalCommDeviceIdCounter++;
-    interruptPending = false;
 
-#if USE_WORKERTASK
-    hasAssignedWokerThread = false;
-#endif
 
 }
 

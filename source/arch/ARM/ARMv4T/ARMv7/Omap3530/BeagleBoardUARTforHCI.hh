@@ -124,7 +124,7 @@ public:
 	ErrorT writeBytes(const char *bytes, unint4 length);
 
 	// interface to meet the CommDeviceDriver
-    void recv();
+    ErrorT handleIRQ();
     ErrorT send(packet_layer* packet, char* dest_addr, int addr_len, int2 fromProtocol_ID );
     ErrorT lowlevel_send( char* data, int len ) {return cError;};
     ErrorT broadcast( packet_layer* packet, int2 fromProtocol_ID );

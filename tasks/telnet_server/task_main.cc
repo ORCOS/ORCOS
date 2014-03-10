@@ -98,7 +98,6 @@ static const char* help_msg = "OCROS Telnet Terminal\r\rSupported commands:\r"
 						"hexdump   - Dumps a file as hex and ASCII\r"
 						"touch     - Creates a new file\r"
 						"run       - Starts a task from file\r"
-						"cp        - Copies a file\r"
 						"kill      - Kills a task by ID\r";
 
 static char return_msg[520];
@@ -621,76 +620,9 @@ void handleCommand(int socket, int command_length) {
 		}
 	}
 
-	if (strpos("cp",command) == 0) {
-		int arg = strpos(" ",command);
-		if (arg > 0) {
-			char* filename = &command[arg+1];
-			char* filename2 = extractPath(filename);
-			if (filename2 == 0) {
-				sendMsg(socket,"No destination given. Usage: cp source dest");
-				return;
-			}
-			extractPath(filename2);
-			int filehandle1;
-			int filehandle2;
 
-			char path1[100];
+	// try running the application with the name
 
-			if (filename[0] != '/') {
-				strcpy(path1,current_dir);
-				strcat(&path1[strlen(current_dir)],filename);
-			} else {
-				strcpy(path1,filename);
-			}
-
-			char path2[100];
-
-			if (filename2[0] != '/') {
-				strcpy(path2,current_dir);
-				strcat(&path2[strlen(current_dir)],filename2);
-			} else {
-				strcpy(path2,filename2);
-			}
-
-			sprintf(return_msg,"copy '%s' -> '%s'",path1,path2);
-			int end = strlen(return_msg);
-			return_msg[end] = '\r';
-			return_msg[end+1] = '\0';
-			sendto(socket,return_msg,end+2,0);
-			return;
-
-			/*int filehandle = fopen(path,0);
-			if (filehandle > 0) {
-				int res;
-				for (int i = 0; i < 200; i++) {
-					char str[20];
-					sprintf(str,"%3d: test\n",i);
-					res = fwrite(str,10,1,filehandle);
-				}
-
-				sprintf(return_msg,"Result: %d",res);
-				int end = strlen(return_msg);
-				return_msg[end] = '\r';
-				return_msg[end+1] = '\0';
-				sendto(socket,return_msg,end+2,0);
-				return;
-
-			} else {
-				// can not open file
-				sprintf(return_msg,"Opening file failed. Error %d",filehandle);
-				int end = strlen(return_msg);
-				return_msg[end] = '\r';
-				return_msg[end+1] = '\0';
-				sendto(socket,return_msg,end+2,0);
-				return;
-			}*/
-
-		} else {
-			sendMsg(socket,"Usage: cp source dest");
-			return;
-		}
-
-	}
 
 	sendUnknownCommand(socket);
 

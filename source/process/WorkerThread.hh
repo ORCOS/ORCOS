@@ -24,8 +24,8 @@
 #include Kernel_Thread_hh
 
 typedef enum {
-    ExternalDeviceJob, TimedFunctionCallJob, PeriodicFunctionCallJob, None , IdleJob
-} JOBS;
+    IRQJob, TimedFunctionCallJob, PeriodicFunctionCallJob, None , IdleJob
+} JOBType;
 
 /*!
  * \brief Worker Thread (belonging to WorkerTask), execute jobs for other threads
@@ -70,7 +70,7 @@ public:
     void work();
 
     //! Set the job of this workerthread
-    void setJob( unint1 id, void* params );
+    void setJob( JOBType type, void* params );
 
     //! Set the PID the workerthread shall work with
     void setPID( unint1 thread_pid ) {

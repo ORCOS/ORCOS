@@ -102,7 +102,7 @@ volatile static qTD qtds[4] __attribute__((aligned(32))) ATTR_CACHE_INHIBIT;
 static int ATTR_CACHE_INHIBIT qtdnum = 0 ;
 
 
-USB_EHCI_Host_Controller::USB_EHCI_Host_Controller(unint4 ehci_dev_base) {
+USB_EHCI_Host_Controller::USB_EHCI_Host_Controller(unint4 ehci_dev_base) : GenericDeviceDriver(false,"ECHI_HC") {
 
 	this->operational = false;
 	this->async_qh_reg = 0;
@@ -213,15 +213,17 @@ ErrorT USB_EHCI_Host_Controller::Init() {
 
 	LOG(ARCH,INFO,(ARCH,INFO,"USB_EHCI_Host_Controller::Init() reset successful.."));
 
+	/* register ourself at the IRQ Manager */
+	theOS->getInterruptManager()->registerIRQ(EHCI_IRQ,this,5 ms);
+
 	// now initialize the aperiodic and periodic frame space
 	// set all frame list entries to invalid
-
 	// initialize the working queues
 	OUTW(operational_register_base + PERIODICLISTBASE_OFFSET,(unint4) &framelist[0]);
 
 	OUTW(operational_register_base + ASYNCLISTADDR_OFFSET, (unint4) &QHmain);
-	// allow interrupts
-	//OUTW(operational_register_base + USBINTR_OFFSET,0x1 | 1 << 2 | 1 << 1);
+
+	// disableinterrupts
 	OUTW(operational_register_base + USBINTR_OFFSET,0x0);
 
 	// start the HC + enable asynchronous park mode so we can transfer multiple packets per frame
@@ -860,7 +862,7 @@ void USB_EHCI_Host_Controller::unregisterDevice(USBDeviceDriver* drv) {
 }
 
 
-void USB_EHCI_Host_Controller::handleInterrupt() {
+ErrorT USB_EHCI_Host_Controller::handleIRQ() {
 
 	LOG(ARCH,DEBUG,(ARCH,DEBUG,"EHCI Interrupt"));
 
@@ -869,16 +871,36 @@ void USB_EHCI_Host_Controller::handleInterrupt() {
 	//printf("USB USBINTR: %x\r",INW(operational_register_base + USBINTR_OFFSET));
 //	OUTW(operational_register_base + USBSTS_OFFSET, 0x3f);
 
+	clearIRQ();
+
 	for (int i=0; i < 10; i++) {
 		if (registered_devices[i] != 0) {
 			registered_devices[i]->handleInterrupt();
 		}
 	}
 
-	OUTW(operational_register_base + USBSTS_OFFSET, 0x3f);
+	if (INW(operational_register_base + USBSTS_OFFSET) & 0x1)
+		interruptPending = true;
+	else
+		interruptPending = false;
 
+	return (cOk);
 }
 
+ErrorT USB_EHCI_Host_Controller::enableIRQ() {
+	OUTW(operational_register_base + USBINTR_OFFSET, 0x1);
+	return (cOk);
+}
+
+ErrorT USB_EHCI_Host_Controller::disableIRQ() {
+	OUTW(operational_register_base + USBINTR_OFFSET, 0x0);
+	return (cOk);
+}
+
+ErrorT USB_EHCI_Host_Controller::clearIRQ() {
+	OUTW(operational_register_base + USBSTS_OFFSET, 0x3f);
+	return (cOk);
+}
 
 /**********************************************************************
  *

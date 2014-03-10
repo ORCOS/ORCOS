@@ -21,8 +21,7 @@
   <Tasks>
     <Task>
       <Start>0x81160000</Start>
-      <End>0x8116FFFF</End>
-      <Heap>0x81167000</Heap>
+      <Size>0x10000</Size>
       <Path>./tasks/task/</Path>
       <PriorityOptions>
         <InitialPriority>0</InitialPriority>

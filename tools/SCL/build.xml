@@ -15,7 +15,7 @@
     	<javac srcdir="src" destdir="bin" target="1.5" source="1.5" classpathref="cp" />
      	
     	<copy todir="bin">
-    	        	    <fileset dir="src" excludes=".svn" />
+    	       <fileset dir="src" excludes=".svn" />
     	</copy>
     	
     	
@@ -23,6 +23,12 @@
     		<manifest>
     		   <attribute name="Main-class" value="de.upb.cs.orcos.xml.SCLReader"/>
     		</manifest>
+    	</jar>
+    	
+    	<jar destfile="dist/sn.jar" basedir="bin">
+    	    <manifest>
+    	    	<attribute name="Main-class" value="de.upb.cs.orcos.sign.TaskSigner"/>
+    	    </manifest>
     	</jar>
     	
     	<copy todir="dist">
@@ -37,7 +43,8 @@
 	   	<delete file="dist/scl2.xsd"/>
 		<delete file="dist/scl2deps.xsd"/>
 	    <delete file="dist/scl2.jar"/>
-    	<mkdir dir="bin"/>
+		<delete file="dist/sn.jar"/>
+    <mkdir dir="bin"/>
     	
    	</target>
 

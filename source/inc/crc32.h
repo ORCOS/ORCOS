@@ -14,7 +14,7 @@ extern "C" {
 #endif
 
 
-unint4 crc32(char *buf, size_t len);
+unint4 crc32(unsigned char *buf, size_t len);
 
 #ifdef __cplusplus
 }

@@ -44,8 +44,8 @@ WorkerTask::WorkerTask() :
 WorkerTask::~WorkerTask() {
 }
 
-WorkerThread* WorkerTask::addJob( unint1 id, unint1 pid, void* param, unint priority_param ) {
-	LOG(PROCESS,DEBUG,(PROCESS,DEBUG,"WorkerTask::addJob(): job %d",id));
+WorkerThread* WorkerTask::addJob( JOBType jobType, unint1 pid, void* param, unint priority_param ) {
+	LOG(PROCESS,DEBUG,(PROCESS,DEBUG,"WorkerTask::addJob(): job %d",jobType));
 
     // find a available workerthread and assign the job
     LinkedListDatabaseItem* litem = this->threadDb.getHead();
@@ -57,10 +57,10 @@ WorkerThread* WorkerTask::addJob( unint1 id, unint1 pid, void* param, unint prio
 
     if ( litem != 0 ) {
         WorkerThread* pWThread = (WorkerThread*) litem->getData();
-        pWThread->setJob( id, param );
+        pWThread->setJob( jobType, param );
         pWThread->setPID( pid );
 
-        LOG(PROCESS,DEBUG,(PROCESS,DEBUG,"WorkerTask::addJob() assigned thread %d for job %d",pWThread->getId(),id));
+        LOG(PROCESS,DEBUG,(PROCESS,DEBUG,"WorkerTask::addJob() assigned thread %d for job %d",pWThread->getId(),jobType));
 
         // get the current cycles
         TimeT currentCycles = theClock->getTimeSinceStartup();
@@ -73,7 +73,7 @@ WorkerThread* WorkerTask::addJob( unint1 id, unint1 pid, void* param, unint prio
         // reset the instance to 1
         pWThread->instance = 1;
 
-		#if CLOCK_RATE >= (1 MHZ)
+		#if (CLOCK_RATE >= (1 MHZ))
         	 // set the relative deadline for EDF
              pWThread->relativeDeadline = priority_param * (CLOCK_RATE / 1000000);
              // set period for RM
@@ -81,8 +81,6 @@ WorkerThread* WorkerTask::addJob( unint1 id, unint1 pid, void* param, unint prio
 		#else
 			 pWThread->relativeDeadline = (TimeT) ((priority_param * CLOCK_RATE) /  1000000U);
              pWThread->period = (TimeT) ((priority_param * CLOCK_RATE) /  1000000U);
-			//pWThread->relativeDeadline = (unint8) (((float)priority_param) * ((float) CLOCK_RATE / 1000000.0f));
-			//pWThread->period = (unint8) (((float)priority_param) * ((float) CLOCK_RATE / 1000000.0f));
 		#endif
 
 
@@ -92,7 +90,7 @@ WorkerThread* WorkerTask::addJob( unint1 id, unint1 pid, void* param, unint prio
         theScheduler->computePriority(pWThread);
 #endif
 
-        if ( id == TimedFunctionCallJob || id == PeriodicFunctionCallJob ) {
+        if ( jobType == TimedFunctionCallJob || jobType == PeriodicFunctionCallJob ) {
             // set the sleeptime so the thread sleeps
             // until the the function can be called
             TimedFunctionCall* funcCall = (TimedFunctionCall*) param;
@@ -112,7 +110,7 @@ WorkerThread* WorkerTask::addJob( unint1 id, unint1 pid, void* param, unint prio
     }
     else
     {
-        ERROR("No WorkerThread available!");
+        //ERROR("No WorkerThread available!");
 
         // no available workerthread
         return (0);

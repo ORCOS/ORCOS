@@ -13,6 +13,8 @@ DEADLINE 			= 0
 EXECUTIONTIME 		= 0
 STACK_SIZE 			= 4096
 
+BUILD_CRC32			= 0
+
 POST_BUILD			= 
 
 -include $(ORCOS_LIB_DIR)/Makefile.mk

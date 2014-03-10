@@ -171,8 +171,11 @@ extern "C" int task_main(char* args)
 
 	int fd = fopen(argv[0]);
 
-	if (fd < 0)
-		thread_exit(cOk);
+	// bail out if file not found
+	if (fd < 0) {
+		puts("File not found.\r");
+		thread_exit(-1);
+	}
 
 	// calculate crc
    stat_t stat;
@@ -182,16 +185,13 @@ extern "C" int task_main(char* args)
 
    oldcrc32 = 0xFFFFFFFF;
 
-   printf("FileSize: %d\r",stat.st_size);
-// TODO: calculated crc32 is different to crc32 in cygwin .. ??
-  int read = 0;
-  while (read < stat.st_size) {
+   int read = 0;
+   while (read < stat.st_size) {
 	  int num_bytes = 1024;
 	  if (read + 1024 > stat.st_size)
 		  num_bytes = stat.st_size - read;
 
 	  fread(buf,num_bytes,1,fd);
-	  buf[num_bytes] = 0;
 	  read += num_bytes;
 
 	  for (int i = 0; i < num_bytes; i++)
@@ -199,12 +199,13 @@ extern "C" int task_main(char* args)
 	 	oldcrc32 = UPDC32(buf[i], oldcrc32);
 	  }
 
-  }
+   }
 
   fclose(fd);
   oldcrc32 = ~oldcrc32;
 
-  printf("crc32: 0x%x\r",oldcrc32);
+  // print output
+  printf("0x%x\r",oldcrc32);
 
   thread_exit(cOk);
 

@@ -99,12 +99,15 @@ void Kernel::initialize() {
     this->PartitionManagerCfd 	= new NEW_FileSystems_PartitionManagerCfd;
 #endif
 
-   // this->partitionManager 	= new PartitionManager();
     /* create the Task Manager which holds the list of all tasks */
     this->taskManager 		= new TaskManager();
 
     /* be sure the initial loaded set of tasks is registered at the ramManager */
     taskManager->registerMemPages();
+
+    /* create the interrupt manager instance to allow device drivers to register
+     * their irq numbers and handlers. */
+    this->irqManager		= new InterruptManager();
 
 #if HAS_Board_USB_HCCfd
     USBDevice::initialize();
@@ -115,7 +118,7 @@ void Kernel::initialize() {
 #endif
 
 #if HAS_USBDriver_SMSC95xxCfd
-   /* Add support for smsc95xx ethernet over USB devices */
+    /* Add support for smsc95xx ethernet over USB devices */
     new SMSC95xxUSBDeviceDriverFactory("smsc95xx");
 #endif
 

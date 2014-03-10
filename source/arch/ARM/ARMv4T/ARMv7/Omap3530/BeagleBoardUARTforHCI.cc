@@ -225,7 +225,7 @@ ErrorT BeagleBoardUARTforHCI::writeBytes(const char* bytes, unint4 length)
 }
 
 /*---------------------------------------------------------------------------*/
-void BeagleBoardUARTforHCI::recv()
+ErrorT BeagleBoardUARTforHCI::handleIRQ()
 /*---------------------------------------------------------------------------*/
 {
 	while(this->hasPendingData())
@@ -245,6 +245,7 @@ void BeagleBoardUARTforHCI::recv()
 	this->interruptPending = false;
 	this->enableIRQ();
 
+	return (cOk);
 
 }
 

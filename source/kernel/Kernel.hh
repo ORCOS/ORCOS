@@ -39,6 +39,7 @@
 #include "scheduler/SingleCPUDispatcher.hh"
 #include "filesystem/SimpleFileManager.hh"
 #include "filesystem/PartitionManager.hh"
+#include "hal/InterruptManager.hh"
 #include Kernel_RamManager_hh
 #include "robust/TaskErrorHandler.hh"
 #include Kernel_TaskManager_hh
@@ -108,6 +109,9 @@ private:
 
     // The task manager which initializes tasks
     TaskManager* 			taskManager;
+
+    /* The global interrupt manager handling /scheduling irqs*/
+    InterruptManager*		irqManager;
 
     DEF_Board_HatLayerCfd;
 
@@ -230,6 +234,10 @@ public:
 
     TaskManager* getTaskManager() {
     	return (this->taskManager);
+    }
+
+    InterruptManager* getInterruptManager() {
+       	return (this->irqManager);
     }
 
     TaskErrorHandler* getErrorHandler() {

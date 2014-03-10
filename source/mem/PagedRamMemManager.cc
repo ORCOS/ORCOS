@@ -48,6 +48,7 @@ PagedRamMemManager::PagedRamMemManager() {
 #else
 	MemStart = (unint4) alignCeil((char*) &__KERNELEND,PAGESIZE);
 #endif
+
 }
 
 PagedRamMemManager::~PagedRamMemManager() {

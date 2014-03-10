@@ -813,7 +813,7 @@ ErrorT SMSC95xxUSBDeviceDriver::recv(unint4 recv_len)
 
 			if (packet_len & RX_STS_ES_) {
 				LOG(ARCH,ERROR,(ARCH,ERROR,"SMSC95xxUSBDeviceDriver: RX packet header Error: %x",packet_len));
-				hexdump(rxbuffer,recv_len);
+				//hexdump(rxbuffer,recv_len);
 				return (cError);
 			}
 			// extract packet_len

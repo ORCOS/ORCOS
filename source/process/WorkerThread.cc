@@ -75,22 +75,22 @@ void WorkerThread::work() {
     // reenable interrupts here since we are now executing like a user thread except that we are in kernel space
     _enableInterrupts();
 
-    if ( jobid == ExternalDeviceJob ) {
-        CommDeviceDriver* comm_dev = (CommDeviceDriver*) param;
+    if ( jobid == IRQJob ) {
+    	GenericDeviceDriver* dev = (GenericDeviceDriver*) param;
 
         // call receive method which is the job here
         // as long as interrupts are pending for it
-        while (comm_dev->interruptPending)
-            comm_dev->recv();
+        while (dev->interruptPending)
+            dev->handleIRQ();
 
         _disableInterrupts();
 
 #if USE_WORKERTASK
         // indicate that the work has been finished on this comm_dev
-        comm_dev->hasAssignedWokerThread = false;
+        dev->hasAssignedWorkerThread = false;
 #endif
         // communication device may now throw interrupts again
-        comm_dev->enableIRQ();
+        dev->enableIRQ();
     }
     else if ( (jobid == TimedFunctionCallJob) ) {
         TimedFunctionCall* funcCall = (TimedFunctionCall*) param;
@@ -122,7 +122,7 @@ void WorkerThread::work() {
     }
 }
 
-void WorkerThread::setJob( unint1 id, void* params ) {
+void WorkerThread::setJob( JOBType id, void* params ) {
     jobid = id;
     param = params;
 }

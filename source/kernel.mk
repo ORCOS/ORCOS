@@ -40,11 +40,11 @@ KOBJ += Logger.o
 KOBJ += File.o Directory.o Filemanager.o Resource.o SimpleFileManager.o SharedMemResource.o FileSystemBase.o Partition.o
 
 #hal
-KOBJ += PowerManager.o CharacterDeviceDriver.o BlockDeviceDriver.o TimerDevice.o CommDeviceDriver.o USCommDeviceDriver.o Clock.o
+KOBJ += PowerManager.o CharacterDeviceDriver.o BlockDeviceDriver.o TimerDevice.o CommDeviceDriver.o USCommDeviceDriver.o Clock.o InterruptManager.o
 
 #inc
 #__udivdi3.o
-KOBJ += stringtools.o memtools.o sprintf.o putc.o libgccmath.o endian.o
+KOBJ += stringtools.o memtools.o sprintf.o putc.o libgccmath.o endian.o crc32.o
 
 #inc/newlib/
 KOBJ += newlib_helper.o
@@ -182,7 +182,7 @@ endif
 ifdef KERNEL_DIR
 	$(RM) $(KERNEL_DIR)lib/*.o $(KERNEL_DIR)lib/*.a
 endif
-	@for i in $(TASKS); do rm -f $$i/task.sed; done
+
 
 #---------------------------------------------------------------------------------------------------------------------------------------
 #                        Target: uImage : Create UBOOT compatible boot image 
@@ -301,16 +301,20 @@ tasks: scl
 	@echo "----------------------------------"
 	@n=0 ; \
 	starts=$(TASKS_START); \
-	ends=$(TASK_END); \
+	sizes=$(TASKS_SIZE); \
+	periods=$(TASKS_PERIOD); \
+	priorities=$(TASKS_PRIORITY); \
+	phases=$(TASKS_PHASE); \
+	deadlines=$(TASKS_DEADLINE); \
+	exectime=$(TASKS_EXECTIME); \
 	for x in $(TASKS); do\
 		echo Creating $$x; \
-		make -s -C $$x OUTPUTFILE=task.image TARGET=$(TARGET) TASK_START=$${starts[$$n]} TASK_END=$${ends[$$n]} all; \
+		make -s -C $$x OUTPUTFILE=task.image TARGET=$(TARGET) TASK_START=$${starts[$$n]} TASK_SIZE=$${sizes[$$n]} PHASE=$${phases[$$n]} INITIAL_PRIORITY=$${priorities[$$n]} PERIOD=$${periods[$$n]} DEADLINE=$${deadlines[$$n]} EXECUTIONTIME=$${exectime[$$n]} all; \
 		$(CP) $$x/$(TARGET)/task.image tasks/task$$n.image; \
 		$(CP) $$x/$(TARGET)/task.image.elf tasks/task$$n.image.elf; \
 		let "n+=1" ; \
 	done;
 	
-#@for i in $(TASKS); do echo Creating $$i; make -s -C $$i CC=$(CC) CXX=$(CXX) AS=$(AS) LD=$(LD) OBJCOPY=$(OBJCOPY) OBJDUMP=$(OBJDUMP) SED=$(SED) KERNEL_LIB_DIR=$(KERNEL_LIB_DIR) KERNEL_DIR=$(KERNEL_DIR) GCC_LIB_DIR=$(GCC_LIB_DIR) STACK_USAGE_SCRIPT=$(STACK_USAGE_SCRIPT) CFLAGS_TASKS=$(CFLAGS_TASKS) LDFLAGS_TASKS="$(LDFLAGS_TASKS)" TASK_DIR="$$i" ; echo ; done
 	
 tasks_clean: 
 	@echo "----------------------------------"

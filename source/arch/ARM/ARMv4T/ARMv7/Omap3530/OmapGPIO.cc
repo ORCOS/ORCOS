@@ -86,6 +86,10 @@ ErrorT OmapGPIO::writeBytes(const char* bytes, unint4 length) {
 
 }
 
+ErrorT OmapGPIO::handleIRQ() {
+	return (cNotImplemented);
+}
+
 ErrorT OmapGPIO::ioctl(int request, void* args) {
 	// handle the io control request
 	if (request == IOCTL_GPIO_SET_DIR) {

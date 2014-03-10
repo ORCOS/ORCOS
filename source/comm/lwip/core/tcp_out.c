@@ -210,7 +210,7 @@ tcp_enqueue(struct tcp_pcb *pcb, struct pbuf *p_input, u16_t len,
   queuelen = pcb->snd_queuelen;
   /* check for configured max queuelen and possible overflow */
   if ((queuelen >= TCP_SND_QUEUELEN) || (queuelen > TCP_SNDQUEUELEN_OVERFLOW)) {
-	LOGC(COMM,ERROR,("[K][ERROR] tcp_enqueue: too long queue %"U16_F" (max %"U16_F")", queuelen, TCP_SND_QUEUELEN));
+	LOGC(COMM,DEBUG,("[K][ERROR] tcp_enqueue: too long queue %"U16_F" (max %"U16_F")", queuelen, TCP_SND_QUEUELEN));
     TCP_STATS_INC(tcp.memerr);
     pcb->flags |= TF_NAGLEMEMERR;
     return (ERR_MEM);
@@ -299,7 +299,7 @@ tcp_enqueue(struct tcp_pcb *pcb, struct pbuf *p_input, u16_t len,
           /* If allocation fails, we have to deallocate the header pbuf as well. */
           pbuf_free(seg->p);
           seg->p = NULL;
-          LOGC(COMM,ERROR,("[K][ERROR] tcp_enqueue: could not allocate memory for zero-copy pbuf"));
+          LOGC(COMM,DEBUG,("[K][ERROR] tcp_enqueue: could not allocate memory for zero-copy pbuf"));
           goto memerr;
         }
         ++queuelen;

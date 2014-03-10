@@ -116,6 +116,9 @@ public:
 	 void setLED( LED* led );
 	#endif
 
+	 // Generic Device Driver overrides
+	 ErrorT handleIRQ();
+
 	// interface to meet the CharacterDeviceDriver
 	 ErrorT readByte  (char* byte);
 	 ErrorT writeByte (char byte);
@@ -123,11 +126,10 @@ public:
 	 ErrorT writeBytes(const char *bytes, unint4 length);
 
 	// interface to meet the CommDeviceDriver
-	 void recv();
 	 ErrorT send(packet_layer* packet, char* dest_addr, int addr_len, int2 fromProtocol_ID );
-	 ErrorT lowlevel_send( char* data, int len ) {return cError;};
+	 ErrorT lowlevel_send( char* data, int len ) {return (cError);};
 	 ErrorT broadcast( packet_layer* packet, int2 fromProtocol_ID );
-	 ErrorT multicast( packet_layer* packet, int2 fromProtocol_ID, unint4 dest_addr ) { return cNotImplemented; }
+	 ErrorT multicast( packet_layer* packet, int2 fromProtocol_ID, unint4 dest_addr ) { return (cNotImplemented); }
 
 	 ErrorT inputSCC(int4 Timeout, byte *c);
 	 ErrorT outputSCC(int4 Timeout, byte c);

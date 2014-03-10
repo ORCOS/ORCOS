@@ -245,40 +245,6 @@ extern void* __PageTableSec_start;
 
 
 /*!
- * Resets the stack pointer to the address right after the context save based on the sp address at interruption.
- * Needed whenever the kernel wants to save space on the stack of a thread.
- * e.g: SingleCPUDispatcher before running the idle thread. The stack frames used to get to that point are not needed any more
- * so they are discarded by using this macro.
- */
-#define _resetStackPtr(sp_int) /*\
-	asm volatile(\
-			"mov sp, %0;"\
-			: \
-			: "r" (sp_int)\
-			:)\*/
-
-//! Calls the method specifed by the 'methodcall' string and sets the this pointer to 'object'
-#define CALLMETHOD(objectptr,methodcall) \
-	asm volatile(\
-			"mov r0, %0;"  \
-			methodcall \
-			: \
-			: "r" (objectptr) \
-			: "r0")
-
-/*!
- * Macro used to update the kernel stack bucket bitmap whenever a thread
- * does not use the kernel stack slot any more. The corresponding bit of that slot
- * will then be unset so the slot is free for another thread.
- */
-#define FREE_KERNEL_STACK_SLOT(myBucketIndex) /*\
- asm volatile(\
-           ";" \
-           :\
-           : "r" (myBucketIndex)\
-           : "2","3","5"\
-           )*/
-/*!
  * Macro used to call the WorkerThread::work() method for a given WorkerThread object specified by objectptr.
  * Used inside WorkerThread::callMain().
  */
@@ -313,8 +279,8 @@ extern void* __PageTableSec_start;
 						: "r0", "r1" \
 						)\
 
-//CALLMETHOD(objectptr,"b _ZN12WorkerThread4workEv;")
 
+#if 0
 // get interrupt enable bit (IRQ only)
 #define GET_INTERRUPT_ENABLE_BIT(var) \
     asm volatile( \
@@ -333,12 +299,25 @@ extern void* __PageTableSec_start;
             : \
             : "r0" \
             )
+#endif
 
+// get interrupt enable bit (IRQ only)
+#define GET_INTERRUPT_ENABLE_BIT(var) \
+    asm volatile( \
+            "MRS	%0, cpsr;" \
+            "AND	%0, %0, #0x80;" \
+            "LSR	%0, #7;" \
+            "EOR	%0, %0, #1;" \
+            : "=&r" (var)\
+            : \
+            : \
+            )
 //-----------------------------------------------------------------------------
 // Enabling/Disabling Interrupts
 //-----------------------------------------------------------------------------
 
 // Enable interrupts (IRQ).
+#if 0
 #define _enableInterrupts() asm volatile( \
 								".align 4;" \
 								"mov    r0,pc;" \
@@ -354,7 +333,29 @@ extern void* __PageTableSec_start;
                                 : \
                                 : "r0" \
                             )
+#endif
 
+#define _enableInterrupts() asm volatile( \
+                                "MRS	r0, cpsr;" \
+                                "BIC	r0, r0, #0x80;" \
+                                "MSR	cpsr, r0;" \
+                                : \
+                                : \
+                                : "r0" \
+                            )
+
+
+// Disable interrupts (IRQ).
+#define _disableInterrupts() asm volatile( \
+                                "MRS	r0, cpsr;" \
+                                "ORR	r0, r0, #0x80;" \
+                                "MSR	cpsr, r0;" \
+                                : \
+                                : \
+                                : "r0" \
+                            )
+
+#if 0
 // Disable interrupts (IRQ).
 #define _disableInterrupts() asm volatile( \
 								".align 4;" \
@@ -371,6 +372,7 @@ extern void* __PageTableSec_start;
                                 : \
                                 : "r0" \
                             )
+#endif
 
 // supervisor mode: 19, system mode: 31, disable interrupts: 0xC0
 #define SAVE_CONTEXT_AT(mem_loc) asm volatile \
@@ -398,6 +400,7 @@ extern void* __PageTableSec_start;
        : "r"(mem_loc) \
        : "r0", "r1", "r3" , "r4" \
    );
+
 
 // guaranetees that instructions will be executed without being interrupted without using a mutex
 #define ATOMAR(statements) \
