@@ -1,0 +1,16 @@
+Gestartet durch vorgelagertes Projekt "[8mha:AAAApB+LCAAAAAAAAP9b85aBtbiIQTGjNKU4P08vOT+vOD8nVc83PyU1x6OyILUoJzMv2y+/JJUBAhiZGBgqihhk0NSjKDWzXb3RdlLBUSYGJk8GtpzUvPSSDB8G5tKinBIGIZ+sxLJE/ZzEvHT94JKizLx0a6BxUmjGOUNodHsLgAz+EgZJ/az8JH3/IGf/YFUjA/fMEiDpnJOfl6oPAGrAXgXOAAAA[0mORCOS Git Clone", Build [8mha:AAAApx+LCAAAAAAAAP9b85aBtbiIQTGjNKU4P08vOT+vOD8nVc83PyU1x6OyILUoJzMv2y+/JJUBAhiZGBgqihhk0NSjKDWzXb3RdlLBUSYGJk8GtpzUvPSSDB8G5tKinBIGIZ+sxLJE/ZzEvHT94JKizLx0a6BxUmjGOUNodHsLgAzmEgYZ/az8JH3/IGf/YFUjA/fMEiDpnJOfl6pvaGwGANnWp0XRAAAA[0m136
+originally caused by:
+ Build wurde zeitgesteuert ausgelöst.
+Building in workspace /home/pi/build
+[build] $ /bin/sh -xe /tmp/hudson2356905385840613547.sh
++ cd configurations/BeBot/Prototype/
++ make scl GCC_LIB_DIR=/home/pi/orcos_arm LIBC_DIR=/home/pi/orcos_arm CC=/usr/bin/gcc CXX=/usr/bin/c++ AS=/usr/bin/as AR=/usr/bin/ar SIZE=/usr/bin/size OBJDUMP=/usr/bin/objdump LD=/usr/bin/ld OBJCOPY=/usr/bin/objcopy STRIP=/usr/bin/strip KERNEL_DIR=/home/pi/build/source/ KERNEL_LIB_DIR=/home/pi/build/library/bin/armv7/ OPT_FLAGS=-O2 -mthumb -mcpu=cortex-a8  -mthumb-interwork -DARM_THUMB=1
+----------------- SCLTool -------------------
+kernel.mk: Reading config file SCLConfig.xml
+Transforming file: /home/pi/build/configurations/BeBot/Prototype/SCLConfig.xml
+Using XSD file: /home/pi/build/configurations/BeBot/Prototype/../../../tools/SCL/dist/scl2.xsd
+Error while validating xml config file
+cvc-complex-type.2.4.a: Ungültiger Content wurde beginnend mit Element "End" gefunden. "{Size}" wird erwartet.
+make: *** [SCLConfig.hh] Fehler 1
+Build step 'Shell ausführen' marked build as failure
+Finished: FAILURE
