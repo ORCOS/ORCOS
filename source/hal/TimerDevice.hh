@@ -49,7 +49,7 @@ protected:
     unint4 tickRate; // the rate [cycles/tick] at which the Timer is ticked
 
     ErrorT doHardwareStuffOnTick() {
-        return cNotImplemented;
+        return (cNotImplemented);
     }
 
 public:
@@ -64,7 +64,7 @@ public:
      *
      *  \param t the amount of cycles
      */
-    void setTimer( unint4 t ) {   time = t;};
+    void setTimer( TimeT t ) {   time = t;};
 
     /*!
      *  \brief enable the timer hardware
@@ -74,7 +74,7 @@ public:
      * of the hardware ticks fine enough to achive accurate time measure
      */
     ErrorT enable() {
-        return cNotImplemented;
+        return (cNotImplemented);
     }
 
     /*!
@@ -86,7 +86,7 @@ public:
      * stops working.
      */
     ErrorT disable() {
-        return cNotImplemented;
+        return (cNotImplemented);
     }
 
     /*!
@@ -100,14 +100,12 @@ public:
         elapsedCycles += tickRate;
 
         if ( elapsedCycles >= time ) {
-            unint4 dt = elapsedCycles;
-            elapsedCycles = 0;
-
-            dispatcher->dispatch( dt );
+             elapsedCycles = 0;
+             dispatcher->dispatch();
         }
 
 
-        return cOk;
+        return (cOk);
     };
 };
 

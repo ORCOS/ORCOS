@@ -60,10 +60,13 @@ SingleCPUDispatcher::SingleCPUDispatcher() :
 SingleCPUDispatcher::~SingleCPUDispatcher() {
 }
 
-void SingleCPUDispatcher::dispatch( unint4 dt ) {
+void SingleCPUDispatcher::dispatch() {
      // first be sure that interrupts are disabled
     _disableInterrupts();
 
+    TimeT currentTime = theOS->getClock()->getTimeSinceStartup();
+    // set the time stamp
+     lastCycleStamp = currentTime;
 
     // check whether the idle thread was currently running or not
     // the idle thread would have pRunningThreadDbItem = 0
@@ -72,17 +75,14 @@ void SingleCPUDispatcher::dispatch( unint4 dt ) {
     }
 
     // get the next timer event the scheduler wants to be called
-    int nextevent = this->SchedulerCfd->getNextTimerEvent(sleepList,dt);
-    LOG(SCHEDULER,DEBUG,(SCHEDULER,TRACE,"SingleCPUDispatcher: next Timer %d", nextevent));
+    TimeT nextevent = this->SchedulerCfd->getNextTimerEvent(sleepList,currentTime);
+    LOG(SCHEDULER,DEBUG,(SCHEDULER,DEBUG,"SingleCPUDispatcher: next Timer %x %x", (unint4) ((nextevent >> 32) & 0xffffffff),  (unint4) ((nextevent) & 0xffffffff)));
     theTimer->setTimer( nextevent );
 
     // get the next ready thread
     // Be sure to call getNextTimerEvent() before this, since depending on the scheduler the returned
     // timeslice might depend on the Threads in the scheduler! (e.g. RateMonotonicThreadScheduler)
     LinkedListDatabaseItem* nextThreadDbItem = (LinkedListDatabaseItem*) SchedulerCfd->getNext();
-
-     // set the time stamp
-    lastCycleStamp = theClock->getTimeSinceStartup();
 
 
     if ( nextThreadDbItem != 0 ) {
@@ -94,6 +94,8 @@ void SingleCPUDispatcher::dispatch( unint4 dt ) {
 
         int tid = pCurrentRunningThread->getId();
         pRunningThreadDbItem = nextThreadDbItem;
+
+        TRACE_THREAD_START(pCurrentRunningTask->getId(),pCurrentRunningThread->getId());
 
         if ( pCurrentRunningThread->isNew() ) {
             LOG(SCHEDULER,DEBUG,(SCHEDULER,DEBUG,"SingleCPUDispatcher: start Thread %d at %x, stack [0x%x - 0x%x]", tid, pCurrentRunningThread,pCurrentRunningThread->threadStack.startAddr,pCurrentRunningThread->threadStack.endAddr));
@@ -120,11 +122,9 @@ void SingleCPUDispatcher::dispatch( unint4 dt ) {
 }
 
 
-void SingleCPUDispatcher::dispatch() {
-	dispatch((unint4) (theClock->getTimeSinceStartup() - lastCycleStamp));
-}
 
-void SingleCPUDispatcher::sleep( int cycles, LinkedListDatabaseItem* pSleepDbItem ) {
+
+void SingleCPUDispatcher::sleep( TimeT timePoint, LinkedListDatabaseItem* pSleepDbItem ) {
     // be sure that this critical area cant be interrupted
 #if ENABLE_NESTED_INTERRUPTS
     bool int_enabled;
@@ -133,25 +133,16 @@ void SingleCPUDispatcher::sleep( int cycles, LinkedListDatabaseItem* pSleepDbIte
     _disableInterrupts();
 #endif
 
-    if ( cycles > 0 ) {
-        LOG(SCHEDULER,DEBUG,(SCHEDULER,DEBUG,"SingleCPUDispatcher::sleep(): %d",cycles));
-        // the specified thread wants to sleep
-        this->sleepList->addTail( (LinkedListDatabaseItem*) pSleepDbItem );
-    }
-    else {
-        // dont sleep. be sure ready flag is set.
-        LOG(SCHEDULER,TRACE,(SCHEDULER,TRACE,"SingleCPUDispatcher::sleep() Thread sleepcycles <= 0 (%d) putting in ready queue.",cycles));
-        ( (Kernel_ThreadCfdCl*) pSleepDbItem->getData() )->status.setBits( cReadyFlag );
-        // announce thread to scheduler again
-        this->SchedulerCfd->enter( (LinkedListDatabaseItem*) pSleepDbItem );
-    }
+  /* place into sleeplist */
+   this->sleepList->addTail( (LinkedListDatabaseItem*) pSleepDbItem );
 
     if ( pSleepDbItem == pRunningThreadDbItem ) {
         pRunningThreadDbItem = 0;
+
 #if ENABLE_NESTED_INTERRUPTS
         pCurrentRunningThread->executinginthandler = false;
 #endif
-        dispatch( (unint4) (theClock->getTimeSinceStartup() - lastCycleStamp) );
+        dispatch();
     }
 
 #if ENABLE_NESTED_INTERRUPTS
@@ -172,6 +163,8 @@ void SingleCPUDispatcher::block( Thread* thread ) {
 #endif
     LOG(SCHEDULER,DEBUG,(SCHEDULER,DEBUG,"SingleCPUDispatcher::block() blocking Thead %d", thread->getId()));
 
+   	TRACE_THREAD_STOP(thread->getOwner()->getId(),thread->getId());
+
     if ( thread == pCurrentRunningThread ) {
         this->blockedList->addTail( pRunningThreadDbItem );
         pRunningThreadDbItem = 0;
@@ -179,14 +172,14 @@ void SingleCPUDispatcher::block( Thread* thread ) {
         pCurrentRunningThread->executinginthandler = false;
 #endif
        // LOG(SCHEDULER,INFO,(SCHEDULER,INFO,"SingleCPUDispatcher::block() dispatching! %d",this->SchedulerCfd->database.getSize()));
-        dispatch( (unint4) ( theClock->getTimeSinceStartup() - lastCycleStamp) );
+        dispatch( );
     }
     else {
         // find the databaseitem of this thread and remove it from the scheduler
         LinkedListDatabaseItem* litem;
 
         // if the thread is currently sleeping remove it from the sleeplist
-        if ( thread->sleepCycles > 0 ) {
+        if ( thread->sleepTime > 0 ) {
             litem = this->sleepList->getItem( thread );
         }
         else
@@ -227,7 +220,7 @@ void SingleCPUDispatcher::unblock( Thread* thread ) {
     if ( litem != 0 ) {
         Thread* pThread = (Thread*) litem->getData();
         // check if there is still some remaining sleep time on this thread
-        if ( pThread->sleepCycles > 0 )
+        if ( pThread->sleepTime > 0 )
             this->sleepList->addTail( litem );
         else {
             // TODO Dispatch! since we may have priorities!!!!!!
@@ -265,14 +258,14 @@ void SingleCPUDispatcher::sigwait( Thread* thread ) {
 #if ENABLE_NESTED_INTERRUPTS
         pCurrentRunningThread->executinginthandler = false;
 #endif
-        dispatch( (unint4) ( theClock->getTimeSinceStartup() - lastCycleStamp) );
+        dispatch( );
     }
     else {
         // find the databaseitem of this thread and remove it from the scheduler
         LinkedListDatabaseItem* litem = 0;
 
         // if the thread is currently sleeping remove it from the sleeplist
-        if ( thread->sleepCycles > 0 ) {
+        if ( thread->sleepTime > 0 ) {
             litem = this->sleepList->getItem( thread );
         }
         else if ( ((Thread*)litem->getData())->status.areSet(cBlockedFlag) ){
@@ -332,11 +325,11 @@ void SingleCPUDispatcher::signal( void* sig, int sigvalue ) {
 
                 if ( !pThread->status.areSet( cStopped ) ) {
 
-                    if ( pThread->status.areSet( cBlockedFlag ) ) {
+                    if ( pThread->isBlocked() ) {
                         this->blockedList->addTail( litem );
                     }
                     // check if there is still some remaining sleep time on this thread
-                    else if ( pThread->sleepCycles > 0 ) {
+                    else if (pThread->sleepTime > 0 ) {
                         this->sleepList->addTail( litem );
                     }
                     else {
@@ -362,6 +355,7 @@ void SingleCPUDispatcher::signal( void* sig, int sigvalue ) {
 
 void SingleCPUDispatcher::terminate_thread( Thread* thread ) {
     if ( pCurrentRunningThread == thread ) {
+    	TRACE_THREAD_STOP(pCurrentRunningTask->getId(),pCurrentRunningThread->getId());
 
 #if ENABLE_NESTED_INTERRUPTS
         _disableInterrupts();
@@ -375,11 +369,11 @@ void SingleCPUDispatcher::terminate_thread( Thread* thread ) {
 
         pRunningThreadDbItem = 0;
 
-        dispatch( (unint4) ( theClock->getTimeSinceStartup() - lastCycleStamp) );
+        dispatch();
     }
     else {
    	     	    // if the thread is currently sleeping remove it from the sleeplist
-		if ( thread->sleepCycles > 0 )
+		if ( thread->sleepTime > 0 )
 			this->sleepList->remove( thread );
 		else if (thread->isBlocked())
 			this->blockedList->remove( thread );

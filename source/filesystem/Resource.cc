@@ -45,7 +45,7 @@ Resource::Resource( ResourceType rt, bool sync_res, const char* p_name ) {
 }
 
 void Resource::aquire( Thread* pThread, bool blocking ) {
-    ASSERT(pThread);
+	ASSERT(pThread);
 
     int retval = this->myResourceId;
 
@@ -55,12 +55,14 @@ void Resource::aquire( Thread* pThread, bool blocking ) {
         	retval = cError;
     }
     else {
-        // this resource is not synchronized. so just add it to the set of aquired resources
-       int result = pThread->getOwner()->aquiredResources.addTail( this );
+
+		// this resource is not synchronized. so just add it to the set of aquired resources
+		int result = pThread->getOwner()->aquiredResources.addTail( this );
+		// forward status back to user
+		if (result < 0) retval = result;
+
        // for files we also reset the position
        if (this->getType() & cFile) ((File*) this)->resetPosition();
-       // forward status back to user
-       if (result < 0) retval = result;
     }
 
     void* sp_int;

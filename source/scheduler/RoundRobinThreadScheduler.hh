@@ -57,7 +57,7 @@ public:
      *
      * This may be 0 if no elements are in the list.
      */
-    int getNextTimerEvent( LinkedListDatabase* sleepList,unint4 dt );
+    TimeT getNextTimerEvent( LinkedListDatabase* sleepList,TimeT currentTime  );
 };
 
 #endif /*ROUNDROBINTHREADSCHEDULER_HH_*/

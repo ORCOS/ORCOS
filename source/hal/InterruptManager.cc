@@ -32,11 +32,13 @@ InterruptManager::~InterruptManager() {
 
 ErrorT InterruptManager::handleIRQ(unint4 irq) {
 
+	ErrorT ret = cError;
+
 	if (irq > IRQ_MAX) return (cError);
+	TRACE_IRQ_ENTRY(irq);
 
 #if USE_WORKERTASK
 	/* schedule the irq using a workerthread */
-
 	theOS->getCPUDispatcher()->signal((void*) (irq << 16),cOk);
 
 	/* do wa have an irq handler for this irq number? */
@@ -44,23 +46,21 @@ ErrorT InterruptManager::handleIRQ(unint4 irq) {
 
 		if (irqTable[irq].driver->hasAssignedWorkerThread){
 			LOG(HAL,WARN,(HAL,WARN,"InterruptManager::handleIRQ(): IRQ %x occurred again before workerthread finished.",irq));
-			return (cError);
+			ret = cError;
 		} else {
 
 			/* try to schedule the irq using a workerthread*/
 			WorkerThread* wthread = theOS->getWorkerTask()->addJob(IRQJob,0,irqTable[irq].driver,irqTable[irq].priority);
 
 			if (wthread == 0) {
-
-				/* on error log it and execute the irq handler directly..
+			 	/* on error log it and execute the irq handler directly..
 				 * this way the system stays functional, however the realtime
 				 * capabilities will be seriously reduced..
 				 * */
-				LOG(HAL,ERROR,(HAL,ERROR,"InterruptManager::handleIRQ(): could not schedule IRQ %x Executing directly.",irq));
+				LOG(HAL,DEBUG,(HAL,DEBUG,"InterruptManager::handleIRQ(): could not schedule IRQ %x Executing directly.",irq));
 				irqTable[irq].driver->handleIRQ();
 				irqTable[irq].driver->hasAssignedWorkerThread = false;
 				irqTable[irq].driver->interruptPending = false;
-
 			} else {
 
 				/* success the irq handler will be executed inside a workerthread */
@@ -74,9 +74,9 @@ ErrorT InterruptManager::handleIRQ(unint4 irq) {
 			irqTable[irq].driver->clearIRQ();
 			/* also clear the IRQ at the interrupt controller */
 			theOS->getBoard()->getInterruptController()->clearIRQ(irq);
-		}
 
-		return (cOk);
+		}
+		ret = cOk;
 	} else {
 		LOG(HAL,ERROR,(HAL,ERROR,"InterruptManager::handleIRQ(): unknown IRQ %x.",irq));
 	}
@@ -92,7 +92,8 @@ ErrorT InterruptManager::handleIRQ(unint4 irq) {
 	}
 #endif
 
-	return (cError);
+	TRACE_IRQ_EXIT(irq);
+	return (ret);
 }
 
 ErrorT InterruptManager::registerIRQ(unint4 irq, GenericDeviceDriver* driver, unint4 priority) {
@@ -102,6 +103,8 @@ ErrorT InterruptManager::registerIRQ(unint4 irq, GenericDeviceDriver* driver, un
 	// allow overwriting of handlers for irq
 	irqTable[irq].driver   = driver;
 	irqTable[irq].priority = priority;
+
+	TRACE_ADD_SOURCE(0,irq,driver->getName());
 
 	return (cError);
 }

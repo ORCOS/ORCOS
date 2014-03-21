@@ -38,11 +38,11 @@ ErrorT EarliestDeadlineFirstThreadScheduler::enter( LinkedListDatabaseItem* item
 
 }
 
-unint4 EarliestDeadlineFirstThreadScheduler::getNextTimerEvent( LinkedListDatabase* sleepList,unint4 dt ) {
+TimeT EarliestDeadlineFirstThreadScheduler::getNextTimerEvent( LinkedListDatabase* sleepList,TimeT currentTime ) {
     ASSERT(sleepList);
     /* it makes no sense to return an unint8 here, since theOS->getTimerDevice()->setTimer(nextevent) will take
        a unint4 anyways (and the return value of this function is used to set the timer event). */
-    int4 sleeptime = MAX_INT4 -1;
+    TimeT sleeptime = MAX_UINT8;
 
     /* only return a value smaller than sleeptime if there is some other competing threads inside the sleeplist! */
     LinkedListDatabaseItem* pDBSleepItem = sleepList->getHead();
@@ -51,12 +51,12 @@ unint4 EarliestDeadlineFirstThreadScheduler::getNextTimerEvent( LinkedListDataba
         /* first update the sleeptime and wake up waiting/sleeping threads */
         do {
             RealTimeThread* pSleepThread = static_cast< RealTimeThread*> ( pDBSleepItem->getData() );
-            pSleepThread->sleepCycles -= dt;
 
-            if ( pSleepThread->sleepCycles <= 0 ) {
+            if ( pSleepThread->sleepTime <= currentTime ) {
 				pSleepThread->status.setBits( cReadyFlag );
 				LinkedListDatabaseItem* litem2 = pDBSleepItem;
 				pDBSleepItem = pDBSleepItem->getSucc();
+				pSleepThread->sleepTime = 0;
 				/* This thread is active again. Enter the queue again. If it has the highest
 				 * priority it will be chosen next. */
 				this->enter( litem2 );
@@ -102,7 +102,8 @@ unint4 EarliestDeadlineFirstThreadScheduler::getNextTimerEvent( LinkedListDataba
 		item->effectivePriority    = (( 1 << sizeof(TimeT)) -1) - item->absoluteDeadline;
 		item->initialPriority      = item->effectivePriority;
 	}
-	else
+	/* only change the priority if it has not been set by the prioritythread */
+	else if (item->initialPriority == cDefaultPriority)
 	{
 		item->initialPriority      = 1;
 		item->absoluteDeadline     = 0;

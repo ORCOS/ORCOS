@@ -281,7 +281,7 @@ int sendFile(int controlsock, int datasock, sockaddr *dataremote, int handle) {
 		// failing may happen if no more free memory is available
 		// inside the TCP/IP stack to hold the packet until acked
 		while (sendto(datasock,return_msg,num,0) != 0) {
-			sleep(100);
+			sleep(2);
 			timeout--;
 			if (timeout == 0) {
 				sprintf(return_msg,"426 Timeout sending data\r\n");
@@ -604,17 +604,15 @@ extern "C" int task_main()
 			 int handle = fopen(file,0);
 
 			 if (handle >= 0) {
-				 // file opened .. send
-
-				char* s = "150 Opening BINARY mode data connection\r\n";
-				sendto(newsock,s,strlen(s),0);
-
+			    // file opened .. send
 				// create new socket
 				datasock = socket(IPV4,SOCK_STREAM,TCP);
 				// bind to local port
 				bind(datasock,dataaddr);
 
-				//puts("Sending Directory Contents..\r\n");
+				char* s = "150 Opening BINARY mode data connection\r\n";
+				sendto(newsock,s,strlen(s),0);
+
 				int status = sendFile(newsock,datasock,&dataremote,handle);
 
 				// stream mode must close the socket again..

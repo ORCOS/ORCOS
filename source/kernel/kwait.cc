@@ -39,7 +39,7 @@ void kwait(int milliseconds) {
 		while ( i < 100000) i++;
 	} else {
 		volatile TimeT now = theOS->getClock()->getTimeSinceStartup();
-		while (theOS->getClock()->getTimeSinceStartup() < (now + (milliseconds * 33))) {};
+		while (theOS->getClock()->getTimeSinceStartup() < (now + (milliseconds MILLISECONDS))) {};
 	}
 
 }
@@ -55,7 +55,7 @@ void kwait_us(int us) {
 	} else {
 		volatile unint8 now = theOS->getClock()->getTimeSinceStartup();
 		// TODO: make portable by define
-		while (theOS->getClock()->getTimeSinceStartup() < (now + (us >> 5) + 1)) {};
+		while (theOS->getClock()->getTimeSinceStartup() < (now + (us MICROSECONDS))) {};
 	}
 
 }

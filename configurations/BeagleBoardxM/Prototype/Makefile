@@ -9,22 +9,22 @@ RELATIVE_SOURCE_PATH = ../../..
 #                                                      Tools Settings
 #---------------------------------------------------------------------------------------------------------------------------------------
 #GCC SETTINGS
-ARM_GCC_DIR=arm-2009q3
-GCC_VERSION=4.7.4
+# for windows we must specify the ld linking directories with absolute path 
+GCC_LIB_DIR=C:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/
+LIBC_DIR=C:/toolchains/armgcc-4-7-4/arm-none-eabi/lib/armv7-ar/thumb/
 
-# for windows we must specify the ld directory with absolute path 
-GCC_LIB_DIR=C:/gcc-arm-none-eabi/lib/gcc/arm-none-eabi/$(GCC_VERSION)/armv7-ar/thumb/
-LIBC_DIR=C:/gcc-arm-none-eabi/arm-none-eabi/lib/armv7-ar/thumb/
 
-CC      = /cygdrive/c/gcc-arm-none-eabi/bin/arm-none-eabi-gcc
-CXX     = /cygdrive/c/gcc-arm-none-eabi/bin/arm-none-eabi-c++
-AS      = /cygdrive/c/gcc-arm-none-eabi/bin/arm-none-eabi-as
-AR      = /cygdrive/c/gcc-arm-none-eabi/bin/arm-none-eabi-ar
-SIZE	= /cygdrive/c/gcc-arm-none-eabi/bin/arm-none-eabi-size
-OBJDUMP = /cygdrive/c/gcc-arm-none-eabi/bin/arm-none-eabi-objdump
-LD		= /cygdrive/c/gcc-arm-none-eabi/bin/arm-none-eabi-ld
-OBJCOPY = /cygdrive/c/gcc-arm-none-eabi/bin/arm-none-eabi-objcopy 
-STRIP   = /cygdrive/c/gcc-arm-none-eabi/bin/arm-none-eabi-strip
+ARMEABI= /cygdrive/c/toolchains/armgcc-4-7-4/bin/arm-none-eabi
+
+CC      = $(ARMEABI)-gcc
+CXX     = $(ARMEABI)-c++
+AS      = $(ARMEABI)-as
+AR      = $(ARMEABI)-ar
+SIZE	= $(ARMEABI)-size
+OBJDUMP = $(ARMEABI)-objdump
+LD		= $(ARMEABI)-ld
+OBJCOPY = $(ARMEABI)-objcopy 
+STRIP   = $(ARMEABI)-strip
 
 #SH Tools
 RM      	= rm -rf
@@ -60,17 +60,17 @@ LINKERSCRIPT = $(ARCH_DIR)/kernel.ld
 # if thumb mode is activated set this define to 1!
 #CPU_FLAGS =  -mthumb -mcpu=cortex-a8  -mno-unaligned-access -DARM_THUMB=1
  
-#Optimization flag
-OPT_FLAGS = -O2  -mthumb -mcpu=cortex-a8  -mthumb-interwork -mno-unaligned-access -DARM_THUMB=1 -fno-builtin
+#Optimization flag -flto
+OPT_FLAGS = -O2  -mthumb -mcpu=cortex-a8  -mthumb-interwork -DARM_THUMB=1 -fno-builtin -flto -mno-unaligned-access
 # User Library Optimization Flag. Keep as is
 USER_LIB_OPT_FLAGS = -O2 -mcpu=cortex-a8 -mno-unaligned-access
 
 #Command line arguments to compile .c files.
-CFLAGS = -Wall -g -I$(KERNEL_DIR)inc/ -I./make/ -I$(KERNEL_DIR)comm/lwip/include/ -I$(KERNEL_DIR)comm/lwip/ -I. -I$(KERNEL_DIR) -I$(KERNEL_LIB_DIR)/../../ $(ARCH_INCLUDES) -ffunction-sections -flto -fno-exceptions -fno-unwind-tables -msoft-float -fno-stack-protector -Wno-write-strings -c $(CPU_FLAGS) 
+CFLAGS = -Wall -g -I$(KERNEL_DIR)inc/ -I./make/ -I$(KERNEL_DIR)comm/lwip/include/ -I$(KERNEL_DIR)comm/lwip/ -I. -I$(KERNEL_DIR) -I$(KERNEL_LIB_DIR)/../../ $(ARCH_INCLUDES) -ffunction-sections -fno-exceptions -fno-unwind-tables -msoft-float -fno-stack-protector -Wno-write-strings -c $(CPU_FLAGS) 
 #CFLAGS +=  -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wstrict-prototypes -Wmissing-prototypes -Wconversion
 
 #Command line arguments to compile .cc files.
-CPFLAGS = -Wall -g -I$(KERNEL_DIR)inc/ -I./make/ -I$(KERNEL_DIR)comm/lwip/include/ -I$(KERNEL_DIR)comm/lwip/ -I. -I$(KERNEL_DIR) -I$(KERNEL_LIB_DIR)/../../ $(ARCH_INCLUDES) -ffunction-sections  -flto -fno-exceptions -fno-unwind-tables -fno-rtti -msoft-float -fno-stack-protector -c -Wno-write-strings -Wuninitialized -Woverloaded-virtual $(CPU_FLAGS) 
+CPFLAGS = -Wall -g -I$(KERNEL_DIR)inc/ -I./make/ -I$(KERNEL_DIR)comm/lwip/include/ -I$(KERNEL_DIR)comm/lwip/ -I. -I$(KERNEL_DIR) -I$(KERNEL_LIB_DIR)/../../ $(ARCH_INCLUDES) -ffunction-sections  -fno-exceptions -fno-unwind-tables -fno-rtti -msoft-float -fno-stack-protector -c -Wno-write-strings -Wuninitialized -Woverloaded-virtual $(CPU_FLAGS) 
 #CPFLAGS +=  -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wconversion
 
 #Command line arguments to the linker.

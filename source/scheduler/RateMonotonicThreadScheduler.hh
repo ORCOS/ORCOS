@@ -58,7 +58,7 @@ public:
      * superflous DatabaseItem will be generated which results in a memory leak!
      */
     ErrorT enter( ScheduleableItem* item ) {
-        return this->enter( new LinkedListDatabaseItem( item ) );
+        return (this->enter( new LinkedListDatabaseItem( item ) ));
     }
 
     /*!
@@ -71,7 +71,7 @@ public:
      * by the dispatcher before it calls the getNext() method, so the priority of the 'running' thread can be gotten by looking
      * at the next thread in line (at the head of the scheduling queue).
      */
-    int getNextTimerEvent(LinkedListDatabase* sleepList,unint4 dt );
+    TimeT getNextTimerEvent(LinkedListDatabase* sleepList, TimeT currentTime );
 
 };
 

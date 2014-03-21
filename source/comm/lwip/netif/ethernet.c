@@ -13,6 +13,9 @@
 #include "lwip/netif.h"
 #include "netif/ethar.h"
 
+
+extern void* comStackMutex;
+
 /**
  * Process received ethernet frames. Using this function instead of directly
  * calling ip_input and passing ARP frames through etharp in ethernetif_input,
@@ -51,6 +54,9 @@ err_t ethernet_input(struct pbuf *p, struct netif *netif) {
         type = htons(vlan->tpid);
     }
 #endif /* ETHARP_SUPPORT_VLAN */
+
+
+    acquireMutex(comStackMutex);
 
     switch (type)
     {
@@ -118,8 +124,10 @@ err_t ethernet_input(struct pbuf *p, struct netif *netif) {
             break;
     }
 
+    releaseMutex(comStackMutex);
+
     /* This means the pbuf is freed or consumed,
      so the caller doesn't have to free it again */
-    return ERR_OK;
+    return (ERR_OK);
 }
 

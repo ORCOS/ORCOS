@@ -265,8 +265,7 @@ extern "C"void dispatchIRQ(void* sp_int, int mode)
 	switch (irqSrc)
 	    {
 			// General Purpose Timer interrupt
-			case GPT1_IRQ:
-			case GPT2_IRQ:
+			case GPT10_IRQ:
 			{
 				/* non returning irq ..*/
 				theOS->getBoard()->getInterruptController()->clearIRQ(irqSrc);
@@ -283,7 +282,7 @@ extern "C"void dispatchIRQ(void* sp_int, int mode)
 	/* Dispatch directly as a blocked thread might have been unblock by this irq handling */
 	/* If the same thread is resumed we unfortunately lost some time, by not calling
 	 * assemblerfunctions::resumeThread directly */
-	theOS->getCPUDispatcher()->dispatch( (unint4) (theOS->getClock()->getTimeSinceStartup() - lastCycleStamp) );
+	theOS->getCPUDispatcher()->dispatch();
 
 	// we should never get here
 	while(1);

@@ -29,45 +29,57 @@ BeagleBoardGPTimer2::BeagleBoardGPTimer2(T_BeagleBoardGPTimer2_Init * init) {
 	// TODO: use init addresses!
 
 	// set input to 26 mhz sys clock ~ tick every 38 ns
-	//unint4 cm_clksel_per = INW(CM_CLKSEL_PER);
-	//OUTW(CM_CLKSEL_PER,cm_clksel_per | 1);
+	unint4 cm_clksel_per = INW(CM_CLKSEL_CORE);
+	OUTW(CM_CLKSEL_CORE,cm_clksel_per | ( 1 << 6));
+
+	// we will use GP10 for the timer functionality as it is connected to the L4 Interface
+	// we can access the GP10 (default) with 100 MHZ.
+	// setting the time is not so urgent
+	// GPTimer 2 (at 200) MHZ interface will be used for the clock as it is accessed more
+	// recently
 
 	// enable timer 2 functional clock
-	OUTW(0x48005000,INW(0x48005000) | (1 <<3));
+	//OUTW(0x48005000,INW(0x48005000) | (1 <<3));
 	// enabel time 2 interface clock
- 	OUTW(0x48005010,INW(0x48005010) | (1 << 3));
+ 	//OUTW(0x48005010,INW(0x48005010) | (1 << 3));
 
- 	// use 32768 hz clock
-	unint4 cm_clksel_per = INW(CM_CLKSEL_PER);
-	OUTW(CM_CLKSEL_PER,cm_clksel_per & (~1));
+	// enable GPTimer 10 functional clock
+	OUTW(CM_FCLKEN1_CORE,INW(CM_FCLKEN1_CORE) | (1 << 11));
 
-	//OUTW(CM_CLKSEL_WKUP, (INW(CM_CLKSEL_WKUP) & 0xFFFFFFFE));
+	// enable GPTimer 10 interface clock
+	OUTW(CM_ICLKEN1_CORE,INW(CM_ICLKEN1_CORE) | (1 << 11));
+
+
 
 	// GPT1_TPIR POSITIVE_INC_VALUE = 232000 = 0x38A40
-	OUTW(GPT2_TPIR, 0x0);
+	OUTW(GPT10_TPIR, 0x0);
 
 	// GPT1_TNIR NEGATIVE_INC_VALUE = 768000 = 0xBB800
-	OUTW(GPT2_TNIR, 0x0);
+	OUTW(GPT10_TNIR, 0x0);
 
 	// GPT1_TLDR LOAD_VALUE = 0xFFFFFFE0
-	OUTW(GPT2_TLDR, 0x0);
+	OUTW(GPT10_TLDR, 0x0);
 
 	// configure for autoreload, compare mode and disable timer
-	OUTW(GPT2_TCLR,  0x2 | (0x1 << 6));
+	OUTW(GPT10_TCLR,  0x2 | (0x1 << 6));
 
 	// set counter to start value
-	OUTW(GPT2_TCRR, 0x0);
+	OUTW(GPT10_TCRR, 0x0);
 
 	// clear pending interrupts
-	OUTW(GPT2_TISR, 0x7);
+	OUTW(GPT10_TISR, 0x7);
 
 	// configure and enable interrupts within interrupt controller (MPU_INTCPS_ILR(38))
-	OUTW(MPU_INTCPS_ILR(38), (INW(MPU_INTCPS_ILR(38)) & ~ 0x1 )); // normal irq
+	/*OUTW(MPU_INTCPS_ILR(38), (INW(MPU_INTCPS_ILR(38)) & ~ 0x1 )); // normal irq
 	OUTW(MPU_INTCPS_ILR(38), (INW(MPU_INTCPS_ILR(38)) & ~ 0xFC )); // priority 0 (highest)
-	OUTW(MPU_INTCPS_MIR_CLEAR(1), 0xF0 ); // enable interrupt: (gpt2 int no. 38: (38 mod 32) + 1): position of bit
+	OUTW(MPU_INTCPS_MIR_CLEAR(1), 0xF0 ); // enable interrupt: (gpt2 int no. 38: (38 mod 32) + 1): position of bit*/
+
+	OUTW(MPU_INTCPS_ILR(46), (INW(MPU_INTCPS_ILR(46)) & ~ 0x1 )); // normal irq
+	OUTW(MPU_INTCPS_ILR(46), (INW(MPU_INTCPS_ILR(46)) & ~ 0xFC )); // priority 0 (highest)
+	OUTW(MPU_INTCPS_MIR_CLEAR(1), 0x4000 ); // enable interrupt: (gpt2 int no. 46: (46 mod 32) + 1): position of bit
 
 	// enable intterupt on timer match (compare mode) (gpt2)
-	OUTW(GPT2_TIER, INW(GPT2_TIER) | 0x1 );
+	OUTW(GPT10_TIER, INW(GPT10_TIER) | 0x1 );
 
 	// initialize timer
     isEnabled = false;
@@ -86,11 +98,11 @@ ErrorT BeagleBoardGPTimer2::enable() {
 	this->setTimer(time);
 
 	// start timer
-	OUTW(GPT2_TCLR, INW(GPT2_TCLR) | 0x1 );
+	OUTW(GPT10_TCLR, INW(GPT10_TCLR) | 0x1 );
 
 
 	isEnabled = true;
-    return cOk;
+    return (cOk);
 }
 
 ErrorT BeagleBoardGPTimer2::disable() {
@@ -98,35 +110,39 @@ ErrorT BeagleBoardGPTimer2::disable() {
 	isEnabled = false;
 
 	// stop timer
-	OUTW(GPT2_TCLR, INW(GPT2_TCLR) & ~0x1 );
+	OUTW(GPT10_TCLR, INW(GPT10_TCLR) & ~0x1 );
 
-    return cOk;
+    return (cOk);
 }
 
-ErrorT BeagleBoardGPTimer2::setTimer( unint4 t ) {
+ErrorT BeagleBoardGPTimer2::setTimer( TimeT t ) {
 
-	//reset overflow counter register
-	OUTW(GPT2_TOCR, 0x0);
 
-	// write t (time) to overflow wrapping register
-	//unint4 val =  (t / ((CLOCK_RATE / 1000000)));
-	OUTW(GPT2_TCRR, 0x0);
+	TimeT currentTime = theOS->getClock()->getTimeSinceStartup();
+	/* set to 5 ticks if currentTime > t*/
+	unint4 dt = 5;
+
+	/* otherwise generate the next irq in (t- currentTime) ticks */
+	if (currentTime < t)
+		dt  =  t - currentTime;
 
 	// set match value
-	OUTW(GPT2_TMAR, t);
+	OUTW(GPT10_TMAR, dt);
+
+	OUTW(GPT10_TCRR, 0x0);
 
 	// reset timer interrupt pending bit
-	OUTW(GPT2_TISR, 0x1);
+	OUTW(GPT10_TISR, 0x1);
 
 	// allow new interrupts
 	theOS->getBoard()->getInterruptController()->clearIRQ( 0 );
 
 	// again: reset timer interrupt pending bit
-	OUTW(GPT2_TISR, 0x1);
+	OUTW(GPT10_TISR, 0x1);
 
 	tickRate = t; // tickRate = cycles/tick
 
 	TimerDevice::setTimer(t);
-    return cOk;
+    return (cOk);
 }
 

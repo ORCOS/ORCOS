@@ -63,7 +63,7 @@ WorkerThread* WorkerTask::addJob( JOBType jobType, unint1 pid, void* param, unin
         LOG(PROCESS,DEBUG,(PROCESS,DEBUG,"WorkerTask::addJob() assigned thread %d for job %d",pWThread->getId(),jobType));
 
         // get the current cycles
-        TimeT currentCycles = theClock->getTimeSinceStartup();
+        //TimeT currentCycles = theClock->getTimeSinceStartup();
 
 #ifdef HAS_PRIORITY
     #ifndef REALTIME
@@ -74,10 +74,10 @@ WorkerThread* WorkerTask::addJob( JOBType jobType, unint1 pid, void* param, unin
         pWThread->instance = 1;
 
 		#if (CLOCK_RATE >= (1 MHZ))
-        	 // set the relative deadline for EDF
+        	 // set the relative deadline for EDF. convert to clock ticks
              pWThread->relativeDeadline = priority_param * (CLOCK_RATE / 1000000);
              // set period for RM
-             pWThread->period = priority_param * (CLOCK_RATE / 1000000)
+             pWThread->period = priority_param * (CLOCK_RATE / 1000000);
 		#else
 			 pWThread->relativeDeadline = (TimeT) ((priority_param * CLOCK_RATE) /  1000000U);
              pWThread->period = (TimeT) ((priority_param * CLOCK_RATE) /  1000000U);
@@ -85,9 +85,10 @@ WorkerThread* WorkerTask::addJob( JOBType jobType, unint1 pid, void* param, unin
 
 
         // set the arrival time to now!
-        pWThread->arrivalTime = currentCycles;
+        pWThread->arrivalTime = 0;
     #endif
         theScheduler->computePriority(pWThread);
+        pWThread->period = 0;
 #endif
 
         if ( jobType == TimedFunctionCallJob || jobType == PeriodicFunctionCallJob ) {
@@ -95,10 +96,10 @@ WorkerThread* WorkerTask::addJob( JOBType jobType, unint1 pid, void* param, unin
             // until the the function can be called
             TimedFunctionCall* funcCall = (TimedFunctionCall*) param;
             // when are wo going to be called the first time? sleep until that point in time
-            pWThread->sleepCycles = (TimeT) (funcCall->time - currentCycles);
+            pWThread->sleepTime = funcCall->time;
         }
         else
-            pWThread->sleepCycles = 0;
+            pWThread->sleepTime = 0;
 
 
         // unblock the workerthread

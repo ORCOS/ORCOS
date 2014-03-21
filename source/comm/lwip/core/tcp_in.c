@@ -651,9 +651,9 @@ tcp_process(struct tcp_pcb *pcb)
         if (err != ERR_OK) {
           /* If the accept function returns with an error, we abort
            * the connection. */
-          LOGC(COMM,ERROR,("[K][ERROR ] pcb->accept returned error! abandoning connection!"));
+          LOGC(COMM,DEBUG,("[K][ERROR ] pcb->accept returned error! abandoning connection!"));
           tcp_abort(pcb);
-          return ERR_ABRT;
+          return (ERR_ABRT);
         }
         old_cwnd = pcb->cwnd;
         /* If there was any data contained within this ACK,

@@ -10,6 +10,8 @@
 #include "lwipopts.h"
 
 extern Kernel* theOS;
+extern "C" Mutex* comStackMutex;
+
 
 extern "C" void tcp_tmr();
 extern "C" void ethar_tmr();
@@ -34,6 +36,8 @@ lwipTMR::~lwipTMR() {
 void lwipTMR::callbackFunc(void* param) {
 	LOG(COMM,TRACE,(COMM,TRACE,"Kernel: lwipTMR called!"));
 
+	comStackMutex->acquire();
+
 	count++;
 #if LWIP_TCP
 	tcp_tmr();
@@ -49,4 +53,5 @@ void lwipTMR::callbackFunc(void* param) {
 		count = 0;
 	}
 
+	comStackMutex->release();
 }

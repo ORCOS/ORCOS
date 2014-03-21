@@ -33,8 +33,8 @@
 
 extern Kernel* theOS;
 
-extern Task*   pCurrentRunningTask;
-
+extern Task*   		 pCurrentRunningTask;
+extern "C" Mutex* 	 comStackMutex;
 
 TCPTransportProtocol::TCPTransportProtocol() :
     TransportProtocol( 6 ) {
@@ -52,6 +52,7 @@ ErrorT TCPTransportProtocol::sendto( packet_layer* payload, const sockaddr* from
 
 ErrorT TCPTransportProtocol::send(packet_layer* payload, AddressProtocol* NextLayer, Socket* fromsock) {
 	LOG(COMM,INFO,(COMM,INFO,"TCP:send(): size: %d",payload->size));
+	comStackMutex->acquire();
 
 	// allocate a pbuf
 	struct pbuf *p = pbuf_alloc(PBUF_TRANSPORT, payload->size, PBUF_RAM);
@@ -68,15 +69,20 @@ ErrorT TCPTransportProtocol::send(packet_layer* payload, AddressProtocol* NextLa
 		pbuf_free(p);
 
 		// check if enqueue operation was successfull
-		if (ret != ERR_OK) return (cTCPEnqueueFailed);
+		if (ret != ERR_OK) {
+			comStackMutex->release();
+			return (cTCPEnqueueFailed);
+		}
 
 		// try to send directly
 		tcp_output(pcb);
 
+		comStackMutex->release();
 		return (cOk);
 	}
 	else {
 		LOG(COMM,WARN,(COMM,WARN,"TCP:send(): packet dropped.. no more memory..!"));
+		comStackMutex->release();
 		return (cPBufNoMoreMemory);
 	}
 }
@@ -165,7 +171,7 @@ static err_t  tcp_accept_wrapper(void *arg, struct tcp_pcb *newpcb,err_t err)
 ErrorT TCPTransportProtocol::connect(AddressProtocol* nextLayer, sockaddr *toaddr, Socket* fromsocket) {
 
 	LOG(COMM,TRACE,(COMM,TRACE,"TCP: trying to connect!"));
-
+	comStackMutex->acquire();
 	struct tcp_pcb* pcb = (struct tcp_pcb*) fromsocket->arg;
 	if (pcb != 0) {
 
@@ -176,10 +182,12 @@ ErrorT TCPTransportProtocol::connect(AddressProtocol* nextLayer, sockaddr *toadd
 		ipaddr.version = 4;
 		ipaddr.addr.ip4addr.addr = toaddr->sa_data;
 
+		comStackMutex->release();
 		tcp_connect(pcb,&ipaddr,toaddr->port_data,&tcp_connected);
 		return (cOk);
 	}
 
+	comStackMutex->release();
 	return (cError);
 }
 
@@ -193,7 +201,11 @@ ErrorT TCPTransportProtocol::listen( Socket* socket) {
 	if (pcb->state == LISTEN) return cOk;
 
 	if (pcb != 0) {
+
+		comStackMutex->acquire();
 		pcb = tcp_listen(pcb);
+		comStackMutex->release();
+
 		if (pcb != 0) {
 			socket->arg = pcb;
 			LOG(COMM,DEBUG,(COMM,DEBUG,"TCP: PCB set to LISTEN Mode!"));
@@ -207,6 +219,8 @@ ErrorT TCPTransportProtocol::listen( Socket* socket) {
 
 ErrorT TCPTransportProtocol::register_socket( unint2 port, Socket* socket ) {
 
+	comStackMutex->acquire();
+
 	struct tcp_pcb *pcb;
 	/* Create a new TCP PCB. */
 	pcb = tcp_new();
@@ -215,14 +229,20 @@ ErrorT TCPTransportProtocol::register_socket( unint2 port, Socket* socket ) {
 
 	socket->arg = pcb;
 
+	comStackMutex->release();
+
 	return (cOk);
 }
 
 ErrorT TCPTransportProtocol::unregister_socket( Socket* socket ) {
 
 	if (socket->arg != 0){
+
+		comStackMutex->acquire();
 		tcp_close((struct tcp_pcb*) socket->arg);
 		tcp_arg((struct tcp_pcb*) socket->arg,0);
+		comStackMutex->release();
+
 		return (cOk);
 	}
     return (cError);

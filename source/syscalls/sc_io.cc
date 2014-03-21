@@ -225,7 +225,7 @@ int fcloseSyscall( int4 int_sp ) {
 
         SET_RETURN_VALUE((void*)int_sp,(void*)retval);
         // we may have unblocked a higher priority thread so we need to reschedule now!
-        theOS->getCPUDispatcher()->dispatch( (unint4) ( theOS->getClock()->getTimeSinceStartup() - lastCycleStamp) );
+        theOS->getCPUDispatcher()->dispatch(  );
 #endif
         return (retval);
     }

@@ -12,7 +12,7 @@
 #include "filesystem/Directory.hh"
 #include "filesystem/File.hh"
 
-typedef struct __attribute__((packed)) {
+typedef struct  __attribute__((__packed__, __aligned__(4))) {
 	char 	BS_jmpBoot[3];
 	char 	BS_OEMName[8];
 	unint2  BPB_BytsPerSec;
@@ -30,7 +30,7 @@ typedef struct __attribute__((packed)) {
 
 } FAT_BS_BPB;
 
-typedef struct __attribute__((packed)) {
+typedef struct  __attribute__((__packed__, __aligned__(4))) {
 	unint1 BS_DrvNum;
 	unint1 BS_Reserved1;
 	unint1 BS_BootSig;
@@ -39,7 +39,7 @@ typedef struct __attribute__((packed)) {
 	char   BS_FilSysType[8];
 } FAT16_BPB;
 
-typedef struct __attribute__((packed)) {
+typedef struct  __attribute__((__packed__, __aligned__(4))) {
 	unint4 BPB_FATSz32;
 	unint2 BPB_ExtFlags;
 	unint2 BPB_FSVer;
@@ -62,7 +62,7 @@ typedef union {
 	FAT32_BPB myFAT32_BPB;
 } FATxx_BPB;
 
-typedef struct __attribute__((packed)) {
+typedef struct  __attribute__((__packed__, __aligned__(4))) {
 	unint4 FSI_LeadSig;
 	unint1 FSI_Reserved[480];
 	unint4 FSI_StrucSig;
@@ -70,7 +70,7 @@ typedef struct __attribute__((packed)) {
 	unint4 FSI_Nxt_Free;
 } FAT32_FSInfo;
 
-typedef struct __attribute__((packed)) {
+typedef struct  __attribute__((__packed__, __aligned__(4))) {
 	char 	DIR_Name[11];
 	unint1	DIR_Attr;
 	unint1  DIR_NTRes;
@@ -85,7 +85,7 @@ typedef struct __attribute__((packed)) {
 	unint4	DIR_FileSize;
 } FAT32_DirEntry;
 
-typedef struct __attribute__((packed)) {
+typedef struct __attribute__((__packed__, __aligned__(4))) {
 	unint1	LDIR_Ord;
 	char 	LDIR_Name[10];
 	unint1	LDIR_Attr;

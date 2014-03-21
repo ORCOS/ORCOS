@@ -113,7 +113,7 @@ public:
 #endif
 
     //! The amount of cycles this thread will sleep from now on
-    int4 sleepCycles;
+    TimeT sleepTime;
 
     //! The arguments passed to the thread on startup
     void* arguments;
@@ -186,8 +186,8 @@ public:
     }
 
     //! Returns the currently set sleeptime
-    int4 getSleepTime() {
-        return (this->sleepCycles);
+    TimeT getSleepTime() {
+        return (this->sleepTime);
     }
 
     ErrorT  __attribute__((noinline)) pushStackPointer(void* sp)
@@ -239,11 +239,11 @@ public:
     ErrorT run();
 
     /*!
-     * \brief Sends the thread to sleep for 't' microseconds.
+     * \brief Sends the thread to sleep for 't' clock ticks.
      *
      * Involves informing the scheduler.
      */
-    void sleep( TimeT t, LinkedListDatabaseItem* item = pRunningThreadDbItem );
+    void sleep( TimeT timePoint, LinkedListDatabaseItem* item = pRunningThreadDbItem );
 
 #ifdef ORCOS_SUPPORT_SIGNALS
     /*!

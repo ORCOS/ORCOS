@@ -30,6 +30,11 @@
 #include "comm/TCPTransportProtocol.hh"
 #endif
 
+#if LWIP_UDP
+#include "comm/UDPTransportProtocol.hh"
+#endif
+
+
 /*!
  * \brief Pool of address and transport protocols
  *

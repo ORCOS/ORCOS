@@ -30,13 +30,13 @@
 class Resource;
 class Task;
 
-/*!\ingroup synchro
+/*!
+ * \ingroup synchro
  * \brief Provides mutex functionality (-> a binary semaphore), optionally with resource management.
  *
- * 	This Mutex class provides normal mutex functionality. If the configured Scheduler
- *  is NONE, Mutex::acquire() will return cNotImplemented.
+ * 	This Mutex class provides normal mutex functionality with priority inheritance and scheduling functionality.
  *
- *  This implementation is save regarding interrupts since a testandset method is used.
+ *  This implementation is save regarding interrupts since it disables interrupts in its critical code parts.
  */
 class Mutex {
 
@@ -72,25 +72,32 @@ private:
     DEF_Kernel_SchedulerCfd
 
 public    :
+
     //! Constructor, initializes m_locked to false, so the Mutex can be aquired, and initializes the scheduler.
     Mutex();
 
     //! Destructor, deletes scheduler object, if it has been allocated.
     ~Mutex();
 
-    /*! \brief Method used to aquire a Mutex
+    /*!
+     * \brief Method used to acquire a Mutex
      *
-     * pCurrentRunningThread tries to aquire the mutex.
+     * Tries to acquire the mutex. If blocking == true the running thread will be blocked if the
+     * mutex can not be acquired. If a resource is provided the resource will be added to the running threads
+     * aquired resources in success.
+     *
      */
     ErrorT acquire(Resource* = 0, bool blocking = true);
 
-    /*! \brief Releases an acquired Mutex object.
+    /*!
+     * \brief Releases an acquired Mutex object.
      *
      * pCurrentRunningThread releases the mutex.
      */
     ErrorT release();
 
-    /*! \brief Method called whenever a thread is resumed.
+    /*!
+     * \brief Method called whenever a thread is resumed.
      *
      * This method is not called within the mutex itself but from the thread_resume syscall. It makes sure to
      * reschedule the specified thread, if it has been added to the stoppedThreads list.

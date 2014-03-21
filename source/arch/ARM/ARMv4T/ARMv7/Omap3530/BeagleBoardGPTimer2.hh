@@ -16,8 +16,8 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef BEAGLEBOARDGPTIMER1_HH_
-#define BEAGLEBOARDGPTIMER1_HH_
+#ifndef BEAGLEBOARDGPTIMER2_HH_
+#define BEAGLEBOARDGPTIMER2_HH_
 
 #include <error.hh>
 #include <types.hh>
@@ -53,11 +53,11 @@ public:
     /*!
      * \brief Set the timer register.
      */
-	ErrorT setTimer( unint4 t );
+	ErrorT setTimer( TimeT t );
 
     inline ErrorT tick() {
         // invoke the hal tick() method which then calls the dispatcher
-        return TimerDevice::tick();
+        return (TimerDevice::tick());
     }
 
 };

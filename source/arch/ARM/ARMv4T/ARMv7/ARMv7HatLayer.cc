@@ -193,11 +193,18 @@ void* ARMv7HatLayer::createPT(void* logBaseAddr, void* physBaseAddr, size_t size
 		// process change causes data aborts.. need to further investigate
 		// if data cache needs to be flushed ..
 		// set l2 cache to write-through, no write allocate
-		pte.setTex(0x6);
+	/*	pte.setTex(0x6);
 		// set l1 cache to write-through, no write allocate
 		// to be sure on task load that instructions are correctly fetched
 		pte.setCBit(1);
-		pte.setBBit(0);
+		pte.setBBit(0);*/
+
+		// set l2 cache to write-back, write allocate
+		pte.setTex(0x5);
+		// set l1 cache to write-back, write allocate
+		// to be sure on task load that instructions are correctly fetched
+		pte.setCBit(0);
+		pte.setBBit(1);
 	}
 
 	// write descriptor to page table in memory (index depending on logBaseAddr)

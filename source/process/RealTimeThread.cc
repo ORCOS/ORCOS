@@ -42,9 +42,6 @@ RealTimeThread::RealTimeThread( void* p_startRoutinePointer, void* p_exitRoutine
 			this->executionTime = ((TimeT) attr->executionTime) * (CLOCK_RATE / 1000000);
 			this->period = ((TimeT) attr->period) * (CLOCK_RATE / 1000000);
 		#else
-			//this->relativeDeadline = (unint8) (((float)attr->deadline) * ((float) CLOCK_RATE / 1000000.0f));
-			//this->executionTime = (unint8) (((float)attr->executionTime) * ((float) CLOCK_RATE / 1000000.0f));
-			//this->period = (unint8) (((float)attr->period) * ((float) CLOCK_RATE / 1000000.0f));
 			this->relativeDeadline = (TimeT) ((attr->deadline * CLOCK_RATE) /  1000000U);
 			this->executionTime = (TimeT) ((attr->executionTime * CLOCK_RATE) /  1000000U);
 			this->period = (TimeT) ((attr->period * CLOCK_RATE) /  1000000U);
@@ -97,11 +94,6 @@ void RealTimeThread::terminate() {
         #endif
 
         TimeT currentCycles = theClock->getTimeSinceStartup();
-        TimeT sleepcycles = 0;
-        if ((currentCycles - arrivalTime) > period)
-        	// Compute the remaining time left till the next instance of this thread is due to start.
-        	sleepcycles = (TimeT) period - ((TimeT) currentCycles - (TimeT) arrivalTime);
-
 
 #if HAS_Kernel_LoggerCfd
         // check if we missed our deadline
@@ -117,14 +109,14 @@ void RealTimeThread::terminate() {
         currentCycles = theClock->getTimeSinceStartup();
 #endif
         // set the new arrivaltime of this thread
-        this->arrivalTime      = currentCycles + sleepcycles;
+        this->arrivalTime      = this->arrivalTime + this->period;
         this->absoluteDeadline = this->arrivalTime + this->relativeDeadline;
 
         // invoke the computePriority method of the scheduler
         theScheduler->computePriority(this);
 
         // sleep for the computed interval.
-        this->sleep( (TimeT) sleepcycles );
+        this->sleep( this->arrivalTime );
     }
     else {
         LOG(PROCESS,WARN,( PROCESS, WARN, "RealtimeThread::terminate() lateness: %d",(int4) (theClock->getTimeSinceStartup() - this->absoluteDeadline) ));

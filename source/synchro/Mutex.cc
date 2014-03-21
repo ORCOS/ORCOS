@@ -27,7 +27,7 @@ extern Kernel_ThreadCfdCl* pCurrentRunningThread;
 extern Task*  pCurrentRunningTask;
 
 Mutex::Mutex() :
-    m_locked( false ), m_pThread( 0 ), m_stoppedThreads(5), m_pRes(0) {
+    m_locked( false ), m_pThread( 0 ), m_stoppedThreads(10), m_pRes(0) {
     SchedulerCfd = new Kernel_SchedulerCfdCl( );
 }
 
@@ -38,11 +38,10 @@ Mutex::~Mutex() {
 ErrorT Mutex::acquire( Resource* pRes, bool blocking ) {
 	Kernel_ThreadCfdCl* pCallingThread = pCurrentRunningThread;
 
-#if ENABLE_NESTED_INTERRUPTS
     bool int_enabled;
     GET_INTERRUPT_ENABLE_BIT(int_enabled);
     _disableInterrupts();
-#endif
+
 
     if (m_locked == false)
     {
@@ -50,14 +49,16 @@ ErrorT Mutex::acquire( Resource* pRes, bool blocking ) {
         m_locked 	= true;
         m_pThread 	= pCallingThread;
         m_pRes 		= pRes;
-        if ( m_pRes != 0) pCurrentRunningTask->aquiredResources.addTail( pRes );
 
-        // reset the file position on newly acquired files
-        if (m_pRes->getType() == cFile) ((File*) m_pRes)->resetPosition();
+        if ( m_pRes != 0) {
+        	 if (pCurrentRunningTask != 0)
+        		 pCurrentRunningTask->aquiredResources.addTail( pRes );
 
-        #if ENABLE_NESTED_INTERRUPTS
-            if ( int_enabled )  _enableInterrupts();
-        #endif
+        	 // reset the file position on newly acquired files
+        	 if (m_pRes->getType() == cFile) ((File*) m_pRes)->resetPosition();
+        }
+
+        if ( int_enabled )  _enableInterrupts();
 
         return (cOk);
     }
@@ -72,8 +73,8 @@ ErrorT Mutex::acquire( Resource* pRes, bool blocking ) {
         // Save the original priority of the owner Thread so it can be set back afterwards.
         #ifdef HAS_PRIORITY
 			#if USE_PIP
-				if ( pCallingThread != 0 && m_pThread != 0 && m_pThread->effectivePriority
-						< pCallingThread->effectivePriority ) {
+				if ( pCallingThread != 0 && m_pThread != 0 && m_pThread->effectivePriority < pCallingThread->effectivePriority ) {
+					// boost priority
 					m_pThread->effectivePriority = pCallingThread->effectivePriority ;
 				}
 			#endif
@@ -93,6 +94,7 @@ ErrorT Mutex::acquire( Resource* pRes, bool blocking ) {
         // now block the calling thread!
         pCallingThread->pBlockedMutex = this;
         pCallingThread->block();
+
         // TODO: how to handle unblocked threads if this mutex is deleted?
         // they will get here and reference invalid memory locations!
 
@@ -105,23 +107,22 @@ ErrorT Mutex::acquire( Resource* pRes, bool blocking ) {
 
 ErrorT Mutex::release( ) {
 
-#if ENABLE_NESTED_INTERRUPTS
     bool int_enabled;
     GET_INTERRUPT_ENABLE_BIT(int_enabled);
     _disableInterrupts();
-#endif
 
-      // remove the resource from the acquired list of the owner task
-      if ( m_pRes != 0 )
+    // remove the resource from the acquired list of the owner task
+    if ( m_pRes != 0 && pCurrentRunningTask != 0 )
           pCurrentRunningTask->aquiredResources.removeItem( m_pRes );
 
-       LOG(SYNCHRO,TRACE,(SYNCHRO,TRACE,"Mutex 0x%x released",this));
+    LOG(SYNCHRO,TRACE,(SYNCHRO,TRACE,"Mutex 0x%x released",this));
 
 
 #ifdef HAS_PRIORITY
 #if USE_PIP
       // reset the priority of the currentRunning thread
-      pCallingThread->effectivePriority = pCallingThread->initialPriority;
+    if (pCallingThread != 0)
+    	pCallingThread->effectivePriority = pCallingThread->initialPriority;
 #endif
 #endif
 
@@ -137,15 +138,19 @@ ErrorT Mutex::release( ) {
 			   m_unusedLinkedListDBItems.addHead(next);
 			   m_pThread = pSchedulerThread;
 			   pSchedulerThread->pBlockedMutex = 0;
-			   if ( m_pRes != 0) pSchedulerThread->getOwner()->aquiredResources.addTail( m_pRes );
-			   // reset the file position
-			   if (m_pRes->getType() == cFile) ((File*) m_pRes)->resetPosition();
 
+			   if ( m_pRes != 0) {
+				   pSchedulerThread->getOwner()->aquiredResources.addTail( m_pRes );
+				   // reset the file position
+				   if (m_pRes->getType() == cFile) ((File*) m_pRes)->resetPosition();
+
+			   }
+
+			   // unblock the waiting thread
 			   pSchedulerThread->unblock();
 
-				#if ENABLE_NESTED_INTERRUPTS
-					if ( int_enabled )  _enableInterrupts();
-				#endif
+			   if ( int_enabled )  _enableInterrupts();
+
 			   return (cOk);
           }
           next = (LinkedListDatabaseItem*) getScheduler()->getNext();
@@ -156,9 +161,7 @@ ErrorT Mutex::release( ) {
     m_pThread = 0;
     m_pRes 	= 0;
 
-	#if ENABLE_NESTED_INTERRUPTS
-		if ( int_enabled )  _enableInterrupts();
-	#endif
+	if ( int_enabled )  _enableInterrupts();
 
     return (cOk);
 
@@ -174,10 +177,11 @@ void Mutex::threadResume( Kernel_ThreadCfdCl* pThread ) {
         m_locked 	= true;
         m_pThread 	= pThread;
         pThread->pBlockedMutex = 0;
-        if ( m_pRes != 0) pThread->getOwner()->aquiredResources.addTail( m_pRes );
-
-        // reset the file position
-        if (m_pRes->getType() == cFile) ((File*) m_pRes)->resetPosition();
+        if ( m_pRes != 0) {
+        	pThread->getOwner()->aquiredResources.addTail( m_pRes );
+            // reset the file position
+            if (m_pRes->getType() == cFile) ((File*) m_pRes)->resetPosition();
+        }
 
         pThread->unblock();
 
@@ -197,4 +201,25 @@ void Mutex::threadResume( Kernel_ThreadCfdCl* pThread ) {
 
 
 }
+
+/*  C Wrapper for the Mutex class
+ *
+ *
+ */
+
+extern "C" void* createMutex() {
+	return (new Mutex());
+}
+
+extern "C" void acquireMutex(void* mutex) {
+	Mutex* m = (Mutex*) mutex;
+ 	m->acquire();
+}
+
+extern "C" void releaseMutex(void* mutex) {
+	 Mutex* m = (Mutex*) mutex;
+	 m->release();
+}
+
+
 

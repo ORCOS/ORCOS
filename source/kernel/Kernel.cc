@@ -99,6 +99,11 @@ void Kernel::initialize() {
     this->PartitionManagerCfd 	= new NEW_FileSystems_PartitionManagerCfd;
 #endif
 
+#if USE_TRACE
+    this->tracer = new Trace();
+#endif
+
+
     /* create the Task Manager which holds the list of all tasks */
     this->taskManager 		= new TaskManager();
 
@@ -231,6 +236,9 @@ void Kernel::initialize() {
 	 * Now initialize the user tasks deployed within this Image.
 	 * The Task Manager will check the integrity and create memory maps.
 	 */
+#if USE_TRACE
+	this->tracer->init();
+#endif
 
 	LOG(KERNEL,INFO,(KERNEL,INFO,"Initializing Task Set"));
 	taskManager->initialize();
@@ -296,7 +304,7 @@ void Kernel::initialize() {
     theTimer->enable();
 
     /* invoke the cpumanager so it starts the first thread */
-    this->cpuManager->dispatch( 0 );
+    this->cpuManager->dispatch( );
     while (true) {}
 }
 

@@ -403,7 +403,7 @@ tcp_listen_with_backlog(struct tcp_pcb *pcb, u8_t backlog)
   lpcb->accepts_pending = 0;
   lpcb->backlog = (backlog ? backlog : 1);
 #endif /* TCP_LISTEN_BACKLOG */
-  TCP_REG(&tcp_listen_pcbs.listen_pcbs, lpcb);
+  TCP_REG(&tcp_listen_pcbs.listen_pcbs, lpcb );
   return (struct tcp_pcb *)lpcb;
 }
 

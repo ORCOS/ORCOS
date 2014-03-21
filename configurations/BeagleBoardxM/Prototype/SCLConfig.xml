@@ -24,11 +24,11 @@
       <Size>0x00100000</Size>
       <Path>../../../tasks/telnet_server</Path>
       <PriorityOptions>
-        <InitialPriority>1</InitialPriority>
+        <InitialPriority>5000</InitialPriority>
         <Phase>0</Phase>
         <RealTimeOptions>
-          <Period>0</Period>
-          <Deadline>0</Deadline>
+          <Period>2000</Period>
+          <Deadline>2000</Deadline>
           <ExecutionTime>0</ExecutionTime>
         </RealTimeOptions>
       </PriorityOptions>
@@ -38,11 +38,11 @@
       <Size>0x00100000</Size>
       <Path>../../../tasks/ftp_server/</Path>
       <PriorityOptions>
-        <InitialPriority>0</InitialPriority>
+        <InitialPriority>5000</InitialPriority>
         <Phase>0</Phase>
         <RealTimeOptions>
-          <Period>0</Period>
-          <Deadline>0</Deadline>
+          <Period>2000</Period>
+          <Deadline>2000</Deadline>
           <ExecutionTime>0</ExecutionTime>
         </RealTimeOptions>
       </PriorityOptions>
@@ -152,7 +152,7 @@
       </Member>
       <Member Name="Thread" Class="process/RealTimeThread" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="Dispatcher" Class="scheduler/SingleCPUDispatcher" None="false" UserSpace="false" PhyLoadAddress="0x0" />
-      <Member Name="Scheduler" Class="scheduler/EarliestDeadlineFirstThreadScheduler" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="Scheduler" Class="scheduler/RateMonotonicThreadScheduler" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="Logger" Class="debug/Logger" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="PowerManager" Class="hal/PowerManager" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="TaskManager" Class="process/TaskManager" None="false" UserSpace="false" PhyLoadAddress="0x0" />

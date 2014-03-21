@@ -43,10 +43,11 @@ void RoundRobinThreadScheduler::startScheduling() {
     // empty since no schedule needs to be calculated..
 }
 
-int RoundRobinThreadScheduler::getNextTimerEvent( LinkedListDatabase* sleepList,unint4 dt ) {
+TimeT RoundRobinThreadScheduler::getNextTimerEvent( LinkedListDatabase* sleepList,TimeT currentTime ) {
     ASSERT(sleepList);
 
-     int4 shortest_sleeptime = MAX_INT4;
+     TimeT shortest_sleeptime = MAX_UINT8;
+
      // update sleeplist
      LinkedListDatabaseItem* pDBSleepItem = sleepList->getHead();
      if ( pDBSleepItem != 0 ) {
@@ -54,12 +55,11 @@ int RoundRobinThreadScheduler::getNextTimerEvent( LinkedListDatabase* sleepList,
          do {
              Thread* pSleepThread = static_cast< Thread*> ( pDBSleepItem->getData() );
 
-             pSleepThread->sleepCycles -= dt;
-              if ( pSleepThread->sleepCycles <= 0 ) {
+              if ( pSleepThread->sleepTime <= currentTime ) {
                   pSleepThread->status.setBits( cReadyFlag );
                   LinkedListDatabaseItem* litem2 = pDBSleepItem;
                   pDBSleepItem = pDBSleepItem->getSucc();
-
+                  pSleepThread->sleepTime = 0;
                   this->enter( litem2 );
               } else
               {
@@ -70,8 +70,9 @@ int RoundRobinThreadScheduler::getNextTimerEvent( LinkedListDatabase* sleepList,
 
      }
 
+
     if ( database.isEmpty() )
-        return shortest_sleeptime;
+        return (shortest_sleeptime);
     else
-        return RRTimeSlice;
+        return (RRTimeSlice);
 }

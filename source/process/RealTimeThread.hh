@@ -40,7 +40,7 @@ friend class WorkerTask;
 friend class Task;
 
 public:
-	TimeT period;              //!< The period of the real time thread. 0 means it isn't periodic.
+	TimeT period;              //!< The period of the real time thread in clock ticks. 0 means it isn't periodic.
 	TimeT relativeDeadline;    //!< The relative deadline of the thread for every instance.
 	TimeT absoluteDeadline;    //!< The current absolute deadline of the thread
 	TimeT executionTime;       //!< The execution time of the thread if it's known (otherwise 0).

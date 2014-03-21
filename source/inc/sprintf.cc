@@ -29,7 +29,8 @@
 
 // externals
 extern "C" void putchar( char c ); //< puts the character to the standard output device
-extern void itoa( int8 value, char* str, int base );
+extern void itoa( int value, char* str, int base );
+extern void uitoa( unsigned int value, char* str, int base );
 
 static void printchar( char **str, char c ) {
     if ( str ) {
@@ -101,9 +102,9 @@ void print( char **out, const char *format, va_list args ) {
                 width += *format - '0';
             }
             if ( *format == 's' ) {
-                register char *s = (char*) va_arg( args, int );
-                prints( out, s ? s : "(null)", width, pad );
-                continue;
+            	register char *s = va_arg( args, char* );
+				prints( out, s ? s : "(null)", width, pad );
+				continue;
             }
             if ( *format == 'd' ) {
                 char print_buf[ PRINT_BUF_LEN ];
@@ -113,13 +114,13 @@ void print( char **out, const char *format, va_list args ) {
             }
             if ( *format == 'u' ) {
                 char print_buf[ PRINT_BUF_LEN ];
-                itoa( va_arg( args, unsigned int ), print_buf, 10 );
+                uitoa( va_arg( args, unsigned int ), print_buf, 10 );
                 prints( out, print_buf, width, pad );
                 continue;
             }
             if( *format == 'x' ) {
                 char print_buf[ PRINT_BUF_LEN ];
-                itoa( va_arg( args, unsigned int ), print_buf, 16 );
+                uitoa( va_arg( args, unsigned int ), print_buf, 16 );
                 prints( out, print_buf, width, pad );
              continue;
              }

@@ -60,7 +60,7 @@ Socket::Socket( unint2 domain, SOCK_TYPE e_type, unint2 protocol) :
 
 Socket::~Socket() {
 
-	 LOG(KERNEL,INFO,(KERNEL,INFO,"Socket::~Socket(): being destroyed!"));
+	 LOG(COMM,DEBUG,(COMM,DEBUG,"Socket::~Socket(): being destroyed!"));
 
 	 if (this->socket_connected) {
 		  this->aproto->unbind(&myboundaddr,this);

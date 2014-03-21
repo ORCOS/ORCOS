@@ -38,7 +38,9 @@ void strreverse( char* begin, char* end );
  str - Array in memory where to store the resulting null-terminated string.
  base - Numerical base used to represent the value as a string.
  */
-void itoa( int8 value, char* str, int base );
+void itoa( int value, char* str, int base );
+
+void uitoa( unsigned int value, char* str, int base );
 
 char* strcpy( char *dst0, char const *src0 );
 

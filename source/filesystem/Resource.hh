@@ -42,9 +42,9 @@ protected:
     //! name identifiying this resource
     const char* name;
 
-private:
     //! The access controlling mechanism
     Mutex* accessControl;
+private:
 
     //!  A global Resource counter.
     static ResourceIdT globalResourceIdCounter;

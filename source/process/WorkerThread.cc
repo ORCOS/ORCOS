@@ -46,10 +46,10 @@ void WorkerThread::callMain() {
     // start new stack from top of stack addr space
     // store all values inside register since we are going to switch the pid
     // and variables on the stack will not be accessible any more
-    register void* stack_addr = this->threadStack.endAddr;
-    register unint1 u_pid = this->pid;
-    register void* thisptr = this;
-    this->threadStack.top = 0;
+    register void* stack_addr 	= this->threadStack.endAddr;
+    register unint1 u_pid 		= this->pid;
+    register void* thisptr 		= this;
+    this->threadStack.top 		= 0;
 
     // first set stack pointer
     //SETSTACKPTR(stack_addr);
@@ -105,7 +105,9 @@ void WorkerThread::work() {
 
     _disableInterrupts();
 
-    // reset the new flag so next time we will execute callMain again nexttime
+    // reset the new flag so next time we will execute callMain again next time
+    // and do not try to restore some context that does not exist
+
     this->status.setBits( cNewFlag );
 
     if ( jobid == PeriodicFunctionCallJob ) {
@@ -114,7 +116,7 @@ void WorkerThread::work() {
         // set the absolute time of execution
         pcall->functioncall.time += pcall->period;
         // calculate the time until execution and get to sleep
-        Thread::sleep( (unint4) (pcall->functioncall.time - theOS->getClock()->getTimeSinceStartup()) );
+        Thread::sleep( pcall->functioncall.time );
     }
     else {
        this->jobid = None;

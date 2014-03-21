@@ -106,7 +106,13 @@ void BeagleBoardxM::initialize() {
 	// 96 Mhz to CM_96M
 	//unint4 cm_clksel1_val = core_n << 8 | core_m << 16 | 1 << 27;
 	//OUTW(CM_CLKSEL1_PLL,cm_clksel1_val);
+
+	// L4 @ 100 mhz , L3 @ 200 mhz
 	OUTW(CM_CLKSEL1_PLL,0x09900c00);
+
+	// L4 @ 82.5 mhz , L3 @ 165 mhz
+	//OUTW(CM_CLKSEL1_PLL,0x094a0c00);
+
 	// uboot: 0x48004d40: 09900c00
 	// core_n = 12 = 0xc
 	// core_m = 400 = 0x190
@@ -116,10 +122,12 @@ void BeagleBoardxM::initialize() {
 	//OUTW(0x48004a40,2 | 2 << 2 | 1 << 12);
 	//OUTW(0x48004a40,0x1f0a);
 
+	// CM_CLKSEL_CORE
 	OUTW(0x48004a40,0x0000130a);
 
-	// L4 @ 166 mhz , L3 @ 332 mhz
+
 	// divide sys clock by 2! = sys_clock = 13 mhz
+	//PRM_CLKSRC_CTRL
 	OUTW(0x48307270,0x80);
 
 	// no division
@@ -142,6 +150,7 @@ void BeagleBoardxM::initialize() {
 	OUTW(CM_CLKSEL3_PLL,0x9);
  	// uboot m2 = 9
 
+	// CM_CLKEN_PLL
  	OUTW(0x48004d00,0x370037);   // lock DPLL3
 
 	// sets DPLL5
@@ -153,17 +162,21 @@ void BeagleBoardxM::initialize() {
  	//OUTW(CM_CLKSEL5_PLL,0x8);
 	OUTW(CM_CLKSEL5_PLL,0x1);
 
+	//CM_AUTOIDLE2_PLL
  	OUTW(0x48004d34,0x0); 		 // disable auto stop mode of dpll5
  	//OUTW(0x48004d04,0x7); 	     // lock DPLL5
 
+ 	// CM_CLKEN2_PLL
  	OUTW(0x48004d04,0x17);
 
  	//unint4 cm_clksel_dss_val = m4 | m3 << 8;
 	//OUTW(0x48004e40,cm_clksel_dss_val);
+ 	// CM_CLKSEL_DSS
 	OUTW(0x48004e40,0x00001009);
 	// uboot 0x48004e40: 00001009
 
 	//OUTW(0x48005140,m6<<24);
+	// CM_CLKSEL1_EMU
 	OUTW(0x48005140,0x03020a50);
 	// uboot : 0x48005140: 03020a50
 
@@ -176,7 +189,7 @@ void BeagleBoardxM::initialize() {
  	OUTW(0x48004004,0x00000017);
  	// uboot: 0x48004004: 00000017
 
- 	unint4 mpu_m = 600;
+ 	unint4 mpu_m = 600; 	 // 600 MHZ for ARM core
  	unint4 mpu_n = 12;
  	unint4 mpu_clk_src = 2;
 
@@ -184,12 +197,18 @@ void BeagleBoardxM::initialize() {
  	unint4 cm_clksel1_pll_mpu_val = mpu_n | mpu_m << 8 | mpu_clk_src << 19;
 
  	// set mpu (dpll1) divider
+ 	// CM_CLKSEL1_PLL_MPU
  	OUTW(0x48004940,cm_clksel1_pll_mpu_val);
  	//OUTW(0x48004940,0x0012580c);
 
+ 	//CM_CLKSEL2_PLL_MPU
 	OUTW(0x48004944,1);
 
+	//CM_AUTOIDLE_PLL_MPU
+	OUTW(0x48004934,0);
+
 	// lock mpu
+	// CM_CLKEN_PLL_MPU
  	OUTW(0x48004904,0x00000037);
 
  	// independently of configuration: enable gpio 5+6 functional clock and uart3
@@ -239,13 +258,12 @@ void BeagleBoardxM::initialize() {
 	//OUTW(0x48004c40,0x1 | 1 << 1 | 0x2 << 3);
 
 	OUTW(0x48004c40,0x15);
-	// uboot 0x48004c40: 00000015
 
 	OUTW(0x48004c30,0x0);
 
-// 	unint4 cm_core = INW(0x48004A40);
- //	SETBITS(cm_core,13,12,2);
- 	//OUTW(0x48004A40,cm_core);
+	// 	unint4 cm_core = INW(0x48004A40);
+	//	SETBITS(cm_core,13,12,2);
+ 	//	OUTW(0x48004A40,cm_core);
 
 	// enable i2c pullup
 	OUTW(0x48000000 + 0x2000 + 0x448,~(0x00000001));
@@ -290,8 +308,10 @@ void BeagleBoardxM::initialize() {
  	LOG(ARCH,INFO,(ARCH,INFO,"BeagleBoardxM: CORE_CLOCK        = %d kHz ", core_clock));
  	LOG(ARCH,DEBUG,(ARCH,DEBUG,"BeagleBoardxM:                     [m2 = %d]",m2_dpll3));
 
- 	unint mpu_dpll_clock = ((core_clock / mpu_clk_src) * mpu_m) / mpu_n;
+ 	//unint mpu_dpll_clock = ((core_clock / mpu_clk_src) * mpu_m) / mpu_n;
+ 	unint mpu_dpll_clock = ((sys_clock * mpu_m * 2) / ((mpu_n+1) * m2_dpll3));
  	LOG(ARCH,INFO,(ARCH,INFO,"BeagleBoardxM: MPU_DPLL_CLOCK    = %d kHz [%0x]", mpu_dpll_clock,cm_clksel1_pll_mpu_val));
+ 	LOG(ARCH,INFO,(ARCH,INFO,"BeagleBoardxM: ARM Core at       = %d kHz", mpu_dpll_clock/2));
 
  	unint4 m_dpll4 = (INW(CM_CLKSEL2_PLL) >> 8) & 0x7ff;
  	unint4 n_dpll4 = INW(CM_CLKSEL2_PLL) & 0x7f;
@@ -343,6 +363,12 @@ void BeagleBoardxM::initialize() {
  	unint4 cm_idlest2 = INW(0x48004d24);
  	if (!(cm_idlest2 & 1)) {
  		LOG(ARCH,ERROR,(ARCH,ERROR,"BeagleBoardxM: ERROR: DPLL5 not locked.."));
+ 	}
+
+ 	// CM_IDLEST_PLL_MPU
+ 	cm_idlest2 = INW(0x48004924);
+ 	if (!(cm_idlest2 & 1)) {
+ 		LOG(ARCH,ERROR,(ARCH,ERROR,"BeagleBoardxM: ERROR: DPLL1 not locked.."));
  	}
 
  	// set all mux values

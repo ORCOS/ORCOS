@@ -75,7 +75,7 @@ public:
      * integer, since the theOS->getTimerDevice()->setTimer() method is implemented to take an unint4 anyways (and we seldom
      * will want to run more than 70 minutes uninterrupted).
      */
-    unint4 getNextTimerEvent(LinkedListDatabase* sleepList,unint4 dt);
+    TimeT getNextTimerEvent(LinkedListDatabase* sleepList,TimeT currentTime);
 
 };
 

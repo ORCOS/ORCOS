@@ -49,9 +49,8 @@
 #include Kernel_ServiceDiscovery_hh
 #include Kernel_Ramdisk_hh
 
-#if USE_TRACE
 #include "debug/Trace.hh"
-#endif
+
 
 /*------------------------------------------------------
  *                  USB Imports
@@ -194,6 +193,17 @@ public:
     }
     ;
 
+#if USE_TRACE
+private:
+    Trace* tracer;
+
+public:
+
+	Trace* getTrace() {
+    	return (tracer);
+    }
+#endif
+
     /*!
      * \brief Returns the default scheduler for the cpu
      *
@@ -259,9 +269,6 @@ public:
         return (board);
     }
 
-#if USE_TRACE
-    Trace* getTrace() { return trace; }
-#endif
 
     DEF_Kernel_ServiceDiscoveryCfd;
 

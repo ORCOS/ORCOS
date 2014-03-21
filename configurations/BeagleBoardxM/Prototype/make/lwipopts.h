@@ -94,7 +94,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * a lot of data that needs to be copied, this should be set high.
  */
 #ifndef MEM_SIZE
-#define MEM_SIZE  4096*4
+#define MEM_SIZE  4096*10
 #endif
 
 /**
@@ -206,7 +206,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * (requires the LWIP_TCP option)
  */
 #ifndef MEMP_NUM_TCP_PCB
-#define MEMP_NUM_TCP_PCB                10
+#define MEMP_NUM_TCP_PCB  5
 #endif
 
 /**
@@ -808,7 +808,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  */
 #ifndef TCP_SND_QUEUELEN
 //#define TCP_SND_QUEUELEN                (2 * (TCP_SND_BUF)/(TCP_MSS))
-#define TCP_SND_QUEUELEN  (2 * 10)
+#define TCP_SND_QUEUELEN  (4 * 10)
 #endif
 
 /**

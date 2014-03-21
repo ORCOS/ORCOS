@@ -67,12 +67,17 @@ Thread::Thread( void* p_startRoutinePointer, void* p_exitRoutinePointer, Task* p
     this->status.clear();
     this->status.setBits( cNewFlag );
     this->arguments 			= 0;
-    this->sleepCycles 			= 0;
+    this->sleepTime 			= 0;
     this->signal 				= 0;
 
     // inform my owner that i belong to him
     if ( owner != 0 )
         owner->addThread( static_cast< Kernel_ThreadCfdCl* > ( this ) );
+
+    if (owner != 0)
+    	TRACE_ADD_SOURCE(owner->getId(),this->myThreadId,0);
+    else
+    	TRACE_ADD_SOURCE(0,this->myThreadId,0);
 
     // create the thread stack inside the tasks heap!
     // thus the memManager of the heap is used!
@@ -133,21 +138,19 @@ void Thread::callMain() {
 /*--------------------------------------------------------------------------*
  ** Thread::sleep
  *---------------------------------------------------------------------------*/
-void Thread::sleep( TimeT t, LinkedListDatabaseItem* item ) {
+void Thread::sleep( TimeT timePoint, LinkedListDatabaseItem* item ) {
 
-	// prepare for sleep list update on dispatch call following
-	// which will subtract the passed time from all sleeping
-	// threads!
-	TimeT passedtime = theClock->getTimeSinceStartup() - lastCycleStamp;
-	this->sleepCycles = t + (TimeT) passedtime;
+    LOG(PROCESS,DEBUG,(PROCESS,DEBUG,"Thread::sleep: TimePoint: %x %x", (unint4) ((timePoint >> 32) & 0xffffffff),  (unint4) ((timePoint) & 0xffffffff)));
+    TRACE_THREAD_STOP(this->getOwner()->getId(),this->getId());
 
-    LOG(SCHEDULER,INFO,(SCHEDULER,INFO,"Thread::sleep() t=%d",this->sleepCycles));
+	this->sleepTime = timePoint;
+
     // unset the ready flag since we are not ready to run
     this->status.clearBits( cReadyFlag );
 
     // inform the current cpuscheduler that im going to sleep
     // the scheduler then puts the sleep into some sleep queue
-    theOS->getCPUDispatcher()->sleep( this->sleepCycles, item );
+    theOS->getCPUDispatcher()->sleep( this->sleepTime, item );
 
 }
 

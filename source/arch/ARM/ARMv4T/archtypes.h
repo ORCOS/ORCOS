@@ -23,6 +23,12 @@ typedef unsigned long long unint8;
 
 typedef unint8 TimeT;
 
+
+#define MAX_UINT8  18446744073709551615ULL
+#define MAX_UINT4  4294967295UL
+#define MAX_INT4  2147483647
+
+
 /* No harvard architecture. Program == data memory*/
 #define printf_p printf
 

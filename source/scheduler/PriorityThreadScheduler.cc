@@ -92,6 +92,8 @@ ErrorT PriorityThreadScheduler::enter( LinkedListDatabaseItem* item ) {
 
     PriorityThread* pPThread = static_cast< PriorityThread* > ( item->getData() );
 
+    TRACE_THREAD_REGISTER(pPThread->getOwner()->getId(), pPThread->getId());
+
     /* Enter Thread in the database in accordance with it's priority.
      * The order will keep threads with the same priority in a round robin fashion due to ">="
      **/

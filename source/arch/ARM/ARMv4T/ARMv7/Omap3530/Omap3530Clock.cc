@@ -23,6 +23,49 @@
 Omap3530Clock::Omap3530Clock( T_Omap3530Clock_Init *init  ) :
     Clock( init->Name ) {
 
+	// enable timer 1 interface clock
+//	OUTW(0x48004C10,INW(0x48004C10) | 1);
+
+	// enable time 1 functional clock
+//	OUTW(0x48004C00,INW(0x48004C00) | 1 );
+
+	// set GPTimer2 s´clock source to sys clock == (13 mhz)
+	unint4 cm_clksel_per = INW(CM_CLKSEL_PER);
+	OUTW(CM_CLKSEL_PER,cm_clksel_per | 1 );
+
+	// enable timer 2 functional clock
+	OUTW(0x48005000,INW(0x48005000) | (1 <<3));
+	// enabel time 2 interface clock
+ 	OUTW(0x48005010,INW(0x48005010) | (1 << 3));
+
+	//reset overflow counter register
+	OUTW(GPT2_TOCR, 0x0);
+	OUTW(GPT2_TOWR, 0x0);
+
+	OUTW(GPT2_TIOCP_CFG, 0x308);
+
+	// set positive and negative increment after overflow to 0
+	OUTW(GPT2_TPIR, 0x0);
+	OUTW(GPT2_TNIR, 0x0);
+
+	// timer load value to 0
+	OUTW(GPT2_TLDR, 0x0);
+
+	// configure for autoreload
+	OUTW(GPT2_TCLR,  0x2 );
+
+	// set counter to start value
+	OUTW(GPT2_TCRR, 0x0);
+
+	OUTW(GPT2_TMAR, 0x0);
+	// disable interrupt generation as we use this timer as a clock
+	OUTW(GPT2_TIER, 0x0 );
+
+	// clear pending interrupts
+	OUTW(GPT2_TISR, 0x7);
+
+	// start timer
+	OUTW(GPT2_TCLR, INW(GPT2_TCLR) | 0x1 );
 
 }
 
@@ -31,13 +74,17 @@ Omap3530Clock::~Omap3530Clock() {
 
 
 void Omap3530Clock::reset() {
+
 }
 
+/*
 unint8 Omap3530Clock::getTimeSinceStartup() {
 
 	  // update the current Time
-	  unint4 time_32khz = INW(0x48320010);
+	 // unint4 time_32khz = INW(0x48320010);
 
-	  return ((unint8) time_32khz);
+	unint8 ret = ((unint8) INW(GPT1_TOCR) << 32) + ((unint8) INW(GPT1_TCRR));
+	return (ret);
+	//  return ((unint8) time_32khz);
 
-}
+}*/

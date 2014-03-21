@@ -43,6 +43,6 @@ void TaskErrorHandler::handleError() {
 
     /* Continue executing anything else */
 	LOG(KERNEL,DEBUG,(KERNEL,DEBUG,"TaskErrorHandler::handleError: dispatching"));
-	theOS->getCPUDispatcher()->dispatch( (unint4) ( theOS->getClock()->getTimeSinceStartup() - lastCycleStamp) );
+	theOS->getCPUDispatcher()->dispatch(  );
 
 }

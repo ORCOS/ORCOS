@@ -125,7 +125,7 @@ class CallableObject;
  * \brief Structure passed as the job parameter to the workertask if the job is a timed function call.
  */
 typedef struct {
-    //! absolute time to execute the function call
+    //! absolute time in clock ticks to execute the function call
     unint8 time;
     //! object we want to call
     CallableObject* objectptr;
@@ -142,7 +142,7 @@ typedef struct {
 typedef struct {
     //! the functioncall parameters
     TimedFunctionCall functioncall;
-    //! the period of the function call in microseconds
+    //! the period of the function call in clock ticks
     unint8 period;
 } PeriodicFunctionCall;
 

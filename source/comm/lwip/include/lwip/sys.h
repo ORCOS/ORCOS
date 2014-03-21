@@ -42,19 +42,34 @@ extern "C" {
 
 /* For a totally minimal and standalone system, we provide null
    definitions of the sys_ functions. */
-typedef u8_t sys_sem_t;
+//typedef u8_t sys_sem_t;
+typedef void* sys_sem_t;
 typedef u8_t sys_mbox_t;
 struct sys_timeo {u8_t dummy;};
 
 #define sys_init()
 #define sys_timeout(m,h,a)
 #define sys_untimeout(m,a)
+
+extern void* createMutex();
+extern void acquireMutex(void* mutex);
+extern void releaseMutex(void* mutex);
+
 #define sys_sem_new(c) c
 #define sys_sem_signal(s)
 #define sys_sem_wait(s)
+
+//#define sys_sem_new(c) (void*) createMutex()
+//#define sys_sem_signal(s) releaseMutex(s)
+//#define sys_sem_wait(s) acquireMutex(s)
+
+
 #define sys_sem_wait_timeout(s,t)
+//#define sys_arch_sem_wait(s,t) acquireMutex(s)
 #define sys_arch_sem_wait(s,t)
 #define sys_sem_free(s)
+
+
 #define sys_mbox_new(s) 0
 #define sys_mbox_fetch(m,d)
 #define sys_mbox_tryfetch(m,d)

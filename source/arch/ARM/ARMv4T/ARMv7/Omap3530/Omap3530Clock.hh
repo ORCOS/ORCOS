@@ -20,12 +20,19 @@
 #define OMAP3530CLOCK_HH_
 
 #include <hal/Clock.hh>
+#include "inc/memio.h"
+#include "OMAP3530.h"
+
+//#define	CLOCK_RATE	( 32768 )
+//#define	CLOCK_RATE	( 26 MHZ )
+#define	CLOCK_RATE	( 13000000 )
+
+#define MILLISECONDS * 13000
+#define ms * 13000
+
+#define MICROSECONDS * 13
 
 
-#define	CLOCK_RATE	( 32768 )
-
-#define MILLSECONDS * 33
-#define ms * 33
 
 /*! \brief ARMv4T Clock, Implementation of HAL Clock
  *
@@ -40,10 +47,15 @@ public:
     ~Omap3530Clock();
 
     /*!
-     * \brief return the time since the system startup in us (microseconds)
+     * \brief return the time since the system startup in clock ticks
      *
      */
-    unint8 getTimeSinceStartup();
+    inline unint8 getTimeSinceStartup() {
+    	// reading this value takes ----- 200*2 = 400 ns du to interface clocking...
+    	unint8 ret = ((unint8) INW(GPT2_TOCR) << 32) + ((unint8) INW(GPT2_TCRR));
+    	return (ret);
+
+    }
 
     /*!
      * \brief Resets the time base registers.

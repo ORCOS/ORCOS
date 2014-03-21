@@ -90,19 +90,16 @@ public:
      * This might be the currently running thread again depending on the schedulers
      * policy.
      *
-     * dt is the amount of cycles passed since last time executing this method
-     */
-    void dispatch(unint4 dt);
-
-    /*!
-     * Calls the dispatch(dt) method while calculating the time spent
+     *
      */
     void dispatch();
+
+
 
     /*!
      * \brief sleep method which sends the given / current thread to sleep mode
      */
-    void sleep(int cycles, LinkedListDatabaseItem* pSleepDbItem = pRunningThreadDbItem);
+    void sleep(TimeT timePoint, LinkedListDatabaseItem* pSleepDbItem = pRunningThreadDbItem);
 
     /*!
      * \brief block method which sends the current thread to blocked mode

@@ -19,6 +19,8 @@
 #include "lwip/stats.h"
 #include "inc/endian.h"
 
+#include "synchro/Mutex.hh"
+
 extern Kernel* theOS;
 extern "C" err_t ethernet_input(struct pbuf *p, struct netif *netif);
 
@@ -173,6 +175,9 @@ struct smsc95xx_private {
 
 unint4 tmpbuf[2] __attribute__((aligned(4))) ATTR_CACHE_INHIBIT;
 
+
+static unint1 msg[8] ATTR_CACHE_INHIBIT;
+
 /*
  * Smsc95xx infrastructure commands
  */
@@ -182,7 +187,8 @@ static int smsc95xx_write_reg(USBDevice *dev, unint2 index, unint4 data)
 	tmpbuf[0] = data;
 	index = cputobe16(index);
 
-	unint1 msg[8] = {USB_TYPE_VENDOR | USB_RECIP_DEVICE, USB_VENDOR_REQUEST_WRITE_REGISTER,0x0,0x0, (unint1) ((index & 0xff00) >> 8),(unint1) (index & 0xff), sizeof(data),0x0};
+	unint1 msg2[8] = {USB_TYPE_VENDOR | USB_RECIP_DEVICE, USB_VENDOR_REQUEST_WRITE_REGISTER,0x0,0x0, (unint1) ((index & 0xff00) >> 8),(unint1) (index & 0xff), sizeof(data),0x0};
+	memcpy(msg,msg2,8);
 
 	int4 error = dev->controller->sendUSBControlMsg(dev,0,(unint1*)&msg,USB_DIR_OUT,sizeof(data),(unint1*)&tmpbuf);
 
@@ -198,8 +204,8 @@ static int smsc95xx_write_reg(USBDevice *dev, unint2 index, unint4 data)
 static int smsc95xx_read_reg(USBDevice *dev, unint2 index, unint4 *data)
 {
 	index = cputobe16(index);
-	unint1 msg[8] = {0x80 | USB_TYPE_VENDOR | USB_RECIP_DEVICE, USB_VENDOR_REQUEST_READ_REGISTER,0x0,0x0,(unint1) ((index & 0xff00) >> 8),(unint1) (index & 0xff),sizeof(data),0x0};
-
+	unint1 msg2[8] = {0x80 | USB_TYPE_VENDOR | USB_RECIP_DEVICE, USB_VENDOR_REQUEST_READ_REGISTER,0x0,0x0,(unint1) ((index & 0xff00) >> 8),(unint1) (index & 0xff),sizeof(data),0x0};
+	memcpy(msg,msg2,8);
 	int4 error = dev->controller->sendUSBControlMsg(dev,0,(unint1*)&msg,USB_DIR_IN,sizeof(data),(unint1*)&tmpbuf);
 
 	if (error != 4) {
@@ -834,10 +840,14 @@ ErrorT SMSC95xxUSBDeviceDriver::recv(unint4 recv_len)
 				// check if packet is complete
 				if ((int) packet_len <= r_len) {
 					memcpy(ptBuf->payload, &rxbuffer[recvd_bytes+4], packet_len );
+
 					ethernet_input(ptBuf,&tEMAC0Netif);
+
 					pbuf_free(ptBuf);
+
 				}
 				else {
+
 					memcpy(ptBuf->payload, &rxbuffer[recvd_bytes+4], r_len );
 					last_pbuf = ptBuf;
 					cur_len = r_len;
@@ -845,7 +855,7 @@ ErrorT SMSC95xxUSBDeviceDriver::recv(unint4 recv_len)
 
 					dev->endpoints[bulkin_ep].data_toggle = dev->endpoints[4].data_toggle;
 
-					recv_len = dev->controller->USBBulkMsg(dev,bulkin_ep,USB_DIR_IN,512,tmp_data);
+					/*recv_len = dev->controller->USBBulkMsg(dev,bulkin_ep,USB_DIR_IN,512,tmp_data);
 					if ((int) recv_len >= remaining_len) {
 						dev->endpoints[4].data_toggle = dev->endpoints[bulkin_ep].data_toggle;
 
@@ -868,7 +878,7 @@ ErrorT SMSC95xxUSBDeviceDriver::recv(unint4 recv_len)
 
 						recvd_bytes += recv_len;
 						recvd_bytes = (recvd_bytes + 3) & (~3);
-					}
+					}*/
 				}
 
 
@@ -915,8 +925,10 @@ int i;
 
 unint4 dummyFrame[2] = { (TX_CMD_A_FIRST_SEG_ | TX_CMD_A_LAST_SEG_), 0x0};
 
+Mutex* myMutex;
+
 static err_t smsc95xx_low_level_output(struct netif *netif, struct pbuf *p) {
-	LOG(ARCH,DEBUG,(ARCH,DEBUG,"SMSC95xxUSBDeviceDriver: sending packet of length: %d",p->tot_len));
+	//LOG(ARCH,INFO,(ARCH,INFO,"SMSC95xxUSBDeviceDriver: sending packet of length: %d",p->tot_len));
 
 	if (p->tot_len > 1500) {
 		LOG(ARCH,WARN,(ARCH,WARN,"SMSC95xxUSBDeviceDriver: not sending packet. Len > 1500."));
@@ -924,6 +936,8 @@ static err_t smsc95xx_low_level_output(struct netif *netif, struct pbuf *p) {
 	}
 
 	if (p == 0) return (ERR_ARG);
+
+	myMutex->acquire();
 
 	unint2 pos 			= 0;
 	struct pbuf *curp 	= p;
@@ -948,10 +962,6 @@ static err_t smsc95xx_low_level_output(struct netif *netif, struct pbuf *p) {
 			curp = curp->next;
 		}
 
-	/*} else {
-		pbuf_header(curp,8);
-		data = (char*) curp->payload;
-	}*/
 
 	/* prepend cmd_a and cmd_b */
 	memcpy(&data[0], &tx_cmd_a, sizeof(tx_cmd_a));
@@ -960,12 +970,16 @@ static err_t smsc95xx_low_level_output(struct netif *netif, struct pbuf *p) {
 	SMSC95xxUSBDeviceDriver *driver =  (SMSC95xxUSBDeviceDriver*) netif->state;
 
 	if (driver != 0) {
-		driver->dev->controller->USBBulkMsg(driver->dev,driver->bulkout_ep,USB_DIR_OUT,8,(unint1*) dummyFrame);
-		// now send the data
+
+	    driver->dev->controller->USBBulkMsg(driver->dev,driver->bulkout_ep,USB_DIR_OUT,8,(unint1*) dummyFrame);
+
 		driver->dev->controller->USBBulkMsg(driver->dev,driver->bulkout_ep,USB_DIR_OUT,(unint2) (len+8),(unint1*) data);
+
 		// send a short frame to be sure the last packet is send ...
 		// without this the smsc stalls with too much data send .. ?
 	}
+
+	myMutex->release();
 	return (ERR_OK);
 }
 
@@ -1007,7 +1021,7 @@ err_t smsc9x_ethernetif_init(struct netif *netif) {
     }
 
    /* maximum transfer unit */
-   //netif->mtu = HS_USB_PKT_SIZE - 80; //MAX_FRAME_SIZE;
+   //netif->mtu = HS_USB_PKT_SIZE - 100; //MAX_FRAME_SIZE;
     netif->mtu = 1400;
 
    /* device capabilities */
@@ -1020,7 +1034,6 @@ err_t smsc9x_ethernetif_init(struct netif *netif) {
 
 ErrorT SMSC95xxUSBDeviceDriver::initialize() {
 	// try to initialize the device
-
 	// first check the endpoint information
 
 	bool bulkinep, bulkoutep, intep = false;
@@ -1074,6 +1087,8 @@ ErrorT SMSC95xxUSBDeviceDriver::initialize() {
 		LOG(ARCH,ERROR,(ARCH,ERROR,"SMSC95xxUSBDeviceDriver: Initializing Ethernet device failed.."));
 		return (cError);
 	}
+
+	myMutex = new Mutex();
 
 	// setup periodic interrupt transfer
     dev->activateEndpoint(int_ep);

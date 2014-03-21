@@ -76,7 +76,7 @@ int runTask(int4 sp_int) {
 	// new task may have higher priority so dispatch now!
 	theOS->getCPUDispatcher()->dispatch();
 
-	return cError;
+	return (cError);
 }
 #endif
 
@@ -116,17 +116,17 @@ int task_killSyscall(int4 sp_int) {
 
 #if USE_WORKERTASK
 	// we must not kill the workertask!
-	if (taskid == 0) return cInvalidArgument;
+	if (taskid == 0) return (cInvalidArgument);
 #endif
 
 	Task* t = theOS->getTaskManager()->getTask(taskid);
-	if (t == 0) return cError;
+	if (t == 0) return (cError);
 
 	// let the taskmanager cleanup everything. do not call t->terminate on your own
 	// if you do not clean up everything else
 	theOS->getTaskManager()->removeTask(t);
 
-	return cOk;
+	return (cOk);
 }
 #endif
 
@@ -185,7 +185,7 @@ int task_resumeSyscall(int4 int_sp)
             pCurrentRunningThread->executinginthandler = false;
         #endif
             SET_RETURN_VALUE((void*)int_sp,(void*)cOk);
-            theOS->getCPUDispatcher()->dispatch( (unint4) (theOS->getClock()->getTimeSinceStartup() - lastCycleStamp));
+            theOS->getCPUDispatcher()->dispatch();
     #endif
 
     }
@@ -205,11 +205,13 @@ int sleepSyscall( int4 int_sp ) {
 
     LOG(SYSCALLS,DEBUG,(SYSCALLS,DEBUG,"Syscall: sleep(%d)",t));
 
+    TimeT timePoint = theOS->getClock()->getTimeSinceStartup();
+
     // sleep time is expected to be us
 #if CLOCK_RATE >= (1 MHZ)
-    pCurrentRunningThread->sleep( (t * (CLOCK_RATE / 1000000)));
+    pCurrentRunningThread->sleep( timePoint + (t * (CLOCK_RATE / 1000000)));
 #else
-    pCurrentRunningThread->sleep( ((t * CLOCK_RATE) / 1000000));
+    pCurrentRunningThread->sleep( timePoint + ((t * CLOCK_RATE) / 1000000));
 #endif
     // return will not be called
     // if the system works correctly
@@ -330,7 +332,7 @@ int thread_run( int4 int_sp ) {
 
 
 #ifdef REALTIME
-    unint8 currentTime = theOS->getClock()->getTimeSinceStartup();
+    TimeT currentTime = theOS->getClock()->getTimeSinceStartup();
 #endif
 
     if ( threadid >= cFirstThread ) {
@@ -388,7 +390,7 @@ int thread_run( int4 int_sp ) {
         pCurrentRunningThread->executinginthandler = false;
     #endif
         SET_RETURN_VALUE((void*)int_sp,(void*)cOk);
-        theOS->getCPUDispatcher()->dispatch((unint4) (theOS->getClock()->getTimeSinceStartup() - lastCycleStamp));
+        theOS->getCPUDispatcher()->dispatch();
 #endif
 
     return (cOk);
@@ -421,7 +423,7 @@ int thread_self(int4 int_sp)
 int thread_yield(int4 int_sp)
 {
     // dispatch directly
-    theOS->getCPUDispatcher()->dispatch((unint4) (theOS->getClock()->getTimeSinceStartup() - lastCycleStamp));
+    theOS->getCPUDispatcher()->dispatch();
     return (cOk);
 }
 #endif

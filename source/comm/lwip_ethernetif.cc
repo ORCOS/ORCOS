@@ -21,6 +21,7 @@
 #include "lwip/stats.h"
 
 extern Kernel* theOS;
+
 extern "C" err_t ethernet_input(struct pbuf *p, struct netif *netif);
 
 /*  defines

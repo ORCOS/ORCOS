@@ -16,8 +16,8 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef TCPTRANSPORTPROTOCOL_HH_
-#define TCPTRANSPORTPROTOCOL_HH_
+#ifndef UDPTRANSPORTPROTOCOL_HH_
+#define UDPTRANSPORTPROTOCOL_HH_
 
 
 #include "comm/TransportProtocol.hh"
@@ -27,16 +27,16 @@
 
 
 /*!
- * \brief LWIP Wrapper for the TCP protocol
+ * \brief LWIP Wrapper for the UDP protocol
  * \ingroup comm
  *
  */
-class TCPTransportProtocol: public TransportProtocol {
+class UDPTransportProtocol: public TransportProtocol {
 
 public:
-    TCPTransportProtocol();
+	UDPTransportProtocol();
 
-    virtual ~TCPTransportProtocol();
+    virtual ~UDPTransportProtocol();
 
     //! Send method which adds the protocol header
     ErrorT send( packet_layer* payload, AddressProtocol* NextLayer, Socket* fromsock );
@@ -65,4 +65,4 @@ public:
     ErrorT unregister_socket( Socket* socket );
 };
 
-#endif /*SIMPLETRANSPORTPROTOCOL_HH_*/
+#endif

@@ -20,12 +20,18 @@
 #include "kernel/Kernel.hh"
 
 #include "comm/IPv4AddressProtocol.hh"
+#include "synchro/Mutex.hh"
 
 extern Kernel* theOS;
 
+/*
+ * The global communication Stack Mutex
+ */
+Mutex* comStackMutex;
+
 ProtocolPool::ProtocolPool() {
-    this->addressprotocols = new ArrayDatabase( 1 );
-    this->transportprotocols = new ArrayDatabase( 1 );
+    this->addressprotocols = new ArrayDatabase( 2 );
+    this->transportprotocols = new ArrayDatabase( 2 );
     
 
     Directory* devdir = theOS->getFileManager()->getDirectory( "dev/comm" );
@@ -34,6 +40,12 @@ ProtocolPool::ProtocolPool() {
 #if LWIP_TCP
     this->transportprotocols->addTail((DatabaseItem*) new TCPTransportProtocol());
 #endif
+#if LWIP_UDP
+    this->transportprotocols->addTail((DatabaseItem*) new UDPTransportProtocol());
+#endif
+
+    comStackMutex = new Mutex();
+
 }
 
 ProtocolPool::~ProtocolPool() {

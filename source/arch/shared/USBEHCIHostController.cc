@@ -10,6 +10,7 @@
 #include "inc/memtools.hh"
 
 extern Kernel* theOS;
+extern Kernel_ThreadCfdCl* pCurrentRunningThread;
 
 #define GETBITS(a,UP,LOW) ((a & (( (1 << (UP - LOW + 1)) -1) << LOW)) >> LOW)
 #define SETBITS(a,UP,LOW,val) a = ((a & ~(( (1 << (UP - LOW + 1)) -1) << LOW)) | ((val & ((1 << (UP - LOW + 1)) -1)) << LOW) )
@@ -57,7 +58,7 @@ extern Kernel* theOS;
 #define USB_SET_VALUE_FIELD(req,value) *((unint2*)(&req[2])) = htons(value)
 
 
-char* bDeviceClassStr[16] = {
+const char* bDeviceClassStr[16] = {
 		"Device",
 		"Audio",
 		"Communications and CDC Control",
@@ -76,12 +77,12 @@ char* bDeviceClassStr[16] = {
 		"Audio/Video Devices"
 };
 
-char* bEndpointDirectionStr[2] = {
+const char* bEndpointDirectionStr[2] = {
 		"Out",
 		"In"
 };
 
-char* bmTransferTypeStr[4] = {
+const char* bmTransferTypeStr[4] = {
 		"Control",
 		"Isochronous",
 		"Bulk",
@@ -98,11 +99,11 @@ volatile QH QHmain __attribute__((aligned(32))) ATTR_CACHE_INHIBIT;
 unint4 framelist[FRAME_LIST_SIZE] __attribute__((aligned(0x1000))) ATTR_CACHE_INHIBIT;
 
 static unint1 recv_buf[256] __attribute__((aligned(4))) ATTR_CACHE_INHIBIT;
-volatile static qTD qtds[4] __attribute__((aligned(32))) ATTR_CACHE_INHIBIT;
+volatile static qTD qtds[8] __attribute__((aligned(32))) ATTR_CACHE_INHIBIT;
 static int ATTR_CACHE_INHIBIT qtdnum = 0 ;
 
 
-USB_EHCI_Host_Controller::USB_EHCI_Host_Controller(unint4 ehci_dev_base) : GenericDeviceDriver(false,"ECHI_HC") {
+USB_EHCI_Host_Controller::USB_EHCI_Host_Controller(unint4 ehci_dev_base) : GenericDeviceDriver(true,"EHCI_HC") {
 
 	this->operational = false;
 	this->async_qh_reg = 0;
@@ -344,8 +345,10 @@ int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1
 	volatile QH* qh = (QH*) dev->endpoints[endpoint].queue_head;
 	if (qh == 0) return (cError);
 
+	this->accessControl->acquire();
+
 	// get some memory for first qtd and last qtd
-	volatile qTD* qtd  		=  &qtds[(qtdnum++) & 0x3];
+	volatile qTD* qtd  		=  &qtds[(qtdnum++) & 0x7];
 	volatile qTD* qtd_last;
 
 	// maximum packet size 4096 .. we could go up to 5*4096
@@ -416,8 +419,8 @@ int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1
 	QH_LINK(&QHmain,qh);
 
 	// wait for completion of usb transaction
-	volatile unint4 timeout = 200;
-	while (( QT_TOKEN_GET_STATUS(qtd_last->qt_token) == 0x80 ) && timeout) {timeout--;  kwait_us(10);};
+	volatile unint4 timeout = 2000;
+	while (( QT_TOKEN_GET_STATUS(qtd_last->qt_token) == 0x80 ) && timeout) {timeout--;  kwait_us(1);};
 
 	// get number of bytes transferred
 	unint4 num = 0;
@@ -442,6 +445,8 @@ int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1
 		num = -1;
 		dev->endpoints[endpoint].data_toggle = 1;
 
+		//this->accessControl->release();
+
 		//unint1 msg[8] = USB_CLEAR_FEATURE(0x0,endpoint);
 		//this->sendUSBControlMsg(dev,0x0,(unint1*) &msg);
 
@@ -453,6 +458,8 @@ int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1
 	qh->qh_overlay.qt_next = 0xdead0000;
 	// on success toggle dt bit
 	dev->endpoints[endpoint].data_toggle = toggle ^ 1;
+
+	this->accessControl->release();
 
 	return (num);	// return number of bytes transferred
 
@@ -466,10 +473,12 @@ int USB_EHCI_Host_Controller::sendUSBControlMsg(USBDevice *dev, unint1 endpoint,
 	volatile QH* qh = (QH*) dev->endpoints[endpoint].queue_head;
 	if (qh == 0) return (cError);
 
+	this->accessControl->acquire();
+
 	// get some memory for qtds
-	volatile qTD* qtd  =  &qtds[0];
-	volatile qTD* qtd2 =  &qtds[1];
-	volatile qTD* qtd3 =  &qtds[2];
+	volatile qTD* qtd  = &qtds[(qtdnum++) & 0x7];
+	volatile qTD* qtd2 = &qtds[(qtdnum++) & 0x7];
+	volatile qTD* qtd3 = &qtds[(qtdnum++) & 0x7];
 	volatile qTD* lastqtd = qtd2;
 
 	// SETUP TOKEN
@@ -545,6 +554,8 @@ int USB_EHCI_Host_Controller::sendUSBControlMsg(USBDevice *dev, unint1 endpoint,
 	// invalidate qtd transfer anyway
 	qh->qh_overlay.qt_next = 0xdead0000;
 
+	this->accessControl->release();
+
 	return (num);
 }
 
@@ -567,7 +578,7 @@ ErrorT USB_EHCI_Host_Controller::enumerateDevice(USBDevice *dev) {
 			LOG(ARCH,INFO,(ARCH,INFO,"USB_EHCI_Host_Controller: Device at Port %d:",dev->port));
 			LOG(ARCH,INFO,(ARCH,INFO,"USB_EHCI_Host_Controller:  USB %d.%d Device",dev->dev_descr.v_usbhigh,dev->dev_descr.v_usblow));
 			if (dev->dev_descr.bDeviceClass > 15) dev->dev_descr.bDeviceClass = 4;
-			LOG(ARCH,INFO,(ARCH,INFO,"USB_EHCI_Host_Controller:  Class: %x (%s)",dev->dev_descr.bDeviceClass,bDeviceClassStr[dev->dev_descr.bDeviceClass] ));
+			LOG(ARCH,INFO,(ARCH,INFO,"USB_EHCI_Host_Controller:  Class: %x (%s)",dev->dev_descr.bDeviceClass, bDeviceClassStr[dev->dev_descr.bDeviceClass] ));
 			LOG(ARCH,INFO,(ARCH,INFO,"USB_EHCI_Host_Controller:  SubClass: %x Proto: %x",dev->dev_descr.bDeviceSubClass,dev->dev_descr.bDeviceProtocol));
 			LOG(ARCH,INFO,(ARCH,INFO,"USB_EHCI_Host_Controller:  Vendor: %4x - Product: %4x",dev->dev_descr.idVendor,dev->dev_descr.idProduct));
 

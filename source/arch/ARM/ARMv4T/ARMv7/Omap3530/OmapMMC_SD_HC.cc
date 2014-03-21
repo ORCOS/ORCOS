@@ -24,14 +24,14 @@ OmapMMC_SD_HC::OmapMMC_SD_HC(T_OmapMMC_SD_HC_Init *p_init) : BlockDeviceDriver("
 	baseAddress = p_init->Address;
 
 	// enable MMC1-3 interface clocks
-	unint4 CM_ICLKEN1_CORE = INW(0x48004a10);
-	CM_ICLKEN1_CORE |= (1 << 24) | (1 << 29) | (1 << 30);
-	OUTW(0x48004a10,CM_ICLKEN1_CORE);
+	unint4 CM_ICLKEN1_CORE_val = INW(0x48004a10);
+	CM_ICLKEN1_CORE_val |= (1 << 24) | (1 << 29) | (1 << 30);
+	OUTW(0x48004a10,CM_ICLKEN1_CORE_val);
 
 	// enable MMC1-3 functional clocks
-	unint4 CM_FCLKEN1_CORE = INW(0x48004a00);
-	CM_FCLKEN1_CORE |= (1 << 24) | (1 << 29) | (1 << 30);
-	OUTW(0x48004a00,CM_FCLKEN1_CORE);
+	unint4 CM_FCLKEN1_CORE_val = INW(0x48004a00);
+	CM_FCLKEN1_CORE_val |= (1 << 24) | (1 << 29) | (1 << 30);
+	OUTW(0x48004a00,CM_FCLKEN1_CORE_val);
 
 	theOS->getBoard()->getExtPowerControl()->power_mmc_init();
 

@@ -34,7 +34,7 @@ KOBJ += tasktable.o __cxa_pure_virtual.o
 KOBJ += ArrayDatabase.o LinkedListDatabase.o
 
 #debug
-KOBJ += Logger.o
+KOBJ += Logger.o Trace.o
 
 #filesystem
 KOBJ += File.o Directory.o Filemanager.o Resource.o SimpleFileManager.o SharedMemResource.o FileSystemBase.o Partition.o
@@ -51,6 +51,9 @@ KOBJ += newlib_helper.o
 
 #kernel
 KOBJ += kwait.o kernelmain.o Kernel.o 
+
+#To be placed into SCL calculation
+KOBJ += UDPTransportProtocol.o
 
 #mem
 KOBJ +=  new.o 
@@ -237,12 +240,12 @@ $(OUTPUT_DIR)%.o : %.cc SCLConfig.hh
 #rule for compiling c files with header	
 $(OUTPUT_DIR)%.o : %.c %.h SCLConfig.hh
 	@echo kernel.mk[C]   : Compiling  $@
-	@$(CC) $(CFLAGS) $(OPT_FLAGS)  $< --output $@
+	@$(CC) $(CFLAGS) $(OPT_FLAGS) $< --output $@
 	
 #rule for compiling c files without header
 $(OUTPUT_DIR)%.o : %.c SCLConfig.hh
 	@echo kernel.mk[C]   : Compiling  $@
-	@$(CC) -c $(CFLAGS) $(OPT_FLAGS)  $< --output $@
+	@$(CC) -c $(CFLAGS) $(OPT_FLAGS)   $< --output $@
 
 
 # Create static library of the OS so the linker only links the 

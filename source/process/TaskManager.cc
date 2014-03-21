@@ -293,7 +293,9 @@ ErrorT TaskManager::loadTaskFromFile(File* file, TaskIdT& tid, char* arguments,u
 
 	// load the file into memory
 	// create a temporary vm map .. TODO: we may need to map more than fileSize to access the heap area!!
-	theOS->getHatLayer()->map((void*) task_start,(void*) task_start, file->getFileSize() ,7,3,pCurrentRunningTask->getId(), false);
+	// disable cache for this mapping as the data must be written directly to main memory
+	// for the instruction cache to fetch the correct bytes
+	theOS->getHatLayer()->map((void*) task_start,(void*) task_start, file->getFileSize() ,7,3,pCurrentRunningTask->getId(), true);
 
 	#if DUMP_PAGE_TABLES
 	theOS->getHatLayer()->dumpPageTable(pCurrentRunningTask->getId());
@@ -379,9 +381,6 @@ ErrorT TaskManager::loadTaskFromFile(File* file, TaskIdT& tid, char* arguments,u
 	task->platform_flags = tt->platform;
 	LOG(KERNEL,INFO,(KERNEL,INFO,"TaskManager::loadTaskFromFile: Platform Flags: 0x%x",task->platform_flags));
 
-	//unint4 crc = crc32((char*) tt->task_start_addr,tt->task_data_end- tt->task_start_addr);
-	//LOG(KERNEL,INFO,(KERNEL,INFO,"TaskManager::loadTaskFromFile: CRC32: 0x%x",crc));
-
 	// unmap the new task from the current task virtual memory map
 	theOS->getHatLayer()->unmap((void*) task_start);
 
@@ -393,7 +392,6 @@ ErrorT TaskManager::loadTaskFromFile(File* file, TaskIdT& tid, char* arguments,u
 	task->myTaskDbItem = this->taskDatabase->getTail();
 	LOG(KERNEL,INFO,(KERNEL,INFO,"TaskManager::loadTaskFromFile: running Task."));
 	task->run();
-
 
 	return (cOk);
 #endif
