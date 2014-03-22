@@ -95,7 +95,7 @@ int thread_wait(int4 sp_int) {
 		Task* t = theOS->getTaskManager()->getTask(pid);
 		if (t == 0) return (cError);
 		// wait for task to finish
-		pCurrentRunningThread->sigwait(t);
+		pCurrentRunningThread->sigwait((void*) (t->getId() << 16));
 	}
 
 	return (cError);

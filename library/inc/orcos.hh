@@ -106,7 +106,7 @@ extern "C" int 		task_resume(int taskid);
  *  The method blocks the current thread until any other thread of the current process terminates. If no other thread exists
  *  that might terminate this can lead to a endlessly blocked thread. However, another thread from a different process
  *  may unblock the stuck thread if it issues the correct signal_signal syscall.
- *  e.g.: signal_signal(ProcessID_To_Unblock() << 16) | (SIG_CHILD_TERMINATED).
+ *  e.g.: signal_signal(ProcessID_To_Unblock << 16) | (SIG_CHILD_TERMINATED).
  *  This is possible as orcos uses signals for the wait operation.
  *
  * \return			The exit value of the terminated thread.
@@ -119,7 +119,7 @@ extern "C" int 		wait();
  *  The method blocks the current thread until the specified process terminates.  If no such process exists
  *  this can lead to a endlessly blocked thread. However, another thread from a different process
  *  may unblock the stuck thread if it issues the correct signal_signal syscall.
- *  e.g.: signal_signal(pid).
+ *  e.g.: signal_signal(pid << 16).
  *  This is possible as orcos uses signals for the wait operation.
  *
  * \return			The exit value of the terminated process.
@@ -188,11 +188,32 @@ extern "C" void 	thread_exit(int exitCode = cOk);
 
 
 /**************************************
- *  Signal related system calls
+ *  Signal related system calls.
+ *
+ *  May be used for synchronized Message passing.
  **************************************/
 
+
+/*!
+ *  \brief  Causes the calling thread to wait for the signal given by parameter sig.
+ *
+ *  The calling thread will be blocked until the signal sig is raised by any other thread inside the system.
+ *
+ *	\param memAddrAsSig 	Treat the signal sig as a memory address inside the calling address space.
+ *  \returns				The signal value passed by the raising thread.
+ */
 extern "C" int 			signal_wait( void* sig, bool memAddrAsSig = false );
 
+
+/*!
+ * \brief Raises the system wide signal given by param sig and passes param value as signal value to all waiting threads.
+ *
+ *  The signal_signal system call raises a system wide signal waiking up all threads waiting for that signal.
+ *
+ *  \param 	sig				The signal to be raised. Must be > 0. if memAddrAsSig is true sig will be interpreted as a memory location.
+ *  \param  value			The value passed to all waiting threads. Effectively allows 32 bit of message passing.
+ *  \param  memAddrAsSig	Treat sig as a memory address in calling threads address space.
+ */
 extern "C" void 		signal_signal( void* sig, int value, bool memAddrAsSig = false );
 
 

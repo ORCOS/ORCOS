@@ -248,7 +248,7 @@ ErrorT TaskManager::removeTask(Task* task) {
 	task->terminate();
 
 #ifdef ORCOS_SUPPORT_SIGNALS
-	theOS->getCPUDispatcher()->signal(task,task->exitValue);
+	theOS->getCPUDispatcher()->signal((void*)(task->getId() << 16),task->exitValue);
 #endif
 
 	//LOG(KERNEL,INFO,(KERNEL,INFO,"TaskManager::removeTask: deleting task"));

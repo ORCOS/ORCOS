@@ -39,7 +39,7 @@ ErrorT InterruptManager::handleIRQ(unint4 irq) {
 
 #if USE_WORKERTASK
 	/* schedule the irq using a workerthread */
-	theOS->getCPUDispatcher()->signal((void*) (irq << 16),cOk);
+	theOS->getCPUDispatcher()->signal((void*) (irq << 24),cOk);
 
 	/* do wa have an irq handler for this irq number? */
 	if (irqTable[irq].driver != 0){

@@ -82,7 +82,7 @@ extern "C"void thread_yield()
 
 extern "C" int	waitpid(unint1 pid)
 {
-    return (syscall(cThread_WaitPID,pid));
+    return (syscall(cThread_WaitPID,pid << 16));
 }
 
 extern "C" int 	wait()
