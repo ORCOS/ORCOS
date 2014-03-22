@@ -108,10 +108,6 @@ private:
 
 public:
 
-#if ENABLE_NESTED_INTERRUPTS
-    bool executinginthandler; //!< flag whether the thread is currently executing a interrupt handler
-#endif
-
     //! The amount of cycles this thread will sleep from now on
     TimeT sleepTime;
 
@@ -120,6 +116,9 @@ public:
 
     //! A signal this thread waits for or null
     void* signal;
+
+    //! the signal value the thread waits on
+    unint4 signalvalue;
 
     //! Constructor which takes the startRoutinePointer as argument
     Thread( void* startRoutinePointer, void* exitRoutinePointer, Task* owner, Kernel_MemoryManagerCfdCl* memManager,

@@ -69,6 +69,7 @@ Thread::Thread( void* p_startRoutinePointer, void* p_exitRoutinePointer, Task* p
     this->arguments 			= 0;
     this->sleepTime 			= 0;
     this->signal 				= 0;
+    this->signalvalue			= -1;
 
     // inform my owner that i belong to him
     if ( owner != 0 )
@@ -274,8 +275,8 @@ void Thread::terminate() {
 
 #ifdef ORCOS_SUPPORT_SIGNALS
     // be sure only threads inside our tasks are signalled as signal is global
-    unint4 signal_value = (this->owner->getId() << 16) | (SIG_CHILD_TERMINATED);
-    theOS->getCPUDispatcher()->signal((void*) signal_value,cOk);
+    unint4 signalnum = (this->owner->getId() << 16) | (SIG_CHILD_TERMINATED);
+    theOS->getCPUDispatcher()->signal((void*) signalnum,cOk);
 #endif
 
     // finally tell cpudispatcher that im gone..

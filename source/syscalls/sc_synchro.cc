@@ -33,6 +33,9 @@ int signal_wait( int4 int_sp ) {
     bool memAddrAsSig;
     SYSCALLGETPARAMS2( int_sp, sig, memAddrAsSig );
 
+    /* signal null (0) is not allowed as it stands for "no" signal */
+    if (sig == 0) return (cInvalidArgument);
+
 #ifdef HAS_Board_HatLayerCfd
     // if we want to use a Memory Address as the signal, we have to get the physical Address
     if (memAddrAsSig) {
@@ -43,9 +46,9 @@ int signal_wait( int4 int_sp ) {
 #ifdef ORCOS_SUPPORT_SIGNALS
     pCurrentRunningThread->sigwait( sig );
 
-    return cOk;
+    return (cOk);
 #else
-    return cError;
+    return (cError);
 #endif
 }
 #endif
@@ -58,8 +61,12 @@ int signal_wait( int4 int_sp ) {
 #ifdef HAS_SyscallManager_signal_signalCfd
 int signal_signal( int4 int_sp ) {
     void* sig;
+    int value;
     bool memAddrAsSig;
-    SYSCALLGETPARAMS2( int_sp, sig, memAddrAsSig );
+    SYSCALLGETPARAMS3( int_sp, sig,value, memAddrAsSig );
+
+    /* signal null (0) is not allowed as it stands for "no" signal */
+     if (sig == 0) return (cInvalidArgument);
 
 #ifdef HAS_Board_HatLayerCfd
     // if we want to use a Memory Address as the signal, we have to get the physical Address
@@ -69,9 +76,9 @@ int signal_signal( int4 int_sp ) {
 #endif //HAS_Board_HatLayerCfd
 
 #ifdef ORCOS_SUPPORT_SIGNALS
-    theOS->getCPUDispatcher()->signal( sig, cOk );
+    theOS->getCPUDispatcher()->signal( sig, value );
 
-    return cOk;
+    return (cOk);
 #else
    return cError;
 #endif

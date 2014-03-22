@@ -432,12 +432,7 @@ inline void handleSyscall(int4 sp_int) {
 				break;
         }
 
-    #if ENABLE_NESTED_INTERRUPTS
-        // first to do is disable interrupts now since we are going to restore the context now
-        _disableInterrupts();
-
-        pCurrentRunningThread->executinginthandler = false;
-    #endif
+        DISABLE_IRQS(status);
 
         SET_RETURN_VALUE(sp_int,retval);
         assembler::restoreContext( pCurrentRunningThread );

@@ -41,12 +41,18 @@ int socketSyscall( int4 int_sp ) {
 
     // create new Socket
     Socket* s = new Socket( domain, type, protocol );
-    pCurrentRunningTask->aquiredResources.addTail( (DatabaseItem*) s );
+    if (s->isValid()) {
+    	pCurrentRunningTask->aquiredResources.addTail( (DatabaseItem*) s );
 
-    LOG(SYSCALLS,TRACE,(SYSCALLS,TRACE,"Syscall: Socket created with id %d",s->getId()));
+    	LOG(SYSCALLS,TRACE,(SYSCALLS,TRACE,"Syscall: Socket created with id %d",s->getId()));
 
-    // return the id of this new resource (socket)
-    return (s->getId());
+    	// return the id of this new resource (socket)
+    	return (s->getId());
+
+    } else {
+    	delete (s);
+    	return (cError);
+    }
 }
 #endif
 

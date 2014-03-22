@@ -46,15 +46,10 @@ public:
 	Omap3530Clock( T_Omap3530Clock_Init *init );
     ~Omap3530Clock();
 
-    /*!
-     * \brief return the time since the system startup in clock ticks
-     *
-     */
     inline unint8 getTimeSinceStartup() {
     	// reading this value takes ----- 200*2 = 400 ns du to interface clocking...
-    	unint8 ret = ((unint8) INW(GPT2_TOCR) << 32) + ((unint8) INW(GPT2_TCRR));
+    	unint8 ret = (((unint8) INW(GPT2_TOCR)) << 32) + ((unint8) INW(GPT2_TCRR));
     	return (ret);
-
     }
 
     /*!

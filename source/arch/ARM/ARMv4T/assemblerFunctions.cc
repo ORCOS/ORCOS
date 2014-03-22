@@ -78,6 +78,11 @@ extern "C" void restoreContext(Thread*  t)
 	ptStartAddr = (void*) (((unint)&__PageTableSec_start) + pid*0x4000);
 #endif
 
+	int signalvalue = t->signalvalue;
+	int pass_signal = t->signal != 0;
+	if (pass_signal) {
+		t->signal = 0;
+	}
 
 	asm volatile(
 		// thumb to arm mode code
@@ -106,13 +111,16 @@ extern "C" void restoreContext(Thread*  t)
 		"MOV r0, %0;"
 		"MOV r1, %3;"	// set restore context mode
 
+		"CMP   %4,1;"
+		"STREQ %5, [%0, #4];"
+
 		/*"push {r0-r3};"
 		"bl  dumpContext;"
 		"pop  {r0-r3};"*/
 
 		"b 	 restoreThreadContext;"
 		:
-		: "r" (sp), "r" (ptStartAddr), "r" (pid) ,"r" (mode)
+		: "r" (sp), "r" (ptStartAddr), "r" (pid) ,"r" (mode) , "r" (pass_signal), "r" (signalvalue)
 		: "r0", "r1", "r2" , "r3"
 	);
 

@@ -179,13 +179,11 @@ int task_resumeSyscall(int4 int_sp)
 
     #ifdef HAS_PRIORITY
         // we might have unblocked higher priority threads! so dispatch!
-        #if ENABLE_NESTED_INTERRUPTS
-            // first to do is disable interrupts now since we are going to dispatch now
-            _disableInterrupts();
-            pCurrentRunningThread->executinginthandler = false;
-        #endif
-            SET_RETURN_VALUE((void*)int_sp,(void*)cOk);
-            theOS->getCPUDispatcher()->dispatch();
+        DISABLE_IRQS(status);
+
+        SET_RETURN_VALUE((void*)int_sp,(void*)cOk);
+        theOS->getCPUDispatcher()->dispatch();
+
     #endif
 
     }
@@ -384,13 +382,9 @@ int thread_run( int4 int_sp ) {
     }
 
 #ifdef HAS_PRIORITY
-    #if ENABLE_NESTED_INTERRUPTS
-        // first to do is disable interrupts now since we are going to dispatch now
-        _disableInterrupts();
-        pCurrentRunningThread->executinginthandler = false;
-    #endif
-        SET_RETURN_VALUE((void*)int_sp,(void*)cOk);
-        theOS->getCPUDispatcher()->dispatch();
+    DISABLE_IRQS(status);
+    SET_RETURN_VALUE((void*)int_sp,(void*)cOk);
+    theOS->getCPUDispatcher()->dispatch();
 #endif
 
     return (cOk);

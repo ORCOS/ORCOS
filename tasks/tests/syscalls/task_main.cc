@@ -186,6 +186,35 @@ int test_net(char* &str) {
 	return (OK);
 }
 
+
+static int signal_value;
+
+void* thread_entry_synchro(void* arg) {
+	signal_value = 0xff;
+	signal_value = signal_wait((void*) 200);
+}
+
+int test_synchro(char* &str) {
+	int result;
+
+
+	thread_attr_t attr;
+	memset(&attr,0,sizeof(thread_attr_t));
+
+	result = thread_create(0,&attr,thread_entry_synchro,0);
+	ASSERT_EQUAL(result,cOk,"thread_create(0,&attr,thread_entry,0) failed");
+
+	result = thread_run(result);
+
+	sleep(10);
+	signal_signal((void*) 200,723100);
+	sleep(200);
+	ASSERT_EQUAL(signal_value,723100,"signal_signal test failed..");
+
+	return (OK);
+}
+
+
 extern "C" int task_main()
 {
 	char* str;
@@ -198,5 +227,6 @@ extern "C" int task_main()
 	TEST(test_thread_create,"SC_THREAD_CREATE");
 	TEST(test_files,		"SC_FILES");
 	TEST(test_net,			"SC_NET");
+	TEST(test_synchro,		"SC_SYNCHRO");
 }
 

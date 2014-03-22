@@ -35,12 +35,12 @@ Omap3530Clock::Omap3530Clock( T_Omap3530Clock_Init *init  ) :
 
 	// enable timer 2 functional clock
 	OUTW(0x48005000,INW(0x48005000) | (1 <<3));
-	// enabel time 2 interface clock
+	// enable timer 2 interface clock
  	OUTW(0x48005010,INW(0x48005010) | (1 << 3));
 
 	//reset overflow counter register
 	OUTW(GPT2_TOCR, 0x0);
-	OUTW(GPT2_TOWR, 0x0);
+	OUTW(GPT2_TOWR, 0xffffffff);
 
 	OUTW(GPT2_TIOCP_CFG, 0x308);
 
@@ -77,14 +77,5 @@ void Omap3530Clock::reset() {
 
 }
 
-/*
-unint8 Omap3530Clock::getTimeSinceStartup() {
 
-	  // update the current Time
-	 // unint4 time_32khz = INW(0x48320010);
 
-	unint8 ret = ((unint8) INW(GPT1_TOCR) << 32) + ((unint8) INW(GPT1_TCRR));
-	return (ret);
-	//  return ((unint8) time_32khz);
-
-}*/

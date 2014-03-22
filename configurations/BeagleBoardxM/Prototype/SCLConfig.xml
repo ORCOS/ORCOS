@@ -219,7 +219,7 @@
     <!--  DEFINES -->
     <Define>
       <Name>ENABLE_NESTED_INTERRUPTS</Name>
-      <Value>0</Value>
+      <Value>1</Value>
     </Define>
     <!-- PROCFS -->
     <Define>

@@ -1,35 +1,8 @@
 #.SUFFIXES:
 #.SUFFIXES:      .S .c .o .cof .eep .hex .cc
 
+-include armv7.mk
 
-#---------------------------------------------------------------------------------------------------------------------------------------
-#                                                      Tools Settings
-#---------------------------------------------------------------------------------------------------------------------------------------
-#GCC SETTINGS
-ARM_GCC_DIR=arm-2009q3
-GCC_VERSION=4.7.4
-
-# for windows we must specify the ld directory with absolute path 
-GCC_LIB_DIR=C:/gcc-arm-none-eabi/lib/gcc/arm-none-eabi/$(GCC_VERSION)/armv7-ar/thumb/
-LIBC_DIR=C:/gcc-arm-none-eabi/arm-none-eabi/lib/armv7-ar/thumb/
-
-CC      = /cygdrive/c/gcc-arm-none-eabi/bin/arm-none-eabi-gcc
-CXX     = /cygdrive/c/gcc-arm-none-eabi/bin/arm-none-eabi-c++
-AS      = /cygdrive/c/gcc-arm-none-eabi/bin/arm-none-eabi-as
-AR      = /cygdrive/c/gcc-arm-none-eabi/bin/arm-none-eabi-ar
-SIZE	= /cygdrive/c/gcc-arm-none-eabi/bin/arm-none-eabi-size
-OBJDUMP = /cygdrive/c/gcc-arm-none-eabi/bin/arm-none-eabi-objdump
-LD		= /cygdrive/c/gcc-arm-none-eabi/bin/arm-none-eabi-ld
-OBJCOPY = /cygdrive/c/gcc-arm-none-eabi/bin/arm-none-eabi-objcopy 
-STRIP   = /cygdrive/c/gcc-arm-none-eabi/bin/arm-none-eabi-strip
-
-#SH Tools
-RM      	= rm -rf
-RN      	= mv
-CP      	= cp
-SHELL 		= sh
-COPY 		= cp
-SED 		= sed
 
 #---------------------------------------------------------------------------------------------------------------------------------------
 #                                                      Compile/Link Settings

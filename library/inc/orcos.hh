@@ -191,9 +191,9 @@ extern "C" void 	thread_exit(int exitCode = cOk);
  *  Signal related system calls
  **************************************/
 
-extern "C" void 		signal_wait( void* sig, bool memAddrAsSig = false );
+extern "C" int 			signal_wait( void* sig, bool memAddrAsSig = false );
 
-extern "C" void 		signal_signal( void* sig, bool memAddrAsSig = false );
+extern "C" void 		signal_signal( void* sig, int value, bool memAddrAsSig = false );
 
 
 

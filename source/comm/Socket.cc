@@ -40,10 +40,8 @@ Socket::Socket( unint2 domain, SOCK_TYPE e_type, unint2 protocol) :
     ProtocolPool* protopool		= theOS->getProtocolPool();
 
     this->aproto 				= protopool->getAddressProtocolbyId( domain );
-    ASSERT(this->aproto);
 
     this->tproto 				= protopool->getTransportProtocolbyId( protocol );
-    ASSERT(this->tproto);
 
     this->type 					= (SOCK_TYPE) e_type;
     this->blockedThread 		= 0;

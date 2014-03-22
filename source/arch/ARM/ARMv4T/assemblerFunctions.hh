@@ -374,6 +374,26 @@ extern void* __PageTableSec_start;
                             )
 #endif
 
+
+#if ENABLE_NESTED_INTERRUPTS
+
+// Dsiables irqs and saves the irq enable bit to the variable
+#define DISABLE_IRQS(irqstatus) \
+    bool irqstatus; \
+    GET_INTERRUPT_ENABLE_BIT(irqstatus); \
+    _disableInterrupts();
+
+#define RESTORE_IRQS(irqstatus) if ( irqstatus ) { _enableInterrupts(); }
+
+
+#else
+
+#define DISABLE_IRQS(irqstatus)
+#define RESTORE_IRQS(irqstatus)
+#endif
+
+
+
 // supervisor mode: 19, system mode: 31, disable interrupts: 0xC0
 #define SAVE_CONTEXT_AT(mem_loc) asm volatile \
    ( \

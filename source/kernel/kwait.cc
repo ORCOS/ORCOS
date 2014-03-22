@@ -54,7 +54,6 @@ void kwait_us(int us) {
 		while ( i < 10000) i++;
 	} else {
 		volatile unint8 now = theOS->getClock()->getTimeSinceStartup();
-		// TODO: make portable by define
 		while (theOS->getClock()->getTimeSinceStartup() < (now + (us MICROSECONDS))) {};
 	}
 

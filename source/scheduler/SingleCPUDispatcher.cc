@@ -66,7 +66,7 @@ void SingleCPUDispatcher::dispatch() {
 
     TimeT currentTime = theOS->getClock()->getTimeSinceStartup();
     // set the time stamp
-     lastCycleStamp = currentTime;
+    lastCycleStamp = currentTime;
 
     // check whether the idle thread was currently running or not
     // the idle thread would have pRunningThreadDbItem = 0
@@ -107,8 +107,6 @@ void SingleCPUDispatcher::dispatch() {
         }
     }
     else {
-        // reset the stack pointer to the context address since we don't want to waste memory
-        //void* sp = pCurrentRunningThread->threadStack.stackptrs[pCurrentRunningThread->threadStack.top];
         pCurrentRunningThread = 0;
         pCurrentRunningTask = 0;
         pRunningThreadDbItem = 0;
@@ -125,42 +123,25 @@ void SingleCPUDispatcher::dispatch() {
 
 
 void SingleCPUDispatcher::sleep( TimeT timePoint, LinkedListDatabaseItem* pSleepDbItem ) {
-    // be sure that this critical area cant be interrupted
-#if ENABLE_NESTED_INTERRUPTS
-    bool int_enabled;
-    GET_INTERRUPT_ENABLE_BIT(int_enabled);
-
-    _disableInterrupts();
-#endif
+   // be sure that this critical area cant be interrupted
+	DISABLE_IRQS(irqstatus);
 
   /* place into sleeplist */
    this->sleepList->addTail( (LinkedListDatabaseItem*) pSleepDbItem );
 
     if ( pSleepDbItem == pRunningThreadDbItem ) {
         pRunningThreadDbItem = 0;
-
-#if ENABLE_NESTED_INTERRUPTS
-        pCurrentRunningThread->executinginthandler = false;
-#endif
         dispatch();
     }
 
-#if ENABLE_NESTED_INTERRUPTS
-        if ( int_enabled ) {
-            _enableInterrupts();
-        }
-#endif
+    RESTORE_IRQS(irqstatus);
 
 }
 
 void SingleCPUDispatcher::block( Thread* thread ) {
     // be sure that this critical area cant be interrupted
-#if ENABLE_NESTED_INTERRUPTS
-    bool int_enabled;
-    GET_INTERRUPT_ENABLE_BIT(int_enabled);
+	DISABLE_IRQS(irqstatus);
 
-    _disableInterrupts();
-#endif
     LOG(SCHEDULER,DEBUG,(SCHEDULER,DEBUG,"SingleCPUDispatcher::block() blocking Thead %d", thread->getId()));
 
    	TRACE_THREAD_STOP(thread->getOwner()->getId(),thread->getId());
@@ -168,10 +149,8 @@ void SingleCPUDispatcher::block( Thread* thread ) {
     if ( thread == pCurrentRunningThread ) {
         this->blockedList->addTail( pRunningThreadDbItem );
         pRunningThreadDbItem = 0;
-#if ENABLE_NESTED_INTERRUPTS
-        pCurrentRunningThread->executinginthandler = false;
-#endif
-       // LOG(SCHEDULER,INFO,(SCHEDULER,INFO,"SingleCPUDispatcher::block() dispatching! %d",this->SchedulerCfd->database.getSize()));
+
+        LOG(SCHEDULER,INFO,(SCHEDULER,INFO,"SingleCPUDispatcher::block() dispatching! %d",this->SchedulerCfd->database.getSize()));
         dispatch( );
     }
     else {
@@ -197,23 +176,13 @@ void SingleCPUDispatcher::block( Thread* thread ) {
 
     }
 
-#if ENABLE_NESTED_INTERRUPTS
-    if ( int_enabled ) {
-        _enableInterrupts();
-    }
-#endif
-
+    RESTORE_IRQS(irqstatus);
 }
 
 void SingleCPUDispatcher::unblock( Thread* thread ) {
     // be sure that this critical area cant be interrupted
-#if ENABLE_NESTED_INTERRUPTS
-    bool int_enabled;
-    GET_INTERRUPT_ENABLE_BIT(int_enabled);
+	DISABLE_IRQS(irqstatus);
 
-    _disableInterrupts();
-
-#endif
     LOG(SCHEDULER,DEBUG,(SCHEDULER,DEBUG,"SingleCPUDispatcher::unblock() unblocking Thead %d", thread->getId()));
     LinkedListDatabaseItem* litem = this->blockedList->getItem( thread );
 
@@ -229,12 +198,7 @@ void SingleCPUDispatcher::unblock( Thread* thread ) {
 
     }
 
-#if ENABLE_NESTED_INTERRUPTS
-    if ( int_enabled ) {
-        _enableInterrupts();
-    }
-
-#endif
+    RESTORE_IRQS(irqstatus);
 }
 
 
@@ -242,22 +206,14 @@ void SingleCPUDispatcher::unblock( Thread* thread ) {
 
 void SingleCPUDispatcher::sigwait( Thread* thread ) {
     // be sure that this critical area cant be interrupted
-#if ENABLE_NESTED_INTERRUPTS
-    bool int_enabled;
-    GET_INTERRUPT_ENABLE_BIT(int_enabled);
-
-    _disableInterrupts();
-
-#endif
+	DISABLE_IRQS(irqstatus);
 
     LOG(SCHEDULER,TRACE,(SCHEDULER,TRACE,"SingleCPUDispatcher::sigwait() adding Thread to waitlist"));
 
     if (thread == pCurrentRunningThread) {
         waitList->addTail(pRunningThreadDbItem);
         pRunningThreadDbItem = 0;
-#if ENABLE_NESTED_INTERRUPTS
-        pCurrentRunningThread->executinginthandler = false;
-#endif
+
         dispatch( );
     }
     else {
@@ -285,23 +241,13 @@ void SingleCPUDispatcher::sigwait( Thread* thread ) {
 
         this->waitList->addTail( litem );
     }
-#if ENABLE_NESTED_INTERRUPTS
-    if ( int_enabled ) {
-        _enableInterrupts();
-    }
 
-#endif
+    RESTORE_IRQS(irqstatus);
 }
 
 void SingleCPUDispatcher::signal( void* sig, int sigvalue ) {
     // be sure that this critical area cant be interrupted
-#if ENABLE_NESTED_INTERRUPTS
-    bool int_enabled;
-    GET_INTERRUPT_ENABLE_BIT(int_enabled);
-
-    _disableInterrupts();
-
-#endif
+	DISABLE_IRQS(irqstatus);
 
     LOG(SCHEDULER,TRACE,(SCHEDULER,TRACE,"SingleCPUDispatcher::signal() signal: %d",sig));
 
@@ -316,12 +262,11 @@ void SingleCPUDispatcher::signal( void* sig, int sigvalue ) {
                 LOG(SCHEDULER,TRACE,(SCHEDULER,TRACE,"SingleCPUDispatcher::signal() signal to thread %d", pThread->getId()));
 
                 pThread->status.clearBits( cSignalFlag );
-                /* Set the signal return value */
-                //void* sp_int;
-
-                //TODO: we cant set this here.. we are not inside the address space of the thread ...
-               // GET_RETURN_CONTEXT(pCurrentRunningThread,sp_int);
-                //SET_RETURN_VALUE(sp_int,sigvalue);
+                /* Set the signal return value. The restore Context must handle passing this value
+                 * to the return register. It should reset the signal to 0 to indicate that the thread is not
+                 * waiting for a signal any more and ignore the signalvalue field afterwards.
+                 *  */
+                pThread->signalvalue = sigvalue;
 
                 if ( !pThread->status.areSet( cStopped ) ) {
 
@@ -343,12 +288,7 @@ void SingleCPUDispatcher::signal( void* sig, int sigvalue ) {
         litem = tmpLitem;
     }
 
-#if ENABLE_NESTED_INTERRUPTS
-    if ( int_enabled ) {
-        _enableInterrupts();
-    }
-
-#endif
+    RESTORE_IRQS(irqstatus);
 }
 
 #endif
@@ -357,11 +297,7 @@ void SingleCPUDispatcher::terminate_thread( Thread* thread ) {
     if ( pCurrentRunningThread == thread ) {
     	TRACE_THREAD_STOP(pCurrentRunningTask->getId(),pCurrentRunningThread->getId());
 
-#if ENABLE_NESTED_INTERRUPTS
-        _disableInterrupts();
-        // at this time we are not executing the interrupt handler any more!
-        pCurrentRunningThread->executinginthandler = false;
-#endif
+    	DISABLE_IRQS(irqstatus);
 
         // TODO: maybe keep the thread as zombie
         if (thread->owner->getThreadDB()->getSize() == 0)

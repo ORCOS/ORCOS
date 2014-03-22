@@ -20,10 +20,10 @@
 #include "./defines.h"
 #include "./orcos.hh"
 
-void signal_wait( void* sig, bool memAddrAsSig ) {
-    syscall( cSignal_WaitSyscallId, sig, memAddrAsSig );
+int signal_wait( void* sig, bool memAddrAsSig ) {
+    return syscall( cSignal_WaitSyscallId, sig, memAddrAsSig );
 }
 
-void signal_signal( void* sig, bool memAddrAsSig ) {
-    syscall( cSignal_SignalSyscallId, sig, memAddrAsSig );
+void signal_signal( void* sig,int value, bool memAddrAsSig ) {
+    syscall( cSignal_SignalSyscallId, sig, value, memAddrAsSig );
 }

@@ -216,13 +216,7 @@ int fcloseSyscall( int4 int_sp ) {
 
 #ifdef HAS_PRIORITY
 
-#if ENABLE_NESTED_INTERRUPTS
-        // first to do is disable interrupts now
-        _disableInterrupts();
-
-        pCurrentRunningThread->executinginthandler = false;
-#endif
-
+        DISABLE_IRQS(status);
         SET_RETURN_VALUE((void*)int_sp,(void*)retval);
         // we may have unblocked a higher priority thread so we need to reschedule now!
         theOS->getCPUDispatcher()->dispatch(  );

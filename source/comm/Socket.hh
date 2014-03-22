@@ -56,9 +56,6 @@ private:
     //! the sender addresses for every message we received
     sockaddr senderaddr[MAX_BUF];
 
-    //! the send buffer which is used by the protocols to wrap the message
-   // void* sendBuffer;
-
     //! The type of the socket (SOCK_STREAM, SOCK_DGRAM)
     SOCK_TYPE type;
 
@@ -115,15 +112,14 @@ public:
     void disconnected(int error);
 
     //! method which is called from the transport protocol whenever this socket receives a message
-    //ErrorT addMessage( char* msgstart, unint2 msglength, sockaddr *fromaddr );
     ErrorT addMessage( pbuf* p, sockaddr *fromaddr );
 
     //! method which is called by syscalles in order to receive a message and the address the method came from
-   // size_t recvfrom( Kernel_ThreadCfdCl* thread, char** addressof_ret_ptrtomsg, unint4 flags, sockaddr* addr );
     size_t recvfrom( Kernel_ThreadCfdCl* thread, char* data_addr, size_t data_size,  unint4 flags, sockaddr* addr ) ;
 
-    //! method which is called by syscalles in order to receive a message
-    //size_t recv( Kernel_ThreadCfdCl* thread, char** addressof_ret_ptrtomsg, unint4 flags );
+    inline bool isValid() {
+    	return (this->tproto != 0 && this->aproto != 0 && messageBuffer != 0);
+    }
 
     //! Returns the type of this socket
     inline

@@ -65,16 +65,13 @@ void Resource::aquire( Thread* pThread, bool blocking ) {
        if (this->getType() & cFile) ((File*) this)->resetPosition();
     }
 
+    // TODO: evaluate oif removing this "directy" return is ok
+    // so we can reuse this code for aquire calls not coming from syscalls
     void* sp_int;
     GET_RETURN_CONTEXT(pCurrentRunningThread,sp_int);
     SET_RETURN_VALUE(sp_int,retval);
 
-#if ENABLE_NESTED_INTERRUPTS
-    // first to do is disable interrupts now since we are going to restore the context now
-    _disableInterrupts();
-
-    pCurrentRunningThread->executinginthandler = false;
-#endif
+    DISABLE_IRQS(status);
 
     // if we got here we got the resource directly
     // so just return this syscall
