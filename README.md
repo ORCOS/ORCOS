@@ -2,16 +2,16 @@ ORCOS
 =====
 MainPage: http://orcos.github.io/ORCOS/
 
-ORCOS is a highly configurable Realtime Operating System written in C++ for the following platforms:
+ORCOS is a highly configurable Realtime Operating System written in C++ for the following architectures:
 - PPC405
 - SPARC LEON3
 - QEMU
-- ARMv4T, ARMv7 featuring BeagleBoard(xM)
+- ARMv4T, ARMv7 featuring BeagleBoard(xM) 
 
 Its key features are its C++ architecture, its highly customizable SCL language based configurabilty and the low system call overhead. 
-Workerthreads can be used to lower interrupt latencies dramatically. Of course key RT-concepts as Mutexes using PIP are implemented.
+Workerthreads can be used to lower interrupt latencies dramatically. Key RT-concepts as Mutexes using PIP are implemented.
 
-Features:
+Features in arbitrary order:
 - Deterministic Realtime Scheduling
 	- Fixed Priority Scheduling, FCFS, RM, EDF, EDF + TBS
 - Linear and Sequential Fit Memory Management
@@ -26,6 +26,23 @@ Features:
 	- DOS MBR Partitions supported
 	- EFI Partitions in development
 	- FAT16 Read / FAT32 Read/Write 
+- Realtime Task Features:
+    - Runtime loading
+    - Kernel Realtime Threads
+    - CRC32 protected
+- Signalling / Messaging Framework
+- User Space IRQ information
+- Ramdisk support
+- Low Interrupt latencies (~2 us on BeagleBoardxM)
+	- IRQ Scheduling to reduce the blocking time of higher priority threads => lower jitter for RT threads.
+- Trace support allowing the remote monitoring/analysis of the platforms execution.
+	
+- Unit-Tested Syscall Interface 
+- Black/White Box communication stack tests
+
+Provided Core Utilities:
+- A telnet server
+- A ftp server for easy file transfer to the platform
 
 Platform Support:	
 	
@@ -40,7 +57,7 @@ Platform Support:
 	- TWL4030 Power Control
 	- SPI
 
-- RAPTOR:
+- RAPTOR (PPC405):
 	- Ethernet
 	- Timer  + RT-Clock
 	- Serial
