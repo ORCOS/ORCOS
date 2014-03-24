@@ -5,6 +5,9 @@
  *      Author: dbaldin
  */
 
+
+#if USE_TRACE
+
 #include "Trace.hh"
 #include "kernel/Kernel.hh"
 #include "inc/memtools.hh"
@@ -319,3 +322,5 @@ void Trace::trace_addEntry(unint1 type, unint1 taskid, unint1 sourceid)
 	current_entry = (current_entry + 1) & (NUM_TRACE_ENTRIES-1);
 	num_entries++;
 }
+
+#endif

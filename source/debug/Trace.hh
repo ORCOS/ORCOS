@@ -12,7 +12,9 @@
 #include "inc/types.hh"
 #include "hal/CallableObject.hh"
 
-#define USE_TRACE 1
+#ifndef USE_TRACE
+#define USE_TRACE 0
+#endif
 
 #define EVENT_THREAD_START  0x1
 #define EVENT_THREAD_STOP   0x2
@@ -91,6 +93,8 @@ typedef struct {
 
 #define TRACE_THREAD_EXIT(taskid, threadid)
 
+#define TRACE_THREAD_REGISTER(taskid, threadid)
+
 #define TRACE_IRQ_ENTRY(sourceid)
 
 #define TRACE_IRQ_EXIT(sourceid)
@@ -99,7 +103,7 @@ typedef struct {
 
 #define TRACE_MEMFREE(address)
 
-#define TRACE_ADD_SOURCE(taskid, sourceid)
+#define TRACE_ADD_SOURCE(taskid, sourceid, name)
 
 #define TRACE_REMOVE_SOURCE(taskid, sourceid)
 #endif

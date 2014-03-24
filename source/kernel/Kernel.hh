@@ -103,7 +103,7 @@ private:
     //! The Filesystem Manager
     SimpleFileManager* 		fileManager;
 
-#if USB_SUPPORT_ENABLED
+#if HAS_Board_USB_HCCfd
     // Library containing usb deviice drivers
     USBDriverLibrary* 		usbDriverLib;
 #endif
@@ -263,7 +263,7 @@ public:
 
     CharacterDeviceDriver* getStdOutputDevice();
 
-#if USB_SUPPORT_ENABLED
+#if HAS_Board_USB_HCCfd
     //! Returns the usb driver library of the kernel
     USBDriverLibrary* getUSBDriverLibrary() {
     	return (usbDriverLib);
