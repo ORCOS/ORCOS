@@ -31,7 +31,7 @@ Features in arbitrary order:
     - Kernel Realtime Threads
     - CRC32 protected
 - Signalling / Messaging Framework
-- User Space IRQ information
+- User Space IRQ signalling
 - Ramdisk support
 - Low Interrupt latencies (~2 us on BeagleBoardxM)
 	- IRQ Scheduling to reduce the blocking time of higher priority threads => lower jitter for RT threads.
