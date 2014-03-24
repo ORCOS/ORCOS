@@ -87,6 +87,22 @@ ifeq ($(BUILD_CRC32),1)
 
 endif
 
+checktools:
+	@echo
+	@if ! [ -e $(ORCOS_LIB_DIR) ]; then echo "ERROR: ORCOS_LIB_DIR does not exist! $(ORCOS_LIB_DIR)"; exit -1; fi
+	@echo "----------------------------------"
+	@echo "     Checking for tools"
+	@echo "----------------------------------"
+	@if ! [ -e $(CC) ]; then { echo "C-Compiler (CC) $(CC) not found! Stopping!"; exit 1;} fi
+	@if ! [ -e $(CXX) ]; then { echo "C++-Compiler (CXX) $(CXX) not found! Stopping!"; exit 1;} fi
+	@if ! [ -e $(AS) ]; then { echo "Assembler (AS) $(AS) not found! Stopping!"; exit 1;} fi
+	@if ! [ -e $(AR) ]; then { echo "Archiver (AR) $(AR) not found! Stopping!"; exit 1;} fi
+	@if ! java -version >> /dev/null; then { echo "Java not found! Stopping!"; exit 1;} fi
+	@if ! [ -e $(OBJCOPY) ]; then { echo "Object-Copy (OBJCOPY) $(OBJCOPY) not found! Stopping!"; exit 1;} fi
+	@if ! [ -e $(GCC_LIB_DIR) ]; then { echo "GCC_LIB_DIR $(GCC_LIB_DIR) not found! Stopping!"; exit 1;} fi
+	@echo All tools installed...
+	@echo 
+
 prepare:
 	@mkdir -p $(BUILD_PLATFORM)
 	@cp -f $(ORCOS_LIB_DIR)/task.ld $(BUILD_PLATFORM)/template.ld
@@ -95,27 +111,24 @@ prepare:
 	@echo "Task Start     : $(TASK_START)"
 	@echo "Task End       : $(shell printf 0x"%x" $(TASK_END))"
 	@echo "Task Size      : $(TASK_SIZE)"	
-	@echo "s/TASK_VMA/0x100000/" > $(BUILD_PLATFORM)/task.sed
-	@echo "s/TASK_START/$(TASK_START)/" >> armv7/task.sed
-	@echo "s/TASK_HEAP_ALIGN/$(TASK_HEAP_ALIGN)/" >> armv7/task.sed
-#@echo -ne "s/TASK_HEAP/" >> $(BUILD_PLATFORM)/task.sed
-#@echo -ne $$(( $(TASK_START) + $(TASK_HEAP_SIZE) )) >> $(BUILD_PLATFORM)/task.sed	
-#@echo "/" >> $(BUILD_PLATFORM)/task.sed		 	
-	@echo "s/TASK_END/$(TASK_END)/" >> armv7/task.sed
+	@echo "s/TASK_VMA/0x100000/" 					> $(BUILD_PLATFORM)/task.sed
+	@echo "s/TASK_START/$(TASK_START)/" 			>> $(BUILD_PLATFORM)/task.sed
+	@echo "s/TASK_HEAP_ALIGN/$(TASK_HEAP_ALIGN)/" 	>> $(BUILD_PLATFORM)/task.sed 	
+	@echo "s/TASK_END/$(TASK_END)/" 				>> $(BUILD_PLATFORM)/task.sed
 	@echo "s/INITIAL_PRIORITY/$(INITIAL_PRIORITY)/" >> $(BUILD_PLATFORM)/task.sed
-	@echo "s/PHASE/$(PHASE)/" >> $(BUILD_PLATFORM)/task.sed
-	@echo "s/PERIOD/$(PERIOD)/" >> $(BUILD_PLATFORM)/task.sed
-	@echo "s/DEADLINE/$(DEADLINE)/" >> $(BUILD_PLATFORM)/task.sed
-	@echo "s/EXECUTIONTIME/$(EXECUTIONTIME)/" >> $(BUILD_PLATFORM)/task.sed
-	@echo "s/DEADLINE/$(STACK_SIZE)/" >> $(BUILD_PLATFORM)/task.sed
-	@echo "s/PLATFORM/$(PLATFORM_FLAGS)/" >> $(BUILD_PLATFORM)/task.sed
-	@echo "s/STACK_SIZE/$(STACK_SIZE)/" >> $(BUILD_PLATFORM)/task.sed
-	@echo "s/NEXT_HEADER/$(NEXT_HEADER)/" >> $(BUILD_PLATFORM)/task.sed
+	@echo "s/PHASE/$(PHASE)/" 						>> $(BUILD_PLATFORM)/task.sed
+	@echo "s/PERIOD/$(PERIOD)/" 					>> $(BUILD_PLATFORM)/task.sed
+	@echo "s/DEADLINE/$(DEADLINE)/" 				>> $(BUILD_PLATFORM)/task.sed
+	@echo "s/EXECUTIONTIME/$(EXECUTIONTIME)/" 		>> $(BUILD_PLATFORM)/task.sed
+	@echo "s/DEADLINE/$(STACK_SIZE)/" 				>> $(BUILD_PLATFORM)/task.sed
+	@echo "s/PLATFORM/$(PLATFORM_FLAGS)/" 			>> $(BUILD_PLATFORM)/task.sed
+	@echo "s/STACK_SIZE/$(STACK_SIZE)/" 			>> $(BUILD_PLATFORM)/task.sed
+	@echo "s/NEXT_HEADER/$(NEXT_HEADER)/" 			>> $(BUILD_PLATFORM)/task.sed
 	@echo "s/ADDITIONAL_HEADER/$(ADDITIONAL_HEADER)/" >> $(BUILD_PLATFORM)/task.sed
 	@echo
 	@$(SED) -f $(BUILD_PLATFORM)/task.sed $(BUILD_PLATFORM)/template.ld > $(BUILD_PLATFORM)/task.ld	
 	 
-all: prepare $(BUILD_OBJS) $(BUILD_PLATFORM)/$(OUTPUTFILE) crc
+all: checktools prepare $(BUILD_OBJS) $(BUILD_PLATFORM)/$(OUTPUTFILE) crc
 ifdef POST_BUILD
 	$(POST_BUILD)
 endif 

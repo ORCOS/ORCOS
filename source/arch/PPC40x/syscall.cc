@@ -5,8 +5,17 @@
  *      Author: dbaldin
  */
 
-#include "assemblerFunctions.hh"
 
+/*!
+ * \brief Issues a system call. only use inside a thread
+ */
+#define SYSCALL(ret,syscallnumber) \
+	 asm volatile(   \
+	    "sc;"\
+		"lwz %0,-116(%%r1);"\
+		: "=r" (ret)\
+		: "r" (syscallnumber)\
+	    )
 /*!
  * All parameters of any function call are stored on the stack,
  * so the procedure for doing a system call uses this fact.

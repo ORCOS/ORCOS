@@ -17,4 +17,5 @@ ARCH_VPATH = $(KERNEL_DIR)arch/PPC40x $(KERNEL_DIR)arch/PPC40x/RAPTOR
 #Where to look for header files in the architecture directories.
 ARCH_INCLUDES = -I$(KERNEL_DIR)arch/PPC40x/RAPTOR/ -I$(KERNEL_DIR)arch/PPC40x/
 
-UIMAGE_ARCH=ppc
+UIMAGE_ARCH = ppc
+TARGET  	= ppc405
