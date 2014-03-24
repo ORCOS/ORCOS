@@ -16,11 +16,11 @@ int testandset(void* address, int testvalue, int setvalue) {
 			"lwarx  %0,  0, %1;" /* load and reserve address */
 			"cmpwi  %0, %2;"     /* compare with testvalue */
 			"bne    fail;"       /* branch if not equal to testvalue */
-			"stwcx. %3,  0, %0;" /* try to store non-zero */
-			"li     %0,1;"  	 	/* success */
+			"stwcx. %3,  0, %1;" /* try to store non-zero */
+			"li     %0,1;"  	 /* indicate success */
 			"b    exit;"
 			"fail:"
-			"li    %0,0;"
+			"li    %0,0;"		 /* indicate fail */
 			"exit:"
 
 		: "=&r" (result)
