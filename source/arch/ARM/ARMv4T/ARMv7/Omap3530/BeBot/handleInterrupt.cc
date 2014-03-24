@@ -68,7 +68,7 @@ extern "C"void dispatchIRQ(void* sp_int)
 	    {
 			// General Purpose Timer interrupt
 			case GPT1_IRQ:
-			case GPT2_IRQ:
+			case GPT10_IRQ:
 			{
 				handleTimerInterrupt(sp_int);
 				break;
@@ -83,7 +83,7 @@ extern "C"void dispatchIRQ(void* sp_int)
 					uart->clearIRQ();
 					uart->disableIRQ();
 					uart->interruptPending = true;
-					uart->recv();
+					uart->handleIRQ();
 					break;
 				#endif
 				break;
@@ -96,7 +96,7 @@ extern "C"void dispatchIRQ(void* sp_int)
 					hciTransport->clearIRQ();
 					hciTransport->disableIRQ();
 					hciTransport->interruptPending = true;
-					hciTransport->recv();
+					hciTransport->handleIRQ();
 					break;
 				#endif
 				break;
@@ -109,7 +109,7 @@ extern "C"void dispatchIRQ(void* sp_int)
 					hciTransport->clearIRQ();
 					hciTransport->disableIRQ();
 					hciTransport->interruptPending = true;
-					hciTransport->recv();
+					hciTransport->handleIRQ();
 					break;
 				#endif
 				break;
@@ -124,7 +124,7 @@ extern "C"void dispatchIRQ(void* sp_int)
 
 	theOS->getBoard()->getInterruptController()->clearIRQ(irqSrc);
 	// reschedule
-	theOS->getCPUDispatcher()->dispatch( theOS->getClock()->getTimeSinceStartup() - lastCycleStamp );
+	theOS->getCPUDispatcher()->dispatch(  );
 	// we should never get here
 	while(1);
 }

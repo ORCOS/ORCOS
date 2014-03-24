@@ -16,3 +16,9 @@ tools/SCL/scl2deps.xsd_old
 configurations/BeagleBoardxM/Prototype/xmd/omap35xx.cfg
 configurations/BeagleBoardxM/Prototype/xmd/regOMAP3500.def
 configurations/BeagleBoardxM/Prototype/xmd/xmd.ini
+.csettings/cdt.managedbuild.toolchain.gnu.cross.base.117086479_cdtBuildSystem
+.csettings/cdt.managedbuild.toolchain.gnu.cross.base.117086479_org.eclipse.cdt.core.externalSettings
+.csettings/cdt.managedbuild.toolchain.gnu.cross.base.117086479_org.eclipse.cdt.core.settings
+.settings/language.settings.xml
+.settings/org.eclipse.cdt.ui.prefs
+.settings/org.eclipse.core.runtime.prefs
