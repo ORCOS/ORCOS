@@ -14,7 +14,7 @@
 extern Kernel* theOS;
 
 HCI::HCI() {
-	// TODO Auto-generated constructor stub
+
 #ifdef HAS_Board_HCICfd
 	this->transportDevice = theOS->board->getHCI();
 #endif

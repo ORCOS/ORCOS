@@ -21,7 +21,6 @@
 
 #include <error.hh>
 #include <types.hh>
-#include <arch/shared/UART/UART.hh>
 #include <hal/CommDeviceDriver.hh>
 #include "../powerpc.h"
 

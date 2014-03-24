@@ -20,12 +20,12 @@
 #include "inc/memio.h"
 
 /*---------------------------------------------------------------------------*/
-LED::LED( const char* name, int4 baseaddr ) :
-    CharacterDeviceDriver( true, name )
+LED::LED( T_LED_Init* init ) :
+    CharacterDeviceDriver( true, init->Name )
 /*---------------------------------------------------------------------------*/
 {
     leds = 0;
-    this->baseaddr = baseaddr;
+    this->baseaddr = init->Address;
 }
 
 /*---------------------------------------------------------------------------*/

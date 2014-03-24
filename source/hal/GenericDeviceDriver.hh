@@ -77,7 +77,7 @@ public:
     	interruptPending = false;
     	hasAssignedWorkerThread = false;
     }
-    ;
+
 
     /**
      *  Constructor for drivers specialising from generic device driver,
@@ -88,31 +88,31 @@ public:
     	interruptPending = false;
     	hasAssignedWorkerThread = false;
     }
-    ;
+
 
     virtual ~GenericDeviceDriver() {
     }
-    ;
+
 
     virtual ErrorT probe() {
         return (cNotImplemented);
     }
-    ;
+
 
     virtual ErrorT shutdown() {
         return (cNotImplemented);
     }
-    ;
+
 
     virtual ErrorT suspend() {
         return (cNotImplemented);
     }
-    ;
+
 
     virtual ErrorT resume() {
         return (cNotImplemented);
     }
-    ;
+
 
     /*
      * IRQ Handling method

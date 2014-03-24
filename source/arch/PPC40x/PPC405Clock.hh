@@ -38,7 +38,7 @@
  */
 class PPC405Clock: public Clock {
 public:
-    PPC405Clock( const char* name );
+    PPC405Clock(  );
     ~PPC405Clock();
 
     /*!
@@ -50,7 +50,7 @@ public:
      * for the calculation the be correct the CLOCK_RATE define needs to set
      * appropriatly!
      *
-     * this value will overflow after approx. 200 years at 40Mhz clocl speed.
+     * this value will overflow after approx. 200 years at 400Mhz clock speed.
      */
     unint8 getTimeSinceStartup();
 

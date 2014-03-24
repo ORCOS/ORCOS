@@ -22,12 +22,11 @@
 /*
  * This file includes KERNEL ONLY Types. Place cross kernelspace types inside the user library types.h
  */
-
-
 // include syscall library types
 #include "inc/types.h"
-
 #include <archtypes.h>
+
+
 #define MB * 0x100000
 #define KB * 0x400
 

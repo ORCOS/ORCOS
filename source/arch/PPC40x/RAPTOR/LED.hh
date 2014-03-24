@@ -45,7 +45,7 @@ private:
     int leds;
     int4 baseaddr;
 public:
-    LED( const char* name, int4 baseaddr );
+    LED( T_LED_Init* init );
     ~LED();
 
     void LedOn( int4 ledNumber );

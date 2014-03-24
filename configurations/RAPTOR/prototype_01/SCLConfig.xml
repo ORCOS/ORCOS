@@ -20,20 +20,18 @@
          ************************************ -->
   <Tasks>
     <Task>
-      <Start>0x81100000</Start>
-      <End>0x8117FFFF</End>
-      <Heap>0x81177000</Heap>
-      <Path>./tasks/telnet_server/</Path>
+      <Start>0x00100000</Start>
+      <Size>0x00100000</Size>
+      <Path>../../../tasks/telnet_server</Path>
       <PriorityOptions>
-        <InitialPriority>0</InitialPriority>
+        <InitialPriority>5000</InitialPriority>
         <Phase>0</Phase>
         <RealTimeOptions>
-          <Period>500000</Period>
-          <Deadline>500000</Deadline>
+          <Period>2000</Period>
+          <Deadline>2000</Deadline>
           <ExecutionTime>0</ExecutionTime>
         </RealTimeOptions>
       </PriorityOptions>
-      <Vma>0x100000</Vma>
     </Task>
   </Tasks>
   <SCL>
@@ -65,6 +63,21 @@
         <PropertyValue Name="Name" Value="led0" Type="char*" />
       </Member>
       <Member Name="Timer" Class="arch/PPC40x/PPC405ProgrammableIntervalTimer" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="Watchdog" Class="arch/PPC40x/PPC405Watchdog" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+    </Skeleton>
+    <Skeleton>
+      <Name>FileSystems</Name>
+      <Superclass>filesystem/SimpleFileManager</Superclass>
+      <Member Name="PartitionManager" Class="filesystem/PartitionManager" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="DOSPartition" Class="filesystem/DOSPartition" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="FATFileSystem" Class="filesystem/FATFileSystem" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+    </Skeleton>
+    <Skeleton>
+      <Name>USBDriver</Name>
+      <Superclass>usb/USBDeviceDriverLibrary</Superclass>
+      <Member Name="Factory" Class="usb/USBDeviceDriverFactory" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="SMSC95xx" Class="usb/SMSC95xxUSBDeviceDriver" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="MassStorage" Class="usb/MassStorageSCSIUSBDeviceDriver" None="true" UserSpace="false" PhyLoadAddress="0x0" />
     </Skeleton>
     <!-- ************************************
     			Skeleton Kernel
@@ -83,6 +96,11 @@
       <Member Name="Logger" Class="debug/Logger" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="PowerManager" Class="hal/PowerManager" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="TaskManager" Class="process/TaskManager" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="RamManager" Class="mem/NoRamManager" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="Ramdisk" Class="filesystem/Ramdisk" None="true" UserSpace="false" PhyLoadAddress="0x0">
+        <PropertyValue Name="StartAddress" Value="Unknown" Type="unsigned int" />
+        <PropertyValue Name="Size" Value="Unknown" Type="unsigned int" />
+      </Member>
     </Skeleton>
     <!-- ************************************
     			Skeleton SyscallManager
@@ -116,6 +134,13 @@
       <Member Name="task_stop" None="false" />
       <Member Name="task_resume" None="false" />
       <Member Name="ioctl" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="thread_wait" Class="" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="fstat" Class="" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="fremove" Class="" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="task_run" Class="" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="task_kill" Class="" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="mapMemory" Class="" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="shm_map" Class="" None="true" UserSpace="false" PhyLoadAddress="0x0" />
     </Skeleton>
     <!--  DEFINES -->
     <Define>
@@ -228,6 +253,10 @@
     <Define>
       <Name>RAM_SIZE</Name>
       <Value>512 MB</Value>
+    </Define>
+    <Define>
+      <Name>ENABLE_NETWORKING</Name>
+      <Value>1</Value>
     </Define>
   </SCL>
 </Configuration>

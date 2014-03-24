@@ -37,6 +37,7 @@ class Task;
  * 	This Mutex class provides normal mutex functionality with priority inheritance and scheduling functionality.
  *
  *  This implementation is save regarding interrupts since it disables interrupts in its critical code parts.
+ *
  */
 class Mutex {
 
@@ -49,7 +50,7 @@ private:
      */
     int4 				m_locked;
 
-    //! Stores a pointer to the thread currently locking this mutex.
+    /*! Stores a pointer to the thread currently locking this mutex. */
     Kernel_ThreadCfdCl* m_pThread;
 
     /*! \brief Is used to store unused LinkedList Database Items

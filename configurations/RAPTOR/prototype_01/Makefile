@@ -1,5 +1,5 @@
 #Configuration Makefile
-CWD = $(shell pwd)
+CWD = .
 RELATIVE_SOURCE_PATH = ../../..
 
 
@@ -7,7 +7,10 @@ RELATIVE_SOURCE_PATH = ../../..
 #                                                      Tools Settings
 #---------------------------------------------------------------------------------------------------------------------------------------
 #GCC
-GCC_PATH	= /opt/freescale-4.4
+GCC_LIB_DIR=D:/toolchains/powerpc-eabi/lib/gcc/powerpc-eabi/4.8.0/
+LIBC_DIR=D:/toolchains/powerpc-eabi/powerpc-eabi/lib/
+
+GCC_PATH	= /cygdrive/d/toolchains/powerpc-eabi
 CC      	= $(GCC_PATH)/bin/powerpc-eabi-gcc
 CXX     	= $(GCC_PATH)/bin/powerpc-eabi-c++
 AS      	= $(GCC_PATH)/bin/powerpc-eabi-as
@@ -33,13 +36,15 @@ SCL 	= java -jar $(RELATIVE_SOURCE_PATH)/tools/SCL/dist/scl2.jar SCLConfig.xml  
 #                                                       Directory Settings
 #---------------------------------------------------------------------------------------------------------------------------------------
 
-#TODO Generate by scl
-# all task directories for this configuration. used for building see kernel.mk target: tasks, tasks_clean
-TASKS = ./tasks/task1/ ./tasks/task2/ ./tasks/debugtask/
-
 #This is where the kernel source can be found
 KERNEL_DIR = $(CWD)/$(RELATIVE_SOURCE_PATH)/source/
-KERNEL_LIB_DIR = $(CWD)/$(RELATIVE_SOURCE_PATH)/source/lib/
+KERNEL_LIB_DIR = $(CWD)/$(RELATIVE_SOURCE_PATH)/library/bin/armv7/
+
+
+#Output Directory. This is where the objects and the final binary go
+OUTPUT_DIR = ./output/
+MODULES_DIR = ./modules/
+
 
 #This is the architecture directory we want to use
 ARCH_DIR = $(KERNEL_DIR)arch/PPC40x/
@@ -56,29 +61,29 @@ OUTPUT_DIR = ./output/
 #---------------------------------------------------------------------------------------------------------------------------------------
 
 # The Linker Script used for this configuration
-LINKERSCRIPT = kernel.ld   
+LINKERSCRIPT = $(ARCH_DIR)/kernel.ld   
 
 #Optimization flag
-OPT_FLAGS = -O0
+OPT_FLAGS = -O2
 
 #Command line arguments to compile .c files.
-CFLAGS = -Wall -g -I$(KERNEL_DIR)inc/ -I$(KERNEL_DIR)comm/lwip/include/ -I$(KERNEL_DIR)comm/lwip/ -I. -I$(KERNEL_DIR) $(ARCH_INCLUDES) -fno-exceptions -msoft-float -fno-stack-protector -c $(OPT_FLAGS)
+CFLAGS = -Wall -g -I$(KERNEL_DIR)inc/ -I./make/ -I$(KERNEL_DIR)comm/lwip/include/ -I$(KERNEL_DIR)comm/lwip/ -I. -I$(KERNEL_DIR) -I$(KERNEL_LIB_DIR)/../../ $(ARCH_INCLUDES) -fno-exceptions -msoft-float -fno-stack-protector -c $(OPT_FLAGS)
 
 #Command line arguments to compile .cc files.
-CPFLAGS = -Wall -g -I$(KERNEL_DIR)inc/ -I$(KERNEL_DIR)comm/lwip/include/ -I$(KERNEL_DIR)comm/lwip/ -I. -I$(KERNEL_DIR) $(ARCH_INCLUDES) -fno-exceptions -fno-rtti -msoft-float -fno-stack-protector -Wuninitialized -Woverloaded-virtual -c $(OPT_FLAGS)
+CPFLAGS = -Wall -g -I$(KERNEL_DIR)inc/ -I./make/ -I$(KERNEL_DIR)comm/lwip/include/ -I$(KERNEL_DIR)comm/lwip/ -I. -I$(KERNEL_DIR) -I$(KERNEL_LIB_DIR)/../../ $(ARCH_INCLUDES) -fno-exceptions -fno-rtti -msoft-float -fno-stack-protector -Wuninitialized -Woverloaded-virtual -c $(OPT_FLAGS)
 
 #Command line arguments to the linker.
 LDFLAGS = -o output/kernel.elf --entry=startORCOS --script=$(LINKERSCRIPT)
 #LDFLAGS = -o output/kernel.elf --entry=startORCOS --script=$(LINKERSCRIPT) -L/usr/local/powerpc-eabi/lib/gcc/powerpc-eabi/4.2.3/nof
 
 #Command line arguments for the gcc to assemble .S files.
-ASFLAGS = -g -I$(KERNEL_DIR)inc/ -I. -I$(KERNEL_DIR) $(ARCH_INCLUDES) -fno-exceptions  -fno-rtti -msoft-float -Xassembler -m405 -c
+ASFLAGS = -g -I$(KERNEL_DIR)inc/ -I./make/ -I$(KERNEL_DIR) $(ARCH_INCLUDES) -fno-exceptions  -fno-rtti -msoft-float -Xassembler -m405 -c
 
 #---------------------------------------------------------------------------------------------------------------------------------------
 #                                                      Makefile Inclusion
 #---------------------------------------------------------------------------------------------------------------------------------------
 
-STACK_USAGE_SCRIPT = $(KERNEL_DIR)../tools/PPCStackUsage/stack_usage.py
+#STACK_USAGE_SCRIPT = $(KERNEL_DIR)../tools/PPCStackUsage/stack_usage.py
 
 #include architekture make file
 #TODO: autogenerate this by scl

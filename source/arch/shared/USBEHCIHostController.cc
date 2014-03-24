@@ -465,7 +465,7 @@ int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1
 
 }
 
-
+unint1 controlMsg[8] __attribute__((aligned(32))) ATTR_CACHE_INHIBIT;
 
 int USB_EHCI_Host_Controller::sendUSBControlMsg(USBDevice *dev, unint1 endpoint, unint1 *control_msg,unint1 direction, unint1 data_len, unint1 *data) {
 
@@ -474,6 +474,9 @@ int USB_EHCI_Host_Controller::sendUSBControlMsg(USBDevice *dev, unint1 endpoint,
 	if (qh == 0) return (cError);
 
 	this->accessControl->acquire();
+
+	// be sure control message is in cache inhibit memory for EHCI to access it.
+	memcpy(controlMsg,control_msg,8);
 
 	// get some memory for qtds
 	volatile qTD* qtd  = &qtds[(qtdnum++) & 0x7];
@@ -488,8 +491,8 @@ int USB_EHCI_Host_Controller::sendUSBControlMsg(USBDevice *dev, unint1 endpoint,
 	qtd->qt_altnext 	= QT_NEXT_TERMINATE;
 	qtd->qt_token 		= QT_TOKEN_DT(0) | QT_TOKEN_CERR(3) | QT_TOKEN_IOC(0) | QT_TOKEN_PID(QT_TOKEN_PID_SETUP)
 				 			 | QT_TOKEN_STATUS_ACTIVE | QT_TOKEN_TOTALBYTES(8);
-	qtd->qt_buffer[0] 	= (unint4) control_msg; // set control message to send
-	qtd->qt_buffer[1] 	= (unint4) alignCeil((char*)control_msg,4096); // set control message to send
+	qtd->qt_buffer[0] 	= (unint4) controlMsg; // set control message to send
+	qtd->qt_buffer[1] 	= (unint4) alignCeil((char*)controlMsg,4096); // set control message to send
 
 	unint1 dir = QT_TOKEN_PID_IN;
 	if (direction == USB_DIR_OUT) dir = QT_TOKEN_PID_OUT;
@@ -528,7 +531,7 @@ int USB_EHCI_Host_Controller::sendUSBControlMsg(USBDevice *dev, unint1 endpoint,
 	volatile unint4 timeout = 400;
 	while (( QT_TOKEN_GET_STATUS(INW(&lastqtd->qt_token)) == 0x80  ) && timeout) {
 		timeout--;
-		// TODO: optimize as a microframe is only 135 us long?
+		/* control messages are much slower */
 		kwait(1);
 	};
 
@@ -571,9 +574,9 @@ ErrorT USB_EHCI_Host_Controller::enumerateDevice(USBDevice *dev) {
 		LOG(ARCH,TRACE,(ARCH,TRACE,"USB_EHCI_Host_Controller: Device Descriptor Length %d:",bdevLength));
 
 		if (bdevLength > 0 && bdevLength <= sizeof(DeviceDescriptor)) {
-			// copy received device descriptor so we can reference it later on
+			/* copy received device descriptor so we can reference it later on */
 			memcpy(&dev->dev_descr,&recv_buf,bdevLength);
-			// Analyze device descriptor
+			/* Analyze device descriptor */
 
 			LOG(ARCH,INFO,(ARCH,INFO,"USB_EHCI_Host_Controller: Device at Port %d:",dev->port));
 			LOG(ARCH,INFO,(ARCH,INFO,"USB_EHCI_Host_Controller:  USB %d.%d Device",dev->dev_descr.v_usbhigh,dev->dev_descr.v_usblow));
@@ -587,29 +590,33 @@ ErrorT USB_EHCI_Host_Controller::enumerateDevice(USBDevice *dev) {
 		}
 	} else {
 		LOG(ARCH,ERROR,(ARCH,ERROR,"USB_EHCI_Host_Controller: Getting Device Descriptor failed."));
-
 		return (cError);
 		// failed .. handle error
 	}
 
 	kwait(1);
 
-	// reset the port again
-	// some device only react on the following messages after resetting the port two times
+	/* reset the port again
+	   some device only react on the following messages after resetting the port two times */
 	if (dev->parent == 0) {
 		unint4 portsc = INW(operational_register_base + PORTSC1_OFFSET + 4* dev->port);
 		SETBITS(portsc,8,8,1); // start port reset
 		OUTW(operational_register_base + PORTSC1_OFFSET + 4* dev->port,portsc);
 
-		// give some time to the device to change its address
+		/* give some time to the device to change its address */
 		kwait(5);
 
 		portsc = INW(operational_register_base + PORTSC1_OFFSET + 4*dev->port);
 		SETBITS(portsc,8,8,0); // start port reset
 		OUTW(operational_register_base + PORTSC1_OFFSET + 4*dev->port,portsc);
 
-		// TODO: check for timeout
-		while ( !(INW(operational_register_base + PORTSC1_OFFSET + 4*dev->port) & (1 << 2)) ) {};
+		unint4 timeout = 400;
+		while ((!(INW(operational_register_base + PORTSC1_OFFSET + 4*dev->port) & (1 << 2))  ) && timeout) {
+			timeout--;
+			kwait_us(10);
+		};
+
+		if (timeout == 0) return (cError);
 
 	} else {
 		// parent must be a hub
@@ -1174,7 +1181,7 @@ USBHub::USBHub(USBDevice *p_dev, USB_EHCI_Host_Controller *p_controller) :  USBD
 
 USBHub::~USBHub() {
 
-	// delete all devices as they are no longer there
+	/* delete all devices as they are no longer there */
 	for (int i = 0; i < 6; i++) {
 		if (this->portDevices[i] != 0) delete this->portDevices[i];
 	}

@@ -82,7 +82,7 @@ ErrorT OmapGPIO::writeBytes(const char* bytes, unint4 length) {
 	// clear data out for all 0 bits
 	OUTW(this->baseAddress + 0x90, ~val);
 
-	return cOk;
+	return (cOk);
 
 }
 
@@ -94,12 +94,12 @@ ErrorT OmapGPIO::ioctl(int request, void* args) {
 	// handle the io control request
 	if (request == IOCTL_GPIO_SET_DIR) {
 		OUTW(this->baseAddress + 0x34, (unint4) args);
-		return cOk;
+		return (cOk);
 	}
 	if (request == IOCTL_GPIO_GET_DIR) {
 		(*(unint4*)args) = INW(this->baseAddress + 0x34);
-		return cOk;
+		return (cOk);
 	}
 
-	return cInvalidArgument;
+	return (cInvalidArgument);
 }

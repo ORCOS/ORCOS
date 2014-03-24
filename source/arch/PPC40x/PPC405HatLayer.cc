@@ -44,7 +44,7 @@ PPC405HatLayer::PPC405HatLayer(  )
 }
 
 PPC405HatLayer::~PPC405HatLayer() {
-    this->unmapAll();
+    this->unmapAll(0);
 }
 
 
@@ -119,10 +119,11 @@ void* PPC405HatLayer::map( void* logBaseAddr, void* physBaseAddr, size_t size, B
         this->map( nextLogAddr, nextPhysAddr, size - MAX_PAGE_SIZE, protection, zsel , pid , cache_inhibit );
     }
 
-    return (void*) realPage;
+    return ((void*) realPage);
 }
 
-ErrorT PPC405HatLayer::unmap( void* logBaseAddr ) {
+ErrorT PPC405HatLayer::unmap( void* logBaseAddr, unint1 tid ) {
+	// TODO: we currently ignore tid which is erroneous
     PPC405TlbEntry tlbe;
     int index;
     ErrorT status = 0;
@@ -130,7 +131,7 @@ ErrorT PPC405HatLayer::unmap( void* logBaseAddr ) {
     // search TLB entry with the given logical address
     status = PPC405MMU::searchEntry( (unint) logBaseAddr, index );
     if ( isError(status) ) {
-        return status;
+        return (status);
     }
 
     // save entry in tlbe
@@ -142,10 +143,11 @@ ErrorT PPC405HatLayer::unmap( void* logBaseAddr ) {
     status = releaseEntry( index );
 
     // write invalidated entry to TLB
-    return PPC405MMU::writeEntry( index, &tlbe );
+    return (PPC405MMU::writeEntry( index, &tlbe ));
 }
 
-ErrorT PPC405HatLayer::unmapAll() {
+ErrorT PPC405HatLayer::unmapAll(unint1 tid) {
+	// TODO: we currently ignore tid which is erroneous
     PPC405TlbEntry tlbe;
     int index = 0;
 

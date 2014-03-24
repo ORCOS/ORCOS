@@ -24,7 +24,7 @@
 #include Kernel_Thread_hh
 
 typedef enum {
-    IRQJob, TimedFunctionCallJob, PeriodicFunctionCallJob, None , IdleJob
+	None, IRQJob, TimedFunctionCallJob, PeriodicFunctionCallJob, IdleJob
 } JOBType;
 
 /*!

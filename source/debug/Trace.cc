@@ -9,6 +9,7 @@
 #include "kernel/Kernel.hh"
 #include "inc/memtools.hh"
 #include "comm/Socket.hh"
+#include "inet.h"
 
 extern Kernel* theOS;
 extern Kernel_ThreadCfdCl*    pCurrentRunningThread;

@@ -23,11 +23,9 @@
 #include "kernel/Kernel.hh"
 
 extern Kernel* theOS;
-
-
 extern Kernel_ThreadCfdCl*    pCurrentRunningThread;
 
-//FATAL=0,ERROR=1,WARN=2,INFO=3,DEBUG=4,TRACE=5
+/* FATAL=0,ERROR=1,WARN=2,INFO=3,DEBUG=4,TRACE=5 */
 static const char* levelStrings[ 6 ] = { "FATAL", "ERROR", "WARN ", "INFO ", "DEBUG", "TRACE" };
 
 /*** Escape Sequenzen: **********/
@@ -54,12 +52,13 @@ void Logger::log( Prefix prefix, Level level, const char* msg, ... ) {
     }
 #endif
 
-
+#if LOG_PRINT_TIME
     unint4 time = 0;
     if (theOS != 0 && theOS->getClock() != 0)
-    	time =(unint4) theOS->getClock()->getTimeSinceStartup();
+    	time =(unint4) (theOS->getClock()->getTimeSinceStartup() MICROSECONDS);
 
     printf("[%08u]",time);
+#endif
 
     if (pCurrentRunningThread != 0)
     	 printf("[%1d][%s] ", pCurrentRunningThread->getId(), levelStrings[ level ]);
@@ -76,6 +75,6 @@ void Logger::log( Prefix prefix, Level level, const char* msg, ... ) {
     }
 #endif
 
-    printf( "\r" );
+    puts("\r");
 }
 

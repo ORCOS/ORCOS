@@ -177,7 +177,7 @@ public:
 	 * Returns the cluster number the sector is contained in
 	 */
 	unint4 SectorToCluster(unint4 sectornum) {
-		return ((sectornum - FirstDataSector) >> sector_shift_value) +2;
+		return (((sectornum - FirstDataSector) >> sector_shift_value) +2);
 	}
 
 	/*
@@ -186,7 +186,7 @@ public:
 	unint4 ClusterToSector(unint4 clusternum) {
 
 		// return FirstDataSector + ((clusternum -2) * myFAT_BPB.BPB_SecPerClus);
-		 return FirstDataSector + ((clusternum -2) << sector_shift_value);
+		 return (FirstDataSector + ((clusternum -2) << sector_shift_value));
 
 	}
 

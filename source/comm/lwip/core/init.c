@@ -246,7 +246,6 @@ lwip_init(void)
 #if LWIP_SOCKET
   lwip_socket_init();
 #endif /* LWIP_SOCKET */
-  // TODO: MAKE this configurable
   ip4_init();
   ip6_init();
 #if LWIP_ARP

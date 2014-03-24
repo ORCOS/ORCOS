@@ -99,7 +99,7 @@ TimeT EarliestDeadlineFirstThreadScheduler::getNextTimerEvent( LinkedListDatabas
 	if (item->relativeDeadline != 0)
 	{
 		item->absoluteDeadline     = item->arrivalTime + item->relativeDeadline;
-		item->effectivePriority    = (( 1 << sizeof(TimeT)) -1) - item->absoluteDeadline;
+		item->effectivePriority    = MAX_UINT8 - item->absoluteDeadline;
 		item->initialPriority      = item->effectivePriority;
 	}
 	/* only change the priority if it has not been set by the prioritythread */
@@ -110,6 +110,6 @@ TimeT EarliestDeadlineFirstThreadScheduler::getNextTimerEvent( LinkedListDatabas
 		item->effectivePriority    = 1;
 	}
 
-    LOG(SCHEDULER,DEBUG,(SCHEDULER,DEBUG,"EDF: Thread %d Priority=%x%x",item->getId(), *((unint4*)&item->effectivePriority),*( ((unint4*)&item->effectivePriority) + 1) ));
-}
+    LOG(SCHEDULER,DEBUG,(SCHEDULER,DEBUG,"EDF: Thread %d Priority=%x%x",item->getId(), (unint4) ((item->effectivePriority >> 32) & 0xffffffff),  (unint4) ((item->effectivePriority) & 0xffffffff)));
 
+ }

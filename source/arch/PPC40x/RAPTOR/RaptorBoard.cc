@@ -32,7 +32,8 @@ void RaptorBoard::initialize()
 // created first so we can very early write to the serial console
 // to e.g. write error messages!
 #ifdef HAS_Board_UARTCfd
-     UARTCfd = new NEW_Board_UARTCfd;
+	INIT_Board_UARTCfd;
+    UARTCfd = new NEW_Board_UARTCfd;
 #if __EARLY_SERIAL_SUPPORT__
      theOS->setStdOutputDevice( UARTCfd );
 #endif
@@ -61,6 +62,7 @@ void RaptorBoard::initialize()
 
     // LED Interface
 #ifdef HAS_Board_LEDCfd
+    INIT_Board_LEDCfd;
     LEDCfd = new NEW_Board_LEDCfd;
     LEDCfd->Clear();
 #endif
@@ -72,6 +74,7 @@ void RaptorBoard::initialize()
 #endif
 
 #ifdef HAS_Board_ETHCfd
+    INIT_Board_ETHCfd;
     ETHCfd = new NEW_Board_ETHCfd;
 #endif
 

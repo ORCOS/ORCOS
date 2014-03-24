@@ -15,16 +15,17 @@ BlockDeviceDriver::BlockDeviceDriver(char* p_name) :  GenericDeviceDriver(cBlock
 
 	SimpleFileManager* fm = theOS->getFileManager();
 
-	// be sure we have a filesystem. if not we can not continue since every driver needs to register!!
-	ASSERT(fm);
-
+	/* be sure we have a filesystem. if not we can not continue since every driver needs to register!! */
 	if (fm != 0) fm->registerResource( this );
 
-	// conservative default
+	/* conservative default */
 	this->sector_size = 512;
 }
 
 BlockDeviceDriver::~BlockDeviceDriver() {
-	// TODO Auto-generated destructor stub
+	SimpleFileManager* fm = theOS->getFileManager();
+
+	/* be sure we have a filesystem. if not we can not continue since every driver needs to register!! */
+	if (fm != 0) fm->unregisterResource( this );
 }
 

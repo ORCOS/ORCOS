@@ -19,8 +19,8 @@
 #include "PPC405Clock.hh"
 #include "assemblerFunctions.hh"
 
-PPC405Clock::PPC405Clock( const char* name ) :
-    Clock( name ) {
+PPC405Clock::PPC405Clock( ) :
+    Clock( "clock" ) {
 
 	reset();
 }

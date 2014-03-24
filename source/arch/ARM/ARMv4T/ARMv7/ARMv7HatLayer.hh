@@ -68,7 +68,7 @@ public:
 
 
     /*!
-     * \brief Maps a physical base address into an arbitray virtual address determined by the HATLayer.
+     * \brief Maps a physical base address into an arbitray free virtual address determined by the HATLayer.
      *
      */
     void* map( void* phyBaseAddr, size_t, BitmapT, byte, int pid,  bool cache_inhibit );

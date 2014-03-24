@@ -22,6 +22,10 @@
 
 #define MHZ *1000000
 #define	CLOCK_RATE					300 MHZ
+#define ms * 300000
+#define MILLISECONDS * 300000
+#define MICROSECONDS * 300
+
 
 /*------------------------------------------------------*/
 /*   Redefinitions for some special purpose registers   */

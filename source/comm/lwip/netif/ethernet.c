@@ -16,6 +16,10 @@
 
 extern void* comStackMutex;
 
+extern void acquireMutex(void* mutex);
+
+extern void releaseMutex(void* mutex);
+
 /**
  * Process received ethernet frames. Using this function instead of directly
  * calling ip_input and passing ARP frames through etharp in ethernetif_input,

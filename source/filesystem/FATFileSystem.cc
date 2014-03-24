@@ -13,16 +13,24 @@
 
 extern Kernel* theOS;
 
-// TODO: optimize memory usage .. remove temporary buffers
 
 static unsigned char buffer[1024] __attribute__((aligned(4))) ATTR_CACHE_INHIBIT;
 
 static unsigned char temp_buf[512] __attribute__((aligned(4))) ATTR_CACHE_INHIBIT;
 
+/* Global FAT code access mutex. Used to ensure the buffers are not
+ * overwritten by concurrent fat operations in other threads.*/
+Mutex* FATAccess;
+
 FATFileSystem::FATFileSystem(Partition* p_myPartition) : FileSystemBase(p_myPartition) {
+
+	/* Create the mutex if not created before */
+	if (FATAccess == 0) FATAccess = new Mutex();
 
 	rootDir = 0;
 	myPartition->setMountedFileSystem(this);
+
+	FATAccess->acquire();
 
 	// read out first sector
 	int error = myPartition->readSectors(0,buffer,1);
@@ -46,9 +54,9 @@ FATFileSystem::FATFileSystem(Partition* p_myPartition) : FileSystemBase(p_myPart
 
 		if (myFAT_BPB.BPB_BytsPerSec != 512) {
 			LOG(ARCH,ERROR,(ARCH,ERROR,"FATFileSystem: Invalid Sector Size %d.",myFAT_BPB.BPB_BytsPerSec));
-			return;
-		}
 
+		}
+		else
 		if (myFAT_BPB.BPB_BytsPerSec <= myPartition->getSectorSize() ) {
 
 			// right now we trust the rest of the table and do checks on demand
@@ -104,6 +112,7 @@ FATFileSystem::FATFileSystem(Partition* p_myPartition) : FileSystemBase(p_myPart
 		LOG(ARCH,ERROR,(ARCH,ERROR,"FATFileSystem: invalid Filesystem. Invalid BS_jmpBoot field"));
 	}
 
+	FATAccess->release();
 
 }
 
@@ -118,7 +127,7 @@ unint4 FATFileSystem::allocateCluster() {
 	else {
 		unint4 fsinfo_lba = myFATxx_BPB.myFAT32_BPB.BPB_FSInfo * ( myFAT_BPB.BPB_BytsPerSec / this->myPartition->getSectorSize());
 		int error = myPartition->readSectors(fsinfo_lba,temp_buf,1);
-		if (error < 0) return cError;
+		if (error < 0) return (cError);
 
 		FAT32_FSInfo *fsinfo = (FAT32_FSInfo *) &temp_buf[0];
 
@@ -211,7 +220,7 @@ unint4 FATFileSystem::getFATTableEntry(unint4 clusterNum, bool allocate) {
 
 	// now get the table entry
 	// this is 4 bytes aligned.. however compiler does not know this
-	// thus this will produce a warning
+	// thus this may produce a warning
 	if (myFatType == FAT16) {
 		unint2 nextCluster = (* ((unint2*)  &buffer[fatentoffset]));
 
@@ -284,9 +293,9 @@ static int FAT_SHORTNAME_STRIP(char* &name, unint1 startpos)  {
 		else return (i);
 	}
 
-	// should not happen as this sould be a filename violation
-	// however, be safe here
-	return 0;
+	/* should not happen as this should be a filename violation
+	   however, be safe here */
+	return (0);
 
 
 }
@@ -317,7 +326,7 @@ ErrorT FATFileSystem::initialize() {
 			/* get FSInfo */
 			unint4 fsinfo_lba = myFATxx_BPB.myFAT32_BPB.BPB_FSInfo * ( myFAT_BPB.BPB_BytsPerSec / this->myPartition->getSectorSize());
 			int error = myPartition->readSectors(fsinfo_lba,buffer,1);
-			if (error < 0) return cError;
+			if (error < 0) return (cError);
 
 			FAT32_FSInfo *fsinfo = (FAT32_FSInfo *) &buffer[0];
 			if (fsinfo->FSI_LeadSig != 0x41615252) {
@@ -591,8 +600,10 @@ Resource* FATDirectory::get(const char* p_name, unint1 name_len  ) {
 	if (!populated) populateDirectory();
 
 
-	//TODO: we might return a single resource without populating the whole directory
-	// just lookup the entries on the block devices partition and create a resource for it.
+	/*TODO: we might return a single resource without populating the whole directory
+	 just lookup the entries on the block devices partition and create a resource for it.
+	 This would be much more memory efficient, however much slower
+	 */
 
 	return (Directory::get(p_name, name_len));
 
@@ -611,8 +622,13 @@ File* FATDirectory::createFile(char* p_name, unint4 flags) {
 	// get root sector number
 	unint4 sector_number = this->sector;
 
+	FATAccess->acquire();
+
 	int error = myFS->myPartition->readSectors(sector_number,buffer,1);
-	if (error < 0) return (0);
+	if (error < 0) {
+		FATAccess->release();
+		return (0);
+	}
 
 
 	FAT32_DirEntry *fsrootdir_entry = (FAT32_DirEntry *) &buffer[0];
@@ -639,7 +655,10 @@ File* FATDirectory::createFile(char* p_name, unint4 flags) {
 				buffer[0] = 0;
 			} else {
 				error = myFS->myPartition->readSectors(sector_number,buffer,1);
-				if (error < 0) return (0);
+				if (error < 0) {
+					FATAccess->release();
+					return (0);
+				}
 			}
 			num = 0;
 			fsrootdir_entry = (FAT32_DirEntry *) &buffer[0];
@@ -647,7 +666,10 @@ File* FATDirectory::createFile(char* p_name, unint4 flags) {
 	}
 	// end found
 	unint4 fileCluster = myFS->allocateCluster();
-	if (fileCluster == EOC) return (0);
+	if (fileCluster == EOC) {
+		FATAccess->release();
+		return (0);
+	}
 	LOG(ARCH,INFO,(ARCH,INFO,"FATDirectory::createFile() new File allocated to Cluster %d",fileCluster));
 	// create entries at the end
 
@@ -720,7 +742,10 @@ File* FATDirectory::createFile(char* p_name, unint4 flags) {
 		if (num >= entries_per_sector) {
 			//first write back the sector
 			error = myFS->myPartition->writeSectors(sector_number,buffer,1);
-			if (error < 0) return (0);
+			if (error < 0) {
+				FATAccess->release();
+				return (0);
+			}
 
 			// load next sector, allocate if cluster ends!
 			sector_number = this->myFS->getNextSector(sector_number,currentCluster);
@@ -728,13 +753,17 @@ File* FATDirectory::createFile(char* p_name, unint4 flags) {
 			if (sector_number == EOC) {
 				sector_number = this->myFS->getNextSector(sector_number,currentCluster,true);
 				if (sector_number == EOC) {
+					FATAccess->release();
 					LOG(ARCH,WARN,(ARCH,WARN,"FATDirectory::createFile() No more memory.. "));
 					return (0);
 				}
 				memset(buffer,0,512);
 			} else {
 				error = myFS->myPartition->readSectors(sector_number,buffer,1);
-				if (error < 0) return (0);
+				if (error < 0) {
+					FATAccess->release();
+					return (0);
+				}
 			}
 
 			num = 0;
@@ -762,7 +791,10 @@ File* FATDirectory::createFile(char* p_name, unint4 flags) {
 	if (num >= entries_per_sector) {
 		//first write back the sector
 		error = myFS->myPartition->writeSectors(sector_number,buffer,1);
-		if (error < 0) return (0);
+		if (error < 0) {
+			FATAccess->release();
+			return (0);
+		}
 
 		// load next sector, allocate if cluster ends!
 		sector_number = this->myFS->getNextSector(sector_number,currentCluster);
@@ -770,6 +802,7 @@ File* FATDirectory::createFile(char* p_name, unint4 flags) {
 		if (sector_number == EOC) {
 			sector_number = this->myFS->getNextSector(sector_number,currentCluster,true);
 			if (sector_number == EOC) {
+				FATAccess->release();
 				LOG(ARCH,WARN,(ARCH,WARN,"FATDirectory::createFile() No more memory.. "));
 				return (0);
 			}
@@ -777,7 +810,10 @@ File* FATDirectory::createFile(char* p_name, unint4 flags) {
 			memset(buffer,0,512);
 		} else {
 			error = myFS->myPartition->readSectors(sector_number,buffer,1);
-			if (error < 0) return (0);
+			if (error < 0) {
+				FATAccess->release();
+				return (0);
+			}
 		}
 
 		num = 0;
@@ -787,6 +823,8 @@ File* FATDirectory::createFile(char* p_name, unint4 flags) {
 	// set new end
 	fsrootdir_entry->DIR_Name[0] = 0;
 	error = myFS->myPartition->writeSectors(sector_number,buffer,1);
+	FATAccess->release();
+
 	if (error < 0) return (0);
 
 	return (file);
@@ -855,11 +893,14 @@ ErrorT 	FATDirectory::remove(Resource *res) {
 
 	if (!(res->getType() & (cFile| cDirectory))) return (cWrongResourceType);
 
-
+	FATAccess->acquire();
 	// todo: type safe casting here!
 	FATFile* file = (FATFile*) res;
 	int error = myFS->myPartition->readSectors(file->directory_sector,buffer,1);
-	if (error < 0) return (error);
+	if (error < 0) {
+		FATAccess->release();
+		return (error);
+	}
 
 	FAT32_DirEntry *fsrootdir_entry = (FAT32_DirEntry *) &buffer[0];
 
@@ -875,7 +916,11 @@ ErrorT 	FATDirectory::remove(Resource *res) {
 	// TODO: remove related longname entries..
 
 	error = myFS->myPartition->writeSectors(file->directory_sector,buffer,1);
-	if (error < 0) return (error);
+	FATAccess->release();
+
+	if (error < 0) {
+		return (error);
+	}
 	// TODO: now free up the FAT cluster chain entries used by this file
 
 	// finally remove internal dir object
@@ -915,6 +960,8 @@ ErrorT FATFile::readBytes(char* bytes, unint4& length) {
 	unint4 sector_size 	= this->myFS->myPartition->getSectorSize();
 	bool sector_changed = false;
 
+	FATAccess->acquire();
+
 	while (readlength > 0) {
 
 		// position inside our current sector
@@ -934,7 +981,10 @@ ErrorT FATFile::readBytes(char* bytes, unint4& length) {
 		LOG(ARCH,DEBUG,(ARCH,DEBUG,"FATFile::readBytes reading Sector: %u, cluster: %u",currentSector,currentCluster));
 		// read the sector
 		int error = myFS->myPartition->readSectors(currentSector,buffer,1);
-		if (error < 0) return (error);
+		if (error < 0) {
+			FATAccess->release();
+			return (error);
+		}
 
 		// copy the desired bytes in this sector into the buffer
 		memcpy(&bytes[pos],&buffer[sector_pos],sector_read_len);
@@ -948,6 +998,7 @@ ErrorT FATFile::readBytes(char* bytes, unint4& length) {
 			if (currentCluster == EOC) {
 				// end of file reached
 				length = pos;
+				FATAccess->release();
 				return (cOk);
 			}
 		}
@@ -958,6 +1009,7 @@ ErrorT FATFile::readBytes(char* bytes, unint4& length) {
 
 	}
 
+	FATAccess->release();
 	LOG(ARCH,DEBUG,(ARCH,DEBUG,"FATFile::readBytes Bytes read: %d",length));
 
 	length = pos;
@@ -976,6 +1028,7 @@ ErrorT FATFile::writeBytes(const char* bytes, unint4 length) {
 	bool new_sector = false;
 	int error;
 
+	FATAccess->acquire();
 	// keep writing while we have bytes to write
 
 	while (length > 0) {
@@ -993,14 +1046,20 @@ ErrorT FATFile::writeBytes(const char* bytes, unint4 length) {
 		// read the sector if we are overwriting something
 		if (!new_sector) {
 			error = myFS->myPartition->readSectors(currentSector,buffer,1);
-			if (error < 0) return (error);
+			if (error < 0) {
+				FATAccess->release();
+				return (error);
+			}
 		}
 
 		// copy the desired bytes in this sector into the buffer
 		memcpy(&buffer[sector_pos],&bytes[pos],sector_write_len);
 
 		error = myFS->myPartition->writeSectors(currentSector,buffer,1);
-		if (error < 0) return (error);
+		if (error < 0) {
+			FATAccess->release();
+			return (error);
+		}
 
 		// increase position by bytes read
 		this->position += sector_write_len;
@@ -1012,6 +1071,7 @@ ErrorT FATFile::writeBytes(const char* bytes, unint4 length) {
 			currentSector = myFS->getNextSector(currentSector,currentCluster,true);
 			if (currentCluster == EOC) {
 				// no more memory..
+				FATAccess->release();
 				return (cDeviceMemoryExhausted);
 			}
 			// if we reach a new sector and the position > filesize
@@ -1029,7 +1089,10 @@ ErrorT FATFile::writeBytes(const char* bytes, unint4 length) {
 	if (this->position > this->filesize) {
 		// we appended something... update the entries filesize
 		error = myFS->myPartition->readSectors(this->directory_sector,buffer,1);
-		if (error < 0) return (error);
+		if (error < 0) {
+			FATAccess->release();
+			return (error);
+		}
 
 		this->filesize = this->position;
 
@@ -1037,9 +1100,14 @@ ErrorT FATFile::writeBytes(const char* bytes, unint4 length) {
 		entries[this->directory_entry_number].DIR_FileSize = this->filesize;
 
 		error = myFS->myPartition->writeSectors(this->directory_sector,buffer,1);
-		if (error < 0) return (error);
+		if (error < 0) {
+			FATAccess->release();
+			return (error);
+		}
 	}
 
+
+	FATAccess->release();
 	return (cOk);
 
 }

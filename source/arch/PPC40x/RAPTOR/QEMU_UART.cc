@@ -223,6 +223,8 @@ ErrorT QEMU_UART::broadcast( packet_layer* packet, int2 fromProtocol_ID  ) {
 }
 
 void QEMU_UART::recv() {
+
+#if 0
     PacketHeader_* packetHeader;
 
     // this method got called since the opb_uart raised an external interrupt
@@ -327,5 +329,6 @@ void QEMU_UART::recv() {
             currentPosition = currentPosition - len;
         }
     }
+#endif
 }
 

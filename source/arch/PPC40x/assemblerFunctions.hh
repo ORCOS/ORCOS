@@ -25,13 +25,14 @@
  *  Syscall related assembler defines
  *************************************/
 
+#define PROCESSOR_CONTEXT_SIZE 140
+
 /*
  * \brief assembler function setting the return value for system calls
  *
  * sp_int: The stack pointer at interruption
  * retval: The return value of the syscall
  */
-#if defined(__GNUC__)
 #define SET_RETURN_VALUE(sp_int,retval) \
 										asm volatile ( \
 										"   stw   %1  , -116(%0);" \
@@ -39,15 +40,6 @@
 										: "b" (sp_int), "r" (retval) \
 										: \
 									)
-#elif defined(__WINDRIVER__)
-asm volatile void SET_RETURN_VALUE(void* sp_int,void* retval)
-{
-%reg    sp_int,retval
-
-    stw     retval, -116(sp_int)
-}
-
-#endif
 
 
 #define GET_METHOD_RETURN_VALUE(variable) \
@@ -59,7 +51,6 @@ asm volatile void SET_RETURN_VALUE(void* sp_int,void* retval)
                                     )
 
 // syscall number stored in r3 on context
-#if defined(__GNUC__)
 #define GET_SYSCALL_NUM(sp_int,syscallnum) \
 										   asm volatile(\
 										   "lwz    %0,-116(%1);"\
@@ -67,17 +58,8 @@ asm volatile void SET_RETURN_VALUE(void* sp_int,void* retval)
 										   : "b" (sp_int)\
 										   :\
 										   )
-#elif defined(__WINDRIVER__)
-asm volatile void GET_SYSCALL_NUM(int4 sp_int,void* syscallnum)
-{
-%reg    sp_int,syscallnum
 
-    lwz     syscallnum, -116(sp_int)
-}
 
-#endif
-
-#if defined(__GNUC__)
 #define SYSCALLGETPARAMS1(int_sp,param1) \
 											asm volatile(\
 											"lwz  %0,-112(%1);"\
@@ -85,17 +67,9 @@ asm volatile void GET_SYSCALL_NUM(int4 sp_int,void* syscallnum)
 											: "b" (int_sp)\
 											:\
 											)
-#elif defined(__WINDRIVER__)
-asm volatile void SYSCALLGETPARAMS1(int4 int_sp,void* param1)
-{
-%reg    int_sp,param1
 
-    lwz     param1, -112(int_sp)
-}
 
-#endif
 
-#if defined(__GNUC__)
 #define SYSCALLGETPARAMS2(int_sp,param1,param2) \
 											asm volatile(\
 											"lwz  %0,-112(%2);"\
@@ -104,18 +78,9 @@ asm volatile void SYSCALLGETPARAMS1(int4 int_sp,void* param1)
 											: "b" (int_sp)\
 											:\
 											)
-#elif defined(__WINDRIVER__)
-asm volatile void SYSCALLGETPARAMS2(int4 int_sp,void* param1,void* param2)
-{
-%reg    int_sp,param1,param2
 
-    lwz     param1, -112(int_sp)
-    lwz     param2, -108(int_sp)
-}
 
-#endif
 
-#if defined(__GNUC__)
 #define SYSCALLGETPARAMS3(int_sp,param1,param2,param3) \
 											asm volatile(\
 											"lwz  %0,-112(%3);"\
@@ -125,19 +90,9 @@ asm volatile void SYSCALLGETPARAMS2(int4 int_sp,void* param1,void* param2)
 											: "b" (int_sp)\
 											:\
 											)
-#elif defined(__WINDRIVER__)
-asm volatile void SYSCALLGETPARAMS3(int4 int_sp,void* param1,void* param2, void*param3)
-{
-%reg    int_sp,param1,param2,param3
 
-    lwz     param1, -112(int_sp)
-    lwz     param2, -108(int_sp)
-    lwz     param3, -104(int_sp)
-}
 
-#endif
 
-#if defined(__GNUC__)
 #define SYSCALLGETPARAMS4(int_sp,param1,param2,param3,param4) \
 											asm volatile(\
 											"lwz  %0,-112(%4);"\
@@ -148,18 +103,7 @@ asm volatile void SYSCALLGETPARAMS3(int4 int_sp,void* param1,void* param2, void*
 											: "b" (int_sp)\
 											:\
 											)
-#elif defined(__WINDRIVER__)
-asm volatile void SYSCALLGETPARAMS4(int4 int_sp,void* param1,void* param2, void* param3, void* param4)
-{
-%reg    int_sp,param1,param2,param3,param4
 
-    lwz     param1, -112(int_sp)
-    lwz     param2, -108(int_sp)
-    lwz     param3, -104(int_sp)
-    lwz     param4, -100(int_sp)
-}
-
-#endif
 
 #define SYSCALLGETPARAMS5(int_sp,param1,param2,param3,param4,param5) \
 											asm volatile(\
@@ -216,7 +160,6 @@ asm volatile void SYSCALLGETPARAMS4(int4 int_sp,void* param1,void* param2, void*
 /*!
  * \brief Issues a system call. only use inside a thread
  */
-#if defined(__GNUC__)
 #define SYSCALL(ret,syscallnumber) \
 	 asm volatile(   \
 	    "sc;"\
@@ -224,15 +167,7 @@ asm volatile void SYSCALLGETPARAMS4(int4 int_sp,void* param1,void* param2, void*
 		: "=r" (ret)\
 		: "r" (syscallnumber)\
 	    )
-#elif defined(__WINDRIVER__)
-asm volatile void SYSCALL(int ret,int syscallnumber)
-{
-%reg    ret,syscallnumber;
 
-    sc
-    lwz     ret,-116(r1)
-}
-#endif
 
 
 
@@ -245,7 +180,7 @@ asm volatile void SYSCALL(int ret,int syscallnumber)
  *  e.g. used in ARP, WorkerThread to allow a thread running in superuser mode to access data of another task given by pid
  *
  */
-#if defined(__GNUC__)
+
 #define SETPID(pid) \
 	asm volatile(\
 			"mtspr 945,%0;"\
@@ -253,16 +188,7 @@ asm volatile void SYSCALL(int ret,int syscallnumber)
 			: \
 			: "b" (pid)\
 			)
-#elif  defined(__WINDRIVER__)
-asm volatile void SETPID(int pid)
-{
-%reg    pid
 
-    mtspr   945,pid
-    isync
-}
-
-#endif
 
 
 #define GETPID(pid) \
@@ -277,7 +203,6 @@ asm volatile void SETPID(int pid)
  *  Sets the stack pointer to the given address
  *  Used in WorkerThread::callMain() to set the stack the workerthread will work with.
  */
-#if defined(__GNUC__)
 
 #define SETSTACKPTR(stack_addr) \
 	asm volatile(\
@@ -286,24 +211,13 @@ asm volatile void SETPID(int pid)
 			: "b" (stack_addr)\
 			)\
 
-#elif  defined(__WINDRIVER__)
 
-asm volatile void SETSTACKPTR(void* stack_addr)
-{
-%reg    stack_addr
-
-    mr      r1,stack_addr
-    isync
-}
-#endif
 /*!
  * Resets the stack pointer to the address right after the context save based on the sp address at interruption.
  * Needed whenever the kernel wants to save space on the stack of a thread.
  * e.g: SingleCPUDispatcher before running the idle thread. The stack frames used to get to that point are not needed any more
  * so they are discarded by using this macro.
  */
-#if defined(__GNUC__)
-
 #define _resetStackPtr(sp_int)\
 	asm volatile(\
 			"mr		%%r1,	%0;"\
@@ -312,18 +226,8 @@ asm volatile void SETSTACKPTR(void* stack_addr)
 			: "b" (sp_int)\
 			:)\
 
-#elif defined(__WINDRIVER__)
-asm volatile void _resetStackPtr(void* sp_int)
-{
-%reg sp_int
-
-    mr      r1,sp_int
-    addi    r1,r1,-200
-}
-#endif
 
 //! Calls the method specifed by the 'methodcall' string and sets the this pointer to 'object'
-#if defined(__GNUC__)
 #define CALLMETHOD(objectptr,methodcall) \
 	asm volatile(\
 			"mr 	%%r3,%0;"  \
@@ -331,22 +235,14 @@ asm volatile void _resetStackPtr(void* sp_int)
 			: \
 			: "b" (objectptr) \
 			:)
-#elif defined(__WINDRIVER__)
-asm volatile void CALLMETHOD(void* objectptr)
-{
-%reg    objectptr
 
-    mr  r3,objectptr
-    //b   _ZN12WorkerThread4workEv
-}
-#endif
 
 /*!
  * Macro used to update the kernel stack bucket bitmap whenever a thread
  * does not use the kernel stack slot any more. The corresponding bit of that slot
  * will then be unset so the slot is free for another thread.
  */
-#if defined(__GNUC__)
+
 #define FREE_KERNEL_STACK_SLOT(myBucketIndex) \
  asm volatile(\
            ".extern stackBucketBitmap;"\
@@ -363,37 +259,25 @@ asm volatile void CALLMETHOD(void* objectptr)
            : "r" (myBucketIndex)\
            : "2","3","5"\
            )
-#elif defined(__WINDRIVER__)
-asm volatile void FREE_KERNEL_STACK_SLOT(int mybucketIndex)
-{
-%reg mybucketIndex
-!"r2","r3","r5"
-
-    .extern stackBucketBitmap
-    lis         r2,(stackBucketBitmap)@h;
-    ori         r2,r2,(stackBucketBitmap)@l
-    /* load the value of the stackBucketBitmap into r3*/ \
-    lwz         r3,0(r2)
-    li          r5,1
-    slw         r5,r5,mybucketIndex
-    not         r5,r5
-    and         r3,r3,r5
-    stw         r3,0(r2)
-}
-
-#endif
 
 /*!
  * Macro used to call the WorkerThread::work() method for a given WorkerThread object specified by objectptr.
  * Used inside WorkerThread::callMain().
  */
-#if defined(__GNUC__)
-#define BRANCHTO_WORKERTHREAD_WORK(objectptr) CALLMETHOD(objectptr,"b _ZN12WorkerThread4workEv;")
-#elif defined(__WINDRIVER__)
-#define BRANCHTO_WORKERTHREAD_WORK(objectptr) CALLMETHOD(objectptr)
-#endif
 
-#if defined(__GNUC__)
+#define BRANCHTO_WORKERTHREAD_WORK(objectptr,pid, stack_addr) \
+		asm volatile(\
+					"mr    %%r1, %0;"\
+					"mr    %%r3, %2;"  \
+					"mtspr 945, %1;"\
+					"isync;"\
+					"b _ZN12WorkerThread4workEv;" \
+					: \
+					: "b" (stack_addr), "b" (pid), "b" (objectptr) \
+					)\
+
+
+
 #define GET_INTERRUPT_ENABLE_BIT(var) \
     asm volatile(\
             "mfmsr  %0;" \
@@ -402,21 +286,12 @@ asm volatile void FREE_KERNEL_STACK_SLOT(int mybucketIndex)
             : "=&r" (var)\
             : \
             )
-#elif defined(__WINDRIVER__)
 
-asm volatile void GET_INTERRUPT_ENABLE_BIT(int var)
-{
-%reg var
-
-    mfmsr   var
-    andi.   var,var,0x8000
-    srwi    var,var,15
-}
-#endif
 
 //-----------------------------------------------------------------------------
 // Enabling/Disabling Interupts
 //-----------------------------------------------------------------------------
+
 
 /// Enable Interrupts
 #if QEMU_HACK
@@ -450,6 +325,27 @@ asm volatile void GET_INTERRUPT_ENABLE_BIT(int var)
                                  \
                             )
 
+
+
+#if ENABLE_NESTED_INTERRUPTS
+
+// Dsiables irqs and saves the irq enable bit to the variable
+#define DISABLE_IRQS(irqstatus) \
+    bool irqstatus; \
+    GET_INTERRUPT_ENABLE_BIT(irqstatus); \
+    _disableInterrupts();
+
+#define RESTORE_IRQS(irqstatus) if ( irqstatus ) { _enableInterrupts(); }
+
+
+#else
+
+#define DISABLE_IRQS(irqstatus)
+#define RESTORE_IRQS(irqstatus)
+#endif
+
+
+#define GET_RETURN_CONTEXT(t,sp_int)  sp_int = t->threadStack.stackptrs[t->threadStack.top-1]
 
 #define SAVE_CONTEXT_AT(mem_loc) \
     asm volatile \

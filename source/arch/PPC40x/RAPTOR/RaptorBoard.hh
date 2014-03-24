@@ -33,6 +33,8 @@
 #include Board_ETH_hh
 #include "ppc405.h"
 
+#define PLATFORM	PLATFORM_PPC
+
 /*!
  * \brief Implementation of the HAL board for the RAPTOR architecture
  */

@@ -21,7 +21,6 @@
 
 #include <error.hh>
 #include <types.hh>
-#include <arch/shared/UART/UART.hh>
 #include <hal/CommDeviceDriver.hh>
 #include "../powerpc.h"
 
@@ -152,7 +151,7 @@ private:
 public:
 
     //!  constructor
-    OPB_UART_Lite( const char *name, int4 a );
+    OPB_UART_Lite( T_OPB_UART_Lite_Init* init );
 
     //!  destructor
     ~OPB_UART_Lite();

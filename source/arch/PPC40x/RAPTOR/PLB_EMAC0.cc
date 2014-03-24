@@ -26,11 +26,23 @@
 #include "lwip/memp.h"
 #include "netif/ethar.h"
 
+#include "inet.h"
+#include "kernel/Kernel.hh"
+#include "lwip/opt.h"
+#include "lwip/def.h"
+#include "lwip/mem.h"
+#include "lwip/pbuf.h"
+#include "lwip/sys.h"
+#include "netif/etharp.h"
+#include "lwip/stats.h"
 extern Kernel* theOS;
 
 
 // the receive buffer used by this device
 static char recvBuffer[MAX_FRAME_SIZE];
+
+// Default Mac Address...
+static char default_macaddr[6]  __attribute__((aligned(4))) = {0x1,0x1,0x1,0x1,0x1,0x1};
 
 // the position of the next packet
 static unint2 recvBufPos;
@@ -42,8 +54,66 @@ struct netif tEMAC0Netif;
 /*! The ipv4 address structure of this device.  */
 static struct ip4_addr tIpAddr;
 
-err_t ethernetif_init( struct netif *netif );
 extern "C" err_t ethernet_input(struct pbuf *p, struct netif *netif);
+
+
+
+static err_t plbemac_low_level_output(struct netif *netif, struct pbuf *p) {
+
+	if (p->tot_len > 1500) {
+		LOG(ARCH,WARN,(ARCH,WARN,"SMSC95xxUSBDeviceDriver: not sending packet. Len > 1500."));
+		return (ERR_MEM);
+	}
+
+	if (p == 0) return (ERR_ARG);
+
+
+	PLB_EMAC0 *driver =  (PLB_EMAC0*) netif->state;
+	driver->lowlevel_send((char*) p->payload,p->tot_len);
+	return (ERR_OK);
+}
+
+
+
+err_t plbemac_ethernetif_init(struct netif *netif) {
+
+#if LWIP_NETIF_HOSTNAME
+    /* Initialize interface hostname */
+    netif->hostname = "lwip";
+#endif /* LWIP_NETIF_HOSTNAME */
+
+
+    netif->name[0] = 'E';
+    netif->name[1] = '0';
+
+    /* We directly use etharp_output() here to save a function call.
+     * You can instead declare your own function an call etharp_output()
+     * from it if you have to do some checks before sending (e.g. if link
+     * is available...) */
+#if LWIP_ARP
+    netif->ip4_output = etharp_output;
+#else
+#warning "PLBEMAC Device Driver non operational without ARP support."
+#endif
+    netif->input = ethernet_input;
+    netif->linkoutput = plbemac_low_level_output;
+    netif->hwaddr_len = 6;
+
+    for (int i = 0; i < netif->hwaddr_len; i++)
+    {
+       netif->hwaddr[i] = default_macaddr[i];
+    }
+
+   /* maximum transfer unit */
+   netif->mtu = 1400;
+
+   /* device capabilities */
+   /* don't set NETIF_FLAG_ETHARP if this device is not an ethernet one */
+   netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_LINK_UP;
+
+   return (cOk);
+}
+
 
 /*---------------------------------------------------------------------------*/
 PLB_EMAC0::~PLB_EMAC0()
@@ -53,17 +123,19 @@ PLB_EMAC0::~PLB_EMAC0()
 }
 
 /*---------------------------------------------------------------------------*/
-PLB_EMAC0::PLB_EMAC0( const char* name, int4 a ) :
-    CommDeviceDriver( name )
+PLB_EMAC0::PLB_EMAC0( T_PLB_EMAC0_Init* init ) :
+    CommDeviceDriver( init->Name )
 /*---------------------------------------------------------------------------*/
 {
-    base_addr = a;
+    base_addr = init->Address;
     tx_frame_number = 0;
     rx_frame_number = 0;
     recvBufPos = 24;
 
     // set the mac address of this device
    // *( (volatile unsigned int *) ( base_addr + CONTROL_REG_RX_OFFSET ) ) = 0;
+
+    theOS->getInterruptManager()->registerIRQ(PLB_EMAC0_IRQ,this,4000);
 
     unsigned int MacAddr;
 
@@ -99,9 +171,10 @@ PLB_EMAC0::PLB_EMAC0( const char* name, int4 a ) :
 	IP4_ADDR(&tIpAddr, ipaddr[0], ipaddr[1], ipaddr[2], ipaddr[3]);
 
 
+	tEMAC0Netif.state = this;
 	// save driver in netif as state
 	// use ethernet interface init method in lwip_ethernetif.c
-	netif_add(&tEMAC0Netif, &tIpAddr, &eth_nm, 0, 0, &ethernetif_init, 0);
+	netif_add(&tEMAC0Netif, &tIpAddr, &eth_nm, 0, 0, &plbemac_ethernetif_init, 0);
 	netif_set_default(&tEMAC0Netif);
 
 	struct eth_addr ethaddr;
@@ -113,8 +186,8 @@ PLB_EMAC0::PLB_EMAC0( const char* name, int4 a ) :
 	tipaddr.version = IPV4;
 	tipaddr.addr.ip4addr.addr = tIpAddr.addr;
 
-	//update_ar_entry(&tEMAC0Netif, &tipaddr, &ethaddr, /*ETHARP_TRY_HARD*/1);
-	//netif_set_up(&tEMAC0Netif);
+	update_ar_entry(&tEMAC0Netif, &tipaddr, &ethaddr, /*ETHARP_TRY_HARD*/1);
+	netif_set_up(&tEMAC0Netif);
 
     clearIRQ();
     enableIRQ();

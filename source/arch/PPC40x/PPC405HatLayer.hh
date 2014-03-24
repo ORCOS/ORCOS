@@ -41,6 +41,8 @@
 
 #define MAX_PAGE_SIZE 0x1000000
 
+#define PAGESIZE MAX_PAGE_SIZE
+
 #define isSet(Bitmap,Bit) (Bitmap & ( 1 << Bit ))
 
 #define clearBit(Bitmap,Bit) Bitmap &= ~( 1 << Bit)
@@ -147,6 +149,15 @@ public:
     void* map( void*, void*, size_t, BitmapT, byte, int pid,  bool cache_inhibit );
 
     /*!
+       * \brief Maps a physical base address into an arbitray free virtual address determined by the HATLayer.
+       *
+       */
+      void* map( void* phyBaseAddr, size_t, BitmapT, byte, int pid,  bool cache_inhibit ) {
+    	  // TODO
+    	  return 0;
+      }
+
+    /*!
      * \brief unmap an address space with a logical address from his given physical address
      *
      * Implements the corresponding method in HATLayer.hh
@@ -155,7 +166,7 @@ public:
      * An error value is returned if there is no entry written by this HATLayer instance with
      * the given logical address
      */
-    ErrorT unmap( void* );
+    ErrorT unmap( void* logBaseAddr, unint1 tid = 0 ) ;
 
     /*!
      * \brief unmap all address spaces with logical addresses which has been mapped before by this HATLayer-Instance
@@ -165,7 +176,7 @@ public:
      * For all TLB entries with the index corresponding to the entries in the myLowEntries and myHighEntries-Bitmaps
      * the V flag is cleared.
      */
-    ErrorT unmapAll();
+    ErrorT unmapAll(unint1 tid);
 
     /*!
      * \brief change Protection of an address space of a given logical address

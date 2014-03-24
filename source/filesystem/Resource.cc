@@ -65,8 +65,8 @@ void Resource::aquire( Thread* pThread, bool blocking ) {
        if (this->getType() & cFile) ((File*) this)->resetPosition();
     }
 
-    // TODO: evaluate oif removing this "directy" return is ok
-    // so we can reuse this code for aquire calls not coming from syscalls
+    // TODO: evaluate if removing this "directly" return is ok
+    // so we can reuse this code for acquire calls not coming from syscalls
     void* sp_int;
     GET_RETURN_CONTEXT(pCurrentRunningThread,sp_int);
     SET_RETURN_VALUE(sp_int,retval);

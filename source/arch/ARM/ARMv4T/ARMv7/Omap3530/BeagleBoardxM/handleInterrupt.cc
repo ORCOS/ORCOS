@@ -55,8 +55,6 @@ extern "C" void handleDataAbort(int addr, int instr, int context, int spsr) {
 			LOG(ARCH,ERROR,(ARCH,ERROR,"r%d : %x",i,((unint4*) context)[i]));
 		}
 
-	//memdump(instr-16,8);
-
 	int tid = 0;
 	if (pCurrentRunningTask != 0)
 		tid = pCurrentRunningTask->getId();
@@ -101,16 +99,11 @@ extern "C" void handleDataAbort(int addr, int instr, int context, int spsr) {
 		);
 
 		LOG(ARCH,ERROR,(ARCH,ERROR,"ASID: %d, TBB0: 0x%x, Task PT: 0x%x",asid,tbb0,paget));
-
 		theOS->getHatLayer()->dumpPageTable(tid);
-
-		// dump TLB
 	#endif
 
-	//SETPID(0);
-
-	// handle the error
-	theOS->getErrorHandler()->handleError();
+	/* handle the error */
+	theOS->getErrorHandler()->handleError(cDataAbortError);
 
 	while (true) {};
 }
@@ -146,7 +139,7 @@ extern "C" void handleUndefinedIRQ(int addr, int spsr, int context) {
 		#endif
 
 			"MRC p15,0,%0,c13,c0,1;" // ; Read CP15 Context ID Register
-			"MRC p15,0,%1,c2,c0,0;" // ; Read CP15 Translation Table Base Register 0
+			"MRC p15,0,%1,c2,c0,0;"  // ; Read CP15 Translation Table Base Register 0
 
 		#ifdef ARM_THUMB
 			"add r0, pc,#1;"
@@ -159,16 +152,11 @@ extern "C" void handleUndefinedIRQ(int addr, int spsr, int context) {
 		);
 
 		LOG(ARCH,ERROR,(ARCH,ERROR,"ASID: %d %d, TBB0: 0x%x, Task PT: 0x%x",asid >> 8, asid & 0xff,tbb0,paget));
-
 		theOS->getHatLayer()->dumpPageTable(tid);
-
-		// dump TLB
 	#endif
 
-	//SETPID(0);
-
-	// handle the error
-	theOS->getErrorHandler()->handleError();
+	/* handle the error */
+	theOS->getErrorHandler()->handleError(cUndefinedInstruction);
 }
 
 extern "C" void handleFIQ() {
@@ -198,11 +186,6 @@ extern "C" void handlePrefetchAbort(int instr, int context) {
 
 	LOG(ARCH,ERROR,(ARCH,ERROR,"TID: %d, IFAR: %x, IFSR: %x",tid, ifar, ifsr));
 
-	/*taskTable* tt = pCurrentRunningTask->getTaskTable();
-	unint4 crc = crc32((char*) tt->task_start_addr,tt->task_data_end- tt->task_start_addr);
-	LOG(ARCH,ERROR,(ARCH,ERROR,"CRC32: 0x%x",crc));*/
-
-
 	#ifdef HAS_Board_HatLayerCfd
 
 		int asid = -1;
@@ -231,14 +214,11 @@ extern "C" void handlePrefetchAbort(int instr, int context) {
 		);
 
 		LOG(ARCH,ERROR,(ARCH,ERROR,"ASID: %d %d, TBB0: 0x%x, Task PT: 0x%x",asid >> 8, asid & 0xff,tbb0,paget));
-
 		theOS->getHatLayer()->dumpPageTable(tid);
-
-		// dump TLB
 	#endif
 
 
-	theOS->getErrorHandler()->handleError();
+	theOS->getErrorHandler()->handleError(cDataAbortError);
 }
 
 /*
@@ -256,15 +236,13 @@ extern "C"void dispatchIRQ(void* sp_int, int mode)
 	}
 
 	int irqSrc;
-
 	irqSrc = theOS->getBoard()->getInterruptController()->getIRQStatusVector();
-	//LOG(HAL,WARN,(HAL,WARN,"IRQ number: %d, sp_int %x, mode: %d",irqSrc, sp_int, mode));
-	//dumpContext(sp_int);
+	LOG(HAL,TRACE,(HAL,TRACE,"IRQ number: %d, sp_int %x, mode: %d",irqSrc, sp_int, mode));
 
-	// jump to interrupt handler according to active interrupt
+	/* jump to interrupt handler according to active interrupt */
 	switch (irqSrc)
 	    {
-			// General Purpose Timer interrupt
+			/* General Purpose Timer interrupt used for scheduling */
 			case GPT10_IRQ:
 			{
 				/* non returning irq ..*/
@@ -274,7 +252,9 @@ extern "C"void dispatchIRQ(void* sp_int, int mode)
 			}
 			default:
 			{
-				ErrorT result = theOS->getInterruptManager()->handleIRQ(irqSrc);
+				/* all other irqs are handled by the interrupt manager
+				 * and scheduled using workerthreads if activated */
+				theOS->getInterruptManager()->handleIRQ(irqSrc);
 				theOS->getBoard()->getInterruptController()->clearIRQ(irqSrc);
 			}
 	    }
@@ -284,18 +264,16 @@ extern "C"void dispatchIRQ(void* sp_int, int mode)
 	 * assemblerfunctions::resumeThread directly */
 	theOS->getCPUDispatcher()->dispatch();
 
-	// we should never get here
+	/* we should never get here */
 	while(1);
 }
 
 extern "C"void dispatchSWI(void* sp_int, int mode)
 {
 #if ENABLE_NESTED_INTERRUPTS
-    // we want nested interrupts so enable interrupts again
+    /* we want nested interrupts so enable interrupts again */
     _enableInterrupts();
 #endif
-	//LOG(HAL,WARN,(HAL,WARN,"SWI: stack 0x%x mode 0x%x",sp_int,mode));
-	//dumpContext(sp_int);
 
 	ASSERT(isOk(pCurrentRunningThread->pushStackPointer(sp_int)));
 	ASSERT(isOk(pCurrentRunningThread->pushStackPointer((void*)mode)));
@@ -306,6 +284,6 @@ extern "C"void dispatchSWI(void* sp_int, int mode)
 extern "C" void handleTimerInterrupt(void* sp_int)
 {
 	ASSERT(theTimer);
-	// call Timer
+	/* call Timer */
 	theTimer->tick();
 }

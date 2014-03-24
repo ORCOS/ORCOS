@@ -32,13 +32,13 @@ OPB_UART_Lite::~OPB_UART_Lite()
 }
 
 /*---------------------------------------------------------------------------*/
-OPB_UART_Lite::OPB_UART_Lite( const char* name, int4 a ) :
-    CommDeviceDriver( name )
+OPB_UART_Lite::OPB_UART_Lite( T_OPB_UART_Lite_Init* init  ) :
+    CommDeviceDriver( init->Name )
 /*---------------------------------------------------------------------------*/
 {
     headerFound = false;
     currentPosition = 0;
-    addr = a;
+    addr = init->Address;
 
 #if ENABLE_TXRX_LEDS
     TX_COUNT = 0;

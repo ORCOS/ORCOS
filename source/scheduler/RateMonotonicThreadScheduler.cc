@@ -46,9 +46,9 @@ TimeT RateMonotonicThreadScheduler::getNextTimerEvent( LinkedListDatabase* sleep
              nextPriority = 0;
          }
 
-         // this is the actual computation of the needed intervall. it compares the priority of the current
-         // thread with the future prioritys of the threads in the sleeplist. The smallest time intervall where
-         // the sleeping threads priority is higher than the current priority will be set as sleeptime.
+       /* this is the actual computation of the needed interval. it compares the priority of the current
+          thread with the future priorities of the threads in the sleeplist. The smallest time interval where
+          the sleeping threads priority is higher than the current priority will be set as sleeptime.*/
          do {
              RealTimeThread* pSleepThread = static_cast< RealTimeThread*> ( pDBSleepItem->getData() );
 
@@ -60,7 +60,8 @@ TimeT RateMonotonicThreadScheduler::getNextTimerEvent( LinkedListDatabase* sleep
                   this->enter( litem2 );
               } else
               {
-                  if ( ( pSleepThread->getSleepTime() < sleeptime ) && ( pSleepThread->effectivePriority >= nextPriority ) )
+            	  /* TODO: nextPriority might change due to new ready threads. this may lead to too many irqs */
+                  if ( ( pSleepThread->getSleepTime() <= sleeptime ) && ( pSleepThread->effectivePriority >= nextPriority ) )
                           sleeptime = pSleepThread->getSleepTime();
 
                  pDBSleepItem = pDBSleepItem->getSucc();

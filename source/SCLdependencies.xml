@@ -38,6 +38,7 @@
         <MemberRef Name="HatLayer"/>
         <MemberRef Name="Clock"/>
         <MemberRef Name="Processor"/>
+        <MemberRef Name="Watchdog"/>
         <MemberRef Name="LED">
 		  <Defaults Class="arch/PPC40x/RAPTOR/LED">
             <PropertyValue Name="Address" Value="0x90220000" />

@@ -17,6 +17,7 @@
  */
 
 #include "PPC405FixedIntervalTimer.hh"
+#include "ppc405.h"
 
 PPC405FixedIntervalTimer::PPC405FixedIntervalTimer() :
     TimerDevice() {

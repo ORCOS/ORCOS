@@ -49,7 +49,8 @@
 #define MAC_ADDR_SIZE        6      /* size of MAC address */
 
 
-static unsigned char LocalAddress[ MAC_ADDR_SIZE ] = { Board_ETH_UNIQUEID };
+/* TODO: replace with new init code*/
+static unsigned char LocalAddress[ MAC_ADDR_SIZE ] = { 0x01, 0x01, 0x01, 0x01, 0x01, 0x01  };
 
 static unsigned char BroadcastAddress[ MAC_ADDR_SIZE ] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
 
@@ -69,7 +70,7 @@ private:
 public:
 
     //!  constructor
-    PLB_EMAC0( const char *name, int4 a );
+    PLB_EMAC0( T_PLB_EMAC0_Init* init);
 
     //!  destructor
     ~PLB_EMAC0();

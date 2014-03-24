@@ -14,7 +14,7 @@ extern Kernel *theOS;
 USBDeviceDriverFactory::USBDeviceDriverFactory(char* p_name)
 : Resource(cUSBDriver,false,p_name)
 {
-	// register ourself at the USBDriverLibrary
+	/* register ourself at the USBDriverLibrary */
 	Directory* usbdir = theOS->getFileManager()->getDirectory("/usb/");
 	if (usbdir != 0) {
 		usbdir->add(this);
@@ -22,6 +22,9 @@ USBDeviceDriverFactory::USBDeviceDriverFactory(char* p_name)
 }
 
 USBDeviceDriverFactory::~USBDeviceDriverFactory() {
-	// TODO Auto-generated destructor stub
+	Directory* usbdir = theOS->getFileManager()->getDirectory("/usb/");
+	if (usbdir != 0) {
+		usbdir->remove(this);
+	}
 }
 

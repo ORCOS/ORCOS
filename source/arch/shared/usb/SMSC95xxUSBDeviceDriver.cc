@@ -762,7 +762,7 @@ void hexdump(char* dataptr,int msglen) {
 #define PKTSIZE			1518
 
 struct pbuf* last_pbuf = 0;
-int remaining_len = 0;
+unint4 remaining_len = 0;
 int cur_len = 0;
 
 ErrorT SMSC95xxUSBDeviceDriver::recv(unint4 recv_len)
@@ -1043,7 +1043,7 @@ ErrorT SMSC95xxUSBDeviceDriver::initialize() {
 			// active it
 
 			if (dev->endpoints[i].direction == Out) {
-				LOG(ARCH,ERROR,(ARCH,ERROR,"SMSC95xxUSBDeviceDriver: BulkOut EP: %d",i));
+				LOG(ARCH,DEBUG,(ARCH,DEBUG,"SMSC95xxUSBDeviceDriver: BulkOut EP: %d",i));
 				bulkout_ep =  i;
 				bulkoutep = true;
 				dev->activateEndpoint(i);
@@ -1051,15 +1051,12 @@ ErrorT SMSC95xxUSBDeviceDriver::initialize() {
 				bulkin_ep =  i;
 				bulkinep = true;
 				dev->activateEndpoint(i);
-				LOG(ARCH,ERROR,(ARCH,ERROR,"SMSC95xxUSBDeviceDriver: BulkIn EP: %d",i));
-
-
+				LOG(ARCH,DEBUG,(ARCH,DEBUG,"SMSC95xxUSBDeviceDriver: BulkIn EP: %d",i));
 			}
 
 
-
 		} else if(dev->endpoints[i].type == Interrupt)  {
-			LOG(ARCH,ERROR,(ARCH,ERROR,"SMSC95xxUSBDeviceDriver: IRQ EP: %d",i));
+			LOG(ARCH,DEBUG,(ARCH,DEBUG,"SMSC95xxUSBDeviceDriver: IRQ EP: %d",i));
 			int_ep =  i;
 			dev->endpoints[i].poll_frequency = 200;
 			intep = true;

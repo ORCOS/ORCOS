@@ -20,18 +20,18 @@ USBDeviceDriverFactory* USBDriverLibrary::getDriverFor(USBDevice *dev)
 {
 	 LinkedListDatabaseItem* dbitem = this->getContent()->getHead();
 
-	 // simple iteration over all listed drivers
+	 /* simple iteration over all listed drivers */
 	 while (dbitem != 0) {
 		 USBDeviceDriverFactory* driver = (USBDeviceDriverFactory*) dbitem->getData();
-		 if (driver->isDriverFor(dev)) return driver;
+		 if (driver->isDriverFor(dev)) return (driver);
 
 		 dbitem = dbitem->getSucc();
 	 }
 
-	 return 0;
+	 return (0);
 }
 
 USBDriverLibrary::~USBDriverLibrary() {
-	// TODO Auto-generated destructor stub
+	theOS->getFileManager()->unregisterResource(this);
 }
 

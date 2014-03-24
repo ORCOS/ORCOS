@@ -34,7 +34,7 @@ extern void* __KERNELEND;
 extern void* __RAM_END;
 #endif
 
-#define TASK_CRC32
+#define TASK_CRC32 1
 
 void TaskManager::registerMemPages() {
 
@@ -75,7 +75,9 @@ ErrorT handleTaskHeader(taskTable* taskCB, void* &taskHead, unint4 &nextHeader) 
 
 		unint4 crcAreaLen = crcHeader->crcEnd - crcHeader->crcStart;
 		// TODO: use valid mapped size
+#ifdef HAS_Board_HatLayerCfd
 		if (crcAreaLen > PAGESIZE)  return (cTaskCRCFailed);
+#endif
 
 		/* calculate the crc area start address of the task in the current address space */
 		unint4 start_address = ((unint4) taskCB) + (crcHeader->crcStart - (unint4) taskCB->task_start );
@@ -251,7 +253,6 @@ ErrorT TaskManager::removeTask(Task* task) {
 	theOS->getCPUDispatcher()->signal((void*)(task->getId() << 16),task->exitValue);
 #endif
 
-	//LOG(KERNEL,INFO,(KERNEL,INFO,"TaskManager::removeTask: deleting task"));
 	// now remove all its threads from the scheduler
 	delete task;
 
@@ -261,7 +262,7 @@ ErrorT TaskManager::removeTask(Task* task) {
 ErrorT TaskManager::loadTaskFromFile(File* file, TaskIdT& tid, char* arguments,unint2 arg_length) {
 
 	#ifndef HAS_Kernel_RamManagerCfd
-		return cError;
+		return (cError);
 	#endif
 
 	// task loading only supported if virtual memory is activated

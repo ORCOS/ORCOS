@@ -30,7 +30,7 @@
 #define EVENT_MEM_FREE	   0x11
 
 typedef struct {
-	unint4 sp;
+	unint4 stack_pointer;
 	unint4 address;
 } __attribute__((packed)) Trace_StackInfo;
 

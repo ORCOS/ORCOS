@@ -369,7 +369,6 @@ int thread_run( int4 int_sp ) {
                 // we are realtime so set the arrival time
                 thread->arrivalTime = currentTime + thread->phase;
                 theOS->getCPUScheduler()->computePriority(thread);
-                LOG(SYSCALLS,INFO,(SYSCALLS,INFO,"Syscall: Thread Priority=%d",*((unint4*)&thread->effectivePriority)));
 #endif
 
                 // finally announce the thread to the scheduler

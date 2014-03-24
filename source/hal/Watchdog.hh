@@ -37,7 +37,7 @@ public:
 	/*!
 	 * Anonymous constructor. Only used by dummy devices
 	 */
-	Watchdog() {}
+	Watchdog() : GenericDeviceDriver(false,"wd") {}
 
     Watchdog( const char* name ) :
         GenericDeviceDriver( false, name ) {

@@ -36,7 +36,7 @@ class PPC405Watchdog: public Watchdog {
 
 public:
 
-    PPC405Watchdog( const char* name );
+    PPC405Watchdog( );
     ~PPC405Watchdog();
 
     /*!

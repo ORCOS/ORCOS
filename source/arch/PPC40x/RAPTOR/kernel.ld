@@ -30,6 +30,8 @@ _kernelStackSize = 0x2000; /* 8 KB */
 PROVIDE(_kernelHeapSize = 0x10000);
 PROVIDE(_kernelStackSize = 0x2000);
 PROVIDE(_kernelStackOffset = _kernelHeapSize + _kernelStackSize);
+PROVIDE(__RAM_END = ramOrigin + ramLength );
+PROVIDE(__RAM_START = ramOrigin );
 
 MEMORY
 {
@@ -41,6 +43,7 @@ SECTIONS
 {
   /* text area mapped into 128 k page going from 0x10000 - 0x30000 */
   . = ramOffset;
+   __LOADADDRESS = .;
   PROVIDE(_text_start = .);
    
   /* first the text section */
@@ -92,7 +95,9 @@ SECTIONS
   PROVIDE(_heap_end = .);
   . += _kernelStackSize;
   PROVIDE(__stack = .);	
- 
+
+
+  __KERNELEND = .; 
 
   /DISCARD/ : {
   	*(.eh_frame) 	/* Discarding ErrorHandling Frame */

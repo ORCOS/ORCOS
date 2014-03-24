@@ -19,7 +19,7 @@
 #ifndef _PPC405_H
 #define _PPC405_H
 
-#include "archtypes.hh"
+#include "archtypes.h"
 #include "powerpc.h"
 
 /*------------------------------------------------------*/

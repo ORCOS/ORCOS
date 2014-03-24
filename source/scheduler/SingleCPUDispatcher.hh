@@ -62,8 +62,6 @@ private    :
     LinkedListDatabase* waitList;
 #endif
 
-    //! The shortest sleeptime of all threads currently at sleep
-    unint4 shortest_sleepcycles;
 
     IdleThread* idleThread;
 
@@ -94,12 +92,10 @@ public:
      */
     void dispatch();
 
-
-
     /*!
      * \brief sleep method which sends the given / current thread to sleep mode
      */
-    void sleep(TimeT timePoint, LinkedListDatabaseItem* pSleepDbItem = pRunningThreadDbItem);
+    void sleep(LinkedListDatabaseItem* pSleepDbItem = pRunningThreadDbItem);
 
     /*!
      * \brief block method which sends the current thread to blocked mode

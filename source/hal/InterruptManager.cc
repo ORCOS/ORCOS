@@ -38,9 +38,10 @@ ErrorT InterruptManager::handleIRQ(unint4 irq) {
 	TRACE_IRQ_ENTRY(irq);
 
 #if USE_WORKERTASK
+#ifdef ORCOS_SUPPORT_SIGNALS
 	/* schedule the irq using a workerthread */
 	theOS->getCPUDispatcher()->signal((void*) (irq << 24),cOk);
-
+#endif
 	/* do wa have an irq handler for this irq number? */
 	if (irqTable[irq].driver != 0){
 

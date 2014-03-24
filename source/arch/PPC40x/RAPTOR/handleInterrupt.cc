@@ -123,62 +123,25 @@ extern "C"void handleExternalIRQ(void* sp_int, void* myKernelStackBucketIndex)
     // this implementation always needs an interrupt controller to be present
     int regval = theOS->getBoard()->getInterruptController()->getIRQStatusVector();
 
-    //LOG(PROCESS,ERROR,(PROCESS,ERROR,"regval %d!",regval));
-    //printf("regval %d",regval);
-
-    if ( ( regval & OPB_UART_LITE_IRQ ) == OPB_UART_LITE_IRQ ) {
+    if (  regval & OPB_UART_LITE_IRQ ) {
         // UART threw an interrupt
         // disable the interrupts from the comm device since it will be still pending after we exit this
         // handler routine.
-        register CommDeviceDriver* uart = theOS->getBoard()->getUART();
-        uart->disableIRQ();
-        uart->interruptPending = true;
-        theOS->getBoard()->getInterruptController()->clearIRQ( OPB_UART_LITE_IRQ );
-
-#if USE_WORKERTASK
-        if (!uart->hasAssignedWokerThread)
-        {
-            if (theOS->getWorkerTask()->addJob(ExternalDeviceJob,0,(void*) uart, WORKERTHREAD_UART_PRIORITY_PARAM))
-            uart->hasAssignedWokerThread = true;
-        }
-#else
-        uart->recv();
-#endif
+    	theOS->getInterruptManager()->handleIRQ(OPB_UART_LITE_IRQ);
     }
-
-    if ( ( regval & PLB_EMAC0_IRQ ) == PLB_EMAC0_IRQ ) {
+    if (  regval & PLB_EMAC0_IRQ ) {
         // ETH threw an interrupt
         // disable the interrupts from the comm device since it will be still pending after we exit this
         // handler routine.
-        register CommDeviceDriver* eth = theOS->getBoard()->getETH();
-        eth->clearIRQ();
-        eth->disableIRQ();
-        eth->interruptPending = true;
-        theOS->getBoard()->getInterruptController()->clearIRQ( PLB_EMAC0_IRQ );
-
-
-#if USE_WORKERTASK
-        if (!eth->hasAssignedWokerThread)
-        {
-            if (theOS->getWorkerTask()->addJob(ExternalDeviceJob,0,(void*) eth, WORKERTHREAD_ETH_PRIORITY_PARAM))
-            eth->hasAssignedWokerThread = true;
-        }
-#else
-        eth->recv();
-#endif
-
+    	theOS->getInterruptManager()->handleIRQ(PLB_EMAC0_IRQ);
     }
-    if ( ( regval & PUSH_BUTTON_IRQ ) == PUSH_BUTTON_IRQ ) {
-        theOS->getBoard()->getInterruptController()->clearIRQ( PUSH_BUTTON_IRQ );
+    if (  regval & PUSH_BUTTON_IRQ ) {
+    	theOS->getInterruptManager()->handleIRQ(PUSH_BUTTON_IRQ);
     }
 
-//#ifdef HAS_PRIORITY
+
     // the workerthread may have a higher priority so we need to reschedule here!
-    theOS->getCPUDispatcher()->dispatch( theOS->getClock()->getTimeSinceStartup() - lastCycleStamp );
-//#endif
-
-    // if we get here we need to restore the context
-    //assembler::restoreContext( pCurrentRunningThread );
+    theOS->getCPUDispatcher()->dispatch( );
 
 }
 
@@ -186,18 +149,16 @@ extern "C"void handleExternalIRQ(void* sp_int, void* myKernelStackBucketIndex)
 extern "C" void handleCriticalError(void* sp_int, unint4 irq, unint4 srr2, unint4 srr3)
 {
     LOG(ARCH,FATAL,(ARCH,FATAL,"Critical Exception: 0x%x, SRR2: 0x%x, SRR3: 0x%x",irq,srr2,srr3));
-    ERROR("Cant recover from critical exception")
+	theOS->getErrorHandler()->handleError(cDataAbortError);
 }
 
 extern "C" void handleTLBError(void* sp_int)
 {
-    theOS->getHatLayer()->handleMappingError();
+	theOS->getErrorHandler()->handleError(cMappingError);
 }
 
 extern "C"void handleWatchdogIRQ(void* sp_int)
 {
-    LOG(ARCH,FATAL,(ARCH,FATAL,"Watchdog Exception! - CRITICAL"));
-
-    while (true) {}
+	theOS->getErrorHandler()->handleError(cWatchdog);
 }
 

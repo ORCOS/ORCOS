@@ -55,11 +55,16 @@
 /*------------------------------------------------------
  *                  USB Imports
  * ------------------------------------------------------ */
-#if USB_SUPPORT_ENABLED
+#if HAS_Board_USB_HCCfd
 #include "arch/shared/usb/USBDriverLibrary.hh"
-// TODO: add configurable driver selection
+
+#if HAS_USBDriver_SMSC95xxCfd
 #include "arch/shared/usb/SMSC95xxUSBDeviceDriver.hh"
+#endif
+
+#if HAS_USBDriver_MassStorageCfd
 #include "arch/shared/usb/MassStorageSCSIUSBDeviceDriver.hh"
+#endif
 #endif
 
 #include "comm/lwipTMR.hh"

@@ -21,7 +21,7 @@
 
 #include <error.hh>
 #include <types.hh>
-#include "powerpc.h"
+#include "ppc405.h"
 #include <hal/TimerDevice.hh>
 
 /*!

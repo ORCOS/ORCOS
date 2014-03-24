@@ -18,6 +18,7 @@
 
 #include "PPC405Watchdog.hh"
 #include <error.hh>
+#include "ppc405.h"
 
 /*
  * TCR[WP] -> 00 nach reset
@@ -44,8 +45,8 @@
  * immer auf 0 setzen beim kick
  */
 
-PPC405Watchdog::PPC405Watchdog( const char* name ) :
-    Watchdog( name ) {
+PPC405Watchdog::PPC405Watchdog( ) :
+    Watchdog( "watchdog" ) {
     enabled = false;
 }
 

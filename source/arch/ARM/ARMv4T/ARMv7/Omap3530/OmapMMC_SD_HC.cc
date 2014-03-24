@@ -17,8 +17,6 @@ extern void kwait(int milliseconds);
 extern Kernel* theOS;
 
 
-unint4 buf[256];
-
 OmapMMC_SD_HC::OmapMMC_SD_HC(T_OmapMMC_SD_HC_Init *p_init) : BlockDeviceDriver("mmc")
 {
 	baseAddress = p_init->Address;
@@ -39,13 +37,22 @@ OmapMMC_SD_HC::OmapMMC_SD_HC(T_OmapMMC_SD_HC_Init *p_init) : BlockDeviceDriver("
 	LOG(ARCH,INFO,(ARCH,INFO,"MMC/SD HC() Resetting."));
 
 	OUTW(baseAddress + MMCHS_SYSCONFIG,0x2);
-	//TODO: timeout
-	while( (INW(baseAddress + MMCHS_SYSSTATUS) & 0x1) == 0x0) {};
+	unint4 timeout = 400;
+	while( ((INW(baseAddress + MMCHS_SYSSTATUS) & 0x1) == 0x0) && (timeout > 0)) {
+		timeout--;
+		kwait_us(100);
+	}
+	if (timeout == 0) return;
 
 	// soft reset all
 	OUTW(baseAddress + MMCHS_SYSCTL,INW(baseAddress + MMCHS_SYSCTL) | (1 << 24));
-	// TODO: timeout
-	while( (INW(baseAddress + MMCHS_SYSCTL) & (1 << 24)) != 0x0) {};
+
+	timeout = 400;
+	while( ((INW(baseAddress + MMCHS_SYSCTL) & (1 << 24)) != 0x0) && (timeout > 0)) {
+		timeout--;
+		kwait_us(100);
+	}
+	if (timeout == 0) return;
 
 
 	LOG(ARCH,INFO,(ARCH,INFO,"MMC/SD HC() Reset successful."));
@@ -170,7 +177,6 @@ void OmapMMC_SD_HC::init()
 
 			unint4 value = INW(baseAddress + MMCHS_RSP10);
 			LOG(ARCH,DEBUG,(ARCH,DEBUG,"MMC/SD HC() RSP10: 0x%x",value));
-			//LOG(ARCH,INFO,(ARCH,INFO,"MMC() RSP10=0x%x",value));
 			int ready = (value >> 31) & 0x1;
 			if (!ready) {
 				// try now with HCS card set // TODO: only do this if CMD8 succeeded
@@ -187,7 +193,6 @@ void OmapMMC_SD_HC::init()
 	}
 
 	// init MMC or SD x.0 card here
-
 	// send ALL_SEND_CID to get Card Identification number
 	if (sendCommand(0x02090000,0) == cError) {
 		LOG(ARCH,WARN,(ARCH,WARN,"MMC/SD HC() reading CID failed.. card dropped.."));
@@ -469,11 +474,6 @@ ErrorT OmapMMC_SD_HC::writeBlock(unint4 blockNum, unint1* buffer, unint4 length)
 	//while(DMA4_CCR(10) & (1<< 7));
 
 	// no error.. start writing data .. first wait until we are allowed to write
-
-
-
-	//TODO replace this by a dma transfer!
-
 
 	// now write everything
 	while ((length > 0)) {

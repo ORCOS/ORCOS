@@ -162,7 +162,6 @@ int printf( const char *format, ... ) {
 }
 
 extern "C" int puts(const char* s) {
-	// TODO: directly print instead of going through printf
 	printf(s);
 	return (1);
 }

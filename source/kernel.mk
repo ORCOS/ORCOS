@@ -182,9 +182,6 @@ ifdef BDI_DIR
 	@$(RM) $(BDI_DIR)/* 
 endif
 	$(RM) make/SCLConfig.hh make/logger_config.hh make/tasktable.S make/scl_make.mk
-ifdef KERNEL_DIR
-	$(RM) $(KERNEL_DIR)lib/*.o $(KERNEL_DIR)lib/*.a
-endif
 
 
 #---------------------------------------------------------------------------------------------------------------------------------------

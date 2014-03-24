@@ -63,19 +63,19 @@ ErrorT PartitionManager::handleEFIPartitionTable(BlockDeviceDriver* bdev) {
 	EFI_PT_Header* efi_header = (EFI_PT_Header*) buffer;
 
 	if (memcmp(efi_header->signature,EFI_Signature,8) != 0) {
-		LOG(ARCH,INFO,(ARCH,INFO,"PartitionManager: EFI Signature validation failed."));
+		LOG(FILESYSTEM,INFO,(FILESYSTEM,INFO,"PartitionManager: EFI Signature validation failed."));
 		return (cError);
 	}
 
-	LOG(ARCH,INFO,(ARCH,INFO,"PartitionManager: Found EFI Header."));
-	LOG(ARCH,INFO,(ARCH,INFO,"PartitionManager: EFI Partitions: %d.",efi_header->num_pte));
+	LOG(FILESYSTEM,INFO,(FILESYSTEM,INFO,"PartitionManager: Found EFI Header."));
+	LOG(FILESYSTEM,INFO,(FILESYSTEM,INFO,"PartitionManager: EFI Partitions: %d.",efi_header->num_pte));
 
 	if (efi_header->num_pte > 2) {
-		LOG(ARCH,INFO,(ARCH,INFO,"PartitionManager: No support for more than 2 EFI partitions."));
+		LOG(FILESYSTEM,INFO,(FILESYSTEM,INFO,"PartitionManager: No support for more than 2 EFI partitions."));
 		return (cError);
 	}
 
-	LOG(ARCH,INFO,(ARCH,INFO,"PartitionManager: EFI Support missing."));
+	LOG(FILESYSTEM,INFO,(FILESYSTEM,INFO,"PartitionManager: EFI Support missing."));
 
 	return (cOk);
 }
@@ -92,7 +92,7 @@ ErrorT PartitionManager::tryDOSMBR(BlockDeviceDriver* bdev) {
 		} /* no DOS Signature at all */
 
 	int disksig = le32_to_int(&buffer[DOS_PART_DISKSIG_OFFSET]);
-	LOG(ARCH,INFO,(ARCH,INFO,"PartitionManager: Disk Signature: %x",disksig));
+	LOG(FILESYSTEM,INFO,(FILESYSTEM,INFO,"PartitionManager: Disk Signature: %x",disksig));
 
 	if (memcmp((char *)&buffer[DOS_PBR_FSTYPE_OFFSET],"FAT",3)==0 ||
 		memcmp((char *)&buffer[DOS_PBR32_FSTYPE_OFFSET],"FAT32",5)==0) {
@@ -122,12 +122,12 @@ ErrorT PartitionManager::tryDOSMBR(BlockDeviceDriver* bdev) {
 #endif
 				case 0xee: {
 					// handle efi partition tables here
-					// EFI Partition mit Legacy MBR
+					// EFI Partition with Legacy MBR
 					return (handleEFIPartitionTable(bdev));
 					break;
 				}
 				default: {
-					LOG(ARCH,WARN,(ARCH,WARN,"PartitionManager: No Partition support for Type: %x",pt_entry->type));
+					LOG(FILESYSTEM,WARN,(FILESYSTEM,WARN,"PartitionManager: No Partition support for Type: %x",pt_entry->type));
 				}
 
 			}
@@ -138,19 +138,13 @@ ErrorT PartitionManager::tryDOSMBR(BlockDeviceDriver* bdev) {
 	}
 
 	dos_partition_t *pt;
-
 	unint1 part_num = 1;
 
 	/* Print all primary/logical partitions */
 	pt = (dos_partition_t *) (buffer + DOS_PART_TBL_OFFSET);
 	for (int i = 0; i < 4; i++, pt++) {
-		/*
-		 * fdisk does not show the extended partitions that
-		 * are not in the MBR
-		 */
 
-		if ((pt->sys_ind != 0)) /*&&
-			(!is_extended (pt->sys_ind)) ) */{
+		if ((pt->sys_ind != 0)) {
 
 			switch (pt->sys_ind) {
 
@@ -162,8 +156,6 @@ ErrorT PartitionManager::tryDOSMBR(BlockDeviceDriver* bdev) {
 					{
 					Partition* partition = new DOSPartition(bdev,pt,part_num,disksig);
 					this->add(partition);	    /* Is MBR */
-
-
 					// FAT Filesystem
 					FileSystemBase* fs = new FATFileSystem(partition);
 					if (fs->isValidFileSystem()) fs->initialize();
@@ -177,7 +169,7 @@ ErrorT PartitionManager::tryDOSMBR(BlockDeviceDriver* bdev) {
 					break;
 				}
 				default: {
-					LOG(ARCH,WARN,(ARCH,WARN,"PartitionManager: No FileSystem Support for SYS_IND: %x",pt->sys_ind));
+					LOG(FILESYSTEM,WARN,(FILESYSTEM,WARN,"PartitionManager: No FileSystem Support for SYS_IND: %x",pt->sys_ind));
 				}
 			}
 
@@ -205,7 +197,7 @@ void PartitionManager::registerBlockDevice(BlockDeviceDriver* bdev) {
 	if (tryDOSMBR(bdev) == cOk) return;
 
 	// TODO: try to mount directly as filesystem as no MBR might be present
-	LOG(ARCH,WARN,(ARCH,WARN,"PartitionManager: No supported partition/MBR found for '%s'",bdev->getName()));
+	LOG(FILESYSTEM,WARN,(FILESYSTEM,WARN,"PartitionManager: No supported partition/MBR found for '%s'",bdev->getName()));
 
 }
 
