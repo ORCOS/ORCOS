@@ -434,8 +434,8 @@ typedef struct {
 } PortInfo;
 
 
-#define USB_DIR_IN  1
-#define USB_DIR_OUT 0
+#define USB_DIR_IN  1 /* BULK transfer IN direction */
+#define USB_DIR_OUT 0 /* BULK transfer OUT direction */
 
 /*!
  * \brief Generic USB EHCI Host Controller implementation
@@ -443,6 +443,9 @@ typedef struct {
  */
 class USB_EHCI_Host_Controller : GenericDeviceDriver {
 private:
+	/*!
+	 *  The physical base address of this EHCI controller
+	 */
 	unint4 			hc_base;
 
 	// this flag indicates whether this object is operational
@@ -456,40 +459,94 @@ private:
 
 public:
 
+	/*!
+	 * Registers a new USB Device Driver that has been instanciated for a new USB Device
+	 */
 	void 	registerDevice(USBDeviceDriver*);
 
+
+	/*!
+	 * Unregisters a USB Device Driver
+	 */
 	void 	unregisterDevice(USBDeviceDriver* drv);
 
-
+	/*!
+	 *  The operational registers base address of the EHCI HC.
+	 */
 	unint4 	operational_register_base;
 
 	// address of the async queue head base registers
 	unint4 	async_qh_reg;
 
+	/*!
+	 * Creates a new instance of the EHCI HC.
+	 *
+	 * \param ehci_dev_base The phyiscal base address of the HC
+	 */
 	USB_EHCI_Host_Controller(unint4 ehci_dev_base);
 
-	// tries to enumerate a given device and load the driver
+	/*!
+	 *  Tries to enumerate a given device in order to load a driver for it
+	 **/
 	ErrorT 	enumerateDevice(USBDevice *dev);
 
-	// sends a control msg (setup msg) with data read phase to a usb device
+	/*!
+	 *  sends a control msg (setup msg) with data read phase to a usb device
+	 */
 	int 	sendUSBControlMsg(USBDevice *dev, unint1 endpoint, unint1 *control_msg, unint1 direction = USB_DIR_IN, unint1 length = 0, unint1 *data = 0);
 
+	/*!
+	 *  Starts a bulk transfer to the given USBDevice and endpoint.
+	 *  The Bulk transfer direction can either be USB_IN or USB_OUT.
+	 *  The length of the bulk transfer is given by data_len. The data is send from / stored to
+	 *  the pointer given by data.
+	 *
+	 *  Upon success this method returns the number of bytes transfered >= 0.
+	 *  Upon error returns an error code < 0.
+	 */
 	int 	USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1 direction, unint2 data_len, unint1 *data);
 
+	/*!
+	 *  Inserts a Queue Head into the periodic queue
+	 *  Poll rates are given in milliseconds. No support for poll rates < 1 ms.
+	 *  Be aware: 1 ms poll rate will fill up the whole queue.
+	 *
+	 */
 	void 	insertPeriodicQH(QH* qh, int poll_rate);
 
+	/*!
+	 * Removes a queue head from the periodic list effectively stopping
+	 * the periodic transfer.
+	 */
 	void 	removefromPeriodic(QH* qh, int poll_rate);
 
-	// try to initialize the device and the frame lists
-	ErrorT 	Init();
+	/*!
+	 *  Try to initialize the device.
+	 *  Upon success the ehci controller is registred at the interrupt manager using the given priority.
+	 */
+	ErrorT 	Init(unint4 priority);
 
-	// handle EHCI IRQs
+	/*!
+	 *  handle EHCI IRQs.
+	 *  Will iterate over all registered device drivers of usb devices to handle the IRQ.
+	 *  The EHCI HC can not know which device the IRQ is for, thus it needs to ask every device.
+	 *  This is very time consuming!
+	 */
 	ErrorT 	handleIRQ();
 
+	/*!
+	 * Enables EHCI HC IRQs
+	 */
 	ErrorT  enableIRQ();
 
+	/*!
+	 * Disables EHCI HC IRQs
+	 */
 	ErrorT  disableIRQ();
 
+	/*!
+	 * Clears all pending EHCI HC IRQs.
+	 */
 	ErrorT  clearIRQ();
 
 	// destructor

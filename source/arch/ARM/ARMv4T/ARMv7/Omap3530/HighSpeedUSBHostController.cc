@@ -489,7 +489,7 @@ HighSpeedUSBHostController::HighSpeedUSBHostController(T_HighSpeedUSBHostControl
 
 
 	// call the Init method of the EHCI in baseclass to initialize the controller hardware
-	this->Init();
+	this->Init(init->Priority);
 
 }
 

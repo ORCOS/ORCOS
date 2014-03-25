@@ -366,6 +366,7 @@
         <MemberRef Name="USB_HC">
 		 <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/HighSpeedUSBHostController">
 			<PropertyValue Name="I2CDeviceName" Value="dev/i2c0" />
+			<PropertyValue Name="Priority" Value="5000" />
 		 </Defaults>
 		</MemberRef>
         <MemberRef Name="InterruptHandler" optional="false"/>
@@ -564,6 +565,7 @@
           <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree."/>
           <Property Name="DirectionBits" Type="unsigned int" Optional="true" Description="The initial direction of the GPIO pins. Bit Semantics: 0 = output, 1= input"/>
           <Property Name="ValueBits" Type="unsigned int" Optional="true" Description="The initial value of a output pin programmed per bit."/>
+		  <Property Name="Priority" Type="int" Optional="false" Description="The Priority parameter of this device. The priority is used for scheduled IRQ handling."/>
         </Class>
         <Class Name="arch/none/DummyCharDriver"/>
       </Classes>
@@ -576,7 +578,7 @@
           <Property Name="Length" Type="unsigned int" Optional="true" Description="The Length (Bytes) of the Memory Mapped I/O Area of this device. This value is only needed if Virtual Memory is activated to create the corresponding memory maps."/>
           <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree."/>
           <Property Name="DirectionBits" Type="unsigned int" Optional="true" Description="The initial direction of the GPIO pins. Bit Semantics: 0 = output, 1= input"/>
-          <Property Name="ValueBits" Type="unsigned int" Optional="true" Description="The initial value of a output pin programmed per bit."/>
+          <Property Name="ValueBits" Type="unsigned int" Optional="true" Description="The initial value of a output pin programmed per bit."/>        		  <Property Name="Priority" Type="int" Optional="false" Description="The Priority parameter of this device. The priority is used for scheduled IRQ handling."/>         
         </Class>
         <Class Name="arch/none/DummyCharDriver"/>
       </Classes>
@@ -590,6 +592,7 @@
           <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree."/>
           <Property Name="DirectionBits" Type="unsigned int" Optional="true" Description="The initial direction of the GPIO pins. Bit Semantics: 0 = output, 1= input"/>
           <Property Name="ValueBits" Type="unsigned int" Optional="true" Description="The initial value of a output pin programmed per bit."/>
+          <Property Name="Priority" Type="int" Optional="false" Description="The Priority parameter of this device. The priority is used for scheduled IRQ handling."/>          
         </Class>
         <Class Name="arch/none/DummyCharDriver"/>
       </Classes>
@@ -603,6 +606,7 @@
           <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree."/>
           <Property Name="DirectionBits" Type="unsigned int" Optional="true" Description="The initial direction of the GPIO pins. Bit Semantics: 0 = output, 1= input"/>
           <Property Name="ValueBits" Type="unsigned int" Optional="true" Description="The initial value of a output pin programmed per bit."/>
+		  <Property Name="Priority" Type="int" Optional="false" Description="The Priority parameter of this device. The priority is used for scheduled IRQ handling."/>
         </Class>
         <Class Name="arch/none/DummyCharDriver"/>
       </Classes>
@@ -616,6 +620,7 @@
           <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree."/>
           <Property Name="DirectionBits" Type="unsigned int" Optional="true" Description="The initial direction of the GPIO pins. Bit Semantics: 0 = output, 1= input"/>
           <Property Name="ValueBits" Type="unsigned int" Optional="true" Description="The initial value of a output pin programmed per bit."/>
+		  <Property Name="Priority" Type="int" Optional="false" Description="The Priority parameter of this device. The priority is used for scheduled IRQ handling."/>
         </Class>
         <Class Name="arch/none/DummyCharDriver"/>
       </Classes>
@@ -629,6 +634,7 @@
           <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree."/>
           <Property Name="DirectionBits" Type="unsigned int" Optional="true" Description="The initial direction of the GPIO pins. Bit Semantics: 0 = output, 1= input"/>
           <Property Name="ValueBits" Type="unsigned int" Optional="true" Description="The initial value of a output pin programmed per bit."/>
+          <Property Name="Priority" Type="int" Optional="false" Description="The Priority parameter of this device. The priority is used for scheduled IRQ handling."/>        
         </Class>
         <Class Name="arch/none/DummyCharDriver"/>
       </Classes>
@@ -638,6 +644,7 @@
       <Classes>
         <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/HighSpeedUSBHostController">
 		  <Property Name="I2CDeviceName" Type="char*" Optional="false" Description="The I2C Device Name as found in 'dev\i2cdevice' the TWL power chip is connected to. Used to setup the USB HC Power. Must match the device name of the configured I2C Device. \nDefault: 'i2c0'"/>
+		  <Property Name="Priority" Type="int" Optional="false" Description="The Priority parameter of this device. The priority is used for scheduled IRQ handling."/>
 		</Class>
         <Class Name="arch/none/DummyClass"/>
       </Classes>

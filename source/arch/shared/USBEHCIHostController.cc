@@ -132,7 +132,7 @@ USB_EHCI_Host_Controller::USB_EHCI_Host_Controller(unint4 ehci_dev_base) : Gener
 
 }
 
-ErrorT USB_EHCI_Host_Controller::Init() {
+ErrorT USB_EHCI_Host_Controller::Init(unint4 priority) {
 
 
 	// try read out the control register length field
@@ -186,8 +186,8 @@ ErrorT USB_EHCI_Host_Controller::Init() {
 		OUTW(operational_register_base + USBCMD_OFFSET,usbcmd_val);
 
 		// wait until stopped, upto 16 microframes = 2 ms
-		volatile unint4 timeout = 100000;
-		while (((INW(operational_register_base + USBSTS_OFFSET) & (1 << 12)) == 0) && timeout) {timeout--;}
+		volatile unint4 timeout = 1000;
+		while (((INW(operational_register_base + USBSTS_OFFSET) & (1 << 12)) == 0) && timeout) {timeout--; kwait_us(2);}
 		if (timeout == 0) {
 			LOG(ARCH,ERROR,(ARCH,ERROR,"USB_EHCI_Host_Controller::Init() Timeout on stopping HC.."));
 			return (cError);
@@ -215,7 +215,7 @@ ErrorT USB_EHCI_Host_Controller::Init() {
 	LOG(ARCH,INFO,(ARCH,INFO,"USB_EHCI_Host_Controller::Init() reset successful.."));
 
 	/* register ourself at the IRQ Manager */
-	theOS->getInterruptManager()->registerIRQ(EHCI_IRQ,this,5 ms);
+	theOS->getInterruptManager()->registerIRQ(EHCI_IRQ,this,priority);
 
 	// now initialize the aperiodic and periodic frame space
 	// set all frame list entries to invalid

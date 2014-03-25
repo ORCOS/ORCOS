@@ -87,6 +87,7 @@
         <PropertyValue Name="Name" Value="gpio1" Type="char*" />
         <PropertyValue Name="DirectionBits" Value="0x0" Type="unsigned int" />
         <PropertyValue Name="ValueBits" Value="0x0" Type="unsigned int" />
+        <PropertyValue Name="Priority" Value="8000" Type="int" />
       </Member>
       <Member Name="GPIO2" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO" None="false" UserSpace="false" PhyLoadAddress="0x0">
         <PropertyValue Name="Address" Value="0x49050000" Type="unsigned int" />
@@ -94,6 +95,7 @@
         <PropertyValue Name="Name" Value="gpio2" Type="char*" />
         <PropertyValue Name="DirectionBits" Value="0x0" Type="unsigned int" />
         <PropertyValue Name="ValueBits" Value="0x0" Type="unsigned int" />
+        <PropertyValue Name="Priority" Value="8000" Type="int" />
       </Member>
       <Member Name="GPIO3" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO" None="false" UserSpace="false" PhyLoadAddress="0x0">
         <PropertyValue Name="Address" Value="0x49052000" Type="unsigned int" />
@@ -101,6 +103,7 @@
         <PropertyValue Name="Name" Value="gpio3" Type="char*" />
         <PropertyValue Name="DirectionBits" Value="0x0" Type="unsigned int" />
         <PropertyValue Name="ValueBits" Value="0x0" Type="unsigned int" />
+        <PropertyValue Name="Priority" Value="8000" Type="int" />
       </Member>
       <Member Name="GPIO4" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO" None="false" UserSpace="false" PhyLoadAddress="0x0">
         <PropertyValue Name="Address" Value="0x49054000" Type="unsigned int" />
@@ -108,6 +111,7 @@
         <PropertyValue Name="Name" Value="gpio4" Type="char*" />
         <PropertyValue Name="DirectionBits" Value="0x0" Type="unsigned int" />
         <PropertyValue Name="ValueBits" Value="0x0" Type="unsigned int" />
+        <PropertyValue Name="Priority" Value="8000" Type="int" />
       </Member>
       <Member Name="GPIO5" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO" None="false" UserSpace="false" PhyLoadAddress="0x0">
         <PropertyValue Name="Address" Value="0x49056000" Type="unsigned int" />
@@ -115,6 +119,7 @@
         <PropertyValue Name="Name" Value="gpio5" Type="char*" />
         <PropertyValue Name="DirectionBits" Value="0x0" Type="unsigned int" />
         <PropertyValue Name="ValueBits" Value="0x0" Type="unsigned int" />
+        <PropertyValue Name="Priority" Value="8000" Type="int" />
       </Member>
       <Member Name="GPIO6" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO" None="false" UserSpace="false" PhyLoadAddress="0x0">
         <PropertyValue Name="Address" Value="0x49058000" Type="unsigned int" />
@@ -122,9 +127,11 @@
         <PropertyValue Name="Name" Value="gpio6" Type="char*" />
         <PropertyValue Name="DirectionBits" Value="0x0" Type="unsigned int" />
         <PropertyValue Name="ValueBits" Value="0x0" Type="unsigned int" />
+        <PropertyValue Name="Priority" Value="8000" Type="int" />
       </Member>
       <Member Name="USB_HC" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/HighSpeedUSBHostController" None="false" UserSpace="false" PhyLoadAddress="0x0">
         <PropertyValue Name="I2CDeviceName" Value="dev/i2c0" Type="char*" />
+        <PropertyValue Name="Priority" Value="5000" Type="int" />
       </Member>
       <Member Name="InterruptController" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardInterruptController" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="ExtPowerControl" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/TWL4030" None="false" UserSpace="false" PhyLoadAddress="0x0">
