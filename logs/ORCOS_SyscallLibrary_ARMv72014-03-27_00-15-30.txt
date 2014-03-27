@@ -1,0 +1,36 @@
+Gestartet durch vorgelagertes Projekt "[8mha:AAAApB+LCAAAAAAAAP9b85aBtbiIQTGjNKU4P08vOT+vOD8nVc83PyU1x6OyILUoJzMv2y+/JJUBAhiZGBgqihhk0NSjKDWzXb3RdlLBUSYGJk8GtpzUvPSSDB8G5tKinBIGIZ+sxLJE/ZzEvHT94JKizLx0a6BxUmjGOUNodHsLgAz+EgZJ/az8JH3/IGf/YFUjA/fMEiDpnJOfl6oPAGrAXgXOAAAA[0mORCOS Git Clone", Build [8mha:AAAApx+LCAAAAAAAAP9b85aBtbiIQTGjNKU4P08vOT+vOD8nVc83PyU1x6OyILUoJzMv2y+/JJUBAhiZGBgqihhk0NSjKDWzXb3RdlLBUSYGJk8GtpzUvPSSDB8G5tKinBIGIZ+sxLJE/ZzEvHT94JKizLx0a6BxUmjGOUNodHsLgAzmEgYZ/az8JH3/IGf/YFUjA/fMEiDpnJOfl6pvaGIJAI9dWZrRAAAA[0m149
+originally caused by:
+ Build wurde zeitgesteuert ausgelöst.
+Building in workspace /home/pi/build
+[build] $ /bin/sh -xe /tmp/hudson7496938808236148255.sh
++ cd library
++ make -f makelib_armv7.mk all GCC_LIB_DIR=/home/pi/orcos_arm LIBC_DIR=/home/pi/orcos_arm CC=/usr/bin/gcc CXX=/usr/bin/c++ AS=/usr/bin/as AR=/usr/bin/ar SIZE=/usr/bin/size OBJDUMP=/usr/bin/objdump LD=/usr/bin/ld OBJCOPY=/usr/bin/objcopy STRIP=/usr/bin/strip KERNEL_LIB_DIR=/home/pi/build/library/bin/armv7/ CFLAGS=-c -I/home/pi/build/library/inc/ -msoft-float -fno-exceptions -fno-rtti -O2 -mthumb -ffunction-sections OPT_FLAGS=-O2 -mthumb -mcpu=cortex-a8  -mthumb-interwork -DARM_THUMB=1 USER_LIB_OPT_FLAGS=-O2 -mcpu=cortex-a8
+
+----------------------------------
+     Checking for tools
+----------------------------------
+java version "1.7.0_45"
+Java(TM) SE Runtime Environment (build 1.7.0_45-b18)
+Java HotSpot(TM) Client VM (build 24.45-b08, mixed mode)
+All tools installed...
+Please be sure to use relative path names for WINDOWS/CYGIN
+------------------------------------------
+ Building ORCOS Syscall Library for ARMv7
+------------------------------------------
+makelib.mk[C++]: Compiling bin/armv7/io.o
+makelib.mk[C++]: Compiling bin/armv7/mem.o
+makelib.mk[C++]: Compiling bin/armv7/signal.o
+makelib.mk[C++]: Compiling bin/armv7/net.o
+makelib.mk[C++]: Compiling bin/armv7/static.o
+makelib.mk[C++]: Compiling bin/armv7/threads.o
+makelib.mk[C++]: Compiling bin/armv7/Mutex.o
+makelib.mk[C++]: Compiling bin/armv7/pthread.o
+Syscall : Compiling bin/armv7/syscall.o
+makelib.mk[C] : Compiling bin/armv7/testandset.o
+cc1: warning: command line option ‘-fno-rtti’ is valid for C++/ObjC++ but not for C [enabled by default]
+makelib.mk[C++]: Compiling bin/armv7/string.o
+Archiving the user library into liborcos.a
+
+Löse einen neuen Build von [8mha:AAAArR+LCAAAAAAAAP9b85aBtbiIQTGjNKU4P08vOT+vOD8nVc83PyU1x6OyILUoJzMv2y+/JJUBAhiZGBgqihhk0NSjKDWzXb3RdlLBUSYGJk8GtpzUvPSSDB8G5tKinBIGIZ+sxLJE/ZzEvHT94JKizLx0a6BxUmjGOUNodHsLgAyJEgYl/az8JH23osTcVKfStLTUIlUjg5DE4mwgpZFYlFtmrqkPABni3V7XAAAA[0mFrameBuffer Task (armv7) #151 aus
+Löse einen neuen Build von [8mha:AAAArB+LCAAAAAAAAP9b85aBtbiIQTGjNKU4P08vOT+vOD8nVc83PyU1x6OyILUoJzMv2y+/JJUBAhiZGBgqihhk0NSjKDWzXb3RdlLBUSYGJk8GtpzUvPSSDB8G5tKinBIGIZ+sxLJE/ZzEvHT94JKizLx0a6BxUmjGOUNodHsLgAzxEgZF/az8JH3n/KLU0JLMnGJVIwOn0sycFCCtkViUW2auqQ8ADQy87NYAAAA=[0mCoreUtils Build (armv7) #150 aus
+Finished: SUCCESS
