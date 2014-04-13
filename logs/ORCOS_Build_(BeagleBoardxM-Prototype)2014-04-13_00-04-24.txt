@@ -1,0 +1,395 @@
+Gestartet durch vorgelagertes Projekt "[8mha:AAAApB+LCAAAAAAAAP9b85aBtbiIQTGjNKU4P08vOT+vOD8nVc83PyU1x6OyILUoJzMv2y+/JJUBAhiZGBgqihhk0NSjKDWzXb3RdlLBUSYGJk8GtpzUvPSSDB8G5tKinBIGIZ+sxLJE/ZzEvHT94JKizLx0a6BxUmjGOUNodHsLgAz+EgZJ/az8JH3/IGf/YFUjA/fMEiDpnJOfl6oPAGrAXgXOAAAA[0mORCOS Git Clone", Build [8mha:AAAApx+LCAAAAAAAAP9b85aBtbiIQTGjNKU4P08vOT+vOD8nVc83PyU1x6OyILUoJzMv2y+/JJUBAhiZGBgqihhk0NSjKDWzXb3RdlLBUSYGJk8GtpzUvPSSDB8G5tKinBIGIZ+sxLJE/ZzEvHT94JKizLx0a6BxUmjGOUNodHsLgAzmEgYZ/az8JH3/IGf/YFUjA/fMEiDpnJOfl6pvaGoOAMlB+mTRAAAA[0m157
+originally caused by:
+ Build wurde zeitgesteuert ausgelöst.
+Building in workspace /home/pi/build
+[build] $ /bin/sh -xe /tmp/hudson434421699622837762.sh
++ cd /home/pi/build/configurations/BeagleBoardxM/Prototype
++ make scl GCC_LIB_DIR=/home/pi/orcos_arm LIBC_DIR=/home/pi/orcos_arm CC=/usr/bin/gcc CXX=/usr/bin/c++ AS=/usr/bin/as AR=/usr/bin/ar SIZE=/usr/bin/size OBJDUMP=/usr/bin/objdump LD=/usr/bin/ld OBJCOPY=/usr/bin/objcopy STRIP=/usr/bin/strip KERNEL_DIR=/home/pi/build/source/ KERNEL_LIB_DIR=/home/pi/build/library/bin/armv7/ OPT_FLAGS=-O2 -mthumb -mcpu=cortex-a8  -mthumb-interwork -DARM_THUMB=1
+----------------- SCLTool -------------------
+kernel.mk: Reading config file SCLConfig.xml
+Transforming file: /home/pi/build/configurations/BeagleBoardxM/Prototype/SCLConfig.xml
+Using XSD file: /home/pi/build/configurations/BeagleBoardxM/Prototype/../../../tools/SCL/dist/scl2.xsd
+SCL configuration is valid!
+Checking Superclass: arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardxM/BeagleBoardxM
+Checked member: Processor ::= arch/ARM/ARMv4T/ARMv4TProcessor
+Checked member: InterruptHandler ::= arch/ARM/ARMv4T/ARMv4TInterruptHandler
+Checked member: Timer ::= arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardGPTimer2
+Checked member: HatLayer ::= arch/ARM/ARMv4T/ARMv7/ARMv7HatLayer
+Checked member: Clock ::= arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530Clock
+Checked member: DSS ::= arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardDSS
+Checked member: UART ::= arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardUART
+Checked member: UART2 ::= arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530i2c
+Checked member: GPIO1 ::= arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO
+Checked member: GPIO2 ::= arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO
+Checked member: GPIO3 ::= arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO
+Checked member: GPIO4 ::= arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO
+Checked member: GPIO5 ::= arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO
+Checked member: GPIO6 ::= arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO
+Checked member: USB_HC ::= arch/ARM/ARMv4T/ARMv7/Omap3530/HighSpeedUSBHostController
+Checked member: InterruptController ::= arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardInterruptController
+Checked member: ExtPowerControl ::= arch/ARM/ARMv4T/ARMv7/Omap3530/TWL4030
+Checked member: MMC ::= arch/ARM/ARMv4T/ARMv7/Omap3530/OmapMMC_SD_HC
+Checked member: Cache ::= arch/ARM/ARMv4T/ARMv7/ARMv7Cache
+Checked member: SPI ::= arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530SPI
+Superclass #define created for: arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardxM/BeagleBoardxM
+ARCH_DIR: arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardxM
+Processing 'Processor' (arch/ARM/ARMv4T/ARMv4TProcessor)
+Processing 'InterruptHandler' (arch/ARM/ARMv4T/ARMv4TInterruptHandler)
+Processing 'Timer' (arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardGPTimer2)
+Processing 'HatLayer' (arch/ARM/ARMv4T/ARMv7/ARMv7HatLayer)
+Processing 'Clock' (arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530Clock)
+Processing 'DSS' (arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardDSS)
+Processing 'UART' (arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardUART)
+Processing 'UART2' (arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530i2c)
+Processing 'GPIO1' (arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO)
+Processing 'GPIO2' (arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO)
+Processing 'GPIO3' (arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO)
+Processing 'GPIO4' (arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO)
+Processing 'GPIO5' (arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO)
+Processing 'GPIO6' (arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO)
+Processing 'USB_HC' (arch/ARM/ARMv4T/ARMv7/Omap3530/HighSpeedUSBHostController)
+Processing 'InterruptController' (arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardInterruptController)
+Processing 'ExtPowerControl' (arch/ARM/ARMv4T/ARMv7/Omap3530/TWL4030)
+Processing 'MMC' (arch/ARM/ARMv4T/ARMv7/Omap3530/OmapMMC_SD_HC)
+Processing 'Cache' (arch/ARM/ARMv4T/ARMv7/ARMv7Cache)
+Processing 'SPI' (arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530SPI)
+Checking Superclass: kernel/Kernel
+Checked member: MigrationManager ::= migration/MigrationManager
+Checked member: ServiceDiscovery ::= comm/servicediscovery/SNServiceDiscovery
+Checked member: MemoryManager ::= mem/SequentialFitMemManager
+Checked member: Thread ::= process/RealTimeThread
+Checked member: Dispatcher ::= scheduler/SingleCPUDispatcher
+Checked member: Scheduler ::= scheduler/RateMonotonicThreadScheduler
+Checked member: Logger ::= debug/Logger
+Checked member: PowerManager ::= hal/PowerManager
+Checked member: TaskManager ::= process/TaskManager
+Checked member: RamManager ::= mem/PagedRamMemManager
+Checked member: Ramdisk ::= filesystem/Ramdisk
+Superclass #define created for: kernel/Kernel
+Processing 'MigrationManager' (migration/MigrationManager)
+Processing 'ServiceDiscovery' (comm/servicediscovery/SNServiceDiscovery)
+Processing 'MemoryManager' (mem/SequentialFitMemManager)
+Processing 'Thread' (process/RealTimeThread)
+Processing 'Dispatcher' (scheduler/SingleCPUDispatcher)
+Processing 'Scheduler' (scheduler/RateMonotonicThreadScheduler)
+Processing 'Logger' (debug/Logger)
+Processing 'PowerManager' (hal/PowerManager)
+Processing 'TaskManager' (process/TaskManager)
+Processing 'RamManager' (mem/PagedRamMemManager)
+Processing 'Ramdisk' (filesystem/Ramdisk)
+Checking Superclass: filesystem/SimpleFileManager
+Checked member: PartitionManager ::= filesystem/PartitionManager
+Checked member: DOSPartition ::= filesystem/DOSPartition
+Checked member: FATFileSystem ::= filesystem/FATFileSystem
+Superclass #define created for: filesystem/SimpleFileManager
+Processing 'PartitionManager' (filesystem/PartitionManager)
+Processing 'DOSPartition' (filesystem/DOSPartition)
+Processing 'FATFileSystem' (filesystem/FATFileSystem)
+Checking Superclass: usb/USBDeviceDriverLibrary
+Checked member: Factory ::= usb/USBDeviceDriverFactory
+Checked member: SMSC95xx ::= usb/SMSC95xxUSBDeviceDriver
+Checked member: MassStorage ::= usb/MassStorageSCSIUSBDeviceDriver
+Superclass #define created for: usb/USBDeviceDriverLibrary
+Processing 'Factory' (usb/USBDeviceDriverFactory)
+Processing 'SMSC95xx' (usb/SMSC95xxUSBDeviceDriver)
+Processing 'MassStorage' (usb/MassStorageSCSIUSBDeviceDriver)
+Checking Superclass: syscalls/SyscallManager
+Superclass #define created for: syscalls/SyscallManager
+Processing 'sleep' ()
+Processing 'thread_create' ()
+Processing 'thread_run' ()
+Processing 'thread_self' ()
+Processing 'thread_yield' ()
+Processing 'signal_wait' ()
+Processing 'signal_signal' ()
+Processing 'fputc' ()
+Processing 'fgetc' ()
+Processing 'fcreate' ()
+Processing 'fopen' ()
+Processing 'fclose' ()
+Processing 'fwrite' ()
+Processing 'fread' ()
+Processing 'new' ()
+Processing 'delete' ()
+Processing 'socket' ()
+Processing 'connect' ()
+Processing 'listen' ()
+Processing 'bind' ()
+Processing 'sendto' ()
+Processing 'recv' ()
+Processing 'add_devaddr' ()
+Processing 'task_stop' ()
+Processing 'task_resume' ()
+Processing 'ioctl' ()
+Processing 'thread_wait' ()
+Processing 'fstat' ()
+Processing 'task_run' ()
+Processing 'task_kill' ()
+Processing 'mapMemory' ()
+Processing 'shm_map' ()
+Processing 'fremove' ()
+Files written to: /home/pi/build/configurations/BeagleBoardxM/Prototype
+Configuration valid! Files created for compilation.
+---------------------------------------------
+
++ make all GCC_LIB_DIR=/home/pi/orcos_arm LIBC_DIR=/home/pi/orcos_arm CC=/usr/bin/gcc CXX=/usr/bin/c++ AS=/usr/bin/as AR=/usr/bin/ar SIZE=/usr/bin/size OBJDUMP=/usr/bin/objdump LD=/usr/bin/ld OBJCOPY=/usr/bin/objcopy STRIP=/usr/bin/strip KERNEL_DIR=/home/pi/build/source/ KERNEL_LIB_DIR=/home/pi/build/library/bin/armv7/ OPT_FLAGS=-O2 -mthumb -mcpu=cortex-a8  -mthumb-interwork -DARM_THUMB=1
+
+----------------------------------
+     Checking for tools
+----------------------------------
+java version "1.7.0_45"
+Java(TM) SE Runtime Environment (build 1.7.0_45-b18)
+Java HotSpot(TM) Client VM (build 24.45-b08, mixed mode)
+All tools installed...
+
+Please be sure to use relative path names for WINDOWS/CYGIN
+----------------------------------
+     Building Modules
+----------------------------------
+----------------------------------
+     Building the Kernel
+----------------------------------
+kernel.mk[AS] : Assembling output/_startup.o
+kernel.mk[AS] : Assembling output/tasktable.o
+kernel.mk[C++]: Compiling output/ARMv4TProcessor.o
+kernel.mk[C++]: Compiling output/ARMv4TInterruptHandler.o
+kernel.mk[C++]: Compiling output/BeagleBoardGPTimer2.o
+kernel.mk[C++]: Compiling output/ARMv7HatLayer.o
+kernel.mk[C++]: Compiling output/Omap3530Clock.o
+kernel.mk[C++]: Compiling output/BeagleBoardUART.o
+kernel.mk[C++]: Compiling output/Omap3530i2c.o
+kernel.mk[C++]: Compiling output/OmapGPIO.o
+kernel.mk[C++]: Compiling output/HighSpeedUSBHostController.o
+kernel.mk[C++]: Compiling output/BeagleBoardInterruptController.o
+kernel.mk[C++]: Compiling output/TWL4030.o
+kernel.mk[C++]: Compiling output/OmapMMC_SD_HC.o
+kernel.mk[C++]: Compiling output/ARMv7Cache.o
+kernel.mk[C++]: Compiling output/Omap3530SPI.o
+kernel.mk[C++]: Compiling output/SequentialFitMemManager.o
+kernel.mk[C++]: Compiling output/RealTimeThread.o
+kernel.mk[C++]: Compiling output/PriorityThread.o
+kernel.mk[C++]: Compiling output/SingleCPUDispatcher.o
+kernel.mk[C++]: Compiling output/RateMonotonicThreadScheduler.o
+kernel.mk[C++]: Compiling output/Logger.o
+kernel.mk[C++]: Compiling output/PowerManager.o
+kernel.mk[C++]: Compiling output/TaskManager.o
+kernel.mk[C++]: Compiling output/PagedRamMemManager.o
+kernel.mk[C++]: Compiling output/Ramdisk.o
+kernel.mk[C++]: Compiling output/PartitionManager.o
+kernel.mk[C++]: Compiling output/DOSPartition.o
+kernel.mk[C++]: Compiling output/FATFileSystem.o
+/home/pi/build/source/filesystem/FATFileSystem.cc: In member function ‘unint4 FATFileSystem::allocateCluster()’:
+/home/pi/build/source/filesystem/FATFileSystem.cc:160:60: warning: dereferencing type-punned pointer will break strict-aliasing rules [-Wstrict-aliasing]
+/home/pi/build/source/filesystem/FATFileSystem.cc:175:42: warning: dereferencing type-punned pointer will break strict-aliasing rules [-Wstrict-aliasing]
+/home/pi/build/source/filesystem/FATFileSystem.cc: In member function ‘unint4 FATFileSystem::getFATTableEntry(unint4, bool)’:
+/home/pi/build/source/filesystem/FATFileSystem.cc:225:60: warning: dereferencing type-punned pointer will break strict-aliasing rules [-Wstrict-aliasing]
+/home/pi/build/source/filesystem/FATFileSystem.cc:232:40: warning: dereferencing type-punned pointer will break strict-aliasing rules [-Wstrict-aliasing]
+/home/pi/build/source/filesystem/FATFileSystem.cc:240:61: warning: dereferencing type-punned pointer will break strict-aliasing rules [-Wstrict-aliasing]
+/home/pi/build/source/filesystem/FATFileSystem.cc:249:40: warning: dereferencing type-punned pointer will break strict-aliasing rules [-Wstrict-aliasing]
+kernel.mk[C++]: Compiling output/USBDeviceDriverFactory.o
+kernel.mk[C++]: Compiling output/USBDriverLibrary.o
+kernel.mk[C++]: Compiling output/SMSC95xxUSBDeviceDriver.o
+kernel.mk[C++]: Compiling output/MassStorageSCSIUSBDeviceDriver.o
+kernel.mk[C++]: Compiling output/SimpleDebugCollector.o
+kernel.mk[C++]: Compiling output/SimpleProcfs.o
+kernel.mk[C++]: Compiling output/WorkerThread.o
+kernel.mk[C++]: Compiling output/WorkerTask.o
+kernel.mk[C++]: Compiling output/Socket.o
+kernel.mk[C++]: Compiling output/ProtocolPool.o
+kernel.mk[C++]: Compiling output/TCPTransportProtocol.o
+kernel.mk[C++]: Compiling output/IPv4AddressProtocol.o
+kernel.mk[C] : Compiling output/etharp.o
+kernel.mk[C] : Compiling output/ip.o
+kernel.mk[C] : Compiling output/init.o
+kernel.mk[C] : Compiling output/mem.o
+kernel.mk[C] : Compiling output/memp.o
+kernel.mk[C] : Compiling output/pbuf.o
+kernel.mk[C] : Compiling output/netif.o
+kernel.mk[C] : Compiling output/udp.o
+kernel.mk[C] : Compiling output/tcp.o
+/home/pi/build/source/comm/lwip/core/tcp.c: In function ‘tcp_listen_with_backlog’:
+/home/pi/build/source/comm/lwip/core/tcp.c:406:3: warning: assignment from incompatible pointer type [enabled by default]
+/home/pi/build/source/comm/lwip/core/tcp.c:406:3: warning: comparison of distinct pointer types lacks a cast [enabled by default]
+/home/pi/build/source/comm/lwip/core/tcp.c: In function ‘tcp_seg_free’:
+/home/pi/build/source/comm/lwip/core/tcp.c:884:2: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 2 has type ‘long unsigned int’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/tcp.c: In function ‘tcp_kill_prio’:
+/home/pi/build/source/comm/lwip/core/tcp.c:982:5: warning: format ‘%d’ expects argument of type ‘int’, but argument 3 has type ‘u32_t’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/tcp.c: In function ‘tcp_kill_timewait’:
+/home/pi/build/source/comm/lwip/core/tcp.c:1008:5: warning: format ‘%d’ expects argument of type ‘int’, but argument 3 has type ‘u32_t’ [-Wformat]
+kernel.mk[C] : Compiling output/sys.o
+kernel.mk[C] : Compiling output/inet.o
+kernel.mk[C] : Compiling output/ethernet.o
+kernel.mk[C] : Compiling output/ip4_addr.o
+kernel.mk[C] : Compiling output/ip4.o
+/home/pi/build/source/comm/lwip/core/ipv4/ip4.c: In function ‘ip4_route’:
+/home/pi/build/source/comm/lwip/core/ipv4/ip4.c:97:5: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 2 has type ‘u32_t’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/ipv4/ip4.c: In function ‘ip4_input’:
+/home/pi/build/source/comm/lwip/core/ipv4/ip4.c:278:7: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 2 has type ‘u32_t’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/ipv4/ip4.c:278:7: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 3 has type ‘u32_t’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/ipv4/ip4.c:278:7: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 4 has type ‘u32_t’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/ipv4/ip4.c:278:7: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 5 has type ‘u32_t’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/ipv4/ip4.c:278:7: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 6 has type ‘u32_t’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/ipv4/ip4.c: In function ‘ip4_output’:
+/home/pi/build/source/comm/lwip/core/ipv4/ip4.c:640:5: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 2 has type ‘u32_t’ [-Wformat]
+kernel.mk[C] : Compiling output/ip4_frag.o
+kernel.mk[C] : Compiling output/tcp_in.o
+/home/pi/build/source/comm/lwip/core/tcp_in.c: In function ‘tcp_process’:
+/home/pi/build/source/comm/lwip/core/tcp_in.c:564:7: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 2 has type ‘u32_t’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:564:7: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 3 has type ‘u32_t’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:566:7: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 2 has type ‘u32_t’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:566:7: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 3 has type ‘u32_t’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:587:3: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 2 has type ‘long unsigned int’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:587:3: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 3 has type ‘long unsigned int’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:587:3: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 4 has type ‘u32_t’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:587:3: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 5 has type ‘u32_t’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:587:3: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 6 has type ‘u32_t’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/tcp_in.c: In function ‘tcp_receive’:
+/home/pi/build/source/comm/lwip/core/tcp_in.c:936:7: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 2 has type ‘u32_t’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:936:7: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 3 has type ‘long unsigned int’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:936:7: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 4 has type ‘long unsigned int’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:948:9: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 2 has type ‘u32_t’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:948:9: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 3 has type ‘long unsigned int’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:995:7: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 2 has type ‘u32_t’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:995:7: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 3 has type ‘long unsigned int’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:1017:5: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 2 has type ‘u32_t’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:1017:5: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 3 has type ‘u32_t’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:1017:5: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 4 has type ‘u32_t’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:1139:9: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 2 has type ‘u32_t’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:1156:11: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 2 has type ‘u32_t’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/tcp_in.c:1156:11: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 4 has type ‘long unsigned int’ [-Wformat]
+kernel.mk[C] : Compiling output/tcp_out.o
+/home/pi/build/source/comm/lwip/core/tcp_out.c: In function ‘tcp_enqueue’:
+/home/pi/build/source/comm/lwip/core/tcp_out.c:175:3: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 2 has type ‘long unsigned int’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/tcp_out.c:175:3: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 3 has type ‘long unsigned int’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/tcp_out.c:358:5: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 2 has type ‘long unsigned int’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/tcp_out.c:358:5: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 3 has type ‘u32_t’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/tcp_out.c:358:5: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 4 has type ‘long unsigned int’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/tcp_out.c: In function ‘tcp_send_empty_ack’:
+/home/pi/build/source/comm/lwip/core/tcp_out.c:520:3: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 2 has type ‘u32_t’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/tcp_out.c: In function ‘tcp_output_segment’:
+/home/pi/build/source/comm/lwip/core/tcp_out.c:777:5: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 2 has type ‘u32_t’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/tcp_out.c:779:3: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 2 has type ‘u32_t’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/tcp_out.c:779:3: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 3 has type ‘long unsigned int’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/tcp_out.c: In function ‘tcp_rst’:
+/home/pi/build/source/comm/lwip/core/tcp_out.c:884:3: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 2 has type ‘u32_t’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/tcp_out.c:884:3: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 3 has type ‘u32_t’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/tcp_out.c: In function ‘tcp_rexmit_fast’:
+/home/pi/build/source/comm/lwip/core/tcp_out.c:974:5: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 3 has type ‘u32_t’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/tcp_out.c:974:5: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 4 has type ‘u32_t’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/tcp_out.c: In function ‘tcp_keepalive’:
+/home/pi/build/source/comm/lwip/core/tcp_out.c:1021:3: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 2 has type ‘u32_t’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/tcp_out.c:1021:3: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 3 has type ‘u32_t’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/tcp_out.c:1062:3: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 2 has type ‘long unsigned int’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/tcp_out.c:1062:3: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 3 has type ‘u32_t’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/tcp_out.c: In function ‘tcp_zero_window_probe’:
+/home/pi/build/source/comm/lwip/core/tcp_out.c:1090:3: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 2 has type ‘u32_t’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/tcp_out.c:1090:3: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 3 has type ‘u32_t’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/tcp_out.c:1149:3: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 2 has type ‘long unsigned int’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/tcp_out.c:1149:3: warning: format ‘%u’ expects argument of type ‘unsigned int’, but argument 3 has type ‘u32_t’ [-Wformat]
+kernel.mk[C] : Compiling output/stats.o
+kernel.mk[C] : Compiling output/icmp.o
+kernel.mk[C] : Compiling output/ip6_addr.o
+kernel.mk[C] : Compiling output/ip6.o
+/home/pi/build/source/comm/lwip/core/ipv6/ip6.c: In function ‘ip6_input’:
+/home/pi/build/source/comm/lwip/core/ipv6/ip6.c:193:5: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 2 has type ‘long unsigned int’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/ipv6/ip6.c:193:5: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 3 has type ‘long unsigned int’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/ipv6/ip6.c:193:5: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 4 has type ‘long unsigned int’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/ipv6/ip6.c:193:5: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 5 has type ‘long unsigned int’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/ipv6/ip6.c:193:5: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 6 has type ‘long unsigned int’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/ipv6/ip6.c:193:5: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 7 has type ‘long unsigned int’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/ipv6/ip6.c:193:5: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 8 has type ‘long unsigned int’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/ipv6/ip6.c:193:5: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 9 has type ‘long unsigned int’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/ipv6/ip6.c:195:5: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 2 has type ‘long unsigned int’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/ipv6/ip6.c:195:5: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 3 has type ‘long unsigned int’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/ipv6/ip6.c:195:5: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 4 has type ‘long unsigned int’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/ipv6/ip6.c:195:5: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 5 has type ‘long unsigned int’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/ipv6/ip6.c:195:5: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 6 has type ‘long unsigned int’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/ipv6/ip6.c:195:5: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 7 has type ‘long unsigned int’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/ipv6/ip6.c:195:5: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 8 has type ‘long unsigned int’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/ipv6/ip6.c:195:5: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 9 has type ‘long unsigned int’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/ipv6/ip6.c: In function ‘ip6_debug_print’:
+/home/pi/build/source/comm/lwip/core/ipv6/ip6.c:388:3: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 2 has type ‘long unsigned int’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/ipv6/ip6.c:388:3: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 3 has type ‘long unsigned int’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/ipv6/ip6.c:391:3: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 2 has type ‘long unsigned int’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/ipv6/ip6.c:391:3: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 3 has type ‘long unsigned int’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/ipv6/ip6.c:394:3: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 2 has type ‘long unsigned int’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/ipv6/ip6.c:394:3: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 3 has type ‘long unsigned int’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/ipv6/ip6.c:397:3: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 2 has type ‘long unsigned int’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/ipv6/ip6.c:397:3: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 3 has type ‘long unsigned int’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/ipv6/ip6.c:401:3: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 2 has type ‘long unsigned int’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/ipv6/ip6.c:401:3: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 3 has type ‘long unsigned int’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/ipv6/ip6.c:404:3: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 2 has type ‘long unsigned int’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/ipv6/ip6.c:404:3: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 3 has type ‘long unsigned int’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/ipv6/ip6.c:407:3: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 2 has type ‘long unsigned int’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/ipv6/ip6.c:407:3: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 3 has type ‘long unsigned int’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/ipv6/ip6.c:410:3: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 2 has type ‘long unsigned int’ [-Wformat]
+/home/pi/build/source/comm/lwip/core/ipv6/ip6.c:410:3: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 3 has type ‘long unsigned int’ [-Wformat]
+kernel.mk[C] : Compiling output/dhcp.o
+kernel.mk[C] : Compiling output/icmp6.o
+kernel.mk[C] : Compiling output/ethar.o
+kernel.mk[C] : Compiling output/ethndp.o
+kernel.mk[C++]: Compiling output/lwipTMR.o
+kernel.mk[C++]: Compiling output/FixedSizePBufList.o
+kernel.mk[C++]: Compiling output/BeagleBoardxM.o
+kernel.mk[C++]: Compiling output/handleInterrupt.o
+kernel.mk[C++]: Compiling output/USBEHCIHostController.o
+kernel.mk[C++]: Compiling output/assemblerFunctions.o
+kernel.mk[AS] : Assembling output/ARMv4TInterruptHandlerHooks.o
+kernel.mk[C++]: Compiling output/startThread.o
+kernel.mk[C++]: Compiling output/__cxa_pure_virtual.o
+kernel.mk[C++]: Compiling output/ArrayDatabase.o
+kernel.mk[C++]: Compiling output/LinkedListDatabase.o
+kernel.mk[C++]: Compiling output/Trace.o
+kernel.mk[C++]: Compiling output/File.o
+kernel.mk[C++]: Compiling output/Directory.o
+kernel.mk[C++]: Compiling output/Filemanager.o
+kernel.mk[C++]: Compiling output/Resource.o
+kernel.mk[C++]: Compiling output/SimpleFileManager.o
+kernel.mk[C++]: Compiling output/SharedMemResource.o
+kernel.mk[C++]: Compiling output/FileSystemBase.o
+kernel.mk[C++]: Compiling output/Partition.o
+kernel.mk[C++]: Compiling output/CharacterDeviceDriver.o
+kernel.mk[C++]: Compiling output/BlockDeviceDriver.o
+kernel.mk[C++]: Compiling output/TimerDevice.o
+kernel.mk[C++]: Compiling output/CommDeviceDriver.o
+kernel.mk[C++]: Compiling output/USCommDeviceDriver.o
+kernel.mk[C++]: Compiling output/Clock.o
+kernel.mk[C++]: Compiling output/InterruptManager.o
+kernel.mk[C++]: Compiling output/stringtools.o
+kernel.mk[C++]: Compiling output/memtools.o
+kernel.mk[C++]: Compiling output/sprintf.o
+kernel.mk[C++]: Compiling output/putc.o
+kernel.mk[C++]: Compiling output/libgccmath.o
+kernel.mk[C] : Compiling output/endian.o
+kernel.mk[C] : Compiling output/crc32.o
+kernel.mk[C++]: Compiling output/newlib_helper.o
+kernel.mk[C++]: Compiling output/kwait.o
+kernel.mk[C++]: Compiling output/kernelmain.o
+kernel.mk[C++]: Compiling output/Kernel.o
+kernel.mk[C++]: Compiling output/UDPTransportProtocol.o
+kernel.mk[C++]: Compiling output/new.o
+kernel.mk[C++]: Compiling output/RoundRobinThreadScheduler.o
+kernel.mk[C++]: Compiling output/PriorityThreadScheduler.o
+kernel.mk[C++]: Compiling output/EarliestDeadlineFirstThreadScheduler.o
+kernel.mk[C++]: Compiling output/IdleThread.o
+kernel.mk[C++]: Compiling output/Task.o
+kernel.mk[C++]: Compiling output/Thread.o
+kernel.mk[C++]: Compiling output/Module.o
+kernel.mk[C++]: Compiling output/TaskErrorHandler.o
+kernel.mk[C++]: Compiling output/Mutex.o
+kernel.mk[C++]: Compiling output/sc_common.o
+kernel.mk[C++]: Compiling output/sc_io.o
+kernel.mk[C++]: Compiling output/sc_mem.o
+kernel.mk[C++]: Compiling output/sc_net.o
+kernel.mk[C++]: Compiling output/sc_process.o
+kernel.mk[C++]: Compiling output/sc_synchro.o
+
+Creating static library liborcoskernel.a
+
+kernel.mk[LD] : Linking output/kernel.elf
+/usr/bin/ld: warning: /home/pi/orcos_arm/libgcc.a(bpabi.o) uses variable-size enums yet the output is to use 32-bit enums; use of enum values across objects may fail
+/usr/bin/ld: warning: /home/pi/orcos_arm/libgcc.a(_divdi3.o) uses variable-size enums yet the output is to use 32-bit enums; use of enum values across objects may fail
+/usr/bin/ld: warning: /home/pi/orcos_arm/libgcc.a(_udivdi3.o) uses variable-size enums yet the output is to use 32-bit enums; use of enum values across objects may fail
+   text	   data	    bss	    dec	    hex	filename
+ 127672	    268	 668152	 796092	  c25bc	./output/kernel.elf
+Finished: SUCCESS
