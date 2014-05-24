@@ -1,0 +1,15 @@
+Gestartet durch vorgelagertes Projekt "[8mha:AAAArB+LCAAAAAAAAP9b85aBtbiIQTGjNKU4P08vOT+vOD8nVc83PyU1x6OyILUoJzMv2y+/JJUBAhiZGBgqihhk0NSjKDWzXb3RdlLBUSYGJk8GtpzUvPSSDB8G5tKinBIGIZ+sxLJE/ZzEvHT94JKizLx0a6BxUmjGOUNodHsLgAypEgYF/az8JH3/IGf/4PjgyuLkxJwcn8ykosSiynjHIN8yc30AJebJetUAAAA=[0mORCOS_SyscallLibrary_ARMv7", Build [8mha:AAAArx+LCAAAAAAAAP9b85aBtbiIQTGjNKU4P08vOT+vOD8nVc83PyU1x6OyILUoJzMv2y+/JJUBAhiZGBgqihhk0NSjKDWzXb3RdlLBUSYGJk8GtpzUvPSSDB8G5tKinBIGIZ+sxLJE/ZzEvHT94JKizLx0a6BxUmjGOUNodHsLgAzmEgZl/az8JH3/IGf/4PjgyuLkxJwcn8ykosSiynjHIN8yc30jQwMAN/007NgAAAA=[0m210
+originally caused by:
+ Gestartet durch vorgelagertes Projekt "[8mha:AAAApB+LCAAAAAAAAP9b85aBtbiIQTGjNKU4P08vOT+vOD8nVc83PyU1x6OyILUoJzMv2y+/JJUBAhiZGBgqihhk0NSjKDWzXb3RdlLBUSYGJk8GtpzUvPSSDB8G5tKinBIGIZ+sxLJE/ZzEvHT94JKizLx0a6BxUmjGOUNodHsLgAz+EgZJ/az8JH3/IGf/YFUjA/fMEiDpnJOfl6oPAGrAXgXOAAAA[0mORCOS Git Clone", Build [8mha:AAAApx+LCAAAAAAAAP9b85aBtbiIQTGjNKU4P08vOT+vOD8nVc83PyU1x6OyILUoJzMv2y+/JJUBAhiZGBgqihhk0NSjKDWzXb3RdlLBUSYGJk8GtpzUvPSSDB8G5tKinBIGIZ+sxLJE/ZzEvHT94JKizLx0a6BxUmjGOUNodHsLgAzmEgYZ/az8JH3/IGf/YFUjA/fMEiDpnJOfl6pvaGkBAFQT8FjRAAAA[0m198
+ originally caused by:
+  Build wurde zeitgesteuert ausgelöst.
+Building in workspace /home/pi/build
+[build] $ /bin/sh -xe /tmp/hudson1490266983895867601.sh
++ cd tasks/coreutils
++ mkdir -p bin
++ make all GCC_LIB_DIR=/home/pi/orcos_arm LIBC_DIR=/home/pi/orcos_arm CC=/usr/bin/gcc CXX=/usr/bin/c++ AS=/usr/bin/as AR=/usr/bin/ar SIZE=/usr/bin/size OBJDUMP=/usr/bin/objdump LD=/usr/bin/ld OBJCOPY=/usr/bin/objcopy STRIP=/usr/bin/strip KERNEL_LIB_DIR=/home/pi/build/library/bin/armv7/ CFLAGS=-c -I/home/pi/build/library/inc/ -msoft-float -fno-exceptions -fno-rtti -O2 -mthumb -ffunction-sections
+make[1]: *** Keine Regel, um »all« zu erstellen.  Schluss.
+make[1]: *** Keine Regel, um »all« zu erstellen.  Schluss.
+make: *** [all] Fehler 2
+Build step 'Shell ausführen' marked build as failure
+Finished: FAILURE
