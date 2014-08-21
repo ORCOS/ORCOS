@@ -41,50 +41,39 @@ private:
     int2 id;
 
 public:
-    TransportProtocol( int2 protocol_id ) {
+    TransportProtocol(int2 protocol_id) {
         this->id = protocol_id;
     }
-    ;
-    ~TransportProtocol() {
+
+    virtual ~TransportProtocol() {
     }
-    ;
+
 
     int2 getId() {
         return (id);
     }
-    ;
 
 
-    virtual
-    ErrorT sendto( packet_layer* payload, const sockaddr* fromaddr,
-            const sockaddr *dest_addr, AddressProtocol* NextLayer, Socket* fromsock ) = 0;
+    virtual ErrorT sendto(packet_layer* payload, const sockaddr* fromaddr, const sockaddr *dest_addr, AddressProtocol* NextLayer, Socket* fromsock) = 0;
 
-    virtual
-    ErrorT send( packet_layer* payload, AddressProtocol* NextLayer, Socket* fromsock ) = 0;
+    virtual ErrorT send(packet_layer* payload, AddressProtocol* NextLayer, Socket* fromsock) = 0;
 
+    /*!
+     * \brief Method to be called from a socket. Indicates that the given pbuf has been correctly received by a thread.
+     */
+    virtual void   received(Socket* socket, pbuf* p) = 0;
 
-    virtual
-    ErrorT recv( char* packetstart, int packetlength, AddressProtocol* FromLayer, sockaddr fromaddr ) = 0;
+    virtual ErrorT connect(AddressProtocol* nextLayer, sockaddr *toaddr, Socket* fromsocket) = 0;
 
+    virtual ErrorT disconnect(Socket* fromsocket) = 0;
 
-    virtual void received(Socket* socket, pbuf* p) = 0;
-
-    virtual
-    ErrorT recv( packet_layer* packet, AddressProtocol* FromLayer, sockaddr fromaddr ) = 0;
-
-    virtual
-    ErrorT connect(AddressProtocol* nextLayer, sockaddr *toaddr, Socket* fromsocket) = 0;
-
-    virtual
-    ErrorT listen( Socket* socket) = 0;
+    virtual ErrorT listen(Socket* socket) = 0;
 
     //! Register a socket on the following so it can receive messages
-    virtual
-    ErrorT register_socket( unint2 port, Socket* socket ) = 0;
+    virtual ErrorT register_socket(unint2 port, Socket* socket) = 0;
 
     //! Unregister a socket (after that it can not receive a message anymore)
-    virtual
-    ErrorT unregister_socket( Socket* socket ) = 0;
+    virtual ErrorT unregister_socket(Socket* socket) = 0;
 };
 
 #endif /*TRANSPORTPROTOCOL_HH_*/

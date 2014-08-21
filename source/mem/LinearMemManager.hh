@@ -24,9 +24,7 @@
 #include <inc/error.hh>
 #include "SCLConfig.hh"
 
-
 #define MEM_NO_FREE
-
 
 /*!
  *  \ingroup memmanager
@@ -38,11 +36,14 @@
  *  Memory which is once allocated will not be released anymore.
  *
  */
-class LinearMemManager: public MemManager {
+class LinearMemManager {
 private:
     //! Pointer to the beginning of the free memory space of the managed memory segment
-	char* FreeHeadPtr;
+    char* FreeHeadPtr;
 
+    size_t end;
+
+    size_t start;
 public:
 
     /*!
@@ -51,9 +52,12 @@ public:
      * Constructor. The managed memory segment starts at parameter startAddr and end at parameter endAddr
      * The Parameter tid specifies which task this memory manager allocates memory for.
      */
-    LinearMemManager( void* startAddr, void* endAddr) :
-        MemManager( startAddr, endAddr ) {
-        FreeHeadPtr = (char*) Segment.getStartAddr();
+    LinearMemManager(void* startAddr, void* endAddr) {
+
+        start = (size_t) startAddr;
+        FreeHeadPtr = (char*) start;
+        end = (size_t) endAddr;
+
     }
 
     /*!
@@ -64,13 +68,17 @@ public:
      * A pointer to the beginning of the allocated memory is returned.
      * The pointer FreeHeadPtr is moved by the allocated memory size.
      */
-    void* alloc( size_t, bool = false, unint align_value = ALIGN_VAL);
+    void* alloc(size_t, bool = false, unint align_value = ALIGN_VAL);
 
-    ErrorT free( void* ) {
-        return cNotImplemented;
+    //! Free is not supported
+    ErrorT free(void*) {
+        return (cNotImplemented);
     }
-    ;
 
+    //! new-Operator for Memory Managers, to place it directly at an desired address
+    void* operator new(size_t s, void* addr) {
+         return (addr);
+    }
 
     /*!
      * \brief method to get the used heap size
@@ -79,13 +87,12 @@ public:
      *
      * Returns difference between FreeHeadPtr and startAddr
      */
-    size_t getUsedMemSize(int* fragmentation = 0);
-
+    size_t getUsedMemSize();
 
 #ifdef SERIALIZE
     /*!
-    * \brief serialization method of this mem manager
-    */
+     * \brief serialization method of this mem manager
+     */
     bool serialize(void* &serialized_object, unint2 &length);
 
     static LinearMemManager* deserialize(void* serialized_object, unint2 length);

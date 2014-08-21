@@ -59,8 +59,10 @@ public:
      * Places the HatLayer directly at physaddr followed by the Segment Descriptor. The managed memory segment starts at saddr and ends at eddr.
      */
     MemManager(void* saddr, void* eaddr) {
-        Segment.startAddr = saddr;
-        Segment.memSegSize = (byte*)eaddr - (byte*)saddr;
+        Segment.startAddr   = saddr;
+        Segment.memSegSize  = (byte*) eaddr - (byte*) saddr;
+        Segment.usedBytes   = 0;
+
 
 #if MEM_CACHE_INHIBIT
         Segment_Cache_Inhibit.startAddr = 0;
@@ -70,21 +72,24 @@ public:
 
 #if MEM_CACHE_INHIBIT
     MemManager(void* saddr, void* eaddr, void* isaddr, void* ieaddr) {
-           Segment.startAddr = saddr;
-           Segment.memSegSize = (byte*)eaddr - (byte*)saddr;
+        Segment.startAddr   = saddr;
+        Segment.memSegSize  = (byte*) eaddr - (byte*) saddr;
+        Segment.usedBytes   = 0;
 
-           Segment_Cache_Inhibit.startAddr = isaddr;
-           Segment_Cache_Inhibit.memSegSize = (byte*)ieaddr - (byte*)isaddr;
-       }
+        Segment_Cache_Inhibit.startAddr     = isaddr;
+        Segment_Cache_Inhibit.memSegSize    = (byte*) ieaddr - (byte*) isaddr;
+        Segment_Cache_Inhibit.usedBytes     = 0;
+    }
 #endif
 
-
-    //! new-Operator for Memory Managers, to place it directly at an desired address
-    void* operator new(size_t s,void* addr)
-    {
-        return addr;
+    bool containsAddr(void* addr) {
+        return (Segment.containsAddr(addr));
     }
 
+    //! new-Operator for Memory Managers, to place it directly at an desired address
+    void* operator new(size_t s, void* addr) {
+        return (addr);
+    }
 
 };
 

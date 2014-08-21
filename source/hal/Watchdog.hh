@@ -34,26 +34,30 @@ class Watchdog: public GenericDeviceDriver {
 
 public:
 
-	/*!
-	 * Anonymous constructor. Only used by dummy devices
-	 */
-	Watchdog() : GenericDeviceDriver(false,"wd") {}
-
-    Watchdog( const char* name ) :
-        GenericDeviceDriver( false, name ) {
+    /*!
+     * Anonymous constructor. Only used by dummy devices
+     */
+    Watchdog() :
+            GenericDeviceDriver(false, "wd") {
     }
-    ;
+
+    Watchdog(const char* name) :
+            GenericDeviceDriver(false, name) {
+    }
+
     ~Watchdog() {
     }
 
     ErrorT enable() {
-        return cNotImplemented;
+        return (cNotImplemented);
     }
+
     ErrorT disable() {
-        return cNotImplemented;
+        return (cNotImplemented);
     }
+
     ErrorT kick() {
-        return cNotImplemented;
+        return (cNotImplemented);
     }
 
 };

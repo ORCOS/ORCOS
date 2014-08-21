@@ -22,20 +22,20 @@
 #include "inc/types.hh"
 #include "inc/const.hh"
 
-class LinkedListDatabaseItem;
-class DatabaseItem;
+class LinkedListItem;
+class ListItem;
 
 /*!
  *  \ingroup databases
  *  \brief This class implements a linked list database.
  *
  */
-class LinkedListDatabase {
-friend class LinkedListDatabaseItem;
+class LinkedList {
+    friend class LinkedListItem;
 private:
 
-    LinkedListDatabaseItem* headItem;
-    LinkedListDatabaseItem* tailItem;
+    LinkedListItem* headItem;
+    LinkedListItem* tailItem;
 
     /*!
      * Stores the number of elements in this database;
@@ -44,82 +44,80 @@ private:
 
 public:
 
-    LinkedListDatabase();
-    ~LinkedListDatabase() {
+    LinkedList();
+
+    ~LinkedList() {
     }
-    ;
+
 
     /*!
      * Adds another LinkedListDatabaseItem to this linked list at its tail
      */
-    ErrorT addTail( LinkedListDatabaseItem* item );
+    ErrorT addTail(LinkedListItem* item);
 
     /*!
      * Adds another LinkedListDatabaseItem to this linked list at its tail
      */
-    ErrorT addHead( LinkedListDatabaseItem* item );
+    ErrorT addHead(LinkedListItem* item);
 
     /*!
      * Adds another DatabaseItem to this linked list at its tail
      */
-    ErrorT addTail( DatabaseItem* item );
+    ErrorT addTail(ListItem* item);
 
     /*!
      * Adds another DatabaseItem to this linked list at its tail
      */
-    ErrorT addHead( DatabaseItem* item );
+    ErrorT addHead(ListItem* item);
 
     /*!
      * Adds another DatabaseItem to this linked list after the specified item
      */
-    ErrorT insertAfter( LinkedListDatabaseItem* llItem, LinkedListDatabaseItem* existingItem );
+    ErrorT insertAfter(LinkedListItem* llItem, LinkedListItem* existingItem);
 
     /*!
      * Adds another DatabaseItem to this linked list before the specified item
      */
     //ErrorT insertBefore( LinkedListDatabaseItem* llItem, LinkedListDatabaseItem* existingItem );
-
     /*!
      * Adds another DatabaseItem to this linked list after the specified item
      */
-    ErrorT insertAt( DatabaseItem* newItem, int at ) {
-        return cError;
+    ErrorT insertAt(ListItem* newItem, int at) {
+        return (cError );
     }
-    ;
 
     /*!
      * Returns the first LLDbItem in this database.
      */
-    inline LinkedListDatabaseItem* getHead() {
-        return headItem;
+    inline LinkedListItem* getHead() {
+        return (headItem);
     }
 
     /*!
      * Removes the associated linkedlistdatabase item of the item from this list.
      * The associated linkedlistdatebase item is deleted.
      */
-    ErrorT remove( DatabaseItem* item );
+    ErrorT remove(ListItem* item);
 
     /*!
      * Returns the first LLDbItem in this database and removes it from the database.
      */
-    LinkedListDatabaseItem* removeHead();
+    LinkedListItem* removeHead();
 
     /*!
      * Returns the specified LLDbItem in this database and removes it from the database.
      */
-   // LinkedListDatabaseItem* removeAt( int position );
-
+    // LinkedListDatabaseItem* removeAt( int position );
     /*!
      * Returns the last LLDbItem in this database and removes it from the database.
      */
-    LinkedListDatabaseItem* removeTail();
+    LinkedListItem* removeTail();
 
     /*!
      * Returns the last LLDbItem in this database.
      */
-    inline LinkedListDatabaseItem* getTail() {
-        return tailItem;
+    inline LinkedListItem* getTail() {
+        return (tailItem);
     }
 
     /*!
@@ -127,26 +125,23 @@ public:
      * It is important to get the LinkedListDatabaseItem in order to add this LLDbItem to another linked list
      * manually! (e.g move thread from blocked list to ready list)
      */
-    LinkedListDatabaseItem* getItem( DatabaseItem* data );
+    LinkedListItem* getItem(ListItem* data);
 
     /*!
      * Checks wether this list is empty
      */
     inline bool isEmpty() {
-        if ( headItem == 0 ) {
-            return 1;
+        if (headItem == 0)
+        {
+            return (1);
         }
-        return 0;
+        return (0);
     }
 
     inline unint getSize() {
-        return size;
+        return (size);
     }
 
 };
-
-
-
-
 
 #endif /*LINKEDLISTDATABASE_HH_*/

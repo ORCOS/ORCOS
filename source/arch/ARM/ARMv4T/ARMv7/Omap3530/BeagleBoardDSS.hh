@@ -9,28 +9,27 @@
 #define BEAGLEBOARDDSS_HH_
 
 #include <types.hh>
-#include <hal/CharacterDeviceDriver.hh>
+#include <hal/CharacterDevice.hh>
 #include "filesystem/SharedMemResource.hh"
 
 // CharacterDevice Driver for support as the standard output device
 // console
-class BeagleBoardDSS: public CharacterDeviceDriver {
+class BeagleBoardDSS: public CharacterDevice {
 
 private:
 
-	SharedMemResource* framebuffer;
+    SharedMemResource* framebuffer;
 
 public:
-	BeagleBoardDSS(T_BeagleBoardDSS_Init *init);
+    BeagleBoardDSS(T_BeagleBoardDSS_Init *init);
 
-	~BeagleBoardDSS();
+    ~BeagleBoardDSS();
 
-	void init();
+    void init();
 
-	ErrorT writeByte (char byte);
+    ErrorT writeByte(char byte);
 
-	ErrorT writeBytes(const char *bytes, unint4 length);
+    ErrorT writeBytes(const char *bytes, unint4 length);
 };
-
 
 #endif /* BEAGLEBOARDDSS_HH_ */

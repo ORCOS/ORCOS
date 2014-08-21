@@ -19,8 +19,8 @@
 #ifndef LISTSCHEDULER_HH_
 #define LISTSCHEDULER_HH_
 
-#include "db/LinkedListDatabaseItem.hh"
-#include "db/LinkedListDatabase.hh"
+#include "db/LinkedListItem.hh"
+#include "db/LinkedList.hh"
 #include "scheduler/Scheduler.hh"
 
 /*!
@@ -33,7 +33,7 @@ class ListScheduler
 public:
 
     /* the list of schedulableitems that will be scheduled */
-    LinkedListDatabase database;
+    LinkedList database;
 
 public:
     ListScheduler() {
@@ -57,7 +57,7 @@ public:
      *
      *  Implemented to avoid reallocating memory for scheduleableitems if reentering the scheduler.
      */
-    ErrorT enter( LinkedListDatabaseItem* item ) {
+    ErrorT enter( LinkedListItem* item ) {
         ASSERT(item);
         return (this->database.addTail( item ));
     }
@@ -66,8 +66,8 @@ public:
     /*!
      * \brief Removes the item from the scheduler
      */
-    LinkedListDatabaseItem* remove( ScheduleableItem* it ) {
-        LinkedListDatabaseItem* item = (LinkedListDatabaseItem*) this->database.getItem( it );
+    LinkedListItem* remove( ScheduleableItem* it ) {
+        LinkedListItem* item = (LinkedListItem*) this->database.getItem( it );
         if ( item != 0 ) {
             item->remove();
             return (item);

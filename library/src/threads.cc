@@ -90,4 +90,10 @@ extern "C" int 	wait()
    return (waitpid(0));
 }
 
+extern "C" int   getpid() {
+    return (syscall(cGetPID));
+}
 
+extern "C" int   taskioctl(int cmd, int taskid, char* dev) {
+    return (syscall(cTaskioctlscallId,cmd,taskid,dev));
+}

@@ -11,10 +11,10 @@ RELATIVE_SOURCE_PATH = ../../..
 #GCC SETTINGS
 GCC_VERSION=4.7.2
 #GCC_DIR=/usr/local/CrossPack-AVR/bin/
-GCC_DIR=/cygdrive/c/avr-gcc-4.7.2-mingw32/bin/
+GCC_DIR=/cygdrive/d/toolchains/avr-gcc-4.7.2-mingw32/bin/
 
 # for windows we must specify the ld directory with absolute path 
-GCC_LIB_DIR=C:/avr-gcc-4.7.2-mingw32/lib/gcc/avr/4.7.2/
+GCC_LIB_DIR=d:/toolchains/avr-gcc-4.7.2-mingw32/lib/gcc/avr/4.7.2/tiny-stack
 #C:/gcc-arm-none-eabi/lib/gcc/arm-none-eabi/$(GCC_VERSION)/armv7-ar/thumb/
 LIBC_DIR=. 
 #C:/gcc-arm-none-eabi/arm-none-eabi/lib/armv7-ar/thumb/
@@ -46,7 +46,7 @@ SCL 	= java -jar $(RELATIVE_SOURCE_PATH)/tools/SCL/dist/scl2.jar SCLConfig.xml  
 
 #This is where the kernel source can be found
 KERNEL_DIR = $(CWD)/$(RELATIVE_SOURCE_PATH)/source/
-KERNEL_LIB_DIR = $(CWD)/$(RELATIVE_SOURCE_PATH)/library/bin/armv7/
+KERNEL_LIB_DIR = $(CWD)/$(RELATIVE_SOURCE_PATH)/library/bin/atmega328/
 
 
 #Output Directory. This is where the objects and the final binary go
@@ -61,7 +61,7 @@ MODULES_DIR = ./modules/
 LINKERSCRIPT = $(ARCH_DIR)/kernel.ld   
 
 # if thumb mode is activated set this define to 1!
-CPU_FLAGS =  -I/cygdrive/c/avr-gcc-4.7.2-mingw32/avr/include/
+CPU_FLAGS =  -I/cygdrive/d/toolchains/avr-gcc-4.7.2-mingw32/avr/include
  
 #Optimization flag
 OPT_FLAGS = -Os -mmcu=atmega328
@@ -84,7 +84,7 @@ LDFLAGS = -o output/kernel.elf -L$(LIBC_DIR) -L$(GCC_LIB_DIR) -Map output/kernel
 #
 #Command line arguments for the gcc to assemble .S files.
 ASFLAGS = -c -g -I$(KERNEL_DIR)inc/ -I. -I./make/ -I$(KERNEL_DIR) $(ARCH_INCLUDES) -flto  -fno-exceptions -fno-rtti -fno-stack-protector -mmcu=atmega328
-ASFLAGS += -I/usr/local/CrossPack-AVR/avr/include
+#ASFLAGS += -I/usr/local/CrossPack-AVR/avr/include
 #---------------------------------------------------------------------------------------------------------------------------------------
 #                                                      Makefile Inclusion
 #---------------------------------------------------------------------------------------------------------------------------------------
@@ -94,6 +94,8 @@ ASFLAGS += -I/usr/local/CrossPack-AVR/avr/include
 #include architekture make file
 #TODO: autogenerate this by scl
 -include $(ARCH_DIR)/arch.mk
+
+ARCH_OBJ += task_main.o
 
 #include kernel make file
 -include $(KERNEL_DIR)/kernel.mk

@@ -19,7 +19,7 @@
 #ifndef ARRAYDATABASE_HH_
 #define ARRAYDATABASE_HH_
 
-#include "DatabaseItem.hh"
+#include "ListItem.hh"
 #include "inc/types.hh"
 #include "inc/const.hh"
 
@@ -52,12 +52,12 @@
  *
  */
 
-class ArrayDatabase {
+class ArrayList {
 
 public:
 
     //! The array containing the DatabaseIems. public for speedup
-    DatabaseItem** entries;
+    ListItem** entries;
 
 private:
     //! The maximum size of this arrayDB
@@ -70,18 +70,20 @@ private:
     unint1 headPointer;
 
 public:
-    ArrayDatabase( unint1 maxEntries );
-    ~ArrayDatabase();
+    ArrayList(unint1 maxEntries);
+    ~ArrayList();
 
     /*!
      * \brief returns the number of elements in this database
      */
-    unint1 size();
+    inline unint1 size() {
+        return (numEntries);
+    }
 
     /*!
      * \brief Adds another element to the database at the end
      */
-    ErrorT addTail( DatabaseItem* item );
+    ErrorT addTail(ListItem* item);
 
     /*!
      * \brief Adds another element at the beginning of the database
@@ -89,27 +91,32 @@ public:
      * This method performs bad since it may have to move all items
      * backwards in the database
      */
-    ErrorT addHead( DatabaseItem* item );
+    ErrorT addHead(ListItem* item);
 
     /*!
      * \brief Returns the head-element of this db or 0 if empty.
      */
-    DatabaseItem* getHead();
+    inline ListItem* getHead() {
+        if (numEntries == 0)
+            return (0);
+        else
+            return (entries[headPointer]);
+    }
 
     /*!
      * \brief Returns the tail-element of this db or 0 if empty.
      */
-    DatabaseItem* getTail();
+    ListItem* getTail();
 
     /*!
      * \brief Removes the head-element of the db and returns it.
      */
-    DatabaseItem* removeHead();
+    ListItem* removeHead();
 
     /*!
      * \brief Removes the tail-element of the db and returns it.
      */
-    DatabaseItem* removeTail();
+    ListItem* removeTail();
 
     /*!
      * \brief Inserts a new element at the specified position.
@@ -118,12 +125,12 @@ public:
      * The position must exist (0<=position<=numEntries).
      * With insertion all elements (including position) are moved to the right.
      */
-    ErrorT insertItemAt( int at, DatabaseItem* item );
+    ErrorT insertItemAt(int at, ListItem* item);
 
     /*!
      * \brief Returns the element at the specified position.
      */
-    DatabaseItem* getItemAt( int i );
+    ListItem* getItemAt(int i);
 
     /*!
      * \brief Removes the element at the specified position.
@@ -133,7 +140,7 @@ public:
      * The item at position is removed and all elements
      * right of posiotion are moved left.
      */
-    DatabaseItem* removeItemAt( int );
+    ListItem* removeItemAt(int);
 
     /*!
      * \brief Removes the specified element.
@@ -141,7 +148,7 @@ public:
      * Removes the specified element. If the element is included
      * in the db it is removed with the removeItemAt() function.
      */
-    DatabaseItem* removeItem( DatabaseItem* item );
+    ListItem* removeItem(ListItem* item);
 };
 
 #endif /*ARRAYDATABASE_HH_*/

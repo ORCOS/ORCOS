@@ -19,14 +19,17 @@
 #include <memtools.hh>
 #include "memio.h"
 #include "sprintf.hh"
+#include "inc/error.hh"
+#include "archtypes.h"
 
-void* memcpy( void* dst0, const void* src0, size_t len0 ) {
+void* memcpy(void* dst0, const void* src0, size_t len0) {
     char *dst = (char *) dst0;
-    char *src = const_cast<char *>( (const char*) src0);
+    char *src = const_cast<char *>((const char*) src0);
 
     void* save = dst0;
 
-    while ( len0-- ) {
+    while (len0--)
+    {
         //*dst++ = *src++;
         *dst = *src;
         dst++;
@@ -36,12 +39,14 @@ void* memcpy( void* dst0, const void* src0, size_t len0 ) {
     return (save);
 }
 
-int memcmp( const void* m1, const void* m2, size_t n ) {
-    unsigned char *s1 = const_cast<unsigned char *>( (const unsigned char*) m1);
-    unsigned char *s2 = const_cast<unsigned char *>( (const unsigned char*) m2);
+int memcmp(const void* m1, const void* m2, size_t n) {
+    unsigned char *s1 = const_cast<unsigned char *>((const unsigned char*) m1);
+    unsigned char *s2 = const_cast<unsigned char *>((const unsigned char*) m2);
 
-    while ( n-- ) {
-        if ( *s1 != *s2 ) {
+    while (n--)
+    {
+        if (*s1 != *s2)
+        {
             return (*s1 - *s2);
         }
         s1++;
@@ -50,24 +55,26 @@ int memcmp( const void* m1, const void* m2, size_t n ) {
     return (0);
 }
 
-void* memset( void* ptr, int c, size_t n ) {
+void* memset(void* ptr, int c, size_t n) {
     char* p = (char*) ptr;
 
     void* save = ptr;
 
-    while ( n-- ) {
+    while (n--)
+    {
         *p++ = (unsigned char) c;
     }
 
     return (save);
 }
 
-void* memsetlong( void* ptr, int c, size_t n ) {
+void* memsetlong(void* ptr, int c, size_t n) {
     int* p = (int*) ptr;
 
     void* save = ptr;
 
-    while ( n-- ) {
+    while (n--)
+    {
         *p++ = c;
     }
 
@@ -76,35 +83,42 @@ void* memsetlong( void* ptr, int c, size_t n ) {
 
 #if 1
 void makeHexCharCompatible(char* msg, int len) {
-	for (int i= 0; i < len; i++) {
-		if (msg[i] < 32)  msg[i] = '.';
-		if (msg[i] > 126) msg[i] = '.';
-	}
+    for (int i = 0; i < len; i++)
+    {
+        if (msg[i] < 32)
+            msg[i] = '.';
+        if (msg[i] > 126)
+            msg[i] = '.';
+    }
 }
 
+void memdump(int addr, int length) {
 
-void memdump(int addr,int length) {
+    for (int i = 0; i < length; i++)
+    {
 
-	for (int i = 0 ; i < length ;i++) {
-		printf("0x%x: ",addr + (4*i));
-		printf("0x%2x ",INB(addr + (4*i)));
-		printf("0x%2x ",INB(addr + (4*i) +1));
-		printf("0x%2x ",INB(addr + (4*i) +2));
-		printf("0x%2x ",INB(addr + (4*i) +3));
-
-		char ascii[5];
-		ascii[0] = INB(addr + (4*i));
-		ascii[1] = INB(addr + (4*i) +1);
-		ascii[2] = INB(addr + (4*i) +2);
-		ascii[3] = INB(addr + (4*i) +3);
-		ascii[4] = 0;
-		makeHexCharCompatible(ascii,4);
-		printf("\t%s\r",ascii);
-
-
-	}
-
-
+#if PROGRMEM
+        printf_p(PSTR("0x%x: "),(int) addr + (4 * i));
+        printf_p(PSTR("0x%2x "),(int) INB(addr + (4 * i)));
+        printf_p(PSTR("0x%2x "),(int) INB(addr + (4 * i) + 1));
+        printf_p(PSTR("0x%2x "),(int) INB(addr + (4 * i) + 2));
+        printf_p(PSTR("0x%2x \n"),(int) INB(addr + (4 * i) + 3));
+#else
+        printf("0x%x: ",(int) addr + (4 * i));
+        printf("0x%2x ",(int) INB(addr + (4 * i)));
+        printf("0x%2x ",(int) INB(addr + (4 * i) + 1));
+        printf("0x%2x ",(int) INB(addr + (4 * i) + 2));
+        printf("0x%2x ",(int) INB(addr + (4 * i) + 3));
+        char ascii[5];
+        ascii[0] = INB(addr + (4 * i));
+        ascii[1] = INB(addr + (4 * i) + 1);
+        ascii[2] = INB(addr + (4 * i) + 2);
+        ascii[3] = INB(addr + (4 * i) + 3);
+        ascii[4] = 0;
+        makeHexCharCompatible(ascii, 4);
+        printf(" %s\r",ascii);
+#endif
+    }
 
 }
 #endif

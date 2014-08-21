@@ -19,7 +19,6 @@
 #ifndef ARMv4TINTERRUPTHANDLER_HH_
 #define ARMv4TINTERRUPTHANDLER_HH_
 
-
 /*!
  * \brief ARMv4TInterruptHandler, implementation of HAL InterruptHandler
  *
@@ -28,7 +27,7 @@ class ARMv4TInterruptHandler {
 
 public:
 
-	ARMv4TInterruptHandler();
+    ARMv4TInterruptHandler();
     ~ARMv4TInterruptHandler();
 
 };

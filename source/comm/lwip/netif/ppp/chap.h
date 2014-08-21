@@ -1,35 +1,35 @@
 /*****************************************************************************
-* chap.h - Network Challenge Handshake Authentication Protocol header file.
-*
-* Copyright (c) 2003 by Marc Boucher, Services Informatiques (MBSI) inc.
-* portions Copyright (c) 1998 Global Election Systems Inc.
-*
-* The authors hereby grant permission to use, copy, modify, distribute,
-* and license this software and its documentation for any purpose, provided
-* that existing copyright notices are retained in all copies and that this
-* notice and the following disclaimer are included verbatim in any 
-* distributions. No written agreement, license, or royalty fee is required
-* for any of the authorized uses.
-*
-* THIS SOFTWARE IS PROVIDED BY THE CONTRIBUTORS *AS IS* AND ANY EXPRESS OR
-* IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
-* OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
-* IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-* INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-* NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-* DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-* THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-* THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*
-******************************************************************************
-* REVISION HISTORY
-*
-* 03-01-01 Marc Boucher <marc@mbsi.ca>
-*   Ported to lwIP.
-* 97-12-03 Guy Lancaster <lancasterg@acm.org>, Global Election Systems Inc.
-*   Original built from BSD network code.
-******************************************************************************/
+ * chap.h - Network Challenge Handshake Authentication Protocol header file.
+ *
+ * Copyright (c) 2003 by Marc Boucher, Services Informatiques (MBSI) inc.
+ * portions Copyright (c) 1998 Global Election Systems Inc.
+ *
+ * The authors hereby grant permission to use, copy, modify, distribute,
+ * and license this software and its documentation for any purpose, provided
+ * that existing copyright notices are retained in all copies and that this
+ * notice and the following disclaimer are included verbatim in any 
+ * distributions. No written agreement, license, or royalty fee is required
+ * for any of the authorized uses.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE CONTRIBUTORS *AS IS* AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+ * IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ ******************************************************************************
+ * REVISION HISTORY
+ *
+ * 03-01-01 Marc Boucher <marc@mbsi.ca>
+ *   Ported to lwIP.
+ * 97-12-03 Guy Lancaster <lancasterg@acm.org>, Global Election Systems Inc.
+ *   Original built from BSD network code.
+ ******************************************************************************/
 /*
  * chap.h - Challenge Handshake Authentication Protocol definitions.
  *
@@ -69,8 +69,8 @@
 #define CHAP_H
 
 /*************************
-*** PUBLIC DEFINITIONS ***
-*************************/
+ *** PUBLIC DEFINITIONS ***
+ *************************/
 
 /* Code + ID + length */
 #define CHAP_HEADERLEN 4
@@ -118,49 +118,47 @@
 #define CHAPSS_BADAUTH       6 /* We've sent a Failure msg */
 
 /************************
-*** PUBLIC DATA TYPES ***
-************************/
+ *** PUBLIC DATA TYPES ***
+ ************************/
 
 /*
  * Each interface is described by a chap structure.
  */
 
 typedef struct chap_state {
-  int unit;                               /* Interface unit number */
-  int clientstate;                        /* Client state */
-  int serverstate;                        /* Server state */
-  u_char challenge[MAX_CHALLENGE_LENGTH]; /* last challenge string sent */
-  u_char chal_len;                        /* challenge length */
-  u_char chal_id;                         /* ID of last challenge */
-  u_char chal_type;                       /* hash algorithm for challenges */
-  u_char id;                              /* Current id */
-  char *chal_name;                        /* Our name to use with challenge */
-  int chal_interval;                      /* Time until we challenge peer again */
-  int timeouttime;                        /* Timeout time in seconds */
-  int max_transmits;                      /* Maximum # of challenge transmissions */
-  int chal_transmits;                     /* Number of transmissions of challenge */
-  int resp_transmits;                     /* Number of transmissions of response */
-  u_char response[MAX_RESPONSE_LENGTH];   /* Response to send */
-  u_char resp_length;                     /* length of response */
-  u_char resp_id;                         /* ID for response messages */
-  u_char resp_type;                       /* hash algorithm for responses */
-  char *resp_name;                        /* Our name to send with response */
+    int unit; /* Interface unit number */
+    int clientstate; /* Client state */
+    int serverstate; /* Server state */
+    u_char challenge[MAX_CHALLENGE_LENGTH]; /* last challenge string sent */
+    u_char chal_len; /* challenge length */
+    u_char chal_id; /* ID of last challenge */
+    u_char chal_type; /* hash algorithm for challenges */
+    u_char id; /* Current id */
+    char *chal_name; /* Our name to use with challenge */
+    int chal_interval; /* Time until we challenge peer again */
+    int timeouttime; /* Timeout time in seconds */
+    int max_transmits; /* Maximum # of challenge transmissions */
+    int chal_transmits; /* Number of transmissions of challenge */
+    int resp_transmits; /* Number of transmissions of response */
+    u_char response[MAX_RESPONSE_LENGTH]; /* Response to send */
+    u_char resp_length; /* length of response */
+    u_char resp_id; /* ID for response messages */
+    u_char resp_type; /* hash algorithm for responses */
+    char *resp_name; /* Our name to send with response */
 } chap_state;
 
-
 /******************
-*** PUBLIC DATA ***
-******************/
+ *** PUBLIC DATA ***
+ ******************/
 extern chap_state chap[];
 
 extern struct protent chap_protent;
 
-
 /***********************
-*** PUBLIC FUNCTIONS ***
-***********************/
+ *** PUBLIC FUNCTIONS ***
+ ***********************/
 
-void ChapAuthWithPeer (int, char *, int);
-void ChapAuthPeer (int, char *, int);
+void ChapAuthWithPeer(int, char *, int);
+void ChapAuthPeer(int, char *, int);
 
 #endif /* CHAP_H */

@@ -21,7 +21,6 @@
 #include "inc/error.hh"
 #include "OMAP3530.h"
 
-
 #define STACK_CONTENT(sp_int,offset) *( (long*) ( ( (long) sp_int) + offset)  )
 
 extern "C" void handleTimerInterrupt(void* sp_int);
@@ -29,107 +28,108 @@ extern "C" void handleTimerInterrupt(void* sp_int);
 extern Kernel* theOS;
 extern Board_TimerCfdCl* theTimer;
 
-
 extern "C" void handleDataAbort(int addr, int instr) {
-	LOG(ARCH,ERROR,(ARCH,ERROR,"Data Abort at address: 0x%x , instr: 0x%x",addr,instr));
-	while (true) {};
+    LOG(ARCH, ERROR, (ARCH,ERROR,"Data Abort at address: 0x%x , instr: 0x%x",addr,instr));
+    while (true)
+    {
+    };
 }
 
 extern "C" void handleUndefinedIRQ(int addr, int spsr) {
-	LOG(ARCH,ERROR,(ARCH,ERROR,"Undefined IRQ, LR: 0x%x, SPSR: 0x%x",addr,spsr));
-	while (true) {};
+    LOG(ARCH, ERROR, (ARCH,ERROR,"Undefined IRQ, LR: 0x%x, SPSR: 0x%x",addr,spsr));
+    while (true)
+    {
+    };
 }
 
 extern "C" void handleFIQ() {
-	LOG(ARCH,ERROR,(ARCH,ERROR,"FIQ.."));
-	while (true) {};
+    LOG(ARCH, ERROR, (ARCH,ERROR,"FIQ.."));
+    while (true)
+    {
+    };
 }
 
 extern "C" void handlePrefetchAbort(int instr) {
-	LOG(ARCH,ERROR,(ARCH,ERROR,"Prefetch Abort IRQ. instr: 0x%x",instr));
-	while (true) {};
+    LOG(ARCH, ERROR, (ARCH,ERROR,"Prefetch Abort IRQ. instr: 0x%x",instr));
+    while (true)
+    {
+    };
 }
 
-extern "C"void dispatchIRQ(void* sp_int)
-{
-	if (pCurrentRunningThread != 0){
-		    ASSERT(isOk(pCurrentRunningThread->pushStackPointer(sp_int)));
-	}
+extern "C" void dispatchIRQ(void* sp_int) {
+    if (pCurrentRunningThread != 0)
+    {
+        ASSERT(isOk(pCurrentRunningThread->pushStackPointer(sp_int)));
+    }
 
-	int irqSrc;
-	//BoardCfdCl* board;
-	//board = theOS->getBoard();
+    int irqSrc;
+    //BoardCfdCl* board;
+    //board = theOS->getBoard();
 
-	irqSrc = theOS->getBoard()->getInterruptController()->getIRQStatusVector();
-	LOG(ARCH,TRACE,(ARCH,TRACE,"IRQ number: %d",irqSrc));
+    irqSrc = theOS->getBoard()->getInterruptController()->getIRQStatusVector();
+    LOG(ARCH, TRACE, (ARCH,TRACE,"IRQ number: %d",irqSrc));
 
-	// jump to interrupt handler according to active interrupt
-	switch (irqSrc)
-	    {
-			// General Purpose Timer interrupt
-			case GPT1_IRQ:
-			case GPT10_IRQ:
-			{
-				handleTimerInterrupt(sp_int);
-				break;
-			}
-			// UART Module 1 interrupt
-			case UART1_IRQ:
-			{
-				LOG(ARCH,INFO,(ARCH,INFO,"UART IRQ: No handler implemented. Returning."));
-				break;
-			}
-			case UART2_IRQ:
-			{
-				LOG(ARCH,INFO,(ARCH,INFO,"UART 2 IRQ: No handler implemented. Returning."));
-				break;
-			}
-			case UART3_IRQ:
-			{
-				// the BeagleBoard uses OMAP3530 UART 3 device as serial console
-				LOG(ARCH,INFO,(ARCH,INFO,"UART 3 IRQ"));
-				#if HAS_Board_UARTCfd
-					register CommDeviceDriver* uart = theOS->getBoard()->getUART();
-					uart->clearIRQ();
-					uart->disableIRQ();
-					uart->interruptPending = true;
-					uart->handleIRQ();
-					break;
-				#endif
-			}
-			default:
-			{
-				LOG(ARCH,ERROR,(ARCH,ERROR,"Unhandled IRQ Request.. IRQ Number: %d",irqSrc));
-				while(true) { }
-				break;
-			}
-	    }
+    // jump to interrupt handler according to active interrupt
+    switch (irqSrc) {
+    // General Purpose Timer interrupt
+    case GPT1_IRQ:
+    case GPT10_IRQ: {
+        handleTimerInterrupt(sp_int);
+        break;
+    }
+        // UART Module 1 interrupt
+    case UART1_IRQ: {
+        LOG(ARCH, INFO, (ARCH,INFO,"UART IRQ: No handler implemented. Returning."));
+        break;
+    }
+    case UART2_IRQ: {
+        LOG(ARCH, INFO, (ARCH,INFO,"UART 2 IRQ: No handler implemented. Returning."));
+        break;
+    }
+    case UART3_IRQ: {
+        // the BeagleBoard uses OMAP3530 UART 3 device as serial console
+        LOG(ARCH, INFO, (ARCH,INFO,"UART 3 IRQ"));
+#if HAS_Board_UARTCfd
+        register CommDeviceDriver* uart = theOS->getBoard()->getUART();
+        uart->clearIRQ();
+        uart->disableIRQ();
+        uart->interruptPending = true;
+        uart->handleIRQ();
+        break;
+#endif
+    }
+    default: {
+        LOG(ARCH, ERROR, (ARCH,ERROR,"Unhandled IRQ Request.. IRQ Number: %d",irqSrc));
+        while (true)
+        {
+        }
+        break;
+    }
+    }
 
+    theOS->getBoard()->getInterruptController()->clearIRQ(irqSrc);
 
-	theOS->getBoard()->getInterruptController()->clearIRQ(irqSrc);
-
-	// reschedule
-	theOS->getCPUDispatcher()->dispatch( );
-	// we should never get here
-	while(1);
+    // reschedule
+    theOS->getCPUDispatcher()->dispatch();
+    // we should never get here
+    while (1)
+        ;
 }
 
-extern "C"void dispatchSWI(void* sp_int)
-{
+extern "C" void dispatchSWI(void* sp_int) {
 
 #if ENABLE_NESTED_INTERRUPTS
     // we want nested interrupts so enable interrupts again
     _enableInterrupts();
 #endif
 
-	ASSERT(isOk(pCurrentRunningThread->pushStackPointer(sp_int)));
+    ASSERT(isOk(pCurrentRunningThread->pushStackPointer(sp_int)));
 
-	handleSyscall( (unint4) sp_int);
+    handleSyscall((unint4) sp_int);
 }
 
-extern "C" void handleTimerInterrupt(void* sp_int)
-{
-	ASSERT(theTimer);
-	// call Timer
-	theTimer->tick();
+extern "C" void handleTimerInterrupt(void* sp_int) {
+    ASSERT(theTimer);
+    // call Timer
+    theTimer->tick();
 }

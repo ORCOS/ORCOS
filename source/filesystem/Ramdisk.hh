@@ -14,66 +14,67 @@
 class Ramdisk {
 private:
 
-	/* The global block chain */
-	unint4* blockChain;
+    /* The global block chain */
+    unint4* blockChain;
 
-	/* Number of entries inside the blockchain */
-	unint4  blockChainEntries;
+    /* Number of entries inside the blockchain */
+    unint4 blockChainEntries;
 
-	/* Address of the first block allocatable */
-	unint4  firstBlock;
+    /* Address of the first block allocatable */
+    unint4 firstBlock;
 
 public:
-	Ramdisk(T_Ramdisk_Init* init);
+    Ramdisk(T_Ramdisk_Init* init);
 
-	unint4 	allocateBlock(unint4 prev);
+    unint4 allocateBlock(unint4 prev);
 
-	int 	freeBlock(unint4 blockNum);
+    int freeBlock(unint4 blockNum);
 
-	unint4  getNextBlock(unint4 currentBlock,bool allocate);
+    unint4 getNextBlock(unint4 currentBlock, bool allocate);
 
-	unint4 	getFirstBlockAddress() { return (firstBlock); }
+    unint4 getFirstBlockAddress() {
+        return (firstBlock);
+    }
 
-	virtual ~Ramdisk();
+    virtual ~Ramdisk();
 };
 
-
-
-class RamdiskDirectory : public Directory {
+class RamdiskDirectory: public Directory {
 
 private:
-	Ramdisk* myRamDisk;
+    Ramdisk* myRamDisk;
 
 public:
 
-     RamdiskDirectory(Ramdisk* myRamDisk, char* name) : Directory(name) { this->myRamDisk = myRamDisk; }
+    RamdiskDirectory(Ramdisk* myRamDisk, char* name) : Directory(name) {
+        this->myRamDisk = myRamDisk;
+    }
 
-     //! Tries to delete the resource from the directory
-     ErrorT 		remove(Resource *res);
+    //! Tries to delete the resource from the directory
+    ErrorT remove(Resource *res);
 
-     /* Creates a new File inside the Ramdisk. */
-     File* 		createFile(char* name, unint4 flags);
+    /* Creates a new File inside the Ramdisk. */
+    File* createFile(char* name, unint4 flags);
 
 };
 
-
-class RamdiskFile : public File {
-friend class RamdiskDirectory;
+class RamdiskFile: public File {
+    friend class RamdiskDirectory;
 private:
-	Ramdisk* 	myRamDisk;
+    Ramdisk* myRamDisk;
 
-	unint4 	 	myBlockNumber;
+    unint4 myBlockNumber;
 
-	unint4 		currentBlock;
+    unint4 currentBlock;
 
 public:
-	RamdiskFile(Ramdisk* myRamdisk, unint4 blockNum, char* name, int flags);
+    RamdiskFile(Ramdisk* myRamdisk, unint4 blockNum, char* name, int flags);
 
-	ErrorT readBytes( char *bytes, unint4 &length );
+    ErrorT readBytes(char *bytes, unint4 &length);
 
-	ErrorT writeBytes( const char *bytes, unint4 length );
+    ErrorT writeBytes(const char *bytes, unint4 length);
 
-	ErrorT resetPosition();
+    ErrorT resetPosition();
 };
 
 #endif /* RAMDISK_HH_ */

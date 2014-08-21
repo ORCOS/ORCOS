@@ -39,7 +39,7 @@ public:
     /*!
      * \brief The schedule policy implemented in this method.
      */
-    DatabaseItem* getNext() {
+    ListItem* getNext() {
         return 0;
     }
     ;

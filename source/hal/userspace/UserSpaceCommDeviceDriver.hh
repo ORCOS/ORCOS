@@ -35,16 +35,22 @@ public:
     /*!
      * Anonymous Devices used this constructor!
      */
-    UserSpaceCommDeviceDriver() {};
+    UserSpaceCommDeviceDriver() {
+    }
+    ;
 
-    virtual ~UserSpaceCommDeviceDriver() {};
+    virtual ~UserSpaceCommDeviceDriver() {
+    }
+    ;
 
     //! method which gets called whenever this devices throws a extern IRQ
     virtual
-    void recv() {}
+    void recv() {
+    }
 
-    virtual
-    ErrorT lowlevel_send( char* data, int len ) { return cNotImplemented; }
+    virtual ErrorT lowlevel_send(char* data, int len) {
+        return cNotImplemented ;
+    }
 
     //! returns the mac address of this device
     virtual
@@ -53,24 +59,21 @@ public:
     }
 
     //! returns the size (amount of bytes) mac addresses have on this device
-    virtual
-    int1 getMacAddrSize() {
+    virtual int1 getMacAddrSize() {
         return 0;
     }
 
     /*!
-    * Returns the maximum transmit unit (MTU) of this device.
-    *
-    * \returns The maximum amount of bytes the device is able to transmit in one unit.
-    */
-   virtual
-   unint2 getMTU() {
-       return 0;
-   }
+     * Returns the maximum transmit unit (MTU) of this device.
+     *
+     * \returns The maximum amount of bytes the device is able to transmit in one unit.
+     */
+    virtual unint2 getMTU() {
+        return 0;
+    }
 
     //! Returns the id of the hardware address space (ethernet, wlan ..)
-    virtual
-    int2 getHardwareAddressSpaceId() {
+    virtual int2 getHardwareAddressSpaceId() {
         return 0;
     }
 
@@ -81,25 +84,22 @@ public:
     }
 
     //! enables the hardware interrupts of this device.
-    virtual
-    ErrorT enableIRQ() {
-        return cNotImplemented;
+    virtual ErrorT enableIRQ() {
+        return cNotImplemented ;
     }
 
     //! disables all interrupts of this device (does not clear them!)
-    virtual
-    ErrorT disableIRQ() {
-        return cNotImplemented;
+    virtual ErrorT disableIRQ() {
+        return cNotImplemented ;
     }
 
     //! clears all interrupts of this device
-    virtual
-    ErrorT clearIRQ() {
-        return cNotImplemented;
+    virtual ErrorT clearIRQ() {
+        return cNotImplemented ;
     }
 
-    void operator delete(void*) {}
-
+    void operator delete(void*) {
+    }
 
 };
 

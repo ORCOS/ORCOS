@@ -24,7 +24,6 @@ class ETHLogger;
 #include <logger_config.hh>
 #include "comm/Socket.hh"
 
-
 //enum Level {FATAL=0,ERROR=1,WARN=2,INFO=3,DEBUG=4,TRACE=5};
 
 /*!
@@ -66,7 +65,7 @@ public:
      * The prefix and level could be found in the logger_config.hh which is generated out of the SCLConfig.xml
      *
      */
-    void log( Prefix prefix, Level level, const char* msg, ... );
+    void log(Prefix prefix, Level level, const char* msg, ...);
 };
 
 #endif /*DEBUG_HH_*/

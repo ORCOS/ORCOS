@@ -29,46 +29,46 @@ class BigEndBitmap {
 private:
     BitmapT Flags;
 
-    int bitNr( int i ) const {
-        return ( sizeof( Flags ) << 3 ) - i - 1;
+    int bitNr(int i) const {
+        return (sizeof(Flags) << 3) - i - 1;
     }
 protected:
 
 public:
     ///  Default constructor
     BigEndBitmap() :
-        Flags( 0 ) {
+            Flags(0) {
     }
-    BigEndBitmap( BitmapT b ) :
-        Flags( b ) {
-    }
-
-    void setBit( int n ) {
-        Flags |= ( 1 << bitNr( n ) );
+    BigEndBitmap(BitmapT b) :
+            Flags(b) {
     }
 
-    void setBits( BitmapT bitmap ) {
+    void setBit(int n) {
+        Flags |= (1 << bitNr(n));
+    }
+
+    void setBits(BitmapT bitmap) {
         Flags |= bitmap;
     }
-    int isSet( int n ) const {
-        return Flags & ( 1 << bitNr( n ) );
+    int isSet(int n) const {
+        return Flags & (1 << bitNr(n));
     }
-    int areSet( BitmapT bitmap ) const {
-        return ( Flags & bitmap ) ==  bitmap;
+    int areSet(BitmapT bitmap) const {
+        return (Flags & bitmap) == bitmap;
     }
-    int areSomeSet( int bitmap ) const {
+    int areSomeSet(int bitmap) const {
         return Flags & bitmap;
     }
 
-    void clearBit( int n ) {
-        Flags &= ~( 1 << bitNr( n ) );
+    void clearBit(int n) {
+        Flags &= ~(1 << bitNr(n));
     }
 
-    void clearBits( int bitmap ) {
+    void clearBits(int bitmap) {
         Flags &= ~bitmap;
     }
 
-    void set( unint x ) {
+    void set(unint x) {
         Flags = x;
     }
     bool isEmpty() {
@@ -81,7 +81,7 @@ public:
     operator BitmapT() const {
         return Flags;
     }
-    void operator=( unint x ) {
+    void operator=(unint x) {
         Flags = x;
     }
 };

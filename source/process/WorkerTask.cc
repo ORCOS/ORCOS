@@ -24,74 +24,77 @@ extern Kernel* theOS;
 extern Kernel_SchedulerCfdCl* theScheduler;
 
 WorkerTask::WorkerTask() :
-    Task() {
-
-    LOG(KERNEL,INFO,(KERNEL,INFO,"WorkerTask(): creating %d Workerthreads", NUM_WORKERTHREADS));
+        Task(),
+        nonWorkingThreads(NUM_WORKERTHREADS)
+{
+    LOG(KERNEL, INFO, "WorkerTask(): Creating %d Workerthreads", NUM_WORKERTHREADS);
     WorkerThread* pWThread;
-    // create some worker threads
-    for ( int i = 0; i < NUM_WORKERTHREADS; i++ ) {
-        pWThread = new WorkerThread( this );
-        // announce the workerthread to the dispatcher by blocking it
+    /* create some worker threads */
+    for (int i = 0; i < NUM_WORKERTHREADS; i++)
+    {
+        pWThread = new WorkerThread(this);
+        nonWorkingThreads.addHead(pWThread);
+        /* announce the workerthread to the dispatcher by blocking it */
         pWThread->block();
     }
 
-    LOG(KERNEL,INFO,(KERNEL,INFO,"WorkerTask(): Workerthread Ids: 1-%d", pWThread->getId()));
-
     this->memManager = theOS->getMemoryManager();
-
 }
 
 WorkerTask::~WorkerTask() {
 }
 
-WorkerThread* WorkerTask::addJob( JOBType jobType, unint1 pid, void* param, unint priority_param ) {
-	LOG(PROCESS,DEBUG,(PROCESS,DEBUG,"WorkerTask::addJob(): job %d",jobType));
 
-    // find a available workerthread and assign the job
-    LinkedListDatabaseItem* litem = this->threadDb.getHead();
+void WorkerTask::workFinished(WorkerThread* pwthread) {
+    nonWorkingThreads.addHead(pwthread);
+}
 
-    // find a workerthread that is not assigned to a job yet
-    // TODO: we can enhance this by using a non-working queue
-    while ( (litem != 0) &&  (  ( (WorkerThread*) litem->getData() )->hasJob())  )
-        litem = litem->getSucc();
+WorkerThread* WorkerTask::addJob(JOBType jobType, unint1 pid, void* param, unint priority_param) {
+    LOG(PROCESS, DEBUG, "WorkerTask::addJob(): job %d",jobType);
 
-    if ( litem != 0 ) {
-        WorkerThread* pWThread = (WorkerThread*) litem->getData();
-        pWThread->setJob( jobType, param );
-        pWThread->setPID( pid );
+    /* find a available workerthread and assign the job */
+    ListItem* litem = this->nonWorkingThreads.removeHead();
 
-        LOG(PROCESS,DEBUG,(PROCESS,DEBUG,"WorkerTask::addJob() assigned thread %d for job %d",pWThread->getId(),jobType));
+    if (litem != 0)
+    {
+        WorkerThread* pWThread = (WorkerThread*) litem;
+        pWThread->setJob(jobType, param);
+        pWThread->setPID(pid);
 
-        // get the current cycles
-        //TimeT currentCycles = theClock->getTimeSinceStartup();
+        LOG(PROCESS, DEBUG, "WorkerTask::addJob() assigned thread %d for job %d",pWThread->getId(),jobType);
 
 #ifdef HAS_PRIORITY
     #ifndef REALTIME
-        pWThread->setInitialPriority( priority_param );
-        pWThread->setEffectivePriority( priority_param );
+            pWThread->setInitialPriority( priority_param );
+            pWThread->setEffectivePriority( priority_param );
     #else
-        // reset the instance to 1
-        pWThread->instance = 1;
+            // reset the instance to 1
+            pWThread->instance = 1;
+            pWThread->initialPriority = priority_param;
+            pWThread->period   = 0;
+            pWThread->relativeDeadline = 0;
 
-		#if (CLOCK_RATE >= (1 MHZ))
-        	 // set the relative deadline for EDF. convert to clock ticks
-             pWThread->relativeDeadline = priority_param * (CLOCK_RATE / 1000000);
-             // set period for RM
-             pWThread->period = priority_param * (CLOCK_RATE / 1000000);
-		#else
-			 pWThread->relativeDeadline = (TimeT) ((priority_param * CLOCK_RATE) /  1000000U);
-             pWThread->period = (TimeT) ((priority_param * CLOCK_RATE) /  1000000U);
-		#endif
+            if (jobType == PeriodicFunctionCallJob) {
+                PeriodicFunctionCall* pcall = (PeriodicFunctionCall*) param;
+            #if (CLOCK_RATE >= (1 MHZ))
+                    pWThread->relativeDeadline = pcall->period * (CLOCK_RATE / 1000000);
+                    pWThread->period           = pcall->period * (CLOCK_RATE / 1000000);
+            #else
+                    pWThread->relativeDeadline = (TimeT) ((pcall->period * CLOCK_RATE) / 1000000U);
+                    pWThread->period           = (TimeT) ((pcall->period * CLOCK_RATE) / 1000000U);
+            #endif
+            }
 
-
-        // set the arrival time to now!
-        pWThread->arrivalTime = 0;
+            // set the arrival time to now!
+            pWThread->arrivalTime = 0;
     #endif
+
         theScheduler->computePriority(pWThread);
         pWThread->period = 0;
 #endif
 
-        if ( jobType == TimedFunctionCallJob || jobType == PeriodicFunctionCallJob ) {
+        if (jobType == TimedFunctionCallJob || jobType == PeriodicFunctionCallJob)
+        {
             // set the sleeptime so the thread sleeps
             // until the the function can be called
             TimedFunctionCall* funcCall = (TimedFunctionCall*) param;
@@ -100,7 +103,6 @@ WorkerThread* WorkerTask::addJob( JOBType jobType, unint1 pid, void* param, unin
         }
         else
             pWThread->sleepTime = 0;
-
 
         // unblock the workerthread
         // this will cause the thread

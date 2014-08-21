@@ -5,11 +5,11 @@ BUILD_PLATFORM = armv7
 PLATFORM_FLAGS = 0x101
 
 # for windows we must specify the ld directory with absolute path 
-GCC_LIB_DIR=C:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/
-LIBC_DIR=C:/toolchains/armgcc-4-7-4/arm-none-eabi/lib/armv7-ar/thumb/
+GCC_LIB_DIR=D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/
+LIBC_DIR=D:/toolchains/armgcc-4-7-4/arm-none-eabi/lib/armv7-ar/thumb/
 
 
-ARMEABI= /cygdrive/c/toolchains/armgcc-4-7-4/bin/arm-none-eabi
+ARMEABI= /cygdrive/d/toolchains/armgcc-4-7-4/bin/arm-none-eabi
 
 CC      = $(ARMEABI)-gcc
 CXX     = $(ARMEABI)-c++

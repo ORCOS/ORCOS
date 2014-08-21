@@ -8,7 +8,7 @@
 #ifndef OMAP3530I2C_HH_
 #define OMAP3530I2C_HH_
 
-#include "hal/CharacterDeviceDriver.hh"
+#include "hal/CharacterDevice.hh"
 #include "assembler.h"
 
 // i2c bus speeds
@@ -42,7 +42,6 @@
 
 /* I2C masks */
 
-
 #define I2C_SYSC_CLOCKACTIVITY_ALL (3 << 8)
 #define I2C_SYSC_IDLEMODE_NO	   (1 << 3)
 #define I2C_SYSC_IDLEMODE_SMART	   (2 << 3)
@@ -70,7 +69,6 @@
 #define I2C_STAT_ARDY   (1 << 2)        /* Register access ready */
 #define I2C_STAT_NACK   (1 << 1)        /* No acknowledgment interrupt enable */
 #define I2C_STAT_AL     (1 << 0)        /* Arbitration lost interrupt enable */
-
 
 /* I2C Interrupt Code Register (I2C_INTCODE): */
 
@@ -102,7 +100,6 @@
 
 #define I2C_CON_SCCB    (2 << 12)        /* Start condition (master mode only) */
 
-
 /* I2C System Test Register (I2C_SYSTEST): */
 
 #define I2C_SYSTEST_ST_EN       (1 << 15)       /* System test enable */
@@ -114,73 +111,72 @@
 #define I2C_SYSTEST_SDA_I       (1 << 1)        /* SDA line sense input value */
 #define I2C_SYSTEST_SDA_O       (1 << 0)        /* SDA line drive output value */
 
-class Omap3530i2c: public CharacterDeviceDriver {
+class Omap3530i2c: public CharacterDevice {
 private:
 
-	// MMIO address of the i2c component
-	int4 	address;
+    // MMIO address of the i2c component
+    int4 address;
 
-	void 	wait_for_bus (void);
+    void wait_for_bus(void);
 
-	unint2 	wait_for_pin (void);
+    unint2 wait_for_pin(void);
 
-	void 	flush_fifo(void);
+    void flush_fifo(void);
 
-	void 	i2c_init(unint4 speed);
+    void i2c_init(unint4 speed);
 
-	ErrorT 	i2c_read_byte (unint1 devaddr, unint1 regoffset, unint1 *values, unint1 length);
+    ErrorT i2c_read_byte(unint1 devaddr, unint1 regoffset, unint1 *values, unint1 length);
 
-	ErrorT 	i2c_write_bytes (unint1 devaddr, const char* value, unint1 length);
+    ErrorT i2c_write_bytes(unint1 devaddr, const char* value, unint1 length);
 
 public:
 
-	Omap3530i2c( T_Omap3530i2c_Init *init );
+    Omap3530i2c(T_Omap3530i2c_Init *init);
 
-	~Omap3530i2c();
+    ~Omap3530i2c();
 
-	 /*!
-	 * \brief reads a byte from the i2c Bus
-	 *
-	 * Reads a Byte from the I2C bus polling the device. Loops until a byte is read.
-	 *
-	 */
-	ErrorT readByte( char* p_byte ) {
-		return (cNotImplemented);
-	}
+    /*!
+     * \brief reads a byte from the i2c Bus
+     *
+     * Reads a Byte from the I2C bus polling the device. Loops until a byte is read.
+     *
+     */
+    ErrorT readByte(char* p_byte) {
+        return (cNotImplemented );
+    }
 
-	/*!
-	 * \brief Not supported
-	 *
-	 * Not supported as I2C requires at least 2 bytes.
-	 */
-	ErrorT writeByte( char c_byte ) {
-		return (cNotImplemented);
-	}
+    /*!
+     * \brief Not supported
+     *
+     * Not supported as I2C requires at least 2 bytes.
+     */
+    ErrorT writeByte(char c_byte) {
+        return (cNotImplemented );
+    }
 
-	/*!
-	 * \brief Reads a number of bytes from the device
-	 *
-	 * Reads multiple bytes from the I2C Bus. The number of bytes to be read is given in length.
-	 * The number of bytes read will be returned in the length variable.
-	 * If no bytes could be read length will be set to 0.
-	 * The bytes array needs to be filled in the following format:
-	 *
-	 *                8 bit            8 bit
-	 * bytes = | slave address |  register offset |
-	 */
-	ErrorT readBytes( char *bytes, unint4 &length );
+    /*!
+     * \brief Reads a number of bytes from the device
+     *
+     * Reads multiple bytes from the I2C Bus. The number of bytes to be read is given in length.
+     * The number of bytes read will be returned in the length variable.
+     * If no bytes could be read length will be set to 0.
+     * The bytes array needs to be filled in the following format:
+     *
+     *                8 bit            8 bit
+     * bytes = | slave address |  register offset |
+     */
+    ErrorT readBytes(char *bytes, unint4 &length);
 
-
-	/*!
-	 * \brief Writes a number of bytes to the I2C Bus
-	 *
-	 * The first byte passed is the I2C device receiver address.
-	 * The second byte is the register offset start address
-	 * of the receiver to be written
-	 *                8 bit            8 bit        8 bit   8 bit
-	 * bytes = | slave address |  register offset | data  | data  | ...
-	 */
-	ErrorT writeBytes( const char *bytes, unint4 length );
+    /*!
+     * \brief Writes a number of bytes to the I2C Bus
+     *
+     * The first byte passed is the I2C device receiver address.
+     * The second byte is the register offset start address
+     * of the receiver to be written
+     *                8 bit            8 bit        8 bit   8 bit
+     * bytes = | slave address |  register offset | data  | data  | ...
+     */
+    ErrorT writeBytes(const char *bytes, unint4 length);
 
 };
 

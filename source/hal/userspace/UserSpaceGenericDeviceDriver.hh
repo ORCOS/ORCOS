@@ -64,34 +64,36 @@ class UserSpaceGenericDeviceDriver {
 
 public:
 
-	UserSpaceGenericDeviceDriver() {};
+    UserSpaceGenericDeviceDriver() {
+    }
+    ;
 
     ~UserSpaceGenericDeviceDriver() {
     }
     ;
 
     virtual ErrorT probe() {
-        return cNotImplemented;
+        return cNotImplemented ;
     }
     ;
 
     virtual ErrorT remove() {
-        return cNotImplemented;
+        return cNotImplemented ;
     }
     ;
 
     virtual ErrorT shutdown() {
-        return cNotImplemented;
+        return cNotImplemented ;
     }
     ;
 
     virtual ErrorT suspend() {
-        return cNotImplemented;
+        return cNotImplemented ;
     }
     ;
 
     virtual ErrorT resume() {
-        return cNotImplemented;
+        return cNotImplemented ;
     }
     ;
 

@@ -38,9 +38,13 @@ public:
      *
      * Handles can not be retrieved by the filesystem
      */
-    UserSpaceCharacterDeviceDriver() {};
+    UserSpaceCharacterDeviceDriver() {
+    }
+    ;
 
-    ~UserSpaceCharacterDeviceDriver() {};
+    ~UserSpaceCharacterDeviceDriver() {
+    }
+    ;
 
     /*!
      * \brief reads a byte from the device
@@ -48,8 +52,8 @@ public:
      * abstract function to read a byte from the device and writes it
      * to the supplied pointer a error is returned when no byte is available.
      */
-    virtual ErrorT readByte( char* byte ) {
-        return cNotImplemented;
+    virtual ErrorT readByte(char* byte) {
+        return cNotImplemented ;
     }
 
     /*!
@@ -58,8 +62,8 @@ public:
      * abstract function to write a byte to the device
      * if not possible an error is returned.
      */
-    virtual ErrorT writeByte( char byte ) {
-        return cNotImplemented;
+    virtual ErrorT writeByte(char byte) {
+        return cNotImplemented ;
     }
 
     /*!
@@ -73,8 +77,8 @@ public:
      * if no data could be read, length should be set to 0 and an error value
      * is returned by the function.
      */
-    virtual ErrorT readBytes( char *bytes, unint4 &length ) {
-        return cNotImplemented;
+    virtual ErrorT readBytes(char *bytes, unint4 &length) {
+        return cNotImplemented ;
     }
 
     /*!
@@ -84,10 +88,9 @@ public:
      * if the device could not accept as much bytes as specified by length
      * an error value is returned.
      */
-    virtual ErrorT writeBytes( const char *bytes, unint4 length ) {
-        return cNotImplemented;
+    virtual ErrorT writeBytes(const char *bytes, unint4 length) {
+        return cNotImplemented ;
     }
-
 
 };
 

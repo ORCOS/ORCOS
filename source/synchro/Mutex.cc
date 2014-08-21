@@ -32,12 +32,22 @@ extern Task*  pCurrentRunningTask;
 #endif
 
 Mutex::Mutex() :
-    m_locked( false ), m_pThread( 0 ), m_stoppedThreads(10), m_pRes(0) {
+    m_locked( false ), m_pThread( 0 ), m_stoppedThreads(4), m_pRes(0) {
     SchedulerCfd = new Kernel_SchedulerCfdCl( );
 }
 
 Mutex::~Mutex() {
     delete SchedulerCfd;
+
+    // TODO: waiting threads?? should not happen
+
+#if MEM_NO_FREE
+    LinkedListItem* item = m_unusedLinkedListDBItems.removeHead();
+    while (item) {
+        delete item;
+        item = m_unusedLinkedListDBItems.removeHead();
+    }
+#endif
 }
 
 ErrorT Mutex::acquire( Resource* pRes, bool blocking ) {
@@ -50,7 +60,7 @@ ErrorT Mutex::acquire( Resource* pRes, bool blocking ) {
 
     if (m_locked == false)
     {
-        /* successfully aquired mutex */
+        /* successfully acquired mutex */
         m_locked 	= true;
         m_pThread 	= pCallingThread;
         m_pRes 		= pRes;
@@ -85,16 +95,20 @@ ErrorT Mutex::acquire( Resource* pRes, bool blocking ) {
 			#endif
         #endif
 
+#if MEM_NO_FREE
         /* enter thread into scheduler and reuse linkedlistdatabaseitems to avoid memory leaks! */
         if ( m_unusedLinkedListDBItems.isEmpty() ) {
+#endif
 		   getScheduler()->enter( pCallingThread );
+#if MEM_NO_FREE
 	   }
 	   else {
 		   /* we have an unused LLDB item, so we reuse it instead of creating a new one */
-		   LinkedListDatabaseItem* newItem = m_unusedLinkedListDBItems.removeHead();
+		   LinkedListItem* newItem = m_unusedLinkedListDBItems.removeHead();
 		   newItem->setData( pCallingThread );
 		   getScheduler()->enter( newItem );
 	   }
+#endif
 
         /* now block the calling thread! */
         pCallingThread->pBlockedMutex = this;
@@ -102,6 +116,8 @@ ErrorT Mutex::acquire( Resource* pRes, bool blocking ) {
 
         // TODO: how to handle unblocked threads if this mutex is deleted?
         // they will get here and reference invalid memory locations!
+        // solution to be implemented: delayed removal of mutexes and resources!
+        // mark as invalid resource and wake up all thread => then remove
 
         return (cOk);
     }
@@ -117,10 +133,13 @@ ErrorT Mutex::release( ) {
     _disableInterrupts();
 
     /* remove the resource from the acquired list of the owner task */
-    if ( m_pRes != 0 && pCurrentRunningTask != 0 )
-          pCurrentRunningTask->aquiredResources.removeItem( m_pRes );
+    if ( m_pRes != 0 && pCurrentRunningTask != 0 ) {
+        ListItem* removedItem = pCurrentRunningTask->aquiredResources.removeItem( m_pRes );
+         if (removedItem == 0)
+             return (cElementNotInDatabase);
+    }
 
-    LOG(SYNCHRO,TRACE,(SYNCHRO,TRACE,"Mutex 0x%x released",this));
+    LOG(SYNCHRO,TRACE,"Mutex 0x%x released",this);
 
 
 #ifdef HAS_PRIORITY
@@ -132,8 +151,8 @@ ErrorT Mutex::release( ) {
 #endif
 #endif
 
-      /* get the next thread by the scheduler who is next to aquire the mutex */
-      LinkedListDatabaseItem* next = (LinkedListDatabaseItem*) getScheduler()->getNext();
+      /* get the next thread by the scheduler who is next to acquire the mutex */
+      LinkedListItem* next = (LinkedListItem*) getScheduler()->getNext();
       Kernel_ThreadCfdCl* pSchedulerThread;
       /* search the first not stopped thread */
       while (next != 0) {
@@ -141,7 +160,12 @@ ErrorT Mutex::release( ) {
           if ( pSchedulerThread->isStopped() ) m_stoppedThreads.addTail( pSchedulerThread );
           else {
         	  /* available thread found */
+
+#if MEM_NO_FREE
 			   m_unusedLinkedListDBItems.addHead(next);
+#else
+			   delete next;
+#endif
 			   m_pThread = pSchedulerThread;
 			   pSchedulerThread->pBlockedMutex = 0;
 
@@ -149,7 +173,6 @@ ErrorT Mutex::release( ) {
 				   pSchedulerThread->getOwner()->aquiredResources.addTail( m_pRes );
 				   /* reset the file position */
 				   if (m_pRes->getType() == cFile) ((File*) m_pRes)->resetPosition();
-
 			   }
 
 			   /* unblock the waiting thread */
@@ -159,13 +182,13 @@ ErrorT Mutex::release( ) {
 
 			   return (cOk);
           }
-          next = (LinkedListDatabaseItem*) getScheduler()->getNext();
+          next = (LinkedListItem*) getScheduler()->getNext();
       }
 
     /* no available thread to aquire the mutex */
     m_locked 	= false;
-    m_pThread = 0;
-    m_pRes 	= 0;
+    m_pThread   = 0;
+    m_pRes 	    = 0;
 
 	if ( int_enabled )  _enableInterrupts();
 
@@ -175,7 +198,7 @@ ErrorT Mutex::release( ) {
 
 void Mutex::threadResume( Kernel_ThreadCfdCl* pThread ) {
 
-    m_stoppedThreads.removeItem( (DatabaseItem*) pThread );
+    m_stoppedThreads.removeItem( (ListItem*) pThread );
 
     if (!m_locked)
     {
@@ -193,17 +216,22 @@ void Mutex::threadResume( Kernel_ThreadCfdCl* pThread ) {
 
     } else
     {
+#if MEM_NO_FREE
        /* enter thread into scheduler and reuse linkedlistdatabaseitems to avoid memory leaks! */
        if ( m_unusedLinkedListDBItems.isEmpty() ) {
+#endif
 		  getScheduler()->enter( pThread );
+#if MEM_NO_FREE
 	  }
 	  /* we have an unused LLDB item, so we reuse it instead of creating a new one */
 	  else {
-		  LinkedListDatabaseItem* newItem = m_unusedLinkedListDBItems.removeHead();
+		  LinkedListItem* newItem = m_unusedLinkedListDBItems.removeHead();
 		  newItem->setData( pThread );
 		  getScheduler()->enter( newItem );
 	  }
+#endif
     }
+
 
 
 }

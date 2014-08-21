@@ -22,7 +22,10 @@
 
 
 // wait for task to finish?
-#define cWait						1
+#define cWait						(1 << 0)
+
+/* Creation flag. Create resource. */
+#define cCreate                     (1 << 1)
 
 //-----------------------------------------------------
 // Error Messages
@@ -54,6 +57,13 @@
 #define cDirTypeORCOS		1
 /* Directory is a FAT directory */
 #define cDirTypeFAT32		2
+
+/* Absolute position inside file */
+#define SEEK_SET 0
+/* Offset from current position */
+#define SEEK_CUR 1
+/* Offset from end of file*/
+#define SEEK_END 2
 
 //-----------------------------------------------------
 // Syscall IDs
@@ -123,7 +133,11 @@
 #define cThread_WaitPID			34
 #define cFStatId				35
 #define cFRemoveID				36
-
-
+#define cGetPID                 37
+#define cShmUnmapId             38
+#define cGetDateTimeSyscallId   39
+#define cMkDevSyscallId         40
+#define cTaskioctlscallId       41
+#define cFSeekSyscallId         42
 
 #endif /* TASKLIB_HH_ */

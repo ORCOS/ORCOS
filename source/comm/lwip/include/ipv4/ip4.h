@@ -41,10 +41,11 @@
 #include "lwip/netif.h"
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-/** Currently, the function ip_output_if_opt() is only used with IGMP */
+    /** Currently, the function ip_output_if_opt() is only used with IGMP */
 #define IP_OPTIONS_SEND   LWIP_IGMP
 
 #define IP4_HLEN 20
@@ -54,9 +55,9 @@ extern "C" {
 #define IP4_PROTO_UDPLITE 136
 #define IP4_PROTO_TCP     6
 
-/* This is passed as the destination address to ip_output_if (not
-   to ip_output), meaning that an IP header already is constructed
-   in the pbuf. This is used when TCP retransmits. */
+    /* This is passed as the destination address to ip_output_if (not
+     to ip_output), meaning that an IP header already is constructed
+     in the pbuf. This is used when TCP retransmits. */
 #ifdef IP4_HDRINCL
 #undef IP4_HDRINCL
 #endif /* IP_HDRINCL */
@@ -68,10 +69,10 @@ extern "C" {
 #define IP4_PCB_ADDRHINT
 #endif /* LWIP_NETIF_HWADDRHINT */
 
-/* This is the common part of all PCB types. It needs to be at the
-   beginning of a PCB type definition. It is located here so that
-   changes to this common part are made in one location instead of
-   having to change all PCB structs. */
+    /* This is the common part of all PCB types. It needs to be at the
+     beginning of a PCB type definition. It is located here so that
+     changes to this common part are made in one location instead of
+     having to change all PCB structs. */
 #define IP4_PCB \
   /* ip addresses in network byte order */ \
   struct ip4_addr local_ip; \
@@ -85,14 +86,15 @@ extern "C" {
   /* link layer address resolution hint */ \
   IP4_PCB_ADDRHINT
 
-struct ip4_pcb {
-/* Common members of all PCB types */
-  IP4_PCB;
-};
+    struct ip4_pcb
+    {
+        /* Common members of all PCB types */
+        IP4_PCB;
+    };
 
-/*
- * Option flags per-socket. These are the same like SO_XXX.
- */
+    /*
+     * Option flags per-socket. These are the same like SO_XXX.
+     */
 #define SOF_DEBUG       (u16_t)0x0001U    /* turn on debugging info recording */
 #define SOF_ACCEPTCONN  (u16_t)0x0002U    /* socket has had listen() */
 #define SOF_REUSEADDR   (u16_t)0x0004U    /* allow local address reuse */
@@ -104,7 +106,6 @@ struct ip4_pcb {
 #define SOF_OOBINLINE   (u16_t)0x0100U    /* leave received OOB data in line */
 #define SOF_REUSEPORT   (u16_t)0x0200U    /* allow local address & port reuse */
 
-
 #ifdef PACK_STRUCT_USE_INCLUDES
 #  include "arch/bpstruct.h"
 #endif
@@ -114,26 +115,26 @@ struct ip4_pcb {
 #define IP4_MF 0x2000        /* more fragments flag */
 #define IP4_OFFMASK 0x1fff   /* mask for fragmenting bits */
 
-
-PACK_STRUCT_BEGIN
-struct ip4_hdr {
-  /* version / header length / type of service */
-  PACK_STRUCT_FIELD(u16_t _v_hl_tos);
-  /* total length */
-  PACK_STRUCT_FIELD(u16_t _len);
-  /* identification */
-  PACK_STRUCT_FIELD(u16_t _id);
-  /* fragment offset field */
-  PACK_STRUCT_FIELD(u16_t _offset);
-  /* time to live / protocol*/
-  PACK_STRUCT_FIELD(u16_t _ttl_proto);
-  /* checksum */
-  PACK_STRUCT_FIELD(u16_t _chksum);
-  /* source and destination IP addresses */
-  PACK_STRUCT_FIELD(struct ip4_addr src);
-  PACK_STRUCT_FIELD(struct ip4_addr dest);
-} PACK_STRUCT_STRUCT;
-PACK_STRUCT_END
+    PACK_STRUCT_BEGIN
+    struct ip4_hdr
+    {
+        /* version / header length / type of service */
+        PACK_STRUCT_FIELD(u16_t _v_hl_tos);
+        /* total length */
+        PACK_STRUCT_FIELD(u16_t _len);
+        /* identification */
+        PACK_STRUCT_FIELD(u16_t _id);
+        /* fragment offset field */
+        PACK_STRUCT_FIELD(u16_t _offset);
+        /* time to live / protocol*/
+        PACK_STRUCT_FIELD(u16_t _ttl_proto);
+        /* checksum */
+        PACK_STRUCT_FIELD(u16_t _chksum);
+        /* source and destination IP addresses */
+        PACK_STRUCT_FIELD(struct ip4_addr src);
+        PACK_STRUCT_FIELD(struct ip4_addr dest);
+    }PACK_STRUCT_STRUCT;
+    PACK_STRUCT_END
 #ifdef PACK_STRUCT_USE_INCLUDES
 #  include "arch/epstruct.h"
 #endif
@@ -156,38 +157,38 @@ PACK_STRUCT_END
 #define IP4H_PROTO_SET(hdr, proto) (hdr)->_ttl_proto = (htons((proto) | (IP4H_TTL(hdr) << 8)))
 #define IP4H_CHKSUM_SET(hdr, chksum) (hdr)->_chksum = (chksum)
 
-/** The interface that provided the packet for the current callback invocation. */
-extern struct netif *current_netif;
-/** Header of the input packet currently being processed. */
-extern const struct ip4_hdr *current_header;
+    /** The interface that provided the packet for the current callback invocation. */
+    extern struct netif *current_netif;
+    /** Header of the input packet currently being processed. */
+    extern const struct ip4_hdr *current_header;
 
 #define ip4_init() /* Compatibility define, not init needed. */
-struct netif *ip4_route(struct ip4_addr *dest);
-err_t ip4_input(struct pbuf *p, struct netif *inp);
-err_t ip4_output(struct pbuf *p, struct ip4_addr *src, struct ip4_addr *dest,
-       u8_t ttl, u8_t tos, u8_t proto);
-err_t ip4_output_if(struct pbuf *p, struct ip4_addr *src, struct ip4_addr *dest,
-       u8_t ttl, u8_t tos, u8_t proto,
-       struct netif *netif);
+    struct netif *ip4_route(struct ip4_addr *dest);
+    err_t ip4_input(struct pbuf *p, struct netif *inp);
+    err_t ip4_output(struct pbuf *p, struct ip4_addr *src, struct ip4_addr *dest,
+            u8_t ttl, u8_t tos, u8_t proto);
+    err_t ip4_output_if(struct pbuf *p, struct ip4_addr *src, struct ip4_addr *dest,
+            u8_t ttl, u8_t tos, u8_t proto,
+            struct netif *netif);
 #if LWIP_NETIF_HWADDRHINT
-err_t ip4_output_hinted(struct pbuf *p, struct ip4_addr *src, struct ip4_addr *dest,
-       u8_t ttl, u8_t tos, u8_t proto, u8_t *addr_hint);
+    err_t ip4_output_hinted(struct pbuf *p, struct ip4_addr *src, struct ip4_addr *dest,
+            u8_t ttl, u8_t tos, u8_t proto, u8_t *addr_hint);
 #endif /* LWIP_NETIF_HWADDRHINT */
 #if IP_OPTIONS_SEND
-err_t ip4_output_if_opt(struct pbuf *p, struct ip4_addr *src, struct ip4_addr *dest,
-       u8_t ttl, u8_t tos, u8_t proto, struct netif *netif, void *ip_options,
-       u16_t optlen);
+    err_t ip4_output_if_opt(struct pbuf *p, struct ip4_addr *src, struct ip4_addr *dest,
+            u8_t ttl, u8_t tos, u8_t proto, struct netif *netif, void *ip_options,
+            u16_t optlen);
 #endif /* IP_OPTIONS_SEND */
-/** Get the interface that received the current packet.
- * This function must only be called from a receive callback (udp_recv,
- * raw_recv, tcp_accept). It will return NULL otherwise. */
+    /** Get the interface that received the current packet.
+     * This function must only be called from a receive callback (udp_recv,
+     * raw_recv, tcp_accept). It will return NULL otherwise. */
 #define ip4_current_netif()  (current_netif)
-/** Get the IP header of the current packet.
- * This function must only be called from a receive callback (udp_recv,
- * raw_recv, tcp_accept). It will return NULL otherwise. */
+    /** Get the IP header of the current packet.
+     * This function must only be called from a receive callback (udp_recv,
+     * raw_recv, tcp_accept). It will return NULL otherwise. */
 #define ip4_current_header() (current_header)
 #if IP_DEBUG
-void ip4_debug_print(struct pbuf *p);
+    void ip4_debug_print(struct pbuf *p);
 #else
 #define ip4_debug_print(p)
 #endif /* IP_DEBUG */
@@ -197,5 +198,4 @@ void ip4_debug_print(struct pbuf *p);
 #endif
 
 #endif /* __LWIP_IP_H__ */
-
 

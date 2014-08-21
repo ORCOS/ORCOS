@@ -11,7 +11,7 @@
 extern Kernel* 	theOS;
 extern Task* 	pCurrentRunningTask;
 extern Thread* 	pCurrentRunningThread;
-extern LinkedListDatabaseItem* pRunningThreadDbItem;
+extern LinkedListItem* pRunningThreadDbItem;
 
 TaskErrorHandler::TaskErrorHandler() {
 
@@ -41,20 +41,22 @@ void TaskErrorHandler::handleError(ErrorType eErrorType) {
 			/* currently no other policy then removing the task */
 			theOS->getTaskManager()->removeTask(t);
 		}else {
+#if USE_WORKERTASK
 			/* reset workerthread */
 			WorkerThread* wt = (WorkerThread*) pCurrentRunningThread;
 			wt->setJob(None,0);
 			wt->block();
+#endif
 		}
 
 		pRunningThreadDbItem = 0;
 		pCurrentRunningThread = 0;
 
 		/* Continue executing anything else */
-		LOG(KERNEL,DEBUG,(KERNEL,DEBUG,"TaskErrorHandler::handleError: dispatching"));
-		theOS->getCPUDispatcher()->dispatch(  );
+		LOG(KERNEL,DEBUG,"TaskErrorHandler::handleError: Dispatching");
+		theOS->getDispatcher()->dispatch(  );
 	} else {
-		LOG(KERNEL,ERROR,(KERNEL,ERROR,"FATAL error occurred during BOOT. Can not recover from this."));
+		LOG(KERNEL,ERROR,"FATAL error occurred during BOOT. Can not recover from this.");
 		while (1) {};
 	}
 

@@ -32,8 +32,8 @@ RoundRobinThreadScheduler::~RoundRobinThreadScheduler() {
 
 }
 
-DatabaseItem* RoundRobinThreadScheduler::getNext() {
-    LinkedListDatabaseItem* nextItem = this->database.removeHead();
+ListItem* RoundRobinThreadScheduler::getNext() {
+    LinkedListItem* nextItem = this->database.removeHead();
 
     // this implies that this thread will be the active thread then
     return nextItem;
@@ -43,13 +43,13 @@ void RoundRobinThreadScheduler::startScheduling() {
     // empty since no schedule needs to be calculated..
 }
 
-TimeT RoundRobinThreadScheduler::getNextTimerEvent( LinkedListDatabase* sleepList,TimeT currentTime ) {
+TimeT RoundRobinThreadScheduler::getNextTimerEvent( LinkedList* sleepList,TimeT currentTime ) {
     ASSERT(sleepList);
 
      TimeT shortest_sleeptime = MAX_UINT8;
 
      // update sleeplist
-     LinkedListDatabaseItem* pDBSleepItem = sleepList->getHead();
+     LinkedListItem* pDBSleepItem = sleepList->getHead();
      if ( pDBSleepItem != 0 ) {
 
          do {
@@ -57,7 +57,7 @@ TimeT RoundRobinThreadScheduler::getNextTimerEvent( LinkedListDatabase* sleepLis
 
               if ( pSleepThread->sleepTime <= currentTime ) {
                   pSleepThread->status.setBits( cReadyFlag );
-                  LinkedListDatabaseItem* litem2 = pDBSleepItem;
+                  LinkedListItem* litem2 = pDBSleepItem;
                   pDBSleepItem = pDBSleepItem->getSucc();
                   pSleepThread->sleepTime = 0;
                   this->enter( litem2 );

@@ -9,21 +9,21 @@
 #define ENDIAN_H_
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-unint4 cputole32(unint4 n);
+    unint4 cputole32(unint4 n);
 
-unint2 cputole16(unint2 n);
+    unint2 cputole16(unint2 n);
 
-unint4 cputobe32(unint4 n);
+    unint4 cputobe32(unint4 n);
 
-unint2 cputobe16(unint2 n);
+    unint2 cputobe16(unint2 n);
 
 #ifdef __cplusplus
 }
 #endif
-
 
 #define ___swab32(x) \
 	((unint4)( \
@@ -31,6 +31,5 @@ unint2 cputobe16(unint2 n);
 		(((unint4)(x) & (unint4)0x0000ff00UL) <<  8) | \
 		(((unint4)(x) & (unint4)0x00ff0000UL) >>  8) | \
 		(((unint4)(x) & (unint4)0xff000000UL) >> 24) ))
-
 
 #endif /* ENDIAN_H_ */

@@ -24,11 +24,12 @@
 extern Task* pCurrentRunningTask;
 extern Kernel* theOS;
 
-CAB::CAB( void* p_bufferstart, unint4 u_length, Task* p_ownerTask ) {
+CAB::CAB(void* p_bufferstart, unint4 u_length, Task* p_ownerTask) {
 
 #ifdef HAS_Board_HatLayerCfd
     // well be working on the physical address when storing only
-    this->bufferstart_physical = (char*) theOS->getHatLayer()->getPhysicalAddress(p_bufferstart);
+    this->bufferstart_physical =
+            (char*) theOS->getHatLayer()->getPhysicalAddress(p_bufferstart);
     ASSERT(bufferstart_physical != 0);
 #endif
 
@@ -41,7 +42,7 @@ CAB::CAB( void* p_bufferstart, unint4 u_length, Task* p_ownerTask ) {
     this->actb = -1;
     this->ownerTask = p_ownerTask;
 
-    LOG( COMM, DEBUG,(COMM, DEBUG, "CAB::CAB(): created CAB with %d buffer of size %d", MAX_BUF, dim_buf) );
+    LOG(COMM, DEBUG, (COMM, DEBUG, "CAB::CAB(): created CAB with %d buffer of size %d", MAX_BUF, dim_buf));
 }
 
 CAB::~CAB() {
@@ -54,125 +55,142 @@ CAB::~CAB() {
  *  - address in kernel heap (if message was received from a remote peer)
  *
  */
-ErrorT CAB::store( char* pmsg, unsigned int msglen ) {
-   ASSERT(pmsg);
+ErrorT CAB::store(char* pmsg, unsigned int msglen) {
+    ASSERT(pmsg);
 
-   if( msglen > this->dim_buf ) {
-       if (pCurrentRunningTask){
-           LOG( COMM, ERROR,(COMM, ERROR, "%d: CAB::store(): msglen to big for CAB! %d > %d", pCurrentRunningTask->getId(), msglen, dim_buf) );
-       }else{
-           LOG( COMM, ERROR,(COMM, ERROR, "CAB::store(): msglen to big for CAB! %d > %d", msglen, dim_buf) );
-       }
-           return (cError);
-       }
+    if (msglen > this->dim_buf)
+    {
+        if (pCurrentRunningTask)
+        {
+            LOG(COMM, ERROR, (COMM, ERROR, "%d: CAB::store(): msglen to big for CAB! %d > %d", pCurrentRunningTask->getId(), msglen, dim_buf));
+        }
+        else
+        {
+            LOG(COMM, ERROR, (COMM, ERROR, "CAB::store(): msglen to big for CAB! %d > %d", msglen, dim_buf));
+        }
+        return (cError );
+    }
 
-   if (pCurrentRunningTask){
-       LOG( COMM, DEBUG,(COMM, DEBUG, "Task %d: CAB::store(): actb=%d, free=%d", pCurrentRunningTask->getId(), actb, free) );
-   }else {
-       LOG( COMM, DEBUG,(COMM, DEBUG, "CAB::store(): actb=%d, free=%d", actb, free) );
-   }
+    if (pCurrentRunningTask)
+    {
+        LOG(COMM, DEBUG, (COMM, DEBUG, "Task %d: CAB::store(): actb=%d, free=%d", pCurrentRunningTask->getId(), actb, free));
+    }
+    else
+    {
+        LOG(COMM, DEBUG, (COMM, DEBUG, "CAB::store(): actb=%d, free=%d", actb, free));
+    }
 
-   if ( (int) free == actb ) {
-           // increment actb so it points to the second oldest and now new oldest msg
-	   	   actb++;
-	   	   if ( actb == MAX_BUF) actb = 0;
-      }
+    if ((int) free == actb)
+    {
+        // increment actb so it points to the second oldest and now new oldest msg
+        actb++;
+        if (actb == MAX_BUF)
+            actb = 0;
+    }
 
+    unint4 dest;
+    bool int_enabled;
+    GET_INTERRUPT_ENABLE_BIT(int_enabled);
 
-   unint4 dest;
-   bool int_enabled;
-   GET_INTERRUPT_ENABLE_BIT(int_enabled);
-
-   // TODO: disable interrupts for the complete memcpy may take too long
-   _disableInterrupts();
-
+    // TODO: disable interrupts for the complete memcpy may take too long
+    _disableInterrupts();
 
 #ifdef HAS_Board_HatLayerCfd
 
     unint2 pid = 0;
     if (pCurrentRunningTask != 0)
-    	pid = pCurrentRunningTask->getId();
+        pid = pCurrentRunningTask->getId();
 
     // map this buffer into the logical address space of the calling task
     // TODO: size calculation may be wrong! mapping may need more than 1 page ..
     // ARM does need bufferstart_physical to be a page address!
 
-    unint4 phypage = (((unint4)bufferstart_physical) >> 20) << 20;
-    unint4 offset = (unint4)bufferstart_physical - (unint4)phypage;
+    unint4 phypage = (((unint4) bufferstart_physical) >> 20) << 20;
+    unint4 offset = (unint4) bufferstart_physical - (unint4) phypage;
 
-    void* realPage = theOS->getHatLayer()->map((void*) 0x7000000,(void*) phypage, 0x700000-1 ,7,3,pid, !ICACHE_ENABLE);
+    void* realPage =
+            theOS->getHatLayer()->map((void*) 0x7000000, (void*) phypage, 0x700000
+                                              - 1, 7, 3, pid, !ICACHE_ENABLE);
 
     dest = ((unint4) 0x7000000 + offset + this->free * this->dim_buf);
 
-    void* dest_phy = theOS->getHatLayer()->getPhysicalAddress( (void*) dest);
+    void* dest_phy = theOS->getHatLayer()->getPhysicalAddress((void*) dest);
 
-    LOG( COMM, DEBUG,(COMM, DEBUG,"CAB::store(): buf_phy: 0x%x realPage: 0x%x dest_log: 0x%x, dest_phy; 0x%x", bufferstart_physical, realPage,dest,dest_phy) );
+    LOG(COMM, DEBUG, (COMM, DEBUG,"CAB::store(): buf_phy: 0x%x realPage: 0x%x dest_log: 0x%x, dest_phy; 0x%x", bufferstart_physical, realPage,dest,dest_phy));
 
 #else
     dest = (unint4) bufferstart + this->free * this->dim_buf;
 #endif
 
-    ( (unint2*) dest )[ 0 ] = 0;
+    ((unint2*) dest)[0] = 0;
     // write data into buffer
-    ( (unint2*) (dest + 2 ) )[ 0 ] = (unint2) msglen;
-   // copy from source to dest
-    memcpy( (void*) ( dest +  4 ), (void*) pmsg, msglen );
+    ((unint2*) (dest + 2))[0] = (unint2) msglen;
+    // copy from source to dest
+    memcpy((void*) (dest + 4), (void*) pmsg, msglen);
 
 #ifdef HAS_Board_HatLayerCfd
     theOS->getHatLayer()->unmap((void*) 0x7000000);
     theOS->getHatLayer()->unmap((void*) 0x7100000);
 #endif
-    if ( int_enabled ) {
-               _enableInterrupts();
-           }
+    if (int_enabled)
+    {
+        _enableInterrupts();
+    }
     // set actual buffer to this buffer if it was unset before
-    if ( actb == -1 )
+    if (actb == -1)
         actb = free;
 
     int ret = free;
 
     free++;
-    if (free == MAX_BUF) free = 0;
+    if (free == MAX_BUF)
+        free = 0;
 
     return (ret);
 }
 
-int2 CAB::get( char** addressof_ret_ptrtomsg, int2 &buffer ) {
+int2 CAB::get(char** addressof_ret_ptrtomsg, int2 &buffer) {
     ASSERT(addressof_ret_ptrtomsg);
-    if (pCurrentRunningTask){
-    	 LOG( COMM, DEBUG,(COMM, DEBUG, "%d: CAB::get(): actb=%d, free=%d", pCurrentRunningTask->getId(), actb, free) );
-    }else {
-    	 LOG( COMM, DEBUG,(COMM, DEBUG, "CAB::get(): actb=%d, free=%d", actb, free) );
+    if (pCurrentRunningTask)
+    {
+        LOG(COMM, DEBUG, (COMM, DEBUG, "%d: CAB::get(): actb=%d, free=%d", pCurrentRunningTask->getId(), actb, free));
+    }
+    else
+    {
+        LOG(COMM, DEBUG, (COMM, DEBUG, "CAB::get(): actb=%d, free=%d", actb, free));
     }
 
     buffer = actb;
 #ifdef HAS_Board_HatLayerCfd
     unint4 addr = ((unint4) bufferstart) + this->actb * this->dim_buf;
-    void* phy_addr =  theOS->getHatLayer()->getPhysicalAddress( (void*) addr );
-    LOG( COMM, DEBUG,(COMM, DEBUG,"CAB::get(): addr: 0x%x phy_addr: 0x%x", addr,phy_addr) );
+    void* phy_addr = theOS->getHatLayer()->getPhysicalAddress((void*) addr);
+    LOG(COMM, DEBUG, (COMM, DEBUG,"CAB::get(): addr: 0x%x phy_addr: 0x%x", addr,phy_addr));
 #endif
 
     int2 retlen = 0;
     // check if we have a message at all
-    if ( this->actb != -1 ) {
+    if (this->actb != -1)
+    {
 
-        *addressof_ret_ptrtomsg = (char*) ( (int) bufferstart + this->actb * this->dim_buf + 4 );
+        *addressof_ret_ptrtomsg = (char*) ((int) bufferstart
+                + this->actb * this->dim_buf + 4);
 
         // return length of data as pointer
-        retlen = ( (int2*) ( (int) bufferstart + this->actb * this->dim_buf + 2 ) )[ 0 ];
+        retlen =
+                ((int2*) ((int) bufferstart + this->actb * this->dim_buf + 2))[0];
 
         actb++;
-        if (actb == MAX_BUF) actb = 0;
+        if (actb == MAX_BUF)
+            actb = 0;
 
         // check if next buffer to read has message
-        if ( (unsigned int) actb == free )
+        if ((unsigned int) actb == free)
             actb = -1;
     }
-    else {
+    else
+    {
         *addressof_ret_ptrtomsg = (char*) 0;
     }
-
-
 
     return retlen;
 }

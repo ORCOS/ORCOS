@@ -19,34 +19,33 @@
 #include "process/Thread.hh"
 #include "kernel/Kernel.hh"
 #include <assemblerFunctions.hh>
+#include "inc/error.hh"
 
-// This is the hardware dependend method to start the thread the very first time
-// needs to be resolved by the linker
-extern void startThread( Thread* thread );
+/* This is the hardware dependent method to start the thread the very first time
+ * needs to be resolved by the linker */
+extern void startThread(Thread* thread);
 
-// the kernel object
+/* the kernel object */
 extern Kernel* theOS;
 extern Thread* pCurrentRunningThread;
-extern Board_ClockCfdCl* theClock;
-extern TimeT  lastCycleStamp;
-extern Task* pCurrentRunningTask;
+extern Task*   pCurrentRunningTask;
 
-// static non-const member variable initialization
-// will be executed in ctor
+/* static non-const member variable initialization
+ * will be executed in ctor */
 ThreadIdT Thread::globalThreadIdCounter;
 
-// check if stack growing direction is set by scl
+/* check if stack growing direction is set by scl */
 #ifndef STACK_GROWS_DOWNWARDS
 #error 'STACK_GROWS_DOWNWARDS' not defined!
 #endif
 
-//! depending on the abi, some bytes has to be reserved for the stack frame
-// (important for the task stack, otherwise the task heap could be corrupted by calling the startThread method)
+/*! depending on the ABI, some bytes has to be reserved for the stack frame
+ * (important for the task stack, otherwise the task heap could be corrupted by calling the startThread method) */
 #ifndef RESERVED_BYTES_FOR_STACKFRAME
 #error 'RESERVED_BYTES_FOR_STACKFRAME' not defined!
 #endif
 
-// check whether the default stack size is specified by scl
+/* check whether the default stack size is specified by scl */
 #ifndef DEFAULT_USER_STACK_SIZE
 #error 'DEFAULT_USER_STACK_SIZE' not defined!
 #endif
@@ -54,50 +53,52 @@ ThreadIdT Thread::globalThreadIdCounter;
 /*--------------------------------------------------------------------------*
  ** Thread::Thread
  *---------------------------------------------------------------------------*/
-Thread::Thread( void* p_startRoutinePointer, void* p_exitRoutinePointer, Task* p_owner, Kernel_MemoryManagerCfdCl* memManager,
-        unint4 stack_size, void* attr, bool newThread ) {
+Thread::Thread(void* p_startRoutinePointer, void* p_exitRoutinePointer, Task* p_owner, Kernel_MemoryManagerCfdCl* memManager, unint4 stack_size, void* attr, bool newThread) {
 
     ASSERT(p_owner);
     ASSERT(memManager);
 
-    this->myThreadId 			= globalThreadIdCounter++;
-    this->startRoutinePointer 	= p_startRoutinePointer;
-    this->exitRoutinePointer 	= p_exitRoutinePointer;
-    this->owner 				= p_owner;
+    this->myThreadId            = globalThreadIdCounter++;
+    this->startRoutinePointer   = p_startRoutinePointer;
+    this->exitRoutinePointer    = p_exitRoutinePointer;
+    this->owner                 = p_owner;
+    this->arguments             = 0;
+    this->sleepTime             = 0;
+    this->signal                = 0;
+    this->signalvalue           = -1;
+    this->pBlockedMutex         = 0;
+    this->blockTimeout          = 0;
     this->status.clear();
     this->status.setBits( cNewFlag );
-    this->arguments 			= 0;
-    this->sleepTime 			= 0;
-    this->signal 				= 0;
-    this->signalvalue			= -1;
-    this->pBlockedMutex			= 0;
 
-    /* inform my owner that i belong to him */
-    if ( owner != 0 )
-        owner->addThread( static_cast< Kernel_ThreadCfdCl* > ( this ) );
+    /* inform owner task that this thread belongs to him */
+    if (owner != 0)
+        owner->addThread(static_cast< Kernel_ThreadCfdCl*>(this));
 
     if (owner != 0)
-    	TRACE_ADD_SOURCE(owner->getId(),this->myThreadId,0);
+        TRACE_ADD_SOURCE(owner->getId(),this->myThreadId,0);
     else
-    	TRACE_ADD_SOURCE(0,this->myThreadId,0);
+        TRACE_ADD_SOURCE(0,this->myThreadId,0);
 
     /* create the thread stack inside the tasks heap!
        thus the memManager of the heap is used! */
 
-    if (pCurrentRunningTask == 0 || pCurrentRunningTask == owner) {
-    	this->threadStack.startAddr = memManager->alloc( stack_size + RESERVED_BYTES_FOR_STACKFRAME, true );
-    } else {
-    	/* we are creating this thread from the context of another task
-    	   probably by new Task() from a system call. Thus, we can not access the memory of the owner task now
-    	   as they both have the same LOG_START_ADDRESS.
-    	   switching PID does not work as we are working on the thread stack of the calling task..
-    	   thus, the TaskManager will set this address. */
-    	this->threadStack.startAddr = (void*) owner->getTaskTable()->task_heap_start;
+    if (pCurrentRunningTask == 0 || pCurrentRunningTask == owner)
+    {
+        this->threadStack.startAddr = memManager->alloc(stack_size + RESERVED_BYTES_FOR_STACKFRAME, true);
+    }
+    else
+    {
+        /* we are creating this thread from the context of another task
+         probably by new Task() from a system call. Thus, we can not access the memory of the owner task now
+         as they both have the same LOG_START_ADDRESS.
+         switching PID does not work as we are working on the thread stack of the calling task..
+         thus, the TaskManager will set this address. */
+        this->threadStack.startAddr = (void*) owner->getTaskTable()->task_heap_start;
     }
 
-    this->threadStack.endAddr = (void*) ( (byte*) threadStack.startAddr + stack_size );
-    this->threadStack.top = 0;
-
+    this->threadStack.endAddr   = (void*) ((byte*) threadStack.startAddr + stack_size + RESERVED_BYTES_FOR_STACKFRAME);
+    this->threadStack.top       = 0;
 
 }
 
@@ -109,7 +110,7 @@ ErrorT Thread::run() {
     this->status.setBits( cReadyFlag );
 
     /* inform the global cpu scheduler that i am ready to run */
-    return (theOS->getCPUScheduler()->enter( this ));
+    return (theOS->getCPUScheduler()->enter(this));
 }
 
 /*--------------------------------------------------------------------------*
@@ -119,25 +120,28 @@ void Thread::callMain() {
     /* clear the new flag since we are not new anymore */
     this->status.clearBits( cNewFlag );
 
-    startThread( this );
+    startThread(this);
 }
 
 /*--------------------------------------------------------------------------*
  ** Thread::sleep
  *---------------------------------------------------------------------------*/
-void Thread::sleep( TimeT timePoint, LinkedListDatabaseItem* item ) {
+void Thread::sleep(TimeT timePoint, LinkedListItem* item) {
 
-    LOG(PROCESS,DEBUG,(PROCESS,DEBUG,"Thread::sleep: TimePoint: %x %x", (unint4) ((timePoint >> 32) & 0xffffffff),  (unint4) ((timePoint) & 0xffffffff)));
+    LOG(PROCESS, DEBUG, "Thread::sleep: TimePoint: %x %x",
+        (unint4) ((timePoint >> 32) & 0xffffffff),
+        (unint4) ((timePoint) & 0xffffffff));
+
     TRACE_THREAD_STOP(this->getOwner()->getId(),this->getId());
 
-	this->sleepTime = timePoint;
+    this->sleepTime = timePoint;
 
-    /* unset the ready flag since we are not ready to run */
+    /* remove the ready flag since we are not ready to run */
     this->status.clearBits( cReadyFlag );
 
-    /* inform the current cpuscheduler that im going to sleep
-       the scheduler then puts the sleep into some sleep queue */
-    theOS->getCPUDispatcher()->sleep( item );
+    /* inform the current cpu scheduler that we are going to sleep
+     the scheduler then puts the thread into some sleep queue */
+    theOS->getDispatcher()->sleep(item);
 
 }
 
@@ -145,16 +149,15 @@ void Thread::sleep( TimeT timePoint, LinkedListDatabaseItem* item ) {
  ** Thread::sigwait
  *---------------------------------------------------------------------------*/
 #ifdef ORCOS_SUPPORT_SIGNALS
-void Thread::sigwait( void* sig ) {
+void Thread::sigwait(void* sig) {
     signal = sig;
 
     status.clearBits( cReadyFlag );
     status.setBits( cSignalFlag );
 
-    theOS->getCPUDispatcher()->sigwait( this );
+    theOS->getDispatcher()->sigwait(this);
 }
 #endif
-
 
 /*--------------------------------------------------------------------------*
  ** Thread::getMemManager
@@ -163,46 +166,46 @@ Kernel_MemoryManagerCfdCl* Thread::getMemManager() {
     return (owner->getMemManager());
 }
 
-
 /*--------------------------------------------------------------------------*
  ** Thread::block
  *---------------------------------------------------------------------------*/
-void Thread::block() {
-    /* unset the ready flag since we are not ready to run */
+void Thread::block(unint4 timeout) {
+    /* remove the ready flag since we are not ready to run any more */
     this->status.clearBits( cReadyFlag );
     this->status.setBits( cBlockedFlag );
+    this->blockTimeout = timeout;
 
     if (pCurrentRunningThread != this)
     {
         /* no need to save context since its not the currently running thread thats going to be blocked */
-        theOS->getCPUDispatcher()->block( this );
+        theOS->getDispatcher()->block(this);
     }
     else
     {
-    	/* since we are going to be blocked save the thread context! */
-        unsigned char buf[ PROCESSOR_CONTEXT_SIZE + 16 ];
+        /* since we are going to be blocked save the thread context! */
+        unsigned char buf[ PROCESSOR_CONTEXT_SIZE + 16];
         void* stackpointer = &buf;
 
-        LOG(PROCESS,DEBUG,(PROCESS,DEBUG,"Thread::block() id=%d stackpointer=%x ",this->getId(),stackpointer));
+        LOG(PROCESS, DEBUG, "Thread::block() id=%d stackpointer=%x ",this->getId(),stackpointer);
 
         /* Save Register and msr like the context save method in an interrupt handler would do */
         SAVE_CONTEXT_AT(&buf);
         ASSERT(isOk(this->pushStackPointer( stackpointer )));
 
-        #ifdef PLATFORM_ARM
+#ifdef PLATFORM_ARM
         /* context restore mode will be svc mode */
         ASSERT(isOk(this->pushStackPointer( (void*) 0xd3 )));
-		#endif
+#endif
 
-        /* inform the current cpuscheduler that im going to sleep
-           the scheduler then puts the thread into some sleep queue */
-        theOS->getCPUDispatcher()->block( this );
+        /* inform the current cpu scheduler (non returning call).
+           the scheduler then puts the thread into some blocked queue */
+        theOS->getDispatcher()->block(this);
 
         /* restore point must be referenced in SAVE_CONTEXT_AT */
         asm volatile("returnof:");
 
-        /* dont put anything here! since optimized code may use variables inside register
-           that have been initialized only after the context was saved at SAVE_CONTEXT! */
+        /* don not put anything here! since optimized code may use variables inside register
+         that have been initialized only after the context was saved at SAVE_CONTEXT! */
     }
 
 }
@@ -212,38 +215,42 @@ void Thread::block() {
  *---------------------------------------------------------------------------*/
 void Thread::unblock() {
     /* unset the blocked flag since we are ready to run */
-    this->status.clearBits( cBlockedFlag );
-    if ( !this->status.areSet( cStopped ) ) {
+    this->status.clearBits( cBlockedFlag);
+    if (!this->status.areSet( cStopped))
+    {
 
-    	  LOG(PROCESS,DEBUG,(PROCESS,DEBUG,"Thread::unblock() id=%d",this->getId()));
+        LOG(PROCESS, DEBUG, "Thread::unblock() id=%d",this->getId());
 
         /* we are allowed to run again since the task is not stopped */
-        this->status.setBits( cReadyFlag );
-        theOS->getCPUDispatcher()->unblock( this );
+        this->status.setBits( cReadyFlag);
+        theOS->getDispatcher()->unblock(this);
     }
-    else {
+    else
+    {
         /* our parent task is stopped so we cant just go on running */
     }
 }
 
 void Thread::resume() {
     this->status.clearBits( cStopped );
-    if ( !this->status.areSet( cBlockedFlag ) ) {
+    if (!this->status.areSet( cBlockedFlag ))
+    {
         /* we are allowed to unblock this thread */
-        this->status.setBits( cReadyFlag );
-        theOS->getCPUDispatcher()->unblock( this );
+        this->status.setBits( cReadyFlag);
+        theOS->getDispatcher()->unblock(this);
     }
-    else {
-        if ( pBlockedMutex != 0 )
-            pBlockedMutex->threadResume( (Kernel_ThreadCfdCl*) this );
+    else
+    {
+        if (pBlockedMutex != 0)
+            pBlockedMutex->threadResume((Kernel_ThreadCfdCl*) this);
     }
 }
 
 void Thread::stop() {
-    this->status.setBits( cStopped );
+    this->status.setBits( cStopped);
     /* if the thread is currently not blocked block it now */
-    if ( !this->status.areSet( cBlockedFlag ) )
-        theOS->getCPUDispatcher()->block( this );
+    if (!this->status.areSet( cBlockedFlag))
+        theOS->getDispatcher()->block(this);
 }
 
 /*--------------------------------------------------------------------------*
@@ -251,19 +258,27 @@ void Thread::stop() {
  *---------------------------------------------------------------------------*/
 void Thread::terminate() {
 
-    LOG(PROCESS,INFO,( PROCESS, INFO, "thread %d exited", this->myThreadId ));
+    LOG(PROCESS, INFO, "thread %d exited", this->myThreadId );
 
     /* remove myself from the owner */
-    this->owner->removeThread( this );
+    this->owner->removeThread(this);
     this->status.clear();
     this->status.setBits( cTermFlag );
 
 #ifdef ORCOS_SUPPORT_SIGNALS
-    /* be sure only threads inside our tasks are signalled as signal is global */
+    /* be sure only threads inside our tasks are signaled as signaling is global */
     unint4 signalnum = (this->owner->getId() << 16) | (SIG_CHILD_TERMINATED);
-    theOS->getCPUDispatcher()->signal((void*) signalnum,cOk);
+    theOS->getDispatcher()->signal((void*) signalnum, cOk);
 #endif
 
+    /* free thread stack.we are using it here thus the code
+     * path following is critical!
+     * however free only if this stack has been allocated from the memory manager.
+     * The only exception is the initial thread that is created by another process!
+     * */
+    if (pCurrentRunningTask == this->owner && this->owner->getMemManager()->containsAddr(this->threadStack.startAddr) )
+        this->owner->getMemManager()->free(this->threadStack.startAddr);
+
     /* finally tell cpu dispatcher that im gone.. */
-    theOS->getCPUDispatcher()->terminate_thread( this );
+    theOS->getDispatcher()->terminate_thread(this);
 }

@@ -41,21 +41,21 @@ public:
     /*!
      * \brief Registration method for existing resources (e.g devices)
      */
-    ErrorT registerResource( Resource* res ) {
-        return cNotImplemented;
+    ErrorT registerResource(Resource* res) {
+        return cNotImplemented ;
     }
 
     /*!
      * \brief creates a new resource by full path name (e.g new file /dir1/file1.txt)
      */
-    Resource* createResource( const char* pathname, int1 flags ) {
+    Resource* createResource(const char* pathname, int1 flags) {
         return 0;
     }
 
     /*!
      * \brief Returns an existing resource by full path name e.g /dev/serial0
      */
-    Resource* getResource( const char* pathname ) {
+    Resource* getResource(const char* pathname) {
         return 0;
     }
 
@@ -64,8 +64,8 @@ public:
      *
      * Depending on the flags different operations can be performed.
      */
-    ErrorT removeResource( char* pathname, int1 flags ) {
-        return cNotImplemented;
+    ErrorT removeResource(char* pathname, int1 flags) {
+        return cNotImplemented ;
     }
 };
 

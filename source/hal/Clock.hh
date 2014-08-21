@@ -22,9 +22,10 @@
 #include <error.hh>
 #include <types.hh>
 #include "GenericDeviceDriver.hh"
+#include "CallableObject.hh"
 
 /*!
- * HAL Class for time dependend functions
+ * HAL Class for time dependent functions
  */
 
 /*!
@@ -33,7 +34,7 @@
  * This structure represents a date consisting of
  * years, days, hours, minutes, seconds, ms and us.
  *
- * The size of the datatype is choosen accordingly the
+ * The size of the datatype is chosen accordingly the
  * datatypes in the normal calendar. for example you want to
  * store 90 minutes, don't write 90 to the minutes field but
  * write 1 to the hours field and 30 to the minutes field.
@@ -51,39 +52,47 @@ struct TimeStruct {
 /*!
  * \brief Clock provides an abstract interface for a target-dependend hardware clock implementations, part of the HAL
  */
-class Clock: public GenericDeviceDriver {
+class Clock : public CallableObject{
+
+private:
+    /* The Date Time at synchronization point*/
+    unint4 synchDateTime;
+
+    /* The local time at synchronization point*/
+    TimeT synchLocalCycles;
+
 public:
-    Clock( const char* name );
-    ~Clock();
+
+    Clock();
+
+    virtual ~Clock();
 
     /*!
      * \brief returns the time since startup
      * abstract function to get the time since system startup in [us] since
      * system startup.
      */
-    virtual TimeT getTimeSinceStartup() {
-        return cNotImplemented;
-    }
-    ;
+    virtual TimeT getClockCycles() = 0;
+
 
     /*!
-     * \brief writes the time since startup to the given TimeStruct
-     *
-     * writes the time since startup to the given TimeStruct structure.
-     * this is the preferable way for retrieving the time as it is much more
-     * accurate than the getTimeSinceStartup() function
+     * \brief Returns the current Date Time as an 4 byte unsigned integer
+     *        counting as seconds from January 1. 1970.
      */
-  /*  virtual bool getTimeSinceStartup( TimeStruct* ts ) {
-        return cNotImplemented;
-    }
-    ;*/
+    unint4 getDateTime();
 
-    /*!
+
+    /*
+     * Updates the datetime
+     */
+    void callbackFunc(void* param);
+
+    /*!     *
      * \brief resets the clock.
      */
     virtual void reset() {
     }
-    ;
+
 };
 
 #endif /*CLOCK_HH_*/

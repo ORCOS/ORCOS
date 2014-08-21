@@ -23,10 +23,10 @@
 #include "kernel/Kernel.hh"
 
 extern Kernel* theOS;
-extern Kernel_ThreadCfdCl*    pCurrentRunningThread;
+extern Kernel_ThreadCfdCl* pCurrentRunningThread;
 
 /* FATAL=0,ERROR=1,WARN=2,INFO=3,DEBUG=4,TRACE=5 */
-static const char* levelStrings[ 6 ] = { "FATAL", "ERROR", "WARN ", "INFO ", "DEBUG", "TRACE" };
+static const char* levelStrings[6] = { "FATAL", "ERROR", "WARN ", "INFO ", "DEBUG", "TRACE" };
 
 /*** Escape Sequenzen: **********/
 #define ESC_RED         "\033[31m"
@@ -38,16 +38,21 @@ static const char* levelStrings[ 6 ] = { "FATAL", "ERROR", "WARN ", "INFO ", "DE
 #define ESC_GRAY        "\033[37m"
 #define ESC_WHITE       "\033[0m"
 
-void Logger::log( Prefix prefix, Level level, const char* msg, ... ) {
-    if ( (int) level > (int) prefix ) {
+extern void _putchar(char** str, char c);
+
+void Logger::log(Prefix prefix, Level level, const char* msg, ...) {
+    if ((int) level > (int) prefix)
+    {
         return;
     }
 
 #if LOGGER_PRINT_HIGHLIGHTS
-    if ( (int) level <= ERROR ) {
+    if ( (int) level <= ERROR )
+    {
         printf( ESC_RED );
     }
-    else if ( (int) level == WARN ) {
+    else if ( (int) level == WARN )
+    {
         printf( ESC_YELLOW );
     }
 #endif
@@ -55,22 +60,23 @@ void Logger::log( Prefix prefix, Level level, const char* msg, ... ) {
 #if LOG_PRINT_TIME
     unint4 time = 0;
     if (theOS != 0 && theOS->getClock() != 0)
-    	time =(unint4) (theOS->getClock()->getTimeSinceStartup() MICROSECONDS);
+    time =(unint4) (theOS->getClock()->getTimeSinceStartup() MICROSECONDS);
 
     printf("[%08u]",time);
 #endif
 
     if (pCurrentRunningThread != 0)
-    	 printf("[%1d][%s] ", pCurrentRunningThread->getId(), levelStrings[ level ]);
-    else printf("[K][%s] ",   levelStrings[ level ]);
-
+        printf("[%03d][%s] ", pCurrentRunningThread->getId(), levelStrings[level]);
+    else
+        printf("[KER][%s] ", levelStrings[level]);
 
     va_list arglist;
     va_start(arglist, msg);
-    print( 0, msg, arglist );
+    print(&_putchar, 0, msg, arglist);
 
 #if LOGGER_PRINT_HIGHLIGHTS
-    if ( (int) level <= WARN ) {
+    if ( (int) level <= WARN )
+    {
         printf( ESC_WHITE );
     }
 #endif

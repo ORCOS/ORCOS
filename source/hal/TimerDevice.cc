@@ -23,7 +23,7 @@ extern Kernel* theOS;
 
 TimerDevice::TimerDevice() {
     elapsedCycles = 0;
-    dispatcher = theOS->getCPUDispatcher();
+    dispatcher = theOS->getDispatcher();
     ASSERT(dispatcher);
 }
 

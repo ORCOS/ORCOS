@@ -9,23 +9,26 @@
 #include <kernel/Kernel.hh>
 
 extern Kernel* theOS;
-ArrayDatabase *BlockDeviceDriver::freeBlockDeviceIDs;
+ArrayList *BlockDeviceDriver::freeBlockDeviceIDs;
 
-BlockDeviceDriver::BlockDeviceDriver(char* p_name) :  GenericDeviceDriver(cBlockDevice, true, p_name) {
+BlockDeviceDriver::BlockDeviceDriver(char* p_name) :
+        GenericDeviceDriver(cBlockDevice, true, p_name) {
 
-	SimpleFileManager* fm = theOS->getFileManager();
+    SimpleFileManager* fm = theOS->getFileManager();
 
-	/* be sure we have a filesystem. if not we can not continue since every driver needs to register!! */
-	if (fm != 0) fm->registerResource( this );
+    /* be sure we have a filesystem. if not we can not continue since every driver needs to register!! */
+    if (fm != 0)
+        fm->registerResource(this);
 
-	/* conservative default */
-	this->sector_size = 512;
+    /* conservative default */
+    this->sector_size = 512;
 }
 
 BlockDeviceDriver::~BlockDeviceDriver() {
-	SimpleFileManager* fm = theOS->getFileManager();
+    SimpleFileManager* fm = theOS->getFileManager();
 
-	/* be sure we have a filesystem. if not we can not continue since every driver needs to register!! */
-	if (fm != 0) fm->unregisterResource( this );
+    /* be sure we have a filesystem. if not we can not continue since every driver needs to register!! */
+    if (fm != 0)
+        fm->unregisterResource(this);
 }
 

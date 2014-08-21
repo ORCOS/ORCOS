@@ -31,16 +31,16 @@ MODULES = $(addprefix $(MODULES_DIR),$(MODULE_OBJ))
 KOBJ += tasktable.o __cxa_pure_virtual.o
 
 #db
-KOBJ += ArrayDatabase.o LinkedListDatabase.o
+KOBJ += ArrayList.o LinkedList.o
 
 #debug
-KOBJ += Logger.o Trace.o
+KOBJ += Logger.o Trace.o dwarf.o
 
 #filesystem
 KOBJ += File.o Directory.o Filemanager.o Resource.o SimpleFileManager.o SharedMemResource.o FileSystemBase.o Partition.o
 
 #hal
-KOBJ += PowerManager.o CharacterDeviceDriver.o BlockDeviceDriver.o TimerDevice.o CommDeviceDriver.o USCommDeviceDriver.o Clock.o InterruptManager.o
+KOBJ += PowerManager.o CharacterDevice.o BlockDeviceDriver.o TimerDevice.o CommDeviceDriver.o USCommDeviceDriver.o Clock.o BufferDevice.o
 
 #inc
 #__udivdi3.o
@@ -261,6 +261,7 @@ modules: $(MODULES)
 #---------------------------------------------------------------------------------------------------------------------------------------
 #                         				Kernel Linking 
 #---------------------------------------------------------------------------------------------------------------------------------------
+SIGN 	= java -jar $(RELATIVE_SOURCE_PATH)/tools/SCL/dist/sn.jar
 
 #final linking rule		
 $(OUTPUT_DIR)kernel.elf: output/_startup.o output/tasktable.o $(OUTPUT_DIR)liborcoskernel.a 
@@ -268,12 +269,20 @@ $(OUTPUT_DIR)kernel.elf: output/_startup.o output/tasktable.o $(OUTPUT_DIR)libor
 	@echo kernel.mk[LD] : Linking $@	
 	$(LD) -L$(OUTPUT_DIR) output/_startup.o output/tasktable.o -lorcoskernel  $(LDFLAGS) 
 	$(OBJDUMP) -h $(OUTPUT_DIR)kernel.elf > $(OUTPUT_DIR)kernel.sections
+	$(SIGN) stringtable $(OUTPUT_DIR)kernel.map
+	@$(CC) -c $(CFLAGS) $(OPT_FLAGS)   ./output/kernel_strtable.c --output ./output/kernel_strtable.o
+	$(LD) -L$(OUTPUT_DIR) output/_startup.o output/tasktable.o -lorcoskernel ./output/kernel_strtable.o $(LDFLAGS)
+	$(SIZE) $(OUTPUT_DIR)liborcoskernel.a  > $(OUTPUT_DIR)sizes.txt
+	
 #no libc (-lc) linking since this increases the memory footprint by about 660 bytes
 # in order to use --gc-sections we need to be sure to always include interrupt vectors a.s.o
 
 #---------------------------------------------------------------------------------------------------------------------------------------
 #                         				Other rules 
 #---------------------------------------------------------------------------------------------------------------------------------------
+
+tasktable:
+	$(SIGN) stringtable $(OUTPUT_DIR)kernel.map
 
 #rule for creation of the configuration header file	
 scl: SCLConfig.hh

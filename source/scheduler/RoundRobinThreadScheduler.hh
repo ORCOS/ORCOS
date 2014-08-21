@@ -43,7 +43,7 @@ public:
      * This method returns the the next thread to be executed. The old thread
      * will be sorted back into the lists so it may be rescheduled later on.
      */
-    DatabaseItem* getNext();
+    ListItem* getNext();
 
     /*!
      * \brief The initialisation method called just before scheduling begins
@@ -57,7 +57,7 @@ public:
      *
      * This may be 0 if no elements are in the list.
      */
-    TimeT getNextTimerEvent( LinkedListDatabase* sleepList,TimeT currentTime  );
+    TimeT getNextTimerEvent( LinkedList* sleepList,TimeT currentTime  );
 };
 
 #endif /*ROUNDROBINTHREADSCHEDULER_HH_*/

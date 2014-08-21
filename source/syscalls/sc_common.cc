@@ -1,5 +1,5 @@
 /*
- ORCOS - an Organic Reconfigurable Operating System
+ ORCOS - an Organic Reconfigurable Operating Syste
  Copyright (C) 2008 University of Paderborn
 
  This program is free software: you can redistribute it and/or modify
@@ -21,12 +21,16 @@
 #include "assemblerFunctions.hh"
 
 
-int getTime(int4 sp_int)
+int getCycles(int4 sp_int)
 {
 	TimeT* time;
 	SYSCALLGETPARAMS1(sp_int,time);
-	*time = theOS->getBoard()->getClock()->getTimeSinceStartup();
+	*time = theOS->getBoard()->getClock()->getClockCycles();
 	return (cOk);
+}
+
+int getDateTime(int4 sp_int) {
+    return (theOS->getBoard()->getClock()->getDateTime());
 }
 
 int printToStdOut(int4 int_sp )
@@ -35,10 +39,10 @@ int printToStdOut(int4 int_sp )
    unint4 write_size;
    SYSCALLGETPARAMS2(int_sp,write_ptr,write_size);
 
-   LOG(SYSCALLS,TRACE,(SYSCALLS,TRACE,"Syscall: printToStdOut(%s)",write_ptr));
+   LOG(SYSCALLS,TRACE,"Syscall: printToStdOut(%s)",write_ptr);
 
-    if (theOS->getStdOutputDevice() != 0)
-        return (theOS->getStdOutputDevice()->writeBytes(write_ptr,write_size));
+    if (pCurrentRunningTask->getStdOutputDevice() != 0)
+        return (pCurrentRunningTask->getStdOutputDevice()->writeBytes(write_ptr,write_size));
     else return (cError);
 }
 

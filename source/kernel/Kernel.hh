@@ -29,14 +29,13 @@
 #include Kernel_MemoryManager_hh
 #include BoardCfd_hh
 #include Board_HatLayer_hh
-#include "db/LinkedListDatabase.hh"
+#include "db/LinkedList.hh"
 #include "process/Task.hh"
 #include "comm/ProtocolPool.hh"
 #if USE_WORKERTASK
 #include "process/WorkerTask.hh"
 #endif
 #include Kernel_Scheduler_hh
-#include "scheduler/SingleCPUDispatcher.hh"
 #include "filesystem/SimpleFileManager.hh"
 #include "filesystem/PartitionManager.hh"
 #include "hal/InterruptManager.hh"
@@ -48,9 +47,10 @@
 #include Kernel_MigrationManager_hh
 #include Kernel_ServiceDiscovery_hh
 #include Kernel_Ramdisk_hh
+#include Kernel_InterruptManager_hh
+#include Kernel_Dispatcher_hh
 
 #include "debug/Trace.hh"
-
 
 /*------------------------------------------------------
  *                  USB Imports
@@ -81,8 +81,6 @@ void kwait_us(int microseconds);
  *               The KERNEL class
  * ------------------------------------------------------ */
 
-
-
 /*!
  * \brief The Kernel class, as a main organization unit of the ORCOS system.
  *
@@ -91,40 +89,21 @@ void kwait_us(int microseconds);
  * configured components as there are the board, the scheduler a.s.o.
  */
 class Kernel {
-
 private:
-   //! The Memory Manager
-    DEF_Kernel_MemoryManagerCfd;
-
-private:
-    //! The CPU Manager
-    SingleCPUDispatcher*	cpuManager;
 
     //! The Filesystem Manager
-    SimpleFileManager* 		fileManager;
+    SimpleFileManager* fileManager;
 
 #if HAS_Board_USB_HCCfd
-    // Library containing usb deviice drivers
-    USBDriverLibrary* 		usbDriverLib;
+    // Library containing usb device drivers
+    USBDriverLibrary* usbDriverLib;
 #endif
 
-    // Partition Manager which intializes attached file systems
-    PartitionManager* 		partitionManager;
-
     // The task manager which initializes tasks
-    TaskManager* 			taskManager;
+    TaskManager* taskManager;
 
-    /* The global interrupt manager handling /scheduling irqs*/
-    InterruptManager*		irqManager;
-
-    DEF_Board_HatLayerCfd;
-
-    DEF_Kernel_RamManagerCfd;
-
-    DEF_FileSystems_PartitionManagerCfd;
-
-    // The error Handler for fata task and system errors
-    TaskErrorHandler*		errorHandler;
+    // The error Handler for fatal task and system errors
+    TaskErrorHandler* errorHandler;
 
     //! The configured board class
     BoardCfdCl* board;
@@ -160,8 +139,8 @@ private:
      * CharacterDevices for standart out/input of text.
      * This can be some kind of UART oder keyboard/display devices...
      */
-    CharacterDeviceDriver* stdInputDevice;
-    CharacterDeviceDriver* stdOutputDevice;
+    CharacterDevice* stdInputDevice;
+    CharacterDevice* stdOutputDevice;
 
 public:
 
@@ -181,22 +160,19 @@ public:
      * This involves creating all initial Task CBs, creating the scheduler, cpumanager and initializing
      * the hardware device drivers.
      */
-    void initialize()  __attribute__((noreturn));;
-
+    void initialize() __attribute__((noreturn));
 
     //! The timer device of the system
-    Board_TimerCfdCl* getTimerDevice() {
+    inline Board_TimerCfdCl* getTimerDevice() {
         return (board->getTimer());
     }
-    ;
 
     //! The clock of the system
-    Board_ClockCfdCl* getClock() {
-    	if (board != 0)
-    		return (board->getClock());
-    	return 0;
+    inline Board_ClockCfdCl* getClock() {
+        if (board != 0)
+            return (board->getClock());
+        return (0);
     }
-    ;
 
 #if USE_TRACE
 private:
@@ -204,89 +180,94 @@ private:
 
 public:
 
-	Trace* getTrace() {
-    	return (tracer);
+    Trace* getTrace()
+    {
+        return (tracer);
     }
 #endif
 
     /*!
      * \brief Returns the default scheduler for the cpu
-     *
-     * If multiple cpus are availabe the scheduler for the first cpu will be returned.
      */
     Kernel_SchedulerCfdCl* getCPUScheduler();
 
-    SingleCPUDispatcher* getCPUDispatcher() {
-        return (this->cpuManager);
-    }
-    ;
-
 #if ENABLE_NETWORKING
-    ProtocolPool* getProtocolPool() {
+    inline ProtocolPool* getProtocolPool() {
         return (this->protopool);
     }
-    ;
 #endif
 
-
-    SimpleFileManager* getFileManager() {
+    inline SimpleFileManager* getFileManager() {
         return (this->fileManager);
     }
-    ;
 
 #if USE_WORKERTASK
     /* Returns the worker thread of the kernel */
     WorkerTask* getWorkerTask() {
-    	return (this->theWorkerTask);
-    };
+        return (this->theWorkerTask);
+    }
 #endif
 
     //! Returns the database of all registered tasks
-    LinkedListDatabase* getTaskDatabase() {
+    inline LinkedList* getTaskDatabase() {
         return (this->taskManager->getTaskDatabase());
     }
-    ;
 
-    TaskManager* getTaskManager() {
-    	return (this->taskManager);
+    inline TaskManager* getTaskManager() {
+        return (this->taskManager);
     }
 
-    InterruptManager* getInterruptManager() {
-       	return (this->irqManager);
+    inline TaskErrorHandler* getErrorHandler() {
+        return (this->errorHandler);
     }
 
-    TaskErrorHandler* getErrorHandler() {
-    	return (this->errorHandler);
-    }
+    void setStdOutputDevice(CharacterDevice* outputDevice);
 
-    void setStdOutputDevice( CharacterDeviceDriver* outputDevice );
-
-    CharacterDeviceDriver* getStdOutputDevice();
+    CharacterDevice* getStdOutputDevice();
 
 #if HAS_Board_USB_HCCfd
     //! Returns the usb driver library of the kernel
-    USBDriverLibrary* getUSBDriverLibrary() {
-    	return (usbDriverLib);
+    inline USBDriverLibrary* getUSBDriverLibrary() {
+        return (usbDriverLib);
     }
 #endif
 
-    BoardCfdCl* getBoard() {
+    inline BoardCfdCl* getBoard() {
         return (board);
     }
 
+    DEF_Board_HatLayerCfd
 
-    DEF_Kernel_ServiceDiscoveryCfd;
 
-    DEF_Kernel_LoggerCfd;
+    DEF_Kernel_RamManagerCfd
 
-    DEF_Kernel_PowerManagerCfd;
 
-    DEF_Kernel_MigrationManagerCfd;
+    DEF_FileSystems_PartitionManagerCfd
 
-    DEF_Kernel_RamdiskCfd;
 
+    DEF_Kernel_ServiceDiscoveryCfd
+
+
+    DEF_Kernel_LoggerCfd
+
+
+    DEF_Kernel_PowerManagerCfd
+
+
+    DEF_Kernel_MigrationManagerCfd
+
+
+    DEF_Kernel_RamdiskCfd
+
+
+    DEF_Kernel_InterruptManagerCfd
+
+
+    DEF_Kernel_DispatcherCfd
+
+
+    DEF_Kernel_MemoryManagerCfd
 };
-
 
 #endif /*KERNEL_H_*/
 

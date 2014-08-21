@@ -11,7 +11,7 @@
       <Log Prefix="DB" Level="WARN" />
       <Log Prefix="HAL" Level="WARN" />
       <Log Prefix="ARCH" Level="INFO" />
-      <Log Prefix="FILESYSTEM" Level="WARN" />
+      <Log Prefix="FILESYSTEM" Level="INFO" />
       <Log Prefix="COMM" Level="WARN" />
     </Logging>
   </Options>
@@ -24,11 +24,11 @@
       <Size>0x00100000</Size>
       <Path>../../../tasks/telnet_server</Path>
       <PriorityOptions>
-        <InitialPriority>5000</InitialPriority>
+        <InitialPriority>5001</InitialPriority>
         <Phase>0</Phase>
         <RealTimeOptions>
-          <Period>2000</Period>
-          <Deadline>2000</Deadline>
+          <Period>0</Period>
+          <Deadline>0</Deadline>
           <ExecutionTime>0</ExecutionTime>
         </RealTimeOptions>
       </PriorityOptions>
@@ -41,8 +41,8 @@
         <InitialPriority>5000</InitialPriority>
         <Phase>0</Phase>
         <RealTimeOptions>
-          <Period>2000</Period>
-          <Deadline>2000</Deadline>
+          <Period>0</Period>
+          <Deadline>0</Deadline>
           <ExecutionTime>0</ExecutionTime>
         </RealTimeOptions>
       </PriorityOptions>
@@ -113,7 +113,7 @@
         <PropertyValue Name="ValueBits" Value="0x0" Type="unsigned int" />
         <PropertyValue Name="Priority" Value="8000" Type="int" />
       </Member>
-      <Member Name="GPIO5" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO" None="false" UserSpace="false" PhyLoadAddress="0x0">
+      <Member Name="GPIO5" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO" None="true" UserSpace="false" PhyLoadAddress="0x0">
         <PropertyValue Name="Address" Value="0x49056000" Type="unsigned int" />
         <PropertyValue Name="Length" Value="4096" Type="unsigned int" />
         <PropertyValue Name="Name" Value="gpio5" Type="char*" />
@@ -121,7 +121,7 @@
         <PropertyValue Name="ValueBits" Value="0x0" Type="unsigned int" />
         <PropertyValue Name="Priority" Value="8000" Type="int" />
       </Member>
-      <Member Name="GPIO6" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO" None="false" UserSpace="false" PhyLoadAddress="0x0">
+      <Member Name="GPIO6" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO" None="true" UserSpace="false" PhyLoadAddress="0x0">
         <PropertyValue Name="Address" Value="0x49058000" Type="unsigned int" />
         <PropertyValue Name="Length" Value="4096" Type="unsigned int" />
         <PropertyValue Name="Name" Value="gpio6" Type="char*" />
@@ -168,6 +168,7 @@
         <PropertyValue Name="StartAddress" Value="0x83000000" Type="unsigned int" />
         <PropertyValue Name="Size" Value="0x04000000" Type="unsigned int" />
       </Member>
+      <Member Name="InterruptManager" Class="hal/InterruptManager" None="false" UserSpace="false" PhyLoadAddress="0x0" />
     </Skeleton>
     <Skeleton>
       <Name>FileSystems</Name>
@@ -207,6 +208,7 @@
       <Member Name="delete" None="false" />
       <Member Name="socket" None="false" />
       <Member Name="connect" None="false" />
+      <Member Name="getpid" None="false" />
       <Member Name="listen" None="false" />
       <Member Name="bind" None="false" />
       <Member Name="sendto" None="false" />
@@ -222,6 +224,7 @@
       <Member Name="mapMemory" Class="" None="true" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="shm_map" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="fremove" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="shm_unmap" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
     </Skeleton>
     <!--  DEFINES -->
     <Define>
@@ -349,6 +352,10 @@
     </Define>
     <Define>
       <Name>ENABLE_NETWORKING</Name>
+      <Value>1</Value>
+    </Define>
+    <Define>
+      <Name>TASK_CRC32</Name>
       <Value>1</Value>
     </Define>
   </SCL>

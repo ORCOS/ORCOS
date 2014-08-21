@@ -58,14 +58,14 @@ public:
      * of devices and sockets. Files on secondary storage or somewhere else are
      * not supported here.
      */
-    ErrorT registerResource( Resource* res );
+    ErrorT registerResource(Resource* res);
 
-    ErrorT unregisterResource( Resource* res );
+    ErrorT unregisterResource(Resource* res);
 
     /*!
      * \brief Resource creation is not imlpemented in this filemanager.
      */
-    Resource* createResource( const char* pathname, int1 flags ) {
+    Resource* createResource(const char* pathname, int1 flags) {
         return 0;
     }
     ;
@@ -73,26 +73,25 @@ public:
     /*!
      * \brief Removing resources is not implemented in this filemanger.
      */
-    ErrorT removeResource( char* pathname, int1 flags ) {
-        return cNotImplemented;
+    ErrorT removeResource(char* pathname, int1 flags) {
+        return cNotImplemented ;
     }
     ;
 
     /*!
      * \brief Returns the resource by the full pathname
      */
-    Resource* getResource( const char* pathname );
+    Resource* getResource(const char* pathname);
 
     /*!
      * \brief Returns the resource by the full pathname and filters by type
      */
-    Resource* getResourceByNameandType( const char* pathname, ResourceType type );
-
+    Resource* getResourceByNameandType(const char* pathname, ResourceType type);
 
     /*!
      * \brief Returns the directory object if found.
      */
-    Directory* getDirectory( const char* dir );
+    Directory* getDirectory(const char* dir);
 
 };
 

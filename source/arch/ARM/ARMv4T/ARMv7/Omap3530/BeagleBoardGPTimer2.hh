@@ -23,7 +23,6 @@
 #include <types.hh>
 #include <hal/TimerDevice.hh>
 
-
 /*!
  * \brief BeagleBoardGPTimer1, implementation of HAL TimerDevice
  *
@@ -37,7 +36,7 @@ protected:
 
 public:
 
-	BeagleBoardGPTimer2(T_BeagleBoardGPTimer2_Init * init);
+    BeagleBoardGPTimer2(T_BeagleBoardGPTimer2_Init * init);
     ~BeagleBoardGPTimer2();
 
     /*!
@@ -53,7 +52,7 @@ public:
     /*!
      * \brief Set the timer register.
      */
-	ErrorT setTimer( TimeT t );
+    ErrorT setTimer(TimeT t);
 
     inline ErrorT tick() {
         // invoke the hal tick() method which then calls the dispatcher

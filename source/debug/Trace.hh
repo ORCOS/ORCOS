@@ -32,36 +32,32 @@
 #define EVENT_MEM_FREE	   0x11
 
 typedef struct {
-	unint4 stack_pointer;
-	unint4 address;
-} __attribute__((packed)) Trace_StackInfo;
+    unint4 stack_pointer;
+    unint4 address;
+}__attribute__((packed)) Trace_StackInfo;
 
 typedef struct {
-	unint4 address;
-	unint4 size;
-} __attribute__((packed)) Trace_MemInfo;
-
+    unint4 address;
+    unint4 size;
+}__attribute__((packed)) Trace_MemInfo;
 
 typedef union {
-	Trace_StackInfo 	thread_info;
-	Trace_MemInfo 		mem_info;
-} __attribute__((packed)) TraceArgs;
-
+    Trace_StackInfo thread_info;
+    Trace_MemInfo mem_info;
+}__attribute__((packed)) TraceArgs;
 
 // Total size: 20 bytes
 typedef struct {
-	TimeT  timestamp;	// the cpu clock ticks
-/*	unint1 type;		// the type of event
-	unint1 taskid;  	// the task this event belongs to
-	unint1 sourceid;	// the source this event belongs to inside the task (might be a thread id)
-	unint1 param1;		// a free parameter*/
-	unint4 id;
-	unint4 arg1;
-	unint4 arg2;
-	//TraceArgs arg;		// additional parameters for memory and thread stack informations
-} __attribute__((packed, aligned(4))) Trace_Entry;
-
-
+    TimeT timestamp;	// the cpu clock ticks
+    /*	unint1 type;		// the type of event
+     unint1 taskid;  	// the task this event belongs to
+     unint1 sourceid;	// the source this event belongs to inside the task (might be a thread id)
+     unint1 param1;		// a free parameter*/
+    unint4 id;
+    unint4 arg1;
+    unint4 arg2;
+    //TraceArgs arg;		// additional parameters for memory and thread stack informations
+}__attribute__((packed, aligned(4))) Trace_Entry;
 
 #if USE_TRACE
 
@@ -108,16 +104,13 @@ typedef struct {
 #define TRACE_REMOVE_SOURCE(taskid, sourceid)
 #endif
 
-
-
-
-class Trace : CallableObject {
+class Trace: CallableObject {
 private:
 
-	/*
-	 * Initializes the trace entry with the current thread and task id and the current timestamp
-	 */
-	void initEntry(unint2 number);
+    /*
+     * Initializes the trace entry with the current thread and task id and the current timestamp
+     */
+    void initEntry(unint2 number);
 
 public:
     Trace();
@@ -130,7 +123,7 @@ public:
     void trace_memFree(unint4 address);
     void trace_addEntry(unint1 type, unint1 taskid, unint1 sourceid);
 
-    void callbackFunc( void* param );
+    void callbackFunc(void* param);
 };
 
 #endif /* TRACE_HH_ */

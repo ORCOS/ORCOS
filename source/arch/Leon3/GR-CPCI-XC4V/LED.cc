@@ -23,7 +23,7 @@
 	 { ((*(volatile unsigned int*)(Reg_Addr)) = Value);}
 
 /*---------------------------------------------------------------------------*/
-LED::LED(const char* name, int4 baseaddr) : CharacterDeviceDriver(true,name)
+LED::LED(const char* name, int4 baseaddr) : CharacterDevice(true,name)
 /*---------------------------------------------------------------------------*/
 {
 	leds = 0;

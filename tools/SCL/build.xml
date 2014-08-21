@@ -12,7 +12,7 @@
     <target name="compile" depends="clean">
     	
     	<unjar src="lib/jdom.jar" dest="bin" />
-    	<javac srcdir="src" destdir="bin" target="1.5" source="1.5" classpathref="cp" />
+    	<javac srcdir="src" destdir="bin" target="1.7" source="1.7" classpathref="cp" />
      	
     	<copy todir="bin">
     	       <fileset dir="src" excludes=".svn" />

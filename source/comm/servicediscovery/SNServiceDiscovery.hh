@@ -22,13 +22,8 @@
 #include "ServiceDiscovery.hh"
 #include "comm/Socket.hh"
 
-
-#define SNSD_SERVICE_BROADCAST 1 // service broadcast message
-#define SNSD_ALIVE 3	// alive message! will cause service broadcast
-#define SNSD_MIGRATION 5
-#define SNSD_REMOVE 6	// remove service broadcast
-
-
+#define SNSD_SERVICE_BROADCAST 1 // service broadcast message#define SNSD_ALIVE 3	// alive message! will cause service broadcast#define SNSD_MIGRATION 5
+#define SNSD_REMOVE 6	// remove service broadcast
 #define SNSD_LOCAL 2
 #define SNSD_REMOTE 4
 
@@ -64,37 +59,37 @@ struct SNSD_Migration {
  * Whenever a new local service is added it is multicasted to the other nodes to update the local service table.
  *
  */
-class SNServiceDiscovery : public ServiceDiscovery, CallableObject {
+class SNServiceDiscovery: public ServiceDiscovery, CallableObject {
 private:
-	 //! The socket we are using
-	 Socket* listenSocket;
+    //! The socket we are using
+    Socket* listenSocket;
 
-	 //! pointer to our buffer we are using for message storage
-	 char* mysocketbuffer;
+    //! pointer to our buffer we are using for message storage
+    char* mysocketbuffer;
 
-	 //! memory area to store the service <-> addr translation
-	 servicedescriptor services[10];
+    //! memory area to store the service <-> addr translation
+    servicedescriptor services[10];
 
-	 //! Method which broadcasts the services on this node to all other nodes
-	 void broadcastServices();
+    //! Method which broadcasts the services on this node to all other nodes
+    void broadcastServices();
 
-	 //! Handles incoming service broadcast packets
-	 void handleBroadcast(servicedescriptor* sd, sockaddr* sender);
+    //! Handles incoming service broadcast packets
+    void handleBroadcast(servicedescriptor* sd, sockaddr* sender);
 
-	 //! Handles incoming remove service packets
-	 void handleRemoval(servicedescriptor* sd,sockaddr* sender);
+    //! Handles incoming remove service packets
+    void handleRemoval(servicedescriptor* sd, sockaddr* sender);
 
 public:
 
-	SNServiceDiscovery();
+    SNServiceDiscovery();
 
     ~SNServiceDiscovery() {
     }
     ;
 
-
     //! try to lookup n addresses of a service
-    unint1 nlookup(const service_name name, servicedescriptor* return_socks, unint1 n = 1);
+    unint1 nlookup(const service_name name, servicedescriptor* return_socks, unint1 n =
+                           1);
 
     //! add a new service with address to the database
     bool addService(servicedescriptor* addr, bool local);
@@ -103,18 +98,18 @@ public:
     bool removeService(servicedescriptor* addr, bool local);
 
     bool existsService(servicedescriptor* addr) {
-    	for (int i=0; i< 10; i++)
-    	{
-    		if ( (services[i].address.name_data == addr->address.name_data) &&
-    			 (services[i].address.sa_data == addr->address.port_data) &&
-    			 (services[i].address.port_data == addr->address.port_data)
-    		) return true;
-    	}
-    	return false;
+        for (int i = 0; i < 10; i++)
+        {
+            if ((services[i].address.name_data == addr->address.name_data)
+                    && (services[i].address.sa_data == addr->address.port_data)
+                    && (services[i].address.port_data == addr->address.port_data))
+                return true;
+        }
+        return false;
     }
 
     //! Callback function for the WorkerThread
-    void callbackFunc( void* param );
+    void callbackFunc(void* param);
 };
 
 #endif /*SNSERVICEDISCOVERY_HH_*/

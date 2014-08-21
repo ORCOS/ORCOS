@@ -130,18 +130,14 @@ extern "C" int write( int file, const void* ptr, size_t len ) {
         case 0:
             // Error writing to stdin!
             errno = EBADF;
-            return -1;
+            return (-1);
         case 2:
             // stderr is not supported at the moment. writing to stdout instead
         case 1:
             // write to stdout
-            //FIXME returns only error code
-            /*return*/ syscall( cPrintToStdOut, ptr, len );
-            return len;
+            return (syscall( cPrintToStdOut, ptr, len ));
         default:
-            //FIXME returns wrong number?
-            /*return*/ syscall( cFWriteSysCallId, ptr, 1, len, file );
-            return len;
+            return (syscall( cFWriteSysCallId, ptr, 1, len, file ));
     }
 }
 

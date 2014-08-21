@@ -35,14 +35,14 @@ void abort(void);
  *  \brief Close a file.
  *  \param id is the file handle to close
  */
-int close( int );
+int close(int);
 
 /*!
  *  \brief Status of a file.
  *  \param id is the file handle to close
  *  \param stat is a struct to save the information
  */
-int fstat( int, struct stat * );
+int fstat(int, struct stat *);
 
 /*!
  *  \brief Get the Process-ID
@@ -58,7 +58,7 @@ int getpid();
  *  \param id is the terminal
  *  \param stat is a struct to save the information
  */
-int isatty( int );
+int isatty(int);
 
 /*!
  *  \brief Send a signal.
@@ -66,7 +66,7 @@ int isatty( int );
  *  \param id is the process to kill
  *  \param signal is the signal to invoke
  */
-int kill( int, int );
+int kill(int, int);
 
 /*!
  *  \brief Set position in a file.
@@ -75,7 +75,7 @@ int kill( int, int );
  *  \param ptr is the file pointer
  *  \param dir is the direction
  */
-int lseek( int, int, int );
+int lseek(int, int, int);
 
 /*!
  *  \brief Print to StdOut
@@ -83,7 +83,6 @@ int lseek( int, int, int );
  *  \param string is the char* to print
  */
 //void print( char* string );
-
 /*!
  *  \brief Wait for a child process.
  */
@@ -99,7 +98,7 @@ void noop();
  *
  *  \param id is the task to signal
  */
-void signal( unsigned int taskNr );
+void signal(unsigned int taskNr);
 
 #ifdef __cplusplus
 }
@@ -109,19 +108,19 @@ void signal( unsigned int taskNr );
  *  \brief NEW-Operator for Memorymanager
  *  \param s is the size_t struct for memory allocation
  */
-void* operator new( size_t s );
+void* operator new(size_t s);
 
 /*!
  *  \brief NEW-Operator for Memorymanager
  *  \param s is the size_t struct for memory allocation
  *  \param aligned is the boolean value, which have to be true is the memory allocation should be happen aligned
  */
-void* operator new( size_t s, bool aligned );
+void* operator new(size_t s, bool aligned);
 
 /*!
  *  \brief DELETE-Operator for Memorymanager
  *  \param ptr is the pointer to free
  */
-void operator delete( void* ptr );
+void operator delete(void* ptr);
 
 #endif /*NEWLIB_HELPER_HH_*/

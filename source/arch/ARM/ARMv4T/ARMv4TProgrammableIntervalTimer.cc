@@ -24,7 +24,7 @@ extern "C" Kernel* theOS;
 
 ARMv4TProgrammableIntervalTimer::ARMv4TProgrammableIntervalTimer() {
 
-	// initialize timer
+    // initialize timer
     isEnabled = false;
     time = 0;
     elapsedCycles = 0;
@@ -38,25 +38,24 @@ ARMv4TProgrammableIntervalTimer::~ARMv4TProgrammableIntervalTimer() {
 
 ErrorT ARMv4TProgrammableIntervalTimer::enable() {
 
-	this->setTimer(time);
+    this->setTimer(time);
 
-	isEnabled = true;
-    return cOk;
+    isEnabled = true;
+    return cOk ;
 }
 
 ErrorT ARMv4TProgrammableIntervalTimer::disable() {
 
-	isEnabled = false;
+    isEnabled = false;
 
-    return cOk;
+    return cOk ;
 }
 
-ErrorT ARMv4TProgrammableIntervalTimer::setTimer( unint4 t ) {
+ErrorT ARMv4TProgrammableIntervalTimer::setTimer(unint4 t) {
 
-	tickRate = t; // tickRate = cycles/tick
+    tickRate = t;  // tickRate = cycles/tick
 
-	TimerDevice::setTimer(t);
-    return cOk;
+    TimerDevice::setTimer(t);
+    return cOk ;
 }
-
 

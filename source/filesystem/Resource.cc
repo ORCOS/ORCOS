@@ -25,84 +25,84 @@
 #include "kernel/Kernel.hh"
 
 extern Kernel* theOS;
-// static non-const member variable initialization
-// will be executed in ctor
+
+/* static non-const member variable initialization
+ will be executed in ctor*/
 ResourceIdT Resource::globalResourceIdCounter;
 
-// Global Variables to speed up access to these objects
-extern Kernel_ThreadCfdCl* pCurrentRunningThread;
-extern Task* pCurrentRunningTask;
-
-Resource::Resource( ResourceType rt, bool sync_res, const char* p_name ) {
+Resource::Resource(ResourceType rt, bool sync_res, const char* p_name) {
     this->restype = rt;
     this->name = p_name;
+    /* TODO: take care of integer overflows here.. need to guarantee the id is not used*/
     this->myResourceId = globalResourceIdCounter++;
-    // if this is a resource that needs to be syncronized create Mutex
-    if ( sync_res )
-        this->accessControl = new ( DO_ALIGN ) Mutex( );
+    /* if this is a resource that needs to be synchronized create Mutex */
+    if (sync_res)
+        this->accessControl = new ( DO_ALIGN) Mutex();
     else
-    	this->accessControl = 0;
+        this->accessControl = 0;
 }
 
-void Resource::aquire( Thread* pThread, bool blocking ) {
-	ASSERT(pThread);
+int Resource::acquire(Thread* pThread, bool blocking) {
+    ASSERT(pThread);
 
     int retval = this->myResourceId;
 
-    // blocking call!
-    if ( this->accessControl != 0 ) {
-        if ( accessControl->acquire( this, blocking ) != cOk)
-        	retval = cError;
+    if (this->accessControl != 0)
+    {
+        /* blocking call */
+        if (accessControl->acquire(this, blocking) != cOk)
+            retval = cError;
     }
-    else {
+    else
+    {
+        /* this resource is not synchronized. so just add it to the set of acquired resources */
+        int result = pThread->getOwner()->aquiredResources.addTail(this);
+        /* forward status back to user */
+        if (result < 0)
+            retval = result;
 
-		// this resource is not synchronized. so just add it to the set of aquired resources
-		int result = pThread->getOwner()->aquiredResources.addTail( this );
-		// forward status back to user
-		if (result < 0) retval = result;
-
-       // for files we also reset the position
-       if (this->getType() & cFile) ((File*) this)->resetPosition();
+        /* for files we also reset the position */
+        if (this->getType() & (cFile | cDirectory) )
+            ((CharacterDevice*) this)->resetPosition();
     }
 
-    // TODO: evaluate if removing this "directly" return is ok
-    // so we can reuse this code for acquire calls not coming from syscalls
-    void* sp_int;
-    GET_RETURN_CONTEXT(pCurrentRunningThread,sp_int);
-    SET_RETURN_VALUE(sp_int,retval);
-
-    DISABLE_IRQS(status);
-
-    // if we got here we got the resource directly
-    // so just return this syscall
-    assembler::restoreContext(pCurrentRunningThread);
+    return (retval);
 
 }
 
 Resource::~Resource() {
 
-	LOG(FILESYSTEM,TRACE,(FILESYSTEM,TRACE,"Deleting Resource %s.",this->name));
-	// TODO: remove the resource from the thread aquired resources
-	// check for these threads..
-	// before deleteing this resource check if some threads are blocked waiting for this resource
-	// if true delay deletion
+    LOG(FILESYSTEM, TRACE, "Deleting Resource %s.",this->name);
+    /* TODO: remove the resource from the thread acquired resources
+     check for these threads..
+     before deleting this resource check if some threads are blocked waiting for this resource
+     if true delay deletion */
 
+    /* name might be coming from the text or data area and can not be freed
+     try to free it any way. The mem manager will recognize this. */
+    if (this->name != 0)
+        delete this->name;
+    if (this->accessControl != 0)
+        delete this->accessControl;
 
-	// name might be coming from the text or data area and can not be freed
-	// try to free it any way. The mem manager will recognise this.
-	if (this->name != 0) 		  delete this->name;
-	if (this->accessControl != 0) delete this->accessControl;
+    /* for access to this member after delete */
+    this->name = "$Removed";
+    this->accessControl = 0;
 }
 
-ErrorT Resource::release( Thread* pThread ) {
+ErrorT Resource::release(Thread* pThread) {
     ASSERT(pThread);
 
-    if ( this->accessControl != 0 )
+    if (this->accessControl != 0)
         return (accessControl->release());
-    else {
-        // remove myself from the database
-        pThread->getOwner()->aquiredResources.removeItem( this );
-        return (cOk);
+    else
+    {
+        /* remove myself from the database */
+        ListItem* removedItem = pThread->getOwner()->aquiredResources.removeItem(this);
+        if (removedItem == 0) {
+            return (cElementNotInDatabase);
+        }
+        return (cOk );
     }
 
 }

@@ -20,6 +20,7 @@
 #include "avr/io.h"
 #include "inc/memio.h"
 #include <kernel/Kernel.hh>
+#include "avr/common.h"
 
 extern "C" Kernel* theOS;
 
@@ -27,10 +28,22 @@ Timer1::Timer1() {
 
 
 	// initialize timer
-    isEnabled = false;
+
     time = 0;
-    elapsedCycles = 0;
-    tickRate = 0;
+
+    GTCCR |= (1 << TSM) | (1 << PSRASY);  //Timer anhalten, Prescaler Reset
+    TCCR2A = 0;
+    TCCR2B = 0;
+    TCNT2 = 0;
+    OCR2A = 0;
+    OCR2B = 0;
+
+
+    TCCR0B = 0;
+    TCCR1B = 0;
+   // CLKPR = 128; // enable clock change
+    //CLKPR = 6;   // divide 8 mhz input clock by 64
+    // 125000 clock ticks per second!
 
 }
 
@@ -40,37 +53,58 @@ Timer1::~Timer1() {
 
 ErrorT Timer1::enable() {
 
-	this->setTimer(time);
+    ASSR = 0;
+	// enable clock for timer = clk_sys / 1024
+	//TCCR2B = 135;	// divisor = 1024
+    TCCR2B = 6;   // divisor = 1024
 
-	// start timer
-	//OUTW(GPT2_TCLR, INW(GPT2_TCLR) | 0x1 );
+    TCCR0B = 0;   // disable timer 0
+    TCCR1B = 0;   // disable timer 1
 
+    TCCR2A = (1 << WGM21);                //CTC Modus
 
-	isEnabled = true;
-    return cOk;
+	TIFR2 = 0;
+
+	// unmaks the compare a interrupt
+	TIMSK2 = 0;
+	GTCCR &= ~(1 << TSM);                 //Timer starten
+
+	//LOG(ARCH,INFO,"Timer enabled..");
+    return (cOk);
 }
 
 ErrorT Timer1::disable() {
 
-	isEnabled = false;
-
-	// stop timer
-	//OUTW(GPT2_TCLR, INW(GPT2_TCLR) & ~0x1 );
-
-    return cOk;
+	// disable clock for timer
+	//TCCR2B = 0;
+	//TIFR2 = 0;
+	// mask all interrupts
+	//TIMSK2 = 0;
+    return (cOk);
 }
 
 ErrorT Timer1::setTimer( unint4 t ) {
+	if (t == 0) t = 1;
+	if (t > 254) t = 254;
+	time = t;
 
+	GTCCR |= (1 << TSM) | (1 << PSRASY);  //Timer anhalten, Prescaler Reset
+	TCCR2A = (1 << WGM21);                //CTC Modus
+	TCCR2B |= (1 << CS22) | (1 << CS21) | (1 << CS20);  //Prescaler 1024
 
-	// allow new interrupts
-	//theOS->getBoard()->getInterruptController()->clearIRQ( 0 );
+	// 125000 / 1024 = 122 = 8 ms ticks
+    OCR2A = t;
+	//ASSR |= (1 << AS2);                   //Asynchron Mode einschalten
 
+	TIMSK2 = (1<<OCIE2A);                //Enable Compare Interrupt
+	GTCCR &= ~(1 << TSM);                 //Timer starten
 
+    return (cOk);
+}
 
-	tickRate = t; // tickRate = cycles/tick
+ErrorT Timer1::tick() {
+    // invoke the hal tick() method which then calls the dispatcher
+   	theOS->getClock()->incTime( 2 );
 
-	TimerDevice::setTimer(t);
-    return cOk;
 }
 

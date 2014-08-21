@@ -108,7 +108,7 @@ extern "C" int task_main(char* args)
 	volatile int val = 0;
 
 	if (args == 0) {
-		puts("Usage: cp [OPTION]... SOURCE_FILE DEST_FILE\r");
+		puts("Usage: cp [OPTION] SOURCE_FILE DEST_FILE\r");
 		thread_exit(-1);
 	}
 	// in place argument detection

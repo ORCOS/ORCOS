@@ -13,17 +13,33 @@
 
 class NoRamManager {
 public:
-	NoRamManager() {};
+    NoRamManager() {
+    }
+    ;
 
-	virtual ~NoRamManager() {};
+    virtual ~NoRamManager() {
+    }
+    ;
 
-	ErrorT markAsUsed(unint4 start, unint4 end, unint1 pid) {return cError;};
+    ErrorT markAsUsed(unint4 start, unint4 end, unint1 pid) {
+        return (cError);
+    }
 
-	void* alloc(size_t size, unint1 pid) {return 0;};
 
-	ErrorT free(unint4 start, unint4 end) {return cError;};
+    void* alloc(size_t size, unint1 pid) {
+        return (0);
+    }
 
-	ErrorT freeAll(unint1 pid) {return cError;};
+
+    ErrorT free(unint4 start, unint4 end) {
+        return (cError);
+    }
+
+
+    ErrorT freeAll(unint1 pid) {
+        return (cError);
+    }
+
 };
 
 #endif /* NORAMMANAGER_HH_ */

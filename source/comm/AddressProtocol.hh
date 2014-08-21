@@ -44,7 +44,7 @@ protected:
     Directory* commdevsdir;
 
 public:
-    AddressProtocol( int2 i_protocol_id, Directory* p_commdevsdir ) {
+    AddressProtocol(int2 i_protocol_id, Directory* p_commdevsdir) {
         this->id = i_protocol_id;
         this->commdevsdir = p_commdevsdir;
     }
@@ -70,11 +70,9 @@ public:
      * \param dest_addr		Pointer to the destination the message shall be delivered to. Length is not needed since it is known by the protocol.
      * \param fromProto		The Transportprotocol (Layer above) the message is coming from.
      */
-    virtual
-    ErrorT send( packet_layer* upperload, unint4 dest_addr, TransportProtocol* fromProto ) {
-        return (cNotImplemented);
+    virtual ErrorT send(packet_layer* upperload, unint4 dest_addr, TransportProtocol* fromProto) {
+        return (cNotImplemented );
     }
-
 
     /*!
      *  \brief Receive method which needs to be implemented by the protocol
@@ -83,31 +81,26 @@ public:
      * \param packetlength	Length of the packet.
      * \param fromDevice	The communication device the packet was received on.
      */
-    virtual
-    ErrorT recv( char* packetstart, int packetlength, CommDeviceDriver* fromDevice ) {
-        return (cNotImplemented);
+    virtual ErrorT recv(char* packetstart, int packetlength, CommDeviceDriver* fromDevice) {
+        return (cNotImplemented );
     }
-
 
     /*!
      * \brief Bind method which implements specific binding behaviour of protocols.
      *
      * Binding may e.g. setup the protocol to filter some packets addressed to the socket.
      */
-    virtual
-    ErrorT bind( sockaddr* addr, Socket* sock ) {
-        return (cNotImplemented);
+    virtual ErrorT bind(sockaddr* addr, Socket* sock) {
+        return (cNotImplemented );
     }
-
 
     /*!
      * \brief Unbind method which implements specific binding behaviour of protocols.
      *
      * Binding may e.g. setup the protocol to filter some packets addressed to the socket.
      */
-    virtual
-    ErrorT unbind( sockaddr* addr, Socket* sock ) {
-        return (cNotImplemented);
+    virtual ErrorT unbind(sockaddr* addr, Socket* sock) {
+        return (cNotImplemented );
     }
 
     /*!
@@ -116,21 +109,17 @@ public:
      * \param dev		The device which shall get another addresse.
      * \param addr		The addresse this host shall be identified by on the given device.
      */
-    virtual
-    ErrorT addLocalDeviceAddress( CommDeviceDriver* dev, unint4 addr ) {
-        return (cNotImplemented);
+    virtual ErrorT addLocalDeviceAddress(CommDeviceDriver* dev, unint4 addr) {
+        return (cNotImplemented );
     }
-
 
     /*!
      * \brief Returns a the first addresse in this domain for the given device.
      */
     virtual
-    void getLocalDeviceAddress( CommDeviceDriver* dev, unint4 &addr ) {
+    void getLocalDeviceAddress(CommDeviceDriver* dev, unint4 &addr) {
 
     }
-
-
 
 };
 

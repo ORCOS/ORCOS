@@ -24,6 +24,15 @@
 
 extern "C" int 		syscall (int syscallnumber, ...);
 
+/*!
+ * \brief Atomic test and set operation.
+ *
+ * Tests the value at @address on @testvalue. If the value is @testvalue the value
+ * at address is set to @setvalue. The complete operation is ensured to be atomic.
+ *
+ * Multicore-safe on ARM.
+ * returns 1 on success. 0 otherwise.
+ */
 extern "C" int      testandset(void* address, int testvalue, int setvalue);
 
 /**************************************
@@ -65,7 +74,6 @@ void operator 		delete( void* ptr );
  * \return 			Error Number < 0 or task id > 0
  */
 extern "C" int 		task_run(char* path, char* arguments);
-
 
 /*!
  * \brief Stops and removes a task from the system.
@@ -147,6 +155,11 @@ extern "C" void 	sleep(int ms);
 extern "C"void 		usleep(int us);
 
 /*!
+ * \brief Returns the process ID of the current running process.
+ */
+extern "C" int     getpid();
+
+/*!
  * \brief Create a new thread.
  *
  * \param threadid 		Return value which will hold the thread id on success
@@ -213,6 +226,8 @@ extern "C" int 			signal_wait( void* sig, bool memAddrAsSig = false );
  *  \param 	sig				The signal to be raised. Must be > 0. if memAddrAsSig is true sig will be interpreted as a memory location.
  *  \param  value			The value passed to all waiting threads. Effectively allows 32 bit of message passing.
  *  \param  memAddrAsSig	Treat sig as a memory address in calling threads address space.
+ *
+ *  0 is invalid for the signal number.
  */
 extern "C" void 		signal_signal( void* sig, int value, bool memAddrAsSig = false );
 
@@ -293,7 +308,6 @@ extern "C" int 		fgetc(int fd);
  */
 extern "C" size_t 	fwrite(const void *ptr, size_t size, size_t nitems, int fd);
 
-
 /*!
  * \brief The fstat method returns the file statistics of a resource given by its handle fd.
  *
@@ -319,6 +333,31 @@ extern "C" int 		fstat(int fd, stat_t* stat);
 extern "C" int 		fremove(const char* filename, const char* path);
 
 
+/*
+ *
+ */
+extern "C" int      fseek(int fd, int offset, int whence);
+
+/*
+ * Creates a virtual buffer device inside the /dev subsystem
+ * with the given name. The device can be used to pipe
+ * e.g. stdout of a task to this device.
+ */
+extern "C" int      mkdev(char* devname, int bufferSize);
+
+
+/*
+ * Sequentially reads the entries of a directory given by its file descriptor.
+ * The directory needs to be acquired using fopen first.
+ *
+ * This method is not thread safe. Thus reading two different directories
+ * at the same time will result undefined behaviour.
+ *
+ * Repeatingly calling this method yiels the next directory entry until
+ * all entries are read (returns 0).
+ */
+extern "C" Directory_Entry_t* readdir(int fd);
+
 /*!
  * \brief Request an I/O Control operation on the device opened with handle 'fd'.
  *
@@ -331,8 +370,14 @@ extern "C" int 		fremove(const char* filename, const char* path);
  */
 extern "C" int		ioctl(int fd, int request, void* args);
 
+/*
+ * Allows IO control of tasks input output streams.
+ * CMD 0 = Set STDOUT
+ */
+extern "C" int      taskioctl(int cmd, int taskid, char* dev);
+
 /*!
- * \brief The fwrite() function writes the zero terminted string pointed to by prt to the stream referenced by stream. A maximum of max characters are written, which default
+ * \brief The fwriteString() function writes the zero terminted string pointed to by prt to the stream referenced by stream. A maximum of max characters are written, which default
  * is 256
  *
  * \param ptr 		Pointer to the string that shall be written
@@ -364,20 +409,50 @@ extern "C" int 		map_logmemory( const char* log_start, const char* phy_start, si
 
 
 /*!
- * \brief Maps a shared memory device into the address space of the calling task.
+ * \brief Maps a shared memory device into the address space of the calling task. If the cCreate flag is set
+ * the shared memory area is created if it does not exists.
  *
  * Returns an error code: 0 (cOk) on success.
  *
- * \param mapped_address 	return param: contains the virtual address the shared memory are is mapped to
+ * \param file              File path of the shared memory area
+ * \param mapped_address 	return param: contains the virtual address the shared memory area is mapped to
  * \param mapped_size		return param: contains the size of the shared memory area
+ * \param flags             Mapping flags:
+ *                              cCreate             Create shared memory area if it does not exists
+ *                                                  Will take the value of *mapped_size as the creation size
+ *                                                  On success *mapped_size will contain the actual size of the area
+ *
+ * \returns                 The file handle on success. Error code otherwise.
+ *
+ *  shm_map will use the filepath provided by file if the cCreate flag as follows:
+ *  If a new shared memory area is created (file could not be found or is not a shared memory area) the filepath is stripped
+ *  to its filename and used for the new shared memory resource.
+ *   E.g., "/mem/mySharedMem" will result in a shared memory area name "mySharedMem" on creation inside the directory "/mem" => "/mem/mySharedMem"
+ *         "/path/mySharedMem" will result in a shared memory area name "mySharedMem" on creation inside the directory "/mem" => "/mem/mySharedMem"
+ *
+ *  This results in any shared memory area being created inside the "/mem" directory!
+ *
+ *  To unmap the shared memory area use the returned file handle and call fclose().
+ *  e.g.:
+ *
+ *  int handle = shm_map("/mem/myShared",&mapped_address,&mapped_size,0);
+ *  fclose(handle);
  *
  */
-extern "C" int 		shm_map(const char* file,unint4* mapped_address, unint4* mapped_size);
+extern "C" int 		shm_map(const char* file,unint4* mapped_address, unint4* mapped_size, unint4 flags);
+
 
 /*!
  * \brief Returns the current time since startup in platform clock ticks.
  */
-extern "C" unint8 	getTime();
+extern "C" unint8 	getCycles();
+
+/*
+ * \brief Returns the current DateTime in seconds since 1. Jan. 1970.
+ *
+ * Use the library method time2date to convert the datetime to a time_t struct.
+ */
+extern "C" unint4   getTime();
 
 /**************************************
  * Socket related system calls (IPC)
@@ -464,10 +539,11 @@ extern "C" int4 	sendto(int socket, const void* data, size_t length, const socka
  * \param socket	The socket we want to receive data from
  * \param msgptr 	The Address of the pointer to the message as return value
  * \param flags		flags: MSG_PEEK, MSG_WAIT
+ * \param timeout   Timeout in us, if 0 no timeout is used
  *
  * \return			The size/length of the received message in bytes. -1 on connection disconnect
  */
-extern "C" size_t 	recv(int socket,char* data,int len, int flags);
+extern "C" size_t 	recv(int socket,char* data,int len, int flags, unint4 timeout = 0);
 
 
 /*!
@@ -484,7 +560,7 @@ extern "C" size_t 	recv(int socket,char* data,int len, int flags);
  *
  * \return          The size/length of the received message in bytes. -1 on connection disconnect
  */
-extern "C" size_t 	recvfrom(int socket,char* data, int len,int flags, sockaddr* sender);
+extern "C" size_t 	recvfrom(int socket,char* data, int len,int flags, sockaddr* sender, unint4 timeout = 0);
 
 /*!
  * \brief Trys to find the service specified by a name in the network. Calling thread will be blocked.

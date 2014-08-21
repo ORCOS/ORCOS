@@ -25,58 +25,72 @@
 
 extern Kernel* theOS;
 
-Directory::Directory( const char* p_name ) :
-    CharacterDeviceDriver( cDirectory, false, p_name ) {
+Directory::Directory(const char* p_name) :
+         CharacterDevice(cDirectory, false, p_name) {
+
     num_entries = 0;
 }
 
 Directory::~Directory() {
 
-	LinkedListDatabaseItem* litem = dir_content.getHead();
-	Resource* res;
+    LinkedListItem* litem = dir_content.getHead();
+    Resource* res;
 
-	while ( litem != 0 ) {
-		// not found yet and we got anther entry in our database
-		res = (Resource*) litem->getData();
+    while (litem != 0)
+    {
+        // not found yet and we got anther entry in our database
+        res = (Resource*) litem->getData();
 
-		// we need to move to the successor before deleting the linked list container
-		litem = litem->getSucc();
-		dir_content.remove(res);
+        // we need to move to the successor before deleting the linked list container
+        litem = litem->getSucc();
+        dir_content.remove(res);
 
-		delete res;
-	}
+        delete res;
+    }
 
 }
 
-ErrorT Directory::add( Resource* res ) {
-    dir_content.addTail( res );
+ErrorT Directory::add(Resource* res) {
+    dir_content.addTail(res);
     num_entries++;
-    return (cOk);
+    return (cOk );
 }
 
 ErrorT Directory::remove(Resource *res) {
-	// For internal files we must first check the type of resource
-	if (res->getType() & (cNonRemovableResource)) return (cResourceNotRemovable);
+    // For internal files we must first check the type of resource
+    if (res->getType() & (cNonRemovableResource))
+        return (cResourceNotRemovable );
 
-	if (dir_content.remove(res) == cOk) {
-		num_entries--;
-		return (cOk);
-	}
+    if (dir_content.remove(res) == cOk)
+    {
+        num_entries--;
+        return (cOk );
+    } else {
+        LOG(FILESYSTEM,ERROR,"Directory::remove() Illegal resource '%s' (%x)",res->getName(),res);
+    }
 
-	return (cError);
+    return (cError );
 }
 
-Resource* Directory::get( const char* p_name, unint1 name_len ) {
+Resource* Directory::get(const char* p_name, unint1 name_len) {
     // parse the whole dir_content db for an item with name 'name'
-    LinkedListDatabaseItem* litem = dir_content.getHead();
+    LinkedListItem* litem = dir_content.getHead();
     Resource* res;
 
-    while ( litem != 0 ) {
+    if (!p_name)
+        return (0);
+
+     while (litem != 0)
+    {
         // not found yet and we got anther entry in our database
         res = (Resource*) litem->getData();
-        // compare names. zse res->GetName() as second paramtere as that string is limited
-        if ( strcmp2( p_name, res->getName(), strlen(res->getName())) == 0 )
-            return (res);
+        int res_namelen = strlen(res->getName());
+        if (res_namelen == name_len) {
+            // compare names. the res->GetName() as second parameter as that string is limited
+            if (strcmp2(p_name, res->getName(), res_namelen) == 0)
+                return (res);
+        }
+
         litem = litem->getSucc();
     }
 
@@ -92,55 +106,60 @@ Resource* Directory::get( const char* p_name, unint1 name_len ) {
  * | filesize  (4byte)| flags (4byte)
  *
  */
-ErrorT Directory::readBytes( char *bytes, unint4 &length ) {
+ErrorT Directory::readBytes(char *bytes, unint4 &length) {
 
-	if (length < 1) return (cOk);
-	// we are a base directory .. we only have name, type and id information
-	bytes[0] = cDirTypeORCOS;
+    if (length < 1)
+        return (cOk );
 
-	unint4 pos = 1;
+    unint4 pos          = 0;
+    unint4 entry_num    = 0;
 
-	LinkedListDatabaseItem* litem = this->dir_content.getHead();
+    LinkedListItem* litem = this->dir_content.getHead();
 
-	while (litem != 0) {
-		Resource* ritem = (Resource*) litem->getData();
-		const char* p_name = ritem->getName();
-		// may 256 chars for the name
-		unint1 namelen = (unint1) strlen(p_name);
+    /* resume reading after last read directory entry*/
+    while (litem != 0 && entry_num < position) {
+        litem = litem->getSucc();
+        entry_num++;
+    }
 
-		// stop if we do not fit into the bytes array any more
-		if ((pos + namelen + 11) > length) break;
+    /* keep reading from current directory entry until end
+     * or requested length is maximally used */
+    while (litem != 0)
+    {
+        Resource* ritem     = (Resource*) litem->getData();
+        const char* p_name  = ritem->getName();
+        /* max 256 chars for the name */
+        unint1 namelen = (unint1) strlen(p_name);
+        /* align next entry to multiple of 4 bytes */
+        unint2 namelen2 = (namelen + 3) & ~(3);
 
-		// copy name into the bytes array
-		bytes[pos] = namelen;
-		memcpy((void*) &bytes[pos+1],(const void*)p_name,namelen);
+        Directory_Entry_t* entry = (Directory_Entry_t*) bytes;
+        if (pos + sizeof(Directory_Entry_t) + namelen2 > length)
+            break;
 
-		bytes[pos+namelen+1] = 0;
-		bytes[pos+namelen+2] = ritem->getType();
-		bytes[pos+namelen+3] = ritem->getId();
-		unint4 filesize = 0;
-		unint4 flags 	= 0;
+        bytes   += sizeof(Directory_Entry_t) + namelen2;
+        pos     += sizeof(Directory_Entry_t) + namelen2;
 
-		if (ritem->getType() == cFile) {
-			filesize = ((File*) ritem)->getFileSize();
-			flags = ((File*) ritem)->getFlags();
-		}
-		bytes[pos+namelen+4] = (char) ((filesize & 0xff000000) >> 24);
-		bytes[pos+namelen+5] = (char) ((filesize & 0xff0000) >> 16);
-		bytes[pos+namelen+6] = (char) ((filesize & 0xff00) >> 8);
-		bytes[pos+namelen+7] = (char) ((filesize & 0xff));
+        entry->namelen  = namelen2;
+        entry->datetime = 0;
+        entry->filesize = 0;
+        entry->resId    = ritem->getId();
+        entry->resType  = ritem->getType();
+        entry->flags    = 0;
 
-		bytes[pos+namelen+8] = (char) ((flags & 0xff000000) >> 24);
-		bytes[pos+namelen+9] = (char) ((flags & 0xff0000) >> 16);
-		bytes[pos+namelen+10] = (char) ((flags & 0xff00) >> 8);
-		bytes[pos+namelen+11] = (flags & 0xff);
+        if (ritem->getType() == cFile)
+        {
+            entry->filesize = ((File*) ritem)->getFileSize();
+            entry->flags    = ((File*) ritem)->getFlags();
+        }
 
+        /* copy name into the bytes array */
+        memcpy((void*) entry->name, (const void*) p_name, namelen+1);
 
-		pos += namelen+12;
-
-		litem = litem->getSucc();
-	}
+        litem = litem->getSucc();
+        this->position++;
+    }
 
     length = pos;
-    return (cOk);
+    return (cOk );
 }

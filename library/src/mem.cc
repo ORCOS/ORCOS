@@ -25,17 +25,17 @@
  * The new operator for user level threads
  */
 void* operator new( size_t s ) {
-    return (void*) syscall( cNewSysCallId, s );
+    return ((void*) syscall( cNewSysCallId, s ));
 }
 
 extern "C"void* malloc(size_t s)
 {
-    return (void*) syscall(cNewSysCallId,s);
+    return ((void*) syscall(cNewSysCallId,s));
 }
 
 extern "C"void* mallocp(size_t s,int mode)
 {
-    return (void*) syscall(cNewProtSysCallId,s,mode);
+    return ((void*) syscall(cNewProtSysCallId,s,mode));
 }
 
 extern "C"void free(void *s)
@@ -45,11 +45,11 @@ extern "C"void free(void *s)
 
 extern "C" int map_logmemory( const char* log_start, const char* phy_start, size_t size, int protection)
 {
-	return syscall(cMapMemorySyscallId,log_start,phy_start,size,protection);
+	return (syscall(cMapMemorySyscallId,log_start,phy_start,size,protection));
 }
 
-extern "C" int 	shm_map(const char* file,unint4* mapped_address, unint4* mapped_size) {
-	return syscall(cShmMapId,file,mapped_address,mapped_size);
+extern "C" int 	shm_map(const char* file,unint4* mapped_address, unint4* mapped_size, unint4 flags) {
+	return (syscall(cShmMapId,file,mapped_address,mapped_size,flags));
 }
 
 

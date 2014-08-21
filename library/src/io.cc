@@ -20,19 +20,19 @@
 #include "./types.h"
 #include "./defines.h"
 #include "./orcos.hh"
-
+#include "string.hh"
 
 extern "C" int fcreate(const char* filename, const char* path)
 {
 	return syscall(cFCreateSysCallId,filename,path);
 }
 
-extern "C"int fopen(const char* filename, int blocking)
+extern "C" int fopen(const char* filename, int blocking)
 {
     return syscall(cFOpenSysCallId,filename, blocking);
 }
 
-extern "C"int fclose(int fileid)
+extern "C" int fclose(int fileid)
 {
     return syscall(cFCloseSysCallId,fileid);
 }
@@ -94,6 +94,55 @@ extern "C" int fstat(int fd, stat_t* stat) {
 }
 
 extern "C" int 	fremove(const char* filename, const char* path) {
+    char fpath[256];
+    fpath[0] = 0;
+    strcat(fpath,path);
+    strcat(fpath,"/");
+    strcat(fpath,filename);
+
+    // ensure the resource has been acquired
+    int error = fopen(fpath,true);
+    if (error < 0) return (error);
+
 	return (syscall(cFRemoveID,filename,path));
 }
 
+extern "C" int  mkdev(char* devname, int bufferSize) {
+    return (syscall(cMkDevSyscallId,devname,bufferSize));
+}
+
+
+extern "C" int  fseek(int fd, int offset, int whence) {
+    return (syscall(cFSeekSyscallId,fd,offset,whence));
+}
+
+extern "C" Directory_Entry_t* readdir(int fd) {
+    static char buffer[300];
+    static int pos = 0;
+    static int remainingBytes = 0;
+
+    if (!remainingBytes) {
+        /* unbuffered reading entry by entry
+         * could be speed up by reading multiple entries at once
+         * */
+        size_t read = fread(buffer,300,1,fd);
+          if (read > sizeof(Directory_Entry_t)) {
+            pos = 0;
+            remainingBytes = read;
+        }
+        else {
+            /* reset directory position*/
+            fseek(fd,0,SEEK_SET);
+            pos = 0;
+            remainingBytes = 0;
+            return (0);
+        }
+    }
+    Directory_Entry_t* ret = (Directory_Entry_t*) (buffer + pos);
+    remainingBytes -= sizeof(Directory_Entry_t) +ret->namelen;
+    pos += sizeof(Directory_Entry_t) + ret->namelen;
+    if (remainingBytes < sizeof(Directory_Entry_t))
+        remainingBytes = 0;
+    return (ret);
+
+}

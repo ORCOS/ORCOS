@@ -39,7 +39,6 @@
 #define MMCHS_CUR_CAPA 0x148
 #define MMCHS_REV 0x1fc
 
-
 #define STAT_CC (1 << 0)
 #define STAT_TC (1 << 1)
 #define STAT_BGE (1 << 2)
@@ -50,33 +49,31 @@
 #define STAT_ERRI (1 << 15)
 #define STAT_CTO (1 << 16)
 
-
-
 class OmapMMC_SD_HC: public BlockDeviceDriver {
 private:
-	unint4 baseAddress;
+    unint4 baseAddress;
 
-	// relative card address of this sd/mmc card
-	unint2 rca;
+    // relative card address of this sd/mmc card
+    unint2 rca;
 
-	unint1 isHighCapacity;
+    unint1 isHighCapacity;
 
 public:
 
-	OmapMMC_SD_HC(T_OmapMMC_SD_HC_Init *init);
+    OmapMMC_SD_HC(T_OmapMMC_SD_HC_Init *init);
 
-	/*
-	 * Initializes the card and stars card identification
-	 */
-	void init();
+    /*
+     * Initializes the card and stars card identification
+     */
+    void init();
 
-	virtual ~OmapMMC_SD_HC();
+    virtual ~OmapMMC_SD_HC();
 
-	ErrorT sendCommand(unint4 cmd, unint4 arg);
+    ErrorT sendCommand(unint4 cmd, unint4 arg);
 
-	ErrorT readBlock(unint4 blockNum, unint1* buffer, unint4 length);
+    ErrorT readBlock(unint4 blockNum, unint1* buffer, unint4 length);
 
-	ErrorT writeBlock(unint4 blockNum, unint1* buffer, unint4 length);
+    ErrorT writeBlock(unint4 blockNum, unint1* buffer, unint4 length);
 
 };
 

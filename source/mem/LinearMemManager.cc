@@ -25,8 +25,9 @@
 
 extern Kernel* theOS;
 
-void* LinearMemManager::alloc( size_t size, bool aligned, unint align_value ) {
 
+
+void* LinearMemManager::alloc(size_t size, bool aligned, unint align_value) {
     register char* ptr;
     register void* retval;
 
@@ -34,29 +35,28 @@ void* LinearMemManager::alloc( size_t size, bool aligned, unint align_value ) {
 
     if ( aligned )
         ptr = align( FreeHeadPtr, align_value);
-    else
-        ptr = FreeHeadPtr;
+    else ptr = FreeHeadPtr;
 
     // see if we fit into our memory segment
-    if ( ptr + size <= (char*) Segment.getEndAddr() ) {
-        FreeHeadPtr = ptr + size;
+    if ( (size_t) ptr + size <=  end ) {
+        FreeHeadPtr =  ptr + size;
         retval =(void*) ptr;
     }
-    else {
+    else
+    {
+        // big fat oops
+        LOG(MEM,ERROR,"Out Of memory!");
         retval = 0;
     }
 
     );
 
     ASSERT(retval);
-    return retval;
+    return (retval);
 }
 
-
-
-size_t LinearMemManager::getUsedMemSize(int* fragmentation) {
-	if (fragmentation != 0) *fragmentation = 0;
-    return ( FreeHeadPtr - (char*) Segment.getStartAddr() );
+size_t LinearMemManager::getUsedMemSize() {
+    return ((size_t) FreeHeadPtr - start);
 }
 
 #ifdef SERIALIZE

@@ -45,36 +45,42 @@ int runTask(int4 sp_int) {
 		arg_length = (unint2) strlen(arguments);
 	}
 
-	LOG(SYSCALLS,INFO,(SYSCALLS,INFO,"Syscall: runTask(%s)",path));
+	LOG(SYSCALLS,DEBUG,"Syscall: runTask(%s)",path);
 
 	if (path == 0) return (cError);
 
     Resource* res = theOS->getFileManager()->getResourceByNameandType( path, cFile );
     if (res == 0) {
-		LOG(SYSCALLS,ERROR,(SYSCALLS,ERROR,"Syscall: runTask(%s) FAILED: invalid path.",path));
+		LOG(SYSCALLS,ERROR,"Syscall: runTask(%s) FAILED: invalid path.",path);
     	return (cInvalidResource);
     }
 
 	// we got the resource .. load as task
 	TaskIdT taskId;
 	retval = theOS->getTaskManager()->loadTaskFromFile((File*)res,taskId,arguments,arg_length);
+	/* on failure return the error number*/
+	if (isError(retval))
+	    return (retval);
+
+	Task* t = theOS->getTaskManager()->getTask(taskId);
+	t->setName(res->getName());
 
 	if (flags & cWait) {
-		Task* t = theOS->getTaskManager()->getTask(taskId);
-		// lets wait for this task to finish
+		/* lets wait for this task to finish */
 		pCurrentRunningThread->sigwait(t);
 	} else
 	{
-		// on failure return the error number
+	    /* on success return task id*/
 		if (isOk(retval)) retval = taskId;
 
+		/* set return value now! as we must dispatch */
 		void* sp_int;
 		GET_RETURN_CONTEXT(pCurrentRunningThread,sp_int);
 		SET_RETURN_VALUE(sp_int,retval);
 	}
 
-	// new task may have higher priority so dispatch now!
-	theOS->getCPUDispatcher()->dispatch();
+	/* new task may have higher priority so dispatch now! */
+	theOS->getDispatcher()->dispatch();
 
 	return (cError);
 }
@@ -85,16 +91,22 @@ int thread_wait(int4 sp_int) {
 
 	int pid;
 	SYSCALLGETPARAMS1(sp_int,pid);
-	LOG(SYSCALLS,INFO,(SYSCALLS,INFO,"Syscall: task_wait: pid %d",pid));
+	LOG(SYSCALLS,DEBUG,"Syscall: task_wait: pid %d",pid);
 
 	if (pid == 0) {
-		// wait for any child to terminate on our current process
+		/* wait for any child to terminate on our current process
+		 * this will block the current thread. we will not return here
+		 * as the syscall context will be restored with return code
+		 * upon signal reception. */
 		unint4 signal = (pCurrentRunningTask->getId() << 16) | (SIG_CHILD_TERMINATED);
 		pCurrentRunningThread->sigwait((void*) signal);
 	} else {
 		Task* t = theOS->getTaskManager()->getTask(pid);
 		if (t == 0) return (cError);
-		// wait for task to finish
+		/* wait for task to finish
+		 * this will block the current thread. we will not return here
+         * as the syscall context will be restored with return code
+         * upon signal reception. */
 		pCurrentRunningThread->sigwait((void*) (t->getId() << 16));
 	}
 
@@ -112,18 +124,18 @@ int task_killSyscall(int4 sp_int) {
 
 	SYSCALLGETPARAMS1(sp_int,taskid);
 
-	LOG(SYSCALLS,INFO,(SYSCALLS,INFO,"Syscall: task_kill(%d)",taskid));
+	LOG(SYSCALLS,DEBUG,"Syscall: task_kill(%d)",taskid);
 
 #if USE_WORKERTASK
-	// we must not kill the workertask!
+	/* we must not kill the workertask! */
 	if (taskid == 0) return (cInvalidArgument);
 #endif
 
 	Task* t = theOS->getTaskManager()->getTask(taskid);
 	if (t == 0) return (cError);
 
-	// let the taskmanager cleanup everything. do not call t->terminate on your own
-	// if you do not clean up everything else
+	/* let the task manager cleanup everything. do not call t->terminate on your own
+	 * if you do not clean up everything else */
 	theOS->getTaskManager()->removeTask(t);
 
 	return (cOk);
@@ -142,7 +154,7 @@ int task_stopSyscall(int4 int_sp)
 
     SYSCALLGETPARAMS1(int_sp,taskid);
 
-    LOG(SYSCALLS,INFO,(SYSCALLS,INFO,"Syscall: task_stop(%d)",taskid));
+    LOG(SYSCALLS,DEBUG,"Syscall: task_stop(%d)",taskid);
 
     if (taskid <= 0) return (cError);
 
@@ -170,7 +182,7 @@ int task_resumeSyscall(int4 int_sp)
 
     SYSCALLGETPARAMS1(int_sp,taskid);
 
-    LOG(SYSCALLS,INFO,(SYSCALLS,INFO,"Syscall: task_resume(%d)",taskid));
+    LOG(SYSCALLS,DEBUG,"Syscall: task_resume(%d)",taskid);
 
     Task* task = theOS->getTaskManager()->getTask(taskid);
     if (task != 0)
@@ -182,7 +194,7 @@ int task_resumeSyscall(int4 int_sp)
         DISABLE_IRQS(status);
 
         SET_RETURN_VALUE((void*)int_sp,(void*)cOk);
-        theOS->getCPUDispatcher()->dispatch();
+        theOS->getDispatcher()->dispatch();
 
     #endif
 
@@ -201,9 +213,9 @@ int sleepSyscall( int4 int_sp ) {
     int t;
     SYSCALLGETPARAMS1(int_sp,t);
 
-    LOG(SYSCALLS,DEBUG,(SYSCALLS,DEBUG,"Syscall: sleep(%d)",t));
+    LOG(SYSCALLS,DEBUG,"Syscall: sleep(%d)",t);
 
-    TimeT timePoint = theOS->getClock()->getTimeSinceStartup();
+    TimeT timePoint = theOS->getClock()->getClockCycles();
 
     // sleep time is expected to be us
 #if CLOCK_RATE >= (1 MHZ)
@@ -237,16 +249,15 @@ int thread_createSyscall( int4 int_sp ) {
     VALIDATE_IN_PROCESS(start_routine);
     if (threadid != 0)
     	VALIDATE_IN_PROCESS(threadid);
-    if (arg != 0)
-    	VALIDATE_IN_PROCESS(arg);
 
-    LOG(SYSCALLS,INFO,(SYSCALLS,INFO,"Syscall: thread_create(0x%x,0x%x,0x%x)",attr,start_routine,arg));
-    LOG(SYSCALLS,INFO,(SYSCALLS,INFO,"Syscall: rel_deadline %d",attr->deadline));
+
+    LOG(SYSCALLS,DEBUG,"Syscall: thread_create(0x%x,0x%x,0x%x)",attr,start_routine,arg);
+    LOG(SYSCALLS,DEBUG,"Syscall: rel_deadline %d",attr->deadline);
     // create a new thread belonging to the current task
     // create the thread CB. First get the tasktable to get the address of the threads exit routine
     register taskTable* tasktable = pCurrentRunningTask->getTaskTable();
 
-    if (attr->stack_size == 0)
+    if (attr->stack_size <= 0)
     	attr->stack_size = DEFAULT_USER_STACK_SIZE;
 
     Thread* newthread;
@@ -264,7 +275,7 @@ int thread_createSyscall( int4 int_sp ) {
     	 newthread->threadStack.top = 0;
     	 newthread->startRoutinePointer = start_routine;
 
-    	 LOG(SYSCALLS,INFO,(SYSCALLS,INFO,"Syscall: thread_create() taking suspended thread %x",newthread));
+    	 LOG(SYSCALLS,DEBUG,"Syscall: thread_create() taking suspended thread %x",newthread);
 
 
 		#ifdef REALTIME
@@ -294,17 +305,16 @@ int thread_createSyscall( int4 int_sp ) {
 #else
 
     // create a new thread. It will automatically register itself at the currentRunningTask which will be the parent.
-	 newthread =
-			new Kernel_ThreadCfdCl( start_routine, (void*) tasktable->task_thread_exit_addr, pCurrentRunningTask, pCurrentRunningTask->getMemManager(), attr->stack_size, attr );
+	 newthread = new Kernel_ThreadCfdCl( start_routine, (void*) tasktable->task_thread_exit_addr, pCurrentRunningTask, pCurrentRunningTask->getMemManager(), attr->stack_size, attr );
 #endif
 
     // set the return value for threadid
 	if (threadid != 0) {
 		 *threadid = newthread->getId();
-		 LOG(SYSCALLS,INFO,(SYSCALLS,INFO,"Syscall: thread_created with id %d",*threadid));
+		 LOG(SYSCALLS,DEBUG,"Syscall: thread_created with id %d",*threadid);
 	}
 
-    LOG(SYSCALLS,INFO,(SYSCALLS,INFO,"Syscall: thread_created stack: %x - %x, top:%d",newthread->threadStack.startAddr,newthread->threadStack.endAddr,newthread->threadStack.top));
+    LOG(SYSCALLS,DEBUG,"Syscall: thread_created stack: %x - %x, top:%d",newthread->threadStack.startAddr,newthread->threadStack.endAddr,newthread->threadStack.top);
 
     // set the arguments of the new thread
     newthread->arguments = arg;
@@ -312,8 +322,6 @@ int thread_createSyscall( int4 int_sp ) {
     return (cOk);
 }
 #endif
-
-
 
 
 /*******************************************************************
@@ -326,11 +334,11 @@ int thread_run( int4 int_sp ) {
 
     SYSCALLGETPARAMS1(int_sp, threadid);
 
-    LOG(SYSCALLS,INFO,(SYSCALLS,INFO,"Syscall: thread_run(%d)",threadid));
+    LOG(SYSCALLS,DEBUG,"Syscall: thread_run(%d)",threadid);
 
 
 #ifdef REALTIME
-    TimeT currentTime = theOS->getClock()->getTimeSinceStartup();
+    TimeT currentTime = theOS->getClock()->getClockCycles();
 #endif
 
     if ( threadid >= cFirstThread ) {
@@ -339,7 +347,7 @@ int thread_run( int4 int_sp ) {
 
         if ( (t != 0) && (t->isNew()) && (!t->isReady()) ) {
 
-            LOG(SYSCALLS,TRACE,(SYSCALLS,TRACE,"Syscall: Thread run valid"));
+            LOG(SYSCALLS,TRACE,"Syscall: Thread run valid");
 
 
 #ifdef REALTIME
@@ -356,8 +364,8 @@ int thread_run( int4 int_sp ) {
         // if we are realtime set the arrivaltime of all threads!
         // the arrivaltime will be the same then, which is important
         // if all threads shall start at the same time (no phase shifting)
-        LinkedListDatabase* threadDb = pCurrentRunningTask->getThreadDB();
-        LinkedListDatabaseItem* litem = threadDb->getHead();
+        LinkedList* threadDb = pCurrentRunningTask->getThreadDB();
+        LinkedListItem* litem = threadDb->getHead();
 
         while ( litem != 0 ) {
         	Kernel_ThreadCfdCl* thread = (Kernel_ThreadCfdCl*) litem->getData();
@@ -383,7 +391,7 @@ int thread_run( int4 int_sp ) {
 #ifdef HAS_PRIORITY
     DISABLE_IRQS(status);
     SET_RETURN_VALUE((void*)int_sp,(void*)cOk);
-    theOS->getCPUDispatcher()->dispatch();
+    theOS->getDispatcher()->dispatch();
 #endif
 
     return (cOk);
@@ -400,7 +408,7 @@ int thread_run( int4 int_sp ) {
 #ifdef HAS_SyscallManager_thread_selfCfd
 int thread_self(int4 int_sp)
 {
-	LOG(SYSCALLS,TRACE,(SYSCALLS,TRACE,"Syscall: threadSelf()"));
+	LOG(SYSCALLS,TRACE,"Syscall: threadSelf()");
 
     return (pCurrentRunningThread->getId());
 }
@@ -416,9 +424,49 @@ int thread_self(int4 int_sp)
 int thread_yield(int4 int_sp)
 {
     // dispatch directly
-    theOS->getCPUDispatcher()->dispatch();
+    theOS->getDispatcher()->dispatch();
     return (cOk);
 }
 #endif
+
+
+/*******************************************************************
+ *              GETPID Syscall
+ *******************************************************************/
+
+#ifdef HAS_SyscallManager_getpidCfd
+int getpid(int4 int_sp)
+{
+    return (pCurrentRunningTask->getId());
+}
+#endif
+
+/*******************************************************************
+ *              taskioctl Syscall
+ *******************************************************************/
+int taskioctl(intptr_t int_sp) {
+    int      cmd;
+    int      taskId;
+    char*    devpath;
+
+    SYSCALLGETPARAMS3(int_sp,cmd,taskId,devpath);
+    VALIDATE_IN_PROCESS(devpath);
+
+    Task* task = theOS->getTaskManager()->getTask(taskId);
+    if (task == 0)
+        return (cInvalidArgument);
+
+    CharacterDevice* res = (CharacterDevice*) theOS->getFileManager()->getResourceByNameandType(devpath,cStreamDevice);
+    if (res == 0)
+        return (cInvalidResourceType);
+
+    if (cmd == 0) {
+        /* SET STDOUT of task*/
+        task->setStdOut(res);
+        return (cOk);
+    } else {
+        return (cInvalidArgument);
+    }
+}
 
 

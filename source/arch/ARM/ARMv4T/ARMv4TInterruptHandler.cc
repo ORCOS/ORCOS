@@ -25,22 +25,22 @@ extern Kernel* theOS;
  *---------------------------------------------------------------------------*/
 ARMv4TInterruptHandler::ARMv4TInterruptHandler() {
 
-	// set address of irq handling function to interrupt vector table in memory
-	// set address of swi handling function to interrupt vector table in memory
-	/*asm volatile(
-		"LDR r0, =_irq_start;"
-		"LDR r1, =0x4020fff8;"
-		"STR r0, [r1];"
-		"LDR r0, =_swi_start;"
-		"LDR r1, =0x4020ffe8;"
-		"STR r0, [r1];"
-		"LDR r0, =_data_abort_start;"
-		"LDR r1, =0x4020fff0;"
-		"STR r0, [r1];"
-		:
-		:
-		: "r0", "r1"
-	);*/
+    // set address of irq handling function to interrupt vector table in memory
+    // set address of swi handling function to interrupt vector table in memory
+    /*asm volatile(
+     "LDR r0, =_irq_start;"
+     "LDR r1, =0x4020fff8;"
+     "STR r0, [r1];"
+     "LDR r0, =_swi_start;"
+     "LDR r1, =0x4020ffe8;"
+     "STR r0, [r1];"
+     "LDR r0, =_data_abort_start;"
+     "LDR r1, =0x4020fff0;"
+     "STR r0, [r1];"
+     :
+     :
+     : "r0", "r1"
+     );*/
 }
 
 /*--------------------------------------------------------------------------*

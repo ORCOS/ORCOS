@@ -35,9 +35,9 @@ int PriorityThreadScheduler::getNextTimerEvent(LinkedListDatabase* sleepList,uni
      int4 sleeptime = MAX_INT4;
 
      // only return a value smaller than sleeptime if there is some other competing threads inside the sleeplist!
-     LinkedListDatabaseItem* pDBSleepItem = sleepList->getHead();
+     LinkedListItem* pDBSleepItem = sleepList->getHead();
      if ( pDBSleepItem != 0 ) {
-         LinkedListDatabaseItem* pDBNextItem = database.getHead();
+         LinkedListItem* pDBNextItem = database.getHead();
 
          // set variables which are needed to compare to later on, so we do not need to set these for every
          // iteration of the while loop
@@ -60,7 +60,7 @@ int PriorityThreadScheduler::getNextTimerEvent(LinkedListDatabase* sleepList,uni
              pSleepThread->sleepCycles -= dt;
               if ( pSleepThread->sleepCycles <= 0 ) {
                   pSleepThread->status.setBits( cReadyFlag );
-                  LinkedListDatabaseItem* litem2 = pDBSleepItem;
+                  LinkedListItem* litem2 = pDBSleepItem;
                   pDBSleepItem = pDBSleepItem->getSucc();
 
                   this->enter( litem2 );
@@ -80,14 +80,14 @@ int PriorityThreadScheduler::getNextTimerEvent(LinkedListDatabase* sleepList,uni
 }
 #endif
 
-DatabaseItem* PriorityThreadScheduler::getNext() {
+ListItem* PriorityThreadScheduler::getNext() {
     /* we can just return the head since the queue is kept sorted by priority by the
        enter method of this class. */
-    LOG(SCHEDULER,INFO,(SCHEDULER,INFO,"PriorityThreadScheduler: Queue Size: %d", database.getSize() ));
+    LOG(SCHEDULER,INFO,"PriorityThreadScheduler: Queue Size: %d", database.getSize() );
     return (this->database.removeHead());
 }
 
-ErrorT PriorityThreadScheduler::enter( LinkedListDatabaseItem* item ) {
+ErrorT PriorityThreadScheduler::enter( LinkedListItem* item ) {
     ASSERT(item);
 
     PriorityThread* pPThread = static_cast< PriorityThread* > ( item->getData() );
@@ -97,7 +97,7 @@ ErrorT PriorityThreadScheduler::enter( LinkedListDatabaseItem* item ) {
     /* Enter Thread in the database in accordance with it's priority.
      * The order will keep threads with the same priority in a round robin fashion due to ">="
      **/
-    LinkedListDatabaseItem* sItem = database.getTail();
+    LinkedListItem* sItem = database.getTail();
     while ( sItem != 0 ) {
         if ( static_cast< PriorityThread* > ( sItem->getData() )->effectivePriority >= pPThread->effectivePriority ) {
             return (database.insertAfter( item, sItem ));

@@ -1,20 +1,20 @@
 /*
-	ORCOS - an Organic Reconfigurable Operating System
-	Copyright (C) 2010 University of Paderborn
+ ORCOS - an Organic Reconfigurable Operating System
+ Copyright (C) 2010 University of Paderborn
 
-	This program is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
 
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #ifndef ARMV4T_H_
 #define ARMV4T_H_
@@ -48,15 +48,7 @@
 #define INTVEC_HIGHBOUND	0xFFFF001C
 
 /* Defines for switching operating modes*/
-#define user_mode 		16	// b10000 User
-#define fiq_mode 		17	// b10001 FIQ
-#define irq_mode 		18	// b10010 IRQ
-#define svc_mode 		19 	// b10011 Supervisor
-#define abort_mode 		23	// b10111 Abort
-#define undef_mode		27	// b11011 Undefined
-#define system_mode 	31	// b11111 System
-#define mon_mode		22	// b10110 Secure Monitor
-
+#define user_mode 		16	// b10000 User#define fiq_mode 		17	// b10001 FIQ#define irq_mode 		18	// b10010 IRQ#define svc_mode 		19 	// b10011 Supervisor#define abort_mode 		23	// b10111 Abort#define undef_mode		27	// b11011 Undefined#define system_mode 	31	// b11111 System#define mon_mode		22	// b10110 Secure Monitor
 #define PROCESSOR_CONTEXT_SIZE 84
 
 #endif /* ARMV4T_H_ */

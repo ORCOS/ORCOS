@@ -76,7 +76,15 @@ int signal_signal( int4 int_sp ) {
 #endif //HAS_Board_HatLayerCfd
 
 #ifdef ORCOS_SUPPORT_SIGNALS
-    theOS->getCPUDispatcher()->signal( sig, value );
+    theOS->getDispatcher()->signal( sig, value );
+
+    /* If we have priorities we may need to dispatch .. check this now! */
+#ifdef HAS_PRIORITY
+        DISABLE_IRQS(status);
+        SET_RETURN_VALUE((void*)int_sp,(void*)cOk);
+        // we may have unblocked a higher priority thread so we need to reschedule now!
+        theOS->getDispatcher()->dispatch(  );
+#endif
 
     return (cOk);
 #else

@@ -10,12 +10,12 @@
 
 #include "hal/CallableObject.hh"
 
-class lwipTMR : public CallableObject {
+class lwipTMR: public CallableObject {
 public:
-	lwipTMR();
-	virtual ~lwipTMR();
+    lwipTMR();
+    virtual ~lwipTMR();
 
-	void callbackFunc(void* param);
+    void callbackFunc(void* param);
 };
 
 #endif /* LWIPTMR_HH_ */

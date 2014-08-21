@@ -23,19 +23,34 @@
 //#include <kernel/Kernel.hh>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
-void print( char **out, const char *format, va_list args );
+typedef void (*charout)(char** str, char c);
 
-//void printf( const char *format, ... );
-int printf (const char * format, ...);
+void print(charout outfunc, char **out, const char *format, va_list args);
 
-//void sprintf( char *out, const char *format, ... );
-int sprintf (char * str, const char * format, ...);
+/*
+ *  * Prints formatted string the given by format to standard out
+ */
+int printf(const char * format, ...);
 
+/*
+ * Prints formatted string the given by format using to the function provided using the parameter param
+ * => each character c of the formatted result string will be put into out as out(param,c);
+ */
+int fprintf(charout out, char** param, const char *format, ...);
+
+/*
+ * Prints formatted string the given by format to the location pointed by str
+ */
+int sprintf(char * str, const char * format, ...);
+
+/*
+ * Prints the given string unformatted to standard out
+ */
 int puts(const char* s);
+
 #ifdef __cplusplus
 }
 #endif

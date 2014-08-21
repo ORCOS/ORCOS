@@ -19,12 +19,10 @@
 #ifndef TCPTRANSPORTPROTOCOL_HH_
 #define TCPTRANSPORTPROTOCOL_HH_
 
-
 #include "comm/TransportProtocol.hh"
 #include "inc/types.hh"
 #include "inc/const.hh"
 #include "comm/Socket.hh"
-
 
 /*!
  * \brief LWIP Wrapper for the TCP protocol
@@ -39,30 +37,24 @@ public:
     virtual ~TCPTransportProtocol();
 
     //! Send method which adds the protocol header
-    ErrorT send( packet_layer* payload, AddressProtocol* NextLayer, Socket* fromsock );
+    ErrorT send(packet_layer* payload, AddressProtocol* NextLayer, Socket* fromsock);
 
     // ignore sendto since we are conncetion oriented
-    ErrorT sendto( packet_layer* payload, const sockaddr* fromaddr,
-                const sockaddr *dest_addr, AddressProtocol* NextLayer, Socket* fromsock );
-
-
-    //! Receive method which extracts the data out of the packet
-    ErrorT recv( char* packetstart, int packetlength, AddressProtocol* FromLayer, sockaddr fromaddr );
-
-    //! Receive method for packets using the packet_layer structure
-    ErrorT recv( packet_layer* packet, AddressProtocol* FromLayer, sockaddr fromaddr );
+    ErrorT sendto(packet_layer* payload, const sockaddr* fromaddr, const sockaddr *dest_addr, AddressProtocol* NextLayer, Socket* fromsock);
 
     void received(Socket* socket, pbuf* p);
 
     //! Register a socket on the following so it can receive messages
-    ErrorT register_socket( unint2 port, Socket* socket );
+    ErrorT register_socket(unint2 port, Socket* socket);
 
     ErrorT connect(AddressProtocol* nextLayer, sockaddr *toaddr, Socket* fromsocket);
+
+    ErrorT disconnect(Socket* fromsocket);
 
     ErrorT listen(Socket* socket);
 
     //! Unregister a socket (after that it can not receive a message anymore)
-    ErrorT unregister_socket( Socket* socket );
+    ErrorT unregister_socket(Socket* socket);
 };
 
 #endif /*SIMPLETRANSPORTPROTOCOL_HH_*/

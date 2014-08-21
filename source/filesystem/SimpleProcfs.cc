@@ -19,12 +19,12 @@
 #include "SimpleProcfs.hh"
 
 SimpleProcfs::SimpleProcfs() :
-    Directory( "proc" ) {
-    simpleDebugCollector = new SimpleDebugCollector( );
-    this->add( simpleDebugCollector );
+        Directory("proc") {
+    simpleDebugCollector = new SimpleDebugCollector();
+    this->add(simpleDebugCollector);
 }
 
 SimpleProcfs::~SimpleProcfs() {
 
-	delete simpleDebugCollector;
+    delete simpleDebugCollector;
 }

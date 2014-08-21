@@ -23,7 +23,6 @@
 #include "inc/const.hh"
 #include "filesystem/Directory.hh"
 
-
 /*!
  * \brief The ServiceDiscovery Base Class.
  * \ingroup comm
@@ -34,38 +33,38 @@
 class ServiceDiscovery {
 protected:
 
-	int2 id;
-	Directory* commdevsdir;
+    int2 id;
+    Directory* commdevsdir;
 
 public:
-	ServiceDiscovery(int2 i_id) {
-		this->id = i_id;
-	}
-	;
+    ServiceDiscovery(int2 i_id) {
+        this->id = i_id;
+    }
+    ;
 
-	~ServiceDiscovery() {
-	}
-	;
+    ~ServiceDiscovery() {
+    }
+    ;
 
-	//! Returns the Id of this protocol
-	int2 getId() {
-		return (id);
-	}
-	;
+    //! Returns the Id of this protocol
+    int2 getId() {
+        return (id);
+    }
+    ;
 
-	/*!
-	 * \brief Lookup method which will try to lookup n services.
-	 *
-	 * \param name the name of the service
-	 * \param return_socks array of n sockaddr structures to be filled
-	 * \param n amount of replicas to be found
-	 *
-	 * \returns amount of replicas found
-	 */
-	/*virtual unint1
-			nlookup(const service_name name, servicedescriptor* return_socks, unint1 n) = 0;
+    /*!
+     * \brief Lookup method which will try to lookup n services.
+     *
+     * \param name the name of the service
+     * \param return_socks array of n sockaddr structures to be filled
+     * \param n amount of replicas to be found
+     *
+     * \returns amount of replicas found
+     */
+    /*virtual unint1
+     nlookup(const service_name name, servicedescriptor* return_socks, unint1 n) = 0;
 
-	virtual bool addService(servicedescriptor* addr) = 0;*/
+     virtual bool addService(servicedescriptor* addr) = 0;*/
 
 };
 

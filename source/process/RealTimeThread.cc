@@ -22,45 +22,46 @@
 #include "inc/defines.h"
 #include "assembler.h"
 
-// Kernel definition, needed for clock
 extern Kernel* theOS;
-extern TimeT   lastCycleStamp;
 extern Board_ClockCfdCl* theClock;
 extern Kernel_SchedulerCfdCl* theScheduler;
 
 #define FAIL_ADDR          0xcb000000
 
-RealTimeThread::RealTimeThread( void* p_startRoutinePointer, void* p_exitRoutinePointer, Task* p_owner,
-        Kernel_MemoryManagerCfdCl* memManager, unint4 stack_size, void* RTThreadAttributes, bool newThread ) :
-    PriorityThread( p_startRoutinePointer, p_exitRoutinePointer, p_owner, memManager, stack_size, RTThreadAttributes,
-            newThread ) {
-    if ( RTThreadAttributes != 0 ) {
-        // set the parameters and convert them from µs to cylces
-    	thread_attr_t* attr = static_cast< thread_attr_t* > ( RTThreadAttributes );
-		#if CLOCK_RATE >= (1 MHZ)
-			this->relativeDeadline = ((TimeT) attr->deadline) * (CLOCK_RATE / 1000000);
-			this->executionTime = ((TimeT) attr->executionTime) * (CLOCK_RATE / 1000000);
-			this->period = ((TimeT) attr->period) * (CLOCK_RATE / 1000000);
-		#else
-			this->relativeDeadline = (TimeT) ((attr->deadline * CLOCK_RATE) /  1000000U);
-			this->executionTime = (TimeT) ((attr->executionTime * CLOCK_RATE) /  1000000U);
-			this->period = (TimeT) ((attr->period * CLOCK_RATE) /  1000000U);
-		#endif
+RealTimeThread::RealTimeThread(void* p_startRoutinePointer, void* p_exitRoutinePointer, Task* p_owner,
+Kernel_MemoryManagerCfdCl* memManager, unint4 stack_size, void* RTThreadAttributes, bool newThread) :
+        PriorityThread(p_startRoutinePointer, p_exitRoutinePointer, p_owner, memManager, stack_size, RTThreadAttributes, newThread) {
+    if (RTThreadAttributes != 0)
+    {
+        /* set the parameters and convert them from µs to cylces */
+        thread_attr_t* attr = static_cast<thread_attr_t*>(RTThreadAttributes);
 
-        LOG(PROCESS,WARN,( PROCESS, WARN, "RealtimeThread:() period: %d",this->period));
+        /* convert to clock ticks */
+#if CLOCK_RATE >= (1 MHZ)
+        this->relativeDeadline  = ((TimeT) attr->deadline)      * (CLOCK_RATE / 1000000);
+        this->executionTime     = ((TimeT) attr->executionTime) * (CLOCK_RATE / 1000000);
+        this->period            = ((TimeT) attr->period)        * (CLOCK_RATE / 1000000);
+#else
+        this->relativeDeadline  = (TimeT) ((attr->deadline * CLOCK_RATE) / 1000000U);
+        this->executionTime     = (TimeT) ((attr->executionTime * CLOCK_RATE) / 1000000U);
+        this->period            = (TimeT) ((attr->period * CLOCK_RATE) / 1000000U);
+#endif
 
-        TimeT currentCycles = theClock->getTimeSinceStartup();
-        // set the new arrivaltime of this thread
-        this->arrivalTime = currentCycles + attr->phase;
-        this->absoluteDeadline = this->arrivalTime + this->relativeDeadline;
+        LOG(PROCESS, INFO, "RealtimeThread:() period: %d",this->period);
+
+        TimeT currentCycles = theClock->getClockCycles();
+        /* set the new arrival and deadline time of this thread */
+        this->arrivalTime       = currentCycles + attr->phase;
+        this->absoluteDeadline  = this->arrivalTime + this->relativeDeadline;
     }
-    else {
-        this->relativeDeadline = 0;
-        this->executionTime = 0;
-        this->period = 0;
-        this->absoluteDeadline = 0;
+    else
+    {
+        this->relativeDeadline  = 0;
+        this->executionTime     = 0;
+        this->period            = 0;
+        this->absoluteDeadline  = 0;
     }
-    this->instance = 1;
+    this->instance  = 1;
     this->arguments = 0;
 
     theScheduler->computePriority(this);
@@ -69,57 +70,64 @@ RealTimeThread::RealTimeThread( void* p_startRoutinePointer, void* p_exitRoutine
 RealTimeThread::~RealTimeThread() {
 }
 
-
 void RealTimeThread::terminate() {
-    if ( period > 0 ) {
-        // we need to disable interrupts since we will reset the thread context
-        // and really shouldn't be interrupted afterwards (since there is no way to resume).
-        #if ENABLE_NESTED_INTERRUPTS
-            _disableInterrupts();
-        #endif
+    if (period > 0)
+    {
+        /* we need to disable interrupts since we will reset the thread context
+           and really shouldn't be interrupted afterwards (since there is no way to resume). */
+#if ENABLE_NESTED_INTERRUPTS
+        _disableInterrupts();
+#endif
 
-
-        // Reset the thread context. Fortunately it is this simple ^_^.
+        /* Reset the thread context. Fortunately it is this simple ^_^. */
         threadStack.top = 0;
 
-        // Set the status to new so that the call main method will be called instead of restoring the context.
-        this->status.set( cNewFlag | cReadyFlag );
+        /* Set the status to new so that the call main method will be called instead of restoring the context. */
+        this->status.set( cNewFlag | cReadyFlag);
         this->instance++;
 
-
-        #if USE_SAFE_KERNEL_STACKS
+#if USE_SAFE_KERNEL_STACKS
         // we use safe kernel stacks so we must free the stack slot now
-           int2 myBucketIndex =  this->getKernelStackBucketIndex();
-           FREE_KERNEL_STACK_SLOT(myBucketIndex);
-        #endif
-
-        TimeT currentCycles = theClock->getTimeSinceStartup();
-
-#if HAS_Kernel_LoggerCfd
-        // check if we missed our deadline
-        if(currentCycles > this->absoluteDeadline) {
-        	//theOS->getLogger()->log(PROCESS,FATAL,"RealTimeThread ID %d failed deadline! cur_cyles: %d, deadline: %d, sleep: %d", this->getId(), (unint4) currentCycles, (unint4) this->absoluteDeadline, (unint4) sleepcycles);
-        	// omit serial console time for now .. this is not correct but good for debugging
-        	currentCycles = theClock->getTimeSinceStartup();
-        }
+        int2 myBucketIndex = this->getKernelStackBucketIndex();
+        FREE_KERNEL_STACK_SLOT(myBucketIndex);
 #endif
+
 
 #ifdef DEBUG_EXECUTION_TIMES
-        theOS->getLogger()->log(PROCESS,WARN,  "exec_time: %d", (unint4) (currentCycles - arrivalTime) / (CLOCK_RATE / 1000000));
-        currentCycles = theClock->getTimeSinceStartup();
-#endif
-        // set the new arrivaltime of this thread
-        this->arrivalTime      = this->arrivalTime + this->period;
-        this->absoluteDeadline = this->arrivalTime + this->relativeDeadline;
+        TimeT currentCycles = theClock->getTimeSinceStartup();
+        /* check if we missed our deadline */
+        if (currentCycles > this->absoluteDeadline)
+        {
+            /* TODO: add some additional handling/ user warning here? */
+            LOG(PROCESS,FATAL,"RealTimeThread ID %d failed deadline! cur_cyles: %d, deadline: %d, sleep: %d", this->getId(), (unint4) currentCycles, (unint4) this->absoluteDeadline, (unint4) sleepcycles);
+            /* omit serial console time for now .. this is not correct but good for debugging */
+        }
 
-        // invoke the computePriority method of the scheduler
+        LOG(PROCESS,WARN, "exec_time: %d", (unint4) (currentCycles - arrivalTime) / (CLOCK_RATE / 1000000));
+#endif
+
+        /* set the new arrival time of this thread */
+        this->arrivalTime       = this->arrivalTime + this->period;
+        this->absoluteDeadline  = this->arrivalTime + this->relativeDeadline;
+
+        /* invoke the computePriority method of the scheduler with its new deadline
+         * EDF will recalculate the priority based on the absolute deadline.
+         * RM will keep the same as before.
+         * */
         theScheduler->computePriority(this);
 
-        // sleep for the computed interval.
-        this->sleep( this->arrivalTime );
+        /* sleep for the computed interval. */
+        this->sleep(this->arrivalTime);
     }
-    else {
-        LOG(PROCESS,WARN,( PROCESS, WARN, "RealtimeThread::terminate() lateness: %d",(int4) (theClock->getTimeSinceStartup() - this->absoluteDeadline) ));
+    else
+    {   if (this->relativeDeadline != 0)
+        {
+            int4 lateness = theClock->getClockCycles() - this->absoluteDeadline;
+            if (lateness > 0)
+                LOG(PROCESS, WARN, "RealtimeThread::terminate() lateness: %d",lateness );
+        }
+
+        /* terminate anyway*/
         Thread::terminate();
     }
 }

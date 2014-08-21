@@ -19,6 +19,7 @@
 #ifndef CHARACTERDEVICEDRIVER_H_
 #define CHARACTERDEVICEDRIVER_H_
 
+#include "filesystem/Resource.hh"
 #include "GenericDeviceDriver.hh"
 
 /*!
@@ -28,48 +29,34 @@
  * 			which can be used for example inside the kernel for outputting debug info
  */
 
-class CharacterDeviceDriver: public GenericDeviceDriver {
+class CharacterDevice: public GenericDeviceDriver {
 
 protected:
-	unint4 position;
+    unint4 position;
 
 public:
 
-    CharacterDeviceDriver( bool sync_res, const char* name );
+    CharacterDevice(bool sync_res, const char* name);
 
     /*!
      * Constructor for drivers inheriting a character device driver class
      */
-    CharacterDeviceDriver( ResourceType rt, bool sync_res, const char* name );
+    CharacterDevice(ResourceType rt, bool sync_res, const char* name);
 
     /*!
      * \brief Constructor for unregistered device drivers!
      *
      * Handles can not be retrieved by the filesystem
      */
-    CharacterDeviceDriver() : GenericDeviceDriver(0,"none") { position=0;};
-
-    virtual ~CharacterDeviceDriver();
-
-    /*!
-     * \brief reads a byte from the device
-     *
-     * abstract function to read a byte from the device and writes it
-     * to the supplied pointer a error is returned when no byte is available.
-     */
-    virtual ErrorT readByte( char* p_byte ) {
-        return (cNotImplemented);
+    CharacterDevice() :  GenericDeviceDriver(cStreamDevice, false, 0) {
+        position = 0;
     }
 
-    /*!
-     * \brief writes a byte to the device
-     *
-     * abstract function to write a byte to the device
-     * if not possible an error is returned.
-     */
-    virtual ErrorT writeByte( char c_byte ) {
-        return (cNotImplemented);
-    }
+
+    unint4 getPosition() { return (position); }
+
+
+    virtual ~CharacterDevice();
 
     /*!
      * \brief reads a number of bytes from the device
@@ -82,8 +69,8 @@ public:
      * if no data could be read, length should be set to 0 and an error value
      * is returned by the function.
      */
-    virtual ErrorT readBytes( char *bytes, unint4 &length ) {
-        return (cNotImplemented);
+    virtual ErrorT readBytes(char *bytes, unint4 &length) {
+        return (cNotImplemented );
     }
 
     /*!
@@ -93,10 +80,9 @@ public:
      * if the device could not accept as much bytes as specified by length
      * an error value is returned.
      */
-    virtual ErrorT writeBytes( const char *bytes, unint4 length ) {
-        return (cNotImplemented);
+    virtual ErrorT writeBytes(const char *bytes, unint4 length) {
+        return (cNotImplemented );
     }
-
 
     /*!
      * \brief Seeks the position of the character device by the value 'seek_value'
@@ -106,11 +92,23 @@ public:
      *
      * Block devices will interpret the seek_value as sectors NOT bytes!
      */
-    virtual ErrorT seek(int4 seek_value) { this->position += seek_value; return (cOk); };
+    virtual ErrorT seek(int4 seek_value) {
+        /* avoid negative positions */
+        if (this->position + seek_value < 0)
+            this->position = 0;
+        else
+            this->position += seek_value;
+        return (cOk );
+    }
 
 
-    virtual ErrorT resetPosition() { this->position = 0; return (cOk); }
-
+    /*!
+     * \brief Resets the position of this character device.
+     */
+    virtual ErrorT resetPosition() {
+        this->position = 0;
+        return (cOk );
+    }
 
 };
 

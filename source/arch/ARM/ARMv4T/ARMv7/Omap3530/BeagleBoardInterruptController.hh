@@ -6,7 +6,7 @@
  */
 class BeagleBoardInterruptController {
 public:
-	BeagleBoardInterruptController();
+    BeagleBoardInterruptController();
     ~BeagleBoardInterruptController();
 
     /*!
@@ -20,7 +20,7 @@ public:
     /*!
      *  \brief clears the interrupt number 'num'
      */
-    void clearIRQ( int num );
+    void clearIRQ(int num);
 
     /*!
      * \brief enable all IRQs

@@ -23,7 +23,6 @@
 #include "process/Thread.hh"
 #include "inc/const.hh"
 
-
 /*!
  * \brief A thread class for multithreaded environments with priorities
  * \ingroup process
@@ -33,29 +32,29 @@
  * this class is useless and should not be used to save space.
  */
 class PriorityThread: public Thread {
-friend class Task;
+    friend class Task;
 public:
     /*!
      *  The Phase of this PriorityThread which is the earliest start time.
      */
-	TimeT phase;
+    TimeT phase;
 
     /*!
      *  The initial priority.
      */
-	TimeT initialPriority;
+    TimeT initialPriority;
 
     /*!
      *  The actual/effective priority.
      */
-	TimeT effectivePriority;
-
+    TimeT effectivePriority;
 
     /*!
      *  The Constructor of the PriorityThread, the prioThreadAttributes pointer has to point to a prioThreadAttrs structure.
      */
-    PriorityThread( void* startRoutinePointer, void* exitRoutinePointer, Task* owner, Kernel_MemoryManagerCfdCl* memManager,
-            unint4 stack_size = DEFAULT_USER_STACK_SIZE, void* prioThreadAttributes = 0, bool newThread = true );
+    PriorityThread(void* startRoutinePointer, void* exitRoutinePointer, Task* owner, Kernel_MemoryManagerCfdCl* memManager, unint4 stack_size =
+                           DEFAULT_USER_STACK_SIZE, void* prioThreadAttributes =
+                           0, bool newThread = true);
 
 };
 

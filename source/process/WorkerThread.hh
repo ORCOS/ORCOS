@@ -20,11 +20,11 @@
 #define WORKERTHREAD_HH_
 
 #include "SCLConfig.hh"
-#include "db/ArrayDatabase.hh"
+#include "db/ArrayList.hh"
 #include Kernel_Thread_hh
 
 typedef enum {
-	None, IRQJob, TimedFunctionCallJob, PeriodicFunctionCallJob, IdleJob
+    None, IRQJob, TimedFunctionCallJob, PeriodicFunctionCallJob, IdleJob
 } JOBType;
 
 /*!
@@ -60,7 +60,7 @@ private:
     unint1 pid;
 public:
 
-    WorkerThread( Task* owner );
+    WorkerThread(Task* owner);
     ~WorkerThread();
 
     //! overloaded callMain method which starts this thread
@@ -70,10 +70,13 @@ public:
     void work();
 
     //! Set the job of this workerthread
-    void setJob( JOBType type, void* params );
+    inline void setJob(JOBType id, void* params) {
+        jobid = id;
+        param = params;
+    }
 
     //! Set the PID the workerthread shall work with
-    void setPID( unint1 thread_pid ) {
+    inline void setPID(unint1 thread_pid) {
         this->pid = thread_pid;
     }
 
@@ -83,10 +86,12 @@ public:
         this->block();
     }
 
-    bool hasJob() { return (jobid != None); }
+    inline bool hasJob() {
+        return (jobid != None);
+    }
 
     //! Get the PID the workerthread is currently working with
-    unint1 getPID() {
+    inline unint1 getPID() {
         return (pid);
     }
 

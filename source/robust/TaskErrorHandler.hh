@@ -25,7 +25,7 @@ class TaskErrorHandler {
 public:
 	TaskErrorHandler();
 
-	virtual ~TaskErrorHandler();
+	~TaskErrorHandler();
 
 	/*!
 	 * Handles fatal error that occurred during execution of the current

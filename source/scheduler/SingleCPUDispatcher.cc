@@ -26,19 +26,19 @@ extern Kernel* theOS;
 extern Board_TimerCfdCl* theTimer;
 
 /* Global Variables to speed up access to these objects */
-LinkedListDatabaseItem* pRunningThreadDbItem;
+LinkedListItem* pRunningThreadDbItem;
 Kernel_SchedulerCfdCl* 	theScheduler;
 Kernel_ThreadCfdCl*    	pCurrentRunningThread = 0;
 Task*          			pCurrentRunningTask = 0;
 TimeT           		lastCycleStamp = 0;
 bool					processChanged = true;
-
+unint4                  scheduleCount = 0;
 
 SingleCPUDispatcher::SingleCPUDispatcher() :
-  blockedList( new LinkedListDatabase )
-, sleepList( new LinkedListDatabase )
+  blockedList( new LinkedList )
+, sleepList( new LinkedList )
 #ifdef ORCOS_SUPPORT_SIGNALS
-,waitList( new LinkedListDatabase )
+,waitList( new LinkedList )
 #endif
 {
 	/* Initialize the scheduler */
@@ -47,6 +47,7 @@ SingleCPUDispatcher::SingleCPUDispatcher() :
     pRunningThreadDbItem 	= 0;
     pCurrentRunningThread 	= 0;
     pCurrentRunningTask 	= 0;
+    scheduleCount            = 0;
     /* Set idle thread */
     idleThread 				= new IdleThread();
 }
@@ -58,9 +59,10 @@ void SingleCPUDispatcher::dispatch() {
      /* first be sure that interrupts are disabled */
     _disableInterrupts();
 
-    TimeT currentTime = theOS->getClock()->getTimeSinceStartup();
+    TimeT currentTime = theOS->getClock()->getClockCycles();
     /* set the time stamp */
     lastCycleStamp = currentTime;
+    scheduleCount++;
 
     /* check whether the idle thread was currently running or not
        the idle thread would have pRunningThreadDbItem = 0 */
@@ -70,13 +72,13 @@ void SingleCPUDispatcher::dispatch() {
 
     /* get the next timer event the scheduler wants to be called */
     TimeT nextevent = this->SchedulerCfd->getNextTimerEvent(sleepList,currentTime);
-    LOG(SCHEDULER,DEBUG,(SCHEDULER,DEBUG,"SingleCPUDispatcher: next Timer %x %x", (unint4) ((nextevent >> 32) & 0xffffffff),  (unint4) ((nextevent) & 0xffffffff)));
+    LOG(SCHEDULER,DEBUG,"SingleCPUDispatcher: next Timer %x %x", (unint4) ((nextevent >> 32) & 0xffffffff),  (unint4) ((nextevent) & 0xffffffff));
     theTimer->setTimer( nextevent );
 
     /* get the next ready thread
       Be sure to call getNextTimerEvent() before this, since depending on the scheduler the returned
       timeslice might depend on the Threads in the scheduler! (e.g. RateMonotonicThreadScheduler) */
-    LinkedListDatabaseItem* nextThreadDbItem = (LinkedListDatabaseItem*) SchedulerCfd->getNext();
+    LinkedListItem* nextThreadDbItem = (LinkedListItem*) SchedulerCfd->getNext();
 
     /* Any read thread?  */
     if ( nextThreadDbItem != 0 ) {
@@ -93,11 +95,11 @@ void SingleCPUDispatcher::dispatch() {
 
         /* Is this thread new (has no context)?*/
         if ( pCurrentRunningThread->isNew() ) {
-            LOG(SCHEDULER,DEBUG,(SCHEDULER,DEBUG,"SingleCPUDispatcher: start Thread %d at %x, stack [0x%x - 0x%x]", tid, pCurrentRunningThread,pCurrentRunningThread->threadStack.startAddr,pCurrentRunningThread->threadStack.endAddr));
+            LOG(SCHEDULER,DEBUG,"SingleCPUDispatcher: start Thread %d at %x, stack [0x%x - 0x%x]", tid, pCurrentRunningThread,pCurrentRunningThread->threadStack.startAddr,pCurrentRunningThread->threadStack.endAddr);
             pCurrentRunningThread->callMain();
         }
         else {
-            LOG(SCHEDULER,DEBUG,(SCHEDULER,DEBUG,"SingleCPUDispatcher: resume Thread %d at %x",tid, pCurrentRunningThread));
+            LOG(SCHEDULER,DEBUG,"SingleCPUDispatcher: resume Thread %d at %x",tid, pCurrentRunningThread);
             assembler::restoreContext( pCurrentRunningThread );
         }
     }
@@ -106,7 +108,7 @@ void SingleCPUDispatcher::dispatch() {
         pCurrentRunningTask = 0;
         pRunningThreadDbItem = 0;
 
-        LOG(KERNEL,DEBUG,(KERNEL,DEBUG,"SingleCPUDispatcher: Idle Thread running"));
+        LOG(KERNEL,DEBUG,"SingleCPUDispatcher: Idle Thread running");
         /* non returning run() */
         idleThread->run();
     }
@@ -117,12 +119,12 @@ void SingleCPUDispatcher::dispatch() {
 
 
 
-void SingleCPUDispatcher::sleep( LinkedListDatabaseItem* pSleepDbItem ) {
+void SingleCPUDispatcher::sleep( LinkedListItem* pSleepDbItem ) {
   /* be sure that this critical area cant be interrupted */
   DISABLE_IRQS(irqstatus);
 
   /* place into sleeplist */
-   this->sleepList->addTail( (LinkedListDatabaseItem*) pSleepDbItem );
+   this->sleepList->addTail( (LinkedListItem*) pSleepDbItem );
 
     if ( pSleepDbItem == pRunningThreadDbItem ) {
         pRunningThreadDbItem = 0;
@@ -137,7 +139,7 @@ void SingleCPUDispatcher::block( Thread* thread ) {
     /* be sure that this critical area cant be interrupted */
 	DISABLE_IRQS(irqstatus);
 
-    LOG(SCHEDULER,DEBUG,(SCHEDULER,DEBUG,"SingleCPUDispatcher::block() blocking Thead %d", thread->getId()));
+    LOG(SCHEDULER,DEBUG,"SingleCPUDispatcher::block() blocking Thead %d", thread->getId());
 
    	TRACE_THREAD_STOP(thread->getOwner()->getId(),thread->getId());
 
@@ -145,12 +147,12 @@ void SingleCPUDispatcher::block( Thread* thread ) {
         this->blockedList->addTail( pRunningThreadDbItem );
         pRunningThreadDbItem = 0;
 
-        LOG(SCHEDULER,INFO,(SCHEDULER,INFO,"SingleCPUDispatcher::block() dispatching! %d",this->SchedulerCfd->database.getSize()));
+        LOG(SCHEDULER,INFO,"SingleCPUDispatcher::block() dispatching! %d",this->SchedulerCfd->database.getSize());
         dispatch( );
     }
     else {
         // find the databaseitem of this thread and remove it from the scheduler
-        LinkedListDatabaseItem* litem;
+        LinkedListItem* litem;
 
         // if the thread is currently sleeping remove it from the sleeplist
         if ( thread->sleepTime > 0 ) {
@@ -164,7 +166,7 @@ void SingleCPUDispatcher::block( Thread* thread ) {
             // referenced anywhere so lets create
             // a new databaseitem to hold the reference
             // from now on
-            litem = new LinkedListDatabaseItem( thread );
+            litem = new LinkedListItem( thread );
         }
 
         this->blockedList->addTail( litem );
@@ -178,8 +180,8 @@ void SingleCPUDispatcher::unblock( Thread* thread ) {
     // be sure that this critical area cant be interrupted
 	DISABLE_IRQS(irqstatus);
 
-    LOG(SCHEDULER,DEBUG,(SCHEDULER,DEBUG,"SingleCPUDispatcher::unblock() unblocking Thead %d", thread->getId()));
-    LinkedListDatabaseItem* litem = this->blockedList->getItem( thread );
+    LOG(SCHEDULER,DEBUG,"SingleCPUDispatcher::unblock() unblocking Thead %d", thread->getId());
+    LinkedListItem* litem = this->blockedList->getItem( thread );
 
     if ( litem != 0 ) {
         Thread* pThread = (Thread*) litem->getData();
@@ -205,7 +207,7 @@ void SingleCPUDispatcher::sigwait( Thread* thread ) {
     // be sure that this critical area cant be interrupted
 	DISABLE_IRQS(irqstatus);
 
-    LOG(SCHEDULER,TRACE,(SCHEDULER,TRACE,"SingleCPUDispatcher::sigwait() adding Thread to waitlist"));
+    LOG(SCHEDULER,TRACE,"SingleCPUDispatcher::sigwait() adding Thread to waitlist");
 
     if (thread == pCurrentRunningThread) {
         waitList->addTail(pRunningThreadDbItem);
@@ -215,7 +217,7 @@ void SingleCPUDispatcher::sigwait( Thread* thread ) {
     }
     else {
         // find the databaseitem of this thread and remove it from the scheduler
-        LinkedListDatabaseItem* litem = 0;
+        LinkedListItem* litem = 0;
 
         // if the thread is currently sleeping remove it from the sleeplist
         if ( thread->sleepTime > 0 ) {
@@ -233,7 +235,7 @@ void SingleCPUDispatcher::sigwait( Thread* thread ) {
             // referenced anywhere so lets create
             // a new linkedlist databaseitem to hold the reference
             // from now on
-            litem = new LinkedListDatabaseItem( thread );
+            litem = new LinkedListItem( thread );
         }
 
         this->waitList->addTail( litem );
@@ -246,17 +248,20 @@ void SingleCPUDispatcher::signal( void* sig, int sigvalue ) {
     /* be sure that this critical area cannot be interrupted */
 	DISABLE_IRQS(irqstatus);
 
-    LOG(SCHEDULER,TRACE,(SCHEDULER,TRACE,"SingleCPUDispatcher::signal() signal: %d",sig));
+    LOG(SCHEDULER,TRACE,"SingleCPUDispatcher::signal() signal: %d",sig);
 
-    LinkedListDatabaseItem* litem = this->waitList->getHead();
+    LinkedListItem* litem = this->waitList->getHead();
 
-    for ( unint i = 0; i < waitList->getSize(); i++ ) {
-        LinkedListDatabaseItem* tmpLitem = litem->getSucc();
+    // TODO: better scalable test should be used here
+    // for system with high waitList size this scales pretty bad linearly ...
+    // for multi core would should have one per core as well
+    while (litem != 0) {
+        LinkedListItem* tmpLitem = litem->getSucc();
         Thread* pThread = (Thread*) litem->getData();
 
         if ( litem != 0 ) {
             if ( pThread->signal == sig ) {
-                LOG(SCHEDULER,TRACE,(SCHEDULER,TRACE,"SingleCPUDispatcher::signal() signal to thread %d", pThread->getId()));
+                LOG(SCHEDULER,TRACE,"SingleCPUDispatcher::signal() signal to thread %d", pThread->getId());
 
                 pThread->status.clearBits( cSignalFlag );
                 /* Set the signal return value. The restore Context must handle passing this value
@@ -300,6 +305,7 @@ void SingleCPUDispatcher::terminate_thread( Thread* thread ) {
         if (thread->owner->getThreadDB()->getSize() == 0)
         	theOS->getTaskManager()->removeTask(thread->owner);
 
+        delete pRunningThreadDbItem;
         pRunningThreadDbItem = 0;
 
         dispatch();

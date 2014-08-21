@@ -29,21 +29,31 @@
 #include "logger_config.hh"
 
 #ifdef HAS_Kernel_LoggerCfd
-#define LOG(prefix,level,msg) if ((int) level <= (int) prefix) { if (theOS != 0 && theOS->getLogger() != 0) theOS->getLogger()->log msg ;}
-#else
-#define LOG(prefix,level,msg)
+#ifndef LOG
+#define LOG(prefix, level, ...) if ((int) level <= (int) prefix) { if (theOS != 0 && theOS->getLogger() != 0) theOS->getLogger()->log(prefix,level, __VA_ARGS__);}
 #endif
-
+#else
+#ifndef LOG
+#define LOG(prefix,level, ...)
+#endif
+#endif
 
 //forward declaration
 class Kernel_ThreadCfdCl;
 
+/* backtrace and print the call stack from the given address and stack pointer */
+extern void backtrace_addr(void* currentAddress, size_t stackPtr);
 
+/* backtrace and print the current call stack */
+extern void backtrace_current();
+
+extern void backtrace(void** buffer, int length);
+
+extern char* getMethodSignature(unint4 address);
 
 /*
  *  SIGNAL DEFINITIONS
  */
-
 #define SIG_CHILD_TERMINATED 	1
 
 /* All of the following codes 'x' indicate either an error code or a warning.
@@ -73,23 +83,29 @@ class Kernel_ThreadCfdCl;
 
 // Errors
 // General Error without further information
-#define cError				(int)-1000
+#define cError				    (int)-1000
 // Error indicating that the method called is not implemented
-#define cNotImplemented		(int)-1001
+#define cNotImplemented		    (int)-1001
 // Error indicating that a parameter illegally was a null pointer
-#define cNullPointerProvided (int)-1002
+#define cNullPointerProvided    (int)-1002
 
-#define cStackOverflow (int)-1003
+#define cStackOverflow          (int)-1003
 
-#define cStackUnderflow (int)-1004
+#define cStackUnderflow         (int)-1004
 
-#define cWrongAlignment (int)-1005
+#define cWrongAlignment         (int)-1005
 // Error indicating that the resource can not be removed
-#define cResourceNotRemovable (int) -1006
+#define cResourceNotRemovable   (int)-1006
 // A wrong resource type has been passed to a method.
-#define cWrongResourceType (int) -1007
+#define cWrongResourceType      (int)-1007
 
-#define cInvalidPath		(int) -1008
+#define cInvalidPath		    (int)-1008
+
+#define cNoData                 (int)-1009
+
+#define cResourceAlreadyExists  (int)-1010
+
+
 
 // The following values with |C(s)| < 1000 are used inside the specific
 // components. Each component has 100 possible |C(s)|.
@@ -106,11 +122,11 @@ class Kernel_ThreadCfdCl;
 // Warning or Status Value
 
 // Error
-#define cHeapMemoryExhausted (int)-100
-#define cGivenTLBEntryNotFound (int)-101
-#define cNoValidChunkAddress (int)-102
+#define cHeapMemoryExhausted    (int)-100
+#define cGivenTLBEntryNotFound  (int)-101
+#define cNoValidChunkAddress    (int)-102
 
-#define cDeviceMemoryExhausted (int)-105
+#define cDeviceMemoryExhausted  (int)-105
 
 //-----------------------------------------------------
 // Synchronization          200 <= |C(s)| < 300
@@ -124,8 +140,8 @@ class Kernel_ThreadCfdCl;
 //-----------------------------------------------------
 // Warning or Status Value
 
-#define cInvalidCBHeader (int)-300
-#define cTaskCRCFailed (int)-301
+#define cInvalidCBHeader        (int)-300
+#define cTaskCRCFailed          (int)-301
 // Error
 
 //-----------------------------------------------------
@@ -146,15 +162,15 @@ class Kernel_ThreadCfdCl;
 // Warning or Status Value
 
 // Error
-#define cDatabaseOverflow (int)-500
-#define cElementNotInDatabase (int)-501
-#define cIndexOutOfBounds (int)-502
+#define cDatabaseOverflow       (int)-500
+#define cElementNotInDatabase   (int)-501
+#define cIndexOutOfBounds       (int)-502
 
 //-----------------------------------------------------
 // HAL                      600 <= |C(s)| < 700
 //-----------------------------------------------------
 // Warning or Status Value
-#define cInvalidArgument 	(int)-600
+#define cInvalidArgument 	    (int)-600
 // Error
 
 //-----------------------------------------------------
@@ -162,9 +178,9 @@ class Kernel_ThreadCfdCl;
 //-----------------------------------------------------
 // Warning or Status Value
 
-#define cBlockDeviceReadError (int)-700
-#define cBlockDeviceWriteError (int)-701
-#define cBlockDeviceTooManyBlocks (int)-702
+#define cBlockDeviceReadError       (int)-700
+#define cBlockDeviceWriteError      (int)-701
+#define cBlockDeviceTooManyBlocks   (int)-702
 
 // Error
 #define cInvalidResourceType    (int)-700

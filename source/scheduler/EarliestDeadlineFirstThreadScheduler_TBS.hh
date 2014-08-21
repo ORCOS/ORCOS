@@ -70,7 +70,7 @@ public:
      *  of scheduled items. For this purpose a priority will be computed each time in accordance
      *  with EDF priority rules. It also sets the arrival time of the Thread.
      */
-    ErrorT enter( LinkedListDatabaseItem* item );
+    ErrorT enter( LinkedListItem* item );
 
     /*! \brief Enter method which adds a thread to the scheduler for which no DatabaseItem already exists.
      *
@@ -78,7 +78,7 @@ public:
      * superflous DatabaseItem will be generated which results in a memory leak!
      */
     ErrorT enter( ScheduleableItem* item ) {
-        return this->enter( new LinkedListDatabaseItem( item ) );
+        return this->enter( new LinkedListItem( item ) );
     }
 
     /*! \brief Method returning the amount of microseconds for next timer event.
@@ -93,7 +93,7 @@ public:
      * integer, since the theOS->getTimerDevice()->setTimer() method is implemented to take an unint4 anyways (and we seldom
      * will want to run more than 70 minutes uninterrupted).
      */
-    unint4 getNextTimerEvent(LinkedListDatabase* sleepList,unint4 dt);
+    unint4 getNextTimerEvent(LinkedList* sleepList,unint4 dt);
 
 };
 

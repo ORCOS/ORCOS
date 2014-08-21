@@ -28,14 +28,7 @@
 #define UART_IER_REG_OFFSET		0x004
 #define UART_DLL_REG_OFFSET		0x000
 #define UART_DLH_REG_OFFSET		0x004
-#define UART_EFR_REG_OFFSET		0x008	// enhanced feature register
-#define UART_LCR_REG_OFFSET		0x00C	// line control register
-#define UART_THR_REG_OFFSET		0x000	// transmit hold register
-#define UART_RHR_REG_OFFSET		0x000	// receive hold register
-#define UART_FCR_REG_OFFSET		0x008	// FIFO control register
-#define UART_LSR_REG_OFFSET		0x014	// line status register
-#define UART_SSR_REG_OFFSET		0x044	// supplementary status register
-#define UART_MCR_REG_OFFSET		0x010
+#define UART_EFR_REG_OFFSET		0x008	// enhanced feature register#define UART_LCR_REG_OFFSET		0x00C	// line control register#define UART_THR_REG_OFFSET		0x000	// transmit hold register#define UART_RHR_REG_OFFSET		0x000	// receive hold register#define UART_FCR_REG_OFFSET		0x008	// FIFO control register#define UART_LSR_REG_OFFSET		0x014	// line status register#define UART_SSR_REG_OFFSET		0x044	// supplementary status register#define UART_MCR_REG_OFFSET		0x010
 #define UART_TCR_REG_OFFSET		0x018
 #define UART_SYSC_REG_OFFSET 	0x054
 #define UART_TLR_REG_OFFSET 	0x01C
@@ -59,12 +52,11 @@
 #define UART_LCR_PARITY_TYPE2	0x10
 #define UART_LCR_PARITY_EN		0x08
 #define UART_LCR_NB_STOP		0x04
-#define UART_LCR_CHAR_LENGTH	0x03	// char length 8 bit
-
+#define UART_LCR_CHAR_LENGTH	0x03	// char length 8 bit
 #define COMDD_MAX_PACKET_LENGTH 50
 
 struct PacketHeader {
-    char packetType; // HCI packet type
+    char packetType;  // HCI packet type
 };
 
 /*!
@@ -76,59 +68,64 @@ class BeagleBoardUARTforHCI: public CommDeviceDriver {
 
 private:
 
-	//! the memory mapped IO address of this device
-	int4 baseAddr;
+    //! the memory mapped IO address of this device
+    int4 baseAddr;
 
-	//! the buffer the object can work on to send and receive packets
-	char packetBuffer[ COMDD_MAX_PACKET_LENGTH + sizeof(PacketHeader) ];
+    //! the buffer the object can work on to send and receive packets
+    char packetBuffer[ COMDD_MAX_PACKET_LENGTH + sizeof(PacketHeader)];
 
-	//! current position inside the packerBuffer
-	unint2 currentPosition;
+    //! current position inside the packerBuffer
+    unint2 currentPosition;
 
-	//! indicates whether the header of a packet was already found inside the last recv() calls
-	bool headerFound;
+    //! indicates whether the header of a packet was already found inside the last recv() calls
+    bool headerFound;
 
-	void sendByte(byte Data);
+    void sendByte(byte Data);
 
-	byte recvByte();
+    byte recvByte();
 
-	bool isTransmitBufferFull();
+    bool isTransmitBufferFull();
 
-	bool isReceiveBufferFull();
+    bool isReceiveBufferFull();
 
 protected:
 
 public:
 
-	//!  constructor
-	BeagleBoardUARTforHCI( const char *name, int4 a );
+    //!  constructor
+    BeagleBoardUARTforHCI(const char *name, int4 a);
 
-	//!  destructor
-	~BeagleBoardUARTforHCI();
+    //!  destructor
+    ~BeagleBoardUARTforHCI();
 
-	//! enables Interrupt Requests of this device
-	ErrorT enableIRQ();
+    //! enables Interrupt Requests of this device
+    ErrorT enableIRQ();
 
-	//! disables Interrupt Requests of this device. Interrupts may still be pending.
-	ErrorT disableIRQ();
+    //! disables Interrupt Requests of this device. Interrupts may still be pending.
+    ErrorT disableIRQ();
 
-	#ifdef HAS_BoardLEDCfd
-	    //! sets the leds which can be used for TX/RX signaling
-	    void setLED( LED* led );
-	#endif
+#ifdef HAS_BoardLEDCfd
+    //! sets the leds which can be used for TX/RX signaling
+    void setLED( LED* led );
+#endif
 
-	// interface to meet the CharacterDeviceDriver
-	ErrorT readByte  (char* byte);
-	ErrorT writeByte (char byte);
-	ErrorT readBytes (char *bytes, unint4 &length);
-	ErrorT writeBytes(const char *bytes, unint4 length);
+    // interface to meet the CharacterDeviceDriver
+    ErrorT readByte(char* byte);
+    ErrorT writeByte(char byte);
+    ErrorT readBytes(char *bytes, unint4 &length);
+    ErrorT writeBytes(const char *bytes, unint4 length);
 
-	// interface to meet the CommDeviceDriver
+    // interface to meet the CommDeviceDriver
     ErrorT handleIRQ();
-    ErrorT send(packet_layer* packet, char* dest_addr, int addr_len, int2 fromProtocol_ID );
-    ErrorT lowlevel_send( char* data, int len ) {return cError;};
-    ErrorT broadcast( packet_layer* packet, int2 fromProtocol_ID );
-    ErrorT multicast( packet_layer* packet, int2 fromProtocol_ID, unint4 dest_addr ) { return cNotImplemented; }
+    ErrorT send(packet_layer* packet, char* dest_addr, int addr_len, int2 fromProtocol_ID);
+    ErrorT lowlevel_send(char* data, int len) {
+        return cError ;
+    }
+    ;
+    ErrorT broadcast(packet_layer* packet, int2 fromProtocol_ID);
+    ErrorT multicast(packet_layer* packet, int2 fromProtocol_ID, unint4 dest_addr) {
+        return cNotImplemented ;
+    }
 
     ErrorT inputSCC(int4 Timeout, byte *c);
     ErrorT outputSCC(int4 Timeout, byte c);

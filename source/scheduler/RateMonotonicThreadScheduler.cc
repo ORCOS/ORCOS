@@ -24,15 +24,15 @@
 extern Kernel* theOS;
 
 
-TimeT RateMonotonicThreadScheduler::getNextTimerEvent( LinkedListDatabase* sleepList, TimeT currentTime ) {
+TimeT RateMonotonicThreadScheduler::getNextTimerEvent( LinkedList* sleepList, TimeT currentTime ) {
     // it makes no sense to return an unint8 here, since theOS->getTimerDevice()->setTimer(nextevent) will take
      // a unint4 anyways (and the return value of this function is used to set the timer event).
      TimeT sleeptime = MAX_UINT8;
 
      // only return a value smaller than sleeptime if there is some other competing threads inside the sleeplist!
-     LinkedListDatabaseItem* pDBSleepItem = sleepList->getHead();
+     LinkedListItem* pDBSleepItem = sleepList->getHead();
      if ( pDBSleepItem != 0 ) {
-         LinkedListDatabaseItem* pDBNextItem = database.getHead();
+         LinkedListItem* pDBNextItem = database.getHead();
 
          // set variables which are needed to compare to later on, so we do not need to set these for every
          // iteration of the while loop
@@ -54,7 +54,7 @@ TimeT RateMonotonicThreadScheduler::getNextTimerEvent( LinkedListDatabase* sleep
 
               if ( pSleepThread->sleepTime <= currentTime ) {
                   pSleepThread->status.setBits( cReadyFlag );
-                  LinkedListDatabaseItem* litem2 = pDBSleepItem;
+                  LinkedListItem* litem2 = pDBSleepItem;
                   pDBSleepItem = pDBSleepItem->getSucc();
                   pSleepThread->sleepTime = 0;
                   this->enter( litem2 );
@@ -73,19 +73,26 @@ TimeT RateMonotonicThreadScheduler::getNextTimerEvent( LinkedListDatabase* sleep
    	 return (sleeptime);
 }
 
-ErrorT RateMonotonicThreadScheduler::enter( LinkedListDatabaseItem* item ) {
+void RateMonotonicThreadScheduler::computePriority( RealTimeThread* pRTThread ) {
+
+    TimeT priority = pRTThread->initialPriority;
+
+    /* This computation assures, that a smaller period will result in a higher priority
+     * for periodic threads. non periodic thread priority will not be changed! */
+    if (pRTThread->period != 0)
+        priority = (MAX_UINT4 - pRTThread->period);
+
+    pRTThread->initialPriority   = priority;
+    pRTThread->effectivePriority = priority;
+}
+
+ErrorT RateMonotonicThreadScheduler::enter( LinkedListItem* item ) {
 
     RealTimeThread* pRTThread = static_cast< RealTimeThread* > ( item->getData() );
 
-    // set priority if it has not been set yet.
+     /* set priority if it has not been set yet.*/
     if ( pRTThread->instance == 1 ) {
-        // This computation assures, that a smaller period will result in a higher priority
-    	TimeT priority = 0;
-    	if (pRTThread->period != 0)
-    		priority = (MAX_UINT8 - pRTThread->period);
-
-        pRTThread->initialPriority = priority;
-        pRTThread->effectivePriority = priority ;
+        computePriority(pRTThread);
 
         // If a phase has been specified, put the thread to sleep for the specified duration.
         if ( pRTThread->phase > 0 ) {

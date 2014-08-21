@@ -19,9 +19,8 @@
 #ifndef LINKEDLISTDATABASEITEM_HH_
 #define LINKEDLISTDATABASEITEM_HH_
 
-#include "db/LinkedListDatabase.hh"
-#include "db/DatabaseItem.hh"
-
+#include "db/LinkedList.hh"
+#include "db/ListItem.hh"
 
 /*!
  * \ingroup databases
@@ -31,9 +30,9 @@
  * and thus may be stored in a LinkedListDataBase. Every LinkedListDatabaseItem holds
  * a reference to some DatabaseItem which may e.g be a thread or some other kind of object.
  */
-class LinkedListDatabaseItem: public DatabaseItem {
+class LinkedListItem: public ListItem {
 
-    friend class LinkedListDatabase;
+    friend class LinkedList;
 
 private:
 
@@ -41,17 +40,17 @@ private:
      * \brief Some data (structure) to be stored in this linked list database.
      * may for example be an object like a thread.
      */
-    DatabaseItem* data;
+    ListItem*       data;
 
     /*!
      * \brief the predecessor
      */
-    LinkedListDatabaseItem* pred;
+    LinkedListItem* pred;
 
     /*!
      * \brief the successor
      */
-    LinkedListDatabaseItem* succ;
+    LinkedListItem* succ;
 
     /*!
      * \brief Reference to the LinkedListDatabase this item is stored in
@@ -64,33 +63,35 @@ private:
      * invoking addTail on a LinkedListDatabaseItem stored already in another
      * Database will automatically remove that item from that database.
      */
-    LinkedListDatabase* host_db;
+    LinkedList* host_db;
 
 public:
 
-    LinkedListDatabaseItem() {
+    LinkedListItem() {
         this->data = data;
         this->pred = 0;
         this->succ = 0;
         this->host_db = 0;
     }
-    ;
 
-    LinkedListDatabaseItem( DatabaseItem* p_data ) {
+
+    LinkedListItem(ListItem* p_data) {
         this->data = p_data;
         this->pred = 0;
         this->succ = 0;
         this->host_db = 0;
     }
 
-    ~LinkedListDatabaseItem() {
+    ~LinkedListItem() {
+        if (host_db != 0)
+            host_db->remove(this);
     }
-    ;
+
 
     /*!
      * \brief Returns the reference to the DatabaseItem this LLDbItem is holding.
      */
-    inline DatabaseItem* getData() {
+    inline ListItem* getData() {
         return (data);
     }
 
@@ -99,35 +100,35 @@ public:
      *
      * This may be used in order to reuse a LLDbItem if memory cant be freed.
      */
-    inline void setData( DatabaseItem* p_data ) {
+    inline void setData(ListItem* p_data) {
         this->data = p_data;
     }
 
     /*!
      * \brief Get the predecessor of this LLDbItem
      */
-    inline LinkedListDatabaseItem* getPred() {
+    inline LinkedListItem* getPred() {
         return (pred);
     }
 
     /*!
      * \brief Get the successor of this LLDbItem
      */
-    inline LinkedListDatabaseItem* getSucc() {
+    inline LinkedListItem* getSucc() {
         return (succ);
     }
 
     /*!
      * \brief Set the predecessor of this LLDbItem
      */
-    inline void setPred( LinkedListDatabaseItem* item ) {
+    inline void setPred(LinkedListItem* item) {
         pred = item;
     }
 
     /*!
      * \brief Set the successor of this LLDbItem
      */
-    inline void setSucc( LinkedListDatabaseItem* item ) {
+    inline void setSucc(LinkedListItem* item) {
         succ = item;
     }
 
@@ -135,37 +136,37 @@ public:
      * \brief Removes this LinkedListDatabaseItem from its current list and updates the host_db
      */
     void remove() {
-            // if we are not stored anywhere just return
-            if ( host_db == 0 )
-                return;
+        // if we are not stored anywhere just return
+        if (host_db == 0)
+            return;
 
-            if ( host_db->getHead() == this ) {
-                // i'm the head of the db. update the head
-                host_db->removeHead();
-            }
-            else if ( host_db->getTail() == this ) {
-                // i'm the tail of the db
-                host_db->removeTail();
-            }
-            else {
-                // i'm neither the head nor the tail so we can just manipulate the pointers
-                host_db->size--;
-                host_db = 0;
+        if (host_db->getHead() == this)
+        {
+            // i'm the head of the db. update the head
+            host_db->removeHead();
+        }
+        else if (host_db->getTail() == this)
+        {
+            // i'm the tail of the db
+            host_db->removeTail();
+        }
+        else
+        {
+            // i'm neither the head nor the tail so we can just manipulate the pointers
+            host_db->size--;
+            host_db = 0;
 
-                // update both
-                pred->setSucc( succ );
-                succ->setPred( pred );
+            // update both
+            pred->setSucc(succ);
+            succ->setPred(pred);
 
-                // finally set my succ and pred to null
-                pred = 0;
-                succ = 0;
-            }
-        };
+            // finally set my succ and pred to null
+            pred = 0;
+            succ = 0;
+        }
+    }
 
 
 };
-
-
-
 
 #endif /*LINKEDLISTDATABASEITEM_HH_*/

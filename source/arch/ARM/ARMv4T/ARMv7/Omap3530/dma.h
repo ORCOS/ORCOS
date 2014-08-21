@@ -8,7 +8,6 @@
 #ifndef DMA_H_
 #define DMA_H_
 
-
 #define DMA4_CSDP(Channel) (*((volatile unsigned int *) (0x48056090 + 0x60*Channel)))
 #define DMA4_CEN(Channel) (*((volatile unsigned int *) (0x48056094 + 0x60*Channel)))
 #define DMA4_CFN(Channel) (*((volatile unsigned int *) (0x48056098 + 0x60*Channel)))
@@ -19,9 +18,5 @@
 #define DMA4_CSFI(Channel) (*((volatile unsigned int *) (0x480560A8 + 0x60*Channel)))
 #define DMA4_CDEI(Channel) (*((volatile unsigned int *) (0x480560AC + 0x60*Channel)))
 #define DMA4_CDFI(Channel) (*((volatile unsigned int *) (0x480560B0 + 0x60*Channel)))
-
-
-
-
 
 #endif /* DMA_H_ */

@@ -25,21 +25,21 @@
 extern "C" {
 #endif
 
-void* memcpy( void* dst0, const void* src0, size_t len0 );
+void* memcpy(void* dst0, const void* src0, size_t len0);
 
-int memcmp( const void* m1, const void* m2, size_t n );
+int memcmp(const void* m1, const void* m2, size_t n);
 
-void* memset( void* ptr, int c, size_t n );
+void* memset(void* ptr, int c, size_t n);
 
-void* memsetlong( void* ptr, int c, size_t n);
+void* memsetlong(void* ptr, int c, size_t n);
 
 #ifdef __cplusplus
-unint4 getNextWord( struct packet_layer* &packet, unint2 &position );
+unint4 getNextWord(struct packet_layer* &packet, unint2 &position);
 
-unint2 getNextHalfWord( struct packet_layer* &packet, unint2 &position );
+unint2 getNextHalfWord(struct packet_layer* &packet, unint2 &position);
 #endif
 
-void memdump(int addr,int length);
+void memdump(int addr, int length);
 
 #ifdef __cplusplus
 }

@@ -420,7 +420,6 @@ extern "C" int task_main()
 		// wait for new connection
 		int newsock = listen(mysock);
 
-
 		puts("New FTP connection!\r");
 		sendto(newsock,welcome_msg,strlen(welcome_msg),0);
 
@@ -443,6 +442,7 @@ extern "C" int task_main()
 				if (mydirhandle != 0) fclose(mydirhandle);
 				mydirhandle = 0;
 				puts("FTP Client disconnected..");
+				fclose(newsock);
 				break;
 			}
 

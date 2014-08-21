@@ -31,8 +31,8 @@
  rjmp NONE ; PCINT2 Handler
  rjmp WDT ; Watchdog Timer Handler
  rjmp TIM2 ; Timer2 Compare A Handler
- rjmp NONE ; Timer2 Compare B Handler
- rjmp NONE ; Timer2 Overflow Handler
+ rjmp TIM2 ; Timer2 Compare B Handler
+ rjmp TIM2 ; Timer2 Overflow Handler
  rjmp NONE ; Timer1 Capture Handler
  rjmp TIM1 ; Timer1 Compare A Handler
  rjmp NONE ; Timer1 Compare B Handler
@@ -52,58 +52,87 @@
 
 .globl RESET
  RESET:
- ldi r16, hi8(__stack)  	; Main program start
- sts SPH,r16 			; Set Stack Pointer to top of RAM
- ldi r16, lo8(__stack)
- sts SPL,r16
+   ldi r16, hi8(__stack)  	; Main program start
+   sts SPH, r16 			; Set Stack Pointer to top of RAM
+   ldi r16, lo8(__stack)
+   sts SPL, r16
 
- // copy the data from flash to ram
- rcall __copy_data
+   clr r1
+   clr r0
+	sei
 
-// clear bss
- rcall __clear_bss
+   // copy the data from flash to ram
+   rcall __copy_data
 
- rcall kernelmain
- jmp .
+   //clear bss
+   rcall __clear_bss
+
+   rcall kernelmain
+   nop
+   jmp .
 
  EXT_INT0:
-   jmp .
+   rcall handleEXT_INT0
+   reti
 
  EXT_INT1:
-   jmp .
+   rcall handleEXT_INT1
+   reti
 
  WDT:
-   jmp .
+   rcall handleWatchdog
+   reti
 
+// timer may only happen for wakeup in sleep mode
+// as we are a single threading environment
  TIM0:
-   jmp .
+   rcall handleTIM0
+   reti
 
  TIM1:
-   jmp .
+   rcall handleTIM1
+   reti
 
  TIM2:
-   jmp .
+   rcall handleTIM2
+   reti
 
  NONE:
-   jmp .
-
+   rcall  invalidIRQ
+   reti
 
 __copy_data:
-	ldi     r17, hi8(__data_end)
-	ldi     r26, lo8(__data_start) ; X low
-	ldi     r27, hi8(__data_start) ; X high
-	ldi     r30, lo8(__data_load_start) ; Z low
-	ldi     r31, hi8(__data_load_end) ; Z high
-	rjmp    .+6
-	lpm  				; load from program memory (Z) into r0
-	adiw    r30, 0x01
-	st      X+, r0		; store loaded byte to X then inc X
-	cpi     r26, lo8(__data_end)
-	cpc     r27, r17
-	brne	.-12
-	ret
+ 	 ldi     r26, lo8(__data_start)
+     ldi     r27, hi8(__data_start)
+     ldi     r30, lo8(__data_load_start)
+     ldi     r31, hi8(__data_load_start)
+     rjmp    cmp
+ loop:
+ 	 lpm     r24, Z
+     st      X+, r24
+     adiw    r30, 0x01
+ cmp:
+     ldi     r24, lo8(__data_load_end)
+     ldi     r25, hi8(__data_load_end)
+     cp      r30, r24
+     cpc     r31, r25
+     brlt    loop
+     ret
+
 
 __clear_bss:
-	ret
+	 ldi     XL, lo8(__bss_start)
+     ldi     XH, hi8(__bss_start)
+     rjmp    cmp2
+ loop2:
+     st      X+, r1
+ cmp2:
+     ldi     r24, lo8(__bss_end)
+     ldi     r25, hi8(__bss_end)
+     cp      XL, r24
+     cpc     XH, r25
+     brcs    loop2
+     ret
+
 
 

@@ -33,14 +33,10 @@
 class CallableObject {
 public:
     // Destructor
-    virtual ~CallableObject() {
-    }
-    ;
+    virtual ~CallableObject() { }
 
     // The callback method that needs to be overwritten
-    virtual void callbackFunc( void* param ) {
-    }
-    ;
+    virtual void callbackFunc(void* param)  = 0;
 };
 
 #endif /*CALLABLEOBJECT_HH_*/

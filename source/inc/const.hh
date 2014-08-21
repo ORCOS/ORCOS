@@ -25,11 +25,9 @@
 
 #include "error.hh"
 
-
 #define cFirstThread 1
 #define cFirstTask 1
-#define cFirstResource 3 // 0, 1 and 2 are reserved for stdin,-out,-err
-#define cFirstSocket 1
+#define cFirstResource 3 // 0, 1 and 2 are reserved for stdin,-out,-err#define cFirstSocket 1
 
 /*!
  * Thread priorities

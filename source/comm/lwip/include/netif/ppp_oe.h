@@ -1,34 +1,32 @@
 /*****************************************************************************
-* ppp_oe.h - PPP Over Ethernet implementation for lwIP.
-*
-* Copyright (c) 2006 by Marc Boucher, Services Informatiques (MBSI) inc.
-*
-* The authors hereby grant permission to use, copy, modify, distribute,
-* and license this software and its documentation for any purpose, provided
-* that existing copyright notices are retained in all copies and that this
-* notice and the following disclaimer are included verbatim in any 
-* distributions. No written agreement, license, or royalty fee is required
-* for any of the authorized uses.
-*
-* THIS SOFTWARE IS PROVIDED BY THE CONTRIBUTORS *AS IS* AND ANY EXPRESS OR
-* IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
-* OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
-* IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-* INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-* NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-* DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-* THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-* THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*
-******************************************************************************
-* REVISION HISTORY
-*
-* 06-01-01 Marc Boucher <marc@mbsi.ca>
-*   Ported to lwIP.
-*****************************************************************************/
-
-
+ * ppp_oe.h - PPP Over Ethernet implementation for lwIP.
+ *
+ * Copyright (c) 2006 by Marc Boucher, Services Informatiques (MBSI) inc.
+ *
+ * The authors hereby grant permission to use, copy, modify, distribute,
+ * and license this software and its documentation for any purpose, provided
+ * that existing copyright notices are retained in all copies and that this
+ * notice and the following disclaimer are included verbatim in any 
+ * distributions. No written agreement, license, or royalty fee is required
+ * for any of the authorized uses.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE CONTRIBUTORS *AS IS* AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+ * IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ ******************************************************************************
+ * REVISION HISTORY
+ *
+ * 06-01-01 Marc Boucher <marc@mbsi.ca>
+ *   Ported to lwIP.
+ *****************************************************************************/
 
 /* based on NetBSD: if_pppoe.c,v 1.64 2006/01/31 23:50:15 martin Exp */
 
@@ -78,12 +76,13 @@
 #  include "arch/bpstruct.h"
 #endif
 PACK_STRUCT_BEGIN
-struct pppoehdr {
-	PACK_STRUCT_FIELD(u8_t vertype);
-	PACK_STRUCT_FIELD(u8_t code);
-	PACK_STRUCT_FIELD(u16_t session);
-	PACK_STRUCT_FIELD(u16_t plen);
-} PACK_STRUCT_STRUCT;
+struct pppoehdr
+{
+    PACK_STRUCT_FIELD(u8_t vertype);
+    PACK_STRUCT_FIELD(u8_t code);
+    PACK_STRUCT_FIELD(u16_t session);
+    PACK_STRUCT_FIELD(u16_t plen);
+}PACK_STRUCT_STRUCT;
 PACK_STRUCT_END
 #ifdef PACK_STRUCT_USE_INCLUDES
 #  include "arch/epstruct.h"
@@ -93,15 +92,15 @@ PACK_STRUCT_END
 #  include "arch/bpstruct.h"
 #endif
 PACK_STRUCT_BEGIN
-struct pppoetag {
-	PACK_STRUCT_FIELD(u16_t tag);
-	PACK_STRUCT_FIELD(u16_t len);
-} PACK_STRUCT_STRUCT;
+struct pppoetag
+{
+    PACK_STRUCT_FIELD(u16_t tag);
+    PACK_STRUCT_FIELD(u16_t len);
+}PACK_STRUCT_STRUCT;
 PACK_STRUCT_END
 #ifdef PACK_STRUCT_USE_INCLUDES
 #  include "arch/epstruct.h"
 #endif
-
 
 #define PPPOE_STATE_INITIAL	0
 #define PPPOE_STATE_PADI_SENT	1
@@ -139,7 +138,6 @@ PACK_STRUCT_END
 #define	PPPOE_MAXMTU	(ETHERMTU-PPPOE_HEADERLEN-2)
 
 struct pppoe_softc;
-
 
 void pppoe_init(void);
 

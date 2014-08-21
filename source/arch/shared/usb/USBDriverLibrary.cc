@@ -18,7 +18,7 @@ USBDriverLibrary::USBDriverLibrary()
 
 USBDeviceDriverFactory* USBDriverLibrary::getDriverFor(USBDevice *dev)
 {
-	 LinkedListDatabaseItem* dbitem = this->getContent()->getHead();
+	 LinkedListItem* dbitem = this->getContent()->getHead();
 
 	 /* simple iteration over all listed drivers */
 	 while (dbitem != 0) {

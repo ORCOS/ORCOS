@@ -72,20 +72,19 @@ private:
     Task* ownerTask;
 
 public:
-    CAB( void* bufferstart, unint4 length, Task* ownerTask );
+    CAB(void* bufferstart, unint4 length, Task* ownerTask);
     ~CAB();
 
     // store a new message in the buffer
     // if successfull returns the buffer the message was placed in
     // otherwise returns an error code < 0
-    ErrorT store( char* pmsg, unsigned int msglen );
+    ErrorT store(char* pmsg, unsigned int msglen);
 
     // get the most recent message from the buffer
-    int2 get( char** addressof_ret_ptrtomsg, int2 &buffer );
-
+    int2 get(char** addressof_ret_ptrtomsg, int2 &buffer);
 
     bool hasData() {
-        if ( actb != -1 )
+        if (actb != -1)
             return true;
         else
             return false;

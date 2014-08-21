@@ -180,17 +180,38 @@ jumpToSwiHandler:
 FUNC_START(abortIRQHandler)
 .section	.data_abort,  "ax", "progbits"
 
-	MSR CPSR_c, #system_mode|CPSR_DISINT	// switch to supervisor mode
-	// store context
-	LDR		sp, =__stack - 0x200
-	stmfd   sp!, {r0-r12}
- 	mov		r2, sp
-	MSR CPSR_c, #abort_mode|CPSR_DISINT	// switch to supervisor mode
+	MRS 	sp, SPSR 		// load saved status register
+	AND 	sp, sp, #0x1F 	// extract mode bits
 
-	MOV	r1, lr
-	MRS	r3, SPSR
+	CMP 	sp, #user_mode 	// compare with user mode bit setting
+	MOVEQ	sp, #(system_mode) | CPSR_DISINT	// use system mode to save registers
+	ORRNE   sp, sp, #CPSR_DISINT				// use interrupted mode to save registers
+	BICNE	sp, sp, #0x220						// Clear Bits: Thumb and Big Endian
 
-	MSR CPSR_c, #svc_mode|CPSR_DISINT	// switch to supervisor mode
+	MSR 	CPSR_c, sp			// switch to context save mode (access to interrupted mode register bank)
+
+	LDR		lr, =__stack - 0x200
+
+	str		fp, [lr,#-4]		// store frame pointer
+	str		sp, [lr,#-8]		// store stack pointer
+	str	    lr, [lr,#-12]		// save lr
+	sub 	lr,  lr,#16			// make room for pc
+	stmfd   lr!, {r0-r12}		// store context
+
+	// we can now safely use r0-r12
+	MSR 	CPSR_c, #(abort_mode)|CPSR_DISINT
+
+	mrs     r3, SPSR			// get the return PSR to store away
+	sub		r1, lr, #4			// get the return PC
+
+	// switch back to user mode to store PSR and PC
+	MSR 	CPSR_c, sp
+	str	    r1,[lr,#52] 		// store return PC
+	stmfd   lr!, {r3} 			// store SP
+	mov		r2, lr				// get save context address
+
+	// switch to uninterrupable svc mode for interrupt handling (OS mode)
+	MSR 	CPSR_c, #(svc_mode) | CPSR_DISINT
 
 	LDR		sp, =__stack
 
@@ -221,6 +242,7 @@ undefinedIRQHandler:
 
 	SUB	r0, lr, #4
 	MRS	r1, SPSR
+	MOV	r3, sp
 
 	MSR CPSR_c, #svc_mode|CPSR_DISINT	// switch to supervisor mode
 	LDR		sp, =__stack
@@ -267,7 +289,7 @@ prefetchIRQHandler:
 
 	MSR CPSR_c, #abort_mode|CPSR_DISINT	// switch to supervisor mode
 	SUB		r0,lr, #4
-
+	MOV		r2, sp
 
 	MSR 	CPSR_c, #svc_mode|CPSR_DISINT	// switch to supervisor mode
 	LDR		sp, =__stack

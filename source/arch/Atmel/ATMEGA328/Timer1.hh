@@ -22,26 +22,35 @@
 #include <error.hh>
 #include <types.hh>
 #include <hal/TimerDevice.hh>
+#include <hal/Clock.hh>
 
-#define ms * 1000
-#define CLOCK_RATE 1000
-#define MHZ * 100000
+// timing for 125 khz system clock with timer prescaler  / 1024
+/*#define ms / 8
+#define CLOCK_RATE 125
 
+#define MILLISECONDS / 8
+#define MICROSECONDS*/
+
+// timing for 1 MHZ system clock with timer prescaler  / 1024
+#define ms / 16
+#define CLOCK_RATE 976
+
+#define MILLISECONDS / 16
+#define MICROSECONDS
 
 /*!
- * \brief BeagleBoardGPTimer1, implementation of HAL TimerDevice
+ * \brief ATMEGA328 Timer implementation also functioning as the clock
  *
  * this is the hardware specific implementation of the TimerDevice HAL class
  */
-class Timer1: public TimerDevice {
+class Timer1 {
 
 private:
-
-protected:
-
+	unint4 time;
 public:
 
 	Timer1();
+
     ~Timer1();
 
     /*!
@@ -59,10 +68,11 @@ public:
      */
 	ErrorT setTimer( unint4 t );
 
-    inline ErrorT tick() {
-        // invoke the hal tick() method which then calls the dispatcher
-        return TimerDevice::tick();
-    }
+
+	ErrorT tick();
+
+
+
 
 };
 

@@ -24,7 +24,7 @@
 
 class ARMv4TProcessor {
 public:
-	ARMv4TProcessor();
+    ARMv4TProcessor();
     ~ARMv4TProcessor();
 
     /*!

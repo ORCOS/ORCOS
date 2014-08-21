@@ -23,7 +23,7 @@
 #include "SCLConfig.hh"
 #include Board_Processor_hh
 //#include Board_InterruptHandler_hh
-//#include Board_UART_hh
+#include Board_UART_hh
 //#include Board_UART2_hh
 //#include Board_InterruptController_hh
 #include Board_Timer_hh
@@ -40,14 +40,17 @@ class MicroFunkBoard {
 	DEF_Board_TimerCfd
 	DEF_Board_ClockCfd
 	DEF_Board_ProcessorCfd
+	DEF_Board_UARTCfd
 
 public:
 
 	MicroFunkBoard();
+
     ~MicroFunkBoard();
+
     void initialize();
 
-    char* getBoardInfo() {return "ATMEGA328p";}
+    char* getBoardInfo() {return ("ATMEGA328p");}
 };
 
 #endif /*MICROFUNKBOARD_HH_*/

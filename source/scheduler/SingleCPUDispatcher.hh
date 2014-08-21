@@ -20,7 +20,7 @@
 #define SINGLECPUDISPATCHER_H_
 
 #include "process/IdleThread.hh"
-#include "db/LinkedListDatabase.hh"
+#include "db/LinkedList.hh"
 #include "process/Task.hh"
 #include Kernel_Scheduler_hh
 #include "process/WorkerThread.hh"
@@ -45,7 +45,7 @@ DEF_Kernel_SchedulerCfd
 
 private    :
     //! list containing the currently blocked threads
-    LinkedListDatabase* blockedList;
+    LinkedList* blockedList;
 
     /*
      * List containing the currently sleeping threads.
@@ -55,11 +55,11 @@ private    :
      * preemption point -> the arrival time of a higher priority
      * thread.
      */
-    LinkedListDatabase* sleepList;
+    LinkedList* sleepList;
 
 #ifdef ORCOS_SUPPORT_SIGNALS
     //! List containing the threads currently waiting for a signal
-    LinkedListDatabase* waitList;
+    LinkedList* waitList;
 #endif
 
 
@@ -78,7 +78,7 @@ public:
     unint getSizeOfSleepList() {return (sleepList->getSize());}
 
 
-    inline LinkedListDatabase* getSleeplist() {   return (this->sleepList);}
+    inline LinkedList* getSleeplist() {   return (this->sleepList);}
 
     /*!
      * \brief The dispatch function triggered by the TimerDevice on timer interrupt
@@ -95,7 +95,7 @@ public:
     /*!
      * \brief sleep method which sends the given / current thread to sleep mode
      */
-    void sleep(LinkedListDatabaseItem* pSleepDbItem = pRunningThreadDbItem);
+    void sleep(LinkedListItem* pSleepDbItem = pRunningThreadDbItem);
 
     /*!
      * \brief block method which sends the current thread to blocked mode

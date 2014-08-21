@@ -18,12 +18,11 @@
 
 #include "newlib_helper.hh"
 
-
-int close( int file ) {
+int close(int file) {
     return -1;
 }
 
-int fstat( int file, struct stat *st ) {
+int fstat(int file, struct stat *st) {
     return 0;
 }
 
@@ -31,19 +30,19 @@ int getpid() {
     return -1;
 }
 
-int isatty( int file ) {
+int isatty(int file) {
     return 1;
 }
 
-int kill( int pid, int sig ) {
-    return ( -1 );
+int kill(int pid, int sig) {
+    return (-1);
 }
 
-int lseek( int file, int ptr, int dir ) {
+int lseek(int file, int ptr, int dir) {
     return 0;
 }
 
-void print( char* string ) {
+void print(char* string) {
 
 }
 

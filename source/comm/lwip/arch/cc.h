@@ -19,12 +19,12 @@
 #endif
 
 /* Define generic types used in lwIP */
-typedef unsigned   char    u8_t;
-typedef signed     char    s8_t;
-typedef unsigned   short   u16_t;
-typedef signed     short   s16_t;
-typedef unsigned   long     u32_t;
-typedef signed     long     s32_t;
+typedef unsigned char u8_t;
+typedef signed char s8_t;
+typedef unsigned short u16_t;
+typedef signed short s16_t;
+typedef unsigned long u32_t;
+typedef signed long s32_t;
 
 typedef unsigned long mem_ptr_t;
 
@@ -54,7 +54,6 @@ typedef unsigned long mem_ptr_t;
 /* Plaform specific diagnostic output */
 #define LWIP_PLATFORM_DIAG(x)  printf x
 
-
 #define LWIP_PLATFORM_ASSERT(x) do { printf("Assertion \"%s\" failed at line %d in %s\r\n", x, __LINE__, __FILE__);} while(0)
 
 #include "logger_config.hh"
@@ -67,9 +66,6 @@ typedef unsigned long mem_ptr_t;
 #define LWIP_PLATFORM_ASSERT(x) do {} while(0)
 #endif
 
-
 #define LWIP_RAND() ((u32_t)rand())
-
-
 
 #endif /* CC_H_ */

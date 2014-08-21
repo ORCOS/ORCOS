@@ -35,26 +35,25 @@ public:
      * \brief All existing TLB entries are set to not valid
      */
     /*static void invalidate() {
-    	asm volatile(
-    			".align 4;"
-    		    						"mov    r0,pc;"
-    		    						"bx     r0;"
-    		    						".code 32;"
-    		"MOV r0, #0;"
-    		"MCR p15, 0, r0, c8, c5, 0;" // Invalidate Inst-TLB
-    		"MCR p15, 0, r0, c8, c6, 0;" // Invalidate Data-TLB
+     asm volatile(
+     ".align 4;"
+     "mov    r0,pc;"
+     "bx     r0;"
+     ".code 32;"
+     "MOV r0, #0;"
+     "MCR p15, 0, r0, c8, c5, 0;" // Invalidate Inst-TLB
+     "MCR p15, 0, r0, c8, c6, 0;" // Invalidate Data-TLB
 
-    			"add r0, pc,#1;"
-    		    									"bx  r0;"
-    		    									".code 16;"
-    		:
-    		:
-    		: "r0"
-    	);
+     "add r0, pc,#1;"
+     "bx  r0;"
+     ".code 16;"
+     :
+     :
+     : "r0"
+     );
 
-    }*/
+     }*/
 
 };
-
 
 #endif /* ARMv7MMU_HH_ */

@@ -1,13 +1,10 @@
 
-
 /*  <...> includes
  *********************************************************************/
-
 
 /*  "..." includes
  *********************************************************************/
 #include "kernel/Kernel.hh"
-
 
 #include "lwip/opt.h"
 #include "lwip/def.h"
@@ -47,19 +44,19 @@ static unsigned char ETH_LocalAddress[6] = { Board_ETH_UNIQUEID };
  *        for this ethernetif
  */
 static void low_level_init(struct netif *netif) {
-	int i;
+    int i;
     for (i = 0; i < netif->hwaddr_len; i++)
     {
         netif->hwaddr[i] = ETH_LocalAddress[i];
     }
 
     /* maximum transfer unit */
-    netif->mtu = 1500; //MAX_FRAME_SIZE;
+    netif->mtu = 1500;  //MAX_FRAME_SIZE;
 
     /* device capabilities */
     /* don't set NETIF_FLAG_ETHARP if this device is not an ethernet one */
-    netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP
-            | NETIF_FLAG_LINK_UP;
+    netif->flags =
+            NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_LINK_UP;
 }
 
 /**
@@ -82,35 +79,38 @@ static char data[1500];
 
 static err_t low_level_output(struct netif *netif, struct pbuf *p) {
 
-	if (p->tot_len > 1400) {
-		//pbuf_free(p);
-		printf("ERROR len > 1400!\n");
-		return ERR_MEM;
-	}
+    if (p->tot_len > 1400)
+    {
+        //pbuf_free(p);
+        printf("ERROR len > 1400!\n");
+        return ERR_MEM;
+    }
 
-	int pos = 0;
+    int pos = 0;
 
-	struct pbuf *curp = p;
+    struct pbuf *curp = p;
 
-	while (curp != 0) {
-		memcpy(&data[pos],curp->payload,curp->len);
+    while (curp != 0)
+    {
+        memcpy(&data[pos], curp->payload, curp->len);
 
-		pos  += curp->len;
-		curp = curp->next;
-	}
+        pos += curp->len;
+        curp = curp->next;
+    }
 
-	if (theOS->getBoard()->getETH() != 0)
-		theOS->getBoard()->getETH()->lowlevel_send((char*)data,pos);
+    if (theOS->getBoard()->getETH() != 0)
+        theOS->getBoard()->getETH()->lowlevel_send((char*) data, pos);
 
     LINK_STATS_INC(link.xmit);
 
-    return ERR_OK; //cOk == ERR_OK
+    return ERR_OK;  //cOk == ERR_OK
 }
 
 #if !LWIP_ARP
 err_t
-dummy_output(struct netif *netif, struct pbuf *q, struct ip4_addr *ipaddr) {
-	return ERR_OK;
+dummy_output(struct netif *netif, struct pbuf *q, struct ip4_addr *ipaddr)
+{
+    return ERR_OK;
 }
 #endif
 
@@ -139,7 +139,6 @@ err_t ethernetif_init(struct netif *netif) {
      * of bits per second.
      */
     //NETIF_INIT_SNMP(netif, snmp_ifType_ethernet_csmacd, ???);
-
     netif->name[0] = IFNAME0;
     netif->name[1] = IFNAME1;
     /* We directly use etharp_output() here to save a function call.
@@ -161,6 +160,4 @@ err_t ethernetif_init(struct netif *netif) {
 
     return ERR_OK;
 }
-
-
 

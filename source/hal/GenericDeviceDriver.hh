@@ -24,27 +24,15 @@
 
 /*!
  * \ingroup devicedrivers
- * \brief   provides the standart interfaces for all devices. it consists currently of initialisation and power management functions
+ * \brief   provides the standard interfaces for all devices. it consists currently of initialization and power management functions
  *
- * The GenericDeviceDriver Interface is used to unify the access from the kernel to the deviced. Each device has to supply the following functions:
- *
- * \li probe
- * \li remove
- * \li shutdown
- * \li suspend
- * \li remove
- * \li getDriverDescription
+ * The GenericDeviceDriver Interface is used to unify the access from the kernel to the device.
  *
  * \section probeFunction the probe function
  * This function is provided to make it possible for the kernel to probe for a specific device. When a kernel is build for targets of the same
  * hardware platform but with different hardware features (a "generic" kernel) it can use the probe function before loading the driver to
- * probe for the presense of the device.
+ * probe for the presence of the device.
  * The driver should be able to determine if the hardware it is written for is really present and return a value according to this.
- *
- * \section removeFunction the remove function
- * When there is no longer need of usage of the hardware device in concern the kernel may unload the driver with the remove function. It should
- * free all memory used by the hardware driver and put the hardware in a power mode as low as possible (shutting it off completely is prefered).
- * The kernel will install the driver again when it needs the device again.
  *
  * \section shutdownFunction the shutdown function
  * The kernel may call this function when the device is not going to be used for a longer time period. So the driver can shut the hardware off.
@@ -69,79 +57,74 @@ public:
     // flag indicating if this device has an workerthread currently assigned to it
     bool hasAssignedWorkerThread;
 
-	/**
-	 * Constructor for generic devices
-	 */
-    GenericDeviceDriver( bool sync_res, const char* p_name ) :
-        Resource( cGenericDevice, sync_res, p_name ) {
-    	interruptPending = false;
-    	hasAssignedWorkerThread = false;
+    /**
+     * Constructor for generic devices
+     */
+    GenericDeviceDriver(bool sync_res, const char* p_name) :
+            Resource(cGenericDevice, sync_res, p_name) {
+        interruptPending = false;
+        hasAssignedWorkerThread = false;
     }
-
 
     /**
      *  Constructor for drivers specialising from generic device driver,
      *  thus, providing its own ResourceType information.
      */
-    GenericDeviceDriver( ResourceType rt, bool sync_res, const char* p_name ) :
-        Resource( rt, sync_res, p_name ) {
-    	interruptPending = false;
-    	hasAssignedWorkerThread = false;
+    GenericDeviceDriver(ResourceType rt, bool sync_res, const char* p_name) :
+            Resource(rt, sync_res, p_name) {
+        interruptPending = false;
+        hasAssignedWorkerThread = false;
     }
-
 
     virtual ~GenericDeviceDriver() {
     }
 
-
     virtual ErrorT probe() {
-        return (cNotImplemented);
+        return (cNotImplemented );
     }
 
-
-    virtual ErrorT shutdown() {
-        return (cNotImplemented);
-    }
-
-
-    virtual ErrorT suspend() {
-        return (cNotImplemented);
-    }
+    /*
+     virtual ErrorT shutdown() {
+     return (cNotImplemented);
+     }
 
 
-    virtual ErrorT resume() {
-        return (cNotImplemented);
-    }
+     virtual ErrorT suspend() {
+     return (cNotImplemented);
+     }
 
+
+     virtual ErrorT resume() {
+     return (cNotImplemented);
+     }
+     */
 
     /*
      * IRQ Handling method
      *
      */
     virtual ErrorT handleIRQ() {
-    	return (cNotImplemented);
+        return (cNotImplemented );
     }
 
-
     //! enables the hardware interrupts of this device.
-    virtual  ErrorT enableIRQ() {
-        return (cNotImplemented);
+    virtual ErrorT enableIRQ() {
+        return (cNotImplemented );
     }
 
     //! disables all interrupts of this device (does not clear them!)
-    virtual  ErrorT disableIRQ() {
-        return (cNotImplemented);
+    virtual ErrorT disableIRQ() {
+        return (cNotImplemented );
     }
 
     //! clears all interrupts of this device
-    virtual   ErrorT clearIRQ() {
-        return (cNotImplemented);
+    virtual ErrorT clearIRQ() {
+        return (cNotImplemented );
     }
 
     virtual ErrorT ioctl(int request, void* args) {
-    	return (cNotImplemented);
+        return (cNotImplemented );
     }
-
 
 };
 

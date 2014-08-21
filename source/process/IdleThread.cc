@@ -29,17 +29,18 @@ IdleThread::IdleThread() {
 IdleThread::~IdleThread() {
 }
 
-void IdleThread::run( ) {
+void IdleThread::run() {
 
-	// reset the stack pointer to the context address since we don't want to waste memory
-	// and cant access the stack from the previous thread
-	SETSTACKPTR(&__stack);
-	SETPID(0);
+    // reset the stack pointer to the context address since we don't want to waste memory
+    // and cant access the stack from the previous thread
+    SETSTACKPTR(&__stack);
+    SETPID(0);
 
-	_enableInterrupts();
+    _enableInterrupts();
 
     // loop forever
-    while ( true ) {
+    while (true)
+    {
 #ifdef HAS_Kernel_PowerManagerCfd
         // Kernel has PowerManager configured. hand over control
         // to it to idle the system

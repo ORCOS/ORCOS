@@ -40,7 +40,7 @@ public:
      *  This will enter the database item in accordance with it's priority in the list
      *  of scheduled items.
      */
-    ErrorT enter( LinkedListDatabaseItem* item );
+    ErrorT enter( LinkedListItem* item );
 
     /*!
      * \brief Enter method which adds a thread to the scheduler for which no DatabaseItem already exists.
@@ -49,7 +49,7 @@ public:
      * superflous DatabaseItem will be generated which results in a memory leak!
      */
     ErrorT enter( ScheduleableItem* item ) {
-        return (this->enter( new LinkedListDatabaseItem( item ) ));
+        return (this->enter( new LinkedListItem( item ) ));
     }
 
     /*!
@@ -58,7 +58,7 @@ public:
      * Since the actual scheduling logic is implemented in the enter method, this will always return the first
      * item of the internal database of threads ready to run.
      */
-    DatabaseItem* getNext();
+    ListItem* getNext();
 
     /*!
      * \brief The initialisation method called just before scheduling begins, enables the timer device.
@@ -71,7 +71,7 @@ public:
      *
      */
 #ifndef REALTIME
-    int getNextTimerEvent(LinkedListDatabase* sleepList,unint4 dt);
+    int getNextTimerEvent(LinkedList* sleepList,unint4 dt);
 #endif
 
 };

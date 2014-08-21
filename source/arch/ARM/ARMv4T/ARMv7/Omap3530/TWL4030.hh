@@ -42,12 +42,10 @@
 #define TWL4030_PM_RECEIVER_VPLL2_REMAP			0x90
 #define TWL4030_PM_RECEIVER_VPLL2_DEDICATED		0x91
 
-
 #define TWL4030_PM_RECEIVER_VDAC_DEV_GRP		0x96
 #define TWL4030_PM_RECEIVER_VDAC_TYPE			0x97
 #define TWL4030_PM_RECEIVER_VDAC_REMAP			0x98
 #define TWL4030_PM_RECEIVER_VDAC_DEDICATED		0x99
-
 
 /* Voltage Selection in PM Receiver Module */
 #define TWL4030_PM_RECEIVER_VAUX2_VSEL_18		0x05
@@ -57,9 +55,6 @@
 #define TWL4030_PM_RECEIVER_VMMC1_VSEL_30		0x02
 #define TWL4030_PM_RECEIVER_VMMC1_VSEL_32		0x03
 #define TWL4030_PM_RECEIVER_VSIM_VSEL_18		0x03
-
-
-
 
 /* Defines for bits in registers */
 #define OPMODE_MASK		(3 << 3)
@@ -71,7 +66,6 @@
 #define CLK32K_EN		(1 << 1)
 #define REQ_PHY_DPLL_CLK	(1 << 0)
 #define PHY_DPLL_CLK		(1 << 0)
-
 
 /* I2C chip addresses */
 
@@ -676,54 +670,53 @@
  * It is used in combination with USB, AUDIO, MMC devices to provide
  * the power supply for those the chips.
  */
-class TWL4030 : GenericDeviceDriver {
+class TWL4030: public GenericDeviceDriver {
 
 private:
-	Omap3530i2c* i2c_dev;
+    Omap3530i2c* i2c_dev;
 
-	ErrorT i2c_read_u8(unint1 i2c_num, unint1 *val, unint1 reg);
+    ErrorT i2c_read_u8(unint1 i2c_num, unint1 *val, unint1 reg);
 
-	ErrorT i2c_write_u8(unint1 i2c_num, unint1 val, unint1 reg);
+    ErrorT i2c_write_u8(unint1 i2c_num, unint1 val, unint1 reg);
 
 public:
 
+    TWL4030(T_TWL4030_Init *init);
 
-	TWL4030(T_TWL4030_Init *init);
+    virtual ~TWL4030();
 
-	virtual ~TWL4030();
+    void power_reset_init(void);
 
-	void power_reset_init(void);
+    void pmrecv_vsel_cfg(unint1 vsel_reg, unint1 vsel_val, unint1 dev_grp, unint1 dev_grp_sel);
 
-	void pmrecv_vsel_cfg(unint1 vsel_reg, unint1 vsel_val, unint1 dev_grp, unint1 dev_grp_sel);
+    int usb_write(unint1 address, unint1 data);
 
-	int  usb_write(unint1 address, unint1 data);
+    int usb_read(unint1 address);
 
-	int  usb_read(unint1 address);
+    void usb_ldo_init(void);
 
-	void usb_ldo_init(void);
+    /*
+     * Activates the USB PHY Power supply.
+     */
+    void phy_power(void);
 
-	/*
-	 * Activates the USB PHY Power supply.
-	 */
-	void phy_power(void);
+    /*
+     * Initialize the ULPI interface.
+     * ULPI : Universal Transceiver Macrocell Low Pin Interface
+     * An interface between the USB link controller like musb and the
+     * the PHY or transceiver that drives the actual bus.
+     */
+    int usb_ulpi_init(void);
 
-	/*
-	 * Initialize the ULPI interface.
-	 * ULPI : Universal Transceiver Macrocell Low Pin Interface
-	 * An interface between the USB link controller like musb and the
-	 * the PHY or transceiver that drives the actual bus.
-	 */
-	int usb_ulpi_init(void);
+    /**
+     * Activates the general power supply for VAUX3, VPLL2, VDAC
+     */
+    void power_init(void);
 
-	/**
-	 * Activates the general power supply for VAUX3, VPLL2, VDAC
-	 */
-	void power_init(void);
-
-	/**
-	 * Activates the MMC power supply
-	 */
-	void power_mmc_init(void);
+    /**
+     * Activates the MMC power supply
+     */
+    void power_mmc_init(void);
 };
 
 #endif /* TWL4030_HH_ */

@@ -21,17 +21,17 @@
 
 #include <hal/Clock.hh>
 
-
 /*! \brief Emulation of a clock based on timer interrupts, may overflow easily
  *
  */
 class EmulatedClock: public Clock {
 
 private:
-	TimeT high_precision_time;
+    TimeT high_precision_time;
 
 public:
-	EmulatedClock();
+    EmulatedClock();
+
     ~EmulatedClock();
 
     /*!
@@ -40,9 +40,8 @@ public:
      */
     TimeT getTimeSinceStartup();
 
-
     void incTime(unint4 cycles) {
-    	high_precision_time += cycles;
+        high_precision_time += cycles;
     }
 
     /*!

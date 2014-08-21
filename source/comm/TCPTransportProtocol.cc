@@ -19,7 +19,6 @@
 #ifndef TCPTRANSPORTPROTOCOL_HH
 #define TCPTRANSPORTPROTOCOL_HH
 
-
 #include "TCPTransportProtocol.hh"
 #include "lwipopts.h"
 
@@ -33,219 +32,251 @@
 
 extern Kernel* theOS;
 
-extern Task*   		 pCurrentRunningTask;
-extern "C" Mutex* 	 comStackMutex;
+extern "C" Mutex* comStackMutex;
 
 TCPTransportProtocol::TCPTransportProtocol() :
-    TransportProtocol( 6 ) {
+        TransportProtocol(6) {
 }
 
 TCPTransportProtocol::~TCPTransportProtocol() {
 }
 
-ErrorT TCPTransportProtocol::sendto( packet_layer* payload, const sockaddr* fromaddr,
-                const sockaddr *dest_addr, AddressProtocol* NextLayer, Socket* fromsock ) {
+ErrorT TCPTransportProtocol::sendto(packet_layer* payload, const sockaddr* fromaddr, const sockaddr *dest_addr, AddressProtocol* NextLayer, Socket* fromsock) {
 
-	/* no sendto on connection oriented protocols */
-	return (cError);
+    /* no sendto on connection oriented protocols */
+    return (cError );
 }
 
 ErrorT TCPTransportProtocol::send(packet_layer* payload, AddressProtocol* NextLayer, Socket* fromsock) {
-	LOG(COMM,INFO,(COMM,INFO,"TCP:send(): size: %d",payload->size));
-	comStackMutex->acquire();
+    LOG(COMM, INFO, "TCP:send(): size: %d",payload->size);
+    comStackMutex->acquire();
 
-	// allocate a pbuf
-	struct pbuf *p = pbuf_alloc(PBUF_TRANSPORT, payload->size, PBUF_RAM);
-	if (p != 0) {
-		// unfortunately we need to copy here
-		memcpy(p->payload,payload->bytes,payload->size);
-		struct tcp_pcb *pcb = (struct tcp_pcb*) fromsock->arg;
+    // allocate a pbuf
+    struct pbuf *p = pbuf_alloc(PBUF_TRANSPORT, payload->size, PBUF_RAM);
+    if (p != 0)
+    {
+        // unfortunately we need to copy here
+        memcpy(p->payload, payload->bytes, payload->size);
+        struct tcp_pcb *pcb = (struct tcp_pcb*) fromsock->arg;
 
-		// try to write it to the tcp stack
-		// will try to enqueue the packet and maybe merge it with previous ones still on queue
-		int ret = tcp_write(pcb,p,p->len,0);
+        // try to write it to the tcp stack
+        // will try to enqueue the packet and maybe merge it with previous ones still on queue
+        int ret = tcp_write(pcb, p, p->len, 0);
 
-		// free anyway
-		pbuf_free(p);
+        // free anyway
+        pbuf_free(p);
 
-		// check if enqueue operation was successfull
-		if (ret != ERR_OK) {
-			comStackMutex->release();
-			return (cTCPEnqueueFailed);
-		}
+        // check if enqueue operation was successfull
+        if (ret != ERR_OK)
+        {
+            comStackMutex->release();
+            return (cTCPEnqueueFailed );
+        }
 
-		// try to send directly
-		tcp_output(pcb);
+        // try to send directly
+        tcp_output(pcb);
 
-		comStackMutex->release();
-		return (cOk);
-	}
-	else {
-		LOG(COMM,WARN,(COMM,WARN,"TCP:send(): packet dropped.. no more memory..!"));
-		comStackMutex->release();
-		return (cPBufNoMoreMemory);
-	}
+        comStackMutex->release();
+        return (cOk );
+    }
+    else
+    {
+        LOG(COMM, WARN,"TCP:send(): packet dropped.. no more memory..!");
+        comStackMutex->release();
+        return (cPBufNoMoreMemory );
+    }
 }
 
-ErrorT TCPTransportProtocol::recv( char* packetstart, int packetlength, AddressProtocol* FromLayer,
-        sockaddr fromaddr ) {
-
-    return (cOk);
-}
-
-
-ErrorT TCPTransportProtocol::recv( packet_layer* packet, AddressProtocol* FromLayer,
-        sockaddr fromaddr ) {
-
-    return (cOk);
-}
 
 static err_t tcp_recv_wrapper(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t error) {
 
-	Socket *sock = (Socket*) arg;
+    Socket *sock = (Socket*) arg;
 
-	if (p != 0) {
-		if (sock != 0) {
-			return (sock->addMessage(p,0));
-		} else
-			return (ERR_BUF);
-	} else {
-		/* p == 0 indicates a disconnect */
-		if (sock != 0)
-			sock->disconnected(error);
+    if (p != 0)
+    {
+        if (sock != 0)
+        {
+            return (sock->addMessage(p, 0));
+        }
+        else
+            return (ERR_BUF);
+    }
+    else
+    {
+        /* p == 0 indicates a disconnect */
+        if (sock != 0) {
+            sock->arg = 0;
+            sock->disconnected(error);
+        }
 
-		LOG(COMM,DEBUG,(COMM,DEBUG,"TCP: closing pcb: %x",pcb));
-		tcp_close(pcb);
-	}
+        LOG(COMM, DEBUG,"TCP: closing pcb: %x",pcb);
+        tcp_close(pcb);
+    }
 
-	return (ERR_OK);
+    return (ERR_OK);
 }
 
 void TCPTransportProtocol::received(Socket* socket, pbuf* p) {
-	struct tcp_pcb* pcb = (struct tcp_pcb*) socket->arg;
-	// indicate that we received
-	tcp_recved(pcb,p->len);
-	pbuf_free(p);
+    struct tcp_pcb* pcb = (struct tcp_pcb*) socket->arg;
+    if (pcb != 0) {
+        // indicate that we received
+        tcp_recved(pcb, p->tot_len);
+    }
+    pbuf_free(p);
 }
-
 
 static err_t tcp_connected(void *arg, struct tcp_pcb *pcb, err_t err) {
-	LOG(COMM,TRACE,(COMM,TRACE,"TCP: connected!"));
-	tcp_recv(pcb, &tcp_recv_wrapper);
+    if (arg == 0) return (ERR_OK);
 
-	// signal conenction to socket so it can unblock the thread
-	Socket *sock = (Socket*) arg;
-	sock->connected(cOk);
-	sock->arg = pcb;
-	return (ERR_OK);
+    if (err == ERR_OK) {
+        LOG(COMM, TRACE, "TCP: connected!");
+        tcp_recv(pcb, &tcp_recv_wrapper);
+
+        // signal conenction to socket so it can unblock the thread
+        Socket *sock = (Socket*) arg;
+        sock->connected(cOk);
+        sock->arg = pcb;
+    } else {
+        LOG(COMM, TRACE, "TCP: connect timed out!");
+        Socket *sock = (Socket*) arg;
+        sock->connected(cError);
+        sock->arg = 0;
+    }
+    return (ERR_OK);
 }
 
-static err_t  tcp_accept_wrapper(void *arg, struct tcp_pcb *newpcb,err_t err)
-{
+static err_t tcp_accept_wrapper(void *arg, struct tcp_pcb *newpcb, err_t err) {
 
-	Socket* oldsock = (Socket*) arg;
-	LOG(COMM,DEBUG,(COMM,DEBUG,"TCP: accept wrapper: newpcb: %x",newpcb));
+    Socket* oldsock = (Socket*) arg;
+    LOG(COMM, DEBUG,"TCP: accept wrapper: newpcb: %x",newpcb);
 
-	/* we are not accepting connections if the thread is not ready and waiting
-	   for connections */
-	if (!oldsock->hasListeningThread) return (ERR_ABRT);
+    /* decrease accepts pending counter anyway*/
+    tcp_accepted(oldsock->arg);
 
-	/* Create a new socket for the connection */
-	LOG(COMM,DEBUG,(COMM,DEBUG,"TCP: accepted..."));
-	tcp_recv(newpcb, &tcp_recv_wrapper);
+    /* Create a new socket for the connection */
+    LOG(COMM, DEBUG,"TCP: accepted...");
+    tcp_recv(newpcb, &tcp_recv_wrapper);
 
-	Socket* newsock = new Socket(oldsock->getAProto()->getId(), oldsock->getType(), oldsock->getTProto()->getId());
-	newsock->connected(cOk);
+    Socket* newsock =  new Socket(oldsock->getAProto()->getId(),
+                                  oldsock->getType(),
+                                  oldsock->getTProto()->getId());
+    /* set connection status of the new socket*/
+    tcp_arg(newpcb, newsock);
+    newsock->arg = newpcb;
+    newsock->connected(cOk);
 
-	oldsock->newSocketID = newsock->getId();
-	tcp_arg(newpcb,newsock);
-	newsock->arg = newpcb;
+    /* add the new connection to the listening socket*/
+    oldsock->accepted(newsock);
 
-	oldsock->blockedThread->getOwner()->aquiredResources.addTail((DatabaseItem*) newsock);
-	oldsock->blockedThread->unblock();
-
-	return (ERR_OK);
+    return (ERR_OK);
 }
-
 
 ErrorT TCPTransportProtocol::connect(AddressProtocol* nextLayer, sockaddr *toaddr, Socket* fromsocket) {
 
-	LOG(COMM,TRACE,(COMM,TRACE,"TCP: trying to connect!"));
-	comStackMutex->acquire();
-	struct tcp_pcb* pcb = (struct tcp_pcb*) fromsocket->arg;
-	if (pcb != 0) {
+    LOG(COMM, TRACE,"TCP: trying to connect!");
+    comStackMutex->acquire();
+    struct tcp_pcb* pcb = (struct tcp_pcb*) fromsocket->arg;
+    if (pcb != 0)
+    {
 
-		LOG(COMM,TRACE,(COMM,TRACE,"TCP: pcb fine!"));
-		// TODO since we support IPv6 as well add this information to the sockaddr structure
-		// so we can use IPv6 too
-		struct ip_addr ipaddr;
-		ipaddr.version = 4;
-		ipaddr.addr.ip4addr.addr = toaddr->sa_data;
+        LOG(COMM, TRACE, "TCP: pcb fine!");
+        // TODO since we support IPv6 as well add this information to the sockaddr structure
+        // so we can use IPv6 too
+        struct ip_addr ipaddr;
+        ipaddr.version = 4;
+        ipaddr.addr.ip4addr.addr = toaddr->sa_data;
 
-		comStackMutex->release();
-		tcp_connect(pcb,&ipaddr,toaddr->port_data,&tcp_connected);
-		return (cOk);
-	}
+        comStackMutex->release();
+        tcp_connect(pcb, &ipaddr, toaddr->port_data, &tcp_connected);
+        return (cOk );
+    }
 
-	comStackMutex->release();
-	return (cError);
+    comStackMutex->release();
+    return (cError );
 }
 
-ErrorT TCPTransportProtocol::listen( Socket* socket) {
-
-
-	struct tcp_pcb* pcb = (struct tcp_pcb*) socket->arg;
-	LOG(COMM,DEBUG,(COMM,DEBUG,"TCP: Setting up Listining PCB: %x",pcb));
-
-	/* stop if this pcb is already listening for connections */
-	if (pcb->state == LISTEN) return cOk;
-
-	if (pcb != 0) {
-
-		comStackMutex->acquire();
-		pcb = tcp_listen(pcb);
-		comStackMutex->release();
-
-		if (pcb != 0) {
-			socket->arg = pcb;
-			LOG(COMM,DEBUG,(COMM,DEBUG,"TCP: PCB set to LISTEN Mode!"));
-			tcp_accept(pcb, &tcp_accept_wrapper);
-			return (cOk);
-		}
-	}
-
-	return (cError);
+ErrorT TCPTransportProtocol::disconnect(Socket* fromsocket) {
+    return (unregister_socket(fromsocket));
 }
 
-ErrorT TCPTransportProtocol::register_socket( unint2 port, Socket* socket ) {
+ErrorT TCPTransportProtocol::listen(Socket* socket) {
 
-	comStackMutex->acquire();
+    struct tcp_pcb* pcb = (struct tcp_pcb*) socket->arg;
 
-	struct tcp_pcb *pcb;
-	/* Create a new TCP PCB. */
-	pcb = tcp_new();
-	tcp_bind(pcb, 0, port);
-	tcp_arg(pcb,socket);
+    if (pcb != 0)
+    {
 
-	socket->arg = pcb;
+       /* stop if this pcb is already listening for connections */
+       if (pcb->state == LISTEN)
+            return (cOk);
 
-	comStackMutex->release();
 
-	return (cOk);
+       LOG(COMM, DEBUG, "TCP: Setting up Listening PCB: %x",pcb);
+
+
+        comStackMutex->acquire();
+        pcb = tcp_listen(pcb);
+        comStackMutex->release();
+
+        if (pcb != 0)
+        {
+            socket->arg = pcb;
+            LOG(COMM, DEBUG,"TCP: PCB set to LISTEN Mode!");
+            tcp_accept(pcb, &tcp_accept_wrapper);
+            return (cOk );
+        } else {
+            LOG(COMM, ERROR,"TCP: tcp_listen returned null");
+            return (cError);
+
+        }
+    }
+
+    return (cError );
 }
 
-ErrorT TCPTransportProtocol::unregister_socket( Socket* socket ) {
+ErrorT TCPTransportProtocol::register_socket(unint2 port, Socket* socket) {
 
-	if (socket->arg != 0){
+    comStackMutex->acquire();
 
-		comStackMutex->acquire();
-		tcp_close((struct tcp_pcb*) socket->arg);
-		tcp_arg((struct tcp_pcb*) socket->arg,0);
-		comStackMutex->release();
+    struct tcp_pcb *pcb;
+    /* Create a new TCP PCB. */
+    pcb = tcp_new();
+    if (pcb == 0) {
+        LOG(COMM,ERROR,"TCP::register_socket() tcp_new return 0");
+        return (cError);
+    }
 
-		return (cOk);
-	}
-    return (cError);
+    err_t err = tcp_bind(pcb, 0, port);
+    if (err != ERR_OK) {
+        LOG(COMM,ERROR,"RCP::register_socket() tcp_bind return err: %d",err);
+        return (cError);
+    }
+
+    tcp_arg(pcb, socket);
+
+    socket->arg = pcb;
+
+    comStackMutex->release();
+
+    return (cOk );
+}
+
+ErrorT TCPTransportProtocol::unregister_socket(Socket* socket) {
+
+    if (socket->arg != 0)
+    {
+
+        comStackMutex->acquire();
+        err_t err = tcp_close((struct tcp_pcb*) socket->arg);
+        if (err != ERR_OK)
+            LOG(COMM,WARN,"Error closing tcp_pcb : %d",err);
+
+        tcp_arg((struct tcp_pcb*) socket->arg, 0);
+        comStackMutex->release();
+
+        return (cOk );
+    }
+    return (cError );
 }
 
 #endif

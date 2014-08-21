@@ -330,14 +330,14 @@ public:
 
   ~USBDevice();
 
-  	  static ArrayDatabase* freeDeviceIDs;
+  	  static ArrayList* freeDeviceIDs;
 
 	 //! initialize
   	  static void initialize() {
-		 freeDeviceIDs = new ArrayDatabase(255);
+		 freeDeviceIDs = new ArrayList(255);
 		 // maximum 255 devices (USB 2.0 limit)
 		 for (unint4 i = 1; i < 255; i++) {
-			 freeDeviceIDs->addTail((DatabaseItem*) i);
+			 freeDeviceIDs->addTail((ListItem*) i);
 		 }
 	 }
 
@@ -441,7 +441,7 @@ typedef struct {
  * \brief Generic USB EHCI Host Controller implementation
  *
  */
-class USB_EHCI_Host_Controller : GenericDeviceDriver {
+class USB_EHCI_Host_Controller : public GenericDeviceDriver {
 private:
 	/*!
 	 *  The physical base address of this EHCI controller

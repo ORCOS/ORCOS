@@ -32,13 +32,7 @@ extern unint4 sc_param5;
                                 :  \
                             )
 
-#define GET_INTERRUPT_ENABLE_BIT(var) \
-	asm volatile( \
-								"" \
-                                : \
-                                : \
-                                :  \
-                            )
+#define GET_INTERRUPT_ENABLE_BIT(var) var = 0
 
 //-----------------------------------------------------------------------------
 // Enabling/Disabling Interrupts
@@ -46,7 +40,7 @@ extern unint4 sc_param5;
 
 // Enable interrupts (IRQ).
 #define _enableInterrupts() asm volatile( \
-								"" \
+								"sei" \
                                 : \
                                 : \
                                 :  \
@@ -54,7 +48,7 @@ extern unint4 sc_param5;
 
 // Disable interrupts (IRQ).
 #define _disableInterrupts() asm volatile( \
-								"" \
+								"cli" \
                                 : \
                                 : \
                                 :  \
@@ -97,13 +91,25 @@ extern unint4 sc_param5;
 #define SAVE_CONTEXT_AT {while(1) {}}
 
 // guaranetees that instructions will be executed without being interrupted without using a mutex
-#define ATOMAR(statements) \
-        { bool int_enabled; \
-        GET_INTERRUPT_ENABLE_BIT(int_enabled); \
-        _disableInterrupts(); \
-        statements; \
-        if ( int_enabled ) { _enableInterrupts(); } }
+#define ATOMAR(statements) statements;
 
+
+#if ENABLE_NESTED_INTERRUPTS
+
+// Dsiables irqs and saves the irq enable bit to the variable
+#define DISABLE_IRQS(irqstatus) \
+    bool irqstatus; \
+    GET_INTERRUPT_ENABLE_BIT(irqstatus); \
+    _disableInterrupts();
+
+#define RESTORE_IRQS(irqstatus) if ( irqstatus ) { _enableInterrupts(); }
+
+
+#else
+
+#define DISABLE_IRQS(irqstatus)
+#define RESTORE_IRQS(irqstatus)
+#endif
 
 
 // This namespace will hold all assembler functions needed by non architecture OS classes.

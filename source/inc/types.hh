@@ -20,16 +20,16 @@
 #define _TYPES_HH
 
 /*
- * This file includes KERNEL ONLY Types. Place cross kernelspace types inside the user library types.h
+ * This file includes KERNEL ONLY Types.
+ * Place cross kernelspace/userspace types inside the user library types.h
  */
-// include syscall library types
+
+/* include syscall library types (cross kernel/userspace used types) */
 #include "inc/types.h"
 #include <archtypes.h>
 
-
 #define MB * 0x100000
 #define KB * 0x400
-
 
 #define ATTR_CACHE_INHIBIT __attribute__((section (".cache_inhibit")))
 
@@ -45,8 +45,7 @@ typedef unint2 CpuVersionT;
  */
 typedef unint1 TaskIdT;
 typedef unint1 ThreadIdT;
-typedef unint1 ResourceIdT;
-typedef unint1 SocketIdT;
+typedef unint4 ResourceIdT;
 
 /*!
  * General type defines
@@ -58,6 +57,7 @@ typedef unsigned long unlong;
 typedef unint4 BitmapT;
 typedef unint1 byte;
 typedef void* PhysAddrT;
+typedef unsigned long intptr_t;
 
 /* types for time representations */
 /// seconds
@@ -75,7 +75,7 @@ typedef unint4 KHzT;
 /// Mega hertz
 typedef unint2 MHzT;
 
-/* structs */
+
 /*!
  * \brief Structure representing the description of a driver (name, version,services)
  */
@@ -89,17 +89,17 @@ typedef struct {
  * contains all references needed for executing.
  */
 typedef struct {
-	unint4 pf_module_init;
-	unint4 pf_exit;
-	unint4 pb_argument_area;
-	unint4 i_max_argument_size;
-	unint4 pf_low_level_send; 	// address of the low_level_send method
-	unint4 pf_getMacAddr;
-	unint4 pf_getMacAddrSize;
-	unint4 pf_getMTU;
-	unint4 pf_getHardwareAddressSpaceId;
-	unint4 pf_getBroadcastAddr;
-	unint4 pf_enableIRQ;
+    unint4 pf_module_init;
+    unint4 pf_exit;
+    unint4 pb_argument_area;
+    unint4 i_max_argument_size;
+    unint4 pf_low_level_send; 	// address of the low_level_send method
+    unint4 pf_getMacAddr;
+    unint4 pf_getMacAddrSize;
+    unint4 pf_getMTU;
+    unint4 pf_getHardwareAddressSpaceId;
+    unint4 pf_getBroadcastAddr;
+    unint4 pf_enableIRQ;
     unint4 pf_disableIRQ;
     unint4 pf_clearIRQ;
     unint4 pf_recv;
@@ -109,11 +109,10 @@ typedef struct {
     unint4 pf_writeBytes;
 } ORCOS_MCB;
 
-
 typedef struct {
-	void* argument1;
-	void* argument2;
-	void* argument3;
+    void* argument1;
+    void* argument2;
+    void* argument3;
 } ORCOS_module_args;
 
 #ifdef __cplusplus
@@ -156,28 +155,31 @@ typedef struct {
  *  IPV4 -> UDP -> Payload
  */
 typedef struct packet_layer {
-    struct packet_layer*  next;// next packet layer
-    const char*  bytes;       // pointer to the block
+    struct packet_layer* next; 	// next packet layer
+    const char* bytes;       // pointer to the block
     unint2 total_size;  // total size of all blocks in the linked list starting with this packet
     unint2 size;        // size of this block
 } packet_layer;
 
 
-// Definition of valid task_next_header field value
 
-#define TASK_CB_NONE		0	// no next task cb header field
-#define TASK_CB_CRC32		1	// next task cb field is a crc32 sum of the task
-#define TASK_CB_AUTH		2	// next task cb field is an authentication header
+/*****************************************************
+ *
+ * Definition of valid 'task_next_header' field values
+ *
+ ****************************************************/
 
+#define TASK_CB_NONE		0	/* no next task cb header field */#define TASK_CB_CRC32		1	/* next task cb field is a crc32 sum of the task */#define TASK_CB_AUTH		2	/* next task cb field is an authentication header */
 /********************************************
- * 			PLATFORM IDENTIFIER:
+ * 			PLATFORM IDENTIFIER as used
+ * 			inside the task CB -> platform
  *
  *    PLATFORM DEPENDENT       PLATFORM
  * ---------------------------------------
  * |     24 Bit 			|   8 Bit    |
  * ---------------------------------------
  *
- * 					ARM:
+ * 				 ARM platform:
  * ---------------------------------------
  * |  23 BIT         |  T   |     0x1    |
  * ---------------------------------------
@@ -190,62 +192,59 @@ typedef struct packet_layer {
 #define PLATFORM_SPARC      0x3
 #define PLATFORM_X86        0x4
 
-
-
 /*!
- * \brief Structure holding informations about the inital tasks.
+ * \brief Structure holding informations about a task.
  *
  * This structure is used to read informations written by the linker about
- * the initial tasks linked into the binary file.
+ * into the binary file of a task.
  *
  * logical == virtual (if MMU enabled), physical otherwise
  */
 typedef struct {
-	unint4 task_magic_word;   	// needs to be 0x230f7ae9
+    unint4 task_magic_word;   	// needs to be 0x230f7ae9
     unint4 task_next_header;	// defines the following task header field
     unint4 platform;			// platform identifier, see platform defines
 
     long task_start;   			// logical task start address
-    //long task_text_end;   	// logical text end address
 
     long task_entry_addr;   	// logical entry function address
-    long task_thread_exit_addr; // logical addr of the thread_exit method inside the task
+    long task_thread_exit_addr; // logical address of the thread_exit method inside the task
 
     long task_heap_start;   	// logical data start address
     long task_end;     			// logical task end address
-  //  long task_heap;     		// the first logical address that is no data of the task any more (.data  | .bss ...) == heap start
 
     thread_attr_t initial_thread_attr; 	// attributes of the initial thread
 } taskTable;
-
 
 /*!
  * \brief CRC32 optional task header. Contains the CRC32 of the task area + taskTable.
  */
 typedef struct {
-	unint4 next_header;
-	unint4 crcStart;  /* Start address the checksum is calculated over */
-	unint4 crcEnd;	  /* End address the checksum is calculated over */
-	unint4 taskCRC32; /* The CRC32 value in target architecture endianess */
+    unint4 next_header;
+    unint4 crcStart;    /* Start address the checksum is calculated over */
+    unint4 crcEnd;      /* End address the checksum is calculated over */
+    unint4 taskCRC32;   /* The CRC32 value in target architecture endianess */
 } taskCRCHeader;
 
+/*!
+ * \brief Resource types as bit flags of ORCOS resources. As a resource can fulfill multiple roles
+ *        these types are defined as flags.
+ */
 typedef enum {
-    cDirectory 		= 1 << 0,
-    cStreamDevice 	= 1 << 1,
-    cCommDevice 	= 1 << 2,
-    cGenericDevice 	= 1 << 3,
-    cFile 			= 1 << 4,
-    cSocket 		= 1 << 5,
-    cUSBDriver 		= 1 << 6,
-    cBlockDevice	= 1 << 7,
-    cPartition		= 1 << 8,
-    cSharedMem		= 1 << 9,
-    cNonRemovableResource =     cStreamDevice| cCommDevice| cGenericDevice | cSocket | cUSBDriver | cBlockDevice | cPartition | cSharedMem,
-    cAnyNoDirectory = cStreamDevice | cCommDevice | cGenericDevice | cFile | cSocket | cUSBDriver | cBlockDevice | cSharedMem,
-    cAnyResource 	= cStreamDevice | cCommDevice | cGenericDevice | cFile | cSocket | cUSBDriver | cDirectory | cBlockDevice | cSharedMem
+    cDirectory          = 1 << 0,
+    cStreamDevice       = 1 << 1,
+    cCommDevice         = 1 << 2,
+    cGenericDevice      = 1 << 3,
+    cFile               = 1 << 4,
+    cSocket             = 1 << 5,
+    cUSBDriver          = 1 << 6,
+    cBlockDevice        = 1 << 7,
+    cPartition          = 1 << 8,
+    cSharedMem          = 1 << 9,
+    cNonRemovableResource = cStreamDevice | cCommDevice | cGenericDevice | cSocket | cUSBDriver,
+    cAnyNoDirectory       = cStreamDevice | cCommDevice | cGenericDevice | cFile | cSocket | cUSBDriver | cBlockDevice | cSharedMem,
+    cAnyResource          = cStreamDevice | cCommDevice | cGenericDevice | cFile | cSocket | cUSBDriver | cDirectory | cBlockDevice | cSharedMem
 } ResourceType;
-
-
 
 #endif /* _TYPES_HH */
 

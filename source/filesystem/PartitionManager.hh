@@ -12,28 +12,25 @@
 #include "filesystem/Partition.hh"
 #include "filesystem/Directory.hh"
 
-
-
-class PartitionManager : Directory {
-
+class PartitionManager: Directory {
 
 public:
-	PartitionManager();
+    PartitionManager();
 
-	void 	registerBlockDevice(BlockDeviceDriver *bdev);
+    void registerBlockDevice(BlockDeviceDriver *bdev);
 
-	void 	unregisterBlockDevice(BlockDeviceDriver *bdev);
+    void unregisterBlockDevice(BlockDeviceDriver *bdev);
 
-	ErrorT handleEFIPartitionTable(BlockDeviceDriver* bdev);
+    ErrorT handleEFIPartitionTable(BlockDeviceDriver* bdev);
 
-	/*!
-	 * Tries to read a DOS MBR from the block device.
-	 *
-	 * returns: cOk on success
-	 */
-	ErrorT 	tryDOSMBR(BlockDeviceDriver *bdev);
+    /*!
+     * Tries to read a DOS MBR from the block device.
+     *
+     * returns: cOk on success
+     */
+    ErrorT tryDOSMBR(BlockDeviceDriver *bdev);
 
-	virtual ~PartitionManager();
+    virtual ~PartitionManager();
 };
 
 #endif /* PARTITIONMANAGER_HH_ */

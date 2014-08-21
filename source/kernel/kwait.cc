@@ -31,32 +31,44 @@ extern Kernel* theOS;
  *
  */
 void kwait(int milliseconds) {
-	/* check if we have a board and clock
-	   if not we are probably initializing them */
-	if ((theOS == 0) || (theOS->board == 0) || (theOS->getClock() == 0)) {
-		/* fallback if the clock is not set */
-		volatile unint4 i = 0;  /* volatile so this is not optimized out  */
-		while ( i < 100000) i++;
-	} else {
-		volatile TimeT now = theOS->getClock()->getTimeSinceStartup();
-		while (theOS->getClock()->getTimeSinceStartup() < (now + (milliseconds MILLISECONDS))) {};
-	}
+    /* check if we have a board and clock
+     if not we are probably initializing them */
+    if ((theOS == 0) || (theOS->getBoard() == 0) || (theOS->getClock() == 0))
+    {
+        /* fallback if the clock is not set */
+        volatile unint4 i = 0; /* volatile so this is not optimized out  */
+        while (i < 100000)
+            i++;
+    }
+    else
+    {
+        volatile TimeT now = theOS->getClock()->getClockCycles();
+        while (theOS->getClock()->getClockCycles()
+                < (now + (milliseconds MILLISECONDS)))
+        {
+        };
+    }
 
 }
-
 
 void kwait_us(int us) {
-	/* check if we have a board and clock
-	   if not we are probably initializing them */
-	if ((theOS == 0) || (theOS->board == 0) || (theOS->getClock() == 0)) {
-		/* fallback if the clock is not set */
-		volatile unint4 i = 0;  /* volatile so this is not optimized out  */
-		while ( i < 10000) i++;
-	} else {
-		volatile unint8 now = theOS->getClock()->getTimeSinceStartup();
-		while (theOS->getClock()->getTimeSinceStartup() < (now + (us MICROSECONDS))) {};
-	}
+    /* check if we have a board and clock
+     if not we are probably initializing them */
+    if ((theOS == 0) || (theOS->getBoard() == 0) || (theOS->getClock() == 0))
+    {
+        /* fallback if the clock is not set */
+        volatile unint4 i = 0; /* volatile so this is not optimized out  */
+        while (i < 10000)
+            i++;
+    }
+    else
+    {
+        volatile unint8 now = theOS->getClock()->getClockCycles();
+        while (theOS->getClock()->getClockCycles()
+                < (now + (us MICROSECONDS)))
+        {
+        };
+    }
 
 }
-
 

@@ -23,7 +23,7 @@
 #define FAIL 1
 
 
-#define TEST( x , name )  if (x(str) == OK) { puts("[OK] " name "\n\r");} else { puts("[FAILED] " name " '" ); puts(str); puts("'\n\r");}
+#define TEST( x , name ) { puts("Testing " name); if (x(str) == OK) { puts("[OK]\r");} else { puts("[FAILED]");}  sleep(10); }
 
 #define ASSERT(value,msg) if( value == 0) { str = temp; sprintf(str,msg ". value was: %x",value); return (FAIL);}
 #define ASSERT_GREATER(value,comp,msg) if( !(value > comp)) {str = temp; sprintf(str,msg ". value was: %x",value);return (FAIL);}
@@ -157,6 +157,9 @@ int test_files(char* &str) {
 	result = fopen(0,0);
 	ASSERT_SMALLER(result,0,"fopen(0) succeeded");
 
+    result = fopen("",0);
+    ASSERT_GREATER(result,0,"fopen(\"\") failed");
+
 	result = fopen("/",0);
 	ASSERT_GREATER(result,0,"fopen(/) failed");
 
@@ -171,6 +174,39 @@ int test_files(char* &str) {
 
 	result = fclose(-1123141);
 	ASSERT_SMALLER(result,0,"fclose(-1123141) succeeded");
+
+	/*
+	 * This tests file creation/removal on bugs as well
+	 * as the kernel memory allocator as we will be allocating
+	 * and deallocating lots of small file pointers.
+	 */
+	for (int i = 0; i < 2000; i++) {
+	    result = fcreate("testfile1","/mnt/ramdisk");
+	    fwrite("test",4,1,result);
+	    result = fcreate("testfile2","/mnt/ramdisk");
+	    fwrite("test",4,1,result);
+	    result = fcreate("testfile3","/mnt/ramdisk");
+	    fwrite("test",4,1,result);
+	    fremove("testfile1","/mnt/ramdisk");
+	    fremove("testfile2","/mnt/ramdisk");
+	    fremove("testfile3","/mnt/ramdisk");
+	}
+
+
+	for (int i = 0; i < 100; i++) {
+        result = fcreate("testfile4","/mnt/ramdisk");
+        fwrite("test",4,1,result);
+        result = fcreate("testfile5","/mnt/ramdisk");
+        fwrite("test",4,1,result);
+        result = fcreate("testfile6","/mnt/ramdisk");
+        result = fcreate("testfile7","/mnt/ramdisk");
+        fwrite("test",4,1,result);
+        fremove("testfile4","/mnt/ramdisk");
+        fremove("testfile7","/mnt/ramdisk");
+        fremove("testfile6","/mnt/ramdisk");
+        fremove("testfile5","/mnt/ramdisk");
+
+    }
 
 	return (OK);
 }
@@ -189,10 +225,16 @@ int test_net(char* &str) {
 
 static int signal_value;
 
+static unint4 time;
+
 void* thread_entry_synchro(void* arg) {
 	signal_value = 0xff;
 	signal_value = signal_wait((void*) 200);
+	// hopefully no overrun
+	time = (unint4) getCycles() - time;
+	//printf("signal took: %d Cycles\r", time);
 }
+
 
 int test_synchro(char* &str) {
 	int result;
@@ -201,32 +243,106 @@ int test_synchro(char* &str) {
 	thread_attr_t attr;
 	memset(&attr,0,sizeof(thread_attr_t));
 
+	attr.priority = 2000;
+
 	result = thread_create(0,&attr,thread_entry_synchro,0);
 	ASSERT_EQUAL(result,cOk,"thread_create(0,&attr,thread_entry,0) failed");
 
 	result = thread_run(result);
 
 	sleep(10);
+	time = (unint4) getCycles();
 	signal_signal((void*) 200,723100);
-	sleep(200);
+	sleep(100);
 	ASSERT_EQUAL(signal_value,723100,"signal_signal test failed..");
 
 	return (OK);
 }
 
 
+int test_shmmem(char* &str) {
+    int result;
+
+    unint4 mapped_address;
+    unint4 mapped_size = 1024;
+
+    int handle = shm_map("/mem/sharedArea",&mapped_address,&mapped_size,cCreate);
+    ASSERT_GREATER(handle,0,"shm_map failed with code.");
+
+    ASSERT_GREATER(mapped_address,0,"mapped address invalid");
+    ASSERT_GREATER(mapped_size,0,"mapped size invalid");
+
+    // try writing to the shared memory area
+    char* test = (char*) mapped_address;
+    strcpy(test,"Hello");
+
+    int cmp = strcmp(test,"Hello");
+    ASSERT_EQUAL(cmp,cOk,"strcmp() on shared mem failed");
+
+    result = fclose(handle);
+    ASSERT_EQUAL(result,cOk,"fclose() on shared mem failed");
+
+
+    return (OK);
+}
+
+
+int values[10];
+
+static int num ;
+
+void* thread_entry_rt(void* arg) {
+    signal_value = 0xff;
+    signal_value = signal_wait((void*) 70);
+
+    values[num] = (int) arg;
+    num++;
+}
+
+int test_rt(char* &str) {
+    int result;
+
+    thread_attr_t attr;
+    memset(&attr,0,sizeof(thread_attr_t));
+
+
+    num = 0;
+    for (int i = 0; i < 10; i++) {
+        values[i] = -1;
+        attr.priority = 2000 + i;
+        result = thread_create(0,&attr,thread_entry_rt,(void*) i);
+        ASSERT_EQUAL(result,cOk,"thread_create(0,&attr,thread_entry,0) failed");
+    }
+
+    result = thread_run(0);
+
+    signal_signal((void*) 70,5);
+    // now check values
+
+    for (int i = 0; i < 10; i++) {
+        ASSERT_EQUAL(values[i],9-i,"signal_wait unblocking order test failed!");
+    }
+
+
+
+
+}
+
 extern "C" int task_main()
 {
 	char* str;
 	puts("Running ORCOS Syscall Tests\r\n");
 
-	TEST(test_new,			"SC_NEW");
-	TEST(test_task_run,		"SC_TASK_RUN");
-	TEST(test_task_kill,	"SC_TASK_KILL");
-	TEST(test_task_stop,	"SC_TASK_STOP");
-	TEST(test_thread_create,"SC_THREAD_CREATE");
-	TEST(test_files,		"SC_FILES");
-	TEST(test_net,			"SC_NET");
-	TEST(test_synchro,		"SC_SYNCHRO");
+	TEST(test_new,			"SC_NEW             (Memory allocation tests)    ");
+	TEST(test_task_run,		"SC_TASK_RUN        (Task running tests)         ");
+	TEST(test_task_kill,	"SC_TASK_KILL       (Task kill syscall tests)    ");
+	TEST(test_task_stop,	"SC_TASK_STOP       (Task stopping tests)        ");
+	TEST(test_thread_create,"SC_THREAD_CREATE   (Thread creation tests)      ");
+	TEST(test_files,		"SC_FILES           (I/O and files syscall tests)");
+	TEST(test_net,			"SC_NET             (Networking tests)           ");
+	TEST(test_synchro,		"SC_SYNCHRO         (Synchronization test)       ");
+	TEST(test_shmmem,       "SC_SHMMEM          (Shared memory tests)        ");
+	TEST(test_rt,           "SC_PRIORITY        (Thread Priority tests)      ");
+	//TEST(test_rt,           "SC_WORKLOAD        (Workload tests)");
 }
 

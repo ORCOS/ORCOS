@@ -19,7 +19,7 @@
 #include "PowerManager.hh"
 #include <kernel/Kernel.hh>
 
-extern "C"Kernel* theOS;
+extern "C" Kernel* theOS;
 
 PowerManager::PowerManager() {
 }
@@ -36,7 +36,7 @@ ErrorT PowerManager::enterIdleThread() {
 #endif
 
     // Send Processor to wait state, until interrupt
-    return theOS->getBoard()->getProcessor()->idle();
+    return (theOS->getBoard()->getProcessor()->idle());
 #else
 #error It makes no sense to configure a board without a processor.
 #endif

@@ -17,9 +17,9 @@
  */
 
 
-#include "./types.h"
-#include "./defines.h"
-#include "./orcos.hh"
+#include "types.h"
+#include "defines.h"
+#include "orcos.hh"
 
 // must always be linked into the user application
 extern "C" void thread_exit(int exitCode)
@@ -28,9 +28,14 @@ extern "C" void thread_exit(int exitCode)
 }
 
 
-extern "C" unint8 getTime()
+extern "C" unint8 getCycles()
 {
 	unint8 time;
 	syscall(cGetTimeSyscallId,&time);
 	return time;
+}
+
+extern "C" unint4 getTime()
+{
+    return syscall(cGetDateTimeSyscallId);
 }

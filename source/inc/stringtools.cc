@@ -21,69 +21,71 @@
 #define MODULO(a,b)  a % b
 
 #if 1
-void strreverse( char* begin, char* end ) {
+void strreverse(char* begin, char* end) {
     char aux;
-    while ( end > begin )
+    while (end > begin)
         aux = *end, *end-- = *begin, *begin++ = aux;
 }
 
 
-void uitoa( unsigned int value, char* str, int base ) {
-    static char num[] = "0123456789abcdefghijklmnopqrstuvwxyz";
+static char num[] = "0123456789abcdefghijklmnopqrstuvwxyz";
+
+void uitoa(unsigned int value, char* str, int base) {
     char* wstr = str;
 
     // Validate base
-    if ( base < 2 || base > 35 ) {
+    if (base < 2 || base > 35)
+    {
         *wstr = '\0';
         return;
     }
 
     // Conversion. Number is reversed.
     do
-        *wstr++ = num[ value % base ];
-    while ( value /= base );
+        *wstr++ = num[value % base];
+    while (value /= base);
 
-      *wstr = '\0';
+    *wstr = '\0';
 
     // Reverse string
-    strreverse( str, wstr - 1 );
+    strreverse(str, wstr - 1);
 }
 
-
-void itoa( int value, char* str, int base ) {
-    static char num[] = "0123456789abcdefghijklmnopqrstuvwxyz";
+void itoa(int value, char* str, int base) {
     char* wstr = str;
     int8 sign;
 
     // Validate base
-    if ( base < 2 || base > 35 ) {
+    if (base < 2 || base > 35)
+    {
         *wstr = '\0';
         return;
     }
 
     // Take care of sign
-    if ( ( sign = value ) < 0 )
+    if ((sign = value) < 0)
         value = -value;
 
     // Conversion. Number is reversed.
     do
-        *wstr++ = num[ MODULO(value , base) ];
-    while ( value /= base );
+        *wstr++ = num[MODULO(value, base)];
+    while (value /= base);
 
-    if ( sign < 0 )
+    if (sign < 0)
         *wstr++ = '-';
 
     *wstr = '\0';
 
     // Reverse string
-    strreverse( str, wstr - 1 );
+    strreverse(str, wstr - 1);
 }
 
 // newlib strcpy method
-char* strcpy( char *dst0, const char *src0 ) {
+char* strcpy(char *dst0, const char *src0) {
     char *s = dst0;
 
-    while ( *src0 ) {
+    while (*src0)
+    {
         *dst0 = *src0;
         dst0++;
         src0++;
@@ -95,29 +97,46 @@ char* strcpy( char *dst0, const char *src0 ) {
     return s;
 }
 
+char* strncpy(char *dst0, const char *src0, size_t maxChars) {
+    char *s = dst0;
 
+    while (*src0 && (maxChars > 0))
+    {
+        *dst0 = *src0;
+        dst0++;
+        src0++;
+        maxChars--;
+    };
 
-char* strtok( char *s, const char *delim ) {
+    // copy ending 0
+    *dst0 = 0;
+
+    return s;
+}
+
+char* strtok(char *s, const char *delim) {
     const char *spanp;
     int c, sc;
     char *tok;
     static char *last;
 
-    if ( s == 0 && ( s = last ) == 0 )
-        return ( 0 );
+    if (s == 0 && (s = last) == 0)
+        return (0);
 
     /*
      * Skip (span) leading delimiters (s += strspn(s, delim), sort of).
      */
     cont: c = *s++;
-    for ( spanp = delim; ( sc = *spanp++ ) != 0; ) {
-        if ( c == sc )
+    for (spanp = delim; (sc = *spanp++) != 0;)
+    {
+        if (c == sc)
             goto cont;
     }
 
-    if ( c == 0 ) { // no non-delimiter characters
+    if (c == 0)
+    {  // no non-delimiter characters
         last = 0;
-        return ( 0 );
+        return (0);
     }
     tok = s - 1;
 
@@ -125,22 +144,24 @@ char* strtok( char *s, const char *delim ) {
      * Scan token (scan for delimiters: s += strcspn(s, delim), sort of).
      * Note that delim must have one NUL; we stop if we see that, too.
      */
-    for ( ;; ) {
+    for (;;)
+    {
         c = *s++;
         spanp = delim;
-        do {
-            if ( ( sc = *spanp++ ) == c ) {
+        do
+        {
+            if ((sc = *spanp++) == c)
+            {
 
-                if ( c == 0 )
+                if (c == 0)
                     s = 0;
                 else
-                    s[ -1 ] = 0;
+                    s[-1] = 0;
 
                 last = s;
-                return ( tok );
+                return (tok);
             }
-        }
-        while ( sc != 0 );
+        } while (sc != 0);
     }
     /* NOTREACHED */
 }
@@ -148,29 +169,29 @@ char* strtok( char *s, const char *delim ) {
 /*!
  * \brief   Determine the length of a character array
  */
-size_t strlen(const char * s){
+size_t strlen(const char * s) {
     const char *sc;
 
     for (sc = s; *sc != '\0'; ++sc)
 
-    /* nothing */;
+        /* nothing */;
     return (sc - s);
 }
 
-char* strcat( char *s1, const char *s2 ) {
+char* strcat(char *s1, const char *s2) {
     char *s = s1;
 
     // find end of the first string
-    while ( *s1 )
+    while (*s1)
         s1++;
 
     // append
-    do {
+    do
+    {
         *s1 = *s2;
         s1++;
         s2++;
-    }
-    while ( *s2 );
+    } while (*s2);
 
     *s1 = 0;
 
@@ -179,43 +200,70 @@ char* strcat( char *s1, const char *s2 ) {
 
 #endif
 
-
 // newlib strcmp method
-int strcmp2( const char *s1, const char *s2, unint1 name_len ) {
+int strcmp( const char *s1, const char *s2) {
 
-	// max string length check if no length is given
-	if (name_len == 0) name_len = 255;
+    while ( *s1 != '\0' && *s1 == *s2 ) {
+        s1++;
+        s2++;
+    }
 
-    while ( *s1 != '\0' && *s1 == *s2 && name_len > 1) {
+    return ( *(unsigned char *) s1 ) - ( *(unsigned char *) s2 );
+}
+
+
+int strcmp2(const char *s1, const char *s2, unint1 name_len) {
+
+    // max string length check if no length is given
+    if (name_len == 0)
+        name_len = 255;
+
+    while (*s1 != 0 && *s1 == *s2 && name_len > 1)
+    {
         s1++;
         s2++;
         name_len--;
     }
 
-    return ( *(unsigned const char *) s1 ) - ( *(unsigned const char *) s2 );
+    return (*(unsigned const char *) s1) - (*(unsigned const char *) s2);
 }
 
 int strpos(const char*s, char c) {
-	const char *sc;
+    const char *sc;
 
-	for (sc = s; *sc != c; ++sc) {
-		if (*sc == '\0') return -1;
-	}
+    for (sc = s; *sc != c; ++sc)
+    {
+        if (*sc == '\0')
+            return -1;
+    }
 
-	/* nothing */;
-	return (sc - s);
+    /* nothing */;
+    return (sc - s);
 }
 
 int strpos2(const char*s, char c) {
-	const char *sc;
+    const char *sc;
 
-	for (sc = s; *sc != c; ++sc) {
-		if (*sc == '\0') return (sc - s);
-	}
+    for (sc = s; *sc != c; ++sc)
+    {
+        if (*sc == '\0')
+            return (sc - s);
+    }
 
-	/* nothing */;
-	return (sc - s);
+    /* nothing */;
+    return (sc - s);
 }
 
+int ascii2unicode(const char * szAscii, unint2 * szUnicode)
+{
+    int len, i;
+    if((szUnicode == 0) || (szAscii == 0))
+        return (false);
 
+    len = strlen(szAscii);
+    for(i=0;i<len+1;i++)
+        *szUnicode++ = static_cast<unint2>(*szAscii++);
+
+    return (true);
+}
 

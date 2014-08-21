@@ -10,13 +10,21 @@
 
 class Cache {
 public:
-	Cache() {};
+    Cache() {
+    }
+    ;
 
-	virtual ~Cache() {};
+    virtual ~Cache() {
+    }
+    ;
 
-	virtual void invalidate_data(void* start, void* end) {};
+    virtual void invalidate_data(void* start, void* end) {
+    }
+    ;
 
-	virtual void invalidate_instruction(void* start, void* end) {};
+    virtual void invalidate_instruction(void* start, void* end) {
+    }
+    ;
 };
 
 #endif /* CACHE_HH_ */

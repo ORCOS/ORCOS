@@ -122,11 +122,21 @@ const char* types[11] = {
 };
 
 
+
+
 static int mydirhandle = 0;
 
 
 static char dir_content[4096];
 
+
+const char* getTypeStr(int resourceType) {
+    char* ret = "";
+    for (int i = 0; i < 11; i++) {
+        if (resourceType & (1 << i))
+            return (types[i]);
+    }
+}
 
 char* extractPath(char* &str) {
 
@@ -299,7 +309,7 @@ void handleCommand(int socket, int command_length) {
 	}
 	if (strpos("cd",command) == 0) {
 		// try to open directory
-		if (command[2] != ' ') return sendUnknownCommand(socket);
+		if (command[2] != ' ') return (sendUnknownCommand(socket));
 
 		memcpy(last_dir,current_dir,100);
 
@@ -319,19 +329,12 @@ void handleCommand(int socket, int command_length) {
 
 		compactPath(current_dir);
 
-
 		int handle = fopen(current_dir,0);
-		//printf("handle: %d\r\n", handle);
 		if (handle >= 0) {
 			// success
-			//printf("opening %s successfull\r\n",current_dir);
-
 			if ((mydirhandle != 0) && (mydirhandle != handle )) fclose(mydirhandle);
-
 			mydirhandle = handle;
-
 		} else {
-
 			memcpy(current_dir,last_dir,100);
 			memcpy(&return_msg[0],dir_error,strlen(dir_error)+1);
 			sendto(socket,&return_msg,strlen(dir_error)+1,0);
@@ -345,93 +348,63 @@ void handleCommand(int socket, int command_length) {
 		// read directory
 		if (mydirhandle == 0) return;
 
-		//printf("reading dir handle %d..\r",mydirhandle);
-		int ret = fread(dir_content,4000,1,mydirhandle);
-		if (ret > 0) {
-			//printf("data len: %d\r",ret);
-			// interpret data
-			if (dir_content[0] == cDirTypeORCOS) {
-				// display directory content
+		int humanReadable = 0;
+		if (strpos("-h",command) > 0)
+		    humanReadable = 1;
 
-				unint2 pos = 1;
-				// for each directory send a message
-				char* retmsg = return_msg;
-				retmsg[0] = '\r';
-				retmsg[1] = 0;
-				retmsg += 2;
+		Directory_Entry_t* direntry = readdir(mydirhandle);
+		while (direntry) {
 
-				unint2 msglen = 2;
+		    /* shorten name */
+		    if (direntry->namelen > 30) {
+		        direntry->name[28] = '~';
+		        direntry->name[29] = 0;
+		    }
 
-				while ((pos < ret) && (pos < 4000)) {
-					unint1 namelen = (unint1) dir_content[pos];
-					if (namelen > 100) return;
-					const char* typestr = "Unknown";
+		    const char* typestr = getTypeStr(direntry->resType);
+		    char* datestr = "Jan 1 1980";
 
-					int dirtype = dir_content[pos+2+namelen];
+		    char* prefix = "";
+		    char* suffix = "";
 
-					for (int i = 0; i < 11; i++) {
-						if (dirtype & ( 1 << i)) {
-							typestr = types[i];
-							break;
-						}
-					}
-					unint4 filesize = (dir_content[pos+4+namelen] << 24) |
-									  (dir_content[pos+5+namelen] << 16) |
-									  (dir_content[pos+6+namelen] << 8) |
-									  (dir_content[pos+7+namelen] << 0);
+		    if (direntry->resType == 1) {
+                prefix = ESC_CYAN;
+                suffix = ESC_WHITE;
+            }
 
-					unint4 flags 	= (dir_content[pos+8+namelen] << 24) |
-									  (dir_content[pos+9+namelen] << 16) |
-									  (dir_content[pos+10+namelen] << 8) |
-									  (dir_content[pos+11+namelen] << 0);
+		    char fileSizeStr[15];
+		    if (!humanReadable)
+		        sprintf(fileSizeStr,"%u",direntry->filesize);
+		    else {
+		        if (direntry->filesize > 1024*1024) {
+		            int mb = direntry->filesize / (1024*1024);
+		            int residue = direntry->filesize - mb * 1024*1024;
+		            residue = (residue * 100) / (1024*1024);
+		            sprintf(fileSizeStr,"%u,%uM",mb,residue);
+		        }
+		        else if (direntry->filesize > 1024) {
+		           int kb = direntry->filesize / (1024);
+                   int residue = direntry->filesize - kb * 1024;
+                   residue = (residue * 100) / (1024);
+                   sprintf(fileSizeStr,"%u,%uK",kb,residue);
+		        } else
+		          sprintf(fileSizeStr,"%u",direntry->filesize);
+		    }
 
+		    sprintf(dir_content, "%s%-30s   %5d  %-13s %-8x %10s %s%s\r"
+		                         ,prefix, direntry->name, direntry->resId, typestr ,direntry->flags , fileSizeStr, datestr, suffix);
 
-					if (dirtype == 1) {
-						sprintf(retmsg,ESC_CYAN);
-						msglen += sizeof(ESC_CYAN)-1;
-						retmsg += sizeof(ESC_CYAN)-1;
-					}
-
-					makeTelnetCharCompatible(&dir_content[pos+1],namelen);
-					sprintf(retmsg,"%-30s %4d %3d %-15s %-8d %-8x\r",&dir_content[pos+1],(unint4)dir_content[pos+3+namelen],(unint4)dir_content[pos+2+namelen],typestr,filesize,flags);
-					msglen += 39 + 25 + 10;
-					retmsg += 39 + 25 + 10;
-
-					if (dirtype == 1) {
-						sprintf(retmsg,ESC_WHITE);
-						msglen += sizeof(ESC_WHITE)-1;
-						retmsg += sizeof(ESC_WHITE)-1;
-					}
-
-
-					if (msglen > 250) {
-						return_msg[msglen +1] = '\0';
-						sendto(socket,return_msg,msglen+1,0);
-						msglen = 0;
-						retmsg = return_msg;
-					}
-					pos += namelen + 12;
-				}
-
-				return_msg[msglen ] = '\r';
-				return_msg[msglen +1] = '\0';
-				sendto(socket,return_msg,msglen+2,0);
-
-			}
-
-			if (ret >= 4000 ) {
-				sprintf(return_msg,"\rMore files..\r");
-				sendto(socket,return_msg,strlen(return_msg)+1,0);
-			}
-			return;
-
-		} else {
-
-			sprintf(return_msg,"Can not open directory. Error %d\r",ret);
-			sendto(socket,return_msg,strlen(return_msg)+1,0);
+		    int timeout = 100;
+		    while (sendto(socket,dir_content,strlen(dir_content)+1,0) < 0 && timeout > 0) {
+		        usleep(1000);
+		        timeout--;
+		    }
+		    if (timeout == 0) return;
+		    /* read/send next entry  */
+		    direntry = readdir(mydirhandle);
 		}
 
-
+		return;
 	}
 
 	if (strpos("run",command) == 0) {
@@ -448,9 +421,18 @@ void handleCommand(int socket, int command_length) {
 			}
 
 			int error = task_run(filename,arguments);
-			// no argument given
-			sprintf(return_msg,"Status: %d\r",error);
+			if (error > 0) {
+			    // no argument given
+			    sprintf(return_msg,"%d\r",error);
+			    /* set stdout of new task to us! */
+			    taskioctl(0,error,"/dev/tty0");
+			} else {
+                sprintf(return_msg,"Error: %d\r",error);
+			}
+
 			sendto(socket,return_msg,strlen(return_msg)+1,0);
+
+
 			return;
 		}
 
@@ -462,10 +444,16 @@ void handleCommand(int socket, int command_length) {
 			char* taskid = &command[arg+1];
 			// todo test on errors
 			int id = atoi(taskid);
-			int error = task_kill(id);
-			// no argument given
-			sprintf(return_msg,"Killing Task Error: %d\r",error);
-			sendto(socket,return_msg,strlen(return_msg)+1,0);
+			if (id != getpid()) {
+			    int error = task_kill(id);
+			    // no argument given
+			    sprintf(return_msg,"Killing Task Error: %d\r",error);
+			    sendto(socket,return_msg,strlen(return_msg)+1,0);
+			} else {
+			    sprintf(return_msg,"I dont want to kill myself..\r");
+			    sendto(socket,return_msg,strlen(return_msg)+1,0);
+			}
+
 			return;
 		}
 
@@ -629,12 +617,26 @@ void handleCommand(int socket, int command_length) {
 }
 
 
+static char tty0buf[256];
+static int newsock;
+
+void* tty0_thread(void* arg) {
+    int devid = (int) arg;
+    while (1) {
+        int read = fread(tty0buf, 256, 1, devid);
+        if (read > 0 && newsock != 0) {
+            sendto(newsock,tty0buf,read,0);
+        }
+        sleep(10);
+    }
+}
+
 char recvMsg[100];
 
 extern "C" int task_main()
 {
 	int i = 0;
-
+	newsock = 0;
 	int mysock = socket(IPV4,SOCK_STREAM,TCP);
 
 	// bind our socket to some address
@@ -648,9 +650,23 @@ extern "C" int task_main()
 
 	puts("Telnet-Server bound and waiting for clients.\r");
 
+	/* create the virtual tty device */
+	int devid = mkdev("tty0",2048);
+	if (devid < 0) {
+	    printf("Error creating tty0: %d",devid);
+	    return 1;
+	}
+
+	/* create the tty0 thread  */
+	thread_attr_t attr;
+	memset(&attr,0,sizeof(thread_attr_t));
+    attr.priority = 1;
+	thread_create(0,&attr,tty0_thread,(void*) devid);
+	thread_run(0);
+
 	while(1)
 	{
-		int newsock = listen(mysock);
+		newsock = listen(mysock);
 		char* msgptr;
 		cmd_pos = 0;
 		doecho = 1;
@@ -678,6 +694,8 @@ extern "C" int task_main()
 			if (msglen == -1) {
 				// disconnected
 				printf("Terminal disconnected..");
+				fclose(newsock);
+				newsock = 0;
 				break;
 			}
 
@@ -736,7 +754,7 @@ extern "C" int task_main()
 											if (history_count == 0) break;
 
 											ci = (ci+1) & (MAX_COMMAND_HISTORY -1);
-											if (ci > history_count) ci = 0;
+											if (ci >= history_count) ci = 0;
 
 											int num_back = cmd_pos;
 
@@ -768,12 +786,14 @@ extern "C" int task_main()
 
 									if (doecho) sendto(newsock,&return_sequence,2,0);
 
-									// remember last command
-									strcpy(command_history[ci],command);
-									ci = (ci+1) & (MAX_COMMAND_HISTORY -1);
+									if (strlen(command) > 0) {
+                                        // remember last command
+                                        strcpy(command_history[ci],command);
+                                        ci = (ci+1) & (MAX_COMMAND_HISTORY -1);
 
-									if (history_count < MAX_COMMAND_HISTORY)
-										history_count++;
+                                        if (history_count < MAX_COMMAND_HISTORY)
+                                            history_count++;
+									}
 
 									// handle command
 									handleCommand(newsock,cmd_pos);

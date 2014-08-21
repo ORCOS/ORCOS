@@ -25,12 +25,12 @@
 #include "memtools.hh"
 
 extern Kernel* theOS;
-extern Kernel_ThreadCfdCl*		pCurrentRunningThread;
-extern Task*        	pCurrentRunningTask;
+extern Kernel_ThreadCfdCl* pCurrentRunningThread;
+extern Task* pCurrentRunningTask;
 
 //FATAL=0,ERROR=1,WARN=2,INFO=3,DEBUG=4,TRACE=5
-static const char* levelStrings[ 6 ] = { "FATAL: ", "ERROR: ", "WARN:  ", "INFO:  ", "DEBUG: ", "TRACE: " };
-
+static const char* levelStrings[6] = { "FATAL: ", "ERROR: ", "WARN:  ",
+        "INFO:  ", "DEBUG: ", "TRACE: " };
 
 char outbuffer[150];
 
@@ -43,37 +43,38 @@ char outbuffer[150];
 #define ETHLOGGER_DEST_MAC {0x00,0x02,0xb3,0x27,0x2b,0x9b}
 #endif
 
-
 ETHLogger::ETHLogger() {
 
-	register ProtocolPool* protopool = theOS->getProtocolPool();
+    register ProtocolPool* protopool = theOS->getProtocolPool();
 
-	//! The addressprotocol used
-    aproto =  protopool->getAddressProtocolbyId( cIPv4AddressProtocol );
+    //! The addressprotocol used
+    aproto = protopool->getAddressProtocolbyId(cIPv4AddressProtocol);
 
     //! The transportprotocol used
-    tproto = protopool->getTransportProtocolbyId( cUDP );
+    tproto = protopool->getTransportProtocolbyId(cUDP);
 
     // create socket for eth_logger
     // first get some buffer the socket can work on (storing messages and so on)
-	char* mysocketbuffer = (char*) pCurrentRunningTask->getMemManager()->alloc( 800, true );
+    char* mysocketbuffer =
+            (char*) pCurrentRunningTask->getMemManager()->alloc(800, true);
 
     // create new Socket
-    mysock = new Socket(0x800,SOCK_STREAM,6,mysocketbuffer,800);
-    pCurrentRunningTask->aquiredResources.addTail( (DatabaseItem*) mysock );
+    mysock = new Socket(0x800, SOCK_STREAM, 6, mysocketbuffer, 800);
+    pCurrentRunningTask->aquiredResources.addTail((DatabaseItem*) mysock);
 
-	// bind our socket to some address
-	sockaddr* addr = (sockaddr*) pCurrentRunningTask->getMemManager()->alloc( (sizeof(sockaddr)), true );
-	addr->port_data = 	80; 			        //< the port
-	addr->sa_data = 	IP4ADDR(127,0,0,1);		//< our address
-	mysock->bind(addr);
+    // bind our socket to some address
+    sockaddr* addr =
+            (sockaddr*) pCurrentRunningTask->getMemManager()->alloc((sizeof(sockaddr)), true);
+    addr->port_data = 80; 			        //< the port
+    addr->sa_data = IP4ADDR(127, 0, 0, 1);		//< our address
+    mysock->bind(addr);
 
 }
 ;
 
-
-void ETHLogger::log( Prefix prefix, Level level, const char* msg, ... ) {
-    if ( (int) level > (int) prefix ) {
+void ETHLogger::log(Prefix prefix, Level level, const char* msg, ...) {
+    if ((int) level > (int) prefix)
+    {
         return;
     }
 
@@ -81,16 +82,16 @@ void ETHLogger::log( Prefix prefix, Level level, const char* msg, ... ) {
     va_start(arglist, msg);
 
     int id = 0;
-    if (pCurrentRunningThread != 0) id = pCurrentRunningThread->getId();
+    if (pCurrentRunningThread != 0)
+        id = pCurrentRunningThread->getId();
 
     char* out = (char*) &outbuffer;
 
-    sprintf((char*) &outbuffer,"%s Thread: %d ",levelStrings[level],id );
+    sprintf((char*) &outbuffer, "%s Thread: %d ", levelStrings[level], id);
     int i = strlen(outbuffer);
 
-
     out = (char*) ((unint4) &outbuffer) + i;
-    print(&out,msg,arglist);
+    print(&out, msg, arglist);
     i = strlen(outbuffer);
     outbuffer[i] = '\n';
 
@@ -98,7 +99,7 @@ void ETHLogger::log( Prefix prefix, Level level, const char* msg, ... ) {
     sockaddr addr;
     addr.port_data = ETHLOGGER_DEST_PORT;
     //addr.sa_data = 	 IP4_ADDR(224,0,0,251);
-    addr.sa_data = 	 ETHLOGGER_DEST_IP;
+    addr.sa_data = ETHLOGGER_DEST_IP;
     addr.name_data[0] = '\0';
 
     packet_layer payload_layer;
@@ -108,7 +109,7 @@ void ETHLogger::log( Prefix prefix, Level level, const char* msg, ... ) {
     payload_layer.total_size = i+1;
 
     if (tproto != 0 && aproto != 0)
-		this->tproto->send( &payload_layer, this->aproto, this->mysock );
+    this->tproto->send( &payload_layer, this->aproto, this->mysock );
 
 #endif
 }

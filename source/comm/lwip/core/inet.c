@@ -63,106 +63,115 @@
  * arcitecture on which it is to run. Preferebly coded in assembler.
  */
 #if 0
-u32_t chksum_old(void *dataptr, u16_t len) {
-	u8_t *sdataptr = dataptr;
-	u32_t acc;
+u32_t chksum_old(void *dataptr, u16_t len)
+{
+    u8_t *sdataptr = dataptr;
+    u32_t acc;
 
-	// changed to 8 bit accesses!
-	for (acc = 0; len > 1; len -= 2) {
+    // changed to 8 bit accesses!
+    for (acc = 0; len > 1; len -= 2)
+    {
 
 #if BIG_ENDIAN
-		acc += (*sdataptr) << 8;
-		sdataptr++;
-		acc += (*sdataptr);
-		sdataptr++;
+        acc += (*sdataptr) << 8;
+        sdataptr++;
+        acc += (*sdataptr);
+        sdataptr++;
 #else
-		acc += (*sdataptr);
-		sdataptr++;
-		acc += (*sdataptr) << 8;
-		sdataptr++;
+        acc += (*sdataptr);
+        sdataptr++;
+        acc += (*sdataptr) << 8;
+        sdataptr++;
 #endif
-	}
+    }
 
-	/* add up any odd byte */
-	if (len == 1) {
-		// acc += htons((u16_t)(*(u8_t *)sdataptr) << 8);
-		acc += (*sdataptr) << 8;
-	}
+    /* add up any odd byte */
+    if (len == 1)
+    {
+        // acc += htons((u16_t)(*(u8_t *)sdataptr) << 8);
+        acc += (*sdataptr) << 8;
+    }
 
-	return acc;
+    return acc;
 
 }
 #endif
 
 #if 1
 u32_t chksum(u16_t *data, u16_t len) {
-	int sum = 0;
+    int sum = 0;
 
-	// check alignment
-	/*if ((u16_t) data & 0x1) {
+    // check alignment
+    /*if ((u16_t) data & 0x1) {
 
-		data = ((u16_t) data + 1);
-	}*/
+     data = ((u16_t) data + 1);
+     }*/
 
-	while (len > 1) {
-		sum += *data++;
-		len -= 2;
-	}
+    while (len > 1)
+    {
+        sum += *data++;
+        len -= 2;
+    }
 
-	if (len > 0) {
-		sum += * (unsigned char *) data;
-	}
+    if (len > 0)
+    {
+        sum += *(unsigned char *) data;
+    }
 
-	return sum;
+    return sum;
 
-		/*  Fold 32-bit sum to 16 bits */
-	/*while (sum>>16)
-		sum = (sum & 0xffff) + (sum >> 16);
+    /*  Fold 32-bit sum to 16 bits */
+    /*while (sum>>16)
+     sum = (sum & 0xffff) + (sum >> 16);
 
-	return (~sum);*/
+     return (~sum);*/
 }
 #endif
 
 #if 0
 static u16_t chksum(void *dataptr, u16_t len)
 {
-  u8_t *pb = (u8_t *)dataptr;
-  u16_t *ps, t = 0;
-  u32_t sum = 0;
-  int odd = ((mem_ptr_t)pb & 1);
+    u8_t *pb = (u8_t *)dataptr;
+    u16_t *ps, t = 0;
+    u32_t sum = 0;
+    int odd = ((mem_ptr_t)pb & 1);
 
-  /* Get aligned to u16_t */
-  if (odd && len > 0) {
-    ((u8_t *)&t)[1] = *pb++;
-    len--;
-  }
+    /* Get aligned to u16_t */
+    if (odd && len > 0)
+    {
+        ((u8_t *)&t)[1] = *pb++;
+        len--;
+    }
 
-  /* Add the bulk of the data */
-  ps = (u16_t *)(void *)pb;
-  while (len > 1) {
-    sum += *ps++;
-    len -= 2;
-  }
+    /* Add the bulk of the data */
+    ps = (u16_t *)(void *)pb;
+    while (len > 1)
+    {
+        sum += *ps++;
+        len -= 2;
+    }
 
-  /* Consume left-over byte, if any */
-  if (len > 0) {
-    ((u8_t *)&t)[0] = *(u8_t *)ps;
-  }
+    /* Consume left-over byte, if any */
+    if (len > 0)
+    {
+        ((u8_t *)&t)[0] = *(u8_t *)ps;
+    }
 
-  /* Add end bytes */
-  sum += t;
+    /* Add end bytes */
+    sum += t;
 
-  /* Fold 32-bit sum to 16 bits
+    /* Fold 32-bit sum to 16 bits
      calling this twice is propably faster than if statements... */
-  sum = FOLD_U32T(sum);
-  sum = FOLD_U32T(sum);
+    sum = FOLD_U32T(sum);
+    sum = FOLD_U32T(sum);
 
-  /* Swap if alignment was odd */
-  if (odd) {
-    sum = SWAP_BYTES_IN_WORD(sum);
-  }
+    /* Swap if alignment was odd */
+    if (odd)
+    {
+        sum = SWAP_BYTES_IN_WORD(sum);
+    }
 
-  return (u16_t)sum;
+    return (u16_t)sum;
 }
 #endif
 
@@ -171,64 +180,66 @@ static u16_t chksum(void *dataptr, u16_t len)
  * Calculates the pseudo Internet checksum used by TCP and UDP for a pbuf chain.
  * dest_ip and src_ip must eb in network order!
  */
-u16_t inet_chksum_pseudo(struct pbuf *p, void *src_ip, void *dest_ip,
-		u8_t ip_version, register u8_t proto, register u16_t proto_len) {
-	u32_t acc;
-	struct pbuf *q;
-	u8_t swapped;
+u16_t inet_chksum_pseudo(struct pbuf *p, void *src_ip, void *dest_ip, u8_t ip_version, register u8_t proto, register u16_t proto_len) {
+    u32_t acc;
+    struct pbuf *q;
+    u8_t swapped;
 
-/*	union {
-		u16_t s;
-		u8_t b[2];
-	} pad;*/
+    /*	union {
+     u16_t s;
+     u8_t b[2];
+     } pad;*/
 
-	acc = 0;
-	swapped = 0;
+    acc = 0;
+    swapped = 0;
 
+    for (q = p; q != NULL; q = q->next)
+    {
+        acc += chksum(q->payload, q->len);
 
+        while (acc >> 16)
+        {
+            acc = (acc & 0xffff) + (acc >> 16);
+        }
+        if (q->len % 2 != 0)
+        {
+            swapped = 1 - swapped;
+            acc = ((acc & 0xff) << 8) | ((acc & 0xff00) >> 8);
+        }
+    }
 
-	for (q = p; q != NULL ; q = q->next) {
-		acc += chksum(q->payload, q->len);
+    if (swapped)
+    {
+        acc = ((acc & 0xff) << 8) | ((acc & 0xff00) >> 8);
+    }
 
-		while (acc >> 16) {
-			acc = (acc & 0xffff) + (acc >> 16);
-		}
-		if (q->len % 2 != 0) {
-			swapped = 1 - swapped;
-			acc = ((acc & 0xff) << 8) | ((acc & 0xff00) >> 8);
-		}
-	}
+    int m = 0;
+    if (ip_version == IPV4)
+        m = 4;
+    else
+        m = 16;
 
-	if (swapped) {
-		acc = ((acc & 0xff) << 8) | ((acc & 0xff00) >> 8);
-	}
+    acc += chksum((u16_t*) src_ip, m);
+    acc += chksum((u16_t*) dest_ip, m);
 
-	int m = 0;
-	if (ip_version == IPV4)
-		m = 4;
-	else
-		m = 16;
+    /*	for (i = 0; i < m; i += 2) {
+     u16_t temp =
+     (u16_t) htons( (((u8_t *)src_ip)[i] << 8) | ((u8_t *)src_ip)[i+1])
+     & 0xffff;
+     acc += temp;
+     temp =
+     (u16_t) htons( (((u8_t *)dest_ip)[i] << 8) | ((u8_t *)dest_ip)[i+1])
+     & 0xffff;
+     acc += temp;
+     }*/
+    acc += htons((u16_t) proto);
+    acc += htons((u16_t) proto_len);
 
-	acc += chksum((u16_t*) src_ip,m);
-	acc += chksum((u16_t*) dest_ip,m);
-
-/*	for (i = 0; i < m; i += 2) {
-		u16_t temp =
-				(u16_t) htons( (((u8_t *)src_ip)[i] << 8) | ((u8_t *)src_ip)[i+1])
-						& 0xffff;
-		acc += temp;
-		temp =
-				(u16_t) htons( (((u8_t *)dest_ip)[i] << 8) | ((u8_t *)dest_ip)[i+1])
-						& 0xffff;
-		acc += temp;
-	}*/
-	acc += htons((u16_t) proto);
-	acc += htons((u16_t) proto_len);
-
-	while (acc >> 16) {
-		acc = (acc & 0xffff) + (acc >> 16);
-	}
-	return ~(acc & 0xffff);
+    while (acc >> 16)
+    {
+        acc = (acc & 0xffff) + (acc >> 16);
+    }
+    return ~(acc & 0xffff);
 }
 
 /* inet_chksum:
@@ -238,37 +249,41 @@ u16_t inet_chksum_pseudo(struct pbuf *p, void *src_ip, void *dest_ip,
  */
 
 u16_t inet_chksum(void *dataptr, u16_t len) {
-	u32_t acc, sum;
+    u32_t acc, sum;
 
-	acc = chksum(dataptr, len);
-	sum = (acc & 0xffff) + (acc >> 16);
-	//sum += (sum >> 16);
-	sum = (sum & 0xffff) + (sum >> 16);
-	return ~(sum & 0xffff);
+    acc = chksum(dataptr, len);
+    sum = (acc & 0xffff) + (acc >> 16);
+    //sum += (sum >> 16);
+    sum = (sum & 0xffff) + (sum >> 16);
+    return ~(sum & 0xffff);
 }
 
 u16_t inet_chksum_pbuf(struct pbuf *p) {
-	u32_t acc;
-	struct pbuf *q;
-	u8_t swapped;
+    u32_t acc;
+    struct pbuf *q;
+    u8_t swapped;
 
-	acc = 0;
-	swapped = 0;
-	for (q = p; q != NULL ; q = q->next) {
-		acc += chksum(q->payload, q->len);
-		while (acc >> 16) {
-			acc = (acc & 0xffff) + (acc >> 16);
-		}
-		if (q->len % 2 != 0) {
-			swapped = 1 - swapped;
-			acc = (acc & 0xff << 8) | (acc & 0xff00 >> 8);
-		}
-	}
+    acc = 0;
+    swapped = 0;
+    for (q = p; q != NULL; q = q->next)
+    {
+        acc += chksum(q->payload, q->len);
+        while (acc >> 16)
+        {
+            acc = (acc & 0xffff) + (acc >> 16);
+        }
+        if (q->len % 2 != 0)
+        {
+            swapped = 1 - swapped;
+            acc = (acc & 0xff << 8) | (acc & 0xff00 >> 8);
+        }
+    }
 
-	if (swapped) {
-		acc = ((acc & 0xff) << 8) | ((acc & 0xff00) >> 8);
-	}
-	return ~(acc & 0xffff);
+    if (swapped)
+    {
+        acc = ((acc & 0xff) << 8) | ((acc & 0xff00) >> 8);
+    }
+    return ~(acc & 0xffff);
 }
 
 /**
@@ -292,9 +307,8 @@ u16_t inet_chksum_pbuf(struct pbuf *p) {
  * @param n u16_t in host byte order
  * @return n in network byte order
  */
-u16_t htons(u16_t n)
-{
-	return ((n & 0xff) << 8) | ((n & 0xff00) >> 8);
+u16_t htons(u16_t n) {
+    return ((n & 0xff) << 8) | ((n & 0xff00) >> 8);
 }
 
 /**
@@ -303,12 +317,9 @@ u16_t htons(u16_t n)
  * @param n u32_t in host byte order
  * @return n in network byte order
  */
-u32_t htonl(u32_t n)
-{
-	return ((n & 0xff) << 24) |
-	((n & 0xff00) << 8) |
-	((n & 0xff0000UL) >> 8) |
-	((n & 0xff000000UL) >> 24);
+u32_t htonl(u32_t n) {
+    return ((n & 0xff) << 24) | ((n & 0xff00) << 8) | ((n & 0xff0000UL) >> 8)
+            | ((n & 0xff000000UL) >> 24);
 }
 
 /**
@@ -318,7 +329,7 @@ u32_t htonl(u32_t n)
  * @return n in network byte order
  */
 u32_t ntohl_24(u32_t n) {
-	return htonl(n << 8);
+    return htonl(n << 8);
 }
 
 #endif /* (LWIP_PLATFORM_BYTESWAP == 0) && (BYTE_ORDER == LITTLE_ENDIAN) */

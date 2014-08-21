@@ -21,8 +21,6 @@
 
 #include <archtypes.h>
 
-
-
 typedef unsigned int size_t;
 
 // Socket related types
@@ -38,6 +36,21 @@ typedef struct {
     sa_family_t sa_family;          //!< The adress family of this struct
     service_name    name_data;      //!< socket name, maximum 16 chars
 } sockaddr;
+
+/*
+ * Directory entry structure as returned
+ * by reading a directory using fread.
+ */
+typedef struct {
+    unint4  flags;
+    unint4  filesize;
+    unint4  datetime;
+    unint4  resId;
+    unint2  reserved;
+    unint1  resType;
+    unint1  namelen;
+    char    name[0]; /* variable length name entry */
+} Directory_Entry_t;
 
 //! File statistics
 typedef struct {
@@ -80,6 +93,18 @@ typedef struct {
 } thread_attr_t;
 
 
+typedef struct {
+    unint2 year;
+    unint1 month;
+    unint1 day;
+    unint1 hour;
+    unint1 minute;
+    unint1 second;
+    unint1 week_day;
+    unint1 day_of_year;
+    unint1 isdaylightsaving;
+} time_t;
+
 typedef int ErrorT;
 typedef unint2 EndianT;
 typedef unint2 CpuClassT;
@@ -90,8 +115,7 @@ typedef unint2 CpuVersionT;
  */
 typedef unint1 TaskIdT;
 typedef unint1 ThreadIdT;
-typedef unint1 ResourceIdT;
-typedef unint1 SocketIdT;
+typedef unint4 ResourceIdT;
 
 /*!
  * General type defines

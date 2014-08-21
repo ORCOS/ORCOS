@@ -33,7 +33,7 @@
 /*!
  *  \brief driver providing access to the Virtex4 board's LEDs
  */
-class LED : public CharacterDeviceDriver {
+class LED : public CharacterDevice {
 private:
 	char leds;
 	int4 baseaddr;

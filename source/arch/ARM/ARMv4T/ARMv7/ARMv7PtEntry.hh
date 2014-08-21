@@ -30,107 +30,99 @@
  * for the ARMv7 architecture
  */
 class ARMv7PtEntry {
-	// supersection 16MB, direct phys. address, no L2 table
-	// section 1MB, direct phys. address, no L2 table
-	// pagetable: points to L2 table containing small or large page (not used for now)
+    // supersection 16MB, direct phys. address, no L2 table
+    // section 1MB, direct phys. address, no L2 table
+    // pagetable: points to L2 table containing small or large page (not used for now)
 private:
-	Bitmap ptL1Descriptor;
+    Bitmap ptL1Descriptor;
 
 public:
-	//! standard constructor
-	ARMv7PtEntry() {
-	}
-	//! standard destructor
-	~ARMv7PtEntry() {
-	}
+    //! standard constructor
+    ARMv7PtEntry() {
+    }
+    //! standard destructor
+    ~ARMv7PtEntry() {
+    }
 
-	void Clear() {
-		ptL1Descriptor.clear();
-	}
+    void Clear() {
+        ptL1Descriptor.clear();
+    }
 
-	Bitmap getDesc(void)
-	{
-		return ptL1Descriptor;
-	}
+    Bitmap getDesc(void) {
+        return ptL1Descriptor;
+    }
 
-	void setType(int type){
-		switch (type)
-		{
-			case ptTypeSection:
-			{
-				ptL1Descriptor.clearBits( 0x40003 );
-				ptL1Descriptor.setBits( 0x2 );
-				break;
-			}
-			case ptTypeSuperSection:
-			{
-				ptL1Descriptor.clearBits( 0x40003 );
-				ptL1Descriptor.setBits( 0x40002 );
-				break;
-			}
-			default:
-				break;
-		}
-	}
-	void setDomain(int dom){
-		ptL1Descriptor.clearBits( 0x1E0 );
-		ptL1Descriptor.setBits( dom << 5);
-	}
-	void setCBit(int value){
-		ptL1Descriptor.clearBits( 1 << 3 );
-		ptL1Descriptor.setBits( (value & 0x1) << 3);
-	}
-	void setBBit(int value){
-		ptL1Descriptor.clearBits( 1 << 2 );
-		ptL1Descriptor.setBits( (value & 0x1) << 2);
-	}
-	void setSBit(){
+    void setType(int type) {
+        switch (type) {
+        case ptTypeSection: {
+            ptL1Descriptor.clearBits(0x40003);
+            ptL1Descriptor.setBits(0x2);
+            break;
+        }
+        case ptTypeSuperSection: {
+            ptL1Descriptor.clearBits(0x40003);
+            ptL1Descriptor.setBits(0x40002);
+            break;
+        }
+        default:
+            break;
+        }
+    }
+    void setDomain(int dom) {
+        ptL1Descriptor.clearBits(0x1E0);
+        ptL1Descriptor.setBits(dom << 5);
+    }
+    void setCBit(int value) {
+        ptL1Descriptor.clearBits(1 << 3);
+        ptL1Descriptor.setBits((value & 0x1) << 3);
+    }
+    void setBBit(int value) {
+        ptL1Descriptor.clearBits(1 << 2);
+        ptL1Descriptor.setBits((value & 0x1) << 2);
+    }
+    void setSBit() {
 
-	}
-	void setXNBit(Bitmap permission){
-		ptL1Descriptor.clearBits( 0x10 );
-		ptL1Descriptor.setBits( permission << 4);
-	}
-	void setNSBit(){
+    }
+    void setXNBit(Bitmap permission) {
+        ptL1Descriptor.clearBits(0x10);
+        ptL1Descriptor.setBits(permission << 4);
+    }
+    void setNSBit() {
 
-	}
-	void setTex(int value){
-		ptL1Descriptor.clearBits( 0x7 << 12);
-		ptL1Descriptor.setBits( (value & 0x7) << 12);
-	}
-	void setAP(Bitmap permission){
-		ptL1Descriptor.clearBits( 0xC00 );
-		ptL1Descriptor.setBits( permission << 10);
-	}
-	void setnGBit(bool nonGlobal){
-		ptL1Descriptor.clearBits( 0x20000 );
-		ptL1Descriptor.setBits( nonGlobal << 17);
-	}
-	void setBaseAddr(int type, void* physAddr){
-		unint addr = ((unint)physAddr) >> 20;
-		switch (type)
-		{
-			case ptTypeSection:
-			{
-				// use 12 msb
-				ptL1Descriptor.clearBits( 0xFFF00000 );
-				ptL1Descriptor.setBits( addr << 20);
-				break;
-			}
-			case ptTypeSuperSection:
-			{
+    }
+    void setTex(int value) {
+        ptL1Descriptor.clearBits(0x7 << 12);
+        ptL1Descriptor.setBits((value & 0x7) << 12);
+    }
+    void setAP(Bitmap permission) {
+        ptL1Descriptor.clearBits(0xC00);
+        ptL1Descriptor.setBits(permission << 10);
+    }
+    void setnGBit(bool nonGlobal) {
+        ptL1Descriptor.clearBits(0x20000);
+        ptL1Descriptor.setBits(nonGlobal << 17);
+    }
+    void setBaseAddr(int type, void* physAddr) {
+        unint addr = ((unint) physAddr) >> 20;
+        switch (type) {
+        case ptTypeSection: {
+            // use 12 msb
+            ptL1Descriptor.clearBits(0xFFF00000);
+            ptL1Descriptor.setBits(addr << 20);
+            break;
+        }
+        case ptTypeSuperSection: {
 
-				break;
-			}
-			default:
-				break;
-		}
+            break;
+        }
+        default:
+            break;
+        }
 
-	}
-	void setSuperSectionBaseAddr(){
-		// only [31:24], extended base address not supported
-	}
+    }
+    void setSuperSectionBaseAddr() {
+        // only [31:24], extended base address not supported
+    }
 };
-
 
 #endif /* ARMv7PtEntry_HH_ */

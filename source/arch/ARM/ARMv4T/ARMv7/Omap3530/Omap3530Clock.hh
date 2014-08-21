@@ -28,11 +28,10 @@
 #define	CLOCK_RATE	( 13000000 )
 
 #define MILLISECONDS * 13000
+
 #define ms * 13000
 
 #define MICROSECONDS * 13
-
-
 
 /*! \brief ARMv4T Clock, Implementation of HAL Clock
  *
@@ -40,16 +39,20 @@
 class Omap3530Clock: public Clock {
 
 private:
-	unint8 high_precision_time;
+    unint8 high_precision_time;
 
 public:
-	Omap3530Clock( T_Omap3530Clock_Init *init );
+    Omap3530Clock(T_Omap3530Clock_Init *init);
+
     ~Omap3530Clock();
 
-    inline unint8 getTimeSinceStartup() {
-    	// reading this value takes ----- 200*2 = 400 ns du to interface clocking...
-    	unint8 ret = (((unint8) INW(GPT2_TOCR)) << 32) + ((unint8) INW(GPT2_TCRR));
-    	return (ret);
+    /*
+     * Returns the Clock cycles since startup
+     **/
+    inline unint8 getClockCycles() {
+        /* reading this value takes ----- 200*2 = 400 ns due to interface clocking... */
+        unint8 ret = (((unint8) INW(GPT2_TOCR)) << 32) + ((unint8) INW(GPT2_TCRR));
+        return (ret);
     }
 
     /*!

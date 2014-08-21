@@ -21,11 +21,11 @@
 
 extern "C" Kernel* theOS;
 
-void putchar( char c ) {
+void putchar(char c) {
 #ifdef HAS_Board_UARTCfd
     // output device may not be initilized yet
-	if (theOS != 0)
-    if ( theOS->getStdOutputDevice() != 0 )
-        theOS->getStdOutputDevice()->writeByte( c );
+    if (theOS != 0)
+        if (theOS->getStdOutputDevice() != 0)
+            theOS->getStdOutputDevice()->writeBytes(&c, 1);
 #endif
 }

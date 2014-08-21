@@ -18,17 +18,17 @@
 
 #include "kernel/Kernel.hh"
 
-extern "C"Kernel* theOS;
+extern "C" Kernel* theOS;
 
 void* __stack_chk_guard = (void*) 0xdeadbeaf;
 
-extern "C" void __stack_chk_fail()
-{
-    while(1);
+extern "C" void __stack_chk_fail() {
+    while (1)
+        ;
 }
 
-extern "C" void __cxa_pure_virtual()
-{
+extern "C" void __cxa_pure_virtual() {
 
-    while(1);
+    while (1)
+        ;
 }

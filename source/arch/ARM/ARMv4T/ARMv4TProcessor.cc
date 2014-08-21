@@ -25,5 +25,5 @@ ARMv4TProcessor::~ARMv4TProcessor() {
 }
 
 ErrorT ARMv4TProcessor::idle() {
-    return cOk;
+    return cOk ;
 }

@@ -26,25 +26,24 @@ class Module: public Task {
 
 protected:
 
-	Kernel_ThreadCfdCl *waitingThread;
-	/*!
-	 * Starts a new thread to execute the module function at "addr". Blocks the current thread
-	 * and resume it with the return value.
-	 */
-	ErrorT executeModuleFunction(void* addr, void* exit, void* arguments);
+    Kernel_ThreadCfdCl *waitingThread;
+    /*!
+     * Starts a new thread to execute the module function at "addr". Blocks the current thread
+     * and resume it with the return value.
+     */
+    ErrorT executeModuleFunction(void* addr, void* exit, void* arguments);
 
 public:
-	Module(unint4 phy_address, unint4 phy_end, unint4 heap_start);
-	virtual ~Module();
+    Module(unint4 phy_address, unint4 phy_end, unint4 heap_start);
+    virtual ~Module();
 
-	/*!
-	 * Called by the module upon finished execution.
-	 * Called from syscall handler.
-	 *
-	 * Unblocks the waiting thread.
-	 */
-	void moduleReturn() __attribute__((noreturn));
-
+    /*!
+     * Called by the module upon finished execution.
+     * Called from syscall handler.
+     *
+     * Unblocks the waiting thread.
+     */
+    void moduleReturn() __attribute__((noreturn));
 
 };
 

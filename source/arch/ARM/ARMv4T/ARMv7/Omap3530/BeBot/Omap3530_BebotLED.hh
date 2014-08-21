@@ -23,7 +23,6 @@
 #include <types.hh>
 #include <hal/CharacterDeviceDriver.hh>
 
-
 #define GPIO1_BASE		0x48310000
 #define GPIO2_BASE		0x49050000
 #define GPIO3_BASE		0x49052000
@@ -46,27 +45,22 @@
  *  \brief Driver providing access to the LEDs of the BeBot
  *
  */
-class Omap3530_BebotLED: public CharacterDeviceDriver {
-
+class Omap3530_BebotLED: public CharacterDevice {
 
 public:
-	Omap3530_BebotLED( T_Omap3530_BebotLED_Init* init );
+    Omap3530_BebotLED(T_Omap3530_BebotLED_Init* init);
     ~Omap3530_BebotLED();
 
-    void LedOn( int4 ledNumber );
-    void LedOff( int4 ledNumber );
+    void LedOn(int4 ledNumber);
+    void LedOff(int4 ledNumber);
 
     void Clear();
 
-    ErrorT writeByte( char byte );
-    ErrorT readByte( char* byte );
-    ErrorT readBytes( char *bytes, unint4 &length  );
-    ErrorT writeBytes( const char *bytes, unint4 length );
+    ErrorT writeByte(char byte);
+    ErrorT readByte(char* byte);
+    ErrorT readBytes(char *bytes, unint4 &length);
+    ErrorT writeBytes(const char *bytes, unint4 length);
 };
-
-
-
-
 
 #endif /* _LED_HH */
 

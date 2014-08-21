@@ -21,30 +21,24 @@
 
 extern Kernel* theOS;
 
-
-
-IPv4AddressProtocol::IPv4AddressProtocol( Directory* p_commdevsdir ) :
-    AddressProtocol( 0x800, p_commdevsdir ) {
-
+IPv4AddressProtocol::IPv4AddressProtocol(Directory* p_commdevsdir) :
+        AddressProtocol(0x800, p_commdevsdir) {
 
 }
 
 IPv4AddressProtocol::~IPv4AddressProtocol() {
 }
 
+ErrorT IPv4AddressProtocol::bind(sockaddr* addr, Socket* sock) {
 
-
-ErrorT IPv4AddressProtocol::bind( sockaddr* addr, Socket* sock ) {
-
-	// lwip stuff
-    return cOk;
+    // lwip stuff
+    return cOk ;
 }
 
+ErrorT IPv4AddressProtocol::unbind(sockaddr* addr, Socket* sock) {
 
-ErrorT IPv4AddressProtocol::unbind( sockaddr* addr, Socket* sock ) {
+    // lwip stuff
 
-	// lwip stuff
-
-    return cOk;
+    return cOk ;
 }
 

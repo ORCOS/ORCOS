@@ -26,7 +26,6 @@
  *  \param p is a function pointer to method which can print characters
  *  \param c is the char to be put
  */
-extern "C" void putchar( char c );
-
+extern "C" void putchar(char c);
 
 #endif /*PUTC_HH_*/

@@ -42,9 +42,9 @@ int socketSyscall( int4 int_sp ) {
     // create new Socket
     Socket* s = new Socket( domain, type, protocol );
     if (s->isValid()) {
-    	pCurrentRunningTask->aquiredResources.addTail( (DatabaseItem*) s );
+    	pCurrentRunningTask->aquiredResources.addTail( (ListItem*) s );
 
-    	LOG(SYSCALLS,TRACE,(SYSCALLS,TRACE,"Syscall: Socket created with id %d",s->getId()));
+    	LOG(SYSCALLS,TRACE,"Syscall: Socket created with id %d",s->getId());
 
     	// return the id of this new resource (socket)
     	return (s->getId());
@@ -76,7 +76,7 @@ int connectSyscall(int4 int_sp) {
 	 res = pCurrentRunningTask->getOwnedResourceById( socketid );
 	 if ( res != 0 ) {
 
-		LOG(SYSCALLS,TRACE,(SYSCALLS,TRACE,"Syscall: connect valid"));
+		LOG(SYSCALLS,TRACE,"Syscall: connect valid");
 
 		// resource valid and owned
 		// check if resource is a socket
@@ -84,12 +84,12 @@ int connectSyscall(int4 int_sp) {
 			retval = ( (Socket*) res )->connect(pCurrentRunningThread, addr );
 		}
 		else
-			retval = cError;
+			retval = cWrongResourceType;
 	 }
 	 // maybe resource not owned or resource doesnt exist
 
 	 else
-	    retval = cError;
+	    retval = cResourceNotOwned;
 
 	 return (retval);
 }
@@ -112,7 +112,7 @@ int listenSyscall(int4 int_sp) {
 	res = pCurrentRunningTask->getOwnedResourceById( socketid );
 	if ( res != 0 ) {
 
-		LOG(SYSCALLS,TRACE,(SYSCALLS,TRACE,"Syscall: listen "));
+		LOG(SYSCALLS,TRACE,"Syscall: listen ");
 
 		// resource valid and owned
 		// check if resource is a socket
@@ -120,15 +120,15 @@ int listenSyscall(int4 int_sp) {
 			retval = ( (Socket*) res )->listen(pCurrentRunningThread);
 		}
 		else {
-			retval = cError;
-			LOG(SYSCALLS,ERROR,(SYSCALLS,ERROR,"Syscall: listen invalid.. Resource is not a Socket. "));
+			retval = cWrongResourceType;
+			LOG(SYSCALLS,ERROR,"Syscall: listen invalid.. Resource is not a Socket. ");
 		}
 
 	}
 	// maybe resource not owned or resource doesn't exist
 	else {
-		retval = cError;
-		LOG(SYSCALLS,ERROR,(SYSCALLS,ERROR,"Syscall: listen invalid.. Resource not owned.. "));
+		retval = cResourceNotOwned;
+		LOG(SYSCALLS,ERROR,"Syscall: listen invalid.. Resource not owned.. ");
 	}
 
 	return (retval);
@@ -155,7 +155,7 @@ int bindSyscall( int4 int_sp ) {
     res = pCurrentRunningTask->getOwnedResourceById( socketid );
     if ( res != 0 ) {
 
-        LOG(SYSCALLS,TRACE,(SYSCALLS,TRACE,"Syscall: bind valid"));
+        LOG(SYSCALLS,TRACE,"Syscall: bind valid");
 
         // resource valid and owned
         // check if resource is a socket
@@ -164,16 +164,15 @@ int bindSyscall( int4 int_sp ) {
 
         }
         else {
-			retval = cError;
-			LOG(SYSCALLS,ERROR,(SYSCALLS,ERROR,"Syscall: bind invalid.. Resource is not a Socket. "));
+			retval = cWrongResourceType;
+			LOG(SYSCALLS,ERROR,"Syscall: bind invalid.. Resource is not a Socket. ");
 		}
 
     }
     // maybe resource not owned or resource doesnt exist
-
     else{
-		retval = cError;
-		LOG(SYSCALLS,ERROR,(SYSCALLS,ERROR,"Syscall: bind invalid.. Resource not owned.. "));
+		retval = cResourceNotOwned;
+		LOG(SYSCALLS,ERROR,"Syscall: bind invalid.. Resource not owned.. ");
 	}
     return (retval);
 }
@@ -205,23 +204,23 @@ int sendtoSyscall( int4 int_sp ) {
     res = pCurrentRunningTask->getOwnedResourceById( socket );
     if ( res != 0 ) {
 
-        LOG(SYSCALLS,TRACE,(SYSCALLS,TRACE,"Syscall: sendto valid"));
+        LOG(SYSCALLS,TRACE,"Syscall: sendto valid");
 
-        // resource valid and owned
-        // check if resource is a socket
+        /* resource valid and owned
+           check if resource is a socket */
         if ( res->getType() == cSocket ) {
             retval = ( (Socket*) res )->sendto( buffer, (unint2) length, dest_addr );
 
         }
         else
-        retval = cError;
+            retval = cWrongResourceType;
 
     }
     // maybe resource not owned or resource doesnt exist
 
     else {
-        LOG(SYSCALLS,ERROR,(SYSCALLS,ERROR,"Syscall: sendto invalid! Resource %d not owned",socket));
-        retval = cError;
+        LOG(SYSCALLS,ERROR,"Syscall: sendto invalid! Resource %d not owned",socket);
+        retval = cResourceNotOwned;
     }
 
     return (retval);
@@ -243,33 +242,36 @@ int recvSyscall( int4 int_sp) {
     int flags;
     int retval;
     sockaddr* sender;
+    unint4 timeout;
 
-    SYSCALLGETPARAMS5(int_sp,socketid,data_addr,data_len,flags,sender);
+    SYSCALLGETPARAMS6(int_sp,socketid,data_addr,data_len,flags,sender,timeout);
 
     VALIDATE_IN_PROCESS(data_addr);
     if (sender != 0)
     	VALIDATE_IN_PROCESS(sender);
 
-    LOG(SYSCALLS,DEBUG,(SYSCALLS,DEBUG,"Syscall: recv: socketid %d, msg_addr: 0x%x, flags: %x, sockaddr_ptr: 0x%x",socketid,data_addr,flags,sender));
+    LOG(SYSCALLS,DEBUG,"Syscall: recv: socketid %d, msg_addr: 0x%x, flags: %x, sockaddr_ptr: 0x%x",socketid,data_addr,flags,sender);
+
+    timeout = timeout MICROSECONDS;
 
     Resource* res;
     res = pCurrentRunningTask->getOwnedResourceById( socketid );
     if ( res != 0 ) {
 
-        LOG(SYSCALLS,TRACE,(SYSCALLS,TRACE,"Syscall: recv valid"));
+        LOG(SYSCALLS,TRACE,"Syscall: recv valid");
 
-        // resource valid and owned
-        // check if resource is a socket
+        /* resource valid and owned
+           check if resource is a socket */
         if ( res->getType() == cSocket ) {
-            retval = ( (Socket*) res )->recvfrom( pCurrentRunningThread, data_addr,data_len, flags, sender );
+            retval = ( (Socket*) res )->recvfrom( pCurrentRunningThread, data_addr,data_len, flags, sender, timeout );
         }
         else
-        retval = cError;
+            retval = cWrongResourceType;
 
     }
-    // maybe resource not owned or resource doesnt exist
+    /* maybe resource not owned or resource doesnt exist */
     else
-    	retval = cError;
+    	retval = cResourceNotOwned;
 
     return (retval);
 }

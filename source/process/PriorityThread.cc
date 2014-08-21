@@ -23,25 +23,27 @@
 extern Kernel* theOS;
 extern Kernel_ThreadCfdCl* pCurrentRunningThread;
 
-PriorityThread::PriorityThread( void* p_startRoutinePointer, void* p_exitRoutinePointer, Task* p_owner,
-        Kernel_MemoryManagerCfdCl* memManager, unint4 stack_size, void* prioThreadAttributes, bool newThread ) :
-    Thread( p_startRoutinePointer, p_exitRoutinePointer, p_owner, memManager, stack_size, prioThreadAttributes, newThread )
+PriorityThread::PriorityThread(void* p_startRoutinePointer, void* p_exitRoutinePointer, Task* p_owner,
+Kernel_MemoryManagerCfdCl* memManager, unint4 stack_size, void* prioThreadAttributes, bool newThread) :
+        Thread(p_startRoutinePointer, p_exitRoutinePointer, p_owner, memManager, stack_size, prioThreadAttributes, newThread)
 
 {
-    if ( prioThreadAttributes != 0 ) {
-    	thread_attr_t* attr = static_cast< thread_attr_t* > ( prioThreadAttributes );
+    if (prioThreadAttributes != 0)
+    {
+        thread_attr_t* attr = static_cast<thread_attr_t*>(prioThreadAttributes);
         // get phase and convert from µs to cycles
 #if CLOCK_RATE >= (1 MHZ)
-    	this->phase 			= ((TimeT) attr->phase * (CLOCK_RATE / 1000000U));
+        this->phase = ((TimeT) attr->phase * (CLOCK_RATE / 1000000U));
 #else
-    	this->phase 			= ((TimeT) attr->phase * CLOCK_RATE) / 1000000U;
+        this->phase = ((TimeT) attr->phase * CLOCK_RATE) / 1000000U;
 #endif
-        this->initialPriority 	= attr->priority;
+        this->initialPriority = attr->priority;
         this->effectivePriority = attr->priority;
     }
-    else {
+    else
+    {
         this->phase = 0;
-        this->initialPriority	= cDefaultPriority;
+        this->initialPriority = cDefaultPriority;
         this->effectivePriority = cDefaultPriority;
     }
 

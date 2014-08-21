@@ -29,19 +29,18 @@
 /*!
  * \brief This class provides an abstraction of the virtual memory management of the ARMv7 architecture
  */
-
-class ARMv7HatLayer /*: public HatLayer*/ {
+class ARMv7HatLayer /*: public HatLayer*/{
 private:
 
-	/*!
-	 * \brief This method maps the kernel memory
-	 */
-    void mapKernel( BitmapT, int, bool );
+    /*!
+     * \brief This method maps the kernel memory into the process with id pid
+     */
+    void mapKernel(BitmapT protection, int pid, bool nonGlobal);
 
-	/*!
-	 * \brief This method creates a page table
-	 */
-    void* createPT(void* , void* , size_t , BitmapT , byte , int,  bool, bool );
+    /*!
+     * \brief This method creates a page table
+     */
+    void* createPT(void*, void*, size_t, BitmapT, byte, int, bool, bool);
 
 public:
 
@@ -53,7 +52,7 @@ public:
      */
     ARMv7HatLayer();
 
-    //! standard destructor
+    /* standard destructor. Do not use as this is not supported! */
     ~ARMv7HatLayer();
 
     /*!
@@ -63,15 +62,14 @@ public:
      *  The created entry in the page table represents then a mapping of an address space starting logically at the given logical address and
      *  physically at the given physical address.
      */
-    void* map( void* logBaseAddr, void* physBaseAddr, size_t size, BitmapT protection, byte zsel, int pid,
-            bool cache_inhibit );
-
+    void* map(void* logBaseAddr, void* physBaseAddr, size_t size, BitmapT protection, byte zsel, int pid, bool cache_inhibit);
 
     /*!
-     * \brief Maps a physical base address into an arbitray free virtual address determined by the HATLayer.
+     * \brief Maps a physical base address into an arbitrary free virtual address determined by the HATLayer.
      *
+     * \returns the virtual address of the mapped area. 0 if not mapped.
      */
-    void* map( void* phyBaseAddr, size_t, BitmapT, byte, int pid,  bool cache_inhibit );
+    void* map(void* phyBaseAddr, size_t, BitmapT, byte, int pid, bool cache_inhibit);
 
     /*!
      * \brief Unmap an address space with a logical address from his given physical address
@@ -80,37 +78,27 @@ public:
      * \param addr	The address to be unmapped
      * \param pid	The Process ID. if -1 the current running process will be used.
      */
-    ErrorT unmap( void* addr, unint1 tid = 0);
+    ErrorT unmap(void* addr, unint1 tid = 0);
 
     /*!
-     * \brief unmap all address spaces with logical addresses which has been mapped before by this HATLayer-Instance
-     *
-     * Implements the corresponding method in HATLayer.hh
-     *
+     * \brief Unmap all address translations of process pid
      */
     ErrorT unmapAll(int pid);
 
     /*!
      * \brief change Protection of an address space of a given logical address
-     *
-     * Implements the corresponding method in HATLayer.hh
-     *
      */
-    ErrorT changeProtection( void*, BitmapT );
+    ErrorT changeProtection(void*, BitmapT);
 
     /*!
      * \brief clear all protections of an address space of a given logical address
-     *
-     * Implements the corresponding method in HATLayer.hh
      */
-    ErrorT clearProtection( void* );
+    ErrorT clearProtection(void*);
 
     /*!
      * \brief get the protection of an address space for a given logical address
-     *
-     * Implements the corresponding method in HATLayer.hh
      */
-    BitmapT getProtection( void* );
+    BitmapT getProtection(void*);
 
     /*!
      * \brief enable hardware address translation
@@ -124,32 +112,23 @@ public:
 
     /*!
      * \brief disable hardware address translation
-     *
-     * Implements the corresponding method in HATLayer.hh
-     *
      */
     ErrorT disableHAT();
 
     /*!
      * \brief returns the logical address translation for a given physical address
-     *
-     * Implements the corresponding method in HATLayer.hh
      */
-    void* getLogicalAddress( void* );
+    void* getLogicalAddress(void*);
 
     /*!
-     * \brief returns the physical address translation for a given logical address and tid
-     *
-     * Implements the corresponding method in HATLayer.hh
+     * \brief returns the physical address translation for a given logical address and pid
      */
-    void* getPhysicalAddress( void* , int tid );
+    void* getPhysicalAddress(void*, int pid);
 
     /*!
-    * \brief returns the physical address translation for a given logical address with the current pid as tid
-    *
-    * Implements the corresponding method in HATLayer.hh
-    */
-    void* getPhysicalAddress( void* );
+     * \brief returns the physical address translation for a given logical address with the current pid as pid
+     */
+    void* getPhysicalAddress(void*);
 
     /*!
      * \brief handles errors if for a given logical address no mapping can be found
@@ -160,7 +139,6 @@ public:
      * occurs. If there is a debugger configured, a debug message is printed.
      */
     void handleMappingError();
-
 
     /*!
      *

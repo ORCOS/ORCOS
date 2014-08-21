@@ -23,7 +23,7 @@
 #include "SCLConfig.hh"
 #include "inc/const.hh"
 #include <assemblerFunctions.hh>
-#include "db/ArrayDatabase.hh"
+#include "db/ArrayList.hh"
 #include Kernel_Scheduler_hh
 #include Kernel_Thread_hh
 
@@ -53,6 +53,7 @@ private:
     /*! Stores a pointer to the thread currently locking this mutex. */
     Kernel_ThreadCfdCl* m_pThread;
 
+#if MEM_NO_FREE
     /*! \brief Is used to store unused LinkedList Database Items
      *
      * We internally keep track of free linked list database items so that we do not have to
@@ -61,13 +62,14 @@ private:
      * and makes it possible to use the Mutex class with a linear memory manager (which does not
      * support release of memory) without memory leaks.
      */
-    LinkedListDatabase 	m_unusedLinkedListDBItems;
+    LinkedList 	        m_unusedLinkedListDBItems;
+#endif
 
     //! Stores threads which are stopped by the user, but will want to acquire the mutex when they are resumed.
-    ArrayDatabase 		m_stoppedThreads;
+    ArrayList 		    m_stoppedThreads;
 
     //! Stores a pointer to the Resource guarded by this mutex.
-    Resource* 			m_pRes;
+    Resource* 		    m_pRes;
 
     //! configurable member scheduler
     DEF_Kernel_SchedulerCfd

@@ -78,7 +78,6 @@
 
 #define OMAP34XX_CTRL_BASE 0x48002000
 
-
 /*
  * To get the actual address the offset has to added
  * with OMAP34XX_CTRL_BASE to get the actual address
@@ -482,7 +481,6 @@
 #define CONTROL_PADCONF_GPIO128		0x0A58
 #define CONTROL_PADCONF_GPIO129		0x0A5A
 
-
 /* AM/DM37xx specific: gpio_127, gpio_127 and gpio_129 require configuration
  * of the extended drain cells */
 #define OMAP34XX_CTRL_WKUP_CTRL		(OMAP34XX_CTRL_BASE + 0x0A5C)
@@ -492,8 +490,6 @@
 		writew((VALUE), OMAP34XX_CTRL_BASE + (OFFSET));
 
 #define	CP(x)	(CONTROL_PADCONF_##x)
-
-
 
 /* BeagleBoard revisions */
 #define REVISION_AXBX	0x7
@@ -668,7 +664,7 @@
 	MUX_VAL(CP(MMC1_DAT5),		(IEN  | PTU | EN  | M0)) /*MMC1_DAT5*/\
 	MUX_VAL(CP(MMC1_DAT6),		(IEN  | PTU | EN  | M0)) /*MMC1_DAT6*/\
 	MUX_VAL(CP(MMC1_DAT7),		(IEN  | PTU | EN  | M0)) /*MMC1_DAT7*/\
- /*Wireless LAN */\
+ /*Wireless LAN, Expansion Header for BeagleBoardXM */\
 	MUX_VAL(CP(MMC2_CLK),		(IEN  | PTU | EN  | M4)) /*GPIO_130*/\
 	MUX_VAL(CP(MMC2_CMD),		(IEN  | PTU | EN  | M4)) /*GPIO_131*/\
 	MUX_VAL(CP(MMC2_DAT0),		(IEN  | PTU | EN  | M4)) /*GPIO_132*/\
@@ -878,8 +874,13 @@
 	MUX_VAL(CP(SYS_BOOT3),		(IDIS | PTD | DIS | M3)) /*DSS_DATA20*/\
 	MUX_VAL(CP(SYS_BOOT4),		(IDIS | PTD | DIS | M3)) /*DSS_DATA21*/\
 	MUX_VAL(CP(SYS_BOOT5),		(IDIS | PTD | DIS | M3)) /*DSS_DATA22*/\
-	MUX_VAL(CP(SYS_BOOT6),		(IDIS | PTD | DIS | M3)) /*DSS_DATA23*/
-
+	MUX_VAL(CP(SYS_BOOT6),		(IDIS | PTD | DIS | M3)) /*DSS_DATA23*/ \
+	MUX_VAL(CP(MMC2_CLK),		(IEN  | PTD | DIS | M1)) /*SPI3 CLK*/\
+	MUX_VAL(CP(MMC2_CMD),		(IEN  | PTD | DIS | M1)) /*SPI3 SIMO*/\
+	MUX_VAL(CP(MMC2_DAT0),		(IEN  | PTU | EN  | M1)) /*SPI3 SOMI*/\
+	MUX_VAL(CP(MMC2_DAT1),      (IEN  | PTU | EN  | M1)) /*SPI3 SOMI*/\
+	MUX_VAL(CP(MMC2_DAT2),		(IDIS | PTD | DIS | M1)) /*SPI3 CS1*/\
+	MUX_VAL(CP(MMC2_DAT3),		(IDIS | PTD | DIS | M1)) /*SPI3 CS0*/
 
 #define GPIO0                           (0x1 << 0)
 #define GPIO1                           (0x1 << 1)
@@ -914,20 +915,18 @@
 #define GPIO30                          (0x1 << 30)
 #define GPIO31                          (0x1 << 31)
 
-
-
 /*!
  * \brief Implementation of the HAL board for the BeagleBoard architecture
  */
 class BeagleBoardxM {
 
-	/*
-	 *  Standard configurable board components definition.
-	 *  Depending on SCL Config members will be initialized
-	 *  with a corresponding class.
-	 */
-	DEF_Board_ProcessorCfd
-	DEF_Board_InterruptHandlerCfd
+    /*
+     *  Standard configurable board components definition.
+     *  Depending on SCL Config members will be initialized
+     *  with a corresponding class.
+     */
+    DEF_Board_ProcessorCfd
+    DEF_Board_InterruptHandlerCfd
     DEF_Board_UARTCfd
     DEF_Board_UART2Cfd
     DEF_Board_GPIO1Cfd
@@ -949,12 +948,16 @@ class BeagleBoardxM {
 public:
     unint4 sys_clock;
 
-     BeagleBoardxM();
+    BeagleBoardxM();
+
     ~BeagleBoardxM();
 
     void initialize();
 
-    const char* getBoardInfo() {return ("         BeagleBoardxM revision C. SOC: DM37xx (compatible OMAP3530)\r\n"); };
+    const char* getBoardInfo() {
+        return (" BeagleBoardxM revision C. SOC: DM37xx (compatible OMAP3530)\r\n");
+    }
+
 };
 
 #endif /*BEAGLEBOARD_HH_*/

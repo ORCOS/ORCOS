@@ -14,17 +14,17 @@
 class ARMv7Cache: public Cache {
 
 private:
-	unint4 line_len;
+    unint4 line_len;
 
 public:
-	ARMv7Cache();
-	virtual ~ARMv7Cache();
+    ARMv7Cache();
+    virtual ~ARMv7Cache();
 
-	void invalidate_data(void* start, void* end);
+    void invalidate_data(void* start, void* end);
 
-	void invalidate_instruction(void* start, void* end);
+    void invalidate_instruction(void* start, void* end);
 
-	void invalidate(unint4 asid);
+    void invalidate(unint4 asid);
 
 };
 

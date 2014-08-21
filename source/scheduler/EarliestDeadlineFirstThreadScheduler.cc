@@ -22,7 +22,7 @@
 
 extern Kernel* theOS;
 
-ErrorT EarliestDeadlineFirstThreadScheduler::enter( LinkedListDatabaseItem* item ) {
+ErrorT EarliestDeadlineFirstThreadScheduler::enter( LinkedListItem* item ) {
     ASSERT(item);
     RealTimeThread* pRTThread = static_cast< RealTimeThread* > ( item->getData() );
 
@@ -38,14 +38,14 @@ ErrorT EarliestDeadlineFirstThreadScheduler::enter( LinkedListDatabaseItem* item
 
 }
 
-TimeT EarliestDeadlineFirstThreadScheduler::getNextTimerEvent( LinkedListDatabase* sleepList,TimeT currentTime ) {
+TimeT EarliestDeadlineFirstThreadScheduler::getNextTimerEvent( LinkedList* sleepList,TimeT currentTime ) {
     ASSERT(sleepList);
     /* it makes no sense to return an unint8 here, since theOS->getTimerDevice()->setTimer(nextevent) will take
        a unint4 anyways (and the return value of this function is used to set the timer event). */
     TimeT sleeptime = MAX_UINT8;
 
     /* only return a value smaller than sleeptime if there is some other competing threads inside the sleeplist! */
-    LinkedListDatabaseItem* pDBSleepItem = sleepList->getHead();
+    LinkedListItem* pDBSleepItem = sleepList->getHead();
     if ( pDBSleepItem != 0 ) {
 
         /* first update the sleeptime and wake up waiting/sleeping threads */
@@ -54,7 +54,7 @@ TimeT EarliestDeadlineFirstThreadScheduler::getNextTimerEvent( LinkedListDatabas
 
             if ( pSleepThread->sleepTime <= currentTime ) {
 				pSleepThread->status.setBits( cReadyFlag );
-				LinkedListDatabaseItem* litem2 = pDBSleepItem;
+				LinkedListItem* litem2 = pDBSleepItem;
 				pDBSleepItem = pDBSleepItem->getSucc();
 				pSleepThread->sleepTime = 0;
 				/* This thread is active again. Enter the queue again. If it has the highest
@@ -67,7 +67,7 @@ TimeT EarliestDeadlineFirstThreadScheduler::getNextTimerEvent( LinkedListDatabas
         /* set variables which are needed to compare to later on, so we do not need to set these for every
            iteration of the while loop */
         TimeT nextPriority = 0;
-        LinkedListDatabaseItem* pDBNextItem = database.getHead();
+        LinkedListItem* pDBNextItem = database.getHead();
 
         if ( pDBNextItem != 0 )
             nextPriority = (static_cast< RealTimeThread* > ( pDBNextItem->getData() ))->effectivePriority;
@@ -110,6 +110,9 @@ TimeT EarliestDeadlineFirstThreadScheduler::getNextTimerEvent( LinkedListDatabas
 		item->effectivePriority    = 1;
 	}
 
-    LOG(SCHEDULER,DEBUG,(SCHEDULER,DEBUG,"EDF: Thread %d Priority=%x%x",item->getId(), (unint4) ((item->effectivePriority >> 32) & 0xffffffff),  (unint4) ((item->effectivePriority) & 0xffffffff)));
+    LOG(SCHEDULER,DEBUG,"EDF: Thread %d Priority=%x%x",
+        item->getId(),
+        (unint4) ((item->effectivePriority >> 32) & 0xffffffff),
+        (unint4) ((item->effectivePriority) & 0xffffffff));
 
  }

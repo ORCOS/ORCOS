@@ -22,8 +22,6 @@ class Logger;
 
 #include <logger_config.hh>
 
-//enum Level {FATAL=0,ERROR=1,WARN=2,INFO=3,DEBUG=4,TRACE=5};
-
 /*!
  *
  * \ingroup debug
@@ -44,19 +42,18 @@ protected:
 public:
     Logger() {
     }
-    ;
+
     ~Logger() {
     }
-    ;
 
     /*!
-     * \brief Write msg to serial line.
+     * \brief Write msg to standard output.
      *
-     * thprintf is used, so %d .. could be used to as variables.
+     * the printf is used, so %d .. could be used to as variables.
      * The prefix and level could be found in the logger_config.hh which is generated out of the SCLConfig.xml
      *
      */
-    void log( Prefix prefix, Level level, const char* msg, ... );
+    void log(Prefix prefix, Level level, const char* msg, ...);
 };
 
 #endif /*DEBUG_HH_*/

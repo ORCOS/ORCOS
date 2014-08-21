@@ -19,7 +19,7 @@
 #ifndef SIMPLEDEBUGCOLLECTOR_HH_
 #define SIMPLEDEBUGCOLLECTOR_HH_
 
-#include "hal/CharacterDeviceDriver.hh"
+#include "hal/CharacterDevice.hh"
 
 /*!
  *
@@ -34,24 +34,26 @@
  * 			be implemented in this way, too.
  */
 
-class SimpleDebugCollector: public CharacterDeviceDriver {
+class SimpleDebugCollector: public CharacterDevice {
 public:
     SimpleDebugCollector();
+
     ~SimpleDebugCollector() {
     }
-    ;
 
-    ErrorT readByte( char* p_byte ) {
-        return (cNotImplemented);
-    }
-    ErrorT writeByte( char c_byte ) {
-        return (cNotImplemented);
+
+    inline ErrorT readByte(char* p_byte) {
+        return (cNotImplemented );
     }
 
-    ErrorT readBytes( char *bytes, unint4 &length );
+    inline ErrorT writeByte(char c_byte) {
+        return (cNotImplemented );
+    }
 
-    ErrorT writeBytes( const char *bytes, unint4 length ) {
-        return (cNotImplemented);
+    ErrorT readBytes(char *bytes, unint4 &length);
+
+    inline ErrorT writeBytes(const char *bytes, unint4 length) {
+        return (cNotImplemented );
     }
 };
 

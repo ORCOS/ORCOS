@@ -37,14 +37,15 @@
 #include "lwip/err.h"
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 #if !LWIP_NETIF_LOOPBACK_MULTITHREADING
 #define loopif_poll netif_poll
 #endif /* !LWIP_NETIF_LOOPBACK_MULTITHREADING */
 
-err_t loopif_init(struct netif *netif);
+    err_t loopif_init(struct netif *netif);
 
 #ifdef __cplusplus
 }

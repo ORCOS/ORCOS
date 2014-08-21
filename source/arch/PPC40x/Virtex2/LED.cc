@@ -29,7 +29,7 @@
 
 /*---------------------------------------------------------------------------*/
 LED::LED( const char* name, int4 baseaddr ) :
-    CharacterDeviceDriver( true, name )
+    CharacterDevice( true, name )
 /*---------------------------------------------------------------------------*/
 {
     leds = 0;

@@ -23,7 +23,6 @@
 #include "process/PriorityThread.hh"
 #include "inc/const.hh"
 
-
 /*!
  * \brief A thread class for realtime threads.
  * \ingroup process
@@ -34,17 +33,17 @@
 class RealTimeThread: public PriorityThread {
 
 // friend classes
-friend class EarliestDeadlineFirstThreadScheduler;
-friend class RateMonotonicThreadScheduler;
-friend class WorkerTask;
-friend class Task;
+    friend class EarliestDeadlineFirstThreadScheduler;
+    friend class RateMonotonicThreadScheduler;
+    friend class WorkerTask;
+    friend class Task;
 
 public:
-	TimeT period;              //!< The period of the real time thread in clock ticks. 0 means it isn't periodic.
-	TimeT relativeDeadline;    //!< The relative deadline of the thread for every instance.
-	TimeT absoluteDeadline;    //!< The current absolute deadline of the thread
-	TimeT executionTime;       //!< The execution time of the thread if it's known (otherwise 0).
-	TimeT arrivalTime;         //!< The arrival time of the current instance
+    TimeT period;               //!< The period of the real time thread in clock ticks. 0 means it isn't periodic.
+    TimeT relativeDeadline;     //!< The relative deadline of the thread for every instance.
+    TimeT absoluteDeadline;     //!< The current absolute deadline of the thread
+    TimeT executionTime;        //!< The execution time of the thread if it's known (otherwise 0).
+    TimeT arrivalTime;          //!< The arrival time of the current instance
     int instance;               //!< The instance of this realtime thread
 
 public:
@@ -54,8 +53,9 @@ public:
      * - A periode of 0 means that the real time thread is aperiodic.
      * - An execution time of 0 means that the execution time for the thread is unknown.
      */
-    RealTimeThread( void* startRoutinePointer, void* exitRoutinePointer, Task* owner, Kernel_MemoryManagerCfdCl* memManager,
-            unint4 stack_size = DEFAULT_USER_STACK_SIZE, void* RTThreadAttributes = 0, bool newThread = true );
+    RealTimeThread(void* startRoutinePointer, void* exitRoutinePointer, Task* owner, Kernel_MemoryManagerCfdCl* memManager, unint4 stack_size =
+                           DEFAULT_USER_STACK_SIZE, void* RTThreadAttributes = 0, bool newThread =
+                           true);
 
     /*! \brief Standard destructor for the real time thread class.
      *
@@ -65,7 +65,6 @@ public:
      */
     ~RealTimeThread();
 
-
     /*! \brief Is automatically called when the thread finishes through a syscall.
      *
      * If the period is not zero (meaning it is a periodic thread) this method will take care that the thread is
@@ -74,7 +73,6 @@ public:
      * remaining time till the next execution is due.
      */
     void terminate();
-
 
 };
 

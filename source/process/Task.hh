@@ -24,8 +24,10 @@
 #include "inc/types.hh"
 #include Kernel_Thread_hh
 #include Kernel_MemoryManager_hh
-#include "db/LinkedListDatabase.hh"
-#include "db/ArrayDatabase.hh"
+#include "db/LinkedList.hh"
+#include "db/ArrayList.hh"
+#include "inc/stringtools.hh"
+#include "hal/CharacterDevice.hh"
 
 struct serializedThread {
     ThreadStack threadStack;
@@ -70,28 +72,24 @@ public:
     /*!
      * \brief The database storing the actually aquired resources.
      */
-    ArrayDatabase aquiredResources;
-
-    /*!
-     * \brief reference to my databaseitem inside the os tasktable;
-     */
-    LinkedListDatabaseItem* myTaskDbItem;
+    ArrayList           aquiredResources;
 
     /*!
      *  \brief The database storing the Threads belonging to this task
      */
-    LinkedListDatabase threadDb;
+    LinkedList          threadDb;
 
     /*!
      *  \brief the exit Value of the task == exit value of last terminated task
      */
-    int exitValue;
+    int                 exitValue;
 
 protected:
     /*!
-     *  \brief The database storing the Threads belonging to this task
+     *  \brief The database storing references to suspended (removed) threads
+     *         These might come handy for zombie mode threads.
      */
-    LinkedListDatabase suspendedThreadDb;
+    LinkedList          suspendedThreadDb;
 
     /*!
      *   \brief The memory manager that will be used by the threads belonging to this task
@@ -101,37 +99,61 @@ protected:
     /*!
      * \brief the tasktable of this task
      */
-    taskTable* tasktable;
-
+    taskTable*          tasktable;
 
     /*!
      * brief Flag indicating if this task is stopped.
      */
-    bool stopped;
+    bool                stopped;
 
     /*!
      *  \brief The ID of this task
      */
-    TaskIdT myTaskId;
+    TaskIdT             myTaskId;
 
     /*!
      *  \brief Initialize the Task Id Counter here
      */
-    static TaskIdT globalTaskIdCounter;
+    static TaskIdT      globalTaskIdCounter;
 
     /*!
-     * \brief list of free task ids which can be used for task creation
+     * \brief List of free task ids which can be used for task creation
      */
-    static ArrayDatabase *freeTaskIDs;
+    static ArrayList    *freeTaskIDs;
+
+    /*!
+     * \brief The name of this task. Typically its filename
+     */
+    char               name[32];
+
+    /*!
+     * \brief The current working directory of this task.
+     */
+    char               workingDirectory[256];
+
+    /*!
+     * \brief The Device this task is writing to by default as e.g. by printf().
+     */
+    CharacterDevice*   stdOutput;
 
 public:
 
-    unint4 platform_flags;
+    /*!
+     * \brief reference to my database item inside the OS tasktable;
+     */
+    LinkedListItem*     myTaskDbItem;
+
+    /*!
+     * \brief platform specific flags which are used upon task start by the
+     *        platform code. Copy of the task table entry (platform) for access
+     *        out of the VM of the process.
+     */
+    unint4              platform_flags;
 
     /*!
      *  \brief Constructor of a task taking the memory manager and the pointer to the tasktable of this task.
      */
-    Task( Kernel_MemoryManagerCfdCl* memoryManager, taskTable* tasktbl );
+    Task( Kernel_MemoryManagerCfdCl* memoryManager, taskTable* tasktbl);
 
     /*!
      * \brief Constructor only used for derived classes e.g. WorkerTask
@@ -148,19 +170,21 @@ public:
      */
     static void initialize() {
         globalTaskIdCounter = cFirstTask;
-        freeTaskIDs = new ArrayDatabase(MAX_NUM_TASKS);
+        freeTaskIDs = new ArrayList(MAX_NUM_TASKS);
 
         /* Workertasks must be mapped to PID 0
-           to ensure they are running with kernel mappings
-           under virtual memory
-           user tasks must start at PID 1 to ensure
-           the kernel page table to be not overwritten */
-		#if USE_WORKERTASK
-        for (unint4 i = 0; i < MAX_NUM_TASKS; i++) {
-		#else
-        for (unint4 i = 1; i < MAX_NUM_TASKS; i++) {
-		#endif
-        	freeTaskIDs->addTail((DatabaseItem*) i);
+         to ensure they are running with kernel mappings
+         under virtual memory
+         user tasks must start at PID 1 to ensure
+         the kernel page table to be not overwritten */
+#if USE_WORKERTASK
+        for (unint4 i = 0; i < MAX_NUM_TASKS; i++)
+        {
+#else
+            for (unint4 i = 1; i < MAX_NUM_TASKS; i++)
+            {
+#endif
+            freeTaskIDs->addTail((ListItem*) i);
         }
     }
 
@@ -179,27 +203,27 @@ public:
     /*!
      * \brief Adds a new thread to this task.
      */
-    void addThread( Thread* t );
+    void addThread(Thread* t);
 
     /*!
      * \brief Removes a given Thread.
      */
-    void removeThread( Thread* t );
+    void removeThread(Thread* t);
 
     /*!
      * \brief Ask this task to try to aquire the resource res
      */
-    ErrorT aquireResource( Resource* res, Thread* t , bool blocking = true);
+    ErrorT acquireResource(Resource* res, Thread* t, bool blocking = true);
 
     /*!
      * \brief Ask this task to try to aquire the resource res
      */
-    ErrorT releaseResource( Resource* res, Thread* t );
+    ErrorT releaseResource(Resource* res, Thread* t);
 
     /*!
      * \brief Returns the thread given by id. May be null if non existend in this task.
      */
-    Kernel_ThreadCfdCl* getThreadbyId( ThreadIdT threadid );
+    Kernel_ThreadCfdCl* getThreadbyId(ThreadIdT threadid);
 
     /*!
      *   \brief Get the identity of this task
@@ -209,37 +233,61 @@ public:
     }
 
     /*!
+     * \brief Reurns the name of this task
+     */
+    inline const char* getName() const {
+           return (this->name);
+    }
+
+    /*!
      *  \brief Return the Memory Manager of the Task
      */
-    inline Kernel_MemoryManagerCfdCl* getMemManager() {
+    inline Kernel_MemoryManagerCfdCl* getMemManager() const {
         return (memManager);
     }
 
     /*!
      *  \brief Set the Memory Manager of the Task
      */
-    void setMemManager( Kernel_MemoryManagerCfdCl* mm ) {
+    void setMemManager( Kernel_MemoryManagerCfdCl* mm) {
         memManager = mm;
+    }
+
+    /*!
+     * \brief Sets he name of this task
+     */
+    void setName(const char* newname) {
+        strncpy(this->name,newname,32);
+    }
+
+    void setStdOut(CharacterDevice* dev) {
+        this->stdOutput = dev;
     }
 
     /*!
      * \brief Get the resource with id 'id' owned by this resource. May return null if not owned or not existend.
      */
-    Resource* getOwnedResourceById( ResourceIdT id );
+    Resource* getOwnedResourceById(ResourceIdT id);
 
     /*!
      * \brief Returns the tasktable of this task.
      */
-    inline
-    taskTable* getTaskTable() {
+    inline taskTable* getTaskTable() const {
         return (tasktable);
     }
-    ;
+
 
     /*!
      * \brief Returns a ThreadCB of a suspended thread which has a stack that is >= stacksize
      */
-    LinkedListDatabaseItem* getSuspendedThread(unint4 stacksize);
+    LinkedListItem* getSuspendedThread(unint4 stacksize);
+
+    /*!
+     * \brief Returns the stdOutput of this task.
+     */
+    inline CharacterDevice* getStdOutputDevice() const {
+        return (stdOutput);
+    }
 
     /*!
      * \brief Stops the execution of this task until resumed or destroyed.
@@ -260,7 +308,7 @@ public:
      *  \brief Returns the Database of all Threads of this task
      *
      */
-    LinkedListDatabase* getThreadDB() {
+    inline LinkedList* getThreadDB() {
         return (&threadDb);
     }
     ;

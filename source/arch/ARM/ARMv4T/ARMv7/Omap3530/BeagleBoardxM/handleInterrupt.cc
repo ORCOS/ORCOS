@@ -30,260 +30,226 @@ extern Kernel* theOS;
 extern Board_TimerCfdCl* theTimer;
 extern Task* pCurrentRunningTask;
 
-
 extern "C" void dumpContext(void* sp_context) {
 
-	printf("Context at 0x%x:\r", (unint4) sp_context);
-	printf("PSR: 0x%x\r", ((unint4*) sp_context)[0]);
+    LOG(ARCH, ERROR,"Context at 0x%08x:", (unint4) sp_context);
+    LOG(ARCH, ERROR, "PSR: 0x%08x  PC : 0x%08x", ((unint4*) sp_context)[0],((unint4*) sp_context)[14]);
+    LOG(ARCH, ERROR, "r0 : 0x%08x  r1 : 0x%08x  r2 : 0x%08x",((unint4*) sp_context)[1],((unint4*) sp_context)[2],((unint4*) sp_context)[3]);
+    LOG(ARCH, ERROR, "r3 : 0x%08x  r4 : 0x%08x  r5 : 0x%08x",((unint4*) sp_context)[4],((unint4*) sp_context)[5],((unint4*) sp_context)[6]);
+    LOG(ARCH, ERROR, "r6 : 0x%08x  r7 : 0x%08x  r8 : 0x%08x",((unint4*) sp_context)[7],((unint4*) sp_context)[8],((unint4*) sp_context)[9]);
+    LOG(ARCH, ERROR, "r9 : 0x%08x  r10: 0x%08x  r11: 0x%08x",((unint4*) sp_context)[10],((unint4*) sp_context)[11],((unint4*) sp_context)[12]);
+    LOG(ARCH, ERROR, "SP : 0x%08x  FP : 0x%08x", ((unint4*) sp_context)[16],((unint4*) sp_context)[17]);
 
-	for (int i = 1; i < 13; i++) {
-		printf("r%d : %x\r",i-1,((unint4*) sp_context)[i]);
-	}
-
-	printf("PC: 0x%x\r", ((unint4*) sp_context)[14]);
-	printf("LR: 0x%x\r", ((unint4*) sp_context)[15]);
-	printf("SP: 0x%x\r", ((unint4*) sp_context)[16]);
-	printf("FP: 0x%x\r", ((unint4*) sp_context)[17]);
+    //LOG(ARCH, ERROR,"LR: 0x%08x", ((unint4*) sp_context)[15]);
 
 }
-
 
 extern "C" void handleDataAbort(int addr, int instr, int context, int spsr) {
-	LOG(ARCH,ERROR,(ARCH,ERROR,"Data Abort at address: 0x%x , instr: 0x%x, SPSR: 0x%x",addr,instr,spsr));
+    LOG(ARCH, ERROR, "Data Abort at address: 0x%08x , instr: 0x%08x, SPSR: 0x%08x",addr,instr,spsr);
 
-	for (int i = -1; i <= 13; i++) {
-			LOG(ARCH,ERROR,(ARCH,ERROR,"r%d : %x",i,((unint4*) context)[i]));
-		}
+    dumpContext((void*)context);
 
-	int tid = 0;
-	if (pCurrentRunningTask != 0)
-		tid = pCurrentRunningTask->getId();
+    int sp = ((unint4*) context)[16];
 
+    /* print the call trace */
+    backtrace_addr((void*) instr,sp);
 
-	int dfsr;
-	asm (
-		"MRC p15,0,%0,c5,c0,0;"
-		: "=&r" (dfsr)
-		:
-		:
-		);
+    int tid = 0;
+    if (pCurrentRunningTask != 0)
+        tid = pCurrentRunningTask->getId();
 
+    int dfsr;
+    asm (
+            "MRC p15,0,%0,c5,c0,0;"
+            : "=&r" (dfsr)
+            :
+            :
+    );
 
-	LOG(ARCH,ERROR,(ARCH,ERROR,"TID: %d, DFSR: %x",tid, dfsr));
+    LOG(ARCH, ERROR,"TID: %d, DFSR: %x",tid, dfsr);
 
-	#ifdef HAS_Board_HatLayerCfd
+#ifdef HAS_Board_HatLayerCfd
 
-		int asid = -1;
-		unint4 tbb0 = 0;
-		unint4 paget =	((unint4)(&__PageTableSec_start)) + tid*0x4000;
+    int asid = -1;
+    unint4 tbb0 = 0;
+    unint4 paget = ((unint4) (&__PageTableSec_start)) + tid * 0x4000;
 
-		asm (
-		#ifdef ARM_THUMB
-			".align 4;"
-			"mov    r0,pc;"
-			"bx     r0;"
-			".code 32;"
-		#endif
+    asm (
+            "MRC p15,0,%0,c13,c0,1;"  // ; Read CP15 Context ID Register
+            "MRC p15,0,%1,c2,c0,0;"// ; Read CP15 Translation Table Base Register 0
+            : "=&r" (asid), "=&r" (tbb0)
+            :
+            : "r0"
+    );
 
-			"MRC p15,0,%0,c13,c0,1;" // ; Read CP15 Context ID Register
-			"MRC p15,0,%1,c2,c0,0;" // ; Read CP15 Translation Table Base Register 0
+    LOG(ARCH, ERROR, "ASID: %d, TBB0: 0x%x, Task PT: 0x%x",asid,tbb0,paget);
+    theOS->getHatLayer()->dumpPageTable(tid);
+#endif
 
-		#ifdef ARM_THUMB
-			"add r0, pc,#1;"
-			"bx  r0;"
-			".code 16;"
-		#endif
-			: "=&r" (asid), "=&r" (tbb0)
-			:
-			: "r0"
-		);
+    /* handle the error */
+    theOS->getErrorHandler()->handleError(cDataAbortError);
 
-		LOG(ARCH,ERROR,(ARCH,ERROR,"ASID: %d, TBB0: 0x%x, Task PT: 0x%x",asid,tbb0,paget));
-		theOS->getHatLayer()->dumpPageTable(tid);
-	#endif
-
-	/* handle the error */
-	theOS->getErrorHandler()->handleError(cDataAbortError);
-
-	while (true) {};
+    while (true)
+    {
+    };
 }
 
-extern "C" void handleUndefinedIRQ(int addr, int spsr, int context) {
-	LOG(ARCH,ERROR,(ARCH,ERROR,"Undefined Instruction IRQ, Addr: 0x%x, SPSR: 0x%x",addr,spsr));
+extern "C" void handleUndefinedIRQ(int addr, int spsr, int context, int sp) {
+    LOG(ARCH, ERROR, "Undefined Instruction IRQ, Addr: 0x%x, SPSR: 0x%x",addr,spsr);
 
-	for (int i = 0; i < 12; i++) {
-		LOG(ARCH,ERROR,(ARCH,ERROR,"r%d : %x",i,((unint4*) context)[i]));
-	}
+    for (int i = 0; i < 12; i++)
+    {
+        LOG(ARCH, ERROR,"r%d : %x",i,((unint4*) context)[i]);
+    }
 
-	memdump(addr-16,8);
-
-	int tid = 0;
-	if (pCurrentRunningTask != 0)
-		tid = pCurrentRunningTask->getId();
-
-	LOG(ARCH,ERROR,(ARCH,ERROR,"TID: %d",tid));
+    memdump(addr - 16, 8);
 
 
-	#ifdef HAS_Board_HatLayerCfd
+    /* print the call trace */
+    backtrace_addr((void*) addr,sp);
 
-		int asid = -1;
-		unint4 tbb0 = 0;
-		unint4 paget =	((unint4)(&__PageTableSec_start)) + tid*0x4000;
 
-		asm (
-		#ifdef ARM_THUMB
-			".align 4;"
-			"mov    r0,pc;"
-			"bx     r0;"
-			".code 32;"
-		#endif
+    int tid = 0;
+    if (pCurrentRunningTask != 0)
+        tid = pCurrentRunningTask->getId();
 
-			"MRC p15,0,%0,c13,c0,1;" // ; Read CP15 Context ID Register
-			"MRC p15,0,%1,c2,c0,0;"  // ; Read CP15 Translation Table Base Register 0
+    LOG(ARCH, ERROR, "TID: %d",tid);
 
-		#ifdef ARM_THUMB
-			"add r0, pc,#1;"
-			"bx  r0;"
-			".code 16;"
-		#endif
-			: "=&r" (asid), "=&r" (tbb0)
-			:
-			: "r0"
-		);
+#ifdef HAS_Board_HatLayerCfd
 
-		LOG(ARCH,ERROR,(ARCH,ERROR,"ASID: %d %d, TBB0: 0x%x, Task PT: 0x%x",asid >> 8, asid & 0xff,tbb0,paget));
-		theOS->getHatLayer()->dumpPageTable(tid);
-	#endif
+    int asid = -1;
+    unint4 tbb0 = 0;
+    unint4 paget = ((unint4) (&__PageTableSec_start)) + tid * 0x4000;
 
-	/* handle the error */
-	theOS->getErrorHandler()->handleError(cUndefinedInstruction);
+    asm (
+            "MRC p15,0,%0,c13,c0,1;"  // ; Read CP15 Context ID Register
+            "MRC p15,0,%1,c2,c0,0;"// ; Read CP15 Translation Table Base Register 0
+            : "=&r" (asid), "=&r" (tbb0)
+            :
+            : "r0"
+    );
+
+    LOG(ARCH, ERROR, "ASID: %d %d, TBB0: 0x%x, Task PT: 0x%x",asid >> 8, asid & 0xff,tbb0,paget);
+    theOS->getHatLayer()->dumpPageTable(tid);
+#endif
+
+    /* handle the error */
+    theOS->getErrorHandler()->handleError(cUndefinedInstruction);
 }
 
 extern "C" void handleFIQ() {
-	LOG(ARCH,ERROR,(ARCH,ERROR,"FIQ.."));
-	while (true) {};
+    LOG(ARCH, ERROR, "FIQ..");
+    while (true)
+    {
+    };
 }
 
-extern "C" void handlePrefetchAbort(int instr, int context) {
-	LOG(ARCH,ERROR,(ARCH,ERROR,"Prefetch Abort IRQ. instr: 0x%x",instr));
+extern "C" void handlePrefetchAbort(int instr, int context, int sp) {
+    LOG(ARCH, ERROR, "Prefetch Abort IRQ. instr: 0x%x",instr);
 
-	for (int i = -1; i <= 13; i++) {
-		LOG(ARCH,ERROR,(ARCH,ERROR,"r%d : %x",i,((unint4*) context)[i]));
-	}
+    for (int i = -1; i <= 13; i++)
+    {
+        LOG(ARCH, ERROR, "r%d : %x",i,((unint4*) context)[i]);
+    }
 
-	int tid = 0;
-	if (pCurrentRunningTask != 0)
-		tid = pCurrentRunningTask->getId();
+    /* print the call trace */
+    backtrace_addr((void*) instr,sp);
 
-	int ifar,ifsr;
-	asm (
-		"MRC p15,0,%0,c6,c0,2;"
-	    "MRC p15,0,%1,c5,c0,1;"
-		: "=&r" (ifar), "=&r" (ifsr)
-		:
-		:
-		);
+    int tid = 0;
+    if (pCurrentRunningTask != 0)
+        tid = pCurrentRunningTask->getId();
 
-	LOG(ARCH,ERROR,(ARCH,ERROR,"TID: %d, IFAR: %x, IFSR: %x",tid, ifar, ifsr));
+    int ifar, ifsr;
+    asm (
+            "MRC p15,0,%0,c6,c0,2;"
+            "MRC p15,0,%1,c5,c0,1;"
+            : "=&r" (ifar), "=&r" (ifsr)
+            :
+            :
+    );
 
-	#ifdef HAS_Board_HatLayerCfd
+    LOG(ARCH, ERROR, "TID: %d, IFAR: %x, IFSR: %x",tid, ifar, ifsr);
 
-		int asid = -1;
-		unint4 tbb0 = 0;
-		unint4 paget =	((unint4)(&__PageTableSec_start)) + tid*0x4000;
+#ifdef HAS_Board_HatLayerCfd
 
-		asm (
-		#ifdef ARM_THUMB
-			".align 4;"
-			"mov    r0,pc;"
-			"bx     r0;"
-			".code 32;"
-		#endif
+    int asid = -1;
+    unint4 tbb0 = 0;
+    unint4 paget = ((unint4) (&__PageTableSec_start)) + tid * 0x4000;
 
-			"MRC p15,0,%0,c13,c0,1;" // ; Read CP15 Context ID Register
-			"MRC p15,0,%1,c2,c0,0;" // ; Read CP15 Translation Table Base Register 0
+    asm (
+            "MRC p15,0,%0,c13,c0,1;"  // ; Read CP15 Context ID Register
+            "MRC p15,0,%1,c2,c0,0;"// ; Read CP15 Translation Table Base Register 0
+            : "=&r" (asid), "=&r" (tbb0)
+            :
+            : "r0"
+    );
 
-		#ifdef ARM_THUMB
-			"add r0, pc,#1;"
-			"bx  r0;"
-			".code 16;"
-		#endif
-			: "=&r" (asid), "=&r" (tbb0)
-			:
-			: "r0"
-		);
+    LOG(ARCH, ERROR, "ASID: %d %d, TBB0: 0x%x, Task PT: 0x%x",asid >> 8, asid & 0xff,tbb0,paget);
+    theOS->getHatLayer()->dumpPageTable(tid);
+#endif
 
-		LOG(ARCH,ERROR,(ARCH,ERROR,"ASID: %d %d, TBB0: 0x%x, Task PT: 0x%x",asid >> 8, asid & 0xff,tbb0,paget));
-		theOS->getHatLayer()->dumpPageTable(tid);
-	#endif
-
-
-	theOS->getErrorHandler()->handleError(cDataAbortError);
+    theOS->getErrorHandler()->handleError(cDataAbortError);
 }
 
 /*
  * This method takes care of the low level IRQ functionality:
- * - registering the stack pointer and IRQ return mode
+ * - registering the stack pointer at interruption (context) and IRQ return mode
  * - getting the irq number
  * - dedicated interrupt dispatching for timer interrupts
  * - forwarding of all other irqs to the generic interrupt manager
  */
-extern "C"void dispatchIRQ(void* sp_int, int mode)
-{
-	if (pCurrentRunningThread != 0){
-		ASSERT(isOk(pCurrentRunningThread->pushStackPointer(sp_int)));
-		ASSERT(isOk(pCurrentRunningThread->pushStackPointer((void*)mode)));
-	}
+extern "C" void dispatchIRQ(void* sp_int, int mode) {
+    if (pCurrentRunningThread != 0)
+    {
+        ASSERT(isOk(pCurrentRunningThread->pushStackPointer(sp_int)));
+        ASSERT(isOk(pCurrentRunningThread->pushStackPointer((void*)mode)));
+    }
 
-	int irqSrc;
-	irqSrc = theOS->getBoard()->getInterruptController()->getIRQStatusVector();
-	LOG(HAL,TRACE,(HAL,TRACE,"IRQ number: %d, sp_int %x, mode: %d",irqSrc, sp_int, mode));
+    int irqSrc;
+    irqSrc = theOS->getBoard()->getInterruptController()->getIRQStatusVector();
+    LOG(HAL, TRACE,"IRQ number: %d, sp_int %x, mode: %d",irqSrc, sp_int, mode);
 
-	/* jump to interrupt handler according to active interrupt */
-	switch (irqSrc)
-	    {
-			/* General Purpose Timer interrupt used for scheduling */
-			case GPT10_IRQ:
-			{
-				/* non returning irq ..*/
-				theOS->getBoard()->getInterruptController()->clearIRQ(irqSrc);
-				handleTimerInterrupt(sp_int);
-				break;
-			}
-			default:
-			{
-				/* all other irqs are handled by the interrupt manager
-				 * and scheduled using workerthreads if activated */
-				theOS->getInterruptManager()->handleIRQ(irqSrc);
-				theOS->getBoard()->getInterruptController()->clearIRQ(irqSrc);
-			}
-	    }
+    /* jump to interrupt handler according to active interrupt */
+    switch (irqSrc) {
+    /* General Purpose Timer interrupt used for scheduling */
+    case GPT10_IRQ: {
+        /* non returning irq ..*/
+        theOS->getBoard()->getInterruptController()->clearIRQ(irqSrc);
+        handleTimerInterrupt(sp_int);
+        break;
+    }
+    default: {
+        /* all other irqs are handled by the interrupt manager
+         * and scheduled using workerthreads if activated */
+        theOS->getInterruptManager()->handleIRQ(irqSrc);
+        theOS->getBoard()->getInterruptController()->clearIRQ(irqSrc);
+    }
+    }
 
-	/* Dispatch directly as a blocked thread might have been unblock by this irq handling */
-	/* If the same thread is resumed we unfortunately lost some time, by not calling
-	 * assemblerfunctions::resumeThread directly */
-	theOS->getCPUDispatcher()->dispatch();
+    /* Dispatch directly as a blocked thread might have been unblock by this irq handling */
+    /* If the same thread is resumed we unfortunately lost some time, by not calling
+     * assemblerfunctions::resumeThread directly */
+    theOS->getDispatcher()->dispatch();
 
-	/* we should never get here */
-	while(1);
+    /* we should never get here */
+    while (1)
+        ;
 }
 
-extern "C"void dispatchSWI(void* sp_int, int mode)
-{
+extern "C" void dispatchSWI(void* sp_int, int mode) {
 #if ENABLE_NESTED_INTERRUPTS
     /* we want nested interrupts so enable interrupts again */
     _enableInterrupts();
 #endif
 
-	ASSERT(isOk(pCurrentRunningThread->pushStackPointer(sp_int)));
-	ASSERT(isOk(pCurrentRunningThread->pushStackPointer((void*)mode)));
+    ASSERT(isOk(pCurrentRunningThread->pushStackPointer(sp_int)));
+    ASSERT(isOk(pCurrentRunningThread->pushStackPointer((void*)mode)));
 
-	handleSyscall( (unint4) sp_int);
+    handleSyscall((unint4) sp_int);
 }
 
-extern "C" void handleTimerInterrupt(void* sp_int)
-{
-	ASSERT(theTimer);
-	/* call Timer */
-	theTimer->tick();
+extern "C" void handleTimerInterrupt(void* sp_int) {
+    ASSERT(theTimer);
+    /* call Timer */
+    theTimer->tick();
 }

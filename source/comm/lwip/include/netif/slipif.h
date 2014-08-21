@@ -37,15 +37,16 @@
 #include "lwip/netif.h"
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-err_t slipif_init(struct netif * netif);
-void slipif_poll(struct netif *netif);
+    err_t slipif_init(struct netif * netif);
+    void slipif_poll(struct netif *netif);
 
 #ifdef __cplusplus
 }
 #endif
- 
+
 #endif 
 

@@ -39,7 +39,7 @@ public:
      *
      * RM only computes the priority once for the first instance of the thread.
      */
-    inline void computePriority( RealTimeThread* item ) {};
+    void computePriority( RealTimeThread* item );
 
     /*!
      *  \brief Enter method which adds an already existing DatabaseItem to the scheduler.
@@ -49,7 +49,7 @@ public:
      *  be assigned in accordance with the rate monotonic method (a shorter periode means higher
      *  priority) if no priority has been assigned yet.
      */
-    ErrorT enter( LinkedListDatabaseItem* item );
+    ErrorT enter( LinkedListItem* item );
 
     /*!
      * \brief Enter method which adds a thread to the scheduler for which no DatabaseItem already exists.
@@ -58,7 +58,7 @@ public:
      * superflous DatabaseItem will be generated which results in a memory leak!
      */
     ErrorT enter( ScheduleableItem* item ) {
-        return (this->enter( new LinkedListDatabaseItem( item ) ));
+        return (this->enter( new LinkedListItem( item ) ));
     }
 
     /*!
@@ -71,7 +71,7 @@ public:
      * by the dispatcher before it calls the getNext() method, so the priority of the 'running' thread can be gotten by looking
      * at the next thread in line (at the head of the scheduling queue).
      */
-    TimeT getNextTimerEvent(LinkedListDatabase* sleepList, TimeT currentTime );
+    TimeT getNextTimerEvent(LinkedList* sleepList, TimeT currentTime );
 
 };
 

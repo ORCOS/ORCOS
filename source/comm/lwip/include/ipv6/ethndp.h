@@ -1,4 +1,3 @@
-
 #ifndef ETHNDP_H_
 #define ETHNDP_H_
 

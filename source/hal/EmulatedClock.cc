@@ -19,21 +19,18 @@
 #include "EmulatedClock.hh"
 #include "inc/memio.h"
 
+EmulatedClock::EmulatedClock() {
 
-EmulatedClock::EmulatedClock(  ) :
-    Clock( "cl0") {
-
-high_precision_time = 0;
+    high_precision_time = 0;
 }
 
 EmulatedClock::~EmulatedClock() {
 }
-
 
 void EmulatedClock::reset() {
 }
 
 TimeT EmulatedClock::getTimeSinceStartup() {
 
-	  return ((TimeT) high_precision_time);
+    return ((TimeT) high_precision_time);
 }

@@ -26,11 +26,10 @@
 //! global reference to the kernel object
 Kernel* theOS = 0;
 
-
-
 // heap_start and heap_end address used to clear the memory
 extern void* _heap_start;
 extern void* _heap_end;
+extern void* _data_start;
 
 // heap_start and heap_end address used to clear the memory
 #if MEM_CACHE_INHIBIT
@@ -39,55 +38,52 @@ extern void* _heapi_end;
 #endif
 
 void abort() {
- for (;;) {};
+    for (;;)
+    {
+    };
 }
-
 
 /*!
  * \ingroup startup
  * The main "C" entry point for the OS after the assembler startup code has been executed.
  */
-extern "C"void kernelmain()
-{
+extern "C" void kernelmain() {
     // first of all clear the OS heap so we get a clean working system
-    unint4* addr = (unint4*) &_heap_start;
+    size_t* addr = (size_t*) &_heap_start;
 
     // use this address if you want to clear the whole os heap
     // this may take quite a while
-    unint4* endaddr = (unint4*) &_heap_end;
-
-    // use this address if you want to clear just the used part of the heap
-    // much faster!
-    //void* endaddr = (void*) ((unint4) &_heap_start + 0x2000);
+    size_t* endaddr = (size_t*) &_heap_end;
 
     // now clear the memory area
     while (addr < endaddr)
     {
-    	// use architecture size of void*
+        // use architecture size of void*
         *(addr) = 0;
-        addr = addr +4;
+        addr++;
     }
+
 
     theOS = 0;
 
 #if MEM_CACHE_INHIBIT
-    Kernel_MemoryManagerCfdCl* memMan = new(&_heap_start)
-    		Kernel_MemoryManagerCfdCl(&_heap_start  +  sizeof(Kernel_MemoryManagerCfdCl) ,
-    								  &_heap_end,
-    								  &_heapi_start,
-    								  &_heapi_end);
+    Kernel_MemoryManagerCfdCl* memMan = new (&_heap_start)
+            Kernel_MemoryManagerCfdCl(&_heap_start + sizeof(Kernel_MemoryManagerCfdCl), &_heap_end, &_heapi_start, &_heapi_end);
 #else
     // create MM working directly with the real physical addresses
-    Kernel_MemoryManagerCfdCl* memMan = new(&_heap_start) Kernel_MemoryManagerCfdCl(&_heap_start  +  sizeof(Kernel_MemoryManagerCfdCl) ,&_heap_end);
+    Kernel_MemoryManagerCfdCl* memMan = new(&_heap_start) Kernel_MemoryManagerCfdCl(&_heap_start + sizeof(Kernel_MemoryManagerCfdCl) ,&_heap_end);
 #endif
+
     // use the MM at its logical address for creating the kernel object
-    theOS = (Kernel*) memMan->alloc(sizeof(Kernel)+ 16);
+    theOS = (Kernel*) memMan->alloc(sizeof(Kernel) + 16);
     theOS->setMemoryManager(memMan);
 
     // Initialize the device drivers
     theOS->initialize();
 
     // we shouldn't get here!
-    while (true) {}
+    while (true)
+    {
+    }
 }
 

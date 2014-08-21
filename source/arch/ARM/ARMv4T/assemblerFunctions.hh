@@ -55,7 +55,6 @@ extern void* __PageTableSec_start;
  **/
 #define GET_RETURN_CONTEXT(t,sp_int)  sp_int = t->threadStack.stackptrs[t->threadStack.top-2]
 
-
 #define GET_METHOD_RETURN_VALUE(variable) \
                                         asm volatile( \
                                         "mov %0, r1;" \
@@ -122,6 +121,19 @@ extern void* __PageTableSec_start;
 											:\
 											)
 
+#define SYSCALLGETPARAMS6(int_sp,param1,param2,param3,param4,param5,param6) \
+                                            asm volatile(\
+                                            "ldr %0, [%6, #8];"\
+                                            "ldr %1, [%6, #12];"\
+                                            "ldr %2, [%6, #16];"\
+                                            "ldr %3, [%6, #72];"\
+                                            "ldr %4, [%6, #76];"\
+                                            "ldr %5, [%6, #80];"\
+                                            : "=&l" (param1), "=&l" (param2), "=&l" (param3), "=&l" (param4), "=&r" (param5), "=&r" (param6) \
+                                            : "r" (int_sp)\
+                                            :\
+                                            )
+
 #define SYSCALLGETPARAM1(int_sp,param1) \
 											asm volatile(\
 											"ldr %0, [%1, #8];"\
@@ -162,11 +174,8 @@ extern void* __PageTableSec_start;
 											:\
 											)
 
-
-
 //! No operation command
 #define NOP asm("nop")
-
 
 /*!
  * Activates virtual memory map
@@ -179,10 +188,6 @@ extern void* __PageTableSec_start;
 #if HAS_Board_HatLayerCfd
 #define SETPID(pid) \
        	__asm__ __volatile__(	\
-       		".align 4;" \
-       		"mov    r0,pc;" \
-       		"bx     r0;" \
-       		".code 32;" \
        		"MOV r0, #0;"	\
        		"MCR p15, 0, r0, c8, c5, 0;" \
        		"MCR p15, 0, r0, c8, c6, 0;" \
@@ -196,9 +201,6 @@ extern void* __PageTableSec_start;
        		"MCR p15, 0, r0, c2, c0, 0;"	\
        		"MOV r0, #0; " \
        		"MCR p15, 0, r0, c7, c5, 4;" \
-       		"add r0, pc,#1;" \
-       		"bx  r0;" \
-       		".code 16" \
        		: 	\
        		: "r" (&__PageTableSec_start), "r" (pid)	\
        		: "r0", "r1" \
@@ -206,15 +208,8 @@ extern void* __PageTableSec_start;
 
 #define GETPID(pid) \
 	asm volatile(\
-		".align 4;" \
-		"mov    r0,pc;" \
-		"bx     r0;" \
-		".code 32;" \
 		"MRC p15, 0, %0, c13, c0, 3;"\
 		"AND %0,%0,#255;" \
-   		"add r0, pc,#1;" \
-   		"bx  r0;" \
-   		".code 16" \
 		: "=&r" (pid)\
 		:\
 		: "r0"\
@@ -243,6 +238,21 @@ extern void* __PageTableSec_start;
 			: \
 			)\
 
+#define GETLR(variable) \
+        asm volatile(\
+            "mov %0, lr;"\
+            : "=&r" (variable) \
+            : \
+            : \
+            )\
+
+#define GETPC(variable) \
+        asm volatile(\
+            "mov %0, pc;"\
+            : "=&r" (variable) \
+            : \
+            : \
+            )\
 
 /*!
  * Macro used to call the WorkerThread::work() method for a given WorkerThread object specified by objectptr.
@@ -251,10 +261,6 @@ extern void* __PageTableSec_start;
 #define BRANCHTO_WORKERTHREAD_WORK(objectptr,pid, stack_addr) \
 				asm volatile(\
 						"mov sp, %2;"\
-						".align 4;" \
-						"mov    r0,pc;" \
-						"bx     r0;" \
-						".code 32;" \
 						"MOV r0, #0;"	\
 						"MCR p15, 0, r0, c8, c5, 0;" \
 						"MCR p15, 0, r0, c8, c6, 0;" \
@@ -268,10 +274,6 @@ extern void* __PageTableSec_start;
 						"MCR p15, 0, r0, c2, c0, 0;"	\
 						"MOV r0, #0; " \
 						"MCR p15, 0, r0, c7, c5, 4;" \
-						"add r0, pc,#1;" \
-						"bx  r0;" \
-						".code 16" \
-						"nop;" \
 						"mov r0, %3;" \
 						"b _ZN12WorkerThread4workEv;" \
 						: \
@@ -344,7 +346,6 @@ extern void* __PageTableSec_start;
                                 : "r0" \
                             )
 
-
 // Disable interrupts (IRQ).
 #define _disableInterrupts() asm volatile( \
                                 "MRS	r0, cpsr;" \
@@ -374,7 +375,6 @@ extern void* __PageTableSec_start;
                             )
 #endif
 
-
 #if ENABLE_NESTED_INTERRUPTS
 
 // Dsiables irqs and saves the irq enable bit to the variable
@@ -385,14 +385,11 @@ extern void* __PageTableSec_start;
 
 #define RESTORE_IRQS(irqstatus) if ( irqstatus ) { _enableInterrupts(); }
 
-
 #else
 
 #define DISABLE_IRQS(irqstatus)
 #define RESTORE_IRQS(irqstatus)
 #endif
-
-
 
 // supervisor mode: 19, system mode: 31, disable interrupts: 0xC0
 #define SAVE_CONTEXT_AT(mem_loc) asm volatile \
@@ -421,7 +418,6 @@ extern void* __PageTableSec_start;
        : "r0", "r1", "r3" , "r4" \
    );
 
-
 // guaranetees that instructions will be executed without being interrupted without using a mutex
 #define ATOMAR(statements) \
         { bool int_enabled; \
@@ -430,11 +426,8 @@ extern void* __PageTableSec_start;
         statements; \
         if ( int_enabled ) { _enableInterrupts(); } }
 
-
-
 // This namespace will hold all assembler functions needed by non architecture OS classes.
 namespace assembler {
-
 
 /*!
  * Restores the context of a given thread t.

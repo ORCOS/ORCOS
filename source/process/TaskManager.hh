@@ -32,55 +32,56 @@ private:
     /*!
      * \brief The database storing all tasks
      */
-    LinkedListDatabase* taskDatabase;
+    LinkedList* taskDatabase;
 
 public:
     TaskManager() {
-    	/* create the task Database */
-    	this->taskDatabase 	= new LinkedListDatabase( );
+        /* create the task Database */
+        this->taskDatabase = new LinkedList();
     }
     ;
 
-    virtual ~TaskManager() {
-    };
-
+    ~TaskManager() {
+    }
+    ;
 
     /* Per-Initialization reoutine which registers the
-       memory pages of tasks loaded at boot time */
+     memory pages of tasks loaded at boot time */
     void registerMemPages();
 
     /* Initializes the task manager and creates the initially loaded tasks */
     void initialize();
 
-   /* Returns the database of all registered tasks */
-   LinkedListDatabase* getTaskDatabase() {
-	   return (this->taskDatabase);
-   }
+    /* Returns the database of all registered tasks */
+    LinkedList* getTaskDatabase() {
+        return (this->taskDatabase);
+    }
 
-   /*!
-    * Tests a given task by its task control block on sanity
-    * Checks include CB check for valid values.
-    * CRC check if CRC header support is available.
-    * Signature based Authentication (tbd).
-    */
-   ErrorT checkValidTask(taskTable* taskCB);
+    /*!
+     * Tests a given task by its task control block on sanity
+     * Checks include CB check for valid values.
+     * CRC check if CRC header support is available.
+     * Signature based Authentication (tbd).
+     */
+    ErrorT checkValidTask(taskTable* taskCB);
 
-   /*!
-    * Returns the task by its id or null
-    */
-   Task* getTask( int taskId );
+    /*!
+     * Returns the task by its id or null
+     */
+    Task* getTask(int taskId);
 
-   /*!
-    * Tries to stop and remove a task by its ID
-    */
-   ErrorT removeTask(Task* task);
+    /*!
+     * Tries to stop and remove a task by its ID
+     */
+    ErrorT removeTask(Task* task);
 
-   /*!
-    * Tries to load a given file as an executable task.
-    * Returns cOk on success, an error otherwise.
-    * The Out paramter tid is used to return the created task id on success.
-    */
-   ErrorT loadTaskFromFile(File *file, TaskIdT &tid, char* arguments = 0,unint2 arg_length = 0);
+    /*!
+     * Tries to load a given file as an executable task.
+     * Returns cOk on success, an error otherwise.
+     * The Out paramter tid is used to return the created task id on success.
+     */
+    ErrorT loadTaskFromFile(File *file, TaskIdT &tid, char* arguments = 0, unint2 arg_length =
+                                    0);
 
 };
 

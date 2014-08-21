@@ -46,10 +46,10 @@
 #include "lwip/debug.h"
 
 /*
-   -----------------------------------------------
-   ---------- Platform specific locking ----------
-   -----------------------------------------------
-*/
+ -----------------------------------------------
+ ---------- Platform specific locking ----------
+ -----------------------------------------------
+ */
 
 #if 0
 
@@ -87,10 +87,10 @@
 #endif
 
 /*
-   ------------------------------------
-   ---------- Memory options ----------
-   ------------------------------------
-*/
+ ------------------------------------
+ ---------- Memory options ----------
+ ------------------------------------
+ */
 /**
  * MEM_LIBC_MALLOC==1: Use malloc/free/realloc provided by your C-library
  * instead of the lwip internal allocator. Can save code size if you
@@ -101,10 +101,10 @@
 #endif
 
 /**
-* MEMP_MEM_MALLOC==1: Use mem_malloc/mem_free instead of the lwip pool allocator.
-* Especially useful with MEM_LIBC_MALLOC but handle with care regarding execution
-* speed and usage from interrupts!
-*/
+ * MEMP_MEM_MALLOC==1: Use mem_malloc/mem_free instead of the lwip pool allocator.
+ * Especially useful with MEM_LIBC_MALLOC but handle with care regarding execution
+ * speed and usage from interrupts!
+ */
 #ifndef MEMP_MEM_MALLOC
 #define MEMP_MEM_MALLOC                 0
 #endif
@@ -198,10 +198,10 @@
 #endif
 
 /*
-   ------------------------------------------------
-   ---------- Internal Memory Pool Sizes ----------
-   ------------------------------------------------
-*/
+ ------------------------------------------------
+ ---------- Internal Memory Pool Sizes ----------
+ ------------------------------------------------
+ */
 /**
  * MEMP_NUM_PBUF: the number of memp struct pbufs (used for PBUF_ROM and PBUF_REF).
  * If the application sends a lot of data out of ROM (or other static memory),
@@ -330,10 +330,10 @@
 #endif
 
 /*
-   ---------------------------------
-   ---------- ARP options ----------
-   ---------------------------------
-*/
+ ---------------------------------
+ ---------- ARP options ----------
+ ---------------------------------
+ */
 /**
  * LWIP_ARP==1: Enable ARP functionality.
  */
@@ -379,10 +379,10 @@
 #endif
 
 /*
-   --------------------------------
-   ---------- IP options ----------
-   --------------------------------
-*/
+ --------------------------------
+ ---------- IP options ----------
+ --------------------------------
+ */
 /**
  * IP_FORWARD==1: Enables the ability to forward IP packets across network
  * interfaces. If you are going to run lwIP on a device with only one network
@@ -480,10 +480,10 @@
 #endif
 
 /*
-   ----------------------------------
-   ---------- ICMP options ----------
-   ----------------------------------
-*/
+ ----------------------------------
+ ---------- ICMP options ----------
+ ----------------------------------
+ */
 /**
  * LWIP_ICMP==1: Enable ICMP module inside the IP stack.
  * Be careful, disable that make your product non-compliant to RFC1122
@@ -514,10 +514,10 @@
 #endif
 
 /*
-   ---------------------------------
-   ---------- RAW options ----------
-   ---------------------------------
-*/
+ ---------------------------------
+ ---------- RAW options ----------
+ ---------------------------------
+ */
 /**
  * LWIP_RAW==1: Enable application layer to hook into the IP layer itself.
  */
@@ -533,10 +533,10 @@
 #endif
 
 /*
-   ----------------------------------
-   ---------- DHCP options ----------
-   ----------------------------------
-*/
+ ----------------------------------
+ ---------- DHCP options ----------
+ ----------------------------------
+ */
 /**
  * LWIP_DHCP==1: Enable DHCP module.
  */
@@ -552,10 +552,10 @@
 #endif
 
 /*
-   ------------------------------------
-   ---------- AUTOIP options ----------
-   ------------------------------------
-*/
+ ------------------------------------
+ ---------- AUTOIP options ----------
+ ------------------------------------
+ */
 /**
  * LWIP_AUTOIP==1: Enable AUTOIP module.
  */
@@ -583,10 +583,10 @@
 #endif
 
 /*
-   ----------------------------------
-   ---------- SNMP options ----------
-   ----------------------------------
-*/
+ ----------------------------------
+ ---------- SNMP options ----------
+ ----------------------------------
+ */
 /**
  * LWIP_SNMP==1: Turn on SNMP module. UDP must be available for SNMP
  * transport.
@@ -628,10 +628,10 @@
 #endif
 
 /*
-   ----------------------------------
-   ---------- IGMP options ----------
-   ----------------------------------
-*/
+ ----------------------------------
+ ---------- IGMP options ----------
+ ----------------------------------
+ */
 /**
  * LWIP_IGMP==1: Turn on IGMP module. 
  */
@@ -640,10 +640,10 @@
 #endif
 
 /*
-   ----------------------------------
-   ---------- DNS options -----------
-   ----------------------------------
-*/
+ ----------------------------------
+ ---------- DNS options -----------
+ ----------------------------------
+ */
 /**
  * LWIP_DNS==1: Turn on DNS module. UDP must be available for DNS
  * transport.
@@ -673,8 +673,8 @@
 #endif
 
 /** DNS use a local buffer if DNS_USES_STATIC_BUF=0, a static one if
-    DNS_USES_STATIC_BUF=1, or a dynamic one if DNS_USES_STATIC_BUF=2.
-    The buffer will be of size DNS_MSG_SIZE */
+ DNS_USES_STATIC_BUF=1, or a dynamic one if DNS_USES_STATIC_BUF=2.
+ The buffer will be of size DNS_MSG_SIZE */
 #ifndef DNS_USES_STATIC_BUF
 #define DNS_USES_STATIC_BUF             1
 #endif
@@ -705,10 +705,10 @@
 #endif /* DNS_LOCAL_HOSTLIST_IS_DYNAMIC */
 
 /*
-   ---------------------------------
-   ---------- UDP options ----------
-   ---------------------------------
-*/
+ ---------------------------------
+ ---------- UDP options ----------
+ ---------------------------------
+ */
 /**
  * LWIP_UDP==1: Turn on UDP.
  */
@@ -738,10 +738,10 @@
 #endif
 
 /*
-   ---------------------------------
-   ---------- TCP options ----------
-   ---------------------------------
-*/
+ ---------------------------------
+ ---------- TCP options ----------
+ ---------------------------------
+ */
 /**
  * LWIP_TCP==1: Turn on TCP.
  */
@@ -808,7 +808,6 @@
 #ifndef TCP_CALCULATE_EFF_SEND_MSS
 #define TCP_CALCULATE_EFF_SEND_MSS      1
 #endif
-
 
 /**
  * TCP_SND_BUF: TCP sender buffer space (bytes). 
@@ -880,12 +879,11 @@
 //#define LWIP_CALLBACK_API               0
 #endif
 
-
 /*
-   ----------------------------------
-   ---------- Pbuf options ----------
-   ----------------------------------
-*/
+ ----------------------------------
+ ---------- Pbuf options ----------
+ ----------------------------------
+ */
 /**
  * PBUF_LINK_HLEN: the number of bytes that should be allocated for a
  * link level header. The default is 14, the standard value for
@@ -905,10 +903,10 @@
 #endif
 
 /*
-   ------------------------------------------------
-   ---------- Network Interfaces options ----------
-   ------------------------------------------------
-*/
+ ------------------------------------------------
+ ---------- Network Interfaces options ----------
+ ------------------------------------------------
+ */
 /**
  * LWIP_NETIF_HOSTNAME==1: use DHCP_OPTION_HOSTNAME with netif's hostname
  * field.
@@ -998,10 +996,10 @@
 #endif /* LWIP_NETIF_TX_SINGLE_PBUF */
 
 /*
-   ------------------------------------
-   ---------- LOOPIF options ----------
-   ------------------------------------
-*/
+ ------------------------------------
+ ---------- LOOPIF options ----------
+ ------------------------------------
+ */
 /**
  * LWIP_HAVE_LOOPIF==1: Support loop interface (127.0.0.1) and loopif.c
  */
@@ -1010,10 +1008,10 @@
 #endif
 
 /*
-   ------------------------------------
-   ---------- SLIPIF options ----------
-   ------------------------------------
-*/
+ ------------------------------------
+ ---------- SLIPIF options ----------
+ ------------------------------------
+ */
 /**
  * LWIP_HAVE_SLIPIF==1: Support slip interface and slipif.c
  */
@@ -1022,10 +1020,10 @@
 #endif
 
 /*
-   ------------------------------------
-   ---------- Thread options ----------
-   ------------------------------------
-*/
+ ------------------------------------
+ ---------- Thread options ----------
+ ------------------------------------
+ */
 /**
  * TCPIP_THREAD_NAME: The name assigned to the main tcpip thread.
  */
@@ -1172,10 +1170,10 @@
 #endif
 
 /*
-   ----------------------------------------------
-   ---------- Sequential layer options ----------
-   ----------------------------------------------
-*/
+ ----------------------------------------------
+ ---------- Sequential layer options ----------
+ ----------------------------------------------
+ */
 /**
  * LWIP_TCPIP_CORE_LOCKING: (EXPERIMENTAL!)
  * Don't use it if you're not an active lwIP project member
@@ -1192,10 +1190,10 @@
 #endif
 
 /*
-   ------------------------------------
-   ---------- Socket options ----------
-   ------------------------------------
-*/
+ ------------------------------------
+ ---------- Socket options ----------
+ ------------------------------------
+ */
 /**
  * LWIP_SOCKET==1: Enable Socket API (require to use sockets.c)
  */
@@ -1258,10 +1256,10 @@
 #endif
 
 /*
-   ----------------------------------------
-   ---------- Statistics options ----------
-   ----------------------------------------
-*/
+ ----------------------------------------
+ ---------- Statistics options ----------
+ ----------------------------------------
+ */
 /**
  * LWIP_STATS==1: Enable statistics collection in lwip_stats.
  */
@@ -1375,10 +1373,10 @@
 #endif /* LWIP_STATS */
 
 /*
-   ---------------------------------
-   ---------- PPP options ----------
-   ---------------------------------
-*/
+ ---------------------------------
+ ---------- PPP options ----------
+ ---------------------------------
+ */
 /**
  * PPP_SUPPORT==1: Enable PPP.
  */
@@ -1539,38 +1537,38 @@
 #endif /* PPP_SUPPORT */
 
 /*
-   --------------------------------------
-   ---------- Checksum options ----------
-   --------------------------------------
-*/
+ --------------------------------------
+ ---------- Checksum options ----------
+ --------------------------------------
+ */
 /**
  * CHECKSUM_GEN_IP==1: Generate checksums in software for outgoing IP packets.
  */
 #ifndef CHECKSUM_GEN_IP
 #define CHECKSUM_GEN_IP                 1
 #endif
- 
+
 /**
  * CHECKSUM_GEN_UDP==1: Generate checksums in software for outgoing UDP packets.
  */
 #ifndef CHECKSUM_GEN_UDP
 #define CHECKSUM_GEN_UDP                1
 #endif
- 
+
 /**
  * CHECKSUM_GEN_TCP==1: Generate checksums in software for outgoing TCP packets.
  */
 #ifndef CHECKSUM_GEN_TCP
 #define CHECKSUM_GEN_TCP                1
 #endif
- 
+
 /**
  * CHECKSUM_CHECK_IP==1: Check checksums in software for incoming IP packets.
  */
 #ifndef CHECKSUM_CHECK_IP
 #define CHECKSUM_CHECK_IP               1
 #endif
- 
+
 /**
  * CHECKSUM_CHECK_UDP==1: Check checksums in software for incoming UDP packets.
  */
@@ -1586,10 +1584,10 @@
 #endif
 
 /*
-   ---------------------------------------
-   ---------- Debugging options ----------
-   ---------------------------------------
-*/
+ ---------------------------------------
+ ---------- Debugging options ----------
+ ---------------------------------------
+ */
 /**
  * LWIP_DBG_MIN_LEVEL: After masking, the value of the debug is
  * compared against this value. If it is smaller, then debugging

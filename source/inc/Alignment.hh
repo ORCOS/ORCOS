@@ -27,21 +27,21 @@
 
 // align to the next lower address which can be divided by n
 inline
-char* alignFloor( char* addr, unint n ) {
-    return ((char*) ( (unint) addr & ~( n - 1 ) ));
+char* alignFloor(char* addr, unint n) {
+    return ((char*) ((unint) addr & ~(n - 1)));
 }
 
 // align to the next higher address which can be divided by n
 inline
-char*  alignCeil( char* addr, unint n ) {
-    return (alignFloor( addr + ( n - 1 ), n ));
+char* alignCeil(char* addr, unint n) {
+    return (alignFloor(addr + (n - 1), n));
 }
 
 // align address according to the user configuration, this method is called by Memory Manager
 inline
-char*  align( char* addr, unint n ) {
+char* align(char* addr, unint n) {
 #if(ALIGN_CEIL)
-    return (alignCeil( addr, n ));
+    return (alignCeil(addr, n));
 #else
     return alignFloor(addr,n);
 #endif

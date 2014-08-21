@@ -9,7 +9,6 @@
 #include "SCLConfig.hh"
 #include "endian.h"
 
-
 #if BYTE_ORDER != BIG_ENDIAN
 #if BYTE_ORDER != LITTLE_ENDIAN
 #error "Target Architecture Endianess settings missing. Add BYTE_ORDER define with value BIG_ENDIAN or LITTLE_ENDIAN define in the SCLConfig file."
@@ -21,7 +20,7 @@
 unint4
 cputole32(unint4 n)
 {
-  return ((n & 0xff) << 24) |
+    return ((n & 0xff) << 24) |
     ((n & 0xff00) << 8) |
     ((n & 0xff0000UL) >> 8) |
     ((n & 0xff000000UL) >> 24);
@@ -30,42 +29,39 @@ cputole32(unint4 n)
 unint2
 cputole16(unint2 n)
 {
-  return ((n & 0xff) << 8) | ((n & 0xff00) >> 8);
+    return ((n & 0xff) << 8) | ((n & 0xff00) >> 8);
 }
 
 #else
 
-unint4 cputole32(unint4 n) { return n;}
+unint4 cputole32(unint4 n) {
+    return n;
+}
 
-unint2 cputole16(unint2 n) { return n;}
+unint2 cputole16(unint2 n) {
+    return n;
+}
 
 #endif
-
 
 #if BYTE_ORDER == BIG_ENDIAN
 
-unint4 cputobe32(unint4 n) { return n;}
+unint4 cputobe32(unint4 n)
+{   return n;}
 
-unint2 cputobe16(unint2 n) { return n;}
+unint2 cputobe16(unint2 n)
+{   return n;}
 
 #else
 
-unint4
-cputobe32(unint4 n)
-{
-  return (((n & 0xff) << 24) |
-    ((n & 0xff00) << 8) |
-    ((n & 0xff0000UL) >> 8) |
-    ((n & 0xff000000UL) >> 24));
+unint4 cputobe32(unint4 n) {
+    return (((n & 0xff) << 24) | ((n & 0xff00) << 8) | ((n & 0xff0000UL) >> 8)
+            | ((n & 0xff000000UL) >> 24));
 }
 
-unint2
-cputobe16(unint2 n)
-{
-  return ((unint2)(((n & 0xff) << 8) | ((n & 0xff00) >> 8)));
+unint2 cputobe16(unint2 n) {
+    return ((unint2)(((n & 0xff) << 8) | ((n & 0xff00) >> 8)));
 }
 
 #endif
-
-
 

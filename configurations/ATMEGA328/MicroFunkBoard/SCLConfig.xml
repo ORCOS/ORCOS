@@ -30,6 +30,7 @@
       <Member Name="Clock" Class="hal/EmulatedClock" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="Processor" Class="arch/Atmel/ATMEGA328/ATMEGA328Processor" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="Timer" Class="arch/Atmel/ATMEGA328/Timer1" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="UART" Class="arch/Atmel/ATMEGA328/USART0" None="false" UserSpace="false" PhyLoadAddress="0x0" />
     </Skeleton>
     <!-- ************************************
     			Skeleton Kernel
@@ -43,12 +44,17 @@
         <PropertyValue Name="LastFit" Value="0" Type="unsigned int" />
       </Member>
       <Member Name="Thread" Class="process/Thread" None="false" UserSpace="false" PhyLoadAddress="0x0" />
-      <Member Name="Dispatcher" Class="scheduler/SingleCPUDispatcher" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="Dispatcher" Class="scheduler/SingleThreadDispatcher" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="Scheduler" Class="scheduler/SingleThreadScheduler" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="Logger" Class="debug/Logger" None="true" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="PowerManager" Class="hal/PowerManager" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="TaskManager" Class="process/TaskManager" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="RamManager" Class="mem/NoRamManager" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="Ramdisk" Class="filesystem/Ramdisk" None="true" UserSpace="false" PhyLoadAddress="0x0">
+        <PropertyValue Name="StartAddress" Value="Unknown" Type="unsigned int" />
+        <PropertyValue Name="Size" Value="Unknown" Type="unsigned int" />
+      </Member>
+      <Member Name="InterruptManager" Class="hal/InterruptManager" None="true" UserSpace="false" PhyLoadAddress="0x0" />
     </Skeleton>
     <Skeleton>
       <Name>FileSystems</Name>
@@ -165,7 +171,7 @@
     </Define>
     <Define>
       <Name>DEFAULT_USER_STACK_SIZE</Name>
-      <Value>4096</Value>
+      <Value>1</Value>
     </Define>
     <Define>
       <Name>STACK_GROWS_DOWNWARDS</Name>
@@ -181,7 +187,7 @@
     </Define>
     <Define>
       <Name>WORKERTHREAD_STACK_SIZE</Name>
-      <Value>4096</Value>
+      <Value>128</Value>
     </Define>
     <Define>
       <Name>WORKERTHREAD_UART_PRIORITY_PARAM</Name>
@@ -201,7 +207,7 @@
     </Define>
     <Define>
       <Name>ALIGN_VAL</Name>
-      <Value>1</Value>
+      <Value>2</Value>
     </Define>
     <Define>
       <Name>__EARLY_SERIAL_SUPPORT__</Name>
@@ -213,7 +219,7 @@
     </Define>
     <Define>
       <Name>RAM_SIZE</Name>
-      <Value>512 MB</Value>
+      <Value>2 KB</Value>
     </Define>
     <Define>
       <Name>MAX_NUM_TASKS</Name>
@@ -222,6 +228,14 @@
     <Define>
       <Name>PRINT_BOOT_LOGO</Name>
       <Value>0</Value>
+    </Define>
+    <Define>
+      <Name>USE_IRQMANAGER</Name>
+      <Value>0</Value>
+    </Define>
+    <Define>
+      <Name>MINIMAL_FILESYSTEM</Name>
+      <Value>1</Value>
     </Define>
   </SCL>
 </Configuration>

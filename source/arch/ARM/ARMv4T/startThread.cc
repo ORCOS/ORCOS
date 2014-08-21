@@ -23,11 +23,10 @@
 #include "memtools.hh"
 
 extern Kernel* theOS;
-extern bool	   processChanged;
+extern bool processChanged;
 extern void* __PageTableSec_start;
 extern void* __stack;
-void startThread( Thread* thread )  __attribute__((noreturn));
-
+void startThread(Thread* thread) __attribute__((noreturn));
 
 /*!
  *  This method will jump to the addr given by the effective addr while
@@ -36,12 +35,12 @@ void startThread( Thread* thread )  __attribute__((noreturn));
  *  thread - the thread we want to start for the first time
  *
  */
-void startThread( register Thread* thread ) {
+void startThread(register Thread* thread) {
 
-	// used variables declarations. put them into registers to ensure the varibles
-	// to be accessable after SETPID (stack is not accessible any more)
+    // used variables declarations. put them into registers to ensure the varibles
+    // to be accessable after SETPID (stack is not accessible any more)
 
-	register TaskIdT PIDvar = thread->getOwner()->getId();
+    register TaskIdT PIDvar = thread->getOwner()->getId();
     register void* addr = thread->getStartRoutinePointer();
     register void* returnaddr = thread->getExitRoutinePointer();
     register void* arguments = thread->getStartArguments();
@@ -50,67 +49,68 @@ void startThread( register Thread* thread ) {
     ASSERT(addr);
     ASSERT(returnaddr);
 
-    register void* stack_addr = (void*) ((unint4)thread->threadStack.endAddr-16);
+    register void* stack_addr = (void*) ((unint4) thread->threadStack.endAddr - RESERVED_BYTES_FOR_STACKFRAME);
 
 #if HAS_Board_HatLayerCfd
-	ptStartAddr = (void*) (((unint)&__PageTableSec_start) + PIDvar*0x4000);
+    ptStartAddr = (void*) (((unint) &__PageTableSec_start) + PIDvar * 0x4000);
 #endif
-		unint4 spsrval = 16;
-		// check for thumb mode
-		if (thread->getOwner()->platform_flags == 0x101) spsrval = 48;
+    unint4 spsrval = 16;
+    // check for thumb mode
+    if (thread->getOwner()->platform_flags == 0x101)
+        spsrval = 48;
 
     asm volatile(
-	#if ARM_THUMB == 1
-    		// thumb to arm jump code
-    		".align 4;"			// be sure we are 4 byte aligned for jump to work
-    		"mov    r0,pc;"		// set arm based jump address
-    		"bx     r0;"		// jump and switch mode
-    		".code 32;"			// following code is arm code
-	#endif
+#if ARM_THUMB == 1
+            // thumb to arm jump code
+            ".align 4;"// be sure we are 4 byte aligned for jump to work
+            "mov    r0,pc;"// set arm based jump address
+            "bx     r0;"// jump and switch mode
+            ".code 32;"// following code is arm code
+#endif
 
-    #if HAS_Board_HatLayerCfd
-    		"MOV r0, #0x0;"
+#if HAS_Board_HatLayerCfd
+            "MOV r0, #0x0;"
 
-    		"MOV r1, %0;"
-			"ORR r1, r1, %0, lsl #8;"
+            "MOV r1, %0;"
+            "ORR r1, r1, %0, lsl #8;"
 
-			"MCR p15, 0, r1, c13, c0, 1;"	// set ASID and PROCID field of CONTEXTIDR register
-			"MCR p15, 0, r0, c7, c5, 4;"	// Ensure completion of the CP15 write (ISB not working)
+            "MCR p15, 0, r1, c13, c0, 1;"// set ASID and PROCID field of CONTEXTIDR register
+            "MCR p15, 0, r0, c7, c5, 4;"// Ensure completion of the CP15 write (ISB not working)
 
-    		"MCR p15, 0, %5, c2, c0, 0;"	// set TBBR0
-			"MCR p15, 0, r0, c7, c5, 4;"	// Ensure completion of the CP15 write (ISB not working)
-    #endif
+            "MCR p15, 0, %5, c2, c0, 0;"// set TBBR0
+            "MCR p15, 0, r0, c7, c5, 4;"// Ensure completion of the CP15 write (ISB not working)
+#endif
 
-			// switch to system mode (cps instruction not working here) to load the right registers
+            // switch to system mode (cps instruction not working here) to load the right registers
 
-			"MSR	CPSR_c, #0x1F | 0xC0;"
+            "MSR	CPSR_c, #0x1F | 0xC0;"
 
-			// set stack pointer and link register for user mode
-			"mov 	lr, %3;" 				// write the return address into the user link register (returnaddr)
-			"mov	sp, %1;" 				// load the stack pointer into the user stack register (stack_addr)
-			"and    r0, sp, #3;"
-			"sub    sp, sp, r0;"			// be sure the sp is 4 byte aligned!
+            // set stack pointer and link register for user mode
+            "mov 	lr, %3;"// write the return address into the user link register (returnaddr)
+            "mov	sp, %1;"// load the stack pointer into the user stack register (stack_addr)
+            "and    r0, sp, #3;"
+            "sub    sp, sp, r0;"// be sure the sp is 4 byte aligned!
 
+            // switch back to supervisor mode
+            "MSR	CPSR_c,#0x13 | 0xC0;"
 
-			// switch back to supervisor mode
-			"MSR	CPSR_c,#0x13 | 0xC0;"
+            "MSR	SPSR, %6;"// write saved PSR register (SPSR)
+            "LDR	sp, =__stack - 0x20;"// temporary accessible stack position for jump to task
+            // push task start address on stack
+            "push     {%2};"
+            // set the arguments
+            "MOV 	r0, %4;"
+            // jump to task and switch to user mode
+            "LDM      sp, {pc}^;"// do a exception return.. copies SPSR->CPSR
+            "nop;"
 
-    		"MSR	SPSR, %6;"				// write saved PSR register (SPSR)
-    		"LDR	sp, =__stack - 0x20;"   // temporary accessible stack position for jump to task
-			// push task start address on stack
-			"push     {%2};"
-			// set the arguments
-			"MOV 	r0, %4;"
-			// jump to task and switch to user mode
-			"LDM      sp, {pc}^;"			// do a exception return.. copies SPSR->CPSR
-    		"nop;"
-
-			: // no output variables
-			: "r" (PIDvar) , "l" (stack_addr) , "r" (addr), "l" (returnaddr), "r" (arguments), "r" (ptStartAddr), "r" (spsrval) // input variables
-			: "r0", "r1" // clobber list
-	);
+            :// no output variables
+            : "r" (PIDvar) , "l" (stack_addr) , "r" (addr), "l" (returnaddr), "r" (arguments), "r" (ptStartAddr), "r" (spsrval)// input variables
+            : "r0", "r1"// clobber list
+    );
 
     // this point is never reached.
-    while ( true ) {
+    while (true)
+    {
     }
 }

@@ -20,9 +20,9 @@
 #include "assemblerFunctions.hh"
 
 ARMv4TFixedIntervalTimer::ARMv4TFixedIntervalTimer() :
-    TimerDevice() {
+        TimerDevice() {
 
-	// initialize timer
+    // initialize timer
     isEnabled = false;
     time = 0;
     elapsedCycles = 0;
@@ -39,21 +39,21 @@ void ARMv4TFixedIntervalTimer::doHardwareStuffOnTick() {
 
 ErrorT ARMv4TFixedIntervalTimer::enable() {
 
-	this->setTimer(time);
+    this->setTimer(time);
 
-	isEnabled = true;
-    return cOk;
+    isEnabled = true;
+    return (cOk);
 }
 
 ErrorT ARMv4TFixedIntervalTimer::disable() {
 
-	isEnabled = false;
+    isEnabled = false;
 
-    return cOk;
+    return (cOk);
 }
 
 ErrorT ARMv4TFixedIntervalTimer::tick() {
     this->doHardwareStuffOnTick();
 
-    return TimerDevice::tick();
+    return (TimerDevice::tick());
 }

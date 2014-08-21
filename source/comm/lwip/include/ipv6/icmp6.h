@@ -38,7 +38,8 @@
 #include "lwip/netif.h"
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 #define ICMP6_DUR  1
@@ -55,80 +56,86 @@ extern "C" {
 #define ICMP6_OPTIONS_REDIRECT      4
 #define ICMP6_OPTIONS_MTU           5
 
-enum icmp6_dur_type {
-  ICMP_DUR_NET = 0,    /* net unreachable */
-  ICMP_DUR_HOST = 1,   /* host unreachable */
-  ICMP_DUR_PROTO = 2,  /* protocol unreachable */
-  ICMP_DUR_PORT = 3,   /* port unreachable */
-  ICMP_DUR_FRAG = 4,   /* fragmentation needed and DF set */
-  ICMP_DUR_SR = 5      /* source route failed */
-};
+    enum icmp6_dur_type
+    {
+        ICMP_DUR_NET = 0, /* net unreachable */
+        ICMP_DUR_HOST = 1, /* host unreachable */
+        ICMP_DUR_PROTO = 2, /* protocol unreachable */
+        ICMP_DUR_PORT = 3, /* port unreachable */
+        ICMP_DUR_FRAG = 4, /* fragmentation needed and DF set */
+        ICMP_DUR_SR = 5 /* source route failed */
+    };
 
-enum icmp6_te_type {
-  ICMP_TE_TTL = 0,     /* time to live exceeded in transit */
-  ICMP_TE_FRAG = 1     /* fragment reassembly time exceeded */
-};
+    enum icmp6_te_type
+    {
+        ICMP_TE_TTL = 0, /* time to live exceeded in transit */
+        ICMP_TE_FRAG = 1 /* fragment reassembly time exceeded */
+    };
 
-void icmp6_input(struct pbuf *p, struct netif *inp);
+    void icmp6_input(struct pbuf *p, struct netif *inp);
 
-void icmp6_dest_unreach(struct pbuf *p, enum icmp6_dur_type t);
-void icmp6_time_exceeded(struct pbuf *p, enum icmp6_te_type t);
+    void icmp6_dest_unreach(struct pbuf *p, enum icmp6_dur_type t);
+    void icmp6_time_exceeded(struct pbuf *p, enum icmp6_te_type t);
 
-struct icmp6_echo_hdr {
-  u8_t type;
-  u8_t icode;
-  u16_t chksum;
-  u16_t id;
-  u16_t seqno;
-} PACK_STRUCT_STRUCT;
+    struct icmp6_echo_hdr
+    {
+        u8_t type;
+        u8_t icode;
+        u16_t chksum;
+        u16_t id;
+        u16_t seqno;
+    }PACK_STRUCT_STRUCT;
 
 // Neighbor Solicitation Message Header
-struct icmp6_nsm_hdr {
-  u8_t type;
-  u8_t icode;
-  u16_t chksum;
-  u32_t unused;
-  struct ip6_addr target_addr;
-} PACK_STRUCT_STRUCT;
+    struct icmp6_nsm_hdr
+    {
+        u8_t type;
+        u8_t icode;
+        u16_t chksum;
+        u32_t unused;
+        struct ip6_addr target_addr;
+    }PACK_STRUCT_STRUCT;
 
-struct icmp6_nad_hdr {
-  u8_t type;
-  u8_t icode;
-  u16_t chksum;
+    struct icmp6_nad_hdr
+    {
+        u8_t type;
+        u8_t icode;
+        u16_t chksum;
 #if BYTE_ORDER == LITTLE_ENDIAN
-    u32_t reserved :29;
-    u8_t flag_O :1, flag_S :1, flag_R: 1;
+        u32_t reserved :29;
+        u8_t flag_O :1, flag_S :1, flag_R: 1;
 #else
-    u8_t flag_R:1, flag_S:1, flag_O:1;
-    u32_t reserved:29;
+        u8_t flag_R:1, flag_S:1, flag_O:1;
+        u32_t reserved:29;
 #endif
-  struct ip6_addr target_addr;
-} PACK_STRUCT_STRUCT;
+        struct ip6_addr target_addr;
+    }PACK_STRUCT_STRUCT;
 
-struct icmp6_dur_hdr {
-  u8_t type;
-  u8_t icode;
-  u16_t chksum;
-  u32_t unused;
-} PACK_STRUCT_STRUCT;
+    struct icmp6_dur_hdr
+    {
+        u8_t type;
+        u8_t icode;
+        u16_t chksum;
+        u32_t unused;
+    }PACK_STRUCT_STRUCT;
 
-struct icmp6_options_hdr {
-    u8_t type;
-    u8_t length;
-} PACK_STRUCT_STRUCT;
+    struct icmp6_options_hdr
+    {
+        u8_t type;
+        u8_t length;
+    }PACK_STRUCT_STRUCT;
 
-
-struct icmp6_te_hdr {
-  u8_t type;
-  u8_t icode;
-  u16_t chksum;
-  u32_t unused;
-} PACK_STRUCT_STRUCT;
+    struct icmp6_te_hdr
+    {
+        u8_t type;
+        u8_t icode;
+        u16_t chksum;
+        u32_t unused;
+    }PACK_STRUCT_STRUCT;
 
 #ifdef __cplusplus
 }
 #endif
-
 
 #endif /* __LWIP_ICMP_H__ */
 

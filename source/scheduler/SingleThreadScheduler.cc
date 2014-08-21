@@ -25,50 +25,54 @@ SingleThreadScheduler::SingleThreadScheduler() {
 SingleThreadScheduler::~SingleThreadScheduler() {
 }
 
-ErrorT SingleThreadScheduler::enter( LinkedListDatabaseItem* item ) {
-    this->singleThread =  item;
-    return cOk;
+ErrorT SingleThreadScheduler::enter(LinkedListItem* item) {
+    this->singleThread = item;
+    return cOk ;
 }
 
-LinkedListDatabaseItem* SingleThreadScheduler::getNext() {
-  LinkedListDatabaseItem* ret = this->singleThread;
-  this->singleThread = 0;
-  return ret;
+LinkedListItem* SingleThreadScheduler::getNext() {
+    LinkedListItem* ret = this->singleThread;
+    this->singleThread = 0;
+    return ret;
 }
 
-LinkedListDatabaseItem* SingleThreadScheduler::remove(DatabaseItem* item) {
+LinkedListItem* SingleThreadScheduler::remove(DatabaseItem* item) {
 
-  if (this->singleThread->getData() == item) {
-	  LinkedListDatabaseItem* ret = this->singleThread;
-	  singleThread = 0;
-	  return ret;
-  }
-  return 0;
+    if (this->singleThread->getData() == item)
+    {
+        LinkedListItem* ret = this->singleThread;
+        singleThread = 0;
+        return ret;
+    }
+    return 0;
 }
 
-
-int SingleThreadScheduler::getNextTimerEvent(LinkedListDatabase* sleepList,unint4 dt )
-{
+TimeT SingleThreadScheduler::getNextTimerEvent(LinkedList* sleepList, TimeT currentTime) {
     // update sleeplist. Since this is a specialized class
     // we only update the first thread in the sleeplist since there should only be one!
 
-    LinkedListDatabaseItem* pDBSleepItem = sleepList->getHead();
-    if ( pDBSleepItem != 0 ) {
-        Kernel_ThreadCfdCl* pSleepThread = static_cast< Kernel_ThreadCfdCl*> ( pDBSleepItem->getData() );
+    LinkedListItem* pDBSleepItem = sleepList->getHead();
+    if (pDBSleepItem != 0)
+    {
+        Kernel_ThreadCfdCl* pSleepThread =
+                static_cast< Kernel_ThreadCfdCl*>(pDBSleepItem->getData());
 
-         pSleepThread->sleepCycles -= dt;
-          if ( pSleepThread->sleepCycles <= 0 ) {
-              pSleepThread->status.setBits( cReadyFlag );
-              LinkedListDatabaseItem* litem2 = pDBSleepItem;
-              pDBSleepItem = pDBSleepItem->getSucc();
+        // check for wakeup time of thread
+        if (pSleepThread->sleepTime <= currentTime)
+        {
+            pSleepThread->status.setBits( cReadyFlag);
+            LinkedListItem* litem2 = pDBSleepItem;
+            pDBSleepItem = pDBSleepItem->getSucc();
 
-              this->enter( litem2 );
-          }
+            this->enter(litem2);
+        }
+        else
+        {
+            TimeT ret = pSleepThread->sleepTime - currentTime;
+            return (ret);
+        }
     }
 
-   return MAX_INT4;
+    return MAX_INT4;
 }
-
-
-
 

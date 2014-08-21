@@ -17,7 +17,12 @@
       
       <Superclass Provides="PPC405,Virtex2,FPGA" Name="arch/PPC40x/Virtex2/Virtex2Board"></Superclass>
 
-	  <Superclass Provides="AVR,ATMEGA328" Name="arch/Atmel/ATMEGA328/RN-MicroFunk/MicroFunkBoard"></Superclass>
+	  <Superclass Provides="ATMEGA,ATMEGA328" Name="arch/Atmel/ATMEGA328/RN-MicroFunk/MicroFunkBoard">
+	    <MemberRef Name="Timer"/>
+	    <MemberRef Name="Clock"/>
+	    <MemberRef Name="Processor"/>
+	    <MemberRef Name="UART"/>
+	  </Superclass>
 	
 
 
@@ -507,6 +512,7 @@
           <Property Name="Length" Type="unsigned int" Optional="true" Description="The Length (Bytes) of the Memory Mapped I/O Area of this device. This value is only needed if Virtual Memory is activated to create the corresponding memory maps."/>
           <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree."/>
         </Class>
+        <Class Requires="ATMEGA328" Name="arch/Atmel/ATMEGA328/USART0"/>
         <Class Name="arch/none/DummyCharDriver"/>
       </Classes>
     </Member>
@@ -772,6 +778,7 @@
         <MemberRef Name="MigrationManager"/>
         <MemberRef Name="ServiceDiscovery"/>
         <MemberRef Name="RamManager"/>
+        <MemberRef Name="InterruptManager"/>
       </Superclass>
 	  
     </Superclasses>
@@ -793,9 +800,16 @@
       </Classes>
     </Member>
     <Member>
+      <Name>InterruptManager</Name>
+      <Classes>
+        <Class Name="hal/InterruptManager"/>        
+      </Classes>
+    </Member>    
+    <Member>
       <Name>Dispatcher</Name>
       <Classes>
         <Class Name="scheduler/SingleCPUDispatcher"/>        
+        <Class Name="scheduler/SingleThreadDispatcher"/>        
       </Classes>
     </Member>
     <Member>
@@ -813,6 +827,7 @@
       <Name>Logger</Name>
       <Classes>
         <Class Name="debug/Logger"/>
+        <Class Name="debug/FileLogger"/>
         <Class Name="debug/ETHLogger"/>
       </Classes>
     </Member>
@@ -924,6 +939,7 @@
         <MemberRef Name="thread_run" />
         <MemberRef Name="thread_self"/>
         <MemberRef Name="thread_yield"/>
+        <MemberRef Name="getpid"/>
         <MemberRef Name="signal_wait"/>
         <MemberRef Name="signal_signal"/>
         <MemberRef Name="fputc"/>
@@ -950,6 +966,7 @@
 		<MemberRef Name="task_run"/>
 		<MemberRef Name="task_kill"/>
 		<MemberRef Name="shm_map"/>
+		<MemberRef Name="shm_unmap"/>
 		<MemberRef Name="mapMemory"/>
       </Superclass>
     </Superclasses>
@@ -958,6 +975,7 @@
     <Member><Name>thread_run</Name></Member>
     <Member><Name>thread_self</Name></Member>
     <Member><Name>thread_yield</Name></Member>
+    <Member><Name>getpid</Name></Member>
     <Member><Name>thread_wait</Name></Member>
     <Member><Name>signal_wait</Name></Member>
     <Member><Name>signal_signal</Name></Member>
@@ -985,6 +1003,7 @@
 	<Member><Name>ioctl</Name> </Member>
 	<Member><Name>mapMemory</Name> </Member>	
 	<Member><Name>shm_map</Name> </Member>
+	<Member><Name>shm_unmap</Name> </Member>
     </Skeleton>
     
     <Defines>

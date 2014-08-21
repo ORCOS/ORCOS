@@ -48,7 +48,8 @@
 #include "netif/ethar.h"
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 #ifndef ETH_PAD_SIZE
@@ -63,12 +64,12 @@ extern "C" {
 #  include "arch/bpstruct.h"
 #endif
 
-/*
-PACK_STRUCT_BEGIN
-struct eth_addr {
-  PACK_STRUCT_FIELD(u8_t addr[ETHARP_HWADDR_LEN]);
-} PACK_STRUCT_STRUCT;
-PACK_STRUCT_END*/
+    /*
+     PACK_STRUCT_BEGIN
+     struct eth_addr {
+     PACK_STRUCT_FIELD(u8_t addr[ETHARP_HWADDR_LEN]);
+     } PACK_STRUCT_STRUCT;
+     PACK_STRUCT_END*/
 #ifdef PACK_STRUCT_USE_INCLUDES
 #  include "arch/epstruct.h"
 #endif
@@ -77,16 +78,16 @@ PACK_STRUCT_END*/
 #  include "arch/bpstruct.h"
 #endif
 
-/*PACK_STRUCT_BEGIN
-struct eth_hdr {
-#if ETH_PAD_SIZE
-  PACK_STRUCT_FIELD(u8_t padding[ETH_PAD_SIZE]);
-#endif
-  PACK_STRUCT_FIELD(struct eth_addr dest);
-  PACK_STRUCT_FIELD(struct eth_addr src);
-  PACK_STRUCT_FIELD(u16_t type);
-} PACK_STRUCT_STRUCT;
-PACK_STRUCT_END*/
+    /*PACK_STRUCT_BEGIN
+     struct eth_hdr {
+     #if ETH_PAD_SIZE
+     PACK_STRUCT_FIELD(u8_t padding[ETH_PAD_SIZE]);
+     #endif
+     PACK_STRUCT_FIELD(struct eth_addr dest);
+     PACK_STRUCT_FIELD(struct eth_addr src);
+     PACK_STRUCT_FIELD(u16_t type);
+     } PACK_STRUCT_STRUCT;
+     PACK_STRUCT_END*/
 #ifdef PACK_STRUCT_USE_INCLUDES
 #  include "arch/epstruct.h"
 #endif
@@ -98,12 +99,13 @@ PACK_STRUCT_END*/
 #ifdef PACK_STRUCT_USE_INCLUDES
 #  include "arch/bpstruct.h"
 #endif
-PACK_STRUCT_BEGIN
-struct eth_vlan_hdr {
-  PACK_STRUCT_FIELD(u16_t tpid);
-  PACK_STRUCT_FIELD(u16_t prio_vid);
-} PACK_STRUCT_STRUCT;
-PACK_STRUCT_END
+    PACK_STRUCT_BEGIN
+    struct eth_vlan_hdr
+    {
+        PACK_STRUCT_FIELD(u16_t tpid);
+        PACK_STRUCT_FIELD(u16_t prio_vid);
+    }PACK_STRUCT_STRUCT;
+    PACK_STRUCT_END
 #ifdef PACK_STRUCT_USE_INCLUDES
 #  include "arch/epstruct.h"
 #endif
@@ -116,19 +118,20 @@ PACK_STRUCT_END
 #ifdef PACK_STRUCT_USE_INCLUDES
 #  include "arch/bpstruct.h"
 #endif
-PACK_STRUCT_BEGIN
-/** the ARP message */
-struct etharp_hdr {
-  PACK_STRUCT_FIELD(u16_t hwtype);
-  PACK_STRUCT_FIELD(u16_t proto);
-  PACK_STRUCT_FIELD(u16_t _hwlen_protolen);
-  PACK_STRUCT_FIELD(u16_t opcode);
-  PACK_STRUCT_FIELD(struct eth_addr shwaddr);
-  PACK_STRUCT_FIELD(struct ip4_addr2 sipaddr);
-  PACK_STRUCT_FIELD(struct eth_addr dhwaddr);
-  PACK_STRUCT_FIELD(struct ip4_addr2 dipaddr);
-} PACK_STRUCT_STRUCT;
-PACK_STRUCT_END
+    PACK_STRUCT_BEGIN
+    /** the ARP message */
+    struct etharp_hdr
+    {
+        PACK_STRUCT_FIELD(u16_t hwtype);
+        PACK_STRUCT_FIELD(u16_t proto);
+        PACK_STRUCT_FIELD(u16_t _hwlen_protolen);
+        PACK_STRUCT_FIELD(u16_t opcode);
+        PACK_STRUCT_FIELD(struct eth_addr shwaddr);
+        PACK_STRUCT_FIELD(struct ip4_addr2 sipaddr);
+        PACK_STRUCT_FIELD(struct eth_addr dhwaddr);
+        PACK_STRUCT_FIELD(struct ip4_addr2 dipaddr);
+    }PACK_STRUCT_STRUCT;
+    PACK_STRUCT_END
 #ifdef PACK_STRUCT_USE_INCLUDES
 #  include "arch/epstruct.h"
 #endif
@@ -136,7 +139,7 @@ PACK_STRUCT_END
 #define SIZEOF_ETHARP_HDR 28
 #define SIZEOF_ETHARP_PACKET (SIZEOF_ETH_HDR + SIZEOF_ETHARP_HDR)
 
-/** 5 seconds period */
+    /** 5 seconds period */
 #define ARP_TMR_INTERVAL 5000
 
 #define ETHTYPE_ARP       0x0806
@@ -146,42 +149,39 @@ PACK_STRUCT_END
 #define ETHTYPE_PPPOEDISC 0x8863  /* PPP Over Ethernet Discovery Stage */
 #define ETHTYPE_PPPOE     0x8864  /* PPP Over Ethernet Session Stage */
 
-/** ARP message types (opcodes) */
+    /** ARP message types (opcodes) */
 #define ARP_REQUEST 1
 #define ARP_REPLY   2
 
-
-
 //void etharp_tmr(void);
-/*s8_t etharp_find_addr(struct netif *netif, struct ip4_addr *ipaddr,
-         struct eth_addr **eth_ret, struct ip4_addr **ip_ret);
-void etharp_ip_input(struct netif *netif, struct pbuf *p);*/
-void etharp_arp_input(struct netif *netif, struct eth_addr *ethaddr,
-         struct pbuf *p);
-err_t etharp_output(struct netif *netif, struct pbuf *q, struct ip4_addr *ipaddr);
+    /*s8_t etharp_find_addr(struct netif *netif, struct ip4_addr *ipaddr,
+     struct eth_addr **eth_ret, struct ip4_addr **ip_ret);
+     void etharp_ip_input(struct netif *netif, struct pbuf *p);*/
+    void etharp_arp_input(struct netif *netif, struct eth_addr *ethaddr,
+            struct pbuf *p);
+    err_t etharp_output(struct netif *netif, struct pbuf *q, struct ip4_addr *ipaddr);
 //err_t etharp_query(struct netif *netif, struct ip4_addr *ipaddr, struct pbuf *q);
-err_t etharp_request(struct netif *netif, struct ip4_addr *ipaddr);
+    err_t etharp_request(struct netif *netif, struct ip4_addr *ipaddr);
 
 //err_t update_arp_entry(struct netif *netif, struct ip4_addr *ipaddr, struct eth_addr *ethaddr, u8_t flags);
 
-/** For Ethernet network interfaces, we might want to send "gratuitous ARP";
- *  this is an ARP packet sent by a node in order to spontaneously cause other
- *  nodes to update an entry in their ARP cache.
- *  From RFC 3220 "IP Mobility Support for IPv4" section 4.6. */
+    /** For Ethernet network interfaces, we might want to send "gratuitous ARP";
+     *  this is an ARP packet sent by a node in order to spontaneously cause other
+     *  nodes to update an entry in their ARP cache.
+     *  From RFC 3220 "IP Mobility Support for IPv4" section 4.6. */
 #define etharp_gratuitous(netif) etharp_request((netif), &(netif)->ip4_addr)
 
-
 #if LWIP_AUTOIP
-err_t etharp_raw(struct netif *netif, const struct eth_addr *ethsrc_addr,
-                 const struct eth_addr *ethdst_addr,
-                 const struct eth_addr *hwsrc_addr, const struct ip_addr *ipsrc_addr,
-                 const struct eth_addr *hwdst_addr, const struct ip_addr *ipdst_addr,
-                 const u16_t opcode);
+    err_t etharp_raw(struct netif *netif, const struct eth_addr *ethsrc_addr,
+            const struct eth_addr *ethdst_addr,
+            const struct eth_addr *hwsrc_addr, const struct ip_addr *ipsrc_addr,
+            const struct eth_addr *hwdst_addr, const struct ip_addr *ipdst_addr,
+            const u16_t opcode);
 #endif /* LWIP_AUTOIP */
 
 #define eth_addr_cmp(addr1, addr2) (memcmp((addr1)->addr, (addr2)->addr, ETHARP_HWADDR_LEN) == 0)
 
-extern const struct eth_addr ethbroadcast, ethzero;
+    extern const struct eth_addr ethbroadcast, ethzero;
 
 #ifdef __cplusplus
 }

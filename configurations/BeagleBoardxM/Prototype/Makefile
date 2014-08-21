@@ -10,11 +10,11 @@ RELATIVE_SOURCE_PATH = ../../..
 #---------------------------------------------------------------------------------------------------------------------------------------
 #GCC SETTINGS
 # for windows we must specify the ld linking directories with absolute path 
-GCC_LIB_DIR=C:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/
-LIBC_DIR=C:/toolchains/armgcc-4-7-4/arm-none-eabi/lib/armv7-ar/thumb/
+GCC_LIB_DIR=D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/
+LIBC_DIR=D:/toolchains/armgcc-4-7-4/arm-none-eabi/lib/armv7-ar/thumb/
 
 
-ARMEABI= /cygdrive/c/toolchains/armgcc-4-7-4/bin/arm-none-eabi
+ARMEABI= /cygdrive/d/toolchains/armgcc-4-7-4/bin/arm-none-eabi
 
 CC      = $(ARMEABI)-gcc
 CXX     = $(ARMEABI)-c++
@@ -57,13 +57,8 @@ MODULES_DIR = ./modules/
 # The Linker Script used for this configuration
 LINKERSCRIPT = $(ARCH_DIR)/kernel.ld   
 
-# if thumb mode is activated set this define to 1!
-#CPU_FLAGS =  -mthumb -mcpu=cortex-a8  -mno-unaligned-access -DARM_THUMB=1
- 
 #Optimization flag -flto
-OPT_FLAGS = -O2  -mthumb -mcpu=cortex-a8  -mthumb-interwork -DARM_THUMB=1 -fno-builtin -flto -mno-unaligned-access
-# User Library Optimization Flag. Keep as is
-USER_LIB_OPT_FLAGS = -O2 -mcpu=cortex-a8 -mno-unaligned-access
+OPT_FLAGS = -O2 -mthumb -mcpu=cortex-a8  -mthumb-interwork -DARM_THUMB=1 -fno-builtin -flto -mno-unaligned-access
 
 #Command line arguments to compile .c files.
 CFLAGS = -Wall -g -I$(KERNEL_DIR)inc/ -I./make/ -I$(KERNEL_DIR)comm/lwip/include/ -I$(KERNEL_DIR)comm/lwip/ -I. -I$(KERNEL_DIR) -I$(KERNEL_LIB_DIR)/../../ $(ARCH_INCLUDES) -ffunction-sections -fno-exceptions -fno-unwind-tables -msoft-float -fno-stack-protector -Wno-write-strings -c $(CPU_FLAGS) 
@@ -86,7 +81,6 @@ ASFLAGS = -c -g -I$(KERNEL_DIR)inc/ -I. -I./make/ -I$(KERNEL_DIR) $(ARCH_INCLUDE
 #STACK_USAGE_SCRIPT = $(KERNEL_DIR)../tools/PPCStackUsage/stack_usage.py
 
 #include architekture make file
-#TODO: autogenerate this by scl
 -include $(ARCH_DIR)/arch.mk
 
 #include kernel make file

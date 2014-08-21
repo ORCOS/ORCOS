@@ -29,7 +29,7 @@
 class ARMv4TProgrammableIntervalTimer: public TimerDevice {
 public:
 
-	ARMv4TProgrammableIntervalTimer();
+    ARMv4TProgrammableIntervalTimer();
     ~ARMv4TProgrammableIntervalTimer();
 
     /*!
@@ -37,7 +37,7 @@ public:
      *
      * \param t The amount of cycles
      */
-    ErrorT setTimer( unint4 t );
+    ErrorT setTimer(unint4 t);
 
     /*!
      * \brief enable the programmable intervall timer

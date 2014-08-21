@@ -22,7 +22,7 @@
 #include "SCLConfig.hh"
 #include "lwipopts.h"
 
-#include "db/ArrayDatabase.hh"
+#include "db/ArrayList.hh"
 #include "comm/AddressProtocol.hh"
 #include "comm/TransportProtocol.hh"
 
@@ -33,7 +33,6 @@
 #if LWIP_UDP
 #include "comm/UDPTransportProtocol.hh"
 #endif
-
 
 /*!
  * \brief Pool of address and transport protocols
@@ -51,19 +50,17 @@
  *
  */
 class ProtocolPool {
-    ArrayDatabase* addressprotocols;
+    ArrayList* addressprotocols;
 
-    ArrayDatabase* transportprotocols;
-
+    ArrayList* transportprotocols;
 
 public:
     ProtocolPool();
     ~ProtocolPool();
 
-    AddressProtocol* getAddressProtocolbyId( unint2 id );
+    AddressProtocol* getAddressProtocolbyId(unint2 id);
 
-    TransportProtocol* getTransportProtocolbyId( unint2 id );
-
+    TransportProtocol* getTransportProtocolbyId(unint2 id);
 
 };
 

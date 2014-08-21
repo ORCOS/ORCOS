@@ -26,10 +26,17 @@
 
 class Board {
 public:
-    Board() {};
-    ~Board() {};
+    Board() {
+    }
+    ;
+    ~Board() {
+    }
+    ;
 
-    const char* getBoardInfo() {return "Board Unknown.."; };
+    const char* getBoardInfo() {
+        return "Board Unknown..";
+    }
+    ;
 };
 
 #endif /*BOARD_H_*/

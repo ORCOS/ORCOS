@@ -19,7 +19,7 @@
 #ifndef SCHEDULEABLEITEM_HH_
 #define SCHEDULEABLEITEM_HH_
 
-#include "db/DatabaseItem.hh"
+#include "db/ListItem.hh"
 
 /*!
  * \ingroup scheduler
@@ -27,7 +27,7 @@
  *
  */
 
-class ScheduleableItem: public DatabaseItem {
+class ScheduleableItem: public ListItem {
 public:
     ScheduleableItem() {
     }

@@ -15,26 +15,39 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+class FileLogger;
 
-#ifndef DATABASEITEM_HH_
-#define DATABASEITEM_HH_
+#ifndef FILELOGGER_HH_
+#define FILELOGGER_HH_
 
-/*!
- * \ingroup databases
- * \brief Class which enables an object to be placed inside a database.
- *
- * This class allows another class to be added into an database if it inherits this class.
- */
+#include <logger_config.hh>
+#include "filesystem/File.hh"
 
-class DatabaseItem {
+class FileLogger {
+
+private:
+    File* logFile;
+
 public:
-    DatabaseItem() {
-    }
-    ;
+    FileLogger();
 
-    ~DatabaseItem() {
+    ~FileLogger() {
     }
-    ;
+
+    /*!
+     * \brief Write msg to serial line.
+     *
+     * thprintf is used, so %d .. could be used to as variables.
+     * The prefix and level could be found in the logger_config.hh which is generated out of the SCLConfig.xml
+     *
+     */
+    void log(Prefix prefix, Level level, const char* msg, ...);
+
+
+    /*!
+     * Flushes the log content to the file
+     */
+    void flush();
 };
 
-#endif /*DATABASEITEM_HH_*/
+#endif /*FILELOGGER_HH_*/

@@ -1,10 +1,16 @@
 package de.upb.cs.orcos.sign;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
@@ -42,7 +48,7 @@ public class TaskSigner {
 		   RandomAccessFile out = null;
 		   try {
 	            in = new FileInputStream(file);	          
-	            
+	    	            	           
 	            // identify endianess	            
 	            // 0x230f7ae9 ORCOS MAGIC WORD
 	            
@@ -84,7 +90,7 @@ public class TaskSigner {
 	            int taskEndOffset = taskStartOffset + (crcend - crcstart);
 	            System.out.println("Calculating checksum over " + Integer.toHexString(crcstart) + " - " + Integer.toHexString(crcend));
 	            System.out.println("File position: " + taskStartOffset + " - " + taskEndOffset);
-	            
+	           
 	            // sanity checks
 	            if (taskEndOffset < taskStartOffset) return;
 	            if (taskStartOffset < 0) return;
@@ -120,10 +126,80 @@ public class TaskSigner {
 		
 	}
 	
+	
+	public static void generateStringTable(String file) throws IOException {		
+		BufferedReader br = new BufferedReader(new FileReader(file));
+		
+	    try {
+	    
+	    	String outfile = file;
+	    	outfile = outfile.substring(0, outfile.lastIndexOf("."));
+	    	outfile += "_strtable.c";
+	    	System.out.println("Outfile: " + outfile);
+	    	BufferedWriter writer = new BufferedWriter(new FileWriter(outfile));
+	    	writer.write("typedef struct {  unsigned int address;  unsigned int length; char* signature;} DebugStrTableT;\n DebugStrTableT debug_strtable[] = {");
+	        String line = br.readLine();
+
+	        long address = -1;
+	        int length = 0;
+	        String signature;
+	        boolean textSection = false;
+	        
+	        Pattern regex_methodrange = Pattern.compile("\\s+0x([0-9a-f]+)\\s+0x([0-9a-f]+).*");
+	        Pattern regex_methodname  = Pattern.compile("\\s+0x([0-9a-f]+)\\s+(.+).*");
+	        Pattern section  		  = Pattern.compile("\\s*\\.([a-zA-Z]+).*");
+	        int entries = 0;
+	        
+	        while (line != null) {	        
+	        	Matcher m0 = section.matcher(line);
+	        	
+	        	if (m0.matches()) {
+	        		if (m0.group(1).equals("text")) {
+		        		textSection = true;
+		        		address = -1;
+		        		length = 0;
+		        		signature = "";		        		
+	        		} else {
+	        			textSection = false;	        			
+	        		}
+	        	}
+	        	
+	        	if (textSection) {
+		        	Matcher m = regex_methodrange.matcher(line);
+		        	if (m.matches()) {
+		        		// method start
+		        		address = Long.parseLong(m.group(1),16);
+		        		length  = Integer.parseInt(m.group(2),16);
+		        	} else {
+		        		Matcher m2 = regex_methodname.matcher(line);
+		        		if (m2.matches()) {			        		
+		        			signature = m2.group(2);
+		        			if (address != -1 && length > 0 && textSection) {
+		        				//System.out.println("Address: " + address + " length: " + length + " Method: " + signature);
+		        				writer.write("{ 0x" + Long.toHexString(address) + ", " + length + ", \"" + signature + "\"},\n"); 
+		        				entries++;
+		        			}
+		        		}
+		        	}
+	        	}
+	            
+	            line = br.readLine();
+	        }
+	       
+	        writer.write("};\n unsigned int debug_strtable_entries = " + entries +";\n"); 
+	        writer.close();
+	    } finally {
+	      br.close();
+	    }
+	    
+		
+	}
+	
 	/**
 	 * @param args
+	 * @throws IOException 
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		
 		if (args.length < 2) return;
 		
@@ -131,7 +207,14 @@ public class TaskSigner {
 			generateCRC(args[1]);
 		}
 		
-		
+		if (args[0].equals("stringtable")) {
+			System.out.println("Generating string table");
+			try {
+			generateStringTable(args[1]);
+			} catch (Exception e) {
+				System.out.println(e);
+			}
+		}
 
 	}
 

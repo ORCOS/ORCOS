@@ -36,39 +36,33 @@
 #include "stringtools.hh"
 #include "memtools.hh"
 
-u8_t
-ip6_addr_netcmp(struct ip6_addr *addr1, struct ip6_addr *addr2,
-                struct ip6_addr *mask)
-{
-  return((addr1->addr[0] & mask->addr[0]) == (addr2->addr[0] & mask->addr[0]) &&
-         (addr1->addr[1] & mask->addr[1]) == (addr2->addr[1] & mask->addr[1]) &&
-         (addr1->addr[2] & mask->addr[2]) == (addr2->addr[2] & mask->addr[2]) &&
-         (addr1->addr[3] & mask->addr[3]) == (addr2->addr[3] & mask->addr[3]));
-        
+u8_t ip6_addr_netcmp(struct ip6_addr *addr1, struct ip6_addr *addr2, struct ip6_addr *mask) {
+    return ((addr1->addr[0] & mask->addr[0]) == (addr2->addr[0] & mask->addr[0])
+            && (addr1->addr[1] & mask->addr[1])
+                    == (addr2->addr[1] & mask->addr[1])
+            && (addr1->addr[2] & mask->addr[2])
+                    == (addr2->addr[2] & mask->addr[2])
+            && (addr1->addr[3] & mask->addr[3])
+                    == (addr2->addr[3] & mask->addr[3]));
+
 }
 
-u8_t
-ip6_addr_cmp(struct ip6_addr *addr1, struct ip6_addr *addr2)
-{
-  return(addr1->addr[0] == addr2->addr[0] &&
-         addr1->addr[1] == addr2->addr[1] &&
-         addr1->addr[2] == addr2->addr[2] &&
-         addr1->addr[3] == addr2->addr[3]);
+u8_t ip6_addr_cmp(struct ip6_addr *addr1, struct ip6_addr *addr2) {
+    return (addr1->addr[0] == addr2->addr[0] && addr1->addr[1] == addr2->addr[1]
+            && addr1->addr[2] == addr2->addr[2]
+            && addr1->addr[3] == addr2->addr[3]);
 }
 
-void
-ip6_addr_set(struct ip6_addr *dest, struct ip6_addr *src)
-{
-  SMEMCPY(dest, src, sizeof(struct ip6_addr));
-  /*  dest->addr[0] = src->addr[0];
-  dest->addr[1] = src->addr[1];
-  dest->addr[2] = src->addr[2];
-  dest->addr[3] = src->addr[3];*/
+void ip6_addr_set(struct ip6_addr *dest, struct ip6_addr *src) {
+    SMEMCPY(dest, src, sizeof(struct ip6_addr));
+    /*  dest->addr[0] = src->addr[0];
+     dest->addr[1] = src->addr[1];
+     dest->addr[2] = src->addr[2];
+     dest->addr[3] = src->addr[3];*/
 }
 
-u8_t
-ip6_addr_isany(struct ip6_addr *addr)
-{
-  if (addr == 0) return 1;
-  return((addr->addr[0] | addr->addr[1] | addr->addr[2] | addr->addr[3]) == 0);
+u8_t ip6_addr_isany(struct ip6_addr *addr) {
+    if (addr == 0)
+        return 1;
+    return ((addr->addr[0] | addr->addr[1] | addr->addr[2] | addr->addr[3]) == 0);
 }

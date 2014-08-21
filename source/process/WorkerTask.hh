@@ -31,8 +31,25 @@
  * like any other realtime thread.
  */
 class WorkerTask: public Task {
+
+    friend class WorkerThread;
+
+private:
+    /*!
+     * \brief The list of threads currently executing no job.
+     */
+    ArrayList nonWorkingThreads;
+
+
+    /*!
+     * \brief Callback for the workerthread to indicate work has finished.
+     */
+    void    workFinished(WorkerThread* pwthread);
+
 public:
+
     WorkerTask();
+
     ~WorkerTask();
 
     /*!
@@ -45,7 +62,9 @@ public:
      *          param   parameters passed to the job
      *          priority_param  the priority/deadline of the workerthread in a priority/realtime based system
      */
-    WorkerThread* addJob( JOBType id, unint1 pid, void* param, unint priority_param );
+    WorkerThread* addJob(JOBType id, unint1 pid, void* param, unint priority_param);
+
+
 };
 
 #endif /*WORKERTASK_HH_*/

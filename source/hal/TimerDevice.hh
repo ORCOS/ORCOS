@@ -21,7 +21,9 @@
 
 #include "inc/types.hh"
 #include "inc/const.hh"
-#include "scheduler/SingleCPUDispatcher.hh"
+#include "SCLConfig.hh"
+
+#include Kernel_Dispatcher_hh
 
 /*!
  * \ingroup devicedrivers
@@ -40,16 +42,16 @@ class TimerDevice {
 private:
 
     // the dispatcher which will be called by this timer
-    SingleCPUDispatcher* dispatcher;
+    Kernel_DispatcherCfdCl* dispatcher;
 
 protected:
-    bool isEnabled; // status of the underlying hardware timer
-    unint4 time; // the time [microseconds] after the callback should be called
-    unint4 elapsedCycles; // the cycles elapsed after the last call of the callback
-    unint4 tickRate; // the rate [cycles/tick] at which the Timer is ticked
+    bool isEnabled;  // status of the underlying hardware timer
+    unint4 time;  // the time [microseconds] after the callback should be called
+    unint4 elapsedCycles;  // the cycles elapsed after the last call of the callback
+    unint4 tickRate;  // the rate [cycles/tick] at which the Timer is ticked
 
     ErrorT doHardwareStuffOnTick() {
-        return (cNotImplemented);
+        return (cNotImplemented );
     }
 
 public:
@@ -64,7 +66,10 @@ public:
      *
      *  \param t the amount of cycles
      */
-    void setTimer( TimeT t ) {   time = t;};
+    void setTimer(TimeT t) {
+        time = t;
+    }
+    ;
 
     /*!
      *  \brief enable the timer hardware
@@ -74,7 +79,7 @@ public:
      * of the hardware ticks fine enough to achive accurate time measure
      */
     ErrorT enable() {
-        return (cNotImplemented);
+        return (cNotImplemented );
     }
 
     /*!
@@ -86,7 +91,7 @@ public:
      * stops working.
      */
     ErrorT disable() {
-        return (cNotImplemented);
+        return (cNotImplemented );
     }
 
     /*!
@@ -99,15 +104,15 @@ public:
         // tickRate= cycles / tick
         elapsedCycles += tickRate;
 
-        if ( elapsedCycles >= time ) {
-             elapsedCycles = 0;
-             dispatcher->dispatch();
+        if (elapsedCycles >= time)
+        {
+            elapsedCycles = 0;
+            dispatcher->dispatch();
         }
 
-
-        return (cOk);
-    };
+        return (cOk );
+    }
+    ;
 };
-
 
 #endif /*TIMERDEVICE_HH_*/

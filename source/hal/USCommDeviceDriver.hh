@@ -24,77 +24,71 @@
  */
 class USCommDeviceDriver: public CommDeviceDriver, Module {
 public:
-	USCommDeviceDriver(const char* dev, unint4 mmio_address, unint4 mmio_size, unint4 us_driver_addr);
+    USCommDeviceDriver(const char* dev, unint4 mmio_address, unint4 mmio_size, unint4 us_driver_addr);
 
-	virtual ~USCommDeviceDriver();
+    virtual ~USCommDeviceDriver();
 
 private:
-	// The Memory mapped IO address for this device
-	unint4 mmio_address;
+    // The Memory mapped IO address for this device
+    unint4 mmio_address;
 
-	// The physical address of the user space driver code
-	unint4 us_driver_address;
+    // The physical address of the user space driver code
+    unint4 us_driver_address;
 
-	/*!
-	 * \brief the Module control block for this user space driver
-	 */
-	ORCOS_MCB *module_cb;
+    /*!
+     * \brief the Module control block for this user space driver
+     */
+    ORCOS_MCB *module_cb;
 
-	// flag indicating wheter this module is valid
-	int valid_module;
+    // flag indicating wheter this module is valid
+    int valid_module;
 
 public:
-	 //! method which gets called whenver this devices throws a extern IRQ
-	void recv() {};
+    //! method which gets called whenver this devices throws a extern IRQ
+    void recv() {
+    }
+    ;
 
-	ErrorT lowlevel_send( char* data, int len );
+    ErrorT lowlevel_send(char* data, int len);
 
+    //! broadcast method which sends the message to the devices broadcast address
+    ErrorT broadcast(packet_layer* packet, int2 fromProtocol_ID);
 
-	//! broadcast method which sends the message to the devices broadcast address
-	ErrorT broadcast( packet_layer* packet, int2 fromProtocol_ID );
+    /*!
+     * \brief Sends a multicast packet
+     *
+     *  dest_addr is needed since many mac protocols use the upper layer address to compute the multicast address
+     */
+    ErrorT multicast(packet_layer* packet, int2 fromProtocol_ID, unint4 dest_addr);
 
-	/*!
-	* \brief Sends a multicast packet
-	*
-	*  dest_addr is needed since many mac protocols use the upper layer address to compute the multicast address
-	*/
-	ErrorT multicast( packet_layer* packet, int2 fromProtocol_ID, unint4 dest_addr );
+    //! returns the mac address of this device
+    const char* getMacAddr();
 
+    //! returns the size (amount of bytes) mac addresses have on this device
+    int1 getMacAddrSize();
 
-	//! returns the mac address of this device
-	const char* getMacAddr();
-
-
-	//! returns the size (amount of bytes) mac addresses have on this device
-	int1 getMacAddrSize();
-
-	/*!
-	* Returns the maximum transmit unit (MTU) of this device.
-	*
-	* \returns The maximum amount of bytes the device is able to transmit in one unit.
-	*/
+    /*!
+     * Returns the maximum transmit unit (MTU) of this device.
+     *
+     * \returns The maximum amount of bytes the device is able to transmit in one unit.
+     */
     unint2 getMTU();
 
+    //! Returns the id of the hardware address space (ethernet, wlan ..)
+    int2 getHardwareAddressSpaceId();
 
-	//! Returns the id of the hardware address space (ethernet, wlan ..)
-	int2 getHardwareAddressSpaceId();
+    //! returns the broadcast address for this device medium
+    const char* getBroadcastAddr();
 
+    //! enables the hardware interrupts of this device.
+    ErrorT enableIRQ();
 
-	//! returns the broadcast address for this device medium
-	const char* getBroadcastAddr();
+    //! disables all interrupts of this device (does not clear them!)
+    ErrorT disableIRQ();
 
-
-	//! enables the hardware interrupts of this device.
-	ErrorT enableIRQ();
-
-	//! disables all interrupts of this device (does not clear them!)
-	ErrorT disableIRQ();
-
-	//! clears all interrupts of this device
-	ErrorT clearIRQ();
+    //! clears all interrupts of this device
+    ErrorT clearIRQ();
 
 };
-
-
 
 #endif /* USCOMMDEVICEDRIVER_HH_ */

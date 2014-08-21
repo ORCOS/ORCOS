@@ -25,23 +25,30 @@
 extern Kernel* theOS;
 
 /*
- * The global communication Stack Mutex
+ * The global communication Stack Mutex. Ensures only one thread is
+ * executing inside the communication stack code at a time.
+ * This ensures no race conditions to occur inside the tcp, ip, udp
+ * and ethernet parts.
+ *
+ * This, however, leads to higher latencies for communcation operations.
  */
 Mutex* comStackMutex;
 
 ProtocolPool::ProtocolPool() {
-    this->addressprotocols = new ArrayDatabase( 2 );
-    this->transportprotocols = new ArrayDatabase( 2 );
-    
+    this->addressprotocols = new ArrayList(2);
+    this->transportprotocols = new ArrayList(2);
 
-    Directory* devdir = theOS->getFileManager()->getDirectory( "dev/comm" );
+    Directory* devdir = theOS->getFileManager()->getDirectory("dev/comm");
 
-	this->addressprotocols->addTail((DatabaseItem*) new IPv4AddressProtocol(devdir));
+    if (isError(this->addressprotocols->addTail((ListItem*) new IPv4AddressProtocol(devdir))))
+        LOG(COMM,ERROR,"Error adding IPv4 Protocol to protocol pool");
 #if LWIP_TCP
-    this->transportprotocols->addTail((DatabaseItem*) new TCPTransportProtocol());
+    if (isError(this->transportprotocols->addTail((ListItem*) new TCPTransportProtocol())))
+        LOG(COMM,ERROR,"Error adding TCP Protocol to protocol pool");
 #endif
 #if LWIP_UDP
-    this->transportprotocols->addTail((DatabaseItem*) new UDPTransportProtocol());
+    if (isError(this->transportprotocols->addTail((ListItem*) new UDPTransportProtocol())))
+        LOG(COMM,ERROR,"Error adding UDP Protocol to protocol pool");
 #endif
 
     comStackMutex = new Mutex();
@@ -52,12 +59,13 @@ ProtocolPool::~ProtocolPool() {
 }
 
 AddressProtocol*
-ProtocolPool::getAddressProtocolbyId( unint2 id ) {
+ProtocolPool::getAddressProtocolbyId(unint2 id) {
     // search database for protocol with id 'id'
 
-    for ( int i = 0; i < addressprotocols->size(); i++ ) {
-        AddressProtocol* ap = (AddressProtocol*) (addressprotocols->getItemAt( i ));
-        if ( ap->getId() == id )
+    for (int i = 0; i < addressprotocols->size(); i++)
+    {
+        AddressProtocol* ap = (AddressProtocol*) (addressprotocols->getItemAt(i));
+        if (ap->getId() == id)
             return (ap);
     }
 
@@ -65,12 +73,13 @@ ProtocolPool::getAddressProtocolbyId( unint2 id ) {
 }
 
 TransportProtocol*
-ProtocolPool::getTransportProtocolbyId( unint2 id ) {
+ProtocolPool::getTransportProtocolbyId(unint2 id) {
     // search database for protocol with id 'id'
 
-    for ( int i = 0; i < transportprotocols->size(); i++ ) {
-        TransportProtocol* tp = (TransportProtocol*) transportprotocols->getItemAt( i );
-        if ( tp->getId() == id )
+    for (int i = 0; i < transportprotocols->size(); i++)
+    {
+        TransportProtocol* tp = (TransportProtocol*) transportprotocols->getItemAt(i);
+        if (tp->getId() == id)
             return (tp);
     }
 

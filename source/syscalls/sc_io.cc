@@ -23,7 +23,7 @@
 #include "handle_syscalls.hh"
 #include Kernel_Thread_hh
 #include "assemblerFunctions.hh"
-
+#include "hal/BufferDevice.hh"
 
 /*******************************************************************
  *				I/O CONTROL Syscall
@@ -37,9 +37,9 @@ int ioctl(int4 int_sp) {
 	 Resource* res;
 
 	 SYSCALLGETPARAMS3(int_sp, file_id, request, args);
-	 VALIDATE_IN_PROCESS(args);
+	 //VALIDATE_IN_PROCESS(args);
 
-	 LOG(SYSCALLS,DEBUG,(SYSCALLS,DEBUG,"Syscall: ioctl(%d,%d,%x)",file_id, request, args));
+	 LOG(SYSCALLS,DEBUG,"Syscall: ioctl(%d,%d,%x)",file_id, request, args);
 
 	 res = pCurrentRunningTask->getOwnedResourceById( file_id );
 	 if ( res != 0 ) {
@@ -63,7 +63,7 @@ int fputcSyscall( int4 int_sp ) {
 
     SYSCALLGETPARAMS2(int_sp, c, stream);
 
-    LOG(SYSCALLS,DEBUG,(SYSCALLS,DEBUG,"Syscall: fputc(%d,%d)",c,stream));
+    LOG(SYSCALLS,DEBUG,"Syscall: fputc(%d,%d)",c,stream);
 
     register Resource* res;
     res = pCurrentRunningTask->getOwnedResourceById( stream );
@@ -72,9 +72,9 @@ int fputcSyscall( int4 int_sp ) {
         if  ( res->getType() & (cStreamDevice | cCommDevice ))  {
             // we are ok to write onto this resource
             retval = cOk;
-            ( (CharacterDeviceDriver*) res )->writeByte( c );
+            ( (CharacterDevice*) res )->writeBytes( &c,1 );
 
-            LOG(SYSCALLS,TRACE,(SYSCALLS,TRACE,"Syscall: Valid Resource %d",stream));
+            LOG(SYSCALLS,TRACE,"Syscall: Valid Resource %d",stream);
         }
         else
             retval = cResourceNotWriteable;
@@ -101,7 +101,7 @@ int fgetcSyscall( int4 int_sp ) {
 
     SYSCALLGETPARAMS1(int_sp,stream);
 
-    LOG(SYSCALLS,DEBUG,(SYSCALLS,DEBUG,"Syscall: fgetc(%d,%d)",c,stream));
+    LOG(SYSCALLS,DEBUG,"Syscall: fgetc(%d,%d)",c,stream);
 
     register Resource* res;
     res = pCurrentRunningTask->getOwnedResourceById( stream );
@@ -109,9 +109,10 @@ int fgetcSyscall( int4 int_sp ) {
         // resource valid and owned
         // check if resource is a characterdevice
     	 if  ( res->getType() & (cStreamDevice | cCommDevice ))  {
-            LOG(SYSCALLS,TRACE,(SYSCALLS,TRACE,"Syscall: Valid Resource %d",stream));
+            LOG(SYSCALLS,TRACE,"Syscall: Valid Resource %d",stream);
             // we are ok to read this resource
-            retval=  ((CharacterDeviceDriver*) res )->readByte( &c );
+            unint4 len = 1;
+            retval=  ((CharacterDevice*) res )->readBytes( &c, len );
         }
         else
             retval = cResourceNotReadable;
@@ -143,20 +144,31 @@ int fcreateSyscall( int4 int_sp ) {
     VALIDATE_IN_PROCESS(filename);
     VALIDATE_IN_PROCESS(path);
 
-    LOG(SYSCALLS,TRACE,(SYSCALLS,TRACE,"Syscall: fcreate(%s,%s)",filename,path));
+    LOG(SYSCALLS,TRACE,"Syscall: fcreate(%s,%s)",filename,path);
     res = theOS->getFileManager()->getDirectory( path );
 
     if ( res != 0 ) {
     	Directory* dir = (Directory*) res;
+
+    	/* check if resource with the same name already exists..
+    	 * we do not allow duplicate names */
+    	if (dir->get(filename,strlen(filename))) {
+    	    LOG(SYSCALLS,ERROR,"Syscall: fcreate(%s,%s) FAILED. Name already exists.",filename,path);
+    	    return (cResourceAlreadyExists);
+    	}
+
     	res = dir->createFile(filename,0);
     	if (res != 0) {
-    		res->aquire(pCurrentRunningThread,false);
+    	    /* acquire this resource as we have created it */
+    		res->acquire(pCurrentRunningThread,false);
     		return (res->getId());
+    	} else {
+    	    LOG(SYSCALLS,ERROR,"Syscall: fcreate(%s,%s) FAILED. File could not be created.",filename,path);
+    	    return (cError);
     	}
-    	return (cError);
     } else {
-    	LOG(SYSCALLS,ERROR,(SYSCALLS,ERROR,"Syscall: fcreate(%s,%s) FAILED",filename,path));
-    	return (cInvalidResource);
+    	LOG(SYSCALLS,ERROR,"Syscall: fcreate(%s,%s) FAILED. Invalid path",filename,path);
+    	return (cInvalidPath);
     }
 }
 #endif
@@ -177,16 +189,15 @@ int fopenSyscall( int4 int_sp ) {
     SYSCALLGETPARAMS2(int_sp,filename,blocking);
     VALIDATE_IN_PROCESS(filename);
 
-    LOG(SYSCALLS,TRACE,(SYSCALLS,TRACE,"Syscall: fopen(%s)",filename));
+    LOG(SYSCALLS,TRACE,"Syscall: fopen(%s)",filename);
 
     res = theOS->getFileManager()->getResource( filename );
     if ( res != 0 ) {
-        retval = pCurrentRunningTask->aquireResource( res, pCurrentRunningThread, blocking );
+        retval = pCurrentRunningTask->acquireResource( res, pCurrentRunningThread, blocking );
     }
     else {
         retval = cInvalidResource;
-
-        LOG(SYSCALLS,ERROR,(SYSCALLS,ERROR,"Syscall: fopen(%s) FAILED",filename));
+        LOG(SYSCALLS,ERROR,"Syscall: fopen(%s) FAILED",filename);
     }
     return (retval);
 }
@@ -208,7 +219,7 @@ int fcloseSyscall( int4 int_sp ) {
 
     SYSCALLGETPARAMS1(int_sp,file_id);
 
-    LOG(SYSCALLS,DEBUG,(SYSCALLS,DEBUG,"Syscall: fclose(%d)",file_id));
+    LOG(SYSCALLS,DEBUG,"Syscall: fclose(%d)",file_id);
 
     res = pCurrentRunningTask->getOwnedResourceById( file_id );
     if ( res != 0 ) {
@@ -218,8 +229,8 @@ int fcloseSyscall( int4 int_sp ) {
 
         DISABLE_IRQS(status);
         SET_RETURN_VALUE((void*)int_sp,(void*)retval);
-        // we may have unblocked a higher priority thread so we need to reschedule now!
-        theOS->getCPUDispatcher()->dispatch(  );
+        /* we may have unblocked a higher priority thread so we need to reschedule now! */
+        theOS->getDispatcher()->dispatch(  );
 #endif
         return (retval);
     }
@@ -248,20 +259,20 @@ int fwriteSyscall( int4 int_sp ) {
     VALIDATE_IN_PROCESS(write_ptr);
     //VALIDATE_IN_PROCESS((unint4)write_ptr + (write_size * write_nitems ));
 
-    LOG(SYSCALLS,DEBUG,(SYSCALLS,DEBUG,"Syscall: fwrite(...,%d,%d,%d)",write_size,write_nitems,write_stream));
+    LOG(SYSCALLS,DEBUG,"Syscall: fwrite(...,%d,%d,%d)",write_size,write_nitems,write_stream);
 
     Resource* res;
     res = pCurrentRunningTask->getOwnedResourceById( write_stream );
     if ( res != 0 ) {
 
-        LOG(SYSCALLS,TRACE,(SYSCALLS,TRACE,"Syscall: fwrite valid"));
+        LOG(SYSCALLS,TRACE,"Syscall: fwrite valid");
 
         // resource valid and owned
         // check if resource is a characterdevice
         if ( res->getType() & ( cStreamDevice | cCommDevice | cFile )) {
             char* pointer = (char*) write_ptr;
             for ( unint4 i = 0; i < write_nitems; i++ ) {
-            	ErrorT result = ( (CharacterDeviceDriver*) res )->writeBytes( pointer, write_size );
+            	ErrorT result = ( (CharacterDevice*) res )->writeBytes( pointer, write_size );
             	// check if writing failed
             	if (isError(result)) return (result);
                 pointer += write_size;
@@ -275,7 +286,7 @@ int fwriteSyscall( int4 int_sp ) {
     // maybe resource not owned or resource doesnt exist
     else {
         retval = cResourceNotOwned;
-        LOG(SYSCALLS,ERROR,(SYSCALLS,ERROR,"Syscall: fwrite on device with id %d failed", write_stream));
+        LOG(SYSCALLS,ERROR,"Syscall: fwrite on device with id %d failed", write_stream);
     }
 
     return (retval);
@@ -301,13 +312,13 @@ int freadSyscall( int4 int_sp ) {
 
     VALIDATE_IN_PROCESS(read_ptr);
 
-    LOG(SYSCALLS,TRACE,(SYSCALLS,TRACE,"Syscall: fread(...,%d,%d,%d)",read_size,read_nitems,read_stream));
+    LOG(SYSCALLS,TRACE,"Syscall: fread(...,%d,%d,%d)",read_size,read_nitems,read_stream);
 
     Resource* res;
     res = pCurrentRunningTask->getOwnedResourceById( read_stream );
     if ( res != 0 ) {
 
-        LOG(SYSCALLS,TRACE,(SYSCALLS,TRACE,"Syscall: fread valid"));
+        LOG(SYSCALLS,TRACE,"Syscall: fread valid");
 
         // resource valid and owned
         // check if resource is a characterdevice
@@ -315,7 +326,7 @@ int freadSyscall( int4 int_sp ) {
             char* pointer = (char*) read_ptr;
             for ( unint4 i = 0; i < read_nitems; i++ ) {
 
-                ErrorT result = ( (CharacterDeviceDriver*) res )->readBytes( pointer, read_size );
+                ErrorT result = ( (CharacterDevice*) res )->readBytes( pointer, read_size );
                 // check if reading failed
                 if (isError(result)) return (result);
 
@@ -327,14 +338,14 @@ int freadSyscall( int4 int_sp ) {
         }
         else {
             retval = cResourceNotReadable;
-            LOG(SYSCALLS,ERROR,(SYSCALLS,ERROR,"Syscall: fread failed. Not a readable device."));
+            LOG(SYSCALLS,ERROR,"Syscall: fread failed. Not a readable device.");
         }
 
     }
     // maybe resource not owned or resource doesnt exist
     else {
         retval = cResourceNotOwned;
-        LOG(SYSCALLS,ERROR,(SYSCALLS,ERROR,"Syscall: fread on device with id %d failed", read_stream));
+        LOG(SYSCALLS,ERROR,"Syscall: fread on device with id %d failed", read_stream);
     }
     return (retval);
 }
@@ -350,7 +361,7 @@ int fstatSyscall( int4 int_sp ) {
     SYSCALLGETPARAMS2(int_sp,file_id,stat);
     VALIDATE_IN_PROCESS(stat);
 
-    LOG(SYSCALLS,DEBUG,(SYSCALLS,DEBUG,"Syscall: fstat(%d)",file_id));
+    LOG(SYSCALLS,DEBUG,"Syscall: fstat(%d)",file_id);
 
     res = pCurrentRunningTask->getOwnedResourceById( file_id );
     if ( res != 0 ) {
@@ -358,6 +369,9 @@ int fstatSyscall( int4 int_sp ) {
     	stat->st_size = 0;
     	if (res->getType() & cFile) {
     		stat->st_size =  ((File*) res)->getFileSize();
+    	}
+    	else if (res->getType() & cDirectory) {
+            stat->st_size =  ((Directory*) res)->getNumEntries();
     	}
 
        return (cOk);
@@ -378,17 +392,108 @@ int fremoveSyscall( int4 int_sp ) {
 	VALIDATE_IN_PROCESS(filename);
 	VALIDATE_IN_PROCESS(path);
 
-	LOG(SYSCALLS,DEBUG,(SYSCALLS,DEBUG,"Syscall: fremove(%s, %s)",filename,path));
+	LOG(SYSCALLS,DEBUG,"Syscall: fremove(%s, %s)",filename,path);
 	res = theOS->getFileManager()->getResource( path );
 
-	// directory found?
+	/* directory found? */
 	if ((res == 0) || (! (res->getType() & cDirectory)))  return (cInvalidPath);
 
 	Directory* dir 		= (Directory*) res;
 	Resource* res_file 	= dir->get(filename,strlen(filename));
-	// resource found?
-	if (res == 0) return (cInvalidPath);
+	/* resource found? */
+	if (res_file == 0) return (cInvalidPath);
 
-	return (dir->remove(res_file));
+	/* if this resource is owned by the current task remove it from the task */
+	/* only acquired resources may be removed to avoid references to already deleted resources! */
+	res = pCurrentRunningTask->getOwnedResourceById( res_file->getId() );
+	if ( res != 0 ) {
+	     pCurrentRunningTask->releaseResource( res, pCurrentRunningThread );
+	    return (dir->remove(res_file));
+	} else
+	    return (cError);
 }
 #endif
+
+/*******************************************************************
+ *              fseek Syscall
+ *******************************************************************/
+int fseekSyscall(intptr_t int_sp) {
+
+    int        fd;
+    int        offset;
+    int        whence;
+    Resource* res;
+
+    SYSCALLGETPARAMS3(int_sp,fd,offset,whence);
+    res = pCurrentRunningTask->getOwnedResourceById( fd );
+
+    if (whence < 0 || whence > 2)
+        return (cInvalidArgument);
+
+    if ( res != 0 ) {
+        if (res->getType() & (cDirectory | cFile)) {
+            unint4 maxsize = 0;
+            if (res->getType() & cDirectory)
+                maxsize = ((Directory*) res)->getNumEntries();
+            else if (res->getType() & cFile)
+                maxsize = ((File*) res)->getFileSize();
+
+            CharacterDevice* cres = (CharacterDevice*) res;
+            unint4 position = cres->getPosition();
+            if (whence == SEEK_SET) {
+                cres->resetPosition();
+                return (cres->seek(offset));
+            }
+            if (whence == SEEK_CUR) {
+                return (cres->seek(offset));
+            }
+            if (whence == SEEK_END) {
+                offset = maxsize - offset;
+                return (cres->seek(offset));
+
+            }
+
+        } else {
+            return (cWrongResourceType);
+        }
+
+
+    } else
+       return (cError);
+
+}
+
+
+/*******************************************************************
+ *              mkdev Syscall
+ *******************************************************************/
+int mkdev( int4 int_sp ) {
+
+    char*       devname;
+    size_t      bufferSize;
+    BufferDevice* res;
+    int         retval;
+
+    SYSCALLGETPARAMS2(int_sp,devname,bufferSize);
+    VALIDATE_IN_PROCESS(devname);
+
+    if (strlen(devname) == 0) {
+        return (cInvalidArgument);
+    }
+
+    Directory* dir = theOS->getFileManager()->getDirectory("/dev/");
+    if (dir->get(devname,strlen(devname)) != 0)
+        return (cResourceAlreadyExists);
+
+    LOG(SYSCALLS,DEBUG,"Syscall: mkdev(%s, %u)",devname,bufferSize);
+    res = new BufferDevice(devname,bufferSize);
+    if (!res->isValid()) {
+        delete res;
+        return (cError);
+    }
+
+    retval = pCurrentRunningTask->acquireResource( res, pCurrentRunningThread, false );
+    return (retval);
+}
+
+

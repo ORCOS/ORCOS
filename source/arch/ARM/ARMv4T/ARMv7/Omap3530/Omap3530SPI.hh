@@ -8,7 +8,8 @@
 #ifndef OMAP3530SPI_HH_
 #define OMAP3530SPI_HH_
 
-#include "hal/CharacterDeviceDriver.hh"
+#include "hal/CharacterDevice.hh"
+#include "hal/GenericDeviceDriver.hh"
 
 #define MCSPI_REVISION  0x0
 #define MCSPI_SYSCONFIG 0x10
@@ -27,28 +28,23 @@
 #define MCSPI3 0x480B8000
 #define MCSPI4 0x480BA000
 
-
-class Omap3530SPI: public CharacterDeviceDriver {
+class Omap3530SPI: public CharacterDevice {
 private:
-	unint4 base;
+    unint4 base;
 
 public:
-	Omap3530SPI(T_Omap3530SPI_Init *init);
-	virtual ~Omap3530SPI();
+    Omap3530SPI(T_Omap3530SPI_Init *init);
+    virtual ~Omap3530SPI();
 
-	ErrorT readByte( char* p_byte );
+    ErrorT readByte(char* p_byte);
 
+    ErrorT writeByte(char c_byte);
 
-	ErrorT writeByte( char c_byte );
+    ErrorT readBytes(char *bytes, unint4 &length);
 
+    ErrorT writeBytes(const char *bytes, unint4 length);
 
-	ErrorT readBytes( char *bytes, unint4 &length );
-
-
-    ErrorT writeBytes( const char *bytes, unint4 length );
-
-
-	ErrorT ioctl(int request, void* args);
+    ErrorT ioctl(int request, void* args);
 };
 
 #endif /* OMAP3530SPI_HH_ */

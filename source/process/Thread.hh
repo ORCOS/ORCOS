@@ -23,19 +23,18 @@
 #include "inc/types.hh"
 #include "inc/Bitmap.hh"
 #include "SCLConfig.hh"
-#include "db/LinkedListDatabaseItem.hh"
+#include "db/LinkedListItem.hh"
 
 // forward declaration of Task
 class Task;
 class Mutex;
-
 
 #define MAXSTACKPTRS 6
 
 #include "scheduler/ScheduleableItem.hh"
 #include Kernel_MemoryManager_hh
 
-extern LinkedListDatabaseItem* pRunningThreadDbItem;
+extern LinkedListItem* pRunningThreadDbItem;
 
 // Flag definitions
 //! thread is constructed
@@ -59,9 +58,8 @@ extern LinkedListDatabaseItem* pRunningThreadDbItem;
 struct ThreadStack {
     void* startAddr;    //!< The logical start addr of this stack
     void* endAddr;      //!< The logical end addr of this stack
-
-    void* stackptrs[MAXSTACKPTRS]; //!< stack pointer stack. contains pushed stack pointer addresses
-    unsigned short  top;
+    void* stackptrs[MAXSTACKPTRS];  //!< stack pointer stack. contains pushed stack pointer (context) addresses
+    unsigned short top;
 };
 
 /*!
@@ -120,14 +118,18 @@ public:
     //! the signal value the thread waits on
     unint4 signalvalue;
 
+    //! the current timeout value of the blocked stated
+    unint4 blockTimeout;
+
     //! Constructor which takes the startRoutinePointer as argument
-    Thread( void* startRoutinePointer, void* exitRoutinePointer, Task* owner, Kernel_MemoryManagerCfdCl* memManager,
-            unint4 stack_size = DEFAULT_USER_STACK_SIZE, void* attr = 0, bool newThread = true );
+    Thread(void* startRoutinePointer, void* exitRoutinePointer, Task* owner, Kernel_MemoryManagerCfdCl* memManager, unint4 stack_size =
+                   DEFAULT_USER_STACK_SIZE, void* attr = 0, bool newThread =
+                   true);
 
     //! Destructor
     virtual ~Thread() {
     }
-    ;
+
 
     //! initialize
     static void initialize() {
@@ -145,19 +147,19 @@ public:
     }
 
     //!  Set the flags of this Thread
-    ErrorT setStatus( Bitmap s ) {
+    ErrorT setStatus(Bitmap s) {
         status = s;
-        return (cOk);
+        return (cOk );
     }
 
     //! Returns true iff the thread has never been run before
     bool isNew() const {
-        return (status.areSet( cNewFlag ));
+        return (status.areSet( cNewFlag));
     }
 
     //! Returns true iff the thread is scheduled for execution
     bool isReady() const {
-        return (status.areSet( cReadyFlag ));
+        return (status.areSet( cReadyFlag));
     }
 
     /*!
@@ -165,53 +167,55 @@ public:
      * 		 resource.
      */
     bool isBlocked() const {
-        return (status.areSet( cBlockedFlag ));
+        return (status.areSet( cBlockedFlag));
     }
 
     /*!
      * \brief Returns true iff the thread is stopped.
      */
     bool isStopped() const {
-        return (status.areSet( cStopped ));
+        return (status.areSet( cStopped));
     }
 
     bool isSleeping() const {
-        return (!status.anySet( (BitmapT) cBlockedFlag | cReadyFlag | cNewFlag ));
+        return (!status.anySet((BitmapT) cBlockedFlag | cReadyFlag | cNewFlag));
     }
 
     //! Returns true iff the thread has terminated.
     bool hasTerminated() const {
-        return (status.areSet( cTermFlag ));
+        return (status.areSet( cTermFlag));
     }
 
     //! Returns the currently set sleeptime
-    TimeT getSleepTime() {
+    TimeT getSleepTime() const {
         return (this->sleepTime);
     }
 
-    ErrorT  __attribute__((noinline)) pushStackPointer(void* sp)
-    {
-        if (threadStack.top < MAXSTACKPTRS -1)
+    ErrorT __attribute__((noinline)) pushStackPointer(void* sp) {
+        if (threadStack.top < MAXSTACKPTRS - 1)
         {
             threadStack.stackptrs[threadStack.top] = sp;
             threadStack.top++;
-            return (cOk);
-        } else {
+            return (cOk );
+        }
+        else
+        {
 
-        	return (cStackOverflow);
+            return (cStackOverflow );
         }
 
     }
 
-    ErrorT  __attribute__((noinline)) popStackPointer(void* &sp)
-	{
-		if (threadStack.top > 0)
-		{
-			threadStack.top--;
-			sp = threadStack.stackptrs[threadStack.top];
-			return (cOk);
-		} else return (cStackUnderflow);
-	}
+    ErrorT __attribute__((noinline)) popStackPointer(void* &sp) {
+        if (threadStack.top > 0)
+        {
+            threadStack.top--;
+            sp = threadStack.stackptrs[threadStack.top];
+            return (cOk );
+        }
+        else
+            return (cStackUnderflow );
+    }
 
     //! Returns the addr (pointer) of the startRoutine of this thread
     void* getStartRoutinePointer() const {
@@ -242,21 +246,29 @@ public:
      *
      * Involves informing the scheduler.
      */
-    void sleep( TimeT timePoint, LinkedListDatabaseItem* item = pRunningThreadDbItem );
+    void sleep(TimeT timePoint, LinkedListItem* item = pRunningThreadDbItem);
 
 #ifdef ORCOS_SUPPORT_SIGNALS
     /*!
-     * Blocks the thread until the sig is signaled from some other thread.
+     * Blocks the thread until the signal 'sig' is signaled from some other thread.
+     * Caller will NOT return from this method. Instead the context will directly
+     * be restored on signal reception!
      */
-    void sigwait( void* sig );
+    void sigwait(void* sig);
 #endif
 
     /*!
      * \brief Blocks the current thread.
      *
+     * \param timeout   specifies a timeout in clock ticks this thread shall be woken up anyway. if 0
+     *                  the thread may be blocked endlessly. The timeout condition is not perfectly matched
+     *                  as the timeout condition is only checked every now and then (e.g. every 250 ms). The
+     *                  block value is not supposed to be used for realtime synchronization. It is provided
+     *                  to avoid deadlocks on e.g. socket operations.
+     *
      * Involves informing the scheduler.
      */
-    void block();
+    void block(unint4 timeout = 0);
 
     /*!
      * \brief Unblocks the thread that has been waiting on a resource.
@@ -281,7 +293,6 @@ public:
      */
     void terminate();
 
-
     /*!
      * \brief Calling this method will setup the thread for first time execution and
      * 		 call the entry function of the thread.
@@ -292,7 +303,9 @@ public:
     virtual void callMain();
 
     /* Returns the Id of this Thread. */
-    inline ThreadIdT getId() const { return (myThreadId); }
+    inline ThreadIdT getId() const {
+        return (myThreadId);
+    }
 
 };
 

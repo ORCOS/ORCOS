@@ -25,11 +25,26 @@
 #include <error.hh>
 #include <Bitmap.hh>
 
-// definitions for the rights to be used for a page
+typedef struct t_mapping {
+    unint4 vir_addr;
+    unint4 phy_addr;
+    size_t size;
+    BitmapT protection;
+    BitmapT flags;
+} t_mapping;
+
+typedef struct t_archmappings {
+    unint1 count;
+    t_mapping* mappings;
+} t_archmappings;
+
+/* Protection Flags */
 #define hatProtectionRead         (BitmapT)1
 #define hatProtectionWrite        (BitmapT)2
 #define hatProtectionExecute      (BitmapT)4
 
+/* Mapping Flags */
+#define hatCacheInhibit           (BitmapT)1
 
 /*!
  * \ingroup memmanager
@@ -51,10 +66,10 @@ public:
      * The member taskID is set to 0 (as this constructor should only be called by the Kernel's MM).
      * The necessary mappings for the Kernel should be executed here (Kernelcode, Kernelheap, Memory-Mapped I/O)
      */
-    HatLayer()
-    { }
+    HatLayer() {
+    }
 
-     /*!
+    /*!
      *  \brief map an address space with a logical address to a physical address
      *
      *  logBaseAddr  - the logical start address of the mapped address space
@@ -69,7 +84,7 @@ public:
      *  Returns the real page (physical address) that has been assigned to enclose the segment.
      */
     void* map(void*, void*, int, int, int, TaskIdT, bool) {
-    	return (void*) -1;
+        return (void*) -1;
     }
 
     /*!
@@ -80,8 +95,8 @@ public:
      * by the system for address translation
      *
      */
-    ErrorT unmap( void* logBaseAddr ) {
-        return cNotImplemented;
+    ErrorT unmap(void* logBaseAddr) {
+        return cNotImplemented ;
     }
 
     /*!
@@ -92,21 +107,21 @@ public:
     /*!
      * \brief change Protection of an address space of a given logical address
      */
-    ErrorT changeProtection( void* logBaseAddr, BitmapT newProtection ) {
-        return cNotImplemented;
+    ErrorT changeProtection(void* logBaseAddr, BitmapT newProtection) {
+        return cNotImplemented ;
     }
 
     /*!
      * \brief clear all protections of an address space of a given logical address
      */
-    ErrorT clearProtection( void* logBaseAddr ) {
-        return ( changeProtection( logBaseAddr, (BitmapT) 0 ) );
+    ErrorT clearProtection(void* logBaseAddr) {
+        return (changeProtection(logBaseAddr, (BitmapT) 0));
     }
 
     /*!
      * \brief get the protection of an address space for a given logical address
      */
-    BitmapT getProtection( void* logBaseAddr ) {
+    BitmapT getProtection(void* logBaseAddr) {
         return (BitmapT) 0;
     }
 
@@ -122,7 +137,7 @@ public:
      *
      */
     ErrorT enableHAT() {
-        return cNotImplemented;
+        return cNotImplemented ;
     }
 
     /*!
@@ -134,7 +149,7 @@ public:
      *
      */
     ErrorT disableHAT() {
-        return cNotImplemented;
+        return cNotImplemented ;
     }
 
     /*!
@@ -145,7 +160,7 @@ public:
      * the given address itself will only be returned
      *
      */
-    void* getLogicalAddress( void* physAddr ) {
+    void* getLogicalAddress(void* physAddr) {
         return physAddr;
     }
 
@@ -156,29 +171,29 @@ public:
      * if a mapping for this logical address exists. If there is no virtual memory configured,
      * the given address itself will only be returned
      */
-    void* getPhysicalAddress( void* logAddr ) {
+    void* getPhysicalAddress(void* logAddr) {
         return logAddr;
     }
 
     /*!
      * \brief returns if an address space for a given logical address is readable
      */
-    bool isReadable( void* logBaseAddr ) {
-        return ( (Bitmap) getProtection( logBaseAddr ) ).isSet( hatProtectionRead );
+    bool isReadable(void* logBaseAddr) {
+        return ((Bitmap) getProtection(logBaseAddr)).isSet( hatProtectionRead);
     }
 
     /*!
      * \brief returns if an address space for a given logical address is readable
      */
-    bool isWritable( void* logBaseAddr ) {
-        return ( (Bitmap) getProtection( logBaseAddr ) ).isSet( hatProtectionWrite );
+    bool isWritable(void* logBaseAddr) {
+        return ((Bitmap) getProtection(logBaseAddr)).isSet( hatProtectionWrite);
     }
 
     /*!
      * \brief returns if an address space for a given logical address is readable
      */
-    bool isExecutable( void* logBaseAddr ) {
-        return ( (Bitmap) getProtection( logBaseAddr ) ).isSet( hatProtectionExecute );
+    bool isExecutable(void* logBaseAddr) {
+        return ((Bitmap) getProtection(logBaseAddr)).isSet( hatProtectionExecute);
     }
 
     /*!
@@ -188,7 +203,6 @@ public:
      */
     void handleMappingError() {
     }
-
 
     /*!
      * \brief initialization method of the HATLayer

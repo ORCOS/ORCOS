@@ -19,6 +19,8 @@
 #ifndef MEMRESOURCE_HH_
 #define MEMRESOURCE_HH_
 
+#include "inc/types.hh"
+
 /*!
  *  \ingroup memmanager
  *  \brief Class which describes a memory segment which can be managed by a memory manager
@@ -37,6 +39,16 @@ private:
 
 public:
 
+    size_t usedBytes;
+
+    size_t overheadBytes;
+
+    void*  lastAllocated;
+
+    void*  firstFreed;
+
+    void*  firstAddr;
+
     /*!
      *  \brief Constructor to create a new MemResource
      *
@@ -44,8 +56,13 @@ public:
      *  the represented memory segment is given a defined size
      */
     MemResource() {
-        memSegSize = 0;
-        startAddr = 0;
+        memSegSize      = 0;
+        startAddr       = 0;
+        usedBytes       = 0;
+        overheadBytes   = 0;
+        lastAllocated   = 0;
+        firstFreed      = 0;
+        firstAddr       = 0;
     }
 
     /*!
@@ -55,26 +72,33 @@ public:
      *  as the size is then undefined
      */
     inline size_t getSize() {
-        return memSegSize;
+        return (memSegSize);
     }
 
     //! returns the starting address of the represented memory segment
     inline void* getStartAddr() {
-        return startAddr;
+        return (startAddr);
     }
 
     //! set starting address of the represented memory segment
-    inline void setStartAddr( void* s ) {
+    inline void setStartAddr(void* s) {
         startAddr = s;
     }
 
     inline void* getEndAddr() {
-        return (byte*) startAddr + memSegSize;
+        return ((byte*) startAddr + memSegSize);
+    }
+
+    inline bool containsAddr(void* addr) {
+       if (((intptr_t)startAddr <= (intptr_t) addr) &&
+           ((intptr_t)startAddr + memSegSize) > (intptr_t) addr )
+           return (true);
+       return (false);
     }
 
     //! new operator used to initialize MemResource
-    void* operator new( size_t s, void* addr ) {
-        return addr;
+    void* operator new(size_t s, void* addr) {
+        return (addr);
     }
 
 };

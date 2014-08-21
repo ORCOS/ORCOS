@@ -19,7 +19,7 @@
 #ifndef RESOURCE_HH_
 #define RESOURCE_HH_
 
-#include "db/DatabaseItem.hh"
+#include "db/ListItem.hh"
 #include "inc/types.hh"
 #include "SCLConfig.hh"
 #include "synchro/Mutex.hh"
@@ -31,15 +31,15 @@ class Kernel_ThreadCfdCl;
  *
  * \ingroup filesystem
  *
- * This clss is the base class of all resources inside the kernel. Any resource
+ * This class is the base class of all resources inside the kernel. Any resource
  * can be added to the filesystem of the system.
  */
-class Resource : public DatabaseItem {
+class Resource: public ListItem {
 
 protected:
 
-	// making the name protected allows classes to change their name
-    //! name identifiying this resource
+    // making the name protected allows classes to change their name
+    //! name identifying this resource
     const char* name;
 
     //! The access controlling mechanism
@@ -57,7 +57,7 @@ private:
 
 public:
     //! Constructor which takes the type of this resource and its name
-    Resource( ResourceType rt, bool sync_res, const char* name = 0 );
+    Resource(ResourceType rt, bool sync_res, const char* name = 0);
 
     //! Destructor. Resources may only be deleted by the idle thread.
     virtual ~Resource();
@@ -74,28 +74,30 @@ public:
      * resource is not available the thread will be blocked until it becomes
      * available again.
      */
-    void aquire( Thread* pThread, bool blocking = true );
+    int acquire(Thread* pThread, bool blocking = true);
 
     /*!
      * \brief Release the resource.
      *
      * A resource can only be released if it has been acquired before by the same task.
      */
-    ErrorT release( Thread* pThread );
+    ErrorT release(Thread* pThread);
 
     //! Returns the type of this resource which helps to identify this resource
-    inline  ResourceType getType() {
+    inline ResourceType getType() {
         return (restype);
     }
 
     //! Returns the id
-    inline  ResourceIdT getId() {
+    inline ResourceIdT getId() {
         return (this->myResourceId);
     }
 
     //! Returns the name of this resource
-    inline  const char* getName() {
-        return (name);
+    inline const char* getName() {
+        if (name)
+            return (name);
+        else return ("{No Name}");
     }
 };
 

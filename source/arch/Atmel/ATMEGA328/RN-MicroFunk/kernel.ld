@@ -18,22 +18,23 @@ MEMORY
 /* If you change any of these values, make sure you change them
    in the MEMORY part as well!  */
 ramOrigin = 0x100;
-ramLength = 0x8FF - 0x100; 
+ramLength = 0x7FF; 
 
 /* Offset to RAM origin.  */
 ramOffset = 0x100;
 
-_kernelHeapSize = 0x100; 
+_kernelHeapSize = 0x300; 
 _kernelStackSize = 0x100;
 
 PROVIDE(_kernelHeapSize = 0x100);
 PROVIDE(_kernelStackSize = 0x100);
 PROVIDE(_kernelStackOffset = _kernelHeapSize + _kernelStackSize);
-PROVIDE(__RAM_END = ramOrigin + ramLength );
-PROVIDE(__RAM_START = ramOrigin );
+PROVIDE(__RAM_END = 0x8ff );
+PROVIDE(__RAM_START = 0x100 );
 
 PROVIDE(__data_load_start = 0x100);
-
+PROVIDE(__stack = 0x880);
+ 
 SECTIONS
 {
 
@@ -52,13 +53,15 @@ SECTIONS
     *(.trampolines)
     *(.trampolines*)
     *(.init*)
+    *(.progmem.data*)
   } > flash
 
   PROVIDE (_text_end = .);
   __KERNELEND = _text_end;
 
-.data	0x0  : AT (ADDR (.text) + SIZEOF (.text))
+.data	0x100  : AT (ADDR (.text) + SIZEOF (.text))
   {
+   	PROVIDE(_data_start = .);
      PROVIDE (__data_start = .) ;
     /* --gc-sections will delete empty .data. This leads to wrong start
        addresses for subsequent sections because -Tdata= from the command
@@ -79,11 +82,10 @@ SECTIONS
     *(.bss*)
     *(COMMON)
      PROVIDE (__bss_end = .) ;
-     . = ALIGN(2);
+     . = ALIGN(4);
      PROVIDE (_heap_start = .);
-     PROVIDE(_heap_end = . + _kernelHeapSize);
-     PROVIDE(__stack = _heap_end + _kernelStackSize);
-  }  > ram
+     PROVIDE(_heap_end = . + _kernelHeapSize);    
+  }  > flash
   		
  
   __data_load_start = LOADADDR(.data);

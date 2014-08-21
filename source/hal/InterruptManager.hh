@@ -10,7 +10,7 @@
 
 #include "inc/types.hh"
 #include "hal/GenericDeviceDriver.hh"
-
+#include "hal/CharacterDevice.hh"
 /**
  * The Interrupt Manager class provides the functionality
  * for device drivers to register interrupt handler for global interrupt
@@ -22,16 +22,23 @@
  * happen.
  *
  */
-class InterruptManager {
+class InterruptManager : public CharacterDevice {
 public:
-	InterruptManager();
+    using GenericDeviceDriver::handleIRQ;
 
-	virtual ~InterruptManager();
+    InterruptManager();
 
-	ErrorT handleIRQ(unint4 irq);
+    ~InterruptManager();
 
-	ErrorT registerIRQ(unint4 irq, GenericDeviceDriver* driver, unint4 priority);
+    ErrorT handleIRQ(unint4 irq);
 
+    ErrorT registerIRQ(unint4 irq, GenericDeviceDriver* driver, unint4 priority);
+
+    /*
+     * \brief Returns a human readable string containing information on the irq history
+     */
+    ErrorT readBytes(char* bytes, unint4& length);
 };
 
 #endif /* INTERRUPTMANAGER_HH_ */
+

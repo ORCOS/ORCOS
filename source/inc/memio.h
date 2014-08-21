@@ -19,11 +19,11 @@
 #ifndef _ASSEMBLER_HH
 #define _ASSEMBLER_HH
 
-
 //#define __force        __attribute__((force))
 #define __force
 
-extern "C" {
+extern "C"
+{
 
 ///  The following definitions for IN and OUT should
 ///  work when the registers are memory-mapped.

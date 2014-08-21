@@ -30,8 +30,8 @@
  *
  */
 class SingleThreadScheduler {
-	LinkedListDatabaseItem* singleThread;
-	LinkedListDatabaseItem wrappingItem;
+	LinkedListItem* singleThread;
+	LinkedListItem wrappingItem;
 public:
     SingleThreadScheduler();
     ~SingleThreadScheduler();
@@ -41,23 +41,23 @@ public:
     /*!
      * Due this Scheduler is for singlethreading, only one thread could be set.
      */
-    ErrorT enter( LinkedListDatabaseItem* item );
+    ErrorT enter( LinkedListItem* item );
 
     ErrorT enter( DatabaseItem* item ) {
 		wrappingItem.setData(item);
-		return this->enter(&wrappingItem);
+		return (this->enter(&wrappingItem));
     }
 
-    LinkedListDatabaseItem* remove(DatabaseItem* item);
+    LinkedListItem* remove(DatabaseItem* item);
 
      /*!
      * Start the scheduling.
      */
     void startScheduling() {};
 
-    int getNextTimerEvent(LinkedListDatabase* sleepList, unint4 dt );
+    TimeT getNextTimerEvent(LinkedList* sleepList, TimeT currentTime );
 
-    LinkedListDatabaseItem* getNext();
+    LinkedListItem* getNext();
 
 };
 

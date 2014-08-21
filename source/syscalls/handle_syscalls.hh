@@ -22,7 +22,9 @@
 #include "inc/types.hh"
 #include <SCLConfig.hh>
 
+/* Syscall library defines include*/
 #include "inc/defines.h"
+
 #include "kernel/Kernel.hh"
 #include "filesystem/Resource.hh"
 #include "process/Task.hh"
@@ -50,7 +52,7 @@ extern TimeT       lastCycleStamp;
 #if VALIDATE_SYSCALL_ADDRESS_RANGES
 #define VALIDATE_IN_PROCESS( addr ) \
 	if (((unint4) (addr) < LOG_TASK_SPACE_START) || ((unint4) (addr) > LOG_TASK_SPACE_START + MAX_TASK_SIZE)) { \
-		LOG(SYSCALLS,WARN,(SYSCALLS,WARN,"SYSCALL: Address Space Violation: %x, at %s, %d",addr,__FILE__,__LINE__));\
+		LOG(SYSCALLS,WARN,"SYSCALL: Address Space Violation: %x, at %s, %d",addr,__FILE__,__LINE__);\
 		return (cError); \
 	}
 #else
@@ -82,7 +84,8 @@ int printToStdOut(int4 sp_int );
 int ioctl(int4 sp_int);
 #endif
 
-int getTime(int4 sp_int);
+int getCycles(int4 sp_int);
+int getDateTime(int4 sp_int);
 
 #ifdef HAS_SyscallManager_mapMemoryCfd
 int mapMemory(int4 sp_int);
@@ -126,6 +129,10 @@ int shm_mapSyscall(int4 sp_int);
 
 #ifdef HAS_SyscallManager_thread_yieldCfd
     int thread_yield(int4 int_sp);
+#endif
+
+#ifdef HAS_SyscallManager_getpidCfd
+int getpid(int4 int_sp);
 #endif
 
 #ifdef HAS_SyscallManager_signal_waitCfd
@@ -207,6 +214,12 @@ int shm_mapSyscall(int4 sp_int);
 #ifdef HAS_SyscallManager_add_devaddrCfd
     int add_devaddrSyscall(int4 sp);
 #endif
+
+    int mkdev( int4 int_sp );
+
+    int taskioctl(intptr_t int_sp);
+
+    int fseekSyscall(intptr_t sp_int);
 
 inline void handleSyscall(int4 sp_int) {
         int syscallnum;
@@ -378,7 +391,7 @@ inline void handleSyscall(int4 sp_int) {
 				break;
 
 			case cGetTimeSyscallId:
-				retval = getTime(sp_int);
+				retval = getCycles(sp_int);
 				break;
 
 	#ifdef HAS_SyscallManager_mapMemoryCfd
@@ -424,10 +437,27 @@ inline void handleSyscall(int4 sp_int) {
 			case cFRemoveID:
 				retval = fremoveSyscall(sp_int);
 				break;
-				break;
 	#endif
+    #ifdef HAS_SyscallManager_getpidCfd
+			case cGetPID:
+			    retval = getpid(sp_int);
+			    break;
+    #endif
+			case cGetDateTimeSyscallId:
+			    retval = getDateTime(sp_int);
+			    break;
+			case cMkDevSyscallId:
+			    retval = mkdev(sp_int);
+			    break;
+		    case cTaskioctlscallId:
+                retval = taskioctl(sp_int);
+                break;
+		    case cFSeekSyscallId:
+		        retval = fseekSyscall(sp_int);
+		        break;
+
 			default:
-				LOG(SYSCALLS,ERROR,(SYSCALLS,ERROR,"invalid syscall %d",syscallnum));
+				LOG(SYSCALLS,ERROR,"Invalid syscall %d",syscallnum);
 				retval = -1;
 				break;
         }

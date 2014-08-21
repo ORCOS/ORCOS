@@ -168,7 +168,8 @@ struct smsc95xx_private {
 
 
  // Default Mac Address...
- static char default_macaddr[6]  ATTR_CACHE_INHIBIT __attribute__((aligned(4))) = {0x1,0x1,0x1,0x1,0x1,0x1};
+// CACHE inhibi region can not variables that are not initialized !
+ static char default_macaddr[6]  = {0xc0,0xc0,0xc0,0xc0,0xc0,0xc0};
 
  static unsigned char tmp_data[2048] ATTR_CACHE_INHIBIT;
  //static unsigned char rxbuffer[2048] ATTR_CACHE_INHIBIT;
@@ -193,7 +194,7 @@ static int smsc95xx_write_reg(USBDevice *dev, unint2 index, unint4 data)
 	int4 error = dev->controller->sendUSBControlMsg(dev,0,(unint1*)&msg,USB_DIR_OUT,sizeof(data),(unint1*)&tmpbuf);
 
 	if (error != 4) {
-		printf("smsc95xx_write_reg failed: index=%d, data=%d, len=%d\r\n", index, data, sizeof(data));
+		LOG(ARCH,DEBUG,"smsc95xx_write_reg failed: index=%d, data=%d, len=%d\r\n", index, data, sizeof(data));
 		return (-1);
 	}
 	return (cOk);
@@ -209,7 +210,7 @@ static int smsc95xx_read_reg(USBDevice *dev, unint2 index, unint4 *data)
 	int4 error = dev->controller->sendUSBControlMsg(dev,0,(unint1*)&msg,USB_DIR_IN,sizeof(data),(unint1*)&tmpbuf);
 
 	if (error != 4) {
-		printf("smsc95xx_read_reg failed: index=%d, data=%d, len=%d, error=%d", index, *data, sizeof(data),error);
+		LOG(ARCH,DEBUG,"smsc95xx_read_reg failed: index=%d, data=%d, len=%d, error=%d", index, *data, sizeof(data),error);
 		return (cError);
 	}
 
@@ -227,10 +228,10 @@ static int smsc95xx_phy_wait_not_busy(USBDevice *dev)
 		timeout--;
 		smsc95xx_read_reg(dev, MII_ADDR, &val);
 		if (!(val & MII_BUSY_))
-			return 0;
+			return (0);
 	} while (timeout > 0);
 
-	return -1;
+	return (-1);
 }
 
 static int smsc95xx_mdio_read(USBDevice *dev, int phy_id, int idx)
@@ -239,8 +240,8 @@ static int smsc95xx_mdio_read(USBDevice *dev, int phy_id, int idx)
 
 	/* confirm MII not busy */
 	if (smsc95xx_phy_wait_not_busy(dev)) {
-		printf("MII is busy in smsc95xx_mdio_read\n");
-		return -1;
+		LOG(ARCH,DEBUG,"MII is busy in smsc95xx_mdio_read");
+		return (-1);
 	}
 
 	/* set the address, index & direction (read from PHY) */
@@ -248,13 +249,13 @@ static int smsc95xx_mdio_read(USBDevice *dev, int phy_id, int idx)
 	smsc95xx_write_reg(dev, MII_ADDR, addr);
 
 	if (smsc95xx_phy_wait_not_busy(dev)) {
-		printf("Timed out reading MII reg %02X\n", idx);
-		return -1;
+		LOG(ARCH,DEBUG,"Timed out reading MII reg %02X", idx);
+		return (-1);
 	}
 
 	smsc95xx_read_reg(dev, MII_DATA, &val);
 
-	return (unint2)(val & 0xFFFF);
+	return ((unint2)(val & 0xFFFF));
 }
 
 static void smsc95xx_mdio_write(USBDevice *dev, int phy_id, int idx,
@@ -264,7 +265,7 @@ static void smsc95xx_mdio_write(USBDevice *dev, int phy_id, int idx,
 
 	/* confirm MII not busy */
 	if (smsc95xx_phy_wait_not_busy(dev)) {
-		printf("MII is busy in smsc95xx_mdio_write\n");
+		LOG(ARCH,DEBUG,"MII is busy in smsc95xx_mdio_write");
 		return;
 	}
 
@@ -276,7 +277,7 @@ static void smsc95xx_mdio_write(USBDevice *dev, int phy_id, int idx,
 	smsc95xx_write_reg(dev, MII_ADDR, addr);
 
 	if (smsc95xx_phy_wait_not_busy(dev))
-		printf("Timed out writing MII reg %02X\n", idx);
+		LOG(ARCH,DEBUG,"Timed out writing MII reg %02X", idx);
 }
 
 #if 0
@@ -293,7 +294,7 @@ static int smsc95xx_eeprom_confirm_not_busy(USBDevice *dev)
 
 	} while (timeout > 0);
 
-	printf("EEPROM is busy\n");
+	LOG(ARCH,DEBUG,"EEPROM is busy"));
 	return -1;
 }
 
@@ -311,7 +312,7 @@ static int smsc95xx_wait_eeprom(USBDevice *dev)
 	} while (timeout > 0);
 
 	if (val & (E2P_CMD_TIMEOUT_ | E2P_CMD_BUSY_)) {
-		printf("EEPROM read operation timeout\n");
+		LOG(ARCH,DEBUG,"EEPROM read operation timeout");
 		return -1;
 	}
 	return 0;
@@ -327,7 +328,6 @@ static int smsc95xx_read_eeprom(USBDevice *dev, unint4 offset, unint4 length,
 	if (ret)
 		return ret;
 
-	printf("EEPROM not busy..\r");
 
 	for (i = 0; i < length; i++) {
 		val = E2P_CMD_BUSY_ | E2P_CMD_READ_ | (offset & E2P_CMD_ADDR_);
@@ -381,7 +381,6 @@ static int smsc95xx_phy_initialize(USBDevice *dev)
 		PHY_INT_MASK_DEFAULT_);
 	mii_nway_restart(dev);
 
-	//printf("phy initialised succesfully\r");
 	return 0;
 }
 
@@ -431,24 +430,19 @@ static int smsc95xx_write_hwaddr(USBDevice* dev, char* ethaddr)
 	/* set hardware address */
 	//printf("** %s()\r", __func__);
 	ret = smsc95xx_write_reg(dev, ADDRL, addr_lo);
-	if (ret < 0)
+	if (ret < 0) {
+	    LOG(ARCH,ERROR,"smsc95xx_write_hwaddr() error setting mac address\n");
 		return (ret);
+	}
 
 	ret = smsc95xx_write_reg(dev, ADDRH, addr_hi);
 	if (ret < 0)
-		return ret;
+	{
+        LOG(ARCH,ERROR,"smsc95xx_write_hwaddr() error setting mac address\n");
+        return (ret);
+	}
 
-	//printf("MAC %pM\r", ethaddr);
-
-	unint4 addr_smsc_lo;
-	ret = smsc95xx_read_reg(dev, ADDRL, &addr_smsc_lo);
-	//printf("MAC Set: %x",addr_smsc_lo);
-
-	ret = smsc95xx_read_reg(dev, ADDRH, &addr_smsc_lo);
-	//printf("%x\r",addr_smsc_lo);
-
-
-	return 0;
+	return (0);
 }
 
 /* Enable or disable Tx & Rx checksum offload engines */
@@ -458,7 +452,7 @@ static int smsc95xx_set_csums(USBDevice *dev,
 	unint4 read_buf;
 	int ret = smsc95xx_read_reg(dev, COE_CR, &read_buf);
 	if (ret < 0)
-		return ret;
+		return (ret);
 
 	if (use_tx_csum)
 		read_buf |= Tx_COE_EN_;
@@ -472,10 +466,9 @@ static int smsc95xx_set_csums(USBDevice *dev,
 
 	ret = smsc95xx_write_reg(dev, COE_CR, read_buf);
 	if (ret < 0)
-		return ret;
+		return (ret);
 
-	//printf("COE_CR = 0x%08x\r", read_buf);
-	return 0;
+	return (0);
 }
 
 static void smsc95xx_set_multicast(USBDevice* dev)
@@ -548,10 +541,10 @@ ErrorT SMSC95xxUSBDeviceDriver::init()
 	} while ((read_buf & HW_CFG_LRST_) && (timeout < 1000000));
 
 	if (timeout >= 100) {
-		LOG(ARCH,ERROR,(ARCH,ERROR,"SMSC95xxUSBDeviceDriver: timeout waiting for completion of Lite Reset"));
+		LOG(ARCH,ERROR,"SMSC95xxUSBDeviceDriver: timeout waiting for completion of Lite Reset");
 		return (-1);
 	}
-	LOG(ARCH,TRACE,(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: SMSC95xx reset successfully.."));
+	LOG(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: SMSC95xx reset successfully..");
 
 	write_buf = PM_CTL_PHY_RST_;
 	ret = smsc95xx_write_reg(dev, PM_CTRL, write_buf);
@@ -567,11 +560,11 @@ ErrorT SMSC95xxUSBDeviceDriver::init()
 		timeout++;
 	} while ((read_buf & PM_CTL_PHY_RST_) && (timeout < 10000000));
 	if (timeout >= 100) {
-		LOG(ARCH,ERROR,(ARCH,ERROR,"SMSC95xxUSBDeviceDriver: timeout waiting for PHY Reset"));
+		LOG(ARCH,ERROR,"SMSC95xxUSBDeviceDriver: timeout waiting for PHY Reset");
 		return (-1);
 	}
 
-	LOG(ARCH,TRACE,(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: SMSC95xx PHY reset successfully.."));
+	LOG(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: SMSC95xx PHY reset successfully..");
 
 	// get preprogrammed mac address
 	// beagleboardxm does not have a hard coded mac address
@@ -589,7 +582,7 @@ ErrorT SMSC95xxUSBDeviceDriver::init()
 	ret = smsc95xx_read_reg(dev, HW_CFG, &read_buf);
 	if (ret < 0)
 		return (ret);
-	LOG(ARCH,TRACE,(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: Read Value from HW_CFG : 0x%08x", read_buf));
+	LOG(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: Read Value from HW_CFG : 0x%08x", read_buf);
 
 	read_buf |= HW_CFG_BIR_;
 	ret = smsc95xx_write_reg(dev, HW_CFG, read_buf);
@@ -599,7 +592,7 @@ ErrorT SMSC95xxUSBDeviceDriver::init()
 	ret = smsc95xx_read_reg(dev, HW_CFG, &read_buf);
 	if (ret < 0)
 		return (ret);
-	LOG(ARCH,TRACE,(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: Read Value from HW_CFG after writing HW_CFG_BIR_: 0x%08x", read_buf));
+	LOG(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: Read Value from HW_CFG after writing HW_CFG_BIR_: 0x%08x", read_buf);
 
 #ifdef TURBO_MODE
 //	if (dev->pusb_dev->speed == USB_SPEED_HIGH) {
@@ -613,7 +606,7 @@ ErrorT SMSC95xxUSBDeviceDriver::init()
 	burst_cap = 0;
 	priv->rx_urb_size = MAX_SINGLE_PACKET_SIZE;
 #endif
-	LOG(ARCH,TRACE,(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: rx_urb_size=%d", (unint4)priv->rx_urb_size));
+	LOG(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: rx_urb_size=%d", (unint4)priv->rx_urb_size);
 
 	ret = smsc95xx_write_reg(dev, BURST_CAP, burst_cap);
 	if (ret < 0)
@@ -622,7 +615,7 @@ ErrorT SMSC95xxUSBDeviceDriver::init()
 	ret = smsc95xx_read_reg(dev, BURST_CAP, &read_buf);
 	if (ret < 0)
 		return (ret);
-	LOG(ARCH,TRACE,(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: Read Value from BURST_CAP after writing: 0x%08x", read_buf));
+	LOG(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: Read Value from BURST_CAP after writing: 0x%08x", read_buf);
 
 	read_buf = DEFAULT_BULK_IN_DELAY;
 	//read_buf = 0x1000;
@@ -633,12 +626,12 @@ ErrorT SMSC95xxUSBDeviceDriver::init()
 	ret = smsc95xx_read_reg(dev, BULK_IN_DLY, &read_buf);
 	if (ret < 0)
 		return (ret);
-	LOG(ARCH,TRACE,(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: Read Value from BULK_IN_DLY after writing: 0x%08x", read_buf));
+	LOG(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: Read Value from BULK_IN_DLY after writing: 0x%08x", read_buf);
 
 	ret = smsc95xx_read_reg(dev, HW_CFG, &read_buf);
 	if (ret < 0)
 		return (ret);
-	LOG(ARCH,TRACE,(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: Read Value from HW_CFG: 0x%08x", read_buf));
+	LOG(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: Read Value from HW_CFG: 0x%08x", read_buf);
 
 #ifdef TURBO_MODE
 	read_buf |= (HW_CFG_MEF_ | HW_CFG_BCE_);
@@ -655,7 +648,7 @@ ErrorT SMSC95xxUSBDeviceDriver::init()
 	ret = smsc95xx_read_reg(dev, HW_CFG, &read_buf);
 	if (ret < 0)
 		return (ret);
-	LOG(ARCH,TRACE,(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: Read Value from HW_CFG after writing: 0x%08x", read_buf));
+	LOG(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: Read Value from HW_CFG after writing: 0x%08x", read_buf);
 
 	write_buf = 0xFFFFFFFF;
 	ret = smsc95xx_write_reg(dev, INT_STS, write_buf);
@@ -665,7 +658,7 @@ ErrorT SMSC95xxUSBDeviceDriver::init()
 	ret = smsc95xx_read_reg(dev, ID_REV, &read_buf);
 	if (ret < 0)
 		return (ret);
-	LOG(ARCH,TRACE,(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: ID_REV = 0x%08x", read_buf));
+	LOG(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: ID_REV = 0x%08x", read_buf);
 
 	/* Init Tx */
 	write_buf = 0;
@@ -691,7 +684,7 @@ ErrorT SMSC95xxUSBDeviceDriver::init()
 	/* Disable checksum offload engines */
 	ret = smsc95xx_set_csums(dev, 1, 1);
 	if (ret < 0) {
-		LOG(ARCH,ERROR,(ARCH,ERROR,"SMSC95xxUSBDeviceDriver: Failed to set csum offload: %d", ret));
+		LOG(ARCH,ERROR,"SMSC95xxUSBDeviceDriver: Failed to set csum offload: %d", ret);
 		return (ret);
 	}
 	smsc95xx_set_multicast(dev);
@@ -711,6 +704,9 @@ ErrorT SMSC95xxUSBDeviceDriver::init()
 
 	smsc95xx_start_tx_path(dev);
 	smsc95xx_start_rx_path(dev);
+
+	/* we dont wait here. if an ethernet connection is established (cable plugged in)
+	 * the usb device will raise an interrupt */
 
 	/*LOG(ARCH,INFO,(ARCH,INFO,"SMSC95xxUSBDeviceDriver: Waiting for Ethernet connection..."));
 	timeout = 1000;
@@ -770,7 +766,7 @@ ErrorT SMSC95xxUSBDeviceDriver::recv(unint4 recv_len)
 
 	unint4 packet_len;
 
-	LOG(ARCH,DEBUG,(ARCH,DEBUG,"SMSC95xxUSBDeviceDriver: RX IRQ. len: %d",recv_len));
+	LOG(ARCH,DEBUG,"SMSC95xxUSBDeviceDriver: RX IRQ. len: %d",recv_len);
 
 	unint4 recvd_bytes = 0;
 	char* rxbuffer = (char*) &dev->endpoints[4].recv_buffer[0];
@@ -785,7 +781,7 @@ ErrorT SMSC95xxUSBDeviceDriver::recv(unint4 recv_len)
 			char* p = (char*) last_pbuf->payload;
 
 			if (recv_len >= remaining_len) {
-				LOG(ARCH,DEBUG,(ARCH,DEBUG,"SMSC95xxUSBDeviceDriver: rx split packet: %d",remaining_len));
+				LOG(ARCH,DEBUG,"SMSC95xxUSBDeviceDriver: rx split packet: %d",remaining_len);
 
 				recvd_bytes += remaining_len;
 				recvd_bytes = (recvd_bytes + 3) & (~3);
@@ -798,7 +794,7 @@ ErrorT SMSC95xxUSBDeviceDriver::recv(unint4 recv_len)
 				pbuf_free(last_pbuf);
 			}
 			else {
-				LOG(ARCH,DEBUG,(ARCH,DEBUG,"SMSC95xxUSBDeviceDriver: rx split packet: %d",recv_len));
+				LOG(ARCH,DEBUG,"SMSC95xxUSBDeviceDriver: rx split packet: %d",recv_len);
 
 				// more packets
 				memcpy(&p[cur_len],rxbuffer,recv_len);
@@ -818,17 +814,17 @@ ErrorT SMSC95xxUSBDeviceDriver::recv(unint4 recv_len)
 			packet_len = cputole32(packet_len);
 
 			if (packet_len & RX_STS_ES_) {
-				LOG(ARCH,ERROR,(ARCH,ERROR,"SMSC95xxUSBDeviceDriver: RX packet header Error: %x",packet_len));
+				LOG(ARCH,ERROR,"SMSC95xxUSBDeviceDriver: RX packet header Error: %x",packet_len);
 				//hexdump(rxbuffer,recv_len);
 				return (cError);
 			}
 			// extract packet_len
 			packet_len = ((packet_len & RX_STS_FL_) >> 16);
 
-			LOG(ARCH,DEBUG,(ARCH,DEBUG,"SMSC95xxUSBDeviceDriver: Packet received.. Packet-Len %d",packet_len));
+			LOG(ARCH,DEBUG,"SMSC95xxUSBDeviceDriver: Packet received.. Packet-Len %d",packet_len);
 
 			if ((packet_len > 1500) || (packet_len == 0)) {
-				LOG(ARCH,ERROR,(ARCH,ERROR,"SMSC95xxUSBDeviceDriver: Length Validation failed: %d",packet_len));
+				LOG(ARCH,ERROR,"SMSC95xxUSBDeviceDriver: Length Validation failed: %d",packet_len);
 				return (cError);
 			}
 
@@ -884,7 +880,7 @@ ErrorT SMSC95xxUSBDeviceDriver::recv(unint4 recv_len)
 
 
 			} else {
-				LOG(ARCH,ERROR,(ARCH,ERROR,"SMSC95xxUSBDeviceDriver: no memory for pbuf!"));
+				LOG(ARCH,ERROR,"SMSC95xxUSBDeviceDriver: no memory for pbuf!");
 			}
 
 			recvd_bytes += packet_len + 4;
@@ -903,7 +899,10 @@ SMSC95xxUSBDeviceDriver::SMSC95xxUSBDeviceDriver(USBDevice* p_dev)
 	this->bulkin_ep = 0;
 	this->bulkout_ep = 0;
 	this->int_ep = 0;
-	LOG(ARCH,INFO,(ARCH,INFO,"SMSC95xxUSBDeviceDriver: new Device attached.."));
+	LOG(ARCH,INFO,"SMSC95xxUSBDeviceDriver: new Device attached..");
+    /* PR 1*/
+    kwait(10);
+
 	link_up = false;
 
 }
@@ -931,11 +930,12 @@ static err_t smsc95xx_low_level_output(struct netif *netif, struct pbuf *p) {
 	//LOG(ARCH,INFO,(ARCH,INFO,"SMSC95xxUSBDeviceDriver: sending packet of length: %d",p->tot_len));
 
 	if (p->tot_len > 1500) {
-		LOG(ARCH,WARN,(ARCH,WARN,"SMSC95xxUSBDeviceDriver: not sending packet. Len > 1500."));
+		LOG(ARCH,WARN,"SMSC95xxUSBDeviceDriver: not sending packet. Len > 1500.");
 		return (ERR_MEM);
 	}
 
 	if (p == 0) return (ERR_ARG);
+
 
 	myMutex->acquire();
 
@@ -951,16 +951,14 @@ static err_t smsc95xx_low_level_output(struct netif *netif, struct pbuf *p) {
 
 	char* data;
 
-	//if (curp->tot_len != curp->len) {
+    pos  = sizeof(tx_cmd_a) + sizeof(tx_cmd_b);
+    data = (char*) tmp_data;
 
-		pos  = sizeof(tx_cmd_a) + sizeof(tx_cmd_b);
-		data = (char*) tmp_data;
-
-		while (curp != 0) {
-			memcpy(&tmp_data[pos],curp->payload,curp->len);
-			pos  = (unint2) (pos + curp->len);
-			curp = curp->next;
-		}
+    while (curp != 0) {
+        memcpy(&tmp_data[pos],curp->payload,curp->len);
+        pos  = (unint2) (pos + curp->len);
+        curp = curp->next;
+    }
 
 
 	/* prepend cmd_a and cmd_b */
@@ -970,6 +968,7 @@ static err_t smsc95xx_low_level_output(struct netif *netif, struct pbuf *p) {
 	SMSC95xxUSBDeviceDriver *driver =  (SMSC95xxUSBDeviceDriver*) netif->state;
 
 	if (driver != 0) {
+	    LOG(ARCH,DEBUG,"SMSC95xxUSBDeviceDriver: sending packet len %d",len);
 
 	    driver->dev->controller->USBBulkMsg(driver->dev,driver->bulkout_ep,USB_DIR_OUT,8,(unint1*) dummyFrame);
 
@@ -1043,7 +1042,7 @@ ErrorT SMSC95xxUSBDeviceDriver::initialize() {
 			// active it
 
 			if (dev->endpoints[i].direction == Out) {
-				LOG(ARCH,DEBUG,(ARCH,DEBUG,"SMSC95xxUSBDeviceDriver: BulkOut EP: %d",i));
+				LOG(ARCH,DEBUG,"SMSC95xxUSBDeviceDriver: BulkOut EP: %d",i);
 				bulkout_ep =  i;
 				bulkoutep = true;
 				dev->activateEndpoint(i);
@@ -1051,12 +1050,12 @@ ErrorT SMSC95xxUSBDeviceDriver::initialize() {
 				bulkin_ep =  i;
 				bulkinep = true;
 				dev->activateEndpoint(i);
-				LOG(ARCH,DEBUG,(ARCH,DEBUG,"SMSC95xxUSBDeviceDriver: BulkIn EP: %d",i));
+				LOG(ARCH,DEBUG,"SMSC95xxUSBDeviceDriver: BulkIn EP: %d",i);
 			}
 
 
 		} else if(dev->endpoints[i].type == Interrupt)  {
-			LOG(ARCH,DEBUG,(ARCH,DEBUG,"SMSC95xxUSBDeviceDriver: IRQ EP: %d",i));
+			LOG(ARCH,DEBUG,"SMSC95xxUSBDeviceDriver: IRQ EP: %d",i);
 			int_ep =  i;
 			dev->endpoints[i].poll_frequency = 200;
 			intep = true;
@@ -1064,7 +1063,7 @@ ErrorT SMSC95xxUSBDeviceDriver::initialize() {
 	}
 
 	if (!(bulkinep & bulkoutep & intep)) {
-		LOG(ARCH,ERROR,(ARCH,ERROR,"SMSC95xxUSBDeviceDriver: probing failed.."));
+		LOG(ARCH,ERROR,"SMSC95xxUSBDeviceDriver: probing failed..");
 		// deactivate eps again
 		return (cError);
 	}
@@ -1081,7 +1080,7 @@ ErrorT SMSC95xxUSBDeviceDriver::initialize() {
 	dev->dev_priv = theOS->getMemoryManager()->alloc(sizeof(struct smsc95xx_private));
 
 	if (init() < 0) {
-		LOG(ARCH,ERROR,(ARCH,ERROR,"SMSC95xxUSBDeviceDriver: Initializing Ethernet device failed.."));
+		LOG(ARCH,ERROR,"SMSC95xxUSBDeviceDriver: Initializing Ethernet device failed..");
 		return (cError);
 	}
 
@@ -1107,15 +1106,22 @@ ErrorT SMSC95xxUSBDeviceDriver::initialize() {
 	//#endif
 
 	int ipaddr[4] = {Board_ETH_IP4ADDR};
-	IP4_ADDR(&tIpAddr, ipaddr[0], ipaddr[1], ipaddr[2], ipaddr[3]);
 
-		// save driver in netif as state
+    struct ip4_addr tgwAddr;
+	IP4_ADDR(&tgwAddr, 192, 168, 1, 1);
+    IP4_ADDR(&tIpAddr, ipaddr[0], ipaddr[1], ipaddr[2], ipaddr[3]);
+
+	// save driver in netif as state
 	// use ethernet interface init method in lwip_ethernetif.c
-	netif_add(&tEMAC0Netif, &tIpAddr, &eth_nm, 0, 0, &smsc9x_ethernetif_init, 0);
-	tEMAC0Netif.state = (void*) this;
+	netif_add(&tEMAC0Netif, &tIpAddr, &eth_nm, &tgwAddr, (void*) this, &smsc9x_ethernetif_init, 0);
+	netif_set_default(&tEMAC0Netif);
 
 	netif_set_down(&tEMAC0Netif);
-
+/*	struct eth_addr gwmac = {0xC0,0xC1,0xC0,0xC3,0x55,0x23   };
+	struct ip_addr tgwip;
+	tgwip.version = IPV4;
+	tgwip.addr.ip4addr.addr  = tgwAddr.addr;
+	update_ar_entry(&tEMAC0Netif, &tgwip, &gwmac, 0);*/
 	return (cOk);
 }
 
@@ -1130,20 +1136,20 @@ ErrorT SMSC95xxUSBDeviceDriver::handleInterrupt() {
 
 
 	if ( ((unint4)qtd2 > QT_NEXT_TERMINATE) && (QT_TOKEN_GET_STATUS(qh->qh_overlay.qt_token) != 0x80)) {
-		LOG(ARCH,DEBUG,(ARCH,DEBUG,"SMSC95xxUSBDeviceDriver: PHY Interrupt"));
+		LOG(ARCH,DEBUG,"SMSC95xxUSBDeviceDriver: PHY Interrupt");
 
 		if (dev->endpoints[this->int_ep].recv_buffer == 0) return (cError);
 		unint4 interrupt_sts = *((unint4*) dev->endpoints[this->int_ep].recv_buffer);
 
 
-		LOG(ARCH,DEBUG,(ARCH,DEBUG,"SMSC95xxUSBDeviceDriver: PHY Interrupt: %x",interrupt_sts));
+		LOG(ARCH,DEBUG,"SMSC95xxUSBDeviceDriver: PHY Interrupt: %x",interrupt_sts);
 		/* read to clear */
 		smsc95xx_mdio_read(dev, SMSC95XX_INTERNAL_PHY_ID, PHY_INT_SRC);
 
 		if ((interrupt_sts & INT_EP_CTL_PHY_INT_) != 0) {
 			 /* clear interrupt status */
 
-			LOG(ARCH,DEBUG,(ARCH,DEBUG,"SMSC95xxUSBDeviceDriver: Link Activated.."));
+			LOG(ARCH,DEBUG,"SMSC95xxUSBDeviceDriver: Link Activated..");
 			link_up = true;
 			netif_set_default(&tEMAC0Netif);
 			netif_set_up(&tEMAC0Netif);
@@ -1172,7 +1178,7 @@ ErrorT SMSC95xxUSBDeviceDriver::handleInterrupt() {
 	qtd2  = (qTD*) qh->qh_curtd;
 
 	if ( ((unint4)qtd2 > QT_NEXT_TERMINATE) && (QT_TOKEN_GET_STATUS(qh->qh_overlay.qt_token) != 0x80)) {
-		LOG(ARCH,TRACE,(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: Packet received: status %x",QT_TOKEN_GET_STATUS(qh->qh_overlay.qt_token)));
+		LOG(ARCH,TRACE,"SMSC95xxUSBDeviceDriver: Packet received: status %x",QT_TOKEN_GET_STATUS(qh->qh_overlay.qt_token));
 
 		unint4 len =  dev->endpoints[4].interrupt_receive_size - QT_TOKEN_GET_TOTALBYTES(qtd2->qt_token);
 		dev->endpoints[4].data_toggle ^= 1;

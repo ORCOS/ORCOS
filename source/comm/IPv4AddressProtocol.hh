@@ -19,12 +19,9 @@
 #ifndef IPV4ADDRESSPROTOCOL_HH_
 #define IPV4ADDRESSPROTOCOL_HH_
 
-
 #include "comm/AddressProtocol.hh"
-#include "db/ArrayDatabase.hh"
+#include "db/ArrayList.hh"
 #include "filesystem/Directory.hh"
-
-
 
 /*!
  * \brief A minimal implementation of the IPv4 Address Protocol.
@@ -35,7 +32,7 @@
  */
 class IPv4AddressProtocol: public AddressProtocol {
 public:
-    IPv4AddressProtocol( Directory* commdevsdir );
+    IPv4AddressProtocol(Directory* commdevsdir);
     ~IPv4AddressProtocol();
 
     static void initialize() {
@@ -43,10 +40,10 @@ public:
     }
 
     //! Bind Method. If the addr is a multicast address tells the protocol to accept these multicast packets.
-    ErrorT bind( sockaddr* addr, Socket* sock );
+    ErrorT bind(sockaddr* addr, Socket* sock);
 
     //! Will unbind a socket from the addresprotocol domain. For multicast registered sockets this will stop the protocol to listen for that multicast address
-    ErrorT unbind( sockaddr* addr, Socket* sock );
+    ErrorT unbind(sockaddr* addr, Socket* sock);
 
 };
 

@@ -23,7 +23,7 @@
 
 extern Kernel* theOS;
 
-void* operator new( size_t s )
+void* operator new(size_t s)
 /*---------------------------------------------------------------------------*/
 {
     Kernel_MemoryManagerCfdCl* mm;
@@ -31,61 +31,63 @@ void* operator new( size_t s )
     void* addr = 0;
 
     mm = theOS->getMemoryManager();
-    addr = mm->alloc( s, DO_ALIGN);
+    addr = mm->alloc(s, DO_ALIGN);
 
     return (addr);
 }
 
-void* operator new( size_t s, bool aligned )
+void* operator new(size_t s, bool aligned)
 /*---------------------------------------------------------------------------*/
 {
-	Kernel_MemoryManagerCfdCl* mm;
+    Kernel_MemoryManagerCfdCl* mm;
 
     void* addr = 0;
 
     mm = theOS->getMemoryManager();
-    addr = mm->alloc( s, aligned );
+    addr = mm->alloc(s, aligned);
 
     return (addr);
 }
 
 /*---------------------------------------------------------------------------*/
-void operator delete( void* ptr )
+void operator delete(void* ptr)
 /*---------------------------------------------------------------------------*/
 {
-	Kernel_MemoryManagerCfdCl* mm;
+    Kernel_MemoryManagerCfdCl* mm;
     int status;
 
     mm = theOS->getMemoryManager();
-    status = mm->free( ptr );
-    if ( isOk(status) ) {
+    status = mm->free(ptr);
+    if (isOk(status))
+    {
         ptr = 0;
     }
 
 }
 
-void* operator new[]( size_t s )
+void* operator new[](size_t s)
 /*---------------------------------------------------------------------------*/
 {
-	Kernel_MemoryManagerCfdCl* mm;
+    Kernel_MemoryManagerCfdCl* mm;
 
     void* addr = 0;
 
     mm = theOS->getMemoryManager();
-    addr = mm->alloc( s, NO_ALIGN);
+    addr = mm->alloc(s, NO_ALIGN);
 
     return (addr);
 }
 
-void operator delete[]( void* ptr )
+void operator delete[](void* ptr)
 /*---------------------------------------------------------------------------*/
 {
-	Kernel_MemoryManagerCfdCl* mm;
+    Kernel_MemoryManagerCfdCl* mm;
     int status;
 
     mm = theOS->getMemoryManager();
-    status = mm->free( ptr );
-    if ( isOk(status) ) {
+    status = mm->free(ptr);
+    if (isOk(status))
+    {
         ptr = 0;
     }
 

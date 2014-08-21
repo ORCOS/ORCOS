@@ -1,20 +1,20 @@
 /*
-	ORCOS - an Organic Reconfigurable Operating System
-	Copyright (C) 2010 University of Paderborn
+ ORCOS - an Organic Reconfigurable Operating System
+ Copyright (C) 2010 University of Paderborn
 
-	This program is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
 
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #ifndef OMAP3530_H_
 #define OMAP3530_H_
@@ -22,25 +22,15 @@
 #define MHZ			*1000000
 #define kHZ			*1000
 
-
 /*
  * PRCM Interrupt Configuration Registers
  */
 
-#define PRM_IRQENABLE_MPU	0x4830681C	// register for enabling prm interrupts
-#define PRM_IRQSTATUS_MPU	0x48306818	// register with prm interrupt status
-
-#define PRM_CLKSRC_CTRL		0x48307270	// control register for device source clock
-#define PRM_CLKSEL			0x48306D40	// selection of system clock frequency
-
-#define CM_PER				0x48005000	// peripheral domain modules
-
-#define CLKSEL_OFFSET		0x00000040	// clock selection offset
-
-#define CM_CLKSEL_PER		CM_PER + CLKSEL_OFFSET	// peripheral clock selection
-#define CM_CLKSEL_WKUP		0x48004C40	// 	wakeup module clock selection
-#define CM_CLKSEL_CORE		0x48004A40
-
+#define PRM_IRQENABLE_MPU	0x4830681C	// register for enabling prm interrupts#define PRM_IRQSTATUS_MPU	0x48306818	// register with prm interrupt status
+#define PRM_CLKSRC_CTRL		0x48307270	// control register for device source clock#define PRM_CLKSEL			0x48306D40	// selection of system clock frequency
+#define CM_PER				0x48005000	// peripheral domain modules
+#define CLKSEL_OFFSET		0x00000040	// clock selection offset
+#define CM_CLKSEL_PER		CM_PER + CLKSEL_OFFSET	// peripheral clock selection#define CM_CLKSEL_WKUP		0x48004C40	// 	wakeup module clock selection#define CM_CLKSEL_CORE		0x48004A40
 
 #define CM_FCLKEN1_CORE		0x48004A00
 #define CM_ICLKEN1_CORE		0x48004A10
