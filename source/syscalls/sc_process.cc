@@ -334,37 +334,27 @@ int thread_run( int4 int_sp ) {
 
     SYSCALLGETPARAMS1(int_sp, threadid);
 
-    LOG(SYSCALLS,DEBUG,"Syscall: thread_run(%d)",threadid);
-
-
-#ifdef REALTIME
-    TimeT currentTime = theOS->getClock()->getClockCycles();
-#endif
+    LOG(SYSCALLS,TRACE,"Syscall: thread_run(%d)",threadid);
 
     if ( threadid >= cFirstThread ) {
-        // run the given thread
+        /* run the given thread */
         register Kernel_ThreadCfdCl* t = pCurrentRunningTask->getThreadbyId( threadid );
 
         if ( (t != 0) && (t->isNew()) && (!t->isReady()) ) {
 
-            LOG(SYSCALLS,TRACE,"Syscall: Thread run valid");
-
-
 #ifdef REALTIME
-            // we are realtime so set the arrival time
-            t->arrivalTime = currentTime + t->phase;
             theOS->getCPUScheduler()->computePriority(t);
 #endif
-            // announce to scheduler!
+            /* announce to scheduler! */
             t->run();
         } else return (cThreadNotFound);
     }
     else {
-        // run all new threads of this task!
-        // if we are realtime set the arrivaltime of all threads!
-        // the arrivaltime will be the same then, which is important
-        // if all threads shall start at the same time (no phase shifting)
-        LinkedList* threadDb = pCurrentRunningTask->getThreadDB();
+        /* run all new threads of this task!
+           if we are realtime set the arrivaltime of all threads!
+           the arrivaltime will be the same then, which is important
+           if all threads shall start at the same time (no phase shifting) */
+        LinkedList* threadDb  = pCurrentRunningTask->getThreadDB();
         LinkedListItem* litem = threadDb->getHead();
 
         while ( litem != 0 ) {
@@ -372,10 +362,7 @@ int thread_run( int4 int_sp ) {
 
             if ( thread->isNew() && !thread->isReady() ) {
                 // we got a newly created thread here that has never run before
-
 #ifdef REALTIME
-                // we are realtime so set the arrival time
-                thread->arrivalTime = currentTime + thread->phase;
                 theOS->getCPUScheduler()->computePriority(thread);
 #endif
 
@@ -460,7 +447,7 @@ int taskioctl(intptr_t int_sp) {
     if (res == 0)
         return (cInvalidResourceType);
 
-    if (cmd == 0) {
+    if (cmd == TIOCTL_SET_STDOUT) {
         /* SET STDOUT of task*/
         task->setStdOut(res);
         return (cOk);

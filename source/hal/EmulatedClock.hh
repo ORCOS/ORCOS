@@ -44,6 +44,10 @@ public:
         high_precision_time += cycles;
     }
 
+    TimeT getClockCycles() {
+        return (getTimeSinceStartup());
+    }
+
     /*!
      * \brief Resets the time base registers.
      */

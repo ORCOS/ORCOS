@@ -23,9 +23,6 @@
 #include "Filemanager.hh"
 #include "SCLConfig.hh"
 
-#if HAS_PROCFS_ENABLED
-#include "filesystem/SimpleProcfs.hh"
-#endif
 
 /*!
  * \brief A simple filemanager that implements a very basic unix like filesystem
@@ -60,23 +57,22 @@ public:
      */
     ErrorT registerResource(Resource* res);
 
+
     ErrorT unregisterResource(Resource* res);
 
     /*!
      * \brief Resource creation is not imlpemented in this filemanager.
      */
     Resource* createResource(const char* pathname, int1 flags) {
-        return 0;
+        return (0);
     }
-    ;
 
     /*!
      * \brief Removing resources is not implemented in this filemanger.
      */
     ErrorT removeResource(char* pathname, int1 flags) {
-        return cNotImplemented ;
+        return (cNotImplemented) ;
     }
-    ;
 
     /*!
      * \brief Returns the resource by the full pathname

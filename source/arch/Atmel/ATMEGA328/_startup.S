@@ -59,7 +59,7 @@
 
    clr r1
    clr r0
-	sei
+   sei
 
    // copy the data from flash to ram
    rcall __copy_data
@@ -102,10 +102,10 @@
    reti
 
 __copy_data:
- 	 ldi     r26, lo8(__data_start)
-     ldi     r27, hi8(__data_start)
-     ldi     r30, lo8(__data_load_start)
-     ldi     r31, hi8(__data_load_start)
+ 	 ldi     r26, lo8(__data_start) // XL
+     ldi     r27, hi8(__data_start) // XH
+     ldi     r30, lo8(__data_load_start) //ZL
+     ldi     r31, hi8(__data_load_start) // ZH
      rjmp    cmp
  loop:
  	 lpm     r24, Z

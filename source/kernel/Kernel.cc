@@ -19,8 +19,7 @@
 #include "Kernel.hh"
 #include "inc/sprintf.hh"
 #include "lwip/netif.h"
-
-#define LINEFEED "\r"
+#include "filesystem/KernelVariable.hh"
 
 extern Kernel* theOS;
 
@@ -44,7 +43,7 @@ extern void dwarf_init();
 #define PRINT_BOOT_LOGO 1
 #endif
 
-#define orcos_string "         __           __          __             __           __ "LINEFEED"\
+#define ORCOS_LOGO "         __           __          __             __           __ "LINEFEED"\
         /\\ \\         /\\ \\        /\\ \\           /\\ \\         / /\\ "LINEFEED"\
        /  \\ \\       /  \\ \\      /  \\ \\         /  \\ \\       / /  \\ "LINEFEED"\
       / /\\ \\ \\     / /\\ \\ \\    / /\\ \\ \\       / /\\ \\ \\     / / /\\ \\__ "LINEFEED"\
@@ -57,7 +56,7 @@ extern void dwarf_init();
 \\/_________/ \\/_/    \\_\\/\\/____________/\\/_________/   \\_____\\/ "LINEFEED"\
 "LINEFEED""
 
-
+#define ORCOS_VERSION " 1.5 "
 
 /*--------------------------------------------------------------------------*
  ** Kernel::Kernel
@@ -74,6 +73,10 @@ Kernel::Kernel() {
 Kernel::~Kernel() {
 
 }
+
+
+ArrayList*  testList;
+
 
 /*--------------------------------------------------------------------------*
  ** Kernel::initialize
@@ -99,23 +102,35 @@ void Kernel::initialize() {
     BlockDeviceDriver::initialize();
 
 
-    this->errorHandler = new TaskErrorHandler();
+    this->errorHandler          = new TaskErrorHandler();
 #ifdef HAS_Kernel_RamManagerCfd
     /* create the Ram Manager using a simple paging algorithm */
-    this->RamManagerCfd = new NEW_Kernel_RamManagerCfd;
+    this->RamManagerCfd         = new NEW_Kernel_RamManagerCfd;
 #endif
-    /* create the cpudispatcher with scheduler */
-    this->DispatcherCfd = new NEW_Kernel_DispatcherCfd;
-    /* create the file	manager implementing the filesystem */
-    this->fileManager = new SimpleFileManager();
+    /* create the cpu dispatcher with scheduler */
+    this->DispatcherCfd         = new NEW_Kernel_DispatcherCfd;
+    /* create the file manager implementing the file system */
+    this->fileManager           = new SimpleFileManager();
     /* create the PartitionMananger which handles block device partitions */
 #ifdef HAS_FileSystems_PartitionManagerCfd
-    /* create the Ram Manager using a simple paging algorithm */
-    this->PartitionManagerCfd = new NEW_FileSystems_PartitionManagerCfd;
+    /* create the partition manager implementing the partition support*/
+    this->PartitionManagerCfd   = new NEW_FileSystems_PartitionManagerCfd;
 #endif
 
 #if USE_TRACE
+    /* create trace instance if configured */
     this->tracer = new Trace();
+#endif
+
+#if SYSFS_SUPPORT
+    /* initialize the sysfs aka kernelvariable sub directory system*/
+    KernelVariable::init();
+    Directory* memDir = new Directory("mem");
+    fileManager->getDirectory("/sys")->add(memDir);
+    EXPORT_VARIABLE_BY_NAME(memDir,"used", SYSFS_UNSIGNED_INTEGER, theOS->getMemoryManager()->getSegment()->usedBytes,RO);
+    EXPORT_VARIABLE_BY_NAME(memDir,"total",SYSFS_UNSIGNED_INTEGER, theOS->getMemoryManager()->getSegment()->memSegSize,RO);
+    EXPORT_VARIABLE_BY_NAME(memDir,"memAddr",SYSFS_UNSIGNED_INTEGER,theOS->getMemoryManager()->getSegment()->startAddr,RO);
+    EXPORT_VARIABLE_BY_NAME(memDir,"last_allocated",SYSFS_UNSIGNED_INTEGER,theOS->getMemoryManager()->getSegment()->lastAllocated,RO);
 #endif
 
     /* create the Task Manager which holds the list of all tasks */
@@ -133,30 +148,26 @@ void Kernel::initialize() {
 #if HAS_Board_USB_HCCfd
     USBDevice::initialize();
 
-#if HAS_USBDriver_FactoryCfd
-    /* create the "/usb/" directory which will contain all usb drivers */
-    this->usbDriverLib = new USBDriverLibrary();
-#endif
+    #if HAS_USBDriver_FactoryCfd
+        /* create the "/usb/" directory which will contain all usb drivers */
+        this->usbDriverLib = new USBDriverLibrary();
+    #endif
 
-#if HAS_USBDriver_SMSC95xxCfd
-    /* Add support for smsc95xx ethernet over USB devices */
-    new SMSC95xxUSBDeviceDriverFactory("smsc95xx");
-#endif
+        /* TODO: auto generate the usb factory construction using SCL  */
+    #if HAS_USBDriver_SMSC95xxCfd
+        /* Add support for smsc95xx ethernet over USB devices */
+        new SMSC95xxUSBDeviceDriverFactory("smsc95xx");
+    #endif
 
-#if HAS_USBDriver_MassStorageCfd
-    /* Add support for USB SCSI Bulk only Mass Storage Devices */
-    new MassStorageSCSIUSBDeviceDriverFactory("msd_scsi_bot");
-#endif
+    #if HAS_USBDriver_MassStorageCfd
+        /* Add support for USB SCSI Bulk only Mass Storage Devices */
+        new MassStorageSCSIUSBDeviceDriverFactory("msd_scsi_bot");
+    #endif
 #endif
 
 #ifdef HAS_Kernel_RamdiskCfd
     INIT_Kernel_RamdiskCfd;
     this->RamdiskCfd = new NEW_Kernel_RamdiskCfd;
-#endif
-
-#if HAS_PROCFS_ENABLED
-    Directory* procDir = new SimpleProcfs();
-    fileManager->registerResource(procDir);
 #endif
 
 #if HAS_Kernel_LoggerCfd
@@ -193,8 +204,7 @@ void Kernel::initialize() {
     LOG(KERNEL, INFO, ".__stack at 0x%x" ,&__stack);
     LOG(KERNEL, INFO, "Kernel Ends at 0x%x" ,&__KERNELEND);
 
-    dwarf_init();
-    // if ((int) &_heap_start - (int) &_data_start <= 0) ERROR("Data Area mangled! Check ELF/Linkerscript for used but not specified sections!");
+    //if ((int) &_heap_start - (int) &_data_start <= 0) ERROR("Data Area mangled! Check ELF/Linkerscript for used but not specified sections!");
 
 #if USE_SAFE_KERNEL_STACKS
     /* This is a PPC extension for context switches */
@@ -221,9 +231,8 @@ void Kernel::initialize() {
     LOG(KERNEL, INFO, "Initializing Workertask.");
     // initialize the worker task
     theWorkerTask = new WorkerTask();
-    theWorkerTask->setName("Kernel");
+    theWorkerTask->setName("[kwork]");
     this->getTaskDatabase()->addTail(theWorkerTask);
-    theWorkerTask->myTaskDbItem = this->getTaskDatabase()->getTail();
 
 #if (LWIP_TCP | LWIP_ARP) && ENABLE_NETWORKING
     PeriodicFunctionCall* jobparam      = new PeriodicFunctionCall;
@@ -290,14 +299,19 @@ void Kernel::initialize() {
     LOG(KERNEL,INFO,"sizeof(CharacterDevice) :%d",sizeof(CharacterDevice));
     LOG(KERNEL,INFO,"sizeof(File)            :%d",sizeof(File));
     LOG(KERNEL,INFO,"sizeof(Directory)       :%d",sizeof(Directory));
+    LOG(KERNEL,INFO,"sizeof(LinkedListItem)  :%d",sizeof(LinkedListItem));
+    LOG(KERNEL,INFO,"sizeof(Mutex)           :%d",sizeof(Mutex));
 #endif
+
+    /* Initial boot log flush before scheduling starts */
+    getLogger()->flush();
 
 #if PRINT_BOOT_LOGO
     /*
      * Print some Boot Logo
      */
-    printf_p(orcos_string);
-    printf_p(" v1.4 ");
+    printf_p(ORCOS_LOGO);
+    printf_p(ORCOS_VERSION);
     printf_p(__DATE__);
     printf_p(theOS->getBoard()->getBoardInfo());
 #endif

@@ -194,7 +194,7 @@ static int smsc95xx_write_reg(USBDevice *dev, unint2 index, unint4 data)
 	int4 error = dev->controller->sendUSBControlMsg(dev,0,(unint1*)&msg,USB_DIR_OUT,sizeof(data),(unint1*)&tmpbuf);
 
 	if (error != 4) {
-		LOG(ARCH,DEBUG,"smsc95xx_write_reg failed: index=%d, data=%d, len=%d\r\n", index, data, sizeof(data));
+		LOG(ARCH,DEBUG,"smsc95xx_write_reg failed: index=%d, data=%d, len=%d", index, data, sizeof(data));
 		return (-1);
 	}
 	return (cOk);
@@ -428,7 +428,6 @@ static int smsc95xx_write_hwaddr(USBDevice* dev, char* ethaddr)
 	int ret;
 
 	/* set hardware address */
-	//printf("** %s()\r", __func__);
 	ret = smsc95xx_write_reg(dev, ADDRL, addr_lo);
 	if (ret < 0) {
 	    LOG(ARCH,ERROR,"smsc95xx_write_hwaddr() error setting mac address\n");

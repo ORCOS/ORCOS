@@ -31,9 +31,11 @@ typedef struct Chunk_Header {
     unint4 size :31;  //(sizeof(unint4)-1);
 }__attribute__((packed)) Chunk_Header;
 
-#define MEM_TRACE
+#ifndef MEM_TRACE
+#define MEM_TRACE 0
+#endif
 
-#ifdef MEM_TRACE
+#if MEM_TRACE
 typedef struct ChunkTrace {
    int used;
    void* chunk;
@@ -50,7 +52,7 @@ typedef struct ChunkTrace {
  * Defines the number of bytes placed between two consecutive chunks
  * in order to cope with erroneous data bounds accesses.
  */
-#define SAFETY_BUFFER 0x0
+#define SAFETY_BUFFER 16
 
 /*
  * Additional check whether an allocated chunk is accessed out of bounds in positive direction.
@@ -75,7 +77,7 @@ typedef struct ChunkTrace {
 // however: this will lead to a higher number of chunks, thus, increasing the number
 // of reserved (used) bytes not allocateable for the user.
 #ifndef MEM_LAST_FIT
-#define MEM_LAST_FIT 1
+#define MEM_LAST_FIT 0
 #endif
 
 /*!

@@ -214,7 +214,7 @@ int ulpi_init(struct ulpi_viewport *ulpi_vp) {
     }
 
     /* Split ID into vendor and product ID. */
-    LOG(ARCH,INFO,"ULPI transceiver ID 0x%04x:0x%04x\n\r", id >> 16, id & 0xffff);
+    LOG(ARCH,INFO,"ULPI transceiver ID 0x%04x:0x%04x", id >> 16, id & 0xffff);
     return (0);
 }
 
@@ -311,8 +311,7 @@ HighSpeedUSBHostController::HighSpeedUSBHostController(T_HighSpeedUSBHostControl
 #define TWL4030_LED_LEDEN_LEDAPWM                       (1 << 4)
 #define TWL4030_LED_LEDEN_LEDBPWM                       (1 << 5)
 
-    Omap3530i2c* i2c_dev =
-            (Omap3530i2c*) theOS->getFileManager()->getResource(init->I2CDeviceName);
+    Omap3530i2c* i2c_dev = (Omap3530i2c*) theOS->getFileManager()->getResource(init->I2CDeviceName);
 
     if (i2c_dev == 0)
     {

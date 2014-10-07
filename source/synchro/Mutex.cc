@@ -53,10 +53,7 @@ Mutex::~Mutex() {
 ErrorT Mutex::acquire( Resource* pRes, bool blocking ) {
 	Kernel_ThreadCfdCl* pCallingThread = pCurrentRunningThread;
 
-    bool int_enabled;
-    GET_INTERRUPT_ENABLE_BIT(int_enabled);
-    _disableInterrupts();
-
+    DISABLE_IRQS(irqstatus);
 
     if (m_locked == false)
     {
@@ -73,13 +70,15 @@ ErrorT Mutex::acquire( Resource* pRes, bool blocking ) {
         	 if (m_pRes->getType() == cFile) ((File*) m_pRes)->resetPosition();
         }
 
-        if ( int_enabled )  _enableInterrupts();
-
-        return (cOk);
+       RESTORE_IRQS(irqstatus);
+       return (cOk);
     }
     else
     {
-      if (!blocking) return (cError);
+      if (!blocking) {
+          RESTORE_IRQS(irqstatus);
+          return (cError);
+      }
         /* Mutex already acquired by some other thread! */
 
         /* Implementation of the Priority Inheritance Protocol (PIP)
@@ -118,25 +117,27 @@ ErrorT Mutex::acquire( Resource* pRes, bool blocking ) {
         // they will get here and reference invalid memory locations!
         // solution to be implemented: delayed removal of mutexes and resources!
         // mark as invalid resource and wake up all thread => then remove
-
+        RESTORE_IRQS(irqstatus);
         return (cOk);
     }
 
+   RESTORE_IRQS(irqstatus);
    return (cError);
 }
 
 
-ErrorT Mutex::release( ) {
+ErrorT Mutex::release(Thread* pThread ) {
 
-    bool int_enabled;
-    GET_INTERRUPT_ENABLE_BIT(int_enabled);
-    _disableInterrupts();
+    DISABLE_IRQS(irqstatus);
 
     /* remove the resource from the acquired list of the owner task */
-    if ( m_pRes != 0 && pCurrentRunningTask != 0 ) {
-        ListItem* removedItem = pCurrentRunningTask->aquiredResources.removeItem( m_pRes );
-         if (removedItem == 0)
+    if ( m_pRes != 0 && pThread != 0 ) {
+        ListItem* removedItem = pThread->getOwner()->aquiredResources.removeItem( m_pRes );
+         if (removedItem == 0) {
+             RESTORE_IRQS(irqstatus);
+             LOG(SYNCHRO,ERROR,"Mutex::release() Could not remove %s from thread %d",m_pRes->getName(),pThread->getId());
              return (cElementNotInDatabase);
+         }
     }
 
     LOG(SYNCHRO,TRACE,"Mutex 0x%x released",this);
@@ -144,7 +145,7 @@ ErrorT Mutex::release( ) {
 
 #ifdef HAS_PRIORITY
 #if USE_PIP
-    Kernel_ThreadCfdCl* pCallingThread = pCurrentRunningThread;
+    Kernel_ThreadCfdCl* pCallingThread = (Kernel_ThreadCfdCl*) pThread;
     /* reset the priority of the currentRunning thread */
     if (pCallingThread != 0)
     	pCallingThread->effectivePriority = pCallingThread->initialPriority;
@@ -154,6 +155,7 @@ ErrorT Mutex::release( ) {
       /* get the next thread by the scheduler who is next to acquire the mutex */
       LinkedListItem* next = (LinkedListItem*) getScheduler()->getNext();
       Kernel_ThreadCfdCl* pSchedulerThread;
+
       /* search the first not stopped thread */
       while (next != 0) {
           pSchedulerThread = (Kernel_ThreadCfdCl*) next->getData();
@@ -178,7 +180,7 @@ ErrorT Mutex::release( ) {
 			   /* unblock the waiting thread */
 			   pSchedulerThread->unblock();
 
-			   if ( int_enabled )  _enableInterrupts();
+			   RESTORE_IRQS(irqstatus);
 
 			   return (cOk);
           }
@@ -190,7 +192,7 @@ ErrorT Mutex::release( ) {
     m_pThread   = 0;
     m_pRes 	    = 0;
 
-	if ( int_enabled )  _enableInterrupts();
+    RESTORE_IRQS(irqstatus);
 
     return (cOk);
 
@@ -234,6 +236,10 @@ void Mutex::threadResume( Kernel_ThreadCfdCl* pThread ) {
 
 
 
+}
+
+void Mutex::threadRemove(Thread* pThread) {
+    getScheduler()->remove(pThread);
 }
 
 /*

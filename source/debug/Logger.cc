@@ -81,6 +81,6 @@ void Logger::log(Prefix prefix, Level level, const char* msg, ...) {
     }
 #endif
 
-    puts("\r");
+    puts(LINEFEED);
 }
 

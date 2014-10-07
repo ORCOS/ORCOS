@@ -35,11 +35,6 @@ class PriorityThread: public Thread {
     friend class Task;
 public:
     /*!
-     *  The Phase of this PriorityThread which is the earliest start time.
-     */
-    TimeT phase;
-
-    /*!
      *  The initial priority.
      */
     TimeT initialPriority;

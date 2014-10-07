@@ -134,7 +134,7 @@
         <PropertyValue Name="Priority" Value="5000" Type="int" />
       </Member>
       <Member Name="InterruptController" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardInterruptController" None="false" UserSpace="false" PhyLoadAddress="0x0" />
-      <Member Name="ExtPowerControl" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/TWL4030" None="false" UserSpace="false" PhyLoadAddress="0x0">
+      <Member Name="ExtPowerControl" Class="arch/shared/power/TWL4030" None="false" UserSpace="false" PhyLoadAddress="0x0">
         <PropertyValue Name="I2CDeviceName" Value="dev/i2c0" Type="char*" />
       </Member>
       <Member Name="MMC" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapMMC_SD_HC" None="false" UserSpace="false" PhyLoadAddress="0x0">
@@ -160,7 +160,7 @@
       <Member Name="Thread" Class="process/RealTimeThread" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="Dispatcher" Class="scheduler/SingleCPUDispatcher" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="Scheduler" Class="scheduler/RateMonotonicThreadScheduler" None="false" UserSpace="false" PhyLoadAddress="0x0" />
-      <Member Name="Logger" Class="debug/Logger" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="Logger" Class="debug/FileLogger" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="PowerManager" Class="hal/PowerManager" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="TaskManager" Class="process/TaskManager" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="RamManager" Class="mem/PagedRamMemManager" None="false" UserSpace="false" PhyLoadAddress="0x0" />
@@ -356,6 +356,14 @@
     </Define>
     <Define>
       <Name>TASK_CRC32</Name>
+      <Value>1</Value>
+    </Define>
+    <Define>
+      <Name>DWARF_DEBUG</Name>
+      <Value>1</Value>
+    </Define>
+    <Define>
+      <Name>SYSFS_SUPPORT</Name>
       <Value>1</Value>
     </Define>
   </SCL>

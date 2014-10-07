@@ -257,7 +257,7 @@ void TWL4030::power_mmc_init(void) {
 
 TWL4030::TWL4030(T_TWL4030_Init *init) :  GenericDeviceDriver(false, "twl4030") {
 
-    i2c_dev = (Omap3530i2c*) theOS->getFileManager()->getResource(init->I2CDeviceName);
+    i2c_dev = (CharacterDevice*) theOS->getFileManager()->getResource(init->I2CDeviceName);
     if (i2c_dev == 0)
     {
         LOG(ARCH, ERROR, "TWL4030(): I2C device '%s' not found. Not initializing TWL4030.",init->I2CDeviceName);
@@ -266,6 +266,8 @@ TWL4030::TWL4030(T_TWL4030_Init *init) :  GenericDeviceDriver(false, "twl4030") 
 
     power_init();
     power_reset_init();
+    LOG(ARCH, INFO, "TWL4030 initialized on '%s'",init->I2CDeviceName);
+
 
 }
 

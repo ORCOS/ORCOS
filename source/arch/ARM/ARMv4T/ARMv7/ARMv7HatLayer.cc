@@ -80,7 +80,7 @@ void* ARMv7HatLayer::map(void* logBaseAddr, void* physBaseAddr, size_t size, Bit
 void* ARMv7HatLayer::map(void* phyBaseAddr, size_t size, BitmapT protection, byte zsel, int pid, bool cache_inhibit) {
 
     /* TODO: currently we search for a consecutive memory area.. however we should utilize the paging mechanism
-     * to avoid stupid fragmentataion.*/
+     * to avoid stupid fragmentation.*/
 
     DISABLE_IRQS(irqstatus);
 

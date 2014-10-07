@@ -21,14 +21,16 @@
 #include "filesystem/Resource.hh"
 #include "inc/memtools.hh"
 #include "filesystem/SharedMemResource.hh"
-// the kernel object
-extern Kernel* theOS;
-extern Kernel_ThreadCfdCl* pCurrentRunningThread;
+#include "filesystem/KernelVariable.hh"
 
-// static non-const member variable initialization
-// will be executed in ctor
+/* the kernel object */
+extern Kernel* theOS;
+
+/* static non-const member variable initialization
+   will be executed in ctor */
 TaskIdT Task::globalTaskIdCounter;
 
+/* array of free task ids for task creation */
 ArrayList *Task::freeTaskIDs;
 
 /*--------------------------------------------------------------------------*
@@ -39,7 +41,7 @@ Task::Task( Kernel_MemoryManagerCfdCl* memoryManager, taskTable* tasktbl) :
         exitValue(0),
         memManager(memoryManager),
         stopped(false),
-        myTaskDbItem(0),
+        sysFsDir(0),
         platform_flags(0)
 {
     myTaskId = (TaskIdT) ((unint4) Task::freeTaskIDs->removeHead());
@@ -51,9 +53,30 @@ Task::Task( Kernel_MemoryManagerCfdCl* memoryManager, taskTable* tasktbl) :
     strcpy(this->workingDirectory,"/");
     stdOutput = theOS->getStdOutputDevice();
 
+#if SYSFS_SUPPORT
+    Directory* dir = KernelVariable::getEntry("tasks",true);
+    if (dir) {
+        char* idstr = new char[8];
+        sprintf(idstr,"%u",myTaskId);
+        sysFsDir    = new Directory(idstr);
+        dir->add(sysFsDir);
+
+        EXPORT_VARIABLE(sysFsDir,SYSFS_STRING,           workingDirectory,RO);
+        EXPORT_VARIABLE(sysFsDir,SYSFS_UNSIGNED_INTEGER, platform_flags,RO);
+        EXPORT_VARIABLE(sysFsDir,SYSFS_STRING,           name,RO);
+        EXPORT_VARIABLE(sysFsDir,SYSFS_UNSIGNED_INTEGER, myTaskId,RO);
+        EXPORT_VARIABLE(sysFsDir,SYSFS_UNSIGNED_INTEGER, stopped,RO);
+        EXPORT_VARIABLE_BY_NAME(sysFsDir,"num_resources",SYSFS_UNSIGNED_INTEGER,aquiredResources.numEntries,RO);
+        EXPORT_VARIABLE_BY_NAME(sysFsDir,"num_threads",SYSFS_UNSIGNED_INTEGER,threadDb.size,RO);
+        EXPORT_VARIABLE_BY_NAME(sysFsDir,"usedmem",SYSFS_UNSIGNED_INTEGER,memManager->getSegment()->usedBytes,RO);
+        EXPORT_VARIABLE_BY_NAME(sysFsDir,"totalmem",SYSFS_UNSIGNED_INTEGER,memManager->getSegment()->memSegSize,RO);
+    }
+#endif
+
     /* create initial thread for this task */
     new Kernel_ThreadCfdCl((void*) tasktbl->task_entry_addr, (void*) tasktbl->task_thread_exit_addr, this, memoryManager,
-    DEFAULT_USER_STACK_SIZE, (void*) (&tasktbl->initial_thread_attr), false);
+                           DEFAULT_USER_STACK_SIZE, (void*) (&tasktbl->initial_thread_attr), false);
+
 
 }
 
@@ -62,7 +85,7 @@ Task::Task() :
         exitValue(0),
         memManager(0),
         stopped(false),
-        myTaskDbItem(0),
+        sysFsDir(0),
         platform_flags(0)
 {
     tasktable = 0;
@@ -71,41 +94,65 @@ Task::Task() :
     strcpy(this->name,"No Name");
     strcpy(this->workingDirectory,"/");
     stdOutput = theOS->getStdOutputDevice();
+
+#if SYSFS_SUPPORT
+    Directory* dir = KernelVariable::getEntry("tasks",true);
+    if (dir) {
+          char* idstr = new char[8];
+          sprintf(idstr,"%u",myTaskId);
+          sysFsDir    = new Directory(idstr);
+          dir->add(sysFsDir);
+
+          EXPORT_VARIABLE(sysFsDir,SYSFS_STRING,           workingDirectory,RO);
+          EXPORT_VARIABLE(sysFsDir,SYSFS_UNSIGNED_INTEGER, platform_flags,RO);
+          EXPORT_VARIABLE(sysFsDir,SYSFS_STRING,           name,RO);
+          EXPORT_VARIABLE(sysFsDir,SYSFS_UNSIGNED_INTEGER, myTaskId,RO);
+          EXPORT_VARIABLE(sysFsDir,SYSFS_UNSIGNED_INTEGER, stopped,RO);
+          EXPORT_VARIABLE_BY_NAME(sysFsDir,"num_resources",SYSFS_UNSIGNED_INTEGER,aquiredResources.numEntries,RO);
+          EXPORT_VARIABLE_BY_NAME(sysFsDir,"num_threads",SYSFS_UNSIGNED_INTEGER,threadDb.size,RO);
+    }
+#endif
 }
 
 Task::~Task() {
-
-    LinkedListItem* litem = this->suspendedThreadDb.getHead();
-    while (litem != 0)
-    {
-
-        Thread* t = (Thread*) litem->getData();
-        litem = litem->getSucc();
-        this->suspendedThreadDb.remove(t);
-
-        delete t;
-    }
-
-    delete this->myTaskDbItem;
-
     delete this->memManager;
 
+#if SYSFS_SUPPORT
+    Directory* dir = KernelVariable::getEntry("tasks",true);
+    if (dir){
+        dir->remove(sysFsDir);
+        delete sysFsDir;
+    }
+#endif
 }
 
 Resource* Task::getOwnedResourceById(ResourceIdT id) {
-    // parse database for a resource with id 'id'
+    /* parse database for a resource with id 'id' */
+    DISABLE_IRQS(status);
     for (int i = 0; i < this->aquiredResources.size(); i++)
     {
         Resource* res = (Resource*) aquiredResources.getItemAt(i);
-        if (res->getId() == id)
+        if (res == 0) {
+            LOG(PROCESS, ERROR, "Task::getOwnedResourceById res==null");
+            return (0);
+        }
+        if (res->getId() == id) {
+            RESTORE_IRQS(status);
             return (res);
-    }
 
+        }
+    }
+    RESTORE_IRQS(status);
     return (0);
 }
 
 ErrorT Task::acquireResource(Resource* res, Thread* t, bool blocking) {
-    //REMARK: check wheter t is a thread belonging to this task
+    //REMARK: check whether t is a thread belonging to this task
+
+    if (res == 0) {
+        LOG(PROCESS, ERROR, "Task::acquireResource res==null");
+        return (cError);
+    }
     // check whether the task already owns this resource
     if (getOwnedResourceById(res->getId()) != 0)
     {  // task already owns this resource
@@ -127,8 +174,8 @@ ErrorT Task::acquireResource(Resource* res, Thread* t, bool blocking) {
 }
 
 ErrorT Task::releaseResource(Resource* res, Thread* t) {
-    //REMARK: check wheter t is a thread belonging to this task
-    // get the resource to close by id from the tasks owned resource database
+    /* REMARK: we might alos check whether t is a thread belonging to this task
+       get the resource to close by id from the tasks owned resource database */
     if (res != 0)
     {
         if (res->getType() == cSocket)
@@ -163,67 +210,31 @@ ErrorT Task::releaseResource(Resource* res, Thread* t) {
 }
 
 void Task::run() {
-    // run the very first thread!
-    // this is supposed to be the thread at the head of the threaddb
+    /* run the very first thread!
+       this is supposed to be the thread at the head of the threaddb */
     LinkedListItem* litem = this->threadDb.getHead();
     if (litem != 0)
     {
         Kernel_ThreadCfdCl* thread = (Kernel_ThreadCfdCl*) litem->getData();
-
-#ifdef REALTIME
-        // set the arrival time of this realtime thread
-        thread->arrivalTime = theOS->getClock()->getClockCycles() + thread->phase;
-        theOS->getCPUScheduler()->computePriority(thread);
-#endif
-
-        // announce the thread to the scheduler (this does not mean running it directly)
+        /* announce the thread to the scheduler (this does not mean running it directly) */
         thread->run();
     }
 }
 
 void Task::terminate() {
     LOG(KERNEL, DEBUG, "Task::terminate()");
+
     LinkedListItem* litem = this->threadDb.getHead();
     while (litem != 0)
     {
         Thread* t = (Thread*) litem->getData();
-
-        // first remove all other threads than the currentRunningThread
-        if (t != pCurrentRunningThread)
-        {
-            litem = litem->getSucc();
-            t->terminate();
-        }
-        else
-            litem = litem->getSucc();
+        t->terminate();
+        litem = litem->getSucc();
     }
 
-    // add our id back to the database
+    /* add our id back to the database */
     Task::freeTaskIDs->addTail((ListItem*) (unint4) this->getId());
 
-    litem = this->threadDb.getHead();
-    if (litem != 0)
-    {
-        // thread must have been running. terminate it as last thread
-        Thread* t = (Thread*) litem->getData();
-        t->terminate();
-    }
-
-#ifdef HAS_Board_HatLayerCfd
-    /* We may only unmap the entries of the task
-     * if we are not executing in its address space..
-     * The Kernel code would be unaccessible then. We may also
-     * be running on the tasks stack..
-     **/
-    /*if (pCurrentRunningTask != this)
-     theOS->getHatLayer()->unmap((void*)this->tasktable->task_start_addr,this->getId());*/
-    //theOS->getHatLayer()->unmapAll(this->getId());
-#endif
-
-}
-
-void Task::addThread(Thread* t) {
-    this->threadDb.addTail(t);
 }
 
 void Task::removeThread(Thread* t) {
@@ -232,26 +243,22 @@ void Task::removeThread(Thread* t) {
     LinkedListItem* litem = this->threadDb.getItem(t);
     if (litem != 0)
     {
-        // ok valid thread. remove it from its database (this->threadDb)
+        /* ok valid thread. remove it from its database (this->threadDb) */
         litem->remove();
+        delete litem;
 
-        // store in the suspended database
-        suspendedThreadDb.addTail(litem);
-        LOG(KERNEL, TRACE, "Task::removeThread() added to suspended list");
-
-        // check if all threads are terminated
+        /* check if all threads are terminated */
         if (this->threadDb.isEmpty())
         {
-            // no more threads. this task can be destroyed.
-            // free all acquired resources if applicable
+            /* no more threads. this task can be destroyed.
+             * free all acquired resources if applicable */
 
-            LOG(KERNEL, DEBUG, "Task::removeThread(): being destroyed! aq_size = %d", this->aquiredResources.size());
-
-            Resource* res = (Resource*) this->aquiredResources.removeTail();
+            LOG(KERNEL, WARN, "Task::removeThread(): being destroyed! aq_size = %d", this->aquiredResources.size());
+            Resource* res = (Resource*) this->aquiredResources.getHead();
             while (res != 0)
             {
-                LOG(KERNEL, DEBUG,"Task::removeThread(): destroying resource of type %d",res->getType());
-                // the last thread forces all resources to be released
+                LOG(KERNEL, DEBUG,"Task::removeThread(): releasing resource %s, Id: %d",res->getName(),res->getId());
+                /* the last thread forces all resources to be released */
                 res->release(t);
 
                 if (res->getType() == cSocket)
@@ -261,39 +268,18 @@ void Task::removeThread(Thread* t) {
                     delete s;
                 }
 
-                res = (Resource*) this->aquiredResources.removeTail();
+                res = (Resource*) this->aquiredResources.getHead();
             }
-
-            if (myTaskDbItem != 0)
-                this->myTaskDbItem->remove();
-
-            // do additional cleanup
-
         }
-    }
-}
 
-LinkedListItem* Task::getSuspendedThread(unint4 stacksize) {
-    LinkedListItem* litem = this->suspendedThreadDb.getHead();
-    while (litem != 0)
-    {
-        Kernel_ThreadCfdCl* t = (Kernel_ThreadCfdCl*) litem->getData();
-        if (((unint4) t->threadStack.endAddr - (unint4) t->threadStack.startAddr)
-                >= stacksize)
-        {
-            litem->remove();
-            return (litem);
-        }
+        t->owner = 0;
     }
-
-    return (0);
 }
 
 Kernel_ThreadCfdCl* Task::getThreadbyId(ThreadIdT threadid) {
     LinkedListItem* litem = threadDb.getHead();
 
-    while (litem != 0
-            && ((Kernel_ThreadCfdCl*) litem->getData())->getId() != threadid)
+    while (litem != 0 && ((Kernel_ThreadCfdCl*) litem->getData())->getId() != threadid)
         litem = litem->getSucc();
 
     if (litem != 0)
@@ -307,24 +293,24 @@ TaskIdT Task::getIdOfNextCreatedTask() {
 }
 
 void Task::stop() {
-    // stop the execution of all child threads
+    /* stop the execution of all child threads */
     LinkedListItem* litem = this->threadDb.getHead();
     while (litem != 0)
     {
         ((Thread*) litem->getData())->stop();
         litem = litem->getSucc();
     }
-    // done this task is stopped
+    /* done this task is stopped */
 }
 
 void Task::resume() {
-    // resume the execution of all child threads
+    /* resume the execution of all child threads */
     LinkedListItem* litem = this->threadDb.getHead();
     while (litem != 0)
     {
         ((Thread*) litem->getData())->resume();
         litem = litem->getSucc();
     }
-    // done this task is resumed
+    /* done this task is resumed */
 }
 

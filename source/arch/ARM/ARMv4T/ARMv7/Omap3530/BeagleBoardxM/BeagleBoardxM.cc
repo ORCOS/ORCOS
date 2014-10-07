@@ -58,19 +58,18 @@ extern Board_ClockCfdCl* theClock;
 #define SETBITS(a,UP,LOW,val) a = ((a & ~(( (1 << (UP - LOW + 1)) -1) << LOW)) | ((val & ((1 << (UP - LOW + 1)) -1)) << LOW) )
 #define writew(b, addr) (void)((*(volatile unsigned short *) (addr)) = (b))
 
-static t_mapping OMAP3630Mappings[4] = { { 0x0, 0x0, 0xFFFFF,
-hatProtectionExecute | hatProtectionRead, 0 }, /* OMAP3630 ROM vectors */
-{ 0x40200000, 0x40200000, 0xFFFF, hatProtectionExecute | hatProtectionRead
-        | hatProtectionWrite, 0 }, /* SRAM irq vectors */
-{ 0x48000000, 0x48000000, 0xFFFFFF, hatProtectionRead | hatProtectionWrite,
-hatCacheInhibit }, /* MMIO */
-{ 0x49000000, 0x49000000, 0xFFFFF, hatProtectionRead | hatProtectionWrite,
-hatCacheInhibit }, /* L4 peripherie */
+static t_mapping OMAP3630Mappings[4] = {
+   { 0x0       , 0x0       , 0xFFFFF   , hatProtectionExecute | hatProtectionRead, 0 }, /* OMAP3630 ROM vectors */
+   { 0x40200000, 0x40200000, 0xFFFF    , hatProtectionExecute | hatProtectionRead | hatProtectionWrite, 0 }, /* SRAM irq vectors */
+   { 0x48000000, 0x48000000, 0xFFFFFF  , hatProtectionRead | hatProtectionWrite, hatCacheInhibit }, /* MMIO */
+   { 0x49000000, 0x49000000, 0xFFFFF   , hatProtectionRead | hatProtectionWrite, hatCacheInhibit } /* L4 peripherie */
 };
 
 /* The important architecture kernel mapping structure */
 t_archmappings arch_kernelmappings =
-{   .count = 4, .mappings = OMAP3630Mappings};
+{   .count = 4,
+    .mappings = OMAP3630Mappings
+};
 
 BeagleBoardxM::BeagleBoardxM() {
 }

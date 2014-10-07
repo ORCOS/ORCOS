@@ -26,11 +26,12 @@ ErrorT EarliestDeadlineFirstThreadScheduler::enter( LinkedListItem* item ) {
     ASSERT(item);
     RealTimeThread* pRTThread = static_cast< RealTimeThread* > ( item->getData() );
 
-    /* If a phase has been specified, put the thread to sleep for the specified duration. */
-    if ( pRTThread->phase > 0 ) {
-        pRTThread->sleep( (unint4) pRTThread->phase, item );
-        pRTThread->phase = 0;
-        return (cOk);
+    if (pRTThread->instance == 1) {
+        /* If an arrivalTime has been specified, put the thread to sleep until that time point. */
+        if ( pRTThread->arrivalTime > 0 ) {
+            pRTThread->sleep( pRTThread->arrivalTime, item );
+            return (cOk);
+        }
     }
 
     /* enter Thread in the database in accordance with it's priority */

@@ -13,7 +13,6 @@ RELATIVE_SOURCE_PATH = ../../..
 GCC_LIB_DIR=D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/
 LIBC_DIR=D:/toolchains/armgcc-4-7-4/arm-none-eabi/lib/armv7-ar/thumb/
 
-
 ARMEABI= /cygdrive/d/toolchains/armgcc-4-7-4/bin/arm-none-eabi
 
 CC      = $(ARMEABI)-gcc
@@ -58,7 +57,7 @@ MODULES_DIR = ./modules/
 LINKERSCRIPT = $(ARCH_DIR)/kernel.ld   
 
 #Optimization flag -flto
-OPT_FLAGS = -O2 -mthumb -mcpu=cortex-a8  -mthumb-interwork -DARM_THUMB=1 -fno-builtin -flto -mno-unaligned-access
+OPT_FLAGS = -O2 -mthumb -mcpu=cortex-a8  -mthumb-interwork -DARM_THUMB=1 -fno-builtin -flto -mno-unaligned-access -fno-section-anchors
 
 #Command line arguments to compile .c files.
 CFLAGS = -Wall -g -I$(KERNEL_DIR)inc/ -I./make/ -I$(KERNEL_DIR)comm/lwip/include/ -I$(KERNEL_DIR)comm/lwip/ -I. -I$(KERNEL_DIR) -I$(KERNEL_LIB_DIR)/../../ $(ARCH_INCLUDES) -ffunction-sections -fno-exceptions -fno-unwind-tables -msoft-float -fno-stack-protector -Wno-write-strings -c $(CPU_FLAGS) 

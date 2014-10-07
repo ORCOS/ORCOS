@@ -143,17 +143,17 @@ ErrorT InterruptManager::readBytes(char* bytes, unint4& length) {
     if (len + 32 > length) {
         goto out;
     }
-    sprintf(bytes," IRQ      COUNT  PRIORITY  NAME\r");
-    len += 32;
-    bytes += 32;
+    sprintf(bytes," IRQ      COUNT  PRIORITY  NAME"LINEFEED);
+    len += 33;
+    bytes += 33;
 
     if (len + (16 + 5 + 11) > length) {
         goto out;
     }
 
-    sprintf(bytes," %3u %10u   HIGHEST  %s\r",0,scheduleCount,"Timer");
-    len   += 16 + 5 + 12;
-    bytes += 16 + 5 + 12;
+    sprintf(bytes," %3u %10u   HIGHEST  %s"LINEFEED,0,scheduleCount,"Timer");
+    len   += 16 + 6 + 12;
+    bytes += 16 + 6 + 12;
 
     for (int i = 0; i < IRQ_MAX; i++) {
         if (irqTable[i].triggerCount > 0 || irqTable[i].driver != 0) {
@@ -171,9 +171,9 @@ ErrorT InterruptManager::readBytes(char* bytes, unint4& length) {
                 goto out;
             }
 
-            sprintf(bytes," %3u %10u   %7u  %s\r",i,irqTable[i].triggerCount,irqTable[i].priority,name);
-            len   += 16 + namelen + 12;
-            bytes += 16 + namelen + 12;
+            sprintf(bytes," %3u %10u   %7u  %s"LINEFEED,i,irqTable[i].triggerCount,irqTable[i].priority,name);
+            len   += 16 + namelen + 13;
+            bytes += 16 + namelen + 13;
         }
     }
 

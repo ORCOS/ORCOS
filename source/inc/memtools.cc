@@ -102,7 +102,7 @@ void memdump(int addr, int length) {
         printf_p(PSTR("0x%2x "),(int) INB(addr + (4 * i)));
         printf_p(PSTR("0x%2x "),(int) INB(addr + (4 * i) + 1));
         printf_p(PSTR("0x%2x "),(int) INB(addr + (4 * i) + 2));
-        printf_p(PSTR("0x%2x \n"),(int) INB(addr + (4 * i) + 3));
+        printf_p(PSTR("0x%2x \r\n"),(int) INB(addr + (4 * i) + 3));
 #else
         printf("0x%x: ",(int) addr + (4 * i));
         printf("0x%2x ",(int) INB(addr + (4 * i)));
@@ -116,7 +116,7 @@ void memdump(int addr, int length) {
         ascii[3] = INB(addr + (4 * i) + 3);
         ascii[4] = 0;
         makeHexCharCompatible(ascii, 4);
-        printf(" %s\r",ascii);
+        printf(" %s\r\n",ascii);
 #endif
     }
 

@@ -68,10 +68,9 @@ ErrorT SharedMemResource::mapIntoTask(Task* t, unint4& virtual_address) {
 
     if (t == 0)
         return (cInvalidArgument );
-    // we must be sure the physical start address is virtual page aligned
-    // otherwise we need some offset into the virtual page
+    /* we must be sure the physical start address is virtual page aligned
+       otherwise we need some offset into the virtual page */
 #ifdef HAS_Board_HatLayerCfd
-    // TODO: protect map access from concurrent access?
     virtual_address = (unint4) theOS->getHatLayer()->map((void*) this->physical_start_address, size, 7, 3, t->getId(), false);
 
     if (virtual_address == 0)

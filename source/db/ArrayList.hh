@@ -53,7 +53,7 @@
  */
 
 class ArrayList {
-
+friend class Task; /* for export of numEntries */
 public:
 
     //! The array containing the DatabaseIems. public for speedup
@@ -149,6 +149,8 @@ public:
      * in the db it is removed with the removeItemAt() function.
      */
     ListItem* removeItem(ListItem* item);
+
+    void print();
 };
 
 #endif /*ARRAYDATABASE_HH_*/

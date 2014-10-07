@@ -272,7 +272,7 @@ unint4 lun ATTR_CACHE_INHIBIT;
 ErrorT MassStorageSCSIUSBDeviceDriver::initialize() {
 	/* try to initialize the device
 	   first check the endpoint information */
-	bool bulkinep, bulkoutep, intep = false;
+	bool bulkinep, bulkoutep = false;
 
 	for (unint1 i = 1; i <= dev->numEndpoints; i++) {
 		if (dev->endpoints[i].type == Bulk) {
@@ -291,11 +291,12 @@ ErrorT MassStorageSCSIUSBDeviceDriver::initialize() {
 		} else if(dev->endpoints[i].type == Interrupt)  {
 			int_ep =  i;
 			dev->endpoints[i].poll_frequency = 200;
-			intep = true;
 		}
 	}
 
-	if (!(bulkinep & bulkoutep & !intep)) {
+	/* if (!(bulkinep & bulkoutep & !intep)) {*/
+	/* mass storage device may have some interrupt end point .. but we are not using it*/
+	 if (!(bulkinep & bulkoutep )) {
 		LOG(ARCH,ERROR,"MassStorageSCSIUSBDeviceDriver: probing failed..");
 		/* deactivate eps again */
 		return (cError);
@@ -345,10 +346,11 @@ ErrorT MassStorageSCSIUSBDeviceDriver::initialize() {
 		current = p_next;
 	}
 
+	/* try reading the inquiry info. some device may not provide this info however*/
 	error = performTransaction(cbwInquiry,(unsigned char*)&this->scsi_info,SCSI_INQUIRY_LEN);
 	if (error < 0) {
-		LOG(ARCH,ERROR,"MassStorageSCSIUSBDeviceDriver: device inquiry failed. Ignoring LUN %d.",this->myLUN);
-		return (cError);
+		LOG(ARCH,WARN,"MassStorageSCSIUSBDeviceDriver: device inquiry failed. Ignoring LUN %d.",this->myLUN);
+		return (error);
 	}
 
 	/* we only register if inquiry succeeds */
@@ -388,7 +390,7 @@ ErrorT MassStorageSCSIUSBDeviceDriver::readBlock(unint4 blockNum, unsigned char*
 
 	int error = performTransaction(cbw,buffer,length);
 	if (error < 0) {
-		LOG(ARCH,ERROR,"MassStorageSCSIUSBDeviceDriver: reading device blocks failed %d. length: %d.",error,length);
+		LOG(ARCH,ERROR,"MassStorageSCSIUSBDeviceDriver: reading device blocks failed %d. block: %d length: %d.",error,blockNum,length);
 		return (cError);
 	}
 
@@ -426,7 +428,7 @@ ErrorT MassStorageSCSIUSBDeviceDriver::writeBlock(unint4 blockNum, unint1* buffe
 
 	int error = performTransaction(cbw,buffer,length);
 	if (error < 0) {
-		LOG(ARCH,ERROR,"MassStorageSCSIUSBDeviceDriver: writing device blocks failed %d. length: %d.",error,length);
+		LOG(ARCH,ERROR,"MassStorageSCSIUSBDeviceDriver: writing device blocks failed %d. block: %d length: %d.",error,blockNum,length);
 		return (cError);
 	}
 

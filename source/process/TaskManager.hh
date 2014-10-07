@@ -63,24 +63,29 @@ public:
      * CRC check if CRC header support is available.
      * Signature based Authentication (tbd).
      */
-    ErrorT checkValidTask(taskTable* taskCB);
+    ErrorT  checkValidTask(taskTable* taskCB);
 
     /*!
      * Returns the task by its id or null
      */
-    Task* getTask(int taskId);
+    Task*   getTask(int taskId);
 
     /*!
      * Tries to stop and remove a task by its ID
      */
-    ErrorT removeTask(Task* task);
+    ErrorT  removeTask(Task* task);
+
+    /*
+     * Terminates the given thread
+     */
+    ErrorT  terminateThread( Kernel_ThreadCfdCl* thread);
 
     /*!
      * Tries to load a given file as an executable task.
      * Returns cOk on success, an error otherwise.
      * The Out paramter tid is used to return the created task id on success.
      */
-    ErrorT loadTaskFromFile(File *file, TaskIdT &tid, char* arguments = 0, unint2 arg_length =
+    ErrorT  loadTaskFromFile(File *file, TaskIdT &tid, char* arguments = 0, unint2 arg_length =
                                     0);
 
 };

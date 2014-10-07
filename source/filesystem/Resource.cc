@@ -94,11 +94,13 @@ ErrorT Resource::release(Thread* pThread) {
     ASSERT(pThread);
 
     if (this->accessControl != 0)
-        return (accessControl->release());
+        return (accessControl->release(pThread));
     else
     {
         /* remove myself from the database */
+        DISABLE_IRQS(status);
         ListItem* removedItem = pThread->getOwner()->aquiredResources.removeItem(this);
+        RESTORE_IRQS(status);
         if (removedItem == 0) {
             return (cElementNotInDatabase);
         }

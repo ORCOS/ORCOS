@@ -16,10 +16,10 @@
 
 extern Kernel* theOS;
 
-FixedSizePBufList::FixedSizePBufList(int size) {
+FixedSizePBufList::FixedSizePBufList(size_t arg_size) {
 
-    pbuf_list = (pbuf**) theOS->getMemoryManager()->alloc(size * sizeof(pbuf*));
-    addr_list = (sockaddr*) theOS->getMemoryManager()->alloc(size * sizeof(sockaddr));
+    pbuf_list = (pbuf**)    theOS->getMemoryManager()->alloc(arg_size * sizeof(pbuf*));
+    addr_list = (sockaddr*) theOS->getMemoryManager()->alloc(arg_size * sizeof(sockaddr));
 
     head_id = 0;
     last_id = 0;
@@ -31,12 +31,12 @@ FixedSizePBufList::FixedSizePBufList(int size) {
     }
 
 
-    for (int i = 0; i < size; i++)
+    for (unint i = 0; i < size; i++)
     {
         pbuf_list[i] = 0;
     }
 
-    this->size = size;
+    this->size = arg_size;
 }
 
 FixedSizePBufList::~FixedSizePBufList() {
@@ -62,8 +62,9 @@ int FixedSizePBufList::addPbuf(pbuf* p, sockaddr* from) {
         last = 0;
 
     // all entries used?
-    if (last == head_id)
+    if (last == head_id) {
         return (cError );
+    }
 
     LOG(COMM, TRACE, "FixedSizePBufList::addPbuf():last_id: %d, pbuf_list : %x, fromaddr: %x",last_id,pbuf_list,from);
 
@@ -94,7 +95,7 @@ int FixedSizePBufList::getFirst(char* data, size_t len, sockaddr* from, pbuf* &p
     pbuf* p = pbuf_list[head_id];
     if (p->len > len)
     {
-        LOG(COMM, WARN, "FixedSizePBufList::getFirst(): packet too long to receive: %d > %d %d",p->len,len);
+        LOG(COMM, WARN, "FixedSizePBufList::getFirst(): packet too long to receive: %d > %d",p->len,len);
         return (cError );
     }
 

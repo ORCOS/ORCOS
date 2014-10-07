@@ -44,6 +44,7 @@ Socket::Socket(unint2 domain, SOCK_TYPE e_type, unint2 protocol) :
     this->state                 = SOCKET_DISCONNECTED;
     this->hasListeningThread    = false;
     this->myboundaddr.sa_data   = 0;
+    this->acceptedConnections   = 0;
 
 #ifdef HAS_Kernel_ServiceDiscoveryCfd
     this->sd.address.name_data[0] = '\0';  // <- mark as free
@@ -304,8 +305,7 @@ ErrorT Socket::addMessage(pbuf* p, sockaddr *fromaddr) {
 
     if (isError(res))
     {
-        LOG(COMM, ERROR, "Socket::addMessage(): messageBuffer->add result: %d",res);
-        return (res);
+        LOG(COMM, DEBUG, "Socket::addMessage(): messageBuffer->add result: %d",res);
     }
 
     if (this->blockedThread != 0)

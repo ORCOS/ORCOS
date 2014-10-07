@@ -54,31 +54,34 @@ extern "C" int 	task_kill(int taskid) {
 	return syscall(cTask_KillSysCallId,taskid);
 }
 
-extern "C"int task_resume(int taskid)
+extern "C" int task_resume(int taskid)
 {
     return syscall(cTask_ResumeSysCallId,taskid);
 }
 
-extern "C"int thread_create(int* threadid,thread_attr_t* attr, void *(*start_routine)(void*), void* arg)
+extern "C" int thread_create(int* threadid,thread_attr_t* attr, void *(*start_routine)(void*), void* arg)
 {
     return syscall(cThread_CreateSysCallId,threadid,attr,start_routine,arg);
 }
 
-extern "C"int thread_run(int threadid)
+extern "C" int thread_run(int threadid)
 {
     return syscall(cThread_RunSysCallId,threadid);
 }
 
-extern "C"int thread_self()
+extern "C" int thread_self()
 {
     return syscall(cThread_SelfSysCallId);
 }
 
-extern "C"void thread_yield()
+extern "C" void thread_yield()
 {
     syscall(cThread_YieldSysCallId);
 }
 
+extern "C" int     thread_terminate(ThreadIdT threadId, int flag) {
+    return (syscall(cThreadTerminateSyscallId,threadId,flag));
+}
 
 extern "C" int	waitpid(unint1 pid)
 {

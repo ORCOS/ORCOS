@@ -37,8 +37,8 @@ void startThread(Thread* thread) __attribute__((noreturn));
  */
 void startThread(register Thread* thread) {
 
-    // used variables declarations. put them into registers to ensure the varibles
-    // to be accessable after SETPID (stack is not accessible any more)
+    /* used variables declarations. put them into registers to ensure the varibles
+     * to be accessable after SETPID (stack is not accessible any more) */
 
     register TaskIdT PIDvar = thread->getOwner()->getId();
     register void* addr = thread->getStartRoutinePointer();
@@ -55,7 +55,7 @@ void startThread(register Thread* thread) {
     ptStartAddr = (void*) (((unint) &__PageTableSec_start) + PIDvar * 0x4000);
 #endif
     unint4 spsrval = 16;
-    // check for thumb mode
+    /* check for thumb mode */
     if (thread->getOwner()->platform_flags == 0x101)
         spsrval = 48;
 
@@ -109,8 +109,5 @@ void startThread(register Thread* thread) {
             : "r0", "r1"// clobber list
     );
 
-    // this point is never reached.
-    while (true)
-    {
-    }
+    __builtin_unreachable ();
 }

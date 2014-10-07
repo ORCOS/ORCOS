@@ -20,7 +20,7 @@ typedef unsigned char unint1;
 typedef unsigned short unint2;
 typedef unsigned int unint4;
 typedef unsigned long long unint8;
-
+typedef unsigned long intptr_t;
 typedef unint8 TimeT;
 
 #define MAX_UINT8  18446744073709551615ULL

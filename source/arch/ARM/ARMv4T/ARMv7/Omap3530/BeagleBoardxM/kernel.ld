@@ -83,8 +83,7 @@ SECTIONS
   /* first the text section */
   .text      .	  :
   {
-    *(.text)
-    *(.text.*)
+    *(.text*)
   } 
 
   PROVIDE (_text_end = .);
@@ -92,21 +91,19 @@ SECTIONS
   /* read only data */
   .rodata ALIGN(4)	: 
   	{
-  	PROVIDE(_data_start = .);
-  	 
-  	*(.rodata.*) *(.rodata.str*) *(.rodata._Z*)
+  	PROVIDE(_data_start = .);  	 
+  	*(.rodata*) 
   	
-  	/* write the tasktable into memory */
-	
+  	/* write the tasktable into memory */	
   	tasktable = .;
 	*(.tasktable); 
    } 
   		
+  . = ALIGN(4);
   .data	 ALIGN(4) :
   {
   	PROVIDE(_data_start_data = .);
-    *(.data)
-    *(.data.*)
+    *(.data*)
     *(.sdata)
     *(.ctors)
     PROVIDE(_debug_frame = .);
@@ -126,8 +123,7 @@ SECTIONS
   
   .bss  .  :
   {
-    *(.bss)        
-    *(.bss.*)
+    *(.bss*)            
   }  
   . = ALIGN(4);
   PROVIDE (__bss_end = .);

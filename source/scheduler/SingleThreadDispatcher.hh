@@ -19,7 +19,7 @@
 #ifndef SINGLETHREADDISPATCHER_H_
 #define SINGLETHREADDISPATCHER_H_
 
-#include "db/LinkedListDatabase.hh"
+#include "db/LinkedList.hh"
 #include "SCLConfig.hh"
 #include  Kernel_Scheduler_hh
 

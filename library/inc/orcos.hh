@@ -157,7 +157,7 @@ extern "C"void 		usleep(int us);
 /*!
  * \brief Returns the process ID of the current running process.
  */
-extern "C" int     getpid();
+extern "C" int      getpid();
 
 /*!
  * \brief Create a new thread.
@@ -192,12 +192,22 @@ extern "C" int 		thread_self();
 extern "C" void 	thread_yield();
 
 /*!
- * \brief Terminates the currently executing thread
+ * \brief Returns from the the currently executing thread instance
  *
- * If a Memory Manager is used that does not support deallocation of memory the TCB and stack will be kept for further thread creation calls.
+ * Periodic Threads end their currently exeucting thread instance.
+ * Aperiod Threads also terminate.
  */
 extern "C" void 	thread_exit(int exitCode = cOk);
 
+/*
+ * \brief Terminates the given thread.
+ *
+ * flag:  TERM_SOFT    Soft terminate the thread after next instance
+ *        TERM_HARD    Hard terminate the thread directly
+ *
+ *returns ErrorCode
+ */
+extern "C" int     thread_terminate(ThreadIdT threadId, int flag);
 
 
 /**************************************

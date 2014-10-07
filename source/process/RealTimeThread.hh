@@ -37,6 +37,7 @@ class RealTimeThread: public PriorityThread {
     friend class RateMonotonicThreadScheduler;
     friend class WorkerTask;
     friend class Task;
+    friend class TaskManager;
 
 public:
     TimeT period;               //!< The period of the real time thread in clock ticks. 0 means it isn't periodic.
@@ -65,6 +66,7 @@ public:
      */
     ~RealTimeThread();
 
+protected:
     /*! \brief Is automatically called when the thread finishes through a syscall.
      *
      * If the period is not zero (meaning it is a periodic thread) this method will take care that the thread is

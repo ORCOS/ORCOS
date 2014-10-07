@@ -24,7 +24,7 @@ class FixedSizePBufList
     size_t size;
 
 public:
-    FixedSizePBufList(int size);
+    FixedSizePBufList(size_t size);
 
     ~FixedSizePBufList();
 

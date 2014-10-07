@@ -98,8 +98,11 @@ static err_t tcp_recv_wrapper(void *arg, struct tcp_pcb *pcb, struct pbuf *p, er
         {
             return (sock->addMessage(p, 0));
         }
-        else
-            return (ERR_BUF);
+        else {
+            /* socket has been destroyed already? */
+            tcp_close(pcb);
+            return (ERR_OK);
+        }
     }
     else
     {
@@ -119,7 +122,7 @@ static err_t tcp_recv_wrapper(void *arg, struct tcp_pcb *pcb, struct pbuf *p, er
 void TCPTransportProtocol::received(Socket* socket, pbuf* p) {
     struct tcp_pcb* pcb = (struct tcp_pcb*) socket->arg;
     if (pcb != 0) {
-        // indicate that we received
+        // indicate that we received this packet
         tcp_recved(pcb, p->tot_len);
     }
     pbuf_free(p);

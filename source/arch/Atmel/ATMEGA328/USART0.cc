@@ -207,7 +207,6 @@ int printf_p( const char *format, ... ) {
 
 
 extern "C" void test() {
-
     puts_p((void*) PSTR("\nUSUART0 initialized.\n"));
 }
 

@@ -7,7 +7,7 @@
       <Log Prefix="PROCESS" Level="WARN" />
       <Log Prefix="SCHEDULER" Level="WARN" />
       <Log Prefix="SYNCHRO" Level="WARN" />
-      <Log Prefix="SYSCALLS" Level="WARN" />
+      <Log Prefix="SYSCALLS" Level="TRACE" />
       <Log Prefix="DB" Level="WARN" />
       <Log Prefix="HAL" Level="WARN" />
       <Log Prefix="ARCH" Level="DEBUG" />
@@ -19,7 +19,7 @@
     					Tasks
          ************************************ -->
   <Tasks>
-     <Task>
+    <Task>
       <Start>0x81160000</Start>
       <Size>0x0010000</Size>
       <Path>../../../tasks/telnet_server</Path>

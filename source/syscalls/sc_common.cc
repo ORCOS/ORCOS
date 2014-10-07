@@ -25,6 +25,7 @@ int getCycles(int4 sp_int)
 {
 	TimeT* time;
 	SYSCALLGETPARAMS1(sp_int,time);
+	VALIDATE_IN_PROCESS(time);
 	*time = theOS->getBoard()->getClock()->getClockCycles();
 	return (cOk);
 }
@@ -38,6 +39,7 @@ int printToStdOut(int4 int_sp )
    const char *write_ptr;
    unint4 write_size;
    SYSCALLGETPARAMS2(int_sp,write_ptr,write_size);
+   VALIDATE_IN_PROCESS(write_ptr);
 
    LOG(SYSCALLS,TRACE,"Syscall: printToStdOut(%s)",write_ptr);
 
@@ -52,5 +54,36 @@ void thread_exitSyscall(int4 sp_int)
 	SYSCALLGETPARAMS1(sp_int,exitCode);
 
 	pCurrentRunningTask->exitValue = exitCode;
-	pCurrentRunningThread->terminate();
+	theOS->getTaskManager()->terminateThread(pCurrentRunningThread);
+}
+
+int thread_terminateSyscall(int4 sp_int)
+{
+    ThreadIdT threadId;
+    int params;
+    SYSCALLGETPARAMS2(sp_int,threadId,params);
+
+    /* get the thread */
+    register Kernel_ThreadCfdCl* t = pCurrentRunningTask->getThreadbyId( threadId );
+
+    if (t == 0) {
+        return (cError);
+    }
+
+    if (params == TERM_SOFT) {
+        LOG(SYSCALLS,DEBUG,"Syscall: Thread %d TERM_SOFT ",threadId);
+        /* set the soft termination flag */
+        t->setStatusFlag(cDoTermFlag);
+        return (cOk);
+    } else if( params == TERM_HARD) {
+        LOG(SYSCALLS,DEBUG,"Syscall: Thread %d TERM_HARD ",threadId);
+        /* call Thread::terminate to be sure no
+         * further instances are created as it would be
+         * done inside RealtimeThread::terminate() */
+       theOS->getTaskManager()->terminateThread(t);
+        return (cOk);
+    }
+
+    return (cInvalidArgument);
+
 }

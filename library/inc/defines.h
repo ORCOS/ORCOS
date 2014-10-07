@@ -53,17 +53,16 @@
 // Filesystem
 //-----------------------------------------------------
 
-/* ORCOS internal dirctory type */
-#define cDirTypeORCOS		1
-/* Directory is a FAT directory */
-#define cDirTypeFAT32		2
-
 /* Absolute position inside file */
 #define SEEK_SET 0
 /* Offset from current position */
 #define SEEK_CUR 1
 /* Offset from end of file*/
 #define SEEK_END 2
+
+#ifndef NULL
+#define NULL 0
+#endif
 
 //-----------------------------------------------------
 // Syscall IDs
@@ -76,68 +75,69 @@
 
 // Stream/File related Syscalls
 
-#define cFOpenSysCallId     0
-#define cFCloseSysCallId    1
-#define cFReadSysCallId     2
-#define cFWriteSysCallId    3
-#define cFPutcSysCallId     4
-#define cFGetcSysCallId     5
-#define cFCreateSysCallId	6
+#define cFOpenSysCallId                     0
+#define cFCloseSysCallId                    1
+#define cFReadSysCallId                     2
+#define cFWriteSysCallId                    3
+#define cFPutcSysCallId                     4
+#define cFGetcSysCallId                     5
+#define cFCreateSysCallId	                6
 
 // Memory related Syscalls
 
-#define cNewSysCallId       7
-#define cDeleteSysCallId    8
+#define cNewSysCallId                       7
+#define cDeleteSysCallId                    8
 
 // Task related Syscalls
 
-#define cTask_StopSysCallId     9
-#define cTask_ResumeSysCallId   10
+#define cTask_StopSysCallId                 9
+#define cTask_ResumeSysCallId               10
 
 // Thread related Syscalls
 
-#define cSleepSysCallId         11
-#define cThread_CreateSysCallId 12
-#define cThread_RunSysCallId    13
-#define cThread_SelfSysCallId   14
-#define cThread_YieldSysCallId  15
-#define cThread_ExitSysCallId   16
+#define cSleepSysCallId                     11
+#define cThread_CreateSysCallId             12
+#define cThread_RunSysCallId                13
+#define cThread_SelfSysCallId               14
+#define cThread_YieldSysCallId              15
+#define cThread_ExitSysCallId               16
 
 // Signal related Syscalls
 
-#define cSignal_WaitSyscallId      17
-#define cSignal_SignalSyscallId    18
+#define cSignal_WaitSyscallId               17
+#define cSignal_SignalSyscallId             18
 
 // Socket related Syscalls
 
-#define cSocketSyscallId        19
-#define cConnectSyscallId		20
-#define cListenSyscallId		21
-#define cBindSyscallId          22
-#define cSendtoSyscallId        23
-#define cRecvFromSyscallId      24
+#define cSocketSyscallId                    19
+#define cConnectSyscallId		            20
+#define cListenSyscallId		            21
+#define cBindSyscallId                      22
+#define cSendtoSyscallId                    23
+#define cRecvFromSyscallId                  24
 
-#define cIOControl				25
+#define cIOControl				            25
 
-#define cPrintToStdOut          26
-#define cNewProtSysCallId       27
+#define cPrintToStdOut                      26
+#define cNewProtSysCallId                   27
 
-#define cGetTimeSyscallId		28
-#define cMapMemorySyscallId		29
-#define cModuleReturnId			30
+#define cGetTimeSyscallId		            28
+#define cMapMemorySyscallId		            29
+#define cModuleReturnId			            30
 
-#define cRunTaskId				31
-#define cTask_KillSysCallId		32
-#define cShmMapId				33
+#define cRunTaskId				            31
+#define cTask_KillSysCallId		            32
+#define cShmMapId				            33
 
-#define cThread_WaitPID			34
-#define cFStatId				35
-#define cFRemoveID				36
-#define cGetPID                 37
-#define cShmUnmapId             38
-#define cGetDateTimeSyscallId   39
-#define cMkDevSyscallId         40
-#define cTaskioctlscallId       41
-#define cFSeekSyscallId         42
+#define cThread_WaitPID			            34
+#define cFStatId				            35
+#define cFRemoveID				            36
+#define cGetPID                             37
+#define cShmUnmapId                         38
+#define cGetDateTimeSyscallId               39
+#define cMkDevSyscallId                     40
+#define cTaskioctlscallId                   41
+#define cFSeekSyscallId                     42
+#define cThreadTerminateSyscallId           43
 
 #endif /* TASKLIB_HH_ */

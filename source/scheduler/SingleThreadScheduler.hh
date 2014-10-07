@@ -43,12 +43,12 @@ public:
      */
     ErrorT enter( LinkedListItem* item );
 
-    ErrorT enter( DatabaseItem* item ) {
+    ErrorT enter( ListItem* item ) {
 		wrappingItem.setData(item);
 		return (this->enter(&wrappingItem));
     }
 
-    LinkedListItem* remove(DatabaseItem* item);
+    LinkedListItem* remove(ListItem* item);
 
      /*!
      * Start the scheduling.

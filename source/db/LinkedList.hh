@@ -32,6 +32,7 @@ class ListItem;
  */
 class LinkedList {
     friend class LinkedListItem;
+    friend class Task;  /* for export of size */
 private:
 
     LinkedListItem* headItem;

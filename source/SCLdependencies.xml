@@ -177,7 +177,7 @@
         <MemberRef Name="InterruptHandler" optional="false"/>
         <MemberRef Name="InterruptController" optional="false" />
 		<MemberRef Name="ExtPowerControl" optional="true" >
-			<Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/TWL4030">
+			<Defaults Class="arch/shared/power/TWL4030">
 				<PropertyValue Name="I2CDeviceName" Value="dev/i2c0" />
 			</Defaults>
 		</MemberRef>
@@ -377,7 +377,7 @@
         <MemberRef Name="InterruptHandler" optional="false"/>
         <MemberRef Name="InterruptController" optional="false" />
 		<MemberRef Name="ExtPowerControl" optional="true" >
-			<Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/TWL4030">
+			<Defaults Class="arch/shared/power/TWL4030">
 				<PropertyValue Name="I2CDeviceName" Value="dev/i2c0" />
 			</Defaults>
 		</MemberRef>
@@ -731,7 +731,7 @@
 	<Member>
 	<Name>ExtPowerControl</Name>
       <Classes>
-        <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/TWL4030">
+        <Class Requires="OMAP3530" Name="arch/shared/power/TWL4030">
 		    <Property Name="I2CDeviceName" Type="char*" Optional="false" Description="The I2C Device this Power Control can be access with.\nDefault: 'dev/i2c0'" />
  		</Class>
       </Classes>	

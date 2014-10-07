@@ -297,7 +297,7 @@ void tcp_input(struct pbuf *p, struct netif *inp) {
             else
             {
                 /* drop incoming packets, because pcb is "full" */
-                LOGC(COMM, WARN, ("[K][ERROR] tcp_input: drop incoming packets, because pcb is full"));
+                LOGC(COMM, DEBUG, ("[K][ERROR] tcp_input: drop incoming packets, because pcb is full"));
                 TCP_STATS_INC(tcp.drop); snmp_inc_tcpinerrs();
                 pbuf_free(p);
                 return;

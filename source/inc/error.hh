@@ -199,7 +199,7 @@ extern char* getMethodSignature(unint4 address);
 #define ERROR(a) {printf("ERROR in line %d in file %s with message: %s",__LINE__,__FILE__,a); while(1);}
 
 #if __DEBUG__
-#define ASSERT(a) if (!(a)) {printf("ASSERTION in line %d in file %s \n\r",__LINE__,__FILE__); while (1) ;}
+#define ASSERT(a) if (!(a)) {printf("ASSERTION in line %d in file %s",__LINE__,__FILE__); while (1) ;}
 #else
 #define ASSERT(a) if (!a) ;
 #endif

@@ -37,7 +37,7 @@ KOBJ += ArrayList.o LinkedList.o
 KOBJ += Logger.o Trace.o dwarf.o
 
 #filesystem
-KOBJ += File.o Directory.o Filemanager.o Resource.o SimpleFileManager.o SharedMemResource.o FileSystemBase.o Partition.o
+KOBJ += File.o Directory.o Filemanager.o Resource.o SimpleFileManager.o SharedMemResource.o FileSystemBase.o Partition.o KernelVariable.o
 
 #hal
 KOBJ += PowerManager.o CharacterDevice.o BlockDeviceDriver.o TimerDevice.o CommDeviceDriver.o USCommDeviceDriver.o Clock.o BufferDevice.o
@@ -51,9 +51,6 @@ KOBJ += newlib_helper.o
 
 #kernel
 KOBJ += kwait.o kernelmain.o Kernel.o 
-
-#To be placed into SCL calculation
-KOBJ += UDPTransportProtocol.o
 
 #mem
 KOBJ +=  new.o 
@@ -77,7 +74,7 @@ KOBJ += sc_common.o sc_io.o sc_mem.o sc_net.o sc_process.o sc_synchro.o
 #depending on whether they are common kernel code or specific to the archectiture.
 VPATH = $(addprefix $(KERNEL_DIR), $(KERNEL_VPATH)) $(ARCH_VPATH) make/
 
-KERNEL_VPATH = db/ debug/ filesystem/ hal/ inc/ inc/newlib/ kernel/ robust/ mem/ process/ scheduler/ syscalls/ synchro/ comm/ migration/ comm/servicediscovery/ comm/lwip/core/ comm/lwip/core/ipv4/ comm/lwip/netif/ comm/lwip/arch/ comm/lwip/core/ipv6/ comm/hcibluetooth/ arch/shared/ arch/shared/usb
+KERNEL_VPATH = db/ debug/ filesystem/ hal/ inc/ inc/newlib/ kernel/ robust/ mem/ process/ scheduler/ syscalls/ synchro/ comm/ migration/ comm/servicediscovery/ comm/lwip/core/ comm/lwip/core/ipv4/ comm/lwip/netif/ comm/lwip/arch/ comm/lwip/core/ipv6/ comm/hcibluetooth/ arch/shared/ arch/shared/usb arch/shared/power
 
 #---------------------------------------------------------------------------------------------------------------------------------------
 #                                                      Pre-Build Checks
@@ -202,7 +199,7 @@ uImage: scl tasks $(OUTPUT_DIR)kernel.elf $(OUTPUT_DIR)kernel.bin
 
 # Assemble: create object files from assembler source files. 
 $(OUTPUT_DIR)%.o : %.S SCLConfig.hh
-	@echo kernel.mk[AS] : Assembling $@
+	@echo "kernel.mk[ASM]: Assembling $@"
 	@$(CC) $(ASFLAGS) $< --output $@
 		
 #rule for creating the configuration header file SCLConfig.hh and the tasktable by unsing the scl tool	
@@ -215,7 +212,7 @@ SCLConfig.hh tasktable.S: SCLConfig.xml
 
 #rule for compiling c++ files with header			
 $(OUTPUT_DIR)%.o : %.cc %.hh SCLConfig.hh
-	@echo kernel.mk[C++]: Compiling  $@
+	@echo "kernel.mk[C++]: Compiling  $@"
 	@$(CXX) $(CPFLAGS) $(OPT_FLAGS)  $< --output $@
 
 $(MODULES_DIR)%.o : %.cc %.hh SCLConfig.hh $(OUTPUT_DIR)syscall.o
@@ -231,17 +228,17 @@ $(MODULES_DIR)%.o : %.cc %.hh SCLConfig.hh $(OUTPUT_DIR)syscall.o
 
 #rule for compiling c++ files without header
 $(OUTPUT_DIR)%.o : %.cc SCLConfig.hh
-	@echo kernel.mk[C++]: Compiling  $@
+	@echo "kernel.mk[C++]: Compiling  $@"
 	@$(CXX) $(CPFLAGS) $(OPT_FLAGS)  $< --output $@
 
 #rule for compiling c files with header	
 $(OUTPUT_DIR)%.o : %.c %.h SCLConfig.hh
-	@echo kernel.mk[C]   : Compiling  $@
+	@echo "kernel.mk[C  ]: Compiling  $@"
 	@$(CC) $(CFLAGS) $(OPT_FLAGS) $< --output $@
 	
 #rule for compiling c files without header
 $(OUTPUT_DIR)%.o : %.c SCLConfig.hh
-	@echo kernel.mk[C]   : Compiling  $@
+	@echo "kernel.mk[C  ]: Compiling  $@"
 	@$(CC) -c $(CFLAGS) $(OPT_FLAGS)   $< --output $@
 
 

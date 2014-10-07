@@ -19,20 +19,31 @@
 #ifndef _THREAD_HH
 #define _THREAD_HH
 
+///////////////////////////////////////////////////////////////////////
+/// INCLUDES
+//////////////////////////////////////////////////////////////////////
+
 #include "inc/const.hh"
 #include "inc/types.hh"
 #include "inc/Bitmap.hh"
 #include "SCLConfig.hh"
 #include "db/LinkedListItem.hh"
+#include "inc/stringtools.hh"
+#include "inc/memtools.hh"
+#include "scheduler/ScheduleableItem.hh"
+#include Kernel_MemoryManager_hh
 
-// forward declaration of Task
+///////////////////////////////////////////////////////////////////////
+/// FORWARD DECLARATIONS
+//////////////////////////////////////////////////////////////////////
+class Directory;
 class Task;
 class Mutex;
 
+///////////////////////////////////////////////////////////////////////
+/// TYPES / DEFINES
+//////////////////////////////////////////////////////////////////////
 #define MAXSTACKPTRS 6
-
-#include "scheduler/ScheduleableItem.hh"
-#include Kernel_MemoryManager_hh
 
 extern LinkedListItem* pRunningThreadDbItem;
 
@@ -51,16 +62,22 @@ extern LinkedListItem* pRunningThreadDbItem;
 #define cStopped		(BitmapT)1<<5
 //! thread is waiting for a signal
 #define cSignalFlag     (BitmapT)1<<6
+//! thread shall terminate after current instance (soft termination)
+#define cDoTermFlag     (BitmapT)1<<7
 
 /*!
  * \brief Structure holding information on the stack of a thread
  */
 struct ThreadStack {
-    void* startAddr;    //!< The logical start addr of this stack
-    void* endAddr;      //!< The logical end addr of this stack
+    void* startAddr;                //!< The logical start addr of this stack
+    void* endAddr;                  //!< The logical end addr of this stack
     void* stackptrs[MAXSTACKPTRS];  //!< stack pointer stack. contains pushed stack pointer (context) addresses
     unsigned short top;
 };
+
+///////////////////////////////////////////////////////////////////////
+/// CLASS DEFINITIONS
+//////////////////////////////////////////////////////////////////////
 
 /*!
  *  \brief Thread CB Class which holds information about a thread.
@@ -70,68 +87,80 @@ struct ThreadStack {
  */
 class Thread: public ScheduleableItem {
 
-    //! The task class needs to access all private data of a thread since its the owner.
+    /* The task class needs to access all private data of a thread since its the owner. */
     friend class Task;
-    friend class SingleCPUDispatcher;
     friend class Mutex;
     friend class Module;
+    friend class TaskManager;
 
 public:
 
     //! The stack of the thread also used to save/restore the context.
-    ThreadStack threadStack;
+    ThreadStack         threadStack;
 
     //! The status of this thread. May cover states like running, blocked...
-    Bitmap status;
+    Bitmap              status;
 
     //! The pointer to the entry function.
-    void* startRoutinePointer;
+    void*               startRoutinePointer;
 
 private:
 
     //! The Mutex we are currently blocked by
-    Mutex* pBlockedMutex;
+    Mutex*              pBlockedMutex;
 
     //! The owner task of this thread.
-    Task* owner;
+    Task*               owner;
 
     //! The pointer to the entry function.
-    void* exitRoutinePointer;
+    void*               exitRoutinePointer;
 
     //!  A global Thread counter.
-    static ThreadIdT globalThreadIdCounter;
+    static ThreadIdT    globalThreadIdCounter;
+
+    //! The sysFs directory of this thread
+    Directory*          sysFsDir;
 
     //! The Threads own Id.
-    ThreadIdT myThreadId;
+    ThreadIdT           myThreadId;
+
+    /* the name of this thread */
+    char                name[16];
 
 public:
 
-    //! The amount of cycles this thread will sleep from now on
-    TimeT sleepTime;
+    //! The absolute time point in cycles this thread will sleeping up to
+    TimeT               sleepTime;
 
     //! The arguments passed to the thread on startup
-    void* arguments;
+    void*               arguments;
 
-    //! A signal this thread waits for or null
-    void* signal;
+    /*
+     * The signal this thread waits for or null
+     * If null (0) the thread is not waiting on a signal.
+     * If != 0 the restoreContext method must take care
+     * of passing 'signalvalue' to the thread.
+     */
+    void*               signal;
 
-    //! the signal value the thread waits on
-    unint4 signalvalue;
+    /*
+     * The signal value this thread received
+     */
+    unint4              signalvalue;
 
-    //! the current timeout value of the blocked stated
-    unint4 blockTimeout;
+    /* The current timeout value of the blocked stated */
+    unint4              blockTimeout;
 
-    //! Constructor which takes the startRoutinePointer as argument
+    /* Constructor which takes the startRoutinePointer as argument */
     Thread(void* startRoutinePointer, void* exitRoutinePointer, Task* owner, Kernel_MemoryManagerCfdCl* memManager, unint4 stack_size =
                    DEFAULT_USER_STACK_SIZE, void* attr = 0, bool newThread =
                    true);
 
-    //! Destructor
-    virtual ~Thread() {
-    }
+    /* Destructor */
+    virtual ~Thread();
 
 
-    //! initialize
+    /* Static initialization of the Thread class*/
     static void initialize() {
         globalThreadIdCounter = cFirstThread;
     }
@@ -152,14 +181,19 @@ public:
         return (cOk );
     }
 
+    //! Sets the given status flags
+    void setStatusFlag(int) {
+        status.setBits(cDoTermFlag);
+    }
+
     //! Returns true iff the thread has never been run before
     bool isNew() const {
-        return (status.areSet( cNewFlag));
+        return (status.areSet( cNewFlag ));
     }
 
     //! Returns true iff the thread is scheduled for execution
     bool isReady() const {
-        return (status.areSet( cReadyFlag));
+        return (status.areSet( cReadyFlag ));
     }
 
     /*!
@@ -191,6 +225,16 @@ public:
         return (this->sleepTime);
     }
 
+    /*
+     * Push the address sp into the threads personal stack.
+     * This stack is to be used to store context related
+     * memory locations of a thread.
+     *
+     * On interrupt or syscall the context of the thread has to be
+     * stored and the address should be pushed on this stack.
+     * Nested interrupts may force the use of multiple stack
+     * locations.
+     */
     ErrorT __attribute__((noinline)) pushStackPointer(void* sp) {
         if (threadStack.top < MAXSTACKPTRS - 1)
         {
@@ -206,6 +250,9 @@ public:
 
     }
 
+    /*
+     * Pop a value from the threads personal stack.
+     */
     ErrorT __attribute__((noinline)) popStackPointer(void* &sp) {
         if (threadStack.top > 0)
         {
@@ -235,6 +282,19 @@ public:
     //! Returns the Memory Manager of the task the thread belongs to
     Kernel_MemoryManagerCfdCl* getMemManager();
 
+    /* Sets the name of this thread */
+    void setName(char* newName) {
+        int len = strlen(newName);
+        if (len > 14) len = 14;
+        memcpy(this->name,newName,len);
+        this->name[len] = 0;
+    }
+
+    /* Gets the name of this thread */
+    char* getName() {
+        return (this->name);
+    }
+
     /*!
      * \brief This method sets up the thread for execution. This involves telling the scheduler
      * 		 that we are ready for running.
@@ -242,9 +302,9 @@ public:
     ErrorT run();
 
     /*!
-     * \brief Sends the thread to sleep for 't' clock ticks.
+     * \brief Sends the thread to sleep until the absolute cycles of 'timePoint' have been reached.
      *
-     * Involves informing the scheduler.
+     * Sends the thread to sleep. Involves informing the scheduler.
      */
     void sleep(TimeT timePoint, LinkedListItem* item = pRunningThreadDbItem);
 
@@ -285,6 +345,7 @@ public:
      */
     void stop();
 
+protected:
     /*!
      * \brief Terminates the thread.
      *
@@ -293,6 +354,7 @@ public:
      */
     void terminate();
 
+public:
     /*!
      * \brief Calling this method will setup the thread for first time execution and
      * 		 call the entry function of the thread.

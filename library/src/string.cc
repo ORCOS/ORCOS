@@ -425,6 +425,29 @@ char* strtok( char *s, const char *delim ) {
 }
 
 
+char* strncpy(char *dst, const char *src, size_t n)
+{
+    size_t i;
+    char *temp;
+    temp = dst;
+
+    for (i = 0; i < n; i++)
+        *dst++ = *src++;
+
+    return temp;
+}
+
+
+char* strdup (const char *s)
+{
+    size_t len = strlen (s) + 1;
+    void *newstr = malloc (len);
+
+    if (newstr == NULL)
+        return NULL;
+
+    return (char *) memcpy (newstr, s, len);
+}
 
 extern "C" int puts(const char *s) {
 	return (printToStdOut(s,strlen(s)));

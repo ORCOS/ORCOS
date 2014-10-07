@@ -8,8 +8,7 @@
 #ifndef TWL4030_HH_
 #define TWL4030_HH_
 
-#include "hal/GenericDeviceDriver.hh"
-#include "Omap3530i2c.hh"
+#include "hal/CharacterDevice.hh"
 
 #define TWL4030_PM_RECEIVER_VAUX1_DEV_GRP		0x72
 #define TWL4030_PM_RECEIVER_VAUX1_TYPE			0x73
@@ -57,13 +56,13 @@
 #define TWL4030_PM_RECEIVER_VSIM_VSEL_18		0x03
 
 /* Defines for bits in registers */
-#define OPMODE_MASK		(3 << 3)
+#define OPMODE_MASK		    (3 << 3)
 #define XCVRSELECT_MASK		(3 << 0)
-#define CARKITMODE		(1 << 2)
-#define OTG_ENAB		(1 << 5)
-#define PHYPWD			(1 << 0)
+#define CARKITMODE		    (1 << 2)
+#define OTG_ENAB		    (1 << 5)
+#define PHYPWD			    (1 << 0)
 #define CLOCKGATING_EN		(1 << 2)
-#define CLK32K_EN		(1 << 1)
+#define CLK32K_EN		    (1 << 1)
 #define REQ_PHY_DPLL_CLK	(1 << 0)
 #define PHY_DPLL_CLK		(1 << 0)
 
@@ -72,7 +71,7 @@
 /* USB */
 #define TWL4030_CHIP_USB				0x48
 /* AUD */
-#define TWL4030_CHIP_AUDIO_VOICE			0x49
+#define TWL4030_CHIP_AUDIO_VOICE		0x49
 #define TWL4030_CHIP_GPIO				0x49
 #define TWL4030_CHIP_INTBR				0x49
 #define TWL4030_CHIP_PIH				0x49
@@ -80,10 +79,10 @@
 /* AUX */
 #define TWL4030_CHIP_KEYPAD				0x4a
 #define TWL4030_CHIP_MADC				0x4a
-#define TWL4030_CHIP_INTERRUPTS				0x4a
+#define TWL4030_CHIP_INTERRUPTS			0x4a
 #define TWL4030_CHIP_LED				0x4a
-#define TWL4030_CHIP_MAIN_CHARGE			0x4a
-#define TWL4030_CHIP_PRECHARGE				0x4a
+#define TWL4030_CHIP_MAIN_CHARGE		0x4a
+#define TWL4030_CHIP_PRECHARGE			0x4a
 #define TWL4030_CHIP_PWM0				0x4a
 #define TWL4030_CHIP_PWM1				0x4a
 #define TWL4030_CHIP_PWMA				0x4a
@@ -91,39 +90,39 @@
 /* POWER */
 #define TWL4030_CHIP_BACKUP				0x4b
 #define TWL4030_CHIP_INT				0x4b
-#define TWL4030_CHIP_PM_MASTER				0x4b
-#define TWL4030_CHIP_PM_RECEIVER			0x4b
+#define TWL4030_CHIP_PM_MASTER			0x4b
+#define TWL4030_CHIP_PM_RECEIVER		0x4b
 #define TWL4030_CHIP_RTC				0x4b
-#define TWL4030_CHIP_SECURED_REG			0x4b
+#define TWL4030_CHIP_SECURED_REG		0x4b
 
 /* Register base addresses */
 
 /* USB */
 #define TWL4030_BASEADD_USB				0x0000
 /* AUD */
-#define TWL4030_BASEADD_AUDIO_VOICE			0x0000
-#define TWL4030_BASEADD_GPIO				0x0098
-#define TWL4030_BASEADD_INTBR				0x0085
+#define TWL4030_BASEADD_AUDIO_VOICE		0x0000
+#define TWL4030_BASEADD_GPIO			0x0098
+#define TWL4030_BASEADD_INTBR			0x0085
 #define TWL4030_BASEADD_PIH				0x0080
-#define TWL4030_BASEADD_TEST				0x004C
+#define TWL4030_BASEADD_TEST			0x004C
 /* AUX */
-#define TWL4030_BASEADD_INTERRUPTS			0x00B9
+#define TWL4030_BASEADD_INTERRUPTS		0x00B9
 #define TWL4030_BASEADD_LED				0x00EE
-#define TWL4030_BASEADD_MADC				0x0000
-#define TWL4030_BASEADD_MAIN_CHARGE			0x0074
-#define TWL4030_BASEADD_PRECHARGE			0x00AA
-#define TWL4030_BASEADD_PWM0				0x00F8
-#define TWL4030_BASEADD_PWM1				0x00FB
-#define TWL4030_BASEADD_PWMA				0x00EF
-#define TWL4030_BASEADD_PWMB				0x00F1
-#define TWL4030_BASEADD_KEYPAD				0x00D2
+#define TWL4030_BASEADD_MADC			0x0000
+#define TWL4030_BASEADD_MAIN_CHARGE		0x0074
+#define TWL4030_BASEADD_PRECHARGE		0x00AA
+#define TWL4030_BASEADD_PWM0			0x00F8
+#define TWL4030_BASEADD_PWM1			0x00FB
+#define TWL4030_BASEADD_PWMA			0x00EF
+#define TWL4030_BASEADD_PWMB			0x00F1
+#define TWL4030_BASEADD_KEYPAD			0x00D2
 /* POWER */
-#define TWL4030_BASEADD_BACKUP				0x0014
+#define TWL4030_BASEADD_BACKUP			0x0014
 #define TWL4030_BASEADD_INT				0x002E
-#define TWL4030_BASEADD_PM_MASTER			0x0036
-#define TWL4030_BASEADD_PM_RECIEVER			0x005B
+#define TWL4030_BASEADD_PM_MASTER		0x0036
+#define TWL4030_BASEADD_PM_RECIEVER		0x005B
 #define TWL4030_BASEADD_RTC				0x001C
-#define TWL4030_BASEADD_SECURED_REG			0x0000
+#define TWL4030_BASEADD_SECURED_REG		0x0000
 
 /*
  * Power Management Master
@@ -131,14 +130,14 @@
 #define TWL4030_PM_MASTER_CFG_P1_TRANSITION		0x36
 #define TWL4030_PM_MASTER_CFG_P2_TRANSITION		0x37
 #define TWL4030_PM_MASTER_CFG_P3_TRANSITION		0x38
-#define TWL4030_PM_MASTER_CFG_P123_TRANSITION		0x39
-#define TWL4030_PM_MASTER_STS_BOOT			0x3A
-#define TWL4030_PM_MASTER_CFG_BOOT			0x3B
-#define TWL4030_PM_MASTER_SHUNDAN			0x3C
-#define TWL4030_PM_MASTER_BOOT_BCI			0x3D
+#define TWL4030_PM_MASTER_CFG_P123_TRANSITION	0x39
+#define TWL4030_PM_MASTER_STS_BOOT			    0x3A
+#define TWL4030_PM_MASTER_CFG_BOOT			    0x3B
+#define TWL4030_PM_MASTER_SHUNDAN			    0x3C
+#define TWL4030_PM_MASTER_BOOT_BCI			    0x3D
 #define TWL4030_PM_MASTER_CFG_PWRANA1			0x3E
 #define TWL4030_PM_MASTER_CFG_PWRANA2			0x3F
-#define TWL4030_PM_MASTER_BGAP_TRIM			0x40
+#define TWL4030_PM_MASTER_BGAP_TRIM			    0x40
 #define TWL4030_PM_MASTER_BACKUP_MISC_STS		0x41
 #define TWL4030_PM_MASTER_BACKUP_MISC_CFG		0x42
 #define TWL4030_PM_MASTER_BACKUP_MISC_TST		0x43
@@ -148,7 +147,7 @@
 #define TWL4030_PM_MASTER_P2_SW_EVENTS			0x47
 #define TWL4030_PM_MASTER_P3_SW_EVENTS			0x48
 #define TWL4030_PM_MASTER_STS_P123_STATE		0x49
-#define TWL4030_PM_MASTER_PB_CFG			0x4A
+#define TWL4030_PM_MASTER_PB_CFG			    0x4A
 #define TWL4030_PM_MASTER_PB_WORD_MSB			0x4B
 #define TWL4030_PM_MASTER_PB_WORD_LSB			0x4C
 #define TWL4030_PM_MASTER_SEQ_ADD_W2P			0x52
@@ -160,7 +159,7 @@
 #define TWL4030_PM_MASTER_SEQ_ADD_WARM			0x58
 #define TWL4030_PM_MASTER_MEMORY_ADDRESS		0x59
 #define TWL4030_PM_MASTER_MEMORY_DATA			0x5A
-#define TWL4030_PM_MASTER_SC_CONFIG			0x5B
+#define TWL4030_PM_MASTER_SC_CONFIG			    0x5B
 #define TWL4030_PM_MASTER_SC_DETECT1			0x5C
 #define TWL4030_PM_MASTER_SC_DETECT2			0x5D
 #define TWL4030_PM_MASTER_WATCHDOG_CFG			0x5E
@@ -182,13 +181,13 @@
 #define TWL4030_PM_MASTER_MISC_TST			0x6E
 #define TWL4030_PM_MASTER_TRIM1				0x6F
 /* P[1-3]_SW_EVENTS */
-#define TWL4030_PM_MASTER_SW_EVENTS_STOPON_PWRON	(1 << 6)
-#define TWL4030_PM_MASTER_SW_EVENTS_STOPON_SYSEN	(1 << 5)
+#define TWL4030_PM_MASTER_SW_EVENTS_STOPON_PWRON	    (1 << 6)
+#define TWL4030_PM_MASTER_SW_EVENTS_STOPON_SYSEN	    (1 << 5)
 #define TWL4030_PM_MASTER_SW_EVENTS_ENABLE_WARMRESET	(1 << 4)
-#define TWL4030_PM_MASTER_SW_EVENTS_LVL_WAKEUP		(1 << 3)
-#define TWL4030_PM_MASTER_SW_EVENTS_DEVACT		(1 << 2)
-#define TWL4030_PM_MASTER_SW_EVENTS_DEVSLP		(1 << 1)
-#define TWL4030_PM_MASTER_SW_EVENTS_DEVOFF		(1 << 0)
+#define TWL4030_PM_MASTER_SW_EVENTS_LVL_WAKEUP		    (1 << 3)
+#define TWL4030_PM_MASTER_SW_EVENTS_DEVACT		        (1 << 2)
+#define TWL4030_PM_MASTER_SW_EVENTS_DEVSLP		        (1 << 1)
+#define TWL4030_PM_MASTER_SW_EVENTS_DEVOFF		        (1 << 0)
 
 /* Power bus message definitions */
 
@@ -201,19 +200,19 @@
 
 /* Processor groups */
 #define DEV_GRP_NULL		0x0
-#define DEV_GRP_P1		0x1	/* P1: all OMAP devices */
-#define DEV_GRP_P2		0x2	/* P2: all Modem devices */
-#define DEV_GRP_P3		0x4	/* P3: all peripheral devices */
+#define DEV_GRP_P1		    0x1	/* P1: all OMAP devices */
+#define DEV_GRP_P2		    0x2	/* P2: all Modem devices */
+#define DEV_GRP_P3		    0x4	/* P3: all peripheral devices */
 
 /* Resource groups */
-#define RES_GRP_RES		0x0	/* Reserved */
-#define RES_GRP_PP		0x1	/* Power providers */
-#define RES_GRP_RC		0x2	/* Reset and control */
+#define RES_GRP_RES		    0x0	/* Reserved */
+#define RES_GRP_PP		    0x1	/* Power providers */
+#define RES_GRP_RC		    0x2	/* Reset and control */
 #define RES_GRP_PP_RC		0x3
-#define RES_GRP_PR		0x4	/* Power references */
+#define RES_GRP_PR		    0x4	/* Power references */
 #define RES_GRP_PP_PR		0x5
 #define RES_GRP_RC_PR		0x6
-#define RES_GRP_ALL		0x7	/* All resource groups */
+#define RES_GRP_ALL		    0x7	/* All resource groups */
 
 #define RES_TYPE2_R0		0x0
 
@@ -259,7 +258,7 @@
 /* Power Reference */
 #define RES_Main_Ref            28
 
-#define TOTAL_RESOURCES		28
+#define TOTAL_RESOURCES		    28
 /*
  * Power Bus Message Format ... these can be sent individually by Linux,
  * but are usually part of downloaded scripts that are run when various
@@ -617,7 +616,7 @@
 #define TWL4030_USB_CARKIT_5W_DEBUG			0xE1
 #define TWL4030_USB_PHY_PWR_CTRL			0xFD
 #define TWL4030_USB_PHY_CLK_CTRL			0xFE
-#define TWL4030_USB_PHY_CLK_CTRL_STS			0xFF
+#define TWL4030_USB_PHY_CLK_CTRL_STS		0xFF
 
 /* GPIO */
 #define TWL4030_GPIO_GPIODATAIN1			0x00
@@ -629,12 +628,12 @@
 #define TWL4030_GPIO_GPIODATAOUT1			0x06
 #define TWL4030_GPIO_GPIODATAOUT2			0x07
 #define TWL4030_GPIO_GPIODATAOUT3			0x08
-#define TWL4030_GPIO_CLEARGPIODATAOUT1			0x09
-#define TWL4030_GPIO_CLEARGPIODATAOUT2			0x0A
-#define TWL4030_GPIO_CLEARGPIODATAOUT3			0x0B
-#define TWL4030_GPIO_SETGPIODATAOUT1			0x0C
-#define TWL4030_GPIO_SETGPIODATAOUT2			0x0D
-#define TWL4030_GPIO_SETGPIODATAOUT3			0x0E
+#define TWL4030_GPIO_CLEARGPIODATAOUT1		0x09
+#define TWL4030_GPIO_CLEARGPIODATAOUT2		0x0A
+#define TWL4030_GPIO_CLEARGPIODATAOUT3		0x0B
+#define TWL4030_GPIO_SETGPIODATAOUT1		0x0C
+#define TWL4030_GPIO_SETGPIODATAOUT2		0x0D
+#define TWL4030_GPIO_SETGPIODATAOUT3		0x0E
 #define TWL4030_GPIO_GPIO_DEBEN1			0x0F
 #define TWL4030_GPIO_GPIO_DEBEN2			0x10
 #define TWL4030_GPIO_GPIO_DEBEN3			0x11
@@ -673,7 +672,7 @@
 class TWL4030: public GenericDeviceDriver {
 
 private:
-    Omap3530i2c* i2c_dev;
+    CharacterDevice* i2c_dev;
 
     ErrorT i2c_read_u8(unint1 i2c_num, unint1 *val, unint1 reg);
 
@@ -685,20 +684,20 @@ public:
 
     virtual ~TWL4030();
 
-    void power_reset_init(void);
+    void    power_reset_init(void);
 
-    void pmrecv_vsel_cfg(unint1 vsel_reg, unint1 vsel_val, unint1 dev_grp, unint1 dev_grp_sel);
+    void    pmrecv_vsel_cfg(unint1 vsel_reg, unint1 vsel_val, unint1 dev_grp, unint1 dev_grp_sel);
 
-    int usb_write(unint1 address, unint1 data);
+    int     usb_write(unint1 address, unint1 data);
 
-    int usb_read(unint1 address);
+    int     usb_read(unint1 address);
 
-    void usb_ldo_init(void);
+    void    usb_ldo_init(void);
 
     /*
      * Activates the USB PHY Power supply.
      */
-    void phy_power(void);
+    void    phy_power(void);
 
     /*
      * Initialize the ULPI interface.
@@ -706,17 +705,17 @@ public:
      * An interface between the USB link controller like musb and the
      * the PHY or transceiver that drives the actual bus.
      */
-    int usb_ulpi_init(void);
+    int     usb_ulpi_init(void);
 
     /**
      * Activates the general power supply for VAUX3, VPLL2, VDAC
      */
-    void power_init(void);
+    void    power_init(void);
 
     /**
      * Activates the MMC power supply
      */
-    void power_mmc_init(void);
+    void    power_mmc_init(void);
 };
 
 #endif /* TWL4030_HH_ */

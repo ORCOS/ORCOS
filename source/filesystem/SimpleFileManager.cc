@@ -202,7 +202,7 @@ SimpleFileManager::getResourceByNameandType(const char* pathname, ResourceType t
         else
         {
             // path/file not found
-            LOG(FILESYSTEM, ERROR, "Filesystem: Directory or File not found %s!",token);
+            LOG(FILESYSTEM, DEBUG, "Filesystem: Directory or File not found %s!",token);
             return (0);
         }
     }

@@ -37,6 +37,23 @@ typedef struct {
     service_name    name_data;      //!< socket name, maximum 16 chars
 } sockaddr;
 
+
+typedef struct {
+    char* buffer;
+    unint4 len;
+} buffer_t;
+
+
+#define STAT_TYPE_FILE      0
+#define STAT_TYPE_DIRECTORY 1
+#define STAT_TYPE_SYSVAR    2
+
+typedef enum {
+    SYSFS_SIGNED_INTEGER    = 0,
+    SYSFS_UNSIGNED_INTEGER  = 1,
+    SYSFS_STRING            = 2
+} SysFs_t;
+
 /*
  * Directory entry structure as returned
  * by reading a directory using fread.
@@ -52,9 +69,38 @@ typedef struct {
     char    name[0]; /* variable length name entry */
 } Directory_Entry_t;
 
+/*
+ * Type of a resource. Used inside fields
+ * Directory_Entry_t.resType and
+ * stat_t.st_type
+ */
+typedef enum {
+    cResT_Directory           = 1 << 0,
+    cResT_cStreamDevice       = 1 << 1,
+    cResT_cCommDevice         = 1 << 2,
+    cResT_cGenericDevice      = 1 << 3,
+    cResT_cFile               = 1 << 4,
+    cResT_cSocket             = 1 << 5,
+    cResT_cUSBDriver          = 1 << 6,
+    cResT_cBlockDevice        = 1 << 7,
+    cResT_cPartition          = 1 << 8,
+    cResT_cSharedMem          = 1 << 9,
+    cResT_cKernelVariable     = 1 << 10,
+} ResourceType_t;
+
+/* Soft termination flag. Terminate thread after next instance */
+#define TERM_SOFT 1
+/* Hard termination flag. Terminate thread now */
+#define TERM_HARD 2
+
+
+#define TIOCTL_SET_STDOUT 0
+
 //! File statistics
 typedef struct {
 	unint4 st_size;
+	unint4 st_type;
+	unint4 st_flags;
 } stat_t;
 
 /*!
@@ -84,12 +130,13 @@ typedef enum {
 
 //! Thread attribute structure for thread creation.
 typedef struct {
+    unint8 arrivaltime;     /* absolute time to be started*/
     unint4 priority;
-    unint4 phase;
     unint4 period;
     unint4 deadline;
     unint4 executionTime;
     unint4 stack_size;
+    unint4 reserved;        /* for alignment */
 } thread_attr_t;
 
 
@@ -114,7 +161,7 @@ typedef unint2 CpuVersionT;
  *  Type-defines for process management
  */
 typedef unint1 TaskIdT;
-typedef unint1 ThreadIdT;
+typedef unint2 ThreadIdT;
 typedef unint4 ResourceIdT;
 
 /*!

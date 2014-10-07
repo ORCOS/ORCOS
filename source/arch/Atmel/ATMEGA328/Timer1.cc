@@ -105,6 +105,6 @@ ErrorT Timer1::setTimer( unint4 t ) {
 ErrorT Timer1::tick() {
     // invoke the hal tick() method which then calls the dispatcher
    	theOS->getClock()->incTime( 2 );
-
+   	return (cOk);
 }
 

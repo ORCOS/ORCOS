@@ -82,6 +82,10 @@ public:
     }
 #endif
 
+    MemResource* getSegment() {
+        return (&Segment);
+    }
+
     bool containsAddr(void* addr) {
         return (Segment.containsAddr(addr));
     }

@@ -191,7 +191,7 @@ char dataBuffer[2048];
 int ReceiveFile(int controlsock, int datasock, sockaddr *dataremote, char* file) {
 
 	if (connect(datasock,dataremote) != 0) {
-		puts("Error Connecting..\r\n");
+		puts("ReceiveFile(): Error Connecting..\r\n");
 		sprintf(return_msg,"425 Cannot open data connection\r\n");
 		sendto(controlsock,return_msg,strlen(return_msg),0);
 		return -1;
@@ -262,7 +262,7 @@ int ReceiveFile(int controlsock, int datasock, sockaddr *dataremote, char* file)
 int sendFile(int controlsock, int datasock, sockaddr *dataremote, int handle) {
 
 	if (connect(datasock,dataremote) != 0) {
-		puts("Error Connecting..\r\n");
+		puts("sendFile(): Error Connecting..\r\n");
 		sprintf(return_msg,"425 Cannot open data connection\r\n");
 		sendto(controlsock,return_msg,strlen(return_msg),0);
 		return -1;
@@ -305,7 +305,7 @@ int sendFile(int controlsock, int datasock, sockaddr *dataremote, int handle) {
 void sendDirectoryContents(int controlsock, int datasock, sockaddr *dataremote) {
 
 	if (connect(datasock,dataremote) != 0) {
-		puts("Error Connecting..\r\n");
+		puts("sendDirectoryContents(): Error Connecting..\r\n");
 		sprintf(return_msg,"425 Cannot open data connection\r\n");
 		sendto(controlsock,return_msg,strlen(return_msg),0);
 		return;
@@ -318,62 +318,38 @@ void sendDirectoryContents(int controlsock, int datasock, sockaddr *dataremote) 
 		return;
 	}
 
-		// TODO: while loop
-		int ret = fread(dir_content,4000,1,mydirhandle);
-		if (ret > 0) {
 
-			// interpret data
-			if (dir_content[0] == cDirTypeORCOS) {
-				// display directory content
+    Directory_Entry_t* direntry = readdir(mydirhandle);
+    char* retmsg = dir_msg;
+    memset(retmsg,0,10);
 
-				unint2 pos = 1;
-				// for each directory send a message
-				char* retmsg = dir_msg;
-				memset(retmsg,0,10);
+    while (direntry) {
 
-				while ((pos < ret) && (pos < 4000)) {
-					// parse the directory contents
-					unint1 namelen = (unint1) dir_content[pos];
-					if (namelen > 100) return;
+        if (direntry->resType == 1) {
+            sprintf(line, "%s   1 %-10s %-10s %10u Jan  1  1980 %s\r\n",
+                          "d-rw-rw-rw-", "User", "User",0, direntry->name);
+        } else {
+            sprintf(line, "%s   1 %-10s %-10s %10u Jan  1  1980 %s\r\n",
+                          "-rw-rw-rw-", "User", "User",direntry->filesize, direntry->name);
+        }
 
-					int dirtype = dir_content[pos+2+namelen];
+        // concat the line
+        retmsg = strcat(retmsg,line);
 
-					unint4 filesize = (dir_content[pos+4+namelen] << 24) |
-									  (dir_content[pos+5+namelen] << 16) |
-									  (dir_content[pos+6+namelen] << 8) |
-									  (dir_content[pos+7+namelen] << 0);
+        if (strlen(dir_msg) > 800) {
+            //puts(dir_msg);
+            sendto(datasock,dir_msg,strlen(dir_msg),0);
+            retmsg = dir_msg;
+            memset(retmsg,0,10);
+        }
 
-					if (dirtype == 1) {
-						sprintf(line, "%s   1 %-10s %-10s %10u Jan  1  1980 %s\r\n",
-									  "d-rw-rw-rw-", "User", "User",filesize, &dir_content[pos+1]);
-					} else
-						sprintf(line, "%s   1 %-10s %-10s %10u Jan  1  1980 %s\r\n",
-									  "-rw-rw-rw-", "User", "User",filesize, &dir_content[pos+1]);
-
-					// concat the line
-					retmsg = strcat(retmsg,line);
-
-					if (strlen(dir_msg) > 800) {
-						//puts(dir_msg);
-						sendto(datasock,dir_msg,strlen(dir_msg),0);
-						retmsg = dir_msg;
-						memset(retmsg,0,10);
-					}
-					pos += namelen + 12;
-				}
-
-				//puts(dir_msg);
-				sendto(datasock,dir_msg,strlen(dir_msg),0);
-			}
-			return;
-
-		} else {
-			sprintf(return_msg,"450 Error reading directory\r\n");
-			sendto(controlsock,return_msg,strlen(return_msg),0);
-		}
+        direntry = readdir(mydirhandle);
+    }
 
 
+    sendto(datasock,dir_msg,strlen(dir_msg),0);
 }
+
 
 
 

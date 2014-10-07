@@ -26,9 +26,12 @@
 #include "db/ArrayList.hh"
 #include Kernel_Scheduler_hh
 #include Kernel_Thread_hh
+#include Kernel_MemoryManager_hh
 
 class Resource;
 class Task;
+
+extern Kernel_ThreadCfdCl* pCurrentRunningThread;
 
 /*!
  * \ingroup synchro
@@ -97,7 +100,10 @@ public    :
      *
      * pCurrentRunningThread releases the mutex.
      */
-    ErrorT release();
+    ErrorT release(Thread* pThread = pCurrentRunningThread);
+
+    /* Remvoes a thread from the scheduler queue of this mutex */
+    void threadRemove(Thread* pThread);
 
     /*!
      * \brief Method called whenever a thread is resumed.
@@ -105,7 +111,7 @@ public    :
      * This method is not called within the mutex itself but from the thread_resume syscall. It makes sure to
      * reschedule the specified thread, if it has been added to the stoppedThreads list.
      */
-    void threadResume(Kernel_ThreadCfdCl* pThread);
+    void   threadResume(Kernel_ThreadCfdCl* pThread);
 
 };
 

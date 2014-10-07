@@ -29,7 +29,7 @@
  *
  * \ingroup filesystem
  *
- * The directory is a node of a tree and can thus have multiple directorys
+ * The directory is a node of a tree and can thus have multiple directories
  * or leaf nodes (resources other than a directory) as child.
  */
 class Directory: public CharacterDevice {
@@ -37,10 +37,10 @@ protected:
     /*!
      * \brief The content of the directory. May contain other directory objects.
      */
-    LinkedList dir_content;
+    LinkedList  dir_content;
 
     //! the amount of entries
-    unint2 num_entries;
+    unint2      num_entries;
 public:
     Directory(const char* name);
 

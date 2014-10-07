@@ -99,11 +99,15 @@ ErrorT PagedRamMemManager::mapKernelPages(int pid) {
 
 ErrorT PagedRamMemManager::markAsUsed(unint4 start, unint4 end, unint1 pid) {
 
-    unint4 start_page = (unint4) alignFloor((char*) start, PAGESIZE);
-    unint4 end_page = (unint4) alignFloor((char*) end, PAGESIZE);
+    unint4 start_page   = (unint4) alignFloor((char*) start, PAGESIZE);
+    unint4 end_page     = (unint4) alignFloor((char*) end, PAGESIZE);
 
-    unint4 pe_start = (start_page - MemStart) / PAGESIZE;
-    unint4 pe_end = (end_page - MemStart) / PAGESIZE;
+    unint4 pe_start     = (start_page - MemStart) / PAGESIZE;
+    unint4 pe_end       = (end_page - MemStart) / PAGESIZE;
+
+    if (pe_end >= NUM_PAGES || pe_start >= NUM_PAGES) {
+        ERROR("Invalid start - end region");
+    }
 
     // mark the pages as used
     for (unint4 i = pe_start; i <= pe_end; i++)
@@ -113,13 +117,17 @@ ErrorT PagedRamMemManager::markAsUsed(unint4 start, unint4 end, unint1 pid) {
 }
 
 ErrorT PagedRamMemManager::free(unint4 start, unint4 end) {
-    unint4 start_page = (unint4) alignFloor((char*) start, PAGESIZE);
-    unint4 end_page = (unint4) alignFloor((char*) end, PAGESIZE);
+    unint4 start_page   = (unint4) alignFloor((char*) start, PAGESIZE);
+    unint4 end_page     = (unint4) alignFloor((char*) end, PAGESIZE);
 
-    int pe_start = (start_page - MemStart) / PAGESIZE;
-    int pe_end = (end_page - MemStart) / PAGESIZE;
+    int pe_start        = (start_page - MemStart) / PAGESIZE;
+    int pe_end          = (end_page - MemStart) / PAGESIZE;
 
-    // mark the pages as used
+    if (pe_end >= NUM_PAGES || pe_start >= NUM_PAGES) {
+           ERROR("Invalid start - end region");
+    }
+
+    // mark the pages as free
     for (int i = pe_start; i <= pe_end; i++)
         UsedPageTable[i] = (unint1) -1;
 

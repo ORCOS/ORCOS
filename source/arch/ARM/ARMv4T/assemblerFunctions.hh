@@ -282,27 +282,6 @@ extern void* __PageTableSec_start;
 						)\
 
 
-#if 0
-// get interrupt enable bit (IRQ only)
-#define GET_INTERRUPT_ENABLE_BIT(var) \
-    asm volatile( \
-       		".align 4;" \
-       		"mov    r0,pc;" \
-       		"bx     r0;" \
-       		".code 32;" \
-            "MRS	%0, cpsr;" \
-            "AND	%0, %0, #0x80;" \
-            "LSR	%0, #7;" \
-            "EOR	%0, %0, #1;" \
-       		"add r0, pc,#1;" \
-       		"bx  r0;" \
-       		".code 16" \
-            : "=&r" (var)\
-            : \
-            : "r0" \
-            )
-#endif
-
 // get interrupt enable bit (IRQ only)
 #define GET_INTERRUPT_ENABLE_BIT(var) \
     asm volatile( \
@@ -319,24 +298,6 @@ extern void* __PageTableSec_start;
 //-----------------------------------------------------------------------------
 
 // Enable interrupts (IRQ).
-#if 0
-#define _enableInterrupts() asm volatile( \
-								".align 4;" \
-								"mov    r0,pc;" \
-								"bx     r0;" \
-								".code 32;" \
-                                "MRS	r0, cpsr;" \
-                                "BIC	r0, r0, #0x80;" \
-                                "MSR	cpsr, r0;" \
-                           		"add r0, pc,#1;" \
-                           		"bx  r0;" \
-                           		".code 16" \
-                                : \
-                                : \
-                                : "r0" \
-                            )
-#endif
-
 #define _enableInterrupts() asm volatile( \
                                 "MRS	r0, cpsr;" \
                                 "BIC	r0, r0, #0x80;" \
@@ -356,24 +317,6 @@ extern void* __PageTableSec_start;
                                 : "r0" \
                             )
 
-#if 0
-// Disable interrupts (IRQ).
-#define _disableInterrupts() asm volatile( \
-								".align 4;" \
-								"mov    r0,pc;" \
-								"bx     r0;" \
-								".code 32;" \
-                                "MRS	r0, cpsr;" \
-                                "ORR	r0, r0, #0x80;" \
-                                "MSR	cpsr, r0;" \
-                           		"add r0, pc,#1;" \
-                           		"bx  r0;" \
-                           		".code 16" \
-                                : \
-                                : \
-                                : "r0" \
-                            )
-#endif
 
 #if ENABLE_NESTED_INTERRUPTS
 

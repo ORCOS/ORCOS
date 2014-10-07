@@ -81,6 +81,8 @@ FUNC_START(startORCOS)
 
 	MOV r0, #0
 	MCR p15, 0, r0, c7 , c5, 0 	// invalidate whole instruction cache
+	//MCR p15, 0, r0, c15, c5, 0  // Invalidate entire data cache
+
 
 // Instruction cache
 #ifndef ICACHE_ENABLE

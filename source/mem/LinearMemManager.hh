@@ -24,7 +24,7 @@
 #include <inc/error.hh>
 #include "SCLConfig.hh"
 
-#define MEM_NO_FREE
+#define MEM_NO_FREE 1
 
 /*!
  *  \ingroup memmanager
@@ -53,11 +53,9 @@ public:
      * The Parameter tid specifies which task this memory manager allocates memory for.
      */
     LinearMemManager(void* startAddr, void* endAddr) {
-
         start = (size_t) startAddr;
         FreeHeadPtr = (char*) start;
         end = (size_t) endAddr;
-
     }
 
     /*!
@@ -75,9 +73,16 @@ public:
         return (cNotImplemented);
     }
 
+
+
     //! new-Operator for Memory Managers, to place it directly at an desired address
     void* operator new(size_t s, void* addr) {
          return (addr);
+    }
+
+    bool containsAddr(void* addr) {
+          return ((intptr_t) addr >= (intptr_t) start &&
+                  (intptr_t) addr < (intptr_t) end);
     }
 
     /*!

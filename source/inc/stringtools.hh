@@ -44,7 +44,7 @@ void uitoa(unsigned int value, char* str, int base);
 
 char* strcpy(char *dst0, char const *src0);
 
-char* strncpy(char *dst0, const char *src0, size_t maxChars);
+char* strncpy(char *dst0,const char *src0, size_t maxChars);
 
 int strcmp2(const char *s1, char const *s2, unint1 s1_len);
 
@@ -60,8 +60,7 @@ int strpos(const char*s, char c);
 
 int strpos2(const char*s, char c);
 
-int ascii2unicode(const char * szAscii, unint2 * szUnicode);
-
+int ascii2unicode(const char * szAscii, char* szUnicode, unint2 len);
 
 #ifdef __cplusplus
 }

@@ -17,6 +17,7 @@
  */
 
 #include "ArrayList.hh"
+#include "kernel/Kernel.hh"
 
 // if we are sure a -b is never > b we can use this!
 #define MODULO(a,b)  a >= b ? a-b : a
@@ -180,4 +181,13 @@ ListItem* ArrayList::removeItem(ListItem* item) {
         }
     }
     return (0);
+}
+
+void ArrayList::print() {
+    for (int i = 0; i < maxEntries; i++ ) {
+        if (headPointer == i)
+            printf("H ");
+        printf("|%8x",entries[i]);
+    }
+    printf("|"LINEFEED);
 }

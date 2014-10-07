@@ -20,6 +20,7 @@
 #include "kernel/Kernel.hh"
 #include <assemblerFunctions.hh>
 #include "inc/error.hh"
+#include "filesystem/KernelVariable.hh"
 
 /* This is the hardware dependent method to start the thread the very first time
  * needs to be resolved by the linker */
@@ -27,7 +28,7 @@ extern void startThread(Thread* thread);
 
 /* the kernel object */
 extern Kernel* theOS;
-extern Thread* pCurrentRunningThread;
+extern Kernel_ThreadCfdCl* pCurrentRunningThread;
 extern Task*   pCurrentRunningTask;
 
 /* static non-const member variable initialization
@@ -57,19 +58,19 @@ Thread::Thread(void* p_startRoutinePointer, void* p_exitRoutinePointer, Task* p_
 
     ASSERT(p_owner);
     ASSERT(memManager);
-
+    /* do not initialize sleeptime here as it is done inside the realtimethread */
     this->myThreadId            = globalThreadIdCounter++;
     this->startRoutinePointer   = p_startRoutinePointer;
     this->exitRoutinePointer    = p_exitRoutinePointer;
     this->owner                 = p_owner;
     this->arguments             = 0;
-    this->sleepTime             = 0;
     this->signal                = 0;
     this->signalvalue           = -1;
     this->pBlockedMutex         = 0;
     this->blockTimeout          = 0;
     this->status.clear();
     this->status.setBits( cNewFlag );
+    this->name[0] = 0;
 
     /* inform owner task that this thread belongs to him */
     if (owner != 0)
@@ -100,6 +101,38 @@ Thread::Thread(void* p_startRoutinePointer, void* p_exitRoutinePointer, Task* p_
     this->threadStack.endAddr   = (void*) ((byte*) threadStack.startAddr + stack_size + RESERVED_BYTES_FOR_STACKFRAME);
     this->threadStack.top       = 0;
 
+    Directory* taskdir = p_owner->getSysFsDirectory();
+    if (taskdir) {
+       char* idstr = new char[16];
+       sprintf(idstr,"thread_%u",myThreadId);
+       sysFsDir    = new Directory(idstr);
+       taskdir->add(sysFsDir);
+
+       EXPORT_VARIABLE(sysFsDir,SYSFS_UNSIGNED_INTEGER,blockTimeout,RO);
+       EXPORT_VARIABLE(sysFsDir,SYSFS_STRING,name,RO);
+       EXPORT_VARIABLE_BY_NAME(sysFsDir,"tid",SYSFS_UNSIGNED_INTEGER,myThreadId,RO);
+       EXPORT_VARIABLE(sysFsDir,SYSFS_UNSIGNED_INTEGER,signal,RO);
+       EXPORT_VARIABLE(sysFsDir,SYSFS_UNSIGNED_INTEGER,signalvalue,RO);
+       EXPORT_VARIABLE(sysFsDir,SYSFS_UNSIGNED_INTEGER,sleepTime,RO);
+       EXPORT_VARIABLE(sysFsDir,SYSFS_UNSIGNED_INTEGER,status,RO);
+#ifdef HAS_PRIORITY
+       EXPORT_VARIABLE_BY_NAME(sysFsDir,"effectivePriority",SYSFS_UNSIGNED_INTEGER,((PriorityThread*)this)->effectivePriority,RO);
+       EXPORT_VARIABLE_BY_NAME(sysFsDir,"initialPriority",SYSFS_UNSIGNED_INTEGER,((PriorityThread*)this)->initialPriority,RO);
+#endif
+#ifdef REALTIME
+       EXPORT_VARIABLE_BY_NAME(sysFsDir,"relativeDeadline",SYSFS_UNSIGNED_INTEGER,((RealTimeThread*)this)->relativeDeadline,RO);
+       EXPORT_VARIABLE_BY_NAME(sysFsDir,"absoluteDeadline",SYSFS_UNSIGNED_INTEGER,((RealTimeThread*)this)->absoluteDeadline,RO);
+       EXPORT_VARIABLE_BY_NAME(sysFsDir,"arrivalTime",SYSFS_UNSIGNED_INTEGER,((RealTimeThread*)this)->arrivalTime,RO);
+       EXPORT_VARIABLE_BY_NAME(sysFsDir,"executionTime",SYSFS_UNSIGNED_INTEGER,((RealTimeThread*)this)->executionTime,RO);
+       EXPORT_VARIABLE_BY_NAME(sysFsDir,"period",SYSFS_UNSIGNED_INTEGER,((RealTimeThread*)this)->period,RO);
+       EXPORT_VARIABLE_BY_NAME(sysFsDir,"instance",SYSFS_UNSIGNED_INTEGER,((RealTimeThread*)this)->instance,RO);
+#endif
+    }
+
+}
+
+Thread::~Thread() {
+/* keep empty if possible */
 }
 
 /*--------------------------------------------------------------------------*
@@ -247,9 +280,9 @@ void Thread::resume() {
 }
 
 void Thread::stop() {
-    this->status.setBits( cStopped);
+    this->status.setBits( cStopped );
     /* if the thread is currently not blocked block it now */
-    if (!this->status.areSet( cBlockedFlag))
+    if (!this->status.areSet( cBlockedFlag ))
         theOS->getDispatcher()->block(this);
 }
 
@@ -258,10 +291,13 @@ void Thread::stop() {
  *---------------------------------------------------------------------------*/
 void Thread::terminate() {
 
-    LOG(PROCESS, INFO, "thread %d exited", this->myThreadId );
+    LOG(PROCESS, INFO, "thread %d terminated", this->myThreadId );
 
-    /* remove myself from the owner */
-    this->owner->removeThread(this);
+    if (pBlockedMutex != 0) {
+        pBlockedMutex->threadRemove(this);
+        pBlockedMutex = 0;
+    }
+
     this->status.clear();
     this->status.setBits( cTermFlag );
 
@@ -271,7 +307,7 @@ void Thread::terminate() {
     theOS->getDispatcher()->signal((void*) signalnum, cOk);
 #endif
 
-    /* free thread stack.we are using it here thus the code
+    /* free thread stack. we are using it here thus the code
      * path following is critical!
      * however free only if this stack has been allocated from the memory manager.
      * The only exception is the initial thread that is created by another process!
@@ -279,6 +315,14 @@ void Thread::terminate() {
     if (pCurrentRunningTask == this->owner && this->owner->getMemManager()->containsAddr(this->threadStack.startAddr) )
         this->owner->getMemManager()->free(this->threadStack.startAddr);
 
-    /* finally tell cpu dispatcher that im gone.. */
-    theOS->getDispatcher()->terminate_thread(this);
+    /* cleanup exported kernel variable stuff */
+    if (sysFsDir && owner) {
+       Directory* taskdir = owner->getSysFsDirectory();
+       if (taskdir) {
+           taskdir->remove(sysFsDir);
+           /* also deletes all exported variables inside the sysfs directory */
+           delete sysFsDir;
+       }
+    }
+
 }

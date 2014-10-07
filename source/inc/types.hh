@@ -44,7 +44,7 @@ typedef unint2 CpuVersionT;
  *  Type-defines for process management
  */
 typedef unint1 TaskIdT;
-typedef unint1 ThreadIdT;
+typedef unint2 ThreadIdT;
 typedef unint4 ResourceIdT;
 
 /*!
@@ -57,7 +57,6 @@ typedef unsigned long unlong;
 typedef unint4 BitmapT;
 typedef unint1 byte;
 typedef void* PhysAddrT;
-typedef unsigned long intptr_t;
 
 /* types for time representations */
 /// seconds
@@ -201,17 +200,17 @@ typedef struct packet_layer {
  * logical == virtual (if MMU enabled), physical otherwise
  */
 typedef struct {
-    unint4 task_magic_word;   	// needs to be 0x230f7ae9
-    unint4 task_next_header;	// defines the following task header field
-    unint4 platform;			// platform identifier, see platform defines
+    unint4 task_magic_word;   	        // needs to be 0x230f7ae9
+    unint4 task_next_header;	        // defines the following task header field
+    unint4 platform;			        // platform identifier, see platform defines
 
-    long task_start;   			// logical task start address
+    long   task_start;   			    // logical task start address
 
-    long task_entry_addr;   	// logical entry function address
-    long task_thread_exit_addr; // logical address of the thread_exit method inside the task
+    long   task_entry_addr;   	        // logical entry function address
+    long   task_thread_exit_addr;       // logical address of the thread_exit method inside the task
 
-    long task_heap_start;   	// logical data start address
-    long task_end;     			// logical task end address
+    long   task_heap_start;   	        // logical data start address
+    long   task_end;     	            // logical task end address
 
     thread_attr_t initial_thread_attr; 	// attributes of the initial thread
 } taskTable;
@@ -241,6 +240,7 @@ typedef enum {
     cBlockDevice        = 1 << 7,
     cPartition          = 1 << 8,
     cSharedMem          = 1 << 9,
+    cKernelVariable     = 1 << 10,
     cNonRemovableResource = cStreamDevice | cCommDevice | cGenericDevice | cSocket | cUSBDriver,
     cAnyNoDirectory       = cStreamDevice | cCommDevice | cGenericDevice | cFile | cSocket | cUSBDriver | cBlockDevice | cSharedMem,
     cAnyResource          = cStreamDevice | cCommDevice | cGenericDevice | cFile | cSocket | cUSBDriver | cDirectory | cBlockDevice | cSharedMem

@@ -40,12 +40,8 @@ void pthread_exit( void *value_ptr ) {
 }
 
 int pthread_cancel( pthread_t thread ) {
-    if ( pthread_self() == thread ) {
-        thread_exit();
-    }
-
-    //TODO missing syscall to kill other threads
-    return -1;
+    thread_terminate(thread,TERM_SOFT);
+    return 0;
 }
 
 pthread_t pthread_self( void ) {
@@ -54,7 +50,6 @@ pthread_t pthread_self( void ) {
 
 int sched_yield( void ) {
     thread_yield();
-
     return 0;
 }
 
@@ -64,11 +59,11 @@ int pthread_attr_destroy( pthread_attr_t* attr ) {
 }
 
 int pthread_attr_init( pthread_attr_t* attr ) {
-    attr->phase = 0;
-    attr->priority = 0;
-    attr->period = 0;
-    attr->stack_size = 1200;
-    attr->deadline = 0;
+    attr->arrivaltime   = 0;
+    attr->priority      = 0;
+    attr->period        = 0;
+    attr->stack_size    = 2048;
+    attr->deadline      = 0;
     attr->executionTime = 0;
     return 0;
 }

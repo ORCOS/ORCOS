@@ -108,8 +108,7 @@ Content-Language: de\r\n\
 Content-Type: text/html; charset=utf-8\r\n\r\n";*/
 
 
-char* fileRetMsg = "HTTP/1.1 200 OK\r\n\
-Content-Length: ";
+char* fileRetMsg = "HTTP/1.1 200 OK\r\nContent-Length: ";
 
 
 
@@ -189,7 +188,8 @@ void* thread_entry(void* arg) {
                       // failing may happen if no more free memory is available
                       // inside the TCP/IP stack to hold the packet until acked
                       while (sendto(newsock,return_msg,num,0) != 0 && timeout) {
-                          sleep(20);
+                          /* sleep 2 ms*/
+                          sleep(2);
                           timeout--;
                           if (timeout == 0) {
                               abort = true;
@@ -200,8 +200,17 @@ void* thread_entry(void* arg) {
                   }
 
                   // send last bytes if any
-                  if (num > 0 && !abort)
-                      sendto(newsock,return_msg,num,0);
+                  if (num > 0 && !abort) {
+                      int timeout = 20;
+                      while (sendto(newsock,return_msg,num,0) != 0 && timeout) {
+                           /* sleep 2 ms*/
+                           sleep(2);
+                           timeout--;
+                           if (timeout == 0) {
+                               abort = true;
+                           }
+                       }
+                  }
 
                   if (!abort)
                       puts("File send\r");
@@ -225,8 +234,8 @@ void* thread_entry(void* arg) {
      }
 
      //puts("Closing connection\r");
-    // fclose(newsock);
-     connected = 1;
+     fclose(newsock);
+     connected = 0;
 
     } // while connected
 }

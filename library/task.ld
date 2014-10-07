@@ -15,13 +15,14 @@ SECTIONS
     LONG(TASK_END);
            
     /* Task CB Priority and RealtimeThread Parameters: struct RTThreadAttrs  */
-    LONG(INITIAL_PRIORITY);
-    LONG(PHASE);
+    QUAD(PHASE);
+    LONG(INITIAL_PRIORITY); 
     LONG(PERIOD);
     LONG(DEADLINE);
-    LONG(EXECUTIONTIME);
+    LONG(EXECUTIONTIME);    
     /* Stack size of the initial/main thread of this task */
-    LONG(STACK_SIZE);      
+    LONG(STACK_SIZE);   
+    LONG(0);   
     
     /* Additional header following */
     ADDITIONAL_HEADER 
@@ -39,12 +40,9 @@ CRC_START = .;
  .data : {
  	*(.data*)
  	*(.init*)
- }
- CRC_END = .;
- 
- .bss : {
  	*(.bss*)
  }
+ CRC_END = .;
  
  TASK_HEAP = ALIGN(TASK_HEAP_ALIGN);
 }

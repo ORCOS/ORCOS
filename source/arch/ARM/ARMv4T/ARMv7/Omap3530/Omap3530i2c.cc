@@ -32,7 +32,7 @@ void Omap3530i2c::wait_for_bus(void) {
 
     if (timeout <= 0)
     {
-        LOG(ARCH, ERROR, "Omap3530i2c::timed out in wait_for_bb: I2C_STAT=%x\n\r", INW (I2C_STAT));
+        LOG(ARCH, ERROR, "Omap3530i2c::timed out in wait_for_bb: I2C_STAT=%x", INW (I2C_STAT));
     }
     OUTW(I2C_STAT, 0xFFFF); /* clear delayed stuff*/
 }
@@ -51,7 +51,7 @@ unint2 Omap3530i2c::wait_for_pin(void) {
 
     if (timeout <= 0)
     {
-        LOG(ARCH, ERROR,"Omap3530i2c::timed out in wait_for_pin: I2C_STAT=%x\n\r",INW (I2C_STAT));
+        LOG(ARCH, ERROR,"Omap3530i2c::timed out in wait_for_pin: I2C_STAT=%x",INW (I2C_STAT));
         OUTW(I2C_STAT, 0xFFFF);
     }
 

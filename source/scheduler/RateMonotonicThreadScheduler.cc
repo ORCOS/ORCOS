@@ -94,10 +94,12 @@ ErrorT RateMonotonicThreadScheduler::enter( LinkedListItem* item ) {
     if ( pRTThread->instance == 1 ) {
         computePriority(pRTThread);
 
-        // If a phase has been specified, put the thread to sleep for the specified duration.
-        if ( pRTThread->phase > 0 ) {
-            pRTThread->sleep( (unint4) pRTThread->phase, item );
-            pRTThread->phase = 0 ;
+        // If an arrivaltime has been specified put the thread to sleep until that time
+        if ( pRTThread->sleepTime > 0 ) {
+            LOG(SCHEDULER, DEBUG, "RateMonotonicThreadScheduler::enter: TimePoint: %x %x",
+                  (unint4) ((pRTThread->sleepTime >> 32) & 0xffffffff),
+                  (unint4) ((pRTThread->sleepTime) & 0xffffffff));
+            pRTThread->sleep( pRTThread->arrivalTime, item );
             return (cOk);
         }
     }

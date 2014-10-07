@@ -36,7 +36,7 @@ LinkedListItem* SingleThreadScheduler::getNext() {
     return ret;
 }
 
-LinkedListItem* SingleThreadScheduler::remove(DatabaseItem* item) {
+LinkedListItem* SingleThreadScheduler::remove(ListItem* item) {
 
     if (this->singleThread->getData() == item)
     {

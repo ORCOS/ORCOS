@@ -38,20 +38,101 @@ static const char* levelStrings[6] = { "FATAL", "ERROR", "WARN ", "INFO ", "DEBU
 #define ESC_GRAY        "\033[37m"
 #define ESC_WHITE       "\033[0m"
 
+static char buffer[2048];
+static unsigned int bufferpos;
+
 FileLogger::FileLogger() :
-        logFile(0) {
+        logFile(0)   {
+
+    bufferpos = 0;
+    initialized = false;
+}
+
+
+void FileLogger::init() {
+
+    if (initialized)
+        return;
+
+    initialized = true; /* set first to avoid endless recursion in init.*/
+
+    /* try permanent root storage! */
+    Directory* rootDir = theOS->getFileManager()->getDirectory("mnt/TEST");
+    if (rootDir != 0)
+    {
+        File* logfile = (File*) rootDir->get("Kernel.log",strlen("Kernel.log"));
+        if (logfile) {
+            rootDir->remove(logfile);
+        }
+        logFile = rootDir->createFile("Kernel.log", 0);
+        return;
+    }
+
+#if 0
     /* try ramdisk  */
     Directory* ramdisk = theOS->getFileManager()->getDirectory("mnt/ramdisk");
     if (ramdisk != 0)
     {
         logFile = ramdisk->createFile("Kernel.log", 0);
+        return;
+    }
+#endif
+
+    /* mount points not available .. try later*/
+    initialized = false;
+
+}
+
+void FileLogger::flush() {
+
+    if (bufferpos > 0) {
+        int intstatus;
+       // GET_INTERRUPT_ENABLE_BIT(intstatus);
+        //_disableInterrupts();
+
+        /* flush now */
+       if (logFile) {
+           /* write to file */
+           logFile->writeBytes(buffer,bufferpos);
+           bufferpos = 0;
+       }
+       else {
+           /* print to std out*/
+           buffer[bufferpos] = 0;
+           bufferpos = 0;
+           puts(buffer);
+       }
+/*       if (intstatus)
+           _enableInterrupts();*/
+
     }
 }
 
 static void fileout(char** str, char c) {
     File* logfile = (File*) str;
-    if (logfile != 0)
-        logfile->writeBytes(&c, 1);
+
+    if (bufferpos >= 2046)
+    {
+        int intstatus;
+        GET_INTERRUPT_ENABLE_BIT(intstatus);
+        _disableInterrupts();
+        /* flush now */
+        if (logfile) {
+            /* write to file */
+            logfile->writeBytes(buffer,bufferpos);
+            bufferpos = 0;
+        }
+        else {
+            /* print to std out*/
+            buffer[bufferpos] = 0;
+            bufferpos = 0;
+            puts(buffer);
+        }
+        if (intstatus)
+            _enableInterrupts();
+    }
+
+    buffer[bufferpos++] = c;
 }
 
 void FileLogger::log(Prefix prefix, Level level, const char* msg, ...) {
@@ -59,6 +140,9 @@ void FileLogger::log(Prefix prefix, Level level, const char* msg, ...) {
     {
         return;
     }
+
+    if (!initialized)
+        init();
 
 #if LOG_PRINT_TIME
     unint4 time = 0;
@@ -76,7 +160,8 @@ void FileLogger::log(Prefix prefix, Level level, const char* msg, ...) {
     va_list arglist;
     va_start(arglist, msg);
     print(&fileout, (char**) logFile, msg, arglist);
+    print(&fileout, (char**) logFile, LINEFEED,arglist);
 
-    logFile->writeBytes("\r", 1);
+   // fileout((char**) logFile,'\r');
 }
 

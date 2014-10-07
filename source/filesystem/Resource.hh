@@ -68,7 +68,7 @@ public:
     }
 
     /*!
-     * \brief Aquire this resource
+     * \brief Acquire this resource
      *
      * The thread given as parameter tries to aquire this resource. If this
      * resource is not available the thread will be blocked until it becomes

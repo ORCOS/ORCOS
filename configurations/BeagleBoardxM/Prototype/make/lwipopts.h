@@ -24,6 +24,8 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
 #define BYTE_ORDER LITTLE_ENDIAN
 
 
+#define NEWLINE "\r\n"
+
 /**
  * SYS_LIGHTWEIGHT_PROT==1: if you want inter-task protection for certain
  * critical regions during buffer allocation, deallocation and memory
@@ -206,7 +208,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * (requires the LWIP_TCP option)
  */
 #ifndef MEMP_NUM_TCP_PCB
-#define MEMP_NUM_TCP_PCB  5
+#define MEMP_NUM_TCP_PCB  10
 #endif
 
 /**
@@ -214,7 +216,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * (requires the LWIP_TCP option)
  */
 #ifndef MEMP_NUM_TCP_PCB_LISTEN
-#define MEMP_NUM_TCP_PCB_LISTEN         4
+#define MEMP_NUM_TCP_PCB_LISTEN  10
 #endif
 
 /**
@@ -824,7 +826,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * TCP_LISTEN_BACKLOG: Enable the backlog option for tcp listen pcb.
  */
 #ifndef TCP_LISTEN_BACKLOG
-#define TCP_LISTEN_BACKLOG              0
+#define TCP_LISTEN_BACKLOG  0
 #endif
 
 /**
@@ -833,7 +835,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * 0xff is the maximum (u8_t).
  */
 #ifndef TCP_DEFAULT_LISTEN_BACKLOG
-#define TCP_DEFAULT_LISTEN_BACKLOG      0xff
+#define TCP_DEFAULT_LISTEN_BACKLOG  0xa
 #endif
 
 /**
@@ -1590,21 +1592,21 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * debug messages of certain types.
  */
 #ifndef LWIP_DBG_TYPES_ON
-#define LWIP_DBG_TYPES_ON               LWIP_DBG_OFF
+#define LWIP_DBG_TYPES_ON  LWIP_DBG_OFF
 #endif
 
 /**
  * ETHARP_DEBUG: Enable debugging in etharp.c.
  */
 #ifndef ETHARP_DEBUG
-#define ETHARP_DEBUG  LWIP_DBG_OFF
+#define ETHARP_DEBUG  LWIP_DBG_ON
 #endif
 
 /**
  * NETIF_DEBUG: Enable debugging in netif.c.
  */
 #ifndef NETIF_DEBUG
-#define NETIF_DEBUG  LWIP_DBG_OFF
+#define NETIF_DEBUG  LWIP_DBG_ON
 #endif
 
 /**
@@ -1702,7 +1704,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * TCP_DEBUG: Enable debugging for TCP.
  */
 #ifndef TCP_DEBUG
-#define TCP_DEBUG  LWIP_DBG_OFF
+#define TCP_DEBUG  LWIP_DBG_ON
 #endif
 
 /**

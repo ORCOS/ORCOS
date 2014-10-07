@@ -29,6 +29,8 @@
 
 #include <orcos.hh>
 #include <string.hh>
+#include <args.h>
+#include <time.h>
 
 /*** Escape Sequenzen: **********/
 #define ESC_RED         "\033[31m"
@@ -43,8 +45,10 @@
 #define IPV4 0x800
 #define TCP 0x6
 
+#define DOECHO 1
 
-#define LINEFEED "\r"
+
+#define LINEFEED "\r\n"
 #define orcos_string "         __           __          __             __           __ "LINEFEED"\
         /\\ \\         /\\ \\        /\\ \\           /\\ \\         / /\\ "LINEFEED"\
        /  \\ \\       /  \\ \\      /  \\ \\         /  \\ \\       / /  \\ "LINEFEED"\
@@ -76,6 +80,7 @@ static char command[100];
 
 // the sequence to perform a back char on the terminal
 static char back_sequence[3] = {0x8,0x20,0x8};
+static char down_sequence[3] = {0x1b,0x5b,0x42};
 
 // line feed
 static char return_sequence[4] = {13,0,13,0};
@@ -86,19 +91,19 @@ static char current_dir[100];
 // last directory
 static char last_dir[100];
 
-static const char* unknown_command = "Unknown Command\r";
+static const char* unknown_command = "Unknown Command"LINEFEED;
 
-static const char* dir_error = "Could not open Directory..\r";
+static const char* dir_error = "Could not open Directory.."LINEFEED;
 
-static const char* help_msg = "OCROS Telnet Terminal\r\rSupported commands:\r"
-						"help      - Shows this message\r"
-						"cd        - Change Directory\r"
-						"ls        - List Directory\r"
-						"cat       - Display Contents of file (in ASCII)\r"
-						"hexdump   - Dumps a file as hex and ASCII\r"
-						"touch     - Creates a new file\r"
-						"run       - Starts a task from file\r"
-						"kill      - Kills a task by ID\r";
+static const char* help_msg = "OCROS Telnet Terminal\r\nSupported commands:"LINEFEED
+						"help      - Shows this message"LINEFEED
+						"cd        - Change Directory"LINEFEED
+						"ls        - List Directory"LINEFEED
+						"cat       - Display Contents of file (in ASCII)"LINEFEED
+						"hexdump   - Dumps a file as hex and ASCII"LINEFEED
+						"touch     - Creates a new file"LINEFEED
+						"run       - Starts a task from file"LINEFEED
+						"kill      - Kills a task by ID"LINEFEED;
 
 static char return_msg[520];
 
@@ -107,18 +112,28 @@ static char temp_msg[200];
 static int cmd_pos = 0;
 
 const char* types[11] = {
-		"Directory",
-		"StreamDevice",
-		"CommDevice",
-		"GenericDevice",
-		"File",
-		"Socket",
-		"USBDriver",
-		"BlockDevice",
-		"Partition",
-		"SharedMem"
-		"AnyNoDir",
-		"Any"
+		"d ", // directory
+		"s ", // streamdevice
+		"c ", // commdevice
+		"g ", // genericdevice
+		"f ", // file
+		"S ", //socket
+		"u ", // usb
+		"b ", // blockdevice
+		"p ", // partition
+		"sm ", // shared mem
+		"kv " //kernel variable
+};
+
+const char* states[8] = {
+        "NEW", // new
+        "READY", // ready
+        "BLOCKED", // blocked
+        "TERM", // terminated
+        "RES", // resource waiting
+        "STOPPED", //stopped
+        "SIGNAL", // signal waiting
+        "DOTERM", // goint to terminate
 };
 
 
@@ -129,14 +144,27 @@ static int mydirhandle = 0;
 
 static char dir_content[4096];
 
+char typestr[12];
 
 const char* getTypeStr(int resourceType) {
-    char* ret = "";
+    char* ret = typestr;
+    ret[0] = 0;
     for (int i = 0; i < 11; i++) {
         if (resourceType & (1 << i))
-            return (types[i]);
+            strcat(ret,types[i]);
     }
+    return ret;
 }
+
+const char* getStatusStr(unint4 status) {
+    char* ret = "SLEEPING";
+    for (int i = 0; i < 8; i++) {
+        if (status & (1 << i))
+            return (states[i]);
+    }
+    return ret;
+}
+
 
 char* extractPath(char* &str) {
 
@@ -159,47 +187,23 @@ char* extractPath(char* &str) {
 	// something is following
 	str[len] = 0;
 	return &str[len+1];
-
-
 }
 
-// reduces the path by "." and ".." statements
-void compactPath(char* path) {
 
-	char newpath[100];
-	newpath[0] = '/';
-	newpath[1] = '\0';
-
-
-	char* token = strtok(path,"/");
-	char* next_token;
-
-	while (token != 0) {
-
-		next_token = strtok(0,"/");
-
-		bool nextisparent = false;
-		if ((next_token != 0) && ((strcmp(next_token,"..") == 0))) nextisparent = true;
-
-		if ((strcmp(token,".") != 0) && !nextisparent && (strcmp(token,"..") != 0 )) {
-			strcat(newpath,token);
-			strcat(newpath,"/");
-		}
-
-		token = next_token;
+void sendMsg(int socket, char* msg, int error = 0) {
+	if (error != 0) {
+	    sprintf(return_msg,"%s. Error: %d"LINEFEED,msg,error);
+	} else {
+	    sprintf(return_msg,"%s"LINEFEED,msg);
 	}
 
-	memcpy(path,newpath,strlen(newpath)+1);
-}
-
-
-
-void sendMsg(int socket, char* msg) {
-	sprintf(return_msg,msg);
 	int end = strlen(return_msg);
-	return_msg[end] = '\r';
-	return_msg[end+1] = '\0';
-	sendto(socket,return_msg,end+1,0);
+	int timeout = 100;
+	while (sendto(socket,return_msg,end+1,0)  < 0 && timeout > 0) {
+	     usleep(1000);
+	     timeout--;
+
+	}
 }
 
 void sendUnknownCommand(int socket) {
@@ -207,6 +211,47 @@ void sendUnknownCommand(int socket) {
 	sendto(socket,&return_msg,strlen(unknown_command),0);
 }
 
+void sendStr(int socket,char* str) {
+   int timeout = 100;
+   while (sendto(socket,str,strlen(str)+1,0) < 0 && timeout > 0) {
+       usleep(1000);
+       timeout--;
+   }
+}
+
+bool readKernelVarStr(char* filepath,char* result, int size) {
+    result[0] = 0;
+    int file = fopen(filepath,0);
+    if (file < 0)
+        return (false);
+
+    int num = fread(result,size-1,1,file);
+    result[num] = 0;
+    fclose(file);
+    return (true);
+}
+
+bool readKernelVarUInt4(char* filepath,unint4* result) {
+    result[0] = 0;
+    int file = fopen(filepath,0);
+    if (file < 0)
+        return (false);
+
+    int num = fread(result,4,1,file);
+    fclose(file);
+    return (true);
+}
+
+bool readKernelVarUInt8(char* filepath,unint8* result) {
+    result[0] = 0;
+    int file = fopen(filepath,0);
+    if (file < 0)
+        return (false);
+
+    int num = fread(result,8,1,file);
+    fclose(file);
+    return (true);
+}
 
 static int doecho;
 
@@ -214,10 +259,17 @@ char telnetcommand[10];
 
 #define SB 		250 // subnegotation begin
 #define SE 		240 // subnegotation end
-#define WILL	251
-#define WONT	252
-#define DO		253
-#define DONT	254
+#define WILL	0xfb
+#define WONT	0xfc
+#define DO		0xfd
+#define DONT	0xfe
+#define IAC     0xff
+
+#define SGA 3
+
+#define LINEMODE 34
+#define MODE  1
+#define FORWARDMASK 2
 
 int handleTelnetCommand(int socket, char* bytes) {
 
@@ -238,23 +290,45 @@ int handleTelnetCommand(int socket, char* bytes) {
 		return 0;
 	}
 	case WILL : {
-		telnetcommand[0] = 0xff;
-		telnetcommand[1] = DONT;
-		telnetcommand[2] = bytes[1];
-		sendto(socket,telnetcommand,3,0);
-		return 1;
+        switch (bytes[1]) {
+        case LINEMODE:
+            telnetcommand[0] = IAC;
+            telnetcommand[1] = SB;
+            telnetcommand[2] = LINEMODE;
+            telnetcommand[3] = MODE;
+            telnetcommand[4] = 0;
+            telnetcommand[5] = IAC;
+            telnetcommand[6] = SE;
+            sendto(socket,telnetcommand,7,0);
+            return 1;
+        default:
+      /*      telnetcommand[0] = 0xff;
+            telnetcommand[1] = DONT;
+            telnetcommand[2] = bytes[1];
+            sendto(socket,telnetcommand,3,0);*/
+            return 1;
+        }
 	}
 	case DO : {
-		telnetcommand[0] = 0xff;
 
-		if (bytes[1] == 1) // ECHO
-			telnetcommand[1] = WILL;
-		else
-			telnetcommand[1] = WONT;
-
-		telnetcommand[2] = bytes[1];
-		sendto(socket,telnetcommand,3,0);
-		return 1;
+		switch (bytes[1]) {
+		case 1:// ECHO
+		    telnetcommand[0] = IAC;
+            #if DOECHO
+                telnetcommand[1] = WILL;
+            #else
+                telnetcommand[1] = WONT;
+            #endif
+            telnetcommand[2] = bytes[1];
+            sendto(socket,telnetcommand,3,0);
+            return 1;
+		case SGA:
+		    telnetcommand[0] = IAC;
+		    telnetcommand[1] = WILL;
+		    telnetcommand[2] = SGA;
+		default:
+		    return 1;
+		}
 	}
 	case DONT : {
 		if (bytes[1] == 1) {
@@ -297,6 +371,219 @@ void makeHexCharCompatible(char* msg, int len) {
 }
 
 
+
+
+int taskids[100];
+
+void printMemUsage(int socket) {
+
+    unint4 UsedMem;
+    unint4 TotalMem;
+    readKernelVarUInt4("/sys/mem/used",&UsedMem);
+    readKernelVarUInt4("/sys/mem/total",&TotalMem);
+
+    sprintf(dir_content,"Mem                 \t   Total\t    Used\t    Free\tUsage"LINEFEED);
+    sendStr(socket,dir_content);
+
+    sprintf(dir_content, "%-20s\t%8u\t%8u\t%8u\t%4u%%"LINEFEED
+                     , "[kernel]",TotalMem,UsedMem,TotalMem-UsedMem,(UsedMem*100)/TotalMem);
+    sendStr(socket,dir_content);
+
+    int handle = fopen("/sys/tasks",0);
+    if (handle) {
+         Directory_Entry_t* direntry = readdir(handle);
+         int numTasks = 0;
+         while (direntry) {
+             taskids[numTasks] = atoi(direntry->name);
+             numTasks++;
+             direntry = readdir(handle);
+         }
+         if (handle != mydirhandle)
+             fclose(handle);
+
+         for (int i = 0; i < numTasks; i++) {
+             if (taskids[i] == 0) continue;
+             char path[120];
+             sprintf(path,"/sys/tasks/%u",taskids[i]);
+             int taskdir = fopen(path,0);
+
+             if (taskdir > 0) {
+                 char name[32];
+                 sprintf(path,"/sys/tasks/%u/usedmem",taskids[i]);
+                 readKernelVarUInt4(path,&UsedMem);
+                 sprintf(path,"/sys/tasks/%u/totalmem",taskids[i]);
+                 readKernelVarUInt4(path,&TotalMem);
+                 sprintf(path,"/sys/tasks/%u/name",taskids[i]);
+                 readKernelVarStr(path,name,32);
+                 sprintf(dir_content, "%-20s\t%8u\t%8u\t%8u\t%4u%%"LINEFEED
+                                  , name,TotalMem,UsedMem,TotalMem-UsedMem,(UsedMem*100)/TotalMem);
+                 sendStr(socket,dir_content);
+             }
+             if (taskdir != mydirhandle)
+                fclose(taskdir);
+
+         }
+
+
+    }
+}
+
+
+void printTasks(int socket, int showThreads) {
+
+    int handle = fopen("/sys/tasks",0);
+    if (handle < 0)
+        return;
+
+    Directory_Entry_t* direntry = readdir(handle);
+    int numTasks = 0;
+    while (direntry) {
+        taskids[numTasks] = atoi(direntry->name);
+        numTasks++;
+        direntry = readdir(handle);
+    }
+
+    if (handle != mydirhandle)
+        fclose(handle);
+
+    for (int i = 0; i < numTasks; i++) {
+        char path[120];
+        sprintf(path,"/sys/tasks/%u",taskids[i]);
+        int taskdir = fopen(path,0);
+
+        unint4 taskId;
+        char name[32];
+        unint4 flags;
+        unint4 resources;
+
+        if (taskdir > 0) {
+            sprintf(path,"/sys/tasks/%u/myTaskId",taskids[i]);
+            readKernelVarUInt4(path,&taskId);
+            sprintf(path,"/sys/tasks/%u/name",taskids[i]);
+            readKernelVarStr(path,name,32);
+            sprintf(path,"/sys/tasks/%u/platform_flags",taskids[i]);
+            readKernelVarUInt4(path,&flags);
+            sprintf(path,"/sys/tasks/%u/num_resources",taskids[i]);
+            readKernelVarUInt4(path,&resources);
+
+            if (showThreads) {
+                direntry = readdir(taskdir);
+                while (direntry) {
+                    if (strpos("thread_",direntry->name) == 0) {
+
+                        char threadname[20];
+                        unint8 priority = 0;
+                        unint8 period   = 0;
+                        unint4 threadId = 0;
+                        unint4 status   = 0;
+
+                        sprintf(path,"/sys/tasks/%u/%s/name",taskids[i],    direntry->name);
+                        readKernelVarStr(path,threadname,20);
+
+                        sprintf(path,"/sys/tasks/%u/%s/effectivePriority",  taskids[i],direntry->name);
+                        readKernelVarUInt8(path,&priority);
+
+                        sprintf(path,"/sys/tasks/%u/%s/period",taskids[i],  direntry->name);
+                        readKernelVarUInt8(path,&period);
+
+                        sprintf(path,"/sys/tasks/%u/%s/tid",taskids[i],     direntry->name);
+                        readKernelVarUInt4(path,&threadId);
+
+                        sprintf(path,"/sys/tasks/%u/%s/status",taskids[i],  direntry->name);
+                        readKernelVarUInt4(path,&status);
+                        const char* statusStr = getStatusStr(status);
+
+                        sprintf(dir_content, "%2u %5u %2u %8s\t%10u %8u\t {%s} %s"LINEFEED
+                                         , taskId,threadId,resources,statusStr,(unint4)priority,(unint4)period,threadname,name);
+                        sendStr(socket,dir_content);
+                    }
+                    direntry = readdir(taskdir);
+                }
+            } else {
+
+                sprintf(dir_content, "%2u %2u %08x %s"LINEFEED
+                                   , taskId,resources,flags,name);
+                sendStr(socket,dir_content);
+            }
+
+            if (taskdir != mydirhandle)
+                fclose(taskdir);
+
+        } // if taskdir
+    } // for all tasks
+
+}
+
+void printDirectory(int socket, int handle, int details, int humanReadable) {
+    Directory_Entry_t* direntry = readdir(handle);
+    int num = 0;
+    while (direntry) {
+
+        /* shorten name */
+        if (direntry->namelen > 30) {
+            direntry->name[28] = '~';
+            direntry->name[29] = 0;
+        }
+
+        const char* typestr = getTypeStr(direntry->resType);
+        char datestr[20];
+        time_t time;
+        time2date(&time,direntry->datetime);
+        sprintf(datestr,"%u-%02u-%02u %02u:%02u",time.year,time.month,time.day, time.hour, time.minute);
+
+        char* prefix = "";
+        char* suffix = "";
+
+        if (direntry->resType == 1) {
+            prefix = ESC_CYAN;
+            suffix = ESC_WHITE;
+        }
+
+        char fileSizeStr[15];
+        if (!humanReadable)
+            sprintf(fileSizeStr,"%u",direntry->filesize);
+        else {
+            if (direntry->filesize > 1024*1024) {
+                int mb = direntry->filesize / (1024*1024);
+                int residue = direntry->filesize - mb * 1024*1024;
+                residue = (residue * 100) / (1024*1024);
+                sprintf(fileSizeStr,"%u,%uM",mb,residue);
+            }
+            else if (direntry->filesize > 1024) {
+               int kb = direntry->filesize / (1024);
+               int residue = direntry->filesize - kb * 1024;
+               residue = (residue * 100) / (1024);
+               sprintf(fileSizeStr,"%u,%uK",kb,residue);
+            } else
+              sprintf(fileSizeStr,"%u",direntry->filesize);
+        }
+
+        if (details) {
+            // print details
+            sprintf(dir_content, "%-5u %08x %-5s%7s %s %s%s%s"LINEFEED
+                               , direntry->resId, direntry->flags , typestr, fileSizeStr, datestr, prefix,direntry->name,suffix);
+        } else {
+            // no details
+            sprintf(dir_content,"%s%-25s%s\t",prefix,direntry->name,suffix);
+            num++;
+            if (num >= 3)  {
+                num = 0;
+                strcat(dir_content,LINEFEED);
+            }
+        }
+
+        sendStr(socket,dir_content);
+
+        /* read/send next entry  */
+        direntry = readdir(handle);
+        if (!direntry && !details) {
+            sendStr(socket,LINEFEED);
+        }
+    }
+
+}
+
+
 void handleCommand(int socket, int command_length) {
 
 	// do a command str compare
@@ -308,36 +595,49 @@ void handleCommand(int socket, int command_length) {
 		return;
 	}
 	if (strpos("cd",command) == 0) {
-		// try to open directory
-		if (command[2] != ' ') return (sendUnknownCommand(socket));
+
+        char** argv;
+        int args = parseArgs(command,argv);
+        if (args != 2)  {
+            sendMsg(socket,"Usage: cd <path>");
+            return;
+        }
+
+        char* filename = argv[1];
+        char path[100];
+
+        if (filename[0] !='/') {
+            /* relative path */
+            strcpy(path,current_dir);
+            strcat(&path[strlen(current_dir)],filename);
+        } else {
+            strcpy(path,filename);
+        }
+
+        compactPath(path);
 
 		memcpy(last_dir,current_dir,100);
-
-		char* path = &command[3];
-		if (path[0] == '/') {
-			current_dir[0] = '\0';
-		}
-
-		// open dir
-		int curdir_len = strlen(current_dir);
-		int newdir_len = strlen(path);
-		if (path[newdir_len-1] == '/') newdir_len--;
-
-		memcpy(&current_dir[curdir_len],path,newdir_len);
-		current_dir[curdir_len+newdir_len] = '/';
-		current_dir[curdir_len+newdir_len+1] = '\0';
-
-		compactPath(current_dir);
+		memcpy(current_dir,path,100);
 
 		int handle = fopen(current_dir,0);
 		if (handle >= 0) {
+
+		    /* check type */
+		    stat_t filetype;
+		    filetype.st_type = 10;
+		    if (fstat(handle,&filetype) != cOk ||
+		            filetype.st_type != STAT_TYPE_DIRECTORY) {
+		        fclose(handle);
+		        memcpy(current_dir,last_dir,100);
+		        return (sendMsg(socket,"Could not open directory"));
+		    }
+
 			// success
 			if ((mydirhandle != 0) && (mydirhandle != handle )) fclose(mydirhandle);
 			mydirhandle = handle;
 		} else {
 			memcpy(current_dir,last_dir,100);
-			memcpy(&return_msg[0],dir_error,strlen(dir_error)+1);
-			sendto(socket,&return_msg,strlen(dir_error)+1,0);
+		    return (sendMsg(socket,"Could not open directory"));
 		}
 
 
@@ -345,96 +645,96 @@ void handleCommand(int socket, int command_length) {
 	}
 
 	if (strpos("ls",command) == 0) {
-		// read directory
-		if (mydirhandle == 0) return;
+	    char** argv;
+        int args = parseArgs(command,argv);
+        if (args > 3)  {
+              sendMsg(socket,"Usage: ls (-h) <path>");
+              return;
+        }
+        int handle = mydirhandle;
+        int humanReadable = 0;
+        int details = 0;
 
-		int humanReadable = 0;
-		if (strpos("-h",command) > 0)
-		    humanReadable = 1;
+        if (args == 2) {
+            /* -h or path expected */
+            char* arg = argv[1];
 
-		Directory_Entry_t* direntry = readdir(mydirhandle);
-		while (direntry) {
+            if (arg[0] == '-') {
+                if (strpos("h",arg) >= 0)
+                    humanReadable = 1;
+                if (strpos("l",arg) >= 0)
+                    details = 1;
 
-		    /* shorten name */
-		    if (direntry->namelen > 30) {
-		        direntry->name[28] = '~';
-		        direntry->name[29] = 0;
-		    }
+            } else  {
+                char* path = argv[1];
+                compactPath(path);
+                /* try opending the target dir */
+                handle = fopen(path,0);
+                if (handle < 0) {
+                    return (sendMsg(socket,"Could not open directory",handle));
+                }
+            }
+        } else if (args == 3) {
+            /* -h path expected*/
+            char* params = argv[1];
+            char* path = argv[2];
 
-		    const char* typestr = getTypeStr(direntry->resType);
-		    char* datestr = "Jan 1 1980";
-
-		    char* prefix = "";
-		    char* suffix = "";
-
-		    if (direntry->resType == 1) {
-                prefix = ESC_CYAN;
-                suffix = ESC_WHITE;
+            if (params[0] != '-') {
+                sendMsg(socket,"Usage: ls (-h) <path>");
+                return;
             }
 
-		    char fileSizeStr[15];
-		    if (!humanReadable)
-		        sprintf(fileSizeStr,"%u",direntry->filesize);
-		    else {
-		        if (direntry->filesize > 1024*1024) {
-		            int mb = direntry->filesize / (1024*1024);
-		            int residue = direntry->filesize - mb * 1024*1024;
-		            residue = (residue * 100) / (1024*1024);
-		            sprintf(fileSizeStr,"%u,%uM",mb,residue);
-		        }
-		        else if (direntry->filesize > 1024) {
-		           int kb = direntry->filesize / (1024);
-                   int residue = direntry->filesize - kb * 1024;
-                   residue = (residue * 100) / (1024);
-                   sprintf(fileSizeStr,"%u,%uK",kb,residue);
-		        } else
-		          sprintf(fileSizeStr,"%u",direntry->filesize);
-		    }
+            if (strpos("h",params) >= 0)
+                humanReadable = 1;
+            if (strpos("l",params) >= 0)
+                 details = 1;
 
-		    sprintf(dir_content, "%s%-30s   %5d  %-13s %-8x %10s %s%s\r"
-		                         ,prefix, direntry->name, direntry->resId, typestr ,direntry->flags , fileSizeStr, datestr, suffix);
+            compactPath(path);
+            /* try opending the target dir */
+            handle = fopen(path,0);
+            if (handle < 0) {
+               return (sendMsg(socket,"Could not open directory",handle));
+            }
 
-		    int timeout = 100;
-		    while (sendto(socket,dir_content,strlen(dir_content)+1,0) < 0 && timeout > 0) {
-		        usleep(1000);
-		        timeout--;
-		    }
-		    if (timeout == 0) return;
-		    /* read/send next entry  */
-		    direntry = readdir(mydirhandle);
+        } else {
+            // read directory
+            if (mydirhandle == 0) return;
+        }
+
+		printDirectory(socket,handle,details,humanReadable);
+
+		if (args == 2 && handle != mydirhandle) {
+		    fclose(handle);
 		}
 
 		return;
 	}
 
-	if (strpos("run",command) == 0) {
+	if (strpos("/",command) == 0 || strpos("./",command) == 0) {
 		int arg = strpos(" ",command);
-		if (arg > 0) {
-			char* filename = &command[arg+1];
-			char* arguments = extractPath(filename);
+        char* filename = command;
+        char* arguments = extractPath(filename);
 
-			if (filename[0] != '/') {
-				// prepend current directory
-				strcpy(temp_msg,current_dir);
-				strcat(temp_msg,filename);
-				filename = temp_msg;
-			}
+        if (filename[0] != '/') {
+            // prepend current directory
+            strcpy(temp_msg,current_dir);
+            strcat(temp_msg,filename);
+            filename = temp_msg;
+        }
+        compactPath(filename);
 
-			int error = task_run(filename,arguments);
-			if (error > 0) {
-			    // no argument given
-			    sprintf(return_msg,"%d\r",error);
-			    /* set stdout of new task to us! */
-			    taskioctl(0,error,"/dev/tty0");
-			} else {
-                sprintf(return_msg,"Error: %d\r",error);
-			}
+        int error = task_run(filename,arguments);
+        if (error > 0) {
+            /* task started  */
+            sprintf(return_msg,"TID: %d"LINEFEED,error);
+            /* set stdout of new task to us! */
+            taskioctl(0,error,"/dev/tty0");
+        } else {
+            sprintf(return_msg,"Error: %d"LINEFEED,error);
+        }
 
-			sendto(socket,return_msg,strlen(return_msg)+1,0);
-
-
-			return;
-		}
+        sendto(socket,return_msg,strlen(return_msg)+1,0);
+        return;
 
 	}
 
@@ -447,10 +747,10 @@ void handleCommand(int socket, int command_length) {
 			if (id != getpid()) {
 			    int error = task_kill(id);
 			    // no argument given
-			    sprintf(return_msg,"Killing Task Error: %d\r",error);
+			    sprintf(return_msg,"Killing Task Error: %d"LINEFEED,error);
 			    sendto(socket,return_msg,strlen(return_msg)+1,0);
 			} else {
-			    sprintf(return_msg,"I dont want to kill myself..\r");
+			    sprintf(return_msg,"I dont want to kill myself.."LINEFEED);
 			    sendto(socket,return_msg,strlen(return_msg)+1,0);
 			}
 
@@ -460,160 +760,216 @@ void handleCommand(int socket, int command_length) {
 	}
 
 	if (strpos("hexdump",command) == 0) {
-		// try reading the file and display as hex
-		int arg = strpos(" ",command);
-		if (arg > 0) {
-			char* filename = &command[arg+1];
 
-			char path[100];
-			strcpy(path,current_dir);
-			strcat(&path[strlen(current_dir)],filename);
+	  char** argv;
+      int args = parseArgs(command,argv);
+      if (args != 2)  {
+          sendMsg(socket,"Usage: hexdump <filename>");
+          return;
+      }
 
+      char* filename = argv[1];
+      char path[100];
 
-			int filehandle = fopen(path,0);
-			if (filehandle > 0) {
+      if (filename[0] !='/') {
+          /* relative path */
+          strcpy(path,current_dir);
+          strcat(&path[strlen(current_dir)],filename);
+      } else {
+          strcpy(path,filename);
+      }
 
-				int num = fread(temp_msg,200,1,filehandle);
-				int end = num;
-				int pos = 0;
+      compactPath(path);
 
-				char linechars[9];
+        int filehandle = fopen(path,0);
+        if (filehandle > 0) {
+            int num = fread(temp_msg,200,1,filehandle);
+            int end = num;
+            int pos = 0;
 
-				int linebytes = 0;
-				int i;
-				// be sure the msg only contains telnet ascii chars
-				for (i = 0; i < num; i++) {
-					sprintf(&return_msg[pos]," %02x",temp_msg[i]);
-					pos += 3;
-					linebytes++;
+            char linechars[9];
 
-					if (linebytes > 7) {
-						// print the ascii code
-						memcpy(linechars,&temp_msg[(i+1)-8],8);
-						linechars[8] = 0;
-						makeHexCharCompatible(linechars,8);
-						sprintf(&return_msg[pos],"\t%s\r",linechars);
-						pos +=10;
-						linebytes = 0;
-					}
+            int linebytes = 0;
+            int i;
+            // be sure the msg only contains telnet ascii chars
+            for (i = 0; i < num; i++) {
+                sprintf(&return_msg[pos]," %02x",temp_msg[i]);
+                pos += 3;
+                linebytes++;
 
-				}
+                if (linebytes > 7) {
+                    // print the ascii code
+                    memcpy(linechars,&temp_msg[(i+1)-8],8);
+                    linechars[8] = 0;
+                    makeHexCharCompatible(linechars,8);
+                    sprintf(&return_msg[pos],"\t%s"LINEFEED,linechars);
+                    pos +=11;
+                    linebytes = 0;
+                }
 
-				for (int j = 0; j < 8-linebytes; j++) {
-					sprintf(&return_msg[pos],"   ");
-					pos += 3;
-				}
+            }
 
-				// add last ascii chars
-				memcpy(linechars,&temp_msg[i-linebytes],linebytes);
-				linechars[linebytes] = 0;
-				makeHexCharCompatible(linechars,linebytes);
-				sprintf(&return_msg[pos],"\t%s\r",linechars);
-				pos +=linebytes+2;
+            for (int j = 0; j < 8-linebytes; j++) {
+                sprintf(&return_msg[pos],"   ");
+                pos += 3;
+            }
 
-				return_msg[pos] = '\r';
-				return_msg[pos+1] = '\0';
+            // add last ascii chars
+            memcpy(linechars,&temp_msg[i-linebytes],linebytes);
+            linechars[linebytes] = 0;
+            makeHexCharCompatible(linechars,linebytes);
+            sprintf(&return_msg[pos],"\t%s"LINEFEED,linechars);
+            pos += linebytes+3;
 
-				//printf(return_msg);
-				sendto(socket,return_msg,pos+2,0);
+            return_msg[pos] = '\r';
+            return_msg[pos+1] = '\n';
+            return_msg[pos+2] = '\0';
 
-				fclose(filehandle);
-				return;
-			} else {
-				// can not open file
-				sprintf(return_msg,"Opening file failed. Error %d",filehandle);
-				int end = strlen(return_msg);
-				return_msg[end] = '\r';
-				return_msg[end+1] = '\0';
-				sendto(socket,return_msg,end+2,0);
-				return;
-			}
+            sendto(socket,return_msg,pos+3,0);
 
-		} else {
-			// no argument given
-			return sendMsg(socket,"No argument given..");
-		}
-
+            if (filehandle != mydirhandle)
+                fclose(filehandle);
+            return;
+        } else {
+            // can not open file
+            sendMsg(socket,"Opening file failed. Error %d",filehandle);
+            return;
+        }
 	}
 
 	if (strpos("cat",command) == 0) {
-		// try reading the file and display as ascii
-		int arg = strpos(" ",command);
-		if (arg > 0) {
-			char* filename = &command[arg+1];
+	    char** argv;
+	    int args = parseArgs(command,argv);
+	    if (args != 2)  {
+            sendMsg(socket,"Usage: cat <filename>");
+            return;
+        }
 
-			char path[100];
-			strcpy(path,current_dir);
-			strcat(&path[strlen(current_dir)],filename);
+        char* filename = argv[1];
+        char path[100];
+
+        if (filename[0] !='/') {
+            /* relative path */
+            strcpy(path,current_dir);
+            strcat(&path[strlen(current_dir)],filename);
+        } else {
+            strcpy(path,filename);
+        }
+
+        compactPath(path);
+
+        int filehandle = fopen(path,0);
+        if (filehandle > 0) {
+
+            int num = fread(return_msg,512,1,filehandle);
+            if (num < 0) num = 0; // check error
+
+            while (num == 512) {
+                // be sure the msg only contains telnet ascii chars
+                makeTelnetCharCompatible(return_msg,num);
+
+                //printf(return_msg);
+                sendto(socket,return_msg,num,0);
+
+                num = fread(return_msg,512,1,filehandle);
+            }
+
+            // last packet
+            makeTelnetCharCompatible(return_msg,num);
+            return_msg[num] = '\r';
+            return_msg[num+1] = '\n';
+            return_msg[num+2] = '\0';
+
+            //printf(return_msg);
+            sendto(socket,return_msg,num+3,0);
+
+            if (filehandle != mydirhandle)
+                fclose(filehandle);
+            return;
+        } else {
+            // can not open file
+            sprintf(return_msg,"Opening file failed. Error %d",filehandle);
+            int end = strlen(return_msg);
+            return_msg[end] = '\r';
+            return_msg[end+1] = '\n';
+            return_msg[end+2] = '\0';
+            sendto(socket,return_msg,end+3,0);
+            return;
+        }
 
 
-			int filehandle = fopen(path,0);
-			if (filehandle > 0) {
-
-				int num = fread(return_msg,512,1,filehandle);
-				if (num < 0) num = 0; // check error
-
-				while (num == 512) {
-					// be sure the msg only contains telnet ascii chars
-					makeTelnetCharCompatible(return_msg,num);
-
-					//printf(return_msg);
-					sendto(socket,return_msg,num,0);
-
-					num = fread(return_msg,512,1,filehandle);
-				}
-
-				// last packet
-				makeTelnetCharCompatible(return_msg,num);
-				return_msg[num] = '\r';
-				return_msg[num+1] = '\0';
-
-				//printf(return_msg);
-				sendto(socket,return_msg,num+2,0);
-
-				fclose(filehandle);
-				return;
-			} else {
-				// can not open file
-				sprintf(return_msg,"Opening file failed. Error %d",filehandle);
-				int end = strlen(return_msg);
-				return_msg[end] = '\r';
-				return_msg[end+1] = '\0';
-				sendto(socket,return_msg,end+2,0);
-				return;
-			}
-
-		} else {
-			// no argument given
-			sendMsg(socket,"Error: No argument given..");
-			return;
-		}
 	}
 
+
+	if (strpos("ps",command) == 0) {
+	    printTasks(socket,1);
+	    return;
+	}
+
+	if (strpos("df",command) == 0) {
+	    printMemUsage(socket);
+	    return;
+	}
 
 	if (strpos("touch",command) == 0) {
-		int arg = strpos(" ",command);
-		if (arg > 0) {
-			char* filename = &command[arg+1];
+	   char** argv;
+       int args = parseArgs(command,argv);
+       if (args != 2)  {
+           sendMsg(socket,"Usage: touch <filename>");
+           return;
+       }
 
-			int res = fcreate(filename,current_dir);
-			if (res < 0)
-				sendMsg(socket,"Error creating file..");
+       char* filename = argv[1];
+       char path[100];
 
-			return;
-		} else {
-			// no argument given
-			sendMsg(socket,"Error: No filename given..");
-			return;
-		}
+       if (filename[0] !='/') {
+           /* relative path */
+           strcpy(path,current_dir);
+           strcat(&path[strlen(current_dir)],filename);
+       } else {
+           strcpy(path,filename);
+       }
+
+       compactPath(path);
+
+        int res = fcreate(path,current_dir);
+        if (res < 0)
+            sendMsg(socket,"Error creating file..");
+
+        return;
+
 	}
 
+	if (strpos("rm",command) == 0) {
+	  char** argv;
+      int args = parseArgs(command,argv);
+      if (args != 2)  {
+          sendMsg(socket,"Usage: rm <filename>");
+          return;
+      }
 
-	// try running the application with the name
+      char* filename = argv[1];
+      char path[100];
+
+      if (filename[0] !='/') {
+          /* relative path */
+          strcpy(path,current_dir);
+          strcat(&path[strlen(current_dir)],filename);
+      } else {
+          strcpy(path,filename);
+      }
+
+      compactPath(path);
+
+      int res = fremove(path,current_dir);
+      if (res < 0)
+        sendMsg(socket,"Error removing file");
+      return;
+
+    }
 
 
 	sendUnknownCommand(socket);
-
 }
 
 
@@ -631,7 +987,7 @@ void* tty0_thread(void* arg) {
     }
 }
 
-char recvMsg[100];
+char recvMsg[1024];
 
 extern "C" int task_main()
 {
@@ -648,7 +1004,7 @@ extern "C" int task_main()
 
 	bind(mysock,addr);
 
-	puts("Telnet-Server bound and waiting for clients.\r");
+	puts("Telnet-Server bound and waiting for clients."LINEFEED);
 
 	/* create the virtual tty device */
 	int devid = mkdev("tty0",2048);
@@ -669,19 +1025,39 @@ extern "C" int task_main()
 		newsock = listen(mysock);
 		char* msgptr;
 		cmd_pos = 0;
-		doecho = 1;
+		doecho = DOECHO;
 		mydirhandle = 0;
 
-		// send my telnet options
-		telnetcommand[0] = 0xff;
-		telnetcommand[1] = WILL;
-		telnetcommand[2] = 1; // send will echo
-		sendto(newsock,telnetcommand,3,0);
+		if (doecho) {
+            // send my telnet options
+            telnetcommand[0] = 0xff;
+            telnetcommand[1] = WILL;
+            telnetcommand[2] = 1; // send will echo
+            sendto(newsock,telnetcommand,3,0);
+		}
+
+
+        telnetcommand[0] = IAC;
+        telnetcommand[1] = WILL;
+        telnetcommand[2] = 3; //  IAC WILL SUPPRESS-GOAHEAD
+        sendto(newsock,telnetcommand,3,0);
+
+        telnetcommand[0] = 0xff;
+        telnetcommand[1] = WONT;
+        telnetcommand[2] = LINEMODE; //
+        sendto(newsock,telnetcommand,3,0);
+
+		//sendMsg(newsock,"^]mode char");
+        telnetcommand[0] = 0xff;
+        telnetcommand[1] = DONT;
+        telnetcommand[2] = 1; // send will echo
+        sendto(newsock,telnetcommand,3,0);
+
 
 		history_count = 0;
 		ci = 0;
 
-		puts("New connection!\r");
+		puts("New connection!"LINEFEED);
 		sendto(newsock,welcome_msg,strlen(welcome_msg),0);
 
 		current_dir[0] = '/';
@@ -690,14 +1066,20 @@ extern "C" int task_main()
 
 		while (1) {
 			msgptr = recvMsg;
-			int msglen = recv(newsock,msgptr,100,MSG_WAIT);
-			if (msglen == -1) {
+			int msglen = recv(newsock,msgptr,1024,MSG_WAIT);
+			if (msglen == -1 || msglen < 0) {
 				// disconnected
 				printf("Terminal disconnected..");
 				fclose(newsock);
 				newsock = 0;
 				break;
 			}
+
+			/*puts("rx:");
+			for (int i = 0; i< msglen; i++) {
+			    printf("%x ",msgptr[i]);
+			}
+			puts("\r\n");*/
 
 			if (cmd_pos + msglen < 100) {
 
@@ -716,6 +1098,8 @@ extern "C" int task_main()
 							i += handleTelnetCommand(newsock,&msgptr[i]);
 							break;
 						}
+						/* backspace key */
+						case 0x7f:
 						case 0x8 : {
 							if (cmd_pos > 0) {
 								command[cmd_pos--] = 0;
@@ -741,13 +1125,15 @@ extern "C" int task_main()
 											strcpy(command,command_history[ci]);
 											cmd_pos=strlen(command);
 
-											if (doecho) {
+											/* put cursor back down */
+											//sendto(newsock,down_sequence,3,0);
+											if (1) {
 												for (int j2 = 0; j2 < num_back; j2++)
 													memcpy(&return_msg[j2*3],&back_sequence,3);
 
 												sendto(newsock,return_msg,num_back*3,0);
 											}
-											if (doecho) sendto(newsock,&command,strlen(command),0);
+											if (1) sendto(newsock,&command,strlen(command),0);
 											break;
 										}
 										case 0x42: {// unten
@@ -761,13 +1147,13 @@ extern "C" int task_main()
 											strcpy(command,command_history[ci]);
 											cmd_pos=strlen(command);
 
-											if (doecho) {
+											if (1) {
 												for (int j2 = 0; j2 < num_back; j2++)
 													memcpy(&return_msg[j2*3],&back_sequence,3);
 
 												sendto(newsock,return_msg,num_back*3,0);
 											}
-											if (doecho) sendto(newsock,&command,strlen(command),0);
+											if (1) sendto(newsock,&command,strlen(command),0);
 											break;
 										}
 										case 0x44: break; // nach links taste
@@ -781,10 +1167,12 @@ extern "C" int task_main()
 						case 13: {
 							i++;
 							if (msglen - i > 0) {
-								if (msgptr[i] == 0) {
+								if (msgptr[i] == 0 || msgptr[i] == 0xa) {
 									command[cmd_pos] = '\0';
 
 									if (doecho) sendto(newsock,&return_sequence,2,0);
+									/* send a linefeed */
+									sendMsg(newsock,"");
 
 									if (strlen(command) > 0) {
                                         // remember last command
@@ -803,7 +1191,11 @@ extern "C" int task_main()
 									return_msg[dir_len] = '$';
 									return_msg[dir_len+1] = ' ';
 
-									sendto(newsock,&return_msg,dir_len+2,0);
+									int timeout = 100;
+                                    while (sendto(newsock,&return_msg,dir_len+2,0) < 0 && timeout > 0) {
+                                        usleep(1000);
+                                        timeout--;
+                                    }
 									cmd_pos = 0;
 								}
 								i++;

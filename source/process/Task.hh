@@ -28,6 +28,7 @@
 #include "db/ArrayList.hh"
 #include "inc/stringtools.hh"
 #include "hal/CharacterDevice.hh"
+#include "filesystem/Directory.hh"
 
 struct serializedThread {
     ThreadStack threadStack;
@@ -89,7 +90,7 @@ protected:
      *  \brief The database storing references to suspended (removed) threads
      *         These might come handy for zombie mode threads.
      */
-    LinkedList          suspendedThreadDb;
+   // LinkedList          suspendedThreadDb;
 
     /*!
      *   \brief The memory manager that will be used by the threads belonging to this task
@@ -136,12 +137,14 @@ protected:
      */
     CharacterDevice*   stdOutput;
 
-public:
 
     /*!
-     * \brief reference to my database item inside the OS tasktable;
+     * \brief Our SysFs Directory
      */
-    LinkedListItem*     myTaskDbItem;
+    Directory*          sysFsDir;
+
+public:
+
 
     /*!
      * \brief platform specific flags which are used upon task start by the
@@ -203,7 +206,9 @@ public:
     /*!
      * \brief Adds a new thread to this task.
      */
-    void addThread(Thread* t);
+    inline void addThread(Thread* t) {
+        this->threadDb.addTail(t);
+    }
 
     /*!
      * \brief Removes a given Thread.
@@ -278,9 +283,17 @@ public:
 
 
     /*!
+     * Returns the sysFs directory for this task containing
+     * it exported variables
+     */
+    Directory*      getSysFsDirectory() {
+        return (sysFsDir);
+    }
+
+    /*!
      * \brief Returns a ThreadCB of a suspended thread which has a stack that is >= stacksize
      */
-    LinkedListItem* getSuspendedThread(unint4 stacksize);
+    //LinkedListItem* getSuspendedThread(unint4 stacksize);
 
     /*!
      * \brief Returns the stdOutput of this task.

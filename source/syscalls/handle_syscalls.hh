@@ -221,6 +221,8 @@ int getpid(int4 int_sp);
 
     int fseekSyscall(intptr_t sp_int);
 
+    int thread_terminateSyscall(int4 sp_int);
+
 inline void handleSyscall(int4 sp_int) {
         int syscallnum;
         int retval = -1;
@@ -454,6 +456,9 @@ inline void handleSyscall(int4 sp_int) {
                 break;
 		    case cFSeekSyscallId:
 		        retval = fseekSyscall(sp_int);
+		        break;
+		    case cThreadTerminateSyscallId:
+		        retval = thread_terminateSyscall(sp_int);
 		        break;
 
 			default:

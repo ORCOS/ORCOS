@@ -109,9 +109,10 @@ char* strncpy(char *dst0, const char *src0, size_t maxChars) {
     };
 
     // copy ending 0
-    *dst0 = 0;
+    if (maxChars)
+        *dst0 = 0;
 
-    return s;
+    return (s);
 }
 
 char* strtok(char *s, const char *delim) {
@@ -254,15 +255,16 @@ int strpos2(const char*s, char c) {
     return (sc - s);
 }
 
-int ascii2unicode(const char * szAscii, unint2 * szUnicode)
+int ascii2unicode(const char * szAscii, char* szUnicode, unint2 len)
 {
-    int len, i;
+    int i;
     if((szUnicode == 0) || (szAscii == 0))
         return (false);
 
-    len = strlen(szAscii);
-    for(i=0;i<len+1;i++)
-        *szUnicode++ = static_cast<unint2>(*szAscii++);
+    for(i=0;i<len;i++) {
+        *szUnicode++ = *szAscii++;
+        *szUnicode++ = 0;
+    }
 
     return (true);
 }

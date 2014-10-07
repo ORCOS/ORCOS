@@ -25,7 +25,6 @@
 #include "comm/TransportProtocol.hh"
 #include "inc/types.hh"
 #include "inc/const.hh"
-#include "comm/CAB.hh"
 #include "filesystem/Resource.hh"
 #include "lwip/pbuf.h"
 #include "FixedSizePBufList.h"

@@ -11,7 +11,6 @@
 #include <error.hh>
 #include <types.hh>
 #include "SCLConfig.hh"
-#include "hal/CharacterDeviceDriver.hh"
 
 class USART0 /*: public CharacterDeviceDriver*/ {
 public:

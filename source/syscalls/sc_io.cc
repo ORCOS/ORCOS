@@ -44,7 +44,7 @@ int ioctl(int4 int_sp) {
 	 res = pCurrentRunningTask->getOwnedResourceById( file_id );
 	 if ( res != 0 ) {
 		 // check for correct type
-		 if (res->getType() & (cStreamDevice | cCommDevice | cGenericDevice | cBlockDevice)) {
+		 if (res->getType() & (cStreamDevice | cCommDevice | cGenericDevice | cBlockDevice | cDirectory)) {
 			 return (((GenericDeviceDriver*) res)->ioctl(request,args));
 		 } else return (cInvalidResource);
 	 }
@@ -367,8 +367,11 @@ int fstatSyscall( int4 int_sp ) {
     if ( res != 0 ) {
 
     	stat->st_size = 0;
+    	stat->st_type = res->getType();
+
     	if (res->getType() & cFile) {
-    		stat->st_size =  ((File*) res)->getFileSize();
+    		stat->st_size   =  ((File*) res)->getFileSize();
+    		stat->st_flags  =  ((File*) res)->getFlags();
     	}
     	else if (res->getType() & cDirectory) {
             stat->st_size =  ((Directory*) res)->getNumEntries();
@@ -439,7 +442,6 @@ int fseekSyscall(intptr_t int_sp) {
                 maxsize = ((File*) res)->getFileSize();
 
             CharacterDevice* cres = (CharacterDevice*) res;
-            unint4 position = cres->getPosition();
             if (whence == SEEK_SET) {
                 cres->resetPosition();
                 return (cres->seek(offset));
@@ -450,17 +452,17 @@ int fseekSyscall(intptr_t int_sp) {
             if (whence == SEEK_END) {
                 offset = maxsize - offset;
                 return (cres->seek(offset));
-
             }
+
+            return (cInvalidArgument);
 
         } else {
             return (cWrongResourceType);
         }
 
+    }
 
-    } else
-       return (cError);
-
+    return (cError);
 }
 
 

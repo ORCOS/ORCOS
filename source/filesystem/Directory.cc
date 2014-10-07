@@ -147,10 +147,11 @@ ErrorT Directory::readBytes(char *bytes, unint4 &length) {
         entry->resType  = ritem->getType();
         entry->flags    = 0;
 
-        if (ritem->getType() == cFile)
+        if (ritem->getType() & cFile)
         {
             entry->filesize = ((File*) ritem)->getFileSize();
             entry->flags    = ((File*) ritem)->getFlags();
+            entry->datetime = ((File*) ritem)->getDateTime();
         }
 
         /* copy name into the bytes array */

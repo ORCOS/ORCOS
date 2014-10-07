@@ -126,7 +126,10 @@ extern "C" Directory_Entry_t* readdir(int fd) {
          * could be speed up by reading multiple entries at once
          * */
         size_t read = fread(buffer,300,1,fd);
-          if (read > sizeof(Directory_Entry_t)) {
+        /* error occurred reading */
+        if (read < 0)
+            return (0);
+        if (read > sizeof(Directory_Entry_t)) {
             pos = 0;
             remainingBytes = read;
         }
@@ -138,11 +141,38 @@ extern "C" Directory_Entry_t* readdir(int fd) {
             return (0);
         }
     }
+
     Directory_Entry_t* ret = (Directory_Entry_t*) (buffer + pos);
     remainingBytes -= sizeof(Directory_Entry_t) +ret->namelen;
     pos += sizeof(Directory_Entry_t) + ret->namelen;
     if (remainingBytes < sizeof(Directory_Entry_t))
         remainingBytes = 0;
+
     return (ret);
+
+}
+
+
+char* fgets (char *s, int count, int fd) {
+
+    char* str = s;
+    int read = 0;
+    while(read < count) {
+        int result = fread(s,1,1,fd);
+        if (result == 0)
+            return (0);
+
+
+        if (*s == '\n')
+        {
+            s++;
+            *s = 0;
+            return str;
+        }
+        s++;
+        read++;
+    }
+
+    return str;
 
 }

@@ -22,6 +22,8 @@
 /* Main Configuration Include */
 #include "SCLConfig.hh"
 
+#define LINEFEED "\r\n"
+
 /***************************************
  *             Includes
  ***************************************/
@@ -268,6 +270,7 @@ public:
 
     DEF_Kernel_MemoryManagerCfd
 };
+
 
 #endif /*KERNEL_H_*/
 

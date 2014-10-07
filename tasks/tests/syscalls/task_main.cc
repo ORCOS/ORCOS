@@ -23,7 +23,9 @@
 #define FAIL 1
 
 
-#define TEST( x , name ) { puts("Testing " name); if (x(str) == OK) { puts("[OK]\r");} else { puts("[FAILED]");}  sleep(10); }
+#define LINEFEED "\r\n"
+
+#define TEST( x , name ) { puts("Testing " name); if (x(str) == OK) { puts("[OK]"LINEFEED);} else { puts("[FAILED]");}  sleep(10); }
 
 #define ASSERT(value,msg) if( value == 0) { str = temp; sprintf(str,msg ". value was: %x",value); return (FAIL);}
 #define ASSERT_GREATER(value,comp,msg) if( !(value > comp)) {str = temp; sprintf(str,msg ". value was: %x",value);return (FAIL);}
@@ -205,7 +207,6 @@ int test_files(char* &str) {
         fremove("testfile7","/mnt/ramdisk");
         fremove("testfile6","/mnt/ramdisk");
         fremove("testfile5","/mnt/ramdisk");
-
     }
 
 	return (OK);
@@ -224,7 +225,6 @@ int test_net(char* &str) {
 
 
 static int signal_value;
-
 static unint4 time;
 
 void* thread_entry_synchro(void* arg) {
@@ -232,7 +232,7 @@ void* thread_entry_synchro(void* arg) {
 	signal_value = signal_wait((void*) 200);
 	// hopefully no overrun
 	time = (unint4) getCycles() - time;
-	//printf("signal took: %d Cycles\r", time);
+	//printf(LINEFEED"signal took: %d Cycles = %d ns"LINEFEED, time, time * 13);
 }
 
 
@@ -325,13 +325,76 @@ int test_rt(char* &str) {
 
 
 
+}
 
+unint8 nextTime = 0;
+unint4 minLatency = 0;
+unint4 maxLatency = 0;
+unint4 avgLatency = 0;
+
+int    iterations = 0;
+
+#define MAX_ITERATIONS 5000
+
+void* thread_entry_latency(void* arg) {
+    unint4 latency = (unint4) (getCycles() - nextTime);
+
+    iterations++;
+    if (iterations < MAX_ITERATIONS) {
+        avgLatency += latency;
+        if (latency < minLatency)
+            minLatency = latency;
+        if (latency > maxLatency)
+            maxLatency = latency;
+    }
+
+
+    nextTime += 1000 * 13;
+}
+
+
+int test_latency(char* &str) {
+
+    int result;
+    thread_attr_t attr;
+    memset(&attr,0,sizeof(thread_attr_t));
+
+
+    unint8 time = getCycles();
+    unint4 overhead = ((getCycles() - time) * 13) >> 1;
+    printf("getCycles overhead: %u ns"LINEFEED,overhead);
+
+    nextTime = getCycles() + 10000 * 13;
+    minLatency = 999999;
+    iterations = 0;
+    maxLatency = 0;
+    avgLatency = 0;
+
+    attr.arrivaltime = nextTime;
+    attr.priority    = 8000;
+    attr.period      = 1000; /* 1 ms */
+    int id;
+    result = thread_create(&id,&attr,thread_entry_latency,0);
+    ASSERT_EQUAL(result,cOk,"thread_create(&id,&attr,thread_entry_latency,0) failed");
+
+    result = thread_run(id);
+    ASSERT_EQUAL(result,cOk,"thread_run(id) failed");
+
+    while (iterations < MAX_ITERATIONS) {
+        sleep(10);
+    }
+
+    thread_terminate(id,TERM_SOFT);
+
+    printf("minLatency    : %u ns"LINEFEED"avgLatency    : %u ns"LINEFEED"maxLatency    : %u ns"LINEFEED,
+           (minLatency * 13) - overhead, (avgLatency/MAX_ITERATIONS * 13) - overhead, (maxLatency * 13) - overhead);
+    return (cOk);
 }
 
 extern "C" int task_main()
 {
 	char* str;
-	puts("Running ORCOS Syscall Tests\r\n");
+	puts("Running ORCOS Syscall Tests"LINEFEED);
 
 	TEST(test_new,			"SC_NEW             (Memory allocation tests)    ");
 	TEST(test_task_run,		"SC_TASK_RUN        (Task running tests)         ");
@@ -343,6 +406,7 @@ extern "C" int task_main()
 	TEST(test_synchro,		"SC_SYNCHRO         (Synchronization test)       ");
 	TEST(test_shmmem,       "SC_SHMMEM          (Shared memory tests)        ");
 	TEST(test_rt,           "SC_PRIORITY        (Thread Priority tests)      ");
-	//TEST(test_rt,           "SC_WORKLOAD        (Workload tests)");
+
+	test_latency(str);
 }
 

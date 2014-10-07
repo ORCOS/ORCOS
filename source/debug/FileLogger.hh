@@ -23,10 +23,26 @@ class FileLogger;
 #include <logger_config.hh>
 #include "filesystem/File.hh"
 
+/*
+ * This class provides kernel logging capabilities to file.
+ *
+ * Primary file location  : /mnt/ROOT/Kernel.log
+ * If ROOT has not been mounted:
+ * Secondary file location: /mnt/ramdisk/Kernel.log
+ */
 class FileLogger {
 
 private:
-    File* logFile;
+    File*   logFile;
+
+    /* current initialization status.
+     * output file may not be available until initialized. */
+    bool    initialized;
+
+    /*
+     * Tries to initialize the file logger.
+     */
+    void    init();
 
 public:
     FileLogger();
@@ -35,9 +51,8 @@ public:
     }
 
     /*!
-     * \brief Write msg to serial line.
+     * \brief log method.
      *
-     * thprintf is used, so %d .. could be used to as variables.
      * The prefix and level could be found in the logger_config.hh which is generated out of the SCLConfig.xml
      *
      */

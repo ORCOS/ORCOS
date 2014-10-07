@@ -41,7 +41,7 @@ public:
      *
      */
     bool isValidFileSystem() {
-        return this->isValid;
+        return (this->isValid);
     }
 
 };

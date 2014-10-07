@@ -50,5 +50,7 @@ void IdleThread::run() {
         // this nop is used to ensure that the endless loop is not optimized out by the compiler
         NOP;
 #endif
+        theOS->getLogger()->flush();
+
     }
 }

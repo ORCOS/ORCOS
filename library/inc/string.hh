@@ -22,7 +22,11 @@ extern "C" char* 	strcat( char *s1, const char *s2 );
 
 extern "C" char* 	strcpy( char *dst0, const char *src0 );
 
+extern "C" char*    strncpy(char *dst, const char *src, size_t n);
+
 extern "C" char* 	strtok( char *s, const char *delim );
+
+extern "C" char*    strdup (const char *s);
 
 extern "C" void 	itoa( int value, char* str, int base );
 
@@ -35,5 +39,7 @@ extern "C" int 		puts(const char* s);
 extern "C" void* 	memcpy( void* dst0, const void* src0, size_t len0 );
 
 extern "C" void* 	memset( void* ptr, char c, int n);
+
+char* fgets (char *s, int count, int fd);
 
 #endif /* STRING_HH_ */

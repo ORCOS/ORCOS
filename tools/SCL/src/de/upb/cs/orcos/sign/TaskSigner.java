@@ -80,14 +80,14 @@ public class TaskSigner {
 	            }
 	            
 	            // move to task start (VMA)
-	            in.skip(52);
+	            in.skip(60);
 	            int crcstart = hton(readWord(in));            
-	            int crcend = hton(readWord(in)); 
+	            int crcend   = hton(readWord(in)); 
 	            
 	            // TODO: detect the following two positions by parsing the headers
-	            int CRCFieldOffset = 68;	            
+	            int CRCFieldOffset  = 68;	            
 	            int taskStartOffset = 72;
-	            int taskEndOffset = taskStartOffset + (crcend - crcstart);
+	            int taskEndOffset   = taskStartOffset + (crcend - crcstart);
 	            System.out.println("Calculating checksum over " + Integer.toHexString(crcstart) + " - " + Integer.toHexString(crcend));
 	            System.out.println("File position: " + taskStartOffset + " - " + taskEndOffset);
 	           

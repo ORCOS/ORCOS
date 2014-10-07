@@ -6,6 +6,9 @@
  */
 #include <inc/types.hh>
 #include <kernel/Kernel.hh>
+#include "SCLConfig.hh"
+
+#if DWARF_DEBUG
 
 extern Kernel* theOS;
 extern void* _debug_frame;
@@ -43,7 +46,8 @@ typedef struct {
     char* signature;
 } DebugStrTableT;
 
-DebugStrTableT __attribute__((weak)) debug_strtable[] = {};
+/* str table is auto generated and will overload this symbol at link time!*/
+DebugStrTableT __attribute__((weak)) debug_strtable[1] = {{0,0xffffffff,"Unknown"}};
 unsigned int  __attribute__((weak)) debug_strtable_entries = 0;
 
 
@@ -228,10 +232,18 @@ bool dwarf_interpret_cfa(cf_table_entry* entry, unint1*& stream, CIE* cie) {
                 entry->cfa_offset = newoffset;
                 return (true);
             }
+            case 0xa: {
+                /* save current state*/
+                /* TODO */
+            }
+            case 0xb: {
+                /* restore state..*/
+                /* TODO*/
+            }
 
             default: {
-                LOG(ARCH,WARN,"Unknown DW_CFA instruction: high: %d low: %d",highBits,lowBits);
-                return (false);
+                //LOG(ARCH,WARN,"Unknown DW_CFA instruction: high: %d low: %d",highBits,lowBits);
+                return (true);
             }
         }
         return (false);
@@ -285,25 +297,23 @@ char* getMethodSignature(unint4 address) {
                 return (debug_strtable[i].signature);
             }
         }
-
-        return ("???");
     }
+
+    return ("???");
 }
 
 extern void memdump(int addr, int length);
 
 
 void backtrace_addr(void* currentAddress, size_t stackPtr) {
-   printf("Backtrace:\r");
-   printf("  0x%08x   %s\r",currentAddress, getMethodSignature((unint4) currentAddress));
+   LOG(KERNEL,ERROR,"Backtrace:");
+   LOG(KERNEL,ERROR,"  0x%08x   %s",currentAddress, getMethodSignature((unint4) currentAddress));
 
    cf_table_entry* cf_entry = dwarf_getCFEntry(currentAddress);
    if (cf_entry == 0) return;
 
    while (cf_entry) {
        stackPtr        =  stackPtr + cf_entry->cfa_offset;
-       //printf("LR expected at %x\r", stackPtr + cf_entry->stored_regs[14]);
-       //memdump((unint4) stackPtr + cf_entry->stored_regs[14] - 12,12);
 
        if (cf_entry->stored_regs[14] != 0xffffffff)
            currentAddress  = (void*) *( (unint4*)  ((size_t)stackPtr + cf_entry->stored_regs[14]));
@@ -311,7 +321,7 @@ void backtrace_addr(void* currentAddress, size_t stackPtr) {
            return ;
 
        //printf("SP: %x\r",stackPtr);
-       printf("  0x%08x   %s\r",currentAddress, getMethodSignature((unint4) currentAddress));
+       LOG(KERNEL,ERROR,"  0x%08x   %s",currentAddress, getMethodSignature((unint4) currentAddress));
        cf_entry = dwarf_getCFEntry(currentAddress);
    }
 }
@@ -324,23 +334,20 @@ void backtrace_current() {
     void* pc;
     GETPC(pc);
     currentAddress = pc;
-    printf("Backtrace:\r");
+    LOG(KERNEL,ERROR,"Backtrace:");
 
     cf_table_entry* cf_entry = dwarf_getCFEntry(currentAddress);
     if (cf_entry == 0) return;
 
    while (cf_entry) {
        stackPtr        =  stackPtr + cf_entry->cfa_offset;
-       //printf("LR expected at %x\r", stackPtr + cf_entry->stored_regs[14]);
-       //memdump((unint4) stackPtr + cf_entry->stored_regs[14] - 12,12);
 
        if (cf_entry->stored_regs[14] != 0xffffffff)
            currentAddress  = (void*) *( (unint4*)  ((size_t)stackPtr + cf_entry->stored_regs[14]));
        else
            return ;
 
-       //printf("SP: %x\r",stackPtr);
-       printf("  0x%08x   %s\r",currentAddress, getMethodSignature((unint4) currentAddress));
+       LOG(KERNEL,ERROR,"  0x%08x   %s",currentAddress, getMethodSignature((unint4) currentAddress));
        cf_entry = dwarf_getCFEntry(currentAddress);
    }
 }
@@ -374,3 +381,15 @@ void backtrace(void** buffer, int length) {
          cf_entry = dwarf_getCFEntry(currentAddress);
      }
 }
+
+#else
+
+void dwarf_init() {
+
+}
+
+void backtrace_addr(void* currentAddress, size_t stackPtr) {
+
+}
+
+#endif

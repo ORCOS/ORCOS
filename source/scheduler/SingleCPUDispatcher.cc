@@ -80,7 +80,7 @@ void SingleCPUDispatcher::dispatch() {
       timeslice might depend on the Threads in the scheduler! (e.g. RateMonotonicThreadScheduler) */
     LinkedListItem* nextThreadDbItem = (LinkedListItem*) SchedulerCfd->getNext();
 
-    /* Any read thread?  */
+    /* Any ready thread?  */
     if ( nextThreadDbItem != 0 ) {
         pCurrentRunningThread = (Kernel_ThreadCfdCl*) nextThreadDbItem->getData();
         pCurrentRunningTask   = pCurrentRunningThread->getOwner();
@@ -117,8 +117,6 @@ void SingleCPUDispatcher::dispatch() {
 }
 
 
-
-
 void SingleCPUDispatcher::sleep( LinkedListItem* pSleepDbItem ) {
   /* be sure that this critical area cant be interrupted */
   DISABLE_IRQS(irqstatus);
@@ -132,7 +130,6 @@ void SingleCPUDispatcher::sleep( LinkedListItem* pSleepDbItem ) {
     }
 
     RESTORE_IRQS(irqstatus);
-
 }
 
 void SingleCPUDispatcher::block( Thread* thread ) {
@@ -301,12 +298,12 @@ void SingleCPUDispatcher::terminate_thread( Thread* thread ) {
 
     	DISABLE_IRQS(irqstatus);
 
-        /* TODO: maybe keep the thread as zombie if we add scheduleability tests */
-        if (thread->owner->getThreadDB()->getSize() == 0)
-        	theOS->getTaskManager()->removeTask(thread->owner);
-
         delete pRunningThreadDbItem;
         pRunningThreadDbItem = 0;
+
+        /* Delete thread object.
+         * Beware: It must have been removed from the task! */
+        delete thread;
 
         dispatch();
     }
@@ -318,6 +315,5 @@ void SingleCPUDispatcher::terminate_thread( Thread* thread ) {
 			this->blockedList->remove( thread );
 		else
 			this->SchedulerCfd->remove( thread );
-
     }
 }

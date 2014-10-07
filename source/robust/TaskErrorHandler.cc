@@ -10,7 +10,7 @@
 
 extern Kernel* 	theOS;
 extern Task* 	pCurrentRunningTask;
-extern Thread* 	pCurrentRunningThread;
+extern Kernel_ThreadCfdCl* 	pCurrentRunningThread;
 extern LinkedListItem* pRunningThreadDbItem;
 
 TaskErrorHandler::TaskErrorHandler() {
@@ -37,10 +37,9 @@ void TaskErrorHandler::handleError(ErrorType eErrorType) {
 
 	if (t != 0) {
 		if (t->getId() != 0) {
-			pCurrentRunningThread = 0;
 			/* currently no other policy then removing the task */
 			theOS->getTaskManager()->removeTask(t);
-		}else {
+		} else {
 #if USE_WORKERTASK
 			/* reset workerthread */
 			WorkerThread* wt = (WorkerThread*) pCurrentRunningThread;
@@ -52,11 +51,14 @@ void TaskErrorHandler::handleError(ErrorType eErrorType) {
 		pRunningThreadDbItem = 0;
 		pCurrentRunningThread = 0;
 
+		theOS->getLogger()->flush();
+
 		/* Continue executing anything else */
 		LOG(KERNEL,DEBUG,"TaskErrorHandler::handleError: Dispatching");
 		theOS->getDispatcher()->dispatch(  );
 	} else {
 		LOG(KERNEL,ERROR,"FATAL error occurred during BOOT. Can not recover from this.");
+		theOS->getLogger()->flush();
 		while (1) {};
 	}
 

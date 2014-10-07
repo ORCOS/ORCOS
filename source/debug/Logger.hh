@@ -54,6 +54,9 @@ public:
      *
      */
     void log(Prefix prefix, Level level, const char* msg, ...);
+
+    /* nothing to flush as everything is directly written to std out*/
+    void flush() {};
 };
 
 #endif /*DEBUG_HH_*/

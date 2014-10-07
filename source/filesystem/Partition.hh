@@ -41,20 +41,20 @@ public:
 
     Partition(BlockDeviceDriver *p_bdev, char* p_name, unint4 i_lba_start, unint4 i_sectors, unint4 i_partition_num) :
             Resource(cPartition, true, p_name) {
-        this->myBlockDevice = p_bdev;
-        this->lba_start = i_lba_start;
-        this->sectors = i_sectors;
-        this->partition_number = i_partition_num;
+        this->myBlockDevice     = p_bdev;
+        this->lba_start         = i_lba_start;
+        this->sectors           = i_sectors;
+        this->partition_number  = i_partition_num;
         this->mountedFileSystem = 0;
     }
     ;
 
     Partition(BlockDeviceDriver *p_bdev, char* p_name) :
             Resource(cPartition, true, p_name) {
-        this->myBlockDevice = p_bdev;
-        this->lba_start = 0;
-        this->sectors = 0;
-        this->partition_number = 0;
+        this->myBlockDevice     = p_bdev;
+        this->lba_start         = 0;
+        this->sectors           = 0;
+        this->partition_number  = 0;
         this->mountedFileSystem = 0;
     }
     ;
@@ -80,6 +80,12 @@ public:
      * Tries to write the given sector of this partition into the buffer
      */
     ErrorT writeSectors(unint4 sector_start, unint1* buffer, unint4 num_sectors);
+
+    /*!
+     * Clears 'length' bytes starting in 'sector_start' at byte offset 'offset'
+     * Bytes are overwritten with 0.
+     */
+    ErrorT clearBytes(unint4 sector_start, unint4 offset, unint4 length);
 
     /*!
      * Returns the Starting Logical Block Address of this partition.

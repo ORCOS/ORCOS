@@ -49,16 +49,24 @@ Kernel_MemoryManagerCfdCl* memManager, unint4 stack_size, void* RTThreadAttribut
 
         LOG(PROCESS, INFO, "RealtimeThread:() period: %d",this->period);
 
-        TimeT currentCycles = theClock->getClockCycles();
-        /* set the new arrival and deadline time of this thread */
-        this->arrivalTime       = currentCycles + attr->phase;
-        this->absoluteDeadline  = this->arrivalTime + this->relativeDeadline;
+        TimeT currentCycles =  theClock->getClockCycles();
+        if (currentCycles < attr->arrivaltime) {
+            /* set the absolute start time of this thread */
+            this->arrivalTime       = attr->arrivaltime;
+            /* put the thread to sleep on scheduler::enter until arrival time */
+            this->sleepTime         = attr->arrivaltime;
+        } else {
+            this->arrivalTime       = currentCycles;
+            this->sleepTime         = 0;
+        }
+            this->absoluteDeadline  = this->arrivalTime + this->relativeDeadline;
     }
     else
     {
         this->relativeDeadline  = 0;
         this->executionTime     = 0;
         this->period            = 0;
+        this->sleepTime         = 0;
         this->absoluteDeadline  = 0;
     }
     this->instance  = 1;
@@ -68,10 +76,13 @@ Kernel_MemoryManagerCfdCl* memManager, unint4 stack_size, void* RTThreadAttribut
 }
 
 RealTimeThread::~RealTimeThread() {
+   /* nothing to do here */
 }
 
 void RealTimeThread::terminate() {
-    if (period > 0)
+    /* are we periodic and are not about to be
+     * terminated? */
+    if (period > 0 && !this->status.areSet(cDoTermFlag))
     {
         /* we need to disable interrupts since we will reset the thread context
            and really shouldn't be interrupted afterwards (since there is no way to resume). */
@@ -83,7 +94,7 @@ void RealTimeThread::terminate() {
         threadStack.top = 0;
 
         /* Set the status to new so that the call main method will be called instead of restoring the context. */
-        this->status.set( cNewFlag | cReadyFlag);
+        this->status.set( cNewFlag | cReadyFlag );
         this->instance++;
 
 #if USE_SAFE_KERNEL_STACKS
@@ -116,18 +127,20 @@ void RealTimeThread::terminate() {
          * */
         theScheduler->computePriority(this);
 
-        /* sleep for the computed interval. */
+        /* sleep until next arrivalTime */
         this->sleep(this->arrivalTime);
     }
     else
-    {   if (this->relativeDeadline != 0)
+    {
+        /* not periodic or soft terminate flag was set */
+        if (this->relativeDeadline != 0)
         {
             int4 lateness = theClock->getClockCycles() - this->absoluteDeadline;
             if (lateness > 0)
                 LOG(PROCESS, WARN, "RealtimeThread::terminate() lateness: %d",lateness );
         }
 
-        /* terminate anyway*/
+        /* terminate now */
         Thread::terminate();
     }
 }

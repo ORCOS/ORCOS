@@ -196,45 +196,7 @@ public:
     ErrorT  initialize();
 };
 
-class FATFile: public File {
-    friend class FATDirectory;
-private:
-    /* The start cluster of this file */
-    unint4 clusterStart;
 
-    /* The current sector we are in
-       Base::position can be used to calculate the current byte in the sector */
-    unint4 currentSector;
-
-    // TODO: check if calculation for this can be used and is correct
-    unint4 currentCluster;
-
-    // my file system
-    FATFileSystem* myFS;
-
-    // the sector number for the directory entry of this file
-    unint4 directory_sector;
-
-    // the entry number for this file inside the directory table of this file
-    unint4 directory_entry_number;
-
-public:
-    FATFile(char* name, FAT32_DirEntry* entry, FATFileSystem * fs, unint4 directory_sector, unint1 directory_entry_number);
-
-    virtual ~FATFile();
-
-    ErrorT readBytes(char *bytes, unint4 &length);
-
-    ErrorT writeBytes(const char *bytes, unint4 length);
-
-    ErrorT resetPosition();
-
-    ErrorT seek(int4 seek_value) {
-        // TODO: support seeking in FAT files
-        return (cError );
-    }
-
-};
 
 /*!
  *	Class representing a FAT Filesystem directory.
@@ -242,17 +204,20 @@ public:
  *  The contents is populated on demand to safe memory.
  */
 class FATDirectory: public Directory {
-
+friend class FATFile;
 private:
 
-    //! shortcut to my directory entry cluter number
+    //! shortcut to my directory entry cluster number
     unint4 mycluster_num;
 
     //! the starting sector of this director
     unint4 sector;
 
     //! Entry number of the last entry inside this FAT directory structure
-    unint4 last_entry;
+    unint2 last_entry;
+
+    //! sector containing the last entry
+    unint4 last_entry_sector;
 
     //! pointer to the Filesystem we are located in
     FATFileSystem* myFS;
@@ -285,6 +250,18 @@ public:
     //! gets the resource with name 'name'. Maybe null if nonexistent
     Resource* get(const char* name, unint1 name_len = 0);
 
+    /*
+     * Return the directry entry given by its number.
+     * automatically reads the corresponding sector into a temporary buffer.
+     * The entry may be modified in place but needs to be written back.
+     */
+    FAT32_DirEntry* getNextEntry(bool writeBack, bool allocate);
+
+    FAT32_DirEntry* resetToFirstEntry();
+
+    /* writes back the current temp buffer*/
+    void    synchEntries();
+
     //! Returns the amount of entries in this directory
     int getNumEntries() {
         if (!populated)
@@ -308,6 +285,70 @@ public:
      * Updates the FAT as well.
      */
     File* createFile(char* name, unint4 flags);
+
+    /*
+     * Provides directory entry raw data access
+     */
+    ErrorT ioctl(int request, void* args);
+
+};
+
+
+class FATFile: public File {
+    friend class FATDirectory;
+private:
+    /* The start cluster of this file */
+    unint4 clusterStart;
+
+    /* The current sector we are in
+       Base::position can be used to calculate the current byte in the sector */
+    unint4 currentSector;
+
+    // TODO: check if calculation for this can be used and is correct
+    unint4 currentCluster;
+
+    //! my file system
+    FATFileSystem* myFS;
+
+    //! the sector number for the directory entry of this file
+    unint4 directory_sector;
+
+    //! the entry number for this file inside the directory table of this file
+    unint2 directory_entry_number;
+
+    //! the long name entry for this file inside the directory table
+    unint2 longname_entry_number;
+
+    //! the sector containing the first longname entry
+    unint4 longname_entry_sector;
+
+    bool hasLongName() {
+        return (longname_entry_number != -1);
+    }
+
+public:
+    FATFile(char* name,
+            FAT32_DirEntry* p_entry,
+            FATFileSystem * fs,
+            unint4 directory_sector,
+            unint2 directory_entry_number,
+            unint4 longname_entry_sector,
+            unint2 longname_entry_number);
+
+    virtual ~FATFile();
+
+    ErrorT readBytes(char *bytes, unint4 &length);
+
+    ErrorT writeBytes(const char *bytes, unint4 length);
+
+    ErrorT resetPosition();
+
+    ErrorT seek(int4 seek_value);
+
+    /* Provides renaming functionality of fat files inside a fat directory.
+     * Tries to in place rename the file. If the new name is longer than the
+     * directory entries allow, new entries are allocated while moreving the old ones.*/
+    ErrorT rename(char* newName);
 
 };
 

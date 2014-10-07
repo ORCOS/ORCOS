@@ -31,6 +31,8 @@
  */
 class MemResource {
     friend class MemManager;
+    friend class Kernel; /* for exporting RO variables */
+    friend class Task;   /* for exporting RO variables */
 private:
     //! size of the represented memory segment
     size_t memSegSize;
@@ -91,7 +93,7 @@ public:
 
     inline bool containsAddr(void* addr) {
        if (((intptr_t)startAddr <= (intptr_t) addr) &&
-           ((intptr_t)startAddr + memSegSize) > (intptr_t) addr )
+           ((intptr_t)startAddr + (intptr_t) memSegSize) > ((intptr_t) addr) )
            return (true);
        return (false);
     }
