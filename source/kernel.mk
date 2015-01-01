@@ -223,7 +223,7 @@ CPPCHECK=0
 $(OUTPUT_DIR)%.o : %.cc %.hh SCLConfig.hh
 	@echo "kernel.mk[C++]: Compiling  $@"
 	@$(CXX) $(CPFLAGS) $(OPT_FLAGS)  $< --output $@	
-	if [ $(CHECKSTYLE) -eq 1 ]; then python2.7 $(KERNEL_DIR)cpplint.py --extensions=cc,hh,h --filter=$(CPPLINT_FILTER) $< $(patsubst %.cc, %.hh, $<); fi
+	if [ $(CHECKSTYLE) -eq 1 ]; then python2.7 $(KERNEL_DIR)cpplint.py --extensions=cc,hh,c,h --filter=$(CPPLINT_FILTER) $< $(patsubst %.cc, %.hh, $<); fi
 	if [ $(CPPCHECK) -eq 1 ]; then cppcheck --enable=warning --quiet --force $(INCLUDES)  $<; fi
 
 $(MODULES_DIR)%.o : %.cc %.hh SCLConfig.hh $(OUTPUT_DIR)syscall.o
@@ -241,21 +241,21 @@ $(MODULES_DIR)%.o : %.cc %.hh SCLConfig.hh $(OUTPUT_DIR)syscall.o
 $(OUTPUT_DIR)%.o : %.cc SCLConfig.hh
 	@echo "kernel.mk[C++]: Compiling  $@"
 	@$(CXX) $(CPFLAGS) $(OPT_FLAGS)  $< --output $@
-	if [ $(CHECKSTYLE) -eq 1 ]; then python2.7 $(KERNEL_DIR)cpplint.py --extensions=cc,hh,h --filter=$(CPPLINT_FILTER) $<; fi
+	if [ $(CHECKSTYLE) -eq 1 ]; then python2.7 $(KERNEL_DIR)cpplint.py --extensions=cc,hh,c,h --filter=$(CPPLINT_FILTER) $<; fi
 	if [ $(CPPCHECK) -eq 1 ]; then cppcheck --enable=warning --quiet --force $(INCLUDES)  $<; fi
 
 #rule for compiling c files with header	
 $(OUTPUT_DIR)%.o : %.c %.h SCLConfig.hh
 	@echo "kernel.mk[C  ]: Compiling  $@"
 	@$(CC) $(CFLAGS) $(OPT_FLAGS) $< --output $@	
-	if [ $(CHECKSTYLE) -eq 1 ]; then python2.7 $(KERNEL_DIR)cpplint.py --extensions=cc,hh,h --filter=$(CPPLINT_FILTER) $< $(patsubst %.c, %.h, $<); fi
+	if [ $(CHECKSTYLE) -eq 1 ]; then python2.7 $(KERNEL_DIR)cpplint.py --extensions=cc,hh,c,h --filter=$(CPPLINT_FILTER) $< $(patsubst %.c, %.h, $<); fi
 	if [ $(CPPCHECK) -eq 1 ]; then cppcheck --enable=warning --quiet --force $(INCLUDES)  $<; fi
 	
 #rule for compiling c files without header
 $(OUTPUT_DIR)%.o : %.c SCLConfig.hh
 	@echo "kernel.mk[C  ]: Compiling  $@"
 	@$(CC) -c $(CFLAGS) $(OPT_FLAGS)   $< --output $@	
-	if [ $(CHECKSTYLE) -eq 1 ]; then python2.7 $(KERNEL_DIR)cpplint.py --extensions=cc,hh,h --filter=$(CPPLINT_FILTER) $<; fi
+	if [ $(CHECKSTYLE) -eq 1 ]; then python2.7 $(KERNEL_DIR)cpplint.py --extensions=cc,hh,c,h --filter=$(CPPLINT_FILTER) $<; fi
 	if [ $(CPPCHECK) -eq 1 ]; then cppcheck --enable=warning --quiet --force $(INCLUDES)  $<; fi
 
 # Create static library of the OS so the linker only links the 

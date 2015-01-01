@@ -38,8 +38,14 @@ CommDeviceDriver::CommDeviceDriver(const char* p_name) :
 CommDeviceDriver::~CommDeviceDriver() {
 }
 
+/*****************************************************************************
+ * Method: CommDeviceDriver::ioctl(int request, void* args)
+ *
+ * @description
+ *  Provides generic I/O Control options for network devices
+ *  as e.g. setting the IP address, Gateway etc.
+ *******************************************************************************/
 ErrorT CommDeviceDriver::ioctl(int request, void* args) {
-
     switch (request) {
     case cNETIF_SETIPV4: {
         struct ip4_addr ipAddr;
@@ -70,7 +76,7 @@ ErrorT CommDeviceDriver::ioctl(int request, void* args) {
     case cNETIF_GET_STATS: {
         VALIDATE_IN_PROCESS(args);
         netif_stat_t* stats = reinterpret_cast<netif_stat_t*>(args);
-        memset(stats,0,sizeof(netif_stat_t));
+        memset(stats, 0, sizeof(netif_stat_t));
         stats->flags        = st_netif.flags;
         stats->errors       = st_netif.txerrors;
         stats->ipv4addr     = ntohl(st_netif.ip4_addr.addr);
@@ -81,8 +87,8 @@ ErrorT CommDeviceDriver::ioctl(int request, void* args) {
         stats->rxpackets    = st_netif.rxpackets;
         stats->txpackets    = st_netif.txpackets;
         stats->txbytes      = st_netif.txbytes;
-        memcpy(stats->hwaddr,st_netif.hwaddr,st_netif.hwaddr_len);
-        memcpy(stats->ipv6addr,st_netif.ip6_addr.addr,16);
+        memcpy(stats->hwaddr, st_netif.hwaddr, st_netif.hwaddr_len);
+        memcpy(stats->ipv6addr, st_netif.ip6_addr.addr, 16);
         break;
     }
     default:
