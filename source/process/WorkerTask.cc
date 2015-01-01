@@ -25,14 +25,11 @@ extern Kernel_SchedulerCfdCl* theScheduler;
 
 WorkerTask::WorkerTask() :
         Task(),
-        nonWorkingThreads(NUM_WORKERTHREADS)
-{
+        nonWorkingThreads(NUM_WORKERTHREADS) {
     LOG(KERNEL, INFO, "WorkerTask(): Creating %d Workerthreads", NUM_WORKERTHREADS);
-    WorkerThread* pWThread;
     /* create some worker threads */
-    for (int i = 0; i < NUM_WORKERTHREADS; i++)
-    {
-        pWThread = new WorkerThread(this);
+    for (int i = 0; i < NUM_WORKERTHREADS; i++) {
+        WorkerThread* pWThread = new WorkerThread(this);
         nonWorkingThreads.addHead(pWThread);
         /* announce the workerthread to the dispatcher by blocking it */
         pWThread->block();
@@ -45,37 +42,61 @@ WorkerTask::~WorkerTask() {
 }
 
 
+/*****************************************************************************
+ * Method: WorkerTask::workFinished(WorkerThread* pwthread)
+ *
+ * @description
+ *  Function to be called by workerthreads when they finish working.
+ *
+ * @params
+ *  pwthread    The workerthread that finished its work
+ *******************************************************************************/
 void WorkerTask::workFinished(WorkerThread* pwthread) {
     nonWorkingThreads.addHead(pwthread);
 }
 
+/*****************************************************************************
+ * Method: WorkerTask::addJob(JOBType jobType, unint1 pid, void* param, unint priority_param)
+ *
+ * @description
+ *  Adds a new job to the workertash which is executed by a dedicated worker thread.
+ *
+ * @params
+ *  jobType    The type of job
+ *  pid        The address space id the thread shall be executed in. Running
+ *             in the address space of another task allows the workerthread
+ *             to access the data of that task
+ *  param      Parameter of the job
+ * @returns
+ *  WorkerThread*  Pointer to the workerthread assigned to the job or null if no
+ *                 workerthread could be assigned.
+ *******************************************************************************/
 WorkerThread* WorkerTask::addJob(JOBType jobType, unint1 pid, void* param, unint priority_param) {
-    LOG(PROCESS, DEBUG, "WorkerTask::addJob(): job %d",jobType);
+    LOG(PROCESS, DEBUG, "WorkerTask::addJob(): job %d", jobType);
 
     /* find a available workerthread and assign the job */
     ListItem* litem = this->nonWorkingThreads.removeHead();
 
-    if (litem != 0)
-    {
-        WorkerThread* pWThread = (WorkerThread*) litem;
+    if (litem != 0) {
+        WorkerThread* pWThread = static_cast<WorkerThread*>(litem);
         pWThread->setJob(jobType, param);
         pWThread->setPID(pid);
 
-        LOG(PROCESS, DEBUG, "WorkerTask::addJob() assigned thread %d for job %d",pWThread->getId(),jobType);
+        LOG(PROCESS, DEBUG, "WorkerTask::addJob() assigned thread %d for job %d", pWThread->getId(), jobType);
 
 #ifdef HAS_PRIORITY
     #ifndef REALTIME
-            pWThread->setInitialPriority( priority_param );
-            pWThread->setEffectivePriority( priority_param );
+            pWThread->setInitialPriority(priority_param);
+            pWThread->setEffectivePriority(priority_param);
     #else
             // reset the instance to 1
-            pWThread->instance = 1;
-            pWThread->initialPriority = priority_param;
-            pWThread->period   = 0;
-            pWThread->relativeDeadline = 0;
+            pWThread->instance          = 1;
+            pWThread->initialPriority   = priority_param;
+            pWThread->period            = 0;
+            pWThread->relativeDeadline  = 0;
 
             if (jobType == PeriodicFunctionCallJob) {
-                PeriodicFunctionCall* pcall = (PeriodicFunctionCall*) param;
+                PeriodicFunctionCall* pcall = reinterpret_cast<PeriodicFunctionCall*>(param);
             #if (CLOCK_RATE >= (1 MHZ))
                     pWThread->relativeDeadline = pcall->period * (CLOCK_RATE / 1000000);
                     pWThread->period           = pcall->period * (CLOCK_RATE / 1000000);
@@ -93,29 +114,23 @@ WorkerThread* WorkerTask::addJob(JOBType jobType, unint1 pid, void* param, unint
         pWThread->period = 0;
 #endif
 
-        if (jobType == TimedFunctionCallJob || jobType == PeriodicFunctionCallJob)
-        {
-            // set the sleeptime so the thread sleeps
-            // until the the function can be called
-            TimedFunctionCall* funcCall = (TimedFunctionCall*) param;
-            // when are wo going to be called the first time? sleep until that point in time
+        if (jobType == TimedFunctionCallJob || jobType == PeriodicFunctionCallJob) {
+            /* set the sleeptime so the thread sleeps
+             * until the the function can be called */
+            TimedFunctionCall* funcCall = reinterpret_cast<TimedFunctionCall*>(param);
+            /* when are we going to be called the first time? sleep until that point in time */
             pWThread->sleepTime = funcCall->time;
-        }
-        else
+        } else {
             pWThread->sleepTime = 0;
+        }
 
-        // unblock the workerthread
-        // this will cause the thread
-        // either to be scheduled directly
-        // or send to sleep if the sleeptime is > 0
+        /* unblock the workerthread
+         * this will cause the thread
+         * either to be scheduled directly
+         * or send to sleep if the sleeptime is > 0 */
         pWThread->unblock();
         return (pWThread);
-    }
-    else
-    {
-        //ERROR("No WorkerThread available!");
-
-        // no available workerthread
+    } else {
         return (0);
     }
 }

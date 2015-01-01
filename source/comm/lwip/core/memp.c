@@ -222,7 +222,6 @@ static void memp_overflow_check_all(void) {
     p = LWIP_MEM_ALIGN(memp_memory);
     for (i = 0; i < MEMP_MAX; ++i)
     {
-        p = p;
         for (j = 0; j < memp_num[i]; ++j)
         {
             memp_overflow_check_element(p, memp_sizes[i]);
@@ -243,7 +242,6 @@ static void memp_overflow_init(void) {
     p = LWIP_MEM_ALIGN(memp_memory);
     for (i = 0; i < MEMP_MAX; ++i)
     {
-        p = p;
         for (j = 0; j < memp_num[i]; ++j)
         {
 #if MEMP_SANITY_REGION_BEFORE_ALIGNED > 0

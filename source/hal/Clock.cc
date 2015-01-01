@@ -16,30 +16,48 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <filesystem/SysFs.hh>
 #include "Clock.hh"
 #include "kernel/Kernel.hh"
 #include "inc/endian.h"
+#include "inc/const.hh"
+#include "assemblerFunctions.hh"
+#include "inet.h"
 
 extern Kernel* theOS;
 extern Kernel_ThreadCfdCl* pCurrentRunningThread;
 extern Task* pCurrentRunningTask;
 
-Clock::Clock() {
+Clock::Clock(unint4 frequency) {
     synchDateTime    = 0;
     synchLocalCycles = 0;
+    this->frequency  = frequency;
+
+#if SYSFS_SUPPORT
+    Directory* sysFsDir = theOS->getFileManager()->getDirectory("/sys");
+    SYSFS_ADD_RO_UINT_NAMED(sysFsDir, "clockfreq", this->frequency);
+#endif
 }
 
 Clock::~Clock() {
+
 }
 
+/*****************************************************************************
+ * Method: Clock::getDateTime()
+ *
+ * @description
+ * Returns the current Date Time as an 4 byte unsigned integer
+ *        counting as seconds from January 1. 1970 if NTP SYNC was
+ *        successfull. Seconds since startup otherwise.
+ *
+ * @returns
+ *  int         The time in seconds since January 1. 1970
+ *******************************************************************************/
 unint4 Clock::getDateTime() {
     return (synchDateTime + ((getClockCycles() - synchLocalCycles) / CLOCK_RATE) );
 }
 
-
-#define cTCP                        0x6
-#define cIPV4                       0x800
-#define cUDP                        17
 
 typedef struct {
     unint1 mode;
@@ -58,56 +76,67 @@ typedef struct {
 
 ntppacket_t ntpquery;
 
-#define IP4ADDR( a,b,c,d) \
-                         htonl(((u32_t)((a) & 0xff) << 24) | \
-                               ((u32_t)((b) & 0xff) << 16) | \
-                               ((u32_t)((c) & 0xff) << 8) | \
-                                (u32_t)((d) & 0xff))
-
-char rxbuf[256];
-
-void Clock::callbackFunc(void* param) {
-
+/***********************************
+ * Set of predefined NTP Servers
+ * Queried in order of appearance
+ ***********************************/
 #if ENABLE_NETWORKING
-    LOG( KERNEL,INFO,"Updating DateTime using NTP");
+unint4 ntpserver[3] = {
+        IP4ADDR(128, 176, 0,   12),
+        IP4ADDR(96 , 226, 242, 9),  /* nist.time.nosc.us  96.226.242.9    Carrollton, Texas  */
+        IP4ADDR(206, 246, 122, 250) /* time.nist.gov   global address for all servers  Multiple locations  */
+};
+#endif
+
+
+/*****************************************************************************
+ * Method: Clock::callbackFunc(void* param)
+ *
+ * @description
+ *  Callback scheduled after system startup to
+ *  perform NTP time synchronization if enabled.
+ *******************************************************************************/
+void Clock::callbackFunc(void* param) {
+#if ENABLE_NETWORKING
+    char rxbuf[256];
+    LOG(KERNEL, INFO, "Updating DateTime using NTP");
     /* We need networking for this*/
     sockaddr addr;
+    Socket* ntpSocket   = new Socket(cIPV4, SOCK_DGRAM, cUDP);
 
-    Socket* ntpSocket   = new Socket(cIPV4,SOCK_DGRAM,cUDP);
     addr.port_data      = 123;
     addr.sa_data        = 0;
     ntpSocket->bind(&addr);
 
     sockaddr ntpsrvaddr;
-    ntpsrvaddr.port_data    = 123;
-    ntpsrvaddr.sa_data      = IP4ADDR(128,176,0,12);
+    ntpsrvaddr.port_data = 123;
 
-    memset(&ntpquery,0,sizeof(ntppacket_t));
-    ntpquery.mode = 0x1b;
+    memset(&ntpquery, 0, sizeof(ntppacket_t));
+    ntpquery.mode       = 0x1b;
 
-    ntpSocket->sendto(&ntpquery,sizeof(ntppacket_t),&ntpsrvaddr);
+    int tries   = 0;
+    int len     = 0;
+    while (len < static_cast<int>(sizeof(ntppacket_t)) && tries < 3) {
+        ntpsrvaddr.sa_data   = ntpserver[tries];
+        tries++;
+        ntpSocket->sendto(&ntpquery, sizeof(ntppacket_t), &ntpsrvaddr);
 
-    /* wait for answer, timeout after 2 seconds */
-    int len = 0;
-
-    len = ntpSocket->recvfrom(pCurrentRunningThread,rxbuf,256,MSG_WAIT,0,4000 ms);
-
+        /* wait for answer, timeout after 4 seconds */
+        len = ntpSocket->recvfrom(pCurrentRunningThread, rxbuf, 256, MSG_WAIT, 0, 4000);
+    }
 
     if (len <= 0) {
         /* timed out */
-        LOG( KERNEL,WARN,"NTP Receive Error %d",len);
-
+        LOG(KERNEL, WARN, "NTP SYNC failed. Receive Error %d", len);
     } else {
-        ntppacket_t* ntpp = (ntppacket_t*) rxbuf;
-        unint4 seconds = (unint4) cputobe32(ntpp->transmit_ts_seconds);
+        ntppacket_t* ntpp   = reinterpret_cast<ntppacket_t*>(rxbuf);
+        unint4 seconds      = (unint4) be32tocpu(ntpp->transmit_ts_seconds);
 
-        LOG( KERNEL,INFO,"NTP Update successful. Seconds: %u",seconds);
+        LOG(KERNEL, INFO, "NTP SYNC successful. Seconds: %u", seconds);
         this->synchDateTime     = seconds;
         this->synchLocalCycles  = getClockCycles();
     }
 
     delete ntpSocket;
-
 #endif
-
 }

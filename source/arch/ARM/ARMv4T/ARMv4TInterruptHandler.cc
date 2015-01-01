@@ -24,7 +24,6 @@ extern Kernel* theOS;
  ** ARMv4TInterruptHandler::ARMv4TInterruptHandler
  *---------------------------------------------------------------------------*/
 ARMv4TInterruptHandler::ARMv4TInterruptHandler() {
-
     // set address of irq handling function to interrupt vector table in memory
     // set address of swi handling function to interrupt vector table in memory
     /*asm volatile(

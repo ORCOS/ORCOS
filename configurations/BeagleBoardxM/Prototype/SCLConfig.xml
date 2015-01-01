@@ -16,7 +16,7 @@
     </Logging>
   </Options>
   <!-- ************************************
-    					Tasks
+                        Tasks
          ************************************ -->
   <Tasks>
     <Task>
@@ -50,16 +50,19 @@
   </Tasks>
   <SCL>
     <!-- ************************************
-    			Skeleton Board
+                Skeleton Board
          ************************************ -->
     <Skeleton>
       <Name>Board</Name>
       <Superclass>arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardxM/BeagleBoardxM</Superclass>
       <Member Name="Processor" Class="arch/ARM/ARMv4T/ARMv4TProcessor" None="false" UserSpace="false" />
       <Member Name="InterruptHandler" Class="arch/ARM/ARMv4T/ARMv4TInterruptHandler" None="false" UserSpace="false" PhyLoadAddress="0x0" />
-      <Member Name="Timer" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardGPTimer2" None="false" UserSpace="false" PhyLoadAddress="0x0">
-        <PropertyValue Name="Address" Value="0x49032000" Type="unsigned int" />
+      <Member Name="Timer" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPTimer" None="false" UserSpace="false" PhyLoadAddress="0x0">
+        <PropertyValue Name="Address" Value="0x48318000" Type="unsigned int" />
         <PropertyValue Name="Length" Value="4096" Type="unsigned int" />
+        <PropertyValue Name="Name" Value="sched_timer" Type="char*" />
+        <PropertyValue Name="INTC_IRQ" Value="37" Type="unsigned int" />
+        <PropertyValue Name="INTC_Priority" Value="50" Type="unsigned int" />
       </Member>
       <Member Name="HatLayer" Class="arch/ARM/ARMv4T/ARMv7/ARMv7HatLayer" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="Clock" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530Clock" None="false" UserSpace="false" PhyLoadAddress="0x0">
@@ -147,7 +150,7 @@
       </Member>
     </Skeleton>
     <!-- ************************************
-    			Skeleton Kernel
+                Skeleton Kernel
          ************************************ -->
     <Skeleton>
       <Name>Kernel</Name>
@@ -160,7 +163,7 @@
       <Member Name="Thread" Class="process/RealTimeThread" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="Dispatcher" Class="scheduler/SingleCPUDispatcher" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="Scheduler" Class="scheduler/RateMonotonicThreadScheduler" None="false" UserSpace="false" PhyLoadAddress="0x0" />
-      <Member Name="Logger" Class="debug/FileLogger" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="Logger" Class="debug/Logger" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="PowerManager" Class="hal/PowerManager" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="TaskManager" Class="process/TaskManager" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="RamManager" Class="mem/PagedRamMemManager" None="false" UserSpace="false" PhyLoadAddress="0x0" />
@@ -185,7 +188,7 @@
       <Member Name="MassStorage" Class="usb/MassStorageSCSIUSBDeviceDriver" None="false" UserSpace="false" PhyLoadAddress="0x0" />
     </Skeleton>
     <!-- ************************************
-    			Skeleton SyscallManager
+                Skeleton SyscallManager
          ************************************ -->
     <Skeleton>
       <Name>SyscallManager</Name>
@@ -225,15 +228,16 @@
       <Member Name="shm_map" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="fremove" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="shm_unmap" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="thread_terminate" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="fseek" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="task_ioctl" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="mkdev" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="thread_name" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="mount" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
     </Skeleton>
     <!--  DEFINES -->
     <Define>
       <Name>ENABLE_NESTED_INTERRUPTS</Name>
-      <Value>1</Value>
-    </Define>
-    <!-- PROCFS -->
-    <Define>
-      <Name>HAS_PROCFS_ENABLED</Name>
       <Value>1</Value>
     </Define>
     <!--  Worker Task configuration -->
@@ -249,34 +253,6 @@
     <Define>
       <Name>LOG_TASK_SPACE_START</Name>
       <Value>0x100000</Value>
-    </Define>
-    <Define>
-      <Name>NUM_ADDRESS_PROTOCOLS</Name>
-      <Value>0</Value>
-    </Define>
-    <Define>
-      <Name>NUM_TRANSPORT_PROTOCOLS</Name>
-      <Value>0</Value>
-    </Define>
-    <Define>
-      <Name>USE_SIMPLEADDRESSPROTOCOL</Name>
-      <Value>0</Value>
-    </Define>
-    <Define>
-      <Name>USE_ARP</Name>
-      <Value>0</Value>
-    </Define>
-    <Define>
-      <Name>USE_SIMPLETRANSPORTPROTOCOL</Name>
-      <Value>0</Value>
-    </Define>
-    <Define>
-      <Name>MMIO_START_ADDRESS</Name>
-      <Value>0x48000000</Value>
-    </Define>
-    <Define>
-      <Name>MMIO_AREA_LENGTH</Name>
-      <Value>0xFFFFFF</Value>
     </Define>
     <Define>
       <Name>ICACHE_ENABLE</Name>
@@ -307,14 +283,6 @@
       <Value>4096</Value>
     </Define>
     <Define>
-      <Name>WORKERTHREAD_UART_PRIORITY_PARAM</Name>
-      <Value>5000</Value>
-    </Define>
-    <Define>
-      <Name>WORKERTHREAD_ETH_PRIORITY_PARAM</Name>
-      <Value>2000</Value>
-    </Define>
-    <Define>
       <Name>USE_SAFE_KERNEL_STACKS</Name>
       <Value>0</Value>
     </Define>
@@ -332,7 +300,7 @@
     </Define>
     <Define>
       <Name>__DEBUG__</Name>
-      <Value>1</Value>
+      <Value>0</Value>
     </Define>
     <Define>
       <Name>RAM_SIZE</Name>
@@ -364,6 +332,10 @@
     </Define>
     <Define>
       <Name>SYSFS_SUPPORT</Name>
+      <Value>1</Value>
+    </Define>
+    <Define>
+      <Name>ARM_SUPPORT_NEON</Name>
       <Value>1</Value>
     </Define>
   </SCL>

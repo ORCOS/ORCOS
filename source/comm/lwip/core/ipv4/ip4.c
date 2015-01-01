@@ -400,7 +400,7 @@ err_t ip4_input(struct pbuf *p, struct netif *inp) {
 
 #if LWIP_IGMP
     /* there is an extra "router alert" option in IGMP messages which we allow for but do not police */
-    if((iphdr_hlen > IP_HLEN && (IPH_PROTO(iphdr) != IP_PROTO_IGMP))
+    if (iphdr_hlen > IP_HLEN && (IPH_PROTO(iphdr) != IP_PROTO_IGMP))
             {
 #else
                 if (iphdr_hlen > IP_HLEN)

@@ -31,12 +31,13 @@ public:
     PowerManager();
     ~PowerManager();
 
-    /*!
-     * \brief called on entering the idle thread
+    /*****************************************************************************
+     * Method: enterIdleThread()
      *
-     * suspends puts all devices (for which it makes sense of course)
-     * to sleep when entering the idle thread
-     */
+     * @description
+     *  suspends puts all devices (for which it makes sense of course)
+     *  to sleep when entering the idle thread
+     *******************************************************************************/
     ErrorT enterIdleThread();
 };
 

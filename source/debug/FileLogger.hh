@@ -31,7 +31,6 @@ class FileLogger;
  * Secondary file location: /mnt/ramdisk/Kernel.log
  */
 class FileLogger {
-
 private:
     File*   logFile;
 
@@ -39,9 +38,12 @@ private:
      * output file may not be available until initialized. */
     bool    initialized;
 
-    /*
-     * Tries to initialize the file logger.
-     */
+    /*****************************************************************************
+     * Method: init()
+     *
+     * @description
+     *  Tries to initialize the file logger.
+     *******************************************************************************/
     void    init();
 
 public:
@@ -50,18 +52,25 @@ public:
     ~FileLogger() {
     }
 
-    /*!
-     * \brief log method.
+    /*****************************************************************************
+     * Method: log(Prefix prefix, Level level, const char* msg, ...)
      *
-     * The prefix and level could be found in the logger_config.hh which is generated out of the SCLConfig.xml
-     *
-     */
+     * @description
+     *  The prefix and level could be found in the logger_config.hh
+     *  which is generated out of the SCLConfig.xml
+     *******************************************************************************/
     void log(Prefix prefix, Level level, const char* msg, ...);
 
 
     /*!
      * Flushes the log content to the file
      */
+    /*****************************************************************************
+     * Method: flush()
+     *
+     * @description
+     *  Flushes the log content to the file
+     *******************************************************************************/
     void flush();
 };
 

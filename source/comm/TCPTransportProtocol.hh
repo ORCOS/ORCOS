@@ -30,30 +30,106 @@
  *
  */
 class TCPTransportProtocol: public TransportProtocol {
-
 public:
     TCPTransportProtocol();
 
-    virtual ~TCPTransportProtocol();
+    ~TCPTransportProtocol();
 
-    //! Send method which adds the protocol header
+    /*****************************************************************************
+     * Method: send(packet_layer* payload, AddressProtocol* NextLayer, Socket* fromsock)
+     *
+     * @description
+     *
+     * @params
+     *
+     * @returns
+     *  int         Error Code
+     *******************************************************************************/
     ErrorT send(packet_layer* payload, AddressProtocol* NextLayer, Socket* fromsock);
 
-    // ignore sendto since we are conncetion oriented
+    /*****************************************************************************
+     * Method: sendto(packet_layer* payload, const sockaddr* fromaddr, const sockaddr *dest_addr, AddressProtocol* NextLayer, Socket* fromsock);
+     *
+     * @description
+     *  ignore sendto since we are conncetion oriented
+     * @params
+     *
+     * @returns
+     *  int         Error Code
+     *******************************************************************************/
     ErrorT sendto(packet_layer* payload, const sockaddr* fromaddr, const sockaddr *dest_addr, AddressProtocol* NextLayer, Socket* fromsock);
 
+    /*****************************************************************************
+     * Method: received(Socket* socket, pbuf* p)
+     *
+     * @description
+     *  Callback from socket which tells the transportprotocol that the given
+     *  packet has been received.
+     * @params
+     *
+     * @returns
+     *  int         Error Code
+     *******************************************************************************/
     void received(Socket* socket, pbuf* p);
 
-    //! Register a socket on the following so it can receive messages
+    /*****************************************************************************
+     * Method: register_socket(unint2 port, Socket* socket)
+     *
+     * @description
+     *  Register a socket on the following so it can receive messages
+     * @params
+     *
+     * @returns
+     *  int         Error Code
+     *******************************************************************************/
     ErrorT register_socket(unint2 port, Socket* socket);
 
+    /*****************************************************************************
+     * Method: connect(AddressProtocol* nextLayer, sockaddr *toaddr, Socket* fromsocket)
+     *
+     * @description
+     *
+     * @params
+     *
+     * @returns
+     *  int         Error Code
+     *******************************************************************************/
     ErrorT connect(AddressProtocol* nextLayer, sockaddr *toaddr, Socket* fromsocket);
 
+    /*****************************************************************************
+     * Method: disconnect(Socket* fromsocket)
+     *
+     * @description
+     *
+     * @params
+     *
+     * @returns
+     *  int         Error Code
+     *******************************************************************************/
     ErrorT disconnect(Socket* fromsocket);
 
+    /*****************************************************************************
+     * Method: listen(Socket* socket)
+     *
+     * @description
+     *
+     * @params
+     *
+     * @returns
+     *  int         Error Code
+     *******************************************************************************/
     ErrorT listen(Socket* socket);
 
-    //! Unregister a socket (after that it can not receive a message anymore)
+    /*****************************************************************************
+     * Method: unregister_socket(Socket* socket)
+     *
+     * @description
+     *  Unregister a socket (after that it can not receive a message anymore)
+     * @params
+     *
+     * @returns
+     *  int         Error Code
+     *******************************************************************************/
     ErrorT unregister_socket(Socket* socket);
 };
 

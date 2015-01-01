@@ -112,4 +112,5 @@ void ETHLogger::log(Prefix prefix, Level level, const char* msg, ...) {
     this->tproto->send( &payload_layer, this->aproto, this->mysock );
 
 #endif
+    va_end(arglist);
 }

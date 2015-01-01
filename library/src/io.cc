@@ -21,20 +21,21 @@
 #include "./defines.h"
 #include "./orcos.hh"
 #include "string.hh"
+#include "sys/timer.h"
 
-extern "C" int fcreate(const char* filename, const char* path)
+extern "C" int fcreate(const char* filepath, int flags)
 {
-	return syscall(cFCreateSysCallId,filename,path);
+    return syscall(cFCreateSysCallId, filepath, flags);
 }
 
 extern "C" int fopen(const char* filename, int blocking)
 {
-    return syscall(cFOpenSysCallId,filename, blocking);
+    return syscall(cFOpenSysCallId, filename, blocking);
 }
 
 extern "C" int fclose(int fileid)
 {
-    return syscall(cFCloseSysCallId,fileid);
+    return syscall(cFCloseSysCallId, fileid);
 }
 
 /*!
@@ -71,9 +72,9 @@ extern "C"size_t fwriteString(const void *ptr, int stream, size_t max)
     return syscall(cFWriteSysCallId, ptr, size, nitems, stream);
 }
 
-extern "C" int	ioctl(int fd, int request, void* args) {
+extern "C" int    ioctl(int fd, int request, void* args) {
 
-	return syscall(cIOControl,fd,request,args);
+    return syscall(cIOControl,fd,request,args);
 }
 
 extern "C" size_t printToStdOut(const void* ptr,size_t max)
@@ -93,22 +94,20 @@ extern "C" int fstat(int fd, stat_t* stat) {
     return syscall(cFStatId,fd,stat);
 }
 
-extern "C" int 	fremove(const char* filename, const char* path) {
-    char fpath[256];
-    fpath[0] = 0;
-    strcat(fpath,path);
-    strcat(fpath,"/");
-    strcat(fpath,filename);
-
+extern "C" int     fremove(const char* filepath) {
     // ensure the resource has been acquired
-    int error = fopen(fpath,true);
+    int error = fopen(filepath,true);
     if (error < 0) return (error);
 
-	return (syscall(cFRemoveID,filename,path));
+    return (syscall(cFRemoveID,filepath));
 }
 
 extern "C" int  mkdev(char* devname, int bufferSize) {
     return (syscall(cMkDevSyscallId,devname,bufferSize));
+}
+
+extern "C" int  mount(char* src_path, char* dst_path, int type) {
+    return (syscall(cMountSyscallId,src_path,dst_path,type));
 }
 
 
@@ -125,7 +124,7 @@ extern "C" Directory_Entry_t* readdir(int fd) {
         /* unbuffered reading entry by entry
          * could be speed up by reading multiple entries at once
          * */
-        size_t read = fread(buffer,300,1,fd);
+        int read = fread(buffer,300,1,fd);
         /* error occurred reading */
         if (read < 0)
             return (0);
@@ -175,4 +174,21 @@ char* fgets (char *s, int count, int fd) {
 
     return str;
 
+}
+
+
+/* Method to be called by the thread upon execution finishing. Sets the thread to blocked mode
+ * and waits for the next timer tick to occur again.*/
+void timer_wait() {
+    signal_wait((void*)-1,0);
+}
+
+/* Configures a timer. */
+int timer_configure(int fd, timer_t* timer_conf) {
+    return (ioctl(fd, TIMER_IOCTL_CONFIG, timer_conf));
+}
+
+/* Resets the timer device. Removes the configuration (period, thread).*/
+int timer_reset(int fd) {
+    return (ioctl(fd, TIMER_IOCTL_RESET, 0));
 }

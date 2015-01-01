@@ -2,7 +2,7 @@
  * lwipTMR.hh
  *
  *  Created on: 14.07.2011
- *      Author: dbaldin
+ *     Copyright & Author: dbaldin
  */
 
 #ifndef LWIPTMR_HH_
@@ -13,8 +13,17 @@
 class lwipTMR: public CallableObject {
 public:
     lwipTMR();
-    virtual ~lwipTMR();
 
+    ~lwipTMR();
+
+    /*****************************************************************************
+     * Method: callbackFunc(void* param)
+     *
+     * @description
+     *  TODO: Rename this to a generic service routine
+     * @params
+     *
+     *******************************************************************************/
     void callbackFunc(void* param);
 };
 

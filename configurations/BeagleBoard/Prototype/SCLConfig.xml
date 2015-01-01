@@ -66,6 +66,7 @@
         <PropertyValue Name="Name" Value="gpio1" Type="char*" />
         <PropertyValue Name="DirectionBits" Value="0x0" Type="unsigned int" />
         <PropertyValue Name="ValueBits" Value="0x0" Type="unsigned int" />
+        <PropertyValue Name="Priority" Value="Unknown" Type="int" />
       </Member>
       <Member Name="GPIO2" Class="arch/none/DummyCharDriver" None="true" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="GPIO3" Class="arch/none/DummyCharDriver" None="true" UserSpace="false" PhyLoadAddress="0x0" />
@@ -74,10 +75,11 @@
       <Member Name="GPIO6" Class="arch/none/DummyCharDriver" None="true" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="USB_HC" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/HighSpeedUSBHostController" None="true" UserSpace="false" PhyLoadAddress="0x0">
         <PropertyValue Name="I2CDeviceName" Value="dev/i2c0" Type="char*" />
+        <PropertyValue Name="Priority" Value="Unknown" Type="int" />
       </Member>
       <Member Name="InterruptHandler" Class="arch/ARM/ARMv4T/ARMv4TInterruptHandler" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="InterruptController" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardInterruptController" None="false" UserSpace="false" PhyLoadAddress="0x0" />
-      <Member Name="ExtPowerControl" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/TWL4030" None="false" UserSpace="false" PhyLoadAddress="0x0">
+      <Member Name="ExtPowerControl" Class="arch/shared/power/TWL4030" None="false" UserSpace="false" PhyLoadAddress="0x0">
         <PropertyValue Name="I2CDeviceName" Value="dev/i2c0" Type="char*" />
       </Member>
       <Member Name="MMC" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapMMC_SD_HC" None="true" UserSpace="false" PhyLoadAddress="0x0">
@@ -107,6 +109,7 @@
         <PropertyValue Name="StartAddress" Value="Unknown" Type="unsigned int" />
         <PropertyValue Name="Size" Value="Unknown" Type="unsigned int" />
       </Member>
+      <Member Name="InterruptManager" Class="hal/InterruptManager" None="false" UserSpace="false" PhyLoadAddress="0x0" />
     </Skeleton>
     <Skeleton>
       <Name>FileSystems</Name>
@@ -153,6 +156,20 @@
       <Member Name="task_stop" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="task_resume" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="ioctl" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="thread_terminate" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="thread_name" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="getpid" Class="" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="thread_wait" Class="" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="fstat" Class="" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="fseek" Class="" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="fremove" Class="" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="task_run" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="task_kill" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="task_ioctl" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="mapMemory" Class="" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="shm_map" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="mkdev" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="mount" Class="" None="true" UserSpace="false" PhyLoadAddress="0x0" />
     </Skeleton>
     <!--  DEFINES -->
     <Define>

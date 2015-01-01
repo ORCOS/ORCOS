@@ -19,6 +19,7 @@
 #ifndef SOCKET_HH_
 #define SOCKET_HH_
 
+#include <comm/FixedSizePBufList.hh>
 #include "SCLConfig.hh"
 #include "hal/CommDeviceDriver.hh"
 #include "comm/AddressProtocol.hh"
@@ -27,15 +28,14 @@
 #include "inc/const.hh"
 #include "filesystem/Resource.hh"
 #include "lwip/pbuf.h"
-#include "FixedSizePBufList.h"
 #include "db/ArrayList.hh"
 
 #define SENDBUF_SIZE 1200
 #define DEFAULT_BUFFERSIZE 1200
 
-#define SOCKET_CONNECTED    ( 1 << 1)
-#define SOCKET_LISTENING    ( 1 << 2)
-#define SOCKET_DISCONNECTED ( 1 << 0)
+#define SOCKET_CONNECTED    (1 << 1)
+#define SOCKET_LISTENING    (1 << 2)
+#define SOCKET_DISCONNECTED (1 << 0)
 
 /*!
  * \brief Socket class which is used for communications.
@@ -78,9 +78,9 @@ public:
 
     //! is true if a thread is currently waiting for new connections
     bool hasListeningThread;
+
 public:
     void* arg;
-
 
     /*
      * Socket Constructor.
@@ -93,59 +93,140 @@ public:
 
     ~Socket();
 
-    //! bind the socket to an addr
+    /*****************************************************************************
+     * Method: bind(sockaddr* address)
+     *
+     * @description
+     * bind the socket to an addr
+     *******************************************************************************/
     ErrorT bind(sockaddr* address);
 
-    //! send message which sends a given message to a known socket address
+    /*****************************************************************************
+     * Method: sendto(const void* buffer, unint2 length, const sockaddr *dest_addr)
+     *
+     * @description
+     * send message which sends a given message to a known socket address
+     *******************************************************************************/
     int sendto(const void* buffer, unint2 length, const sockaddr *dest_addr);
 
-    //! send message which sends a given message to a service
+    /*****************************************************************************
+     * Method: sendto(const void* buffer, unint2 length, const char* service_name)
+     *
+     * @description
+     * send message which sends a given message to a service
+     *******************************************************************************/
     int sendto(const void* buffer, unint2 length, const char* service_name);
 
-    //! try to connect to a given socket address! always blocking!
+    /*****************************************************************************
+     * Method: connect(Kernel_ThreadCfdCl* thread, sockaddr* toaddr)
+     *
+     * @description
+     *  try to connect to a given socket address! always blocking!
+     *******************************************************************************/
     int connect(Kernel_ThreadCfdCl* thread, sockaddr* toaddr);
 
-    //! listen to a given socket address
+    /*****************************************************************************
+     * Method: listen(Kernel_ThreadCfdCl* thread)
+     *
+     * @description
+     *  listen to a given socket address
+     *******************************************************************************/
     int listen(Kernel_ThreadCfdCl* thread);
 
-    //! callback from transportprotocol on connection
+    /*****************************************************************************
+     * Method: connected(int error)
+     *
+     * @description
+     *  callback from transportprotocol on connection
+     *******************************************************************************/
     void connected(int error);
 
-    //! callback from transportprotocol on newly accepted connections
+    /*****************************************************************************
+     * Method: accepted(Socket* newConnection)
+     *
+     * @description
+     * callback from transportprotocol on newly accepted connections
+     *******************************************************************************/
     int accepted(Socket* newConnection);
 
-    //! callback from transportprotocol on disconnect
+
+    /*****************************************************************************
+     * Method: disconnected(int error)
+     *
+     * @description
+     *  callback from transportprotocol on disconnect
+     *******************************************************************************/
     void disconnected(int error);
 
-    //! method which is called from the transport protocol whenever this socket receives a message
+    /*****************************************************************************
+     * Method: addMessage(pbuf* p, sockaddr *fromaddr)
+     *
+     * @description
+     *  method which is called from the transport protocol whenever this socket receives a message
+     *******************************************************************************/
     ErrorT addMessage(pbuf* p, sockaddr *fromaddr);
 
-    //! method which is called by syscalles in order to receive a message and the address the method came from
-    size_t recvfrom( Kernel_ThreadCfdCl* thread,
-                     char*      data_addr,
-                     size_t     data_size,
-                     unint4     flags,
-                     sockaddr*  addr,
-                     unint4     timeout = 0);
 
+    /*****************************************************************************
+     * Method: recvfrom(Kernel_ThreadCfdCl* thread,
+                    char*      data_addr,
+                    size_t     data_size,
+                    unint4     flags,
+                    sockaddr*  addr,
+                    unint4     timeout = 0)
+     *
+     * @description
+     *  method which is called by syscalls in order to receive a message
+     *  and the address the method came from
+     *******************************************************************************/
+    size_t recvfrom(Kernel_ThreadCfdCl* thread,
+                    char*      data_addr,
+                    size_t     data_size,
+                    unint4     flags,
+                    sockaddr*  addr,
+                    unint4     timeout = 0);
+
+    /*****************************************************************************
+     * Method: isValid()
+     *
+     * @description
+     *
+     * @returns
+     *  bool        True if valid.
+     *******************************************************************************/
     inline bool isValid() {
         return (this->tproto != 0 && this->aproto != 0 && messageBuffer != 0);
     }
 
-    //! Returns the type of this socket
+    /*****************************************************************************
+     * Method: getType()
+     *
+     * @description
+     *  Returns the type of this socket
+     *******************************************************************************/
     inline SOCK_TYPE getType() {
         return (type);
     }
-    //! Returns the address protocol
-    inline AddressProtocol* getAProto() {
+
+    /*****************************************************************************
+     * Method: getAddressProtocol()
+     *
+     * @description
+     *  Returns the address protocol used by this socket
+     *******************************************************************************/
+    inline AddressProtocol* getAddressProtocol() {
         return (aproto);
     }
-    //! Returns the transport protocol
-    inline TransportProtocol* getTProto() {
+
+    /*****************************************************************************
+     * Method: getTransportProtocol()
+     *
+     * @description
+     * Returns the transport protocol used by this socket
+     *******************************************************************************/
+    inline TransportProtocol* getTransportProtocol() {
         return (tproto);
     }
-
-
 };
 
 #endif /*SOCKET_HH_*/

@@ -9,6 +9,7 @@ RELATIVE_SOURCE_PATH = ../../..
 #                                                      Tools Settings
 #---------------------------------------------------------------------------------------------------------------------------------------
 #GCC SETTINGS
+# for windows we must specify the ld linking directories with absolute path 
 GCC_LIB_DIR=D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/
 LIBC_DIR=D:/toolchains/armgcc-4-7-4/arm-none-eabi/lib/armv7-ar/thumb/
 
@@ -58,19 +59,23 @@ LINKERSCRIPT = $(ARCH_DIR)/kernel.ld
 # if thumb mode is activated set this define to 1!
 #CPU_FLAGS =  -mthumb -mcpu=cortex-a8  -mno-unaligned-access -DARM_THUMB=1
  
-#Optimization flag
-OPT_FLAGS = -O2  -mthumb -mcpu=cortex-a8  -mthumb-interwork -mno-unaligned-access -DARM_THUMB=1
-# User Library Optimization Flag. Keep as is
-USER_LIB_OPT_FLAGS = -O2 -mcpu=cortex-a8 -mno-unaligned-access
+# -fno-if-conversion2 enforces to not use THUMB ITT blocks..
+# it seams like they are not correctly executed after context restore ...
+# although the PSR is correct .. (ITSTATE)
+
+OPT_FLAGS = -O2 -mthumb -mcpu=cortex-a8  -mthumb-interwork -DARM_THUMB=1 -fno-builtin -flto -mno-unaligned-access -fno-section-anchors -fno-if-conversion2
 
 #Command line arguments to compile .c files.
-CFLAGS = -Wall -g -I$(KERNEL_DIR)inc/ -I./make/ -I$(KERNEL_DIR)comm/lwip/include/ -I$(KERNEL_DIR)comm/lwip/ -I. -I$(KERNEL_DIR) -I$(KERNEL_LIB_DIR)/../../ $(ARCH_INCLUDES) -ffunction-sections -flto -fno-exceptions -fno-unwind-tables -msoft-float -fno-stack-protector -Wno-write-strings -c $(CPU_FLAGS) 
+CFLAGS = -Wall -g -I$(KERNEL_DIR)inc/ -I./make/ -I$(KERNEL_DIR)comm/lwip/include/ -I$(KERNEL_DIR)comm/lwip/ -I. -I$(KERNEL_DIR) -I$(KERNEL_LIB_DIR)/../../ $(ARCH_INCLUDES) -ffunction-sections -fno-exceptions -fno-unwind-tables -msoft-float -fno-stack-protector -Wno-write-strings -c $(CPU_FLAGS) 
+#CFLAGS +=  -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wstrict-prototypes -Wmissing-prototypes -Wconversion
 
 #Command line arguments to compile .cc files.
-CPFLAGS = -Wall -g -I$(KERNEL_DIR)inc/ -I./make/ -I$(KERNEL_DIR)comm/lwip/include/ -I$(KERNEL_DIR)comm/lwip/ -I. -I$(KERNEL_DIR) -I$(KERNEL_LIB_DIR)/../../ $(ARCH_INCLUDES) -ffunction-sections  -flto -fno-exceptions -fno-unwind-tables -fno-rtti -msoft-float -fno-stack-protector -c -Wno-write-strings -Wuninitialized -Woverloaded-virtual $(CPU_FLAGS) 
+CPFLAGS = -Wall -g -I$(KERNEL_DIR)inc/ -I./make/ -I$(KERNEL_DIR)comm/lwip/include/ -I$(KERNEL_DIR)comm/lwip/ -I. -I$(KERNEL_DIR) -I$(KERNEL_LIB_DIR)/../../ $(ARCH_INCLUDES) -ffunction-sections  -fno-exceptions -fno-unwind-tables -fno-rtti -msoft-float -fno-stack-protector -c -Wno-write-strings -Wuninitialized -Woverloaded-virtual $(CPU_FLAGS) 
+#CPFLAGS +=  -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wconversion
 
 #Command line arguments to the linker.
-LDFLAGS = -o output/kernel.elf -L$(LIBC_DIR) -L$(GCC_LIB_DIR) -Map output/kernel.map  -lgcc --script=$(LINKERSCRIPT)
+#LDFLAGS = -o output/kernel.elf -L$(LIBC_DIR) -L$(GCC_LIB_DIR) -Map output/kernel.map  -lgcc --script=$(LINKERSCRIPT)
+LDFLAGS = -o output/kernel.elf -L$(LIBC_DIR) -L$(GCC_LIB_DIR) -Wl,-Map=output/kernel.map  -lgcc -flto -Wl,--script=$(LINKERSCRIPT) -nostartfiles $(OPT_FLAGS)
 
 #Command line arguments for the gcc to assemble .S files.
 ASFLAGS = -c -g -I$(KERNEL_DIR)inc/ -I. -I./make/ -I$(KERNEL_DIR) $(ARCH_INCLUDES) -flto  -fno-exceptions -fno-rtti -msoft-float -fno-stack-protector -mcpu=cortex-a8
@@ -82,7 +87,6 @@ ASFLAGS = -c -g -I$(KERNEL_DIR)inc/ -I. -I./make/ -I$(KERNEL_DIR) $(ARCH_INCLUDE
 #STACK_USAGE_SCRIPT = $(KERNEL_DIR)../tools/PPCStackUsage/stack_usage.py
 
 #include architekture make file
-#TODO: autogenerate this by scl
 -include $(ARCH_DIR)/arch.mk
 
 #include kernel make file

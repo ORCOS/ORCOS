@@ -40,11 +40,11 @@ public:
      */
     UserSpaceCharacterDeviceDriver() {
     }
-    ;
 
-    ~UserSpaceCharacterDeviceDriver() {
+
+    virtual ~UserSpaceCharacterDeviceDriver() {
     }
-    ;
+
 
     /*!
      * \brief reads a byte from the device

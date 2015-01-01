@@ -23,9 +23,13 @@
 
 extern Kernel* theOS;
 
-void* operator new(size_t s)
-/*---------------------------------------------------------------------------*/
-{
+/*****************************************************************************
+ * Method: new(size_t s)
+ *
+ * @description
+ *
+ *******************************************************************************/
+void* operator new(size_t s) {
     Kernel_MemoryManagerCfdCl* mm;
 
     void* addr = 0;
@@ -36,9 +40,13 @@ void* operator new(size_t s)
     return (addr);
 }
 
-void* operator new(size_t s, bool aligned)
-/*---------------------------------------------------------------------------*/
-{
+/*****************************************************************************
+ * Method: new(size_t s, bool aligned)
+ *
+ * @description
+ *
+ *******************************************************************************/
+void* operator new(size_t s, bool aligned) {
     Kernel_MemoryManagerCfdCl* mm;
 
     void* addr = 0;
@@ -49,25 +57,26 @@ void* operator new(size_t s, bool aligned)
     return (addr);
 }
 
-/*---------------------------------------------------------------------------*/
-void operator delete(void* ptr)
-/*---------------------------------------------------------------------------*/
-{
+/*****************************************************************************
+ * Method: delete(void* ptr)
+ *
+ * @description
+ *
+ *******************************************************************************/
+void operator delete(void* ptr) {
     Kernel_MemoryManagerCfdCl* mm;
-    int status;
 
     mm = theOS->getMemoryManager();
-    status = mm->free(ptr);
-    if (isOk(status))
-    {
-        ptr = 0;
-    }
-
+    mm->free(ptr);
 }
 
-void* operator new[](size_t s)
-/*---------------------------------------------------------------------------*/
-{
+/*****************************************************************************
+ * Method: new[](size_t s)
+ *
+ * @description
+ *
+ *******************************************************************************/
+void* operator new[](size_t s) {
     Kernel_MemoryManagerCfdCl* mm;
 
     void* addr = 0;
@@ -78,17 +87,15 @@ void* operator new[](size_t s)
     return (addr);
 }
 
-void operator delete[](void* ptr)
-/*---------------------------------------------------------------------------*/
-{
+/*****************************************************************************
+ * Method: delete[](void* ptr)
+ *
+ * @description
+ *
+ *******************************************************************************/
+void operator delete[](void* ptr) {
     Kernel_MemoryManagerCfdCl* mm;
-    int status;
 
     mm = theOS->getMemoryManager();
-    status = mm->free(ptr);
-    if (isOk(status))
-    {
-        ptr = 0;
-    }
-
+    mm->free(ptr);
 }

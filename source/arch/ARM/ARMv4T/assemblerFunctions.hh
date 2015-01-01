@@ -19,10 +19,12 @@
 #ifndef ASSEMBLERFUNCTIONS_HH_
 #define ASSEMBLERFUNCTIONS_HH_
 
+#ifdef __cplusplus
 #include "SCLConfig.hh"
-#include <ARMv4T.h>
-#include <types.hh>
-#include <process/Thread.hh>
+#include "ARMv4T.h"
+#include "inc/types.hh"
+#include "process/Thread.hh"
+#endif
 
 extern void* __PageTableSec_start;
 
@@ -36,24 +38,24 @@ extern void* __PageTableSec_start;
  * sp_int: The stack pointer at interruption
  * retval: The return value of the syscall
  */
-#define SET_RETURN_VALUE(sp_int,retval) \
-										asm volatile ( \
-										"str %1, [%0, #4];" \
-										: \
-										: "l" (sp_int), "r" (retval) \
-										: \
-									)
+#define SET_RETURN_VALUE(sp_int, retval) \
+                                        asm volatile(\
+                                        "str %1, [%0, #4];" \
+                                        : \
+                                        : "l" (sp_int), "r" (retval) \
+                                        : \
+                                    )
 
 /*
  * \brief Gets the current top return context stack pointer of Thread t into sp_int
  *
  *TODO: we need to be sure this is the stack address the context from user space was
- * 		saved at.. this will not work with nested interrupts otherwise!
+ *         saved at.. this will not work with nested interrupts otherwise!
  *
  * sp_int: The return stack pointer
- * t	 : The Thread
+ * t     : The Thread
  **/
-#define GET_RETURN_CONTEXT(t,sp_int)  sp_int = t->threadStack.stackptrs[t->threadStack.top-2]
+#define GET_RETURN_CONTEXT(t, sp_int)  sp_int = t->threadStack.stackptrs[t->threadStack.top-2]
 
 #define GET_METHOD_RETURN_VALUE(variable) \
                                         asm volatile( \
@@ -63,116 +65,116 @@ extern void* __PageTableSec_start;
                                         : \
                                     )
 
-#define GET_SYSCALL_NUM(sp_int,syscallnum) \
-										   asm volatile(\
-										   "ldr %0, [%1, #4];"\
-										   : "=&r" (syscallnum)\
-										   : "r" (sp_int)\
-										   :\
-										   )
+#define GET_SYSCALL_NUM(sp_int, syscallnum) \
+                                           asm volatile(\
+                                           "ldr %0, [%1, #4];"\
+                                           : "=&r" (syscallnum)\
+                                           : "r" (sp_int)\
+                                           :\
+                                           )
 
-#define SYSCALLGETPARAMS1(int_sp,param1) \
-											asm volatile(\
-											"ldr %0, [%1, #8];"\
-											: "=&l" (param1)\
-											: "r" (int_sp)\
-											:\
-											)
+#define SYSCALLGETPARAMS1(int_sp, param1) \
+                                            asm volatile(\
+                                            "ldr %0, [%1, #8];"\
+                                            : "=&l" (param1)\
+                                            : "r" (int_sp)\
+                                            :\
+                                            )
 
-#define SYSCALLGETPARAMS2(int_sp,param1,param2) \
-											asm volatile(\
-											"ldr %0, [%2, #8];"\
-											"ldr %1, [%2, #12];"\
-											: "=&l" (param1), "=&l" (param2) \
-											: "r" (int_sp)\
-											:\
-											)
+#define SYSCALLGETPARAMS2(int_sp, param1, param2) \
+                                            asm volatile(\
+                                            "ldr %0, [%2, #8];"\
+                                            "ldr %1, [%2, #12];"\
+                                            : "=&l" (param1), "=&l" (param2) \
+                                            : "r" (int_sp)\
+                                            :\
+                                            )
 
-#define SYSCALLGETPARAMS3(int_sp,param1,param2,param3) \
-											asm volatile(\
-											"ldr %0, [%3, #8];"\
-											"ldr %1, [%3, #12];"\
-											"ldr %2, [%3, #16];"\
-											: "=&l" (param1), "=&l" (param2), "=&l" (param3) \
-											: "r" (int_sp)\
-											:\
-											)
+#define SYSCALLGETPARAMS3(int_sp, param1, param2, param3) \
+                                            asm volatile(\
+                                            "ldr %0, [%3, #8];"\
+                                            "ldr %1, [%3, #12];"\
+                                            "ldr %2, [%3, #16];"\
+                                            : "=&l" (param1), "=&l" (param2), "=&l" (param3) \
+                                            : "r" (int_sp)\
+                                            :\
+                                            )
 
-#define SYSCALLGETPARAMS4(int_sp,param1,param2,param3,param4) \
-											asm volatile(\
-											"ldr %0, [%4, #8];"\
-											"ldr %1, [%4, #12];"\
-											"ldr %2, [%4, #16];"\
-											"ldr %3, [%4, #72];"\
-											: "=&l" (param1), "=&l" (param2), "=&l" (param3), "=&l" (param4) \
-											: "r" (int_sp)\
-											:\
-											)
+#define SYSCALLGETPARAMS4(int_sp, param1, param2, param3, param4) \
+                                            asm volatile(\
+                                            "ldr %0, [%4, #8];"\
+                                            "ldr %1, [%4, #12];"\
+                                            "ldr %2, [%4, #16];"\
+                                            "ldr %3, [%4, #68];"\
+                                            : "=&l" (param1), "=&l" (param2), "=&l" (param3), "=&l" (param4) \
+                                            : "r" (int_sp)\
+                                            :\
+                                            )
 
-#define SYSCALLGETPARAMS5(int_sp,param1,param2,param3,param4,param5) \
-											asm volatile(\
-											"ldr %0, [%5, #8];"\
-											"ldr %1, [%5, #12];"\
-											"ldr %2, [%5, #16];"\
-											"ldr %3, [%5, #72];"\
-											"ldr %4, [%5, #76];"\
-											: "=&l" (param1), "=&l" (param2), "=&l" (param3), "=&l" (param4), "=&r" (param5) \
-											: "r" (int_sp)\
-											:\
-											)
+#define SYSCALLGETPARAMS5(int_sp, param1, param2, param3, param4, param5) \
+                                            asm volatile(\
+                                            "ldr %0, [%5, #8];"\
+                                            "ldr %1, [%5, #12];"\
+                                            "ldr %2, [%5, #16];"\
+                                            "ldr %3, [%5, #68];"\
+                                            "ldr %4, [%5, #72];"\
+                                            : "=&l" (param1), "=&l" (param2), "=&l" (param3), "=&l" (param4), "=&r" (param5) \
+                                            : "r" (int_sp)\
+                                            :\
+                                            )
 
-#define SYSCALLGETPARAMS6(int_sp,param1,param2,param3,param4,param5,param6) \
+#define SYSCALLGETPARAMS6(int_sp, param1, param2, param3, param4, param5, param6) \
                                             asm volatile(\
                                             "ldr %0, [%6, #8];"\
                                             "ldr %1, [%6, #12];"\
                                             "ldr %2, [%6, #16];"\
-                                            "ldr %3, [%6, #72];"\
-                                            "ldr %4, [%6, #76];"\
-                                            "ldr %5, [%6, #80];"\
+                                            "ldr %3, [%6, #68];"\
+                                            "ldr %4, [%6, #72];"\
+                                            "ldr %5, [%6, #76];"\
                                             : "=&l" (param1), "=&l" (param2), "=&l" (param3), "=&l" (param4), "=&r" (param5), "=&r" (param6) \
                                             : "r" (int_sp)\
                                             :\
                                             )
 
-#define SYSCALLGETPARAM1(int_sp,param1) \
-											asm volatile(\
-											"ldr %0, [%1, #8];"\
-											: "=&l" (param1)\
-											: "r" (int_sp)\
-											:\
-											)
+#define SYSCALLGETPARAM1(int_sp, param1) \
+                                            asm volatile(\
+                                            "ldr %0, [%1, #8];"\
+                                            : "=&l" (param1)\
+                                            : "r" (int_sp)\
+                                            :\
+                                            )
 
-#define SYSCALLGETPARAM2(int_sp,param2) \
-											asm volatile(\
-											"ldr %0, [%1, #12];"\
-											: "=&l" (param1)\
-											: "r" (int_sp)\
-											:\
-											)
+#define SYSCALLGETPARAM2(int_sp, param2) \
+                                            asm volatile(\
+                                            "ldr %0, [%1, #12];"\
+                                            : "=&l" (param1)\
+                                            : "r" (int_sp)\
+                                            :\
+                                            )
 
-#define SYSCALLGETPARAM3(int_sp,param3) \
-											asm volatile(\
-											"ldr %0, [%1, #16];"\
-											: "=&l" (param1)\
-											: "r" (int_sp)\
-											:\
-											)
+#define SYSCALLGETPARAM3(int_sp, param3) \
+                                            asm volatile(\
+                                            "ldr %0, [%1, #16];"\
+                                            : "=&l" (param1)\
+                                            : "r" (int_sp)\
+                                            :\
+                                            )
 
-#define SYSCALLGETPARAM4(int_sp,param4) \
-											asm volatile(\
-											"ldr %0, [%1, #76];"\
-											: "=&l" (param1)\
-											: "r" (int_sp)\
-											:\
-											)
+#define SYSCALLGETPARAM4(int_sp, param4) \
+                                            asm volatile(\
+                                            "ldr %0, [%1, #68];"\
+                                            : "=&l" (param1)\
+                                            : "r" (int_sp)\
+                                            :\
+                                            )
 
-#define SYSCALLGETPARAM5(int_sp,param5) \
-											asm volatile(\
-											"ldr %0, [%1, #80];"\
-											: "=&l" (param1)\
-											: "r" (int_sp)\
-											:\
-											)
+#define SYSCALLGETPARAM5(int_sp, param5) \
+                                            asm volatile(\
+                                            "ldr %0, [%1, #72];"\
+                                            : "=&l" (param1)\
+                                            : "r" (int_sp)\
+                                            :\
+                                            )
 
 //! No operation command
 #define NOP asm("nop")
@@ -187,33 +189,33 @@ extern void* __PageTableSec_start;
  */
 #if HAS_Board_HatLayerCfd
 #define SETPID(pid) \
-       	__asm__ __volatile__(	\
-       		"MOV r0, #0;"	\
-       		"MCR p15, 0, r0, c8, c5, 0;" \
-       		"MCR p15, 0, r0, c8, c6, 0;" \
-       		"MOV r1, %1;" \
-       		"ORR r1, r1, %1, lsl #8;" \
-       		"MCR p15,0, r1,c13,c0,1;"	\
-       		"MCR p15,0, r0, c7, c5, 4;" \
-       		"MOV r1, #0x4000;"	\
-       		"MUL r1, %1, r1;"	\
-       		"ADD r0, %0, r1;"	\
-       		"MCR p15, 0, r0, c2, c0, 0;"	\
-       		"MOV r0, #0; " \
-       		"MCR p15, 0, r0, c7, c5, 4;" \
-       		: 	\
-       		: "r" (&__PageTableSec_start), "r" (pid)	\
-       		: "r0", "r1" \
-       	)
+           __asm__ __volatile__(    \
+               "MOV r0, #0;"    \
+               "MCR p15, 0, r0, c8, c5, 0;" \
+               "MCR p15, 0, r0, c8, c6, 0;" \
+               "MOV r1, %1;" \
+               "ORR r1, r1, %1, lsl #8;" \
+               "MCR p15,0, r1,c13,c0,1;"    \
+               "MCR p15,0, r0, c7, c5, 4;" \
+               "MOV r1, #0x4000;"    \
+               "MUL r1, %1, r1;"    \
+               "ADD r0, %0, r1;"    \
+               "MCR p15, 0, r0, c2, c0, 0;"    \
+               "MOV r0, #0; " \
+               "MCR p15, 0, r0, c7, c5, 4;" \
+               :     \
+               : "r" (&__PageTableSec_start), "r" (pid)    \
+               : "r0", "r1" \
+           )
 
 #define GETPID(pid) \
-	asm volatile(\
-		"MRC p15, 0, %0, c13, c0, 3;"\
-		"AND %0,%0,#255;" \
-		: "=&r" (pid)\
-		:\
-		: "r0"\
-		)
+    asm volatile(\
+        "MRC p15, 0, %0, c13, c0, 3;"\
+        "AND %0,%0,#255;" \
+        : "=&r" (pid)\
+        :\
+        : "r0"\
+        )
 #else
 #define SETPID(pid)
 #define GETPID(pid)
@@ -223,72 +225,65 @@ extern void* __PageTableSec_start;
  *  Used in WorkerThread::callMain() to set the stack the workerthread will work with.
  */
 #define SETSTACKPTR(stack_addr) \
-	asm volatile(\
-		"mov sp, %0;"\
-		: \
-		: "r" (stack_addr)\
-		: \
-		)\
+    asm volatile(\
+        "mov sp, %0;"\
+        : \
+        : "r" (stack_addr)\
+        :)
 
 #define GETSTACKPTR(variable) \
-		asm volatile(\
-			"mov %0, sp;"\
-			: "=&r" (variable) \
-			: \
-			: \
-			)\
+        asm volatile(\
+            "mov %0, sp;"\
+            : "=&r" (variable) \
+            : \
+            :)
 
 #define GETLR(variable) \
         asm volatile(\
             "mov %0, lr;"\
             : "=&r" (variable) \
             : \
-            : \
-            )\
+            :)
 
 #define GETPC(variable) \
         asm volatile(\
             "mov %0, pc;"\
             : "=&r" (variable) \
             : \
-            : \
-            )\
+            :)
 
 /*!
  * Macro used to call the WorkerThread::work() method for a given WorkerThread object specified by objectptr.
  * Used inside WorkerThread::callMain().
  */
-#define BRANCHTO_WORKERTHREAD_WORK(objectptr,pid, stack_addr) \
-				asm volatile(\
-						"mov sp, %2;"\
-						"MOV r0, #0;"	\
-						"MCR p15, 0, r0, c8, c5, 0;" \
-						"MCR p15, 0, r0, c8, c6, 0;" \
-						"MOV r1, %1;" \
-						"ORR r1, r1, %1, lsl #8;" \
-						"MCR p15,0, r1,c13,c0,1;"	\
-						"MCR p15,0, r0, c7, c5, 4;" \
-						"MOV r1, #0x4000;"	\
-						"MUL r1, %1, r1;"	\
-						"ADD r0, %0, r1;"	\
-						"MCR p15, 0, r0, c2, c0, 0;"	\
-						"MOV r0, #0; " \
-						"MCR p15, 0, r0, c7, c5, 4;" \
-						"mov r0, %3;" \
-						"b _ZN12WorkerThread4workEv;" \
-						: \
-						: "r" (&__PageTableSec_start), "r" (pid) ,"r" (stack_addr), "r" (objectptr)\
-						: "r0", "r1" \
-						)\
+#define BRANCHTO_WORKERTHREAD_WORK(objectptr, pid, stack_addr) \
+                asm volatile(\
+                        "mov sp, %2;"\
+                        "MOV r0, #0;"    \
+                        "MCR p15, 0, r0, c8, c5, 0;" \
+                        "MCR p15, 0, r0, c8, c6, 0;" \
+                        "MOV r1, %1;" \
+                        "ORR r1, r1, %1, lsl #8;" \
+                        "MCR p15,0, r1,c13,c0,1;"    \
+                        "MCR p15,0, r0, c7, c5, 4;" \
+                        "MOV r1, #0x4000;"    \
+                        "MUL r1, %1, r1;"    \
+                        "ADD r0, %0, r1;"    \
+                        "MCR p15, 0, r0, c2, c0, 0;"    \
+                        "MOV r0, #0; " \
+                        "MCR p15, 0, r0, c7, c5, 4;" \
+                        "mov r0, %3;" \
+                        "b _ZN12WorkerThread4workEv;" \
+                        : \
+                        : "r" (&__PageTableSec_start), "r" (pid) , "r" (stack_addr), "r" (objectptr)\
+                        : "r0", "r1")
 
 
 // get interrupt enable bit (IRQ only)
 #define GET_INTERRUPT_ENABLE_BIT(var) \
     asm volatile( \
-            "MRS	%0, cpsr;" \
-            "AND	%0, %0, #0x80;" \
-            "LSR	%0, #7;" \
-            "EOR	%0, %0, #1;" \
+            "MRS    %0, cpsr;" \
+            "AND    %0, %0, #0x80;" \
             : "=&r" (var)\
             : \
             : \
@@ -299,9 +294,9 @@ extern void* __PageTableSec_start;
 
 // Enable interrupts (IRQ).
 #define _enableInterrupts() asm volatile( \
-                                "MRS	r0, cpsr;" \
-                                "BIC	r0, r0, #0x80;" \
-                                "MSR	cpsr, r0;" \
+                                "MRS    r0, cpsr;" \
+                                "BIC    r0, r0, #0x80;" \
+                                "MSR    cpsr, r0;" \
                                 : \
                                 : \
                                 : "r0" \
@@ -309,65 +304,60 @@ extern void* __PageTableSec_start;
 
 // Disable interrupts (IRQ).
 #define _disableInterrupts() asm volatile( \
-                                "MRS	r0, cpsr;" \
-                                "ORR	r0, r0, #0x80;" \
-                                "MSR	cpsr, r0;" \
+                                "MRS    r0, cpsr;" \
+                                "ORR    r0, r0, #0x80;" \
+                                "MSR    cpsr, r0;" \
                                 : \
                                 : \
                                 : "r0" \
                             )
 
 
-#if ENABLE_NESTED_INTERRUPTS
+#define GET_CPSR(var) asm volatile("mrs  %0,CPSR;" : "=&r" (var):  :)
 
-// Dsiables irqs and saves the irq enable bit to the variable
+
+// Disables irqs and saves the irq enable bit to the variable
 #define DISABLE_IRQS(irqstatus) \
-    bool irqstatus; \
+    int irqstatus; \
     GET_INTERRUPT_ENABLE_BIT(irqstatus); \
     _disableInterrupts();
 
-#define RESTORE_IRQS(irqstatus) if ( irqstatus ) { _enableInterrupts(); }
+#define RESTORE_IRQS(irqstatus) if (!(irqstatus & 0x80)) {_enableInterrupts();}
 
-#else
-
-#define DISABLE_IRQS(irqstatus)
-#define RESTORE_IRQS(irqstatus)
-#endif
 
 // supervisor mode: 19, system mode: 31, disable interrupts: 0xC0
-#define SAVE_CONTEXT_AT(mem_loc) asm volatile \
+#define SAVE_CONTEXT_AT(mem_loc, mode) asm volatile \
    ( \
-	   ".align 4;" \
-		"mov    r0,pc;" \
-		"bx     r0;" \
-		".code 32;" \
-	   "mov  r0,%0;"\
-	   "add  r0,r0,#72;" \
-	   "str  fp,[r0,#-4];" \
-	   "str  sp,[r0,#-8];" \
-	   "str  lr,[r0,#-12];" \
-	   "sub  r0,r0,#16;" \
-	   "stmfd r0!,{r0-r12};" \
-	   "ldr  r1, =returnof;" \
-	   "str	 r1,[r0,#52];" \
-	   "mrs  r1,CPSR;" \
-	   "orr  r1,r1,#0x20;" \
-	   "stmfd r0!,{r1};" \
-	   "add  r0, pc,#1;" \
-		"bx  r0;" \
-		".code 16;" \
+       ".align 4;" \
+        "mov    r0,pc;" \
+        "bx     r0;" \
+        ".code  32;" \
+       "mov     r0,%0;"\
+       "add     r0,r0,#68;" \
+       "str     lr,[r0,#-4];" \
+       "str     sp,[r0,#-8];" \
+       "sub     r0,r0,#12;" \
+       "stmfd   r0!,{r0-r12};" \
+       "ldr     r1, =returnof;" \
+       "str     r1,[r0,#52];" \
+       "mov     r1,%1;" \
+       "orr     r1,r1,#0x20;" \
+       "stmfd   r0!,{r1};" \
+       "add     r0, pc,#1;" \
+        "bx     r0;" \
+        ".code 16;" \
        : \
-       : "r"(mem_loc) \
-       : "r0", "r1", "r3" , "r4" \
-   );
+       : "r"(mem_loc), "r" (mode) \
+       : "r0", "r1", "r3" , "r4");
 
 // guaranetees that instructions will be executed without being interrupted without using a mutex
 #define ATOMAR(statements) \
-        { bool int_enabled; \
-        GET_INTERRUPT_ENABLE_BIT(int_enabled); \
-        _disableInterrupts(); \
-        statements; \
-        if ( int_enabled ) { _enableInterrupts(); } }
+        { DISABLE_IRQS(irqstatus); \
+          statements; \
+          RESTORE_IRQS(irqstatus); }
+
+
+#ifdef __cplusplus
 
 // This namespace will hold all assembler functions needed by non architecture OS classes.
 namespace assembler {
@@ -381,6 +371,8 @@ namespace assembler {
  *
  */
 extern "C" void restoreContext(Thread* t);
+} // namespace assembler
 
-}
+#endif
+
 #endif

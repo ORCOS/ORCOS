@@ -21,15 +21,11 @@
 #include "OMAP3530.h"
 
 Omap3530Clock::Omap3530Clock(T_Omap3530Clock_Init *init) :
-        Clock() {
+        Clock(CLOCK_RATE) {
+    /* The clock is emulated using Timer2 of the OMAP device running with 13 mhz
+     * and using the overflow register to form a 52 bit clock register */
 
-    // enable timer 1 interface clock
-//	OUTW(0x48004C10,INW(0x48004C10) | 1);
-
-// enable time 1 functional clock
-//	OUTW(0x48004C00,INW(0x48004C00) | 1 );
-
-// set GPTimer2 s´clock source to sys clock == (13 mhz)
+    //  set GPTimer2 clock source to sys clock == (13 mhz)
     unint4 cm_clksel_per = INW(CM_CLKSEL_PER);
     OUTW(CM_CLKSEL_PER, cm_clksel_per | 1);
 
@@ -66,13 +62,17 @@ Omap3530Clock::Omap3530Clock(T_Omap3530Clock_Init *init) :
 
     // start timer
     OUTW(GPT2_TCLR, INW(GPT2_TCLR) | 0x1);
-
 }
 
 Omap3530Clock::~Omap3530Clock() {
 }
 
+/*****************************************************************************
+ * Method: Omap3530Clock::reset()
+ *
+ * @description
+ *
+ *******************************************************************************/
 void Omap3530Clock::reset() {
-
 }
 

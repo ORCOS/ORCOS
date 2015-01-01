@@ -2,7 +2,7 @@
  * USBDriverLibrary.hh
  *
  *  Created on: 02.05.2013
- *      Author: dbaldin
+ *    Copyright &  Author: dbaldin
  */
 
 #ifndef USBDRIVERLIBRARY_HH_
@@ -14,11 +14,17 @@
 
 class USBDriverLibrary: public Directory {
 public:
-	USBDriverLibrary();
+    USBDriverLibrary();
 
-	USBDeviceDriverFactory* getDriverFor(USBDevice *dev);
+    /*****************************************************************************
+     * Method: getDriverFor(USBDevice *dev)
+     *
+     * @description
+     *
+     *******************************************************************************/
+    USBDeviceDriverFactory* getDriverFor(USBDevice *dev);
 
-	virtual ~USBDriverLibrary();
+    ~USBDriverLibrary();
 };
 
 #endif /* USBDRIVERLIBRARY_HH_ */

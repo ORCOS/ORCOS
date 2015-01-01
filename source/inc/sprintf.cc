@@ -29,26 +29,40 @@
 
 // externals
 extern "C" void putchar(char c);  //< puts the character to the standard output device
-extern void itoa(int value, char* str, int base);
-extern void uitoa(unsigned int value, char* str, int base);
 
+/*****************************************************************************
+ * Method: _strcatchar(char **str, char c)
+ *
+ * @description
+ *
+ *******************************************************************************/
 static void _strcatchar(char **str, char c) {
-    if (str)
-    {
+    if (str) {
         **str = c;
         ++(*str);
     }
 }
 
+/*****************************************************************************
+ * Method: _putchar(char** str, char c)
+ *
+ * @description
+ *
+ *******************************************************************************/
 void _putchar(char** str, char c) {
     putchar(c);
 }
 
+/*****************************************************************************
+ * Method: prints(charout outfunc, char** out, const char *string, int width, int pad)
+ *
+ * @description
+ *
+ *******************************************************************************/
 static void prints(charout outfunc, char** out, const char *string, int width, int pad) {
     register char padchar = ' ';
 
-    if (width > 0)
-    {
+    if (width > 0) {
         register int len = 0;
         register const char *ptr;
         for (ptr = string; *ptr; ++ptr)
@@ -62,127 +76,143 @@ static void prints(charout outfunc, char** out, const char *string, int width, i
     }
 
     // pad to the left
-    if (!(pad & PAD_RIGHT))
-    {
-        for (; width > 0; --width)
-        {
+    if (!(pad & PAD_RIGHT)) {
+        for (; width > 0; --width) {
             outfunc(out, padchar);
         }
     }
 
-    for (; *string; ++string)
-    {
+    for (; *string; ++string) {
         outfunc(out, *string);
     }
 
-    for (; width > 0; --width)
-    {
+    for (; width > 0; --width) {
         outfunc(out, padchar);
     }
-
 }
 
-void print(charout outfunc, char **out, const char *format, va_list args) {
+/*****************************************************************************
+ * Method: print(charout outfunc, char **out, const char *format, va_list args)
+ *
+ * @description
+ *
+ * @returns
+ *  int:        Number of characters printed
+ *******************************************************************************/
+int print(charout outfunc, char **out, const char *format, va_list args) {
     register int width;
     register int pad;
     char scr[2];
+    char* outIn = 0;
+    if (out)
+        outIn = *out;
 
-    for (; *format != 0; ++format)
-    {
-        if (*format == '%')
-        {
+    for (; *format != 0; ++format) {
+        if (*format == '%') {
             ++format;
             width = pad = 0;
             if (*format == '\0')
                 break;
             if (*format == '%')
                 goto output;
-            if (*format == '-')
-            {
+            if (*format == '-') {
                 ++format;
                 pad = PAD_RIGHT;
             }
-            while (*format == '0')
-            {
+            while (*format == '0') {
                 ++format;
                 pad |= PAD_ZERO;
             }
-            for (; *format >= '0' && *format <= '9'; ++format)
-            {
+            for (; *format >= '0' && *format <= '9'; ++format) {
                 width *= 10;
                 width += *format - '0';
             }
-            if (*format == 's')
-            {
+            if (*format == 's') {
                 register char *s = va_arg(args, char*);
                 prints(outfunc, out, s ? s : "(null)", width, pad);
                 continue;
             }
-            if (*format == 'd')
-            {
+            if (*format == 'd') {
                 char print_buf[ PRINT_BUF_LEN];
                 itoa(va_arg(args, int), print_buf, 10);
                 prints(outfunc, out, print_buf, width, pad);
                 continue;
             }
-            if (*format == 'u')
-            {
+            if (*format == 'u') {
                 char print_buf[ PRINT_BUF_LEN];
                 uitoa(va_arg(args, unsigned int), print_buf, 10);
                 prints(outfunc, out, print_buf, width, pad);
                 continue;
             }
-            if (*format == 'x')
-            {
+            if (*format == 'x') {
                 char print_buf[ PRINT_BUF_LEN];
                 uitoa(va_arg(args, unsigned int), print_buf, 16);
                 prints(outfunc, out, print_buf, width, pad);
                 continue;
             }
-            if (*format == 'p')
-            {
-               char print_buf[ PRINT_BUF_LEN];
-               uitoa(va_arg(args, unsigned int), print_buf, 16);
-               prints(outfunc, out, print_buf, width, pad);
-               continue;
+            if (*format == 'p') {
+                char print_buf[ PRINT_BUF_LEN];
+                uitoa(va_arg(args, unsigned int), print_buf, 16);
+                prints(outfunc, out, print_buf, width, pad);
+                continue;
             }
-            if (*format == 'c')
-            {
+            if (*format == 'c') {
                 /* char are converted to int then pushed on the stack */
-                scr[0] = (char) va_arg(args, int);
+                scr[0] = static_cast<char>(va_arg(args, int));
                 scr[1] = '\0';
                 prints(outfunc, out, scr, width, pad);
                 continue;
             }
-        }
-        else
-        {
+        } else {
             output: outfunc(out, *format);
         }
     }
-    if (out)
+    if (out) {
         **out = '\0';
-    va_end(args);
+        return (*out - outIn);
+    }
+
+    return (0);
+
 }
 
+/*****************************************************************************
+ * Method: printf(const char *format, ...)
+ *
+ * @description
+ *
+ *******************************************************************************/
 int printf(const char *format, ...) {
     va_list args;
     va_start(args, format);
-    print(&_putchar, 0, format, args);
-    return (0);
+    int ret = print(&_putchar, 0, format, args);
+    va_end(args);
+    return (ret);
 }
 
+/*****************************************************************************
+ * Method: fprintf(charout out, char** param, const char *format, ...)
+ *
+ * @description
+ *
+ *******************************************************************************/
 int fprintf(charout out, char** param, const char *format, ...) {
     va_list args;
     va_start(args, format);
-    print(out, param, format, args);
-    return (0);
+    int ret = print(out, param, format, args);
+    va_end(args);
+    return (ret);
 }
 
+/*****************************************************************************
+ * Method: puts(const char* s)
+ *
+ * @description
+ *
+ *******************************************************************************/
 extern "C" int puts(const char* s) {
     int count = 2048;
-    while (*s && count > 0)
-    {
+    while (*s && count > 0) {
         putchar(*s);
         s++;
         count--;
@@ -190,9 +220,16 @@ extern "C" int puts(const char* s) {
     return (2048 - count);
 }
 
+/*****************************************************************************
+ * Method: sprintf(char *out, const char *format, ...)
+ *
+ * @description
+ *
+ *******************************************************************************/
 int sprintf(char *out, const char *format, ...) {
     va_list args;
     va_start(args, format);
-    print(&_strcatchar, &out, format, args);
-    return (0);
+    int ret = print(&_strcatchar, &out, format, args);
+    va_end(args);
+    return (ret);
 }

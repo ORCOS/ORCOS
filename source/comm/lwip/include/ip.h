@@ -37,7 +37,6 @@ union ip_address {
 struct ip4_addr ip4addr;
 struct ip6_addr ip6addr;
 }__attribute__((aligned(4)));
-;
 
 struct ip_addr {
 union ip_address addr;

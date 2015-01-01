@@ -5,7 +5,7 @@ ifndef TARGET
 TARGET				= armv7
 endif
 
-ORCOS_LIB_DIR 		= D:/git/orcos_github/library/
+ORCOS_LIB_DIR 		= ../../../library
 #KEEP_TEMP_FILES 	= 1
 
 INITIAL_PRIORITY 	= 1000

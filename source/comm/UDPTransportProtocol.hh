@@ -30,30 +30,78 @@
  *
  */
 class UDPTransportProtocol: public TransportProtocol {
-
 public:
     UDPTransportProtocol();
 
-    virtual ~UDPTransportProtocol();
+    ~UDPTransportProtocol();
 
-    //! Send method which adds the protocol header
+    /*****************************************************************************
+     * Method: send(packet_layer* payload, AddressProtocol* NextLayer, Socket* fromsock)
+     *
+     * @description
+     *
+     *******************************************************************************/
     inline ErrorT send(packet_layer* payload, AddressProtocol* NextLayer, Socket* fromsock) { return (cError); }
 
     // ignore sendto since we are conncetion oriented
+    /*****************************************************************************
+     * Method: sendto(packet_layer* payload,
+     *                                      const sockaddr* fromaddr,
+     *                                      const sockaddr *dest_addr,
+     *                                      AddressProtocol* NextLayer,
+     *                                      Socket* fromsock)
+     *
+     * @description
+     *
+     *******************************************************************************/
     ErrorT sendto(packet_layer* payload, const sockaddr* fromaddr, const sockaddr *dest_addr, AddressProtocol* NextLayer, Socket* fromsock);
 
+    /*****************************************************************************
+     * Method: received(Socket* socket, pbuf* p)
+     *
+     * @description
+     *
+     *******************************************************************************/
     void received(Socket* socket, pbuf* p);
 
-    //! Register a socket on the following so it can receive messages
+    /*****************************************************************************
+     * Method: register_socket(unint2 port, Socket* socket)
+     *
+     * @description
+     *  Register a socket on the following so it can receive messages
+     *******************************************************************************/
     ErrorT register_socket(unint2 port, Socket* socket);
 
+    /*****************************************************************************
+     * Method: connect(AddressProtocol* nextLayer, sockaddr *toaddr, Socket* fromsocket)
+     *
+     * @description
+     *
+     *******************************************************************************/
     inline ErrorT connect(AddressProtocol* nextLayer, sockaddr *toaddr, Socket* fromsocket) {return (cError);}
 
+    /*****************************************************************************
+     * Method: disconnect(Socket* fromsocket)
+     *
+     * @description
+     *
+     *******************************************************************************/
     inline ErrorT disconnect(Socket* fromsocket) { return (cError); }
 
+    /*****************************************************************************
+     * Method: listen(Socket* socket)
+     *
+     * @description
+     *
+     *******************************************************************************/
     inline ErrorT listen(Socket* socket) { return (cError); }
 
-    //! Unregister a socket (after that it can not receive a message anymore)
+    /*****************************************************************************
+     * Method: unregister_socket(Socket* socket)
+     *
+     * @description
+     *  Unregister a socket (after that it can not receive a message anymore)
+     *******************************************************************************/
     ErrorT unregister_socket(Socket* socket);
 };
 

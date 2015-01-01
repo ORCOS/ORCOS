@@ -2,7 +2,7 @@
  * ARMv7Cache.cc
  *
  *  Created on: 09.12.2013
- *      Author: dbaldin
+ *     Copyright & Author: dbaldin
  */
 
 #include "ARMv7Cache.hh"
@@ -10,8 +10,10 @@
 
 extern Kernel* theOS;
 
-ARMv7Cache::ARMv7Cache() {
+#define CP15ISB    asm volatile("mcr     p15, 0, %0, c7, c5, 4" : : "r" (0))
+#define CP15DSB    asm volatile("mcr     p15, 0, %0, c7, c10, 4" : : "r" (0))
 
+ARMv7Cache::ARMv7Cache() {
     line_len = 64;
 
     unint4 type, clid = 0;
@@ -25,16 +27,24 @@ ARMv7Cache::ARMv7Cache() {
             :
     );
 
-    LOG(ARCH, INFO, "ARMv7Cache: Type: 0x%x, CLID: 0x%x",type,clid);
+    LOG(ARCH, INFO, "ARMv7Cache: Type: 0x%x, CLID: 0x%x", type, clid);
 }
 
 ARMv7Cache::~ARMv7Cache() {
-
 }
 
-#define CP15ISB	asm volatile ("mcr     p15, 0, %0, c7, c5, 4" : : "r" (0))
-#define CP15DSB	asm volatile ("mcr     p15, 0, %0, c7, c10, 4" : : "r" (0))
 
+/*****************************************************************************
+ * Method: ARMv7Cache::invalidate_data(void* start, void* end)
+ *
+ * @description
+ *  Invalidates all data cache lines containing physical addresses between
+ *  start and end.
+ * @params
+ *
+ * @returns
+ *  int         Error Code
+ *******************************************************************************/
 void ARMv7Cache::invalidate_data(void* start, void* end) {
     /* Invalidate the whole data cache by MVA*/
 
@@ -45,9 +55,8 @@ void ARMv7Cache::invalidate_data(void* start, void* end) {
      * If start address is not aligned to cache-line do not
      * invalidate the first cache-line
      */
-    if (start_address & (line_len - 1))
-    {
-        LOG(ARCH, WARN, "ARMv7Cache::invalidate_data() %s - start address is not aligned - 0x%08x",__func__, start);
+    if (start_address & (line_len - 1)) {
+        LOG(ARCH, WARN, "ARMv7Cache::invalidate_data() %s - start address is not aligned - 0x%08x", __func__, start);
         /* move to next cache line */
         start_address = (start_address + line_len - 1) & ~(line_len - 1);
     }
@@ -56,8 +65,7 @@ void ARMv7Cache::invalidate_data(void* start, void* end) {
      * If stop address is not aligned to cache-line do not
      * invalidate the last cache-line
      */
-    if (end_address & (line_len - 1))
-    {
+    if (end_address & (line_len - 1)) {
         LOG(ARCH, WARN, "ARMv7Cache::invalidate_data() %s - stop address is not aligned - 0x%08x", __func__, end);
         /* align to the beginning of this cache line */
         end_address &= ~(line_len - 1);
@@ -65,17 +73,25 @@ void ARMv7Cache::invalidate_data(void* start, void* end) {
 
     LOG(ARCH, INFO, "ARMv7Cache::invalidate_data() 0x%08x - 0x%08x", start_address, end_address);
 
-    for (mva = start_address; mva < end_address; mva = mva + line_len)
-    {
+    for (mva = start_address; mva < end_address; mva = mva + line_len) {
         /* DCIMVAC - Invalidate data cache by MVA to PoC */
-        asm volatile ("mcr p15, 0, %0, c7, c6, 1" : : "r" (mva));
+        asm volatile("mcr p15, 0, %0, c7, c6, 1" : : "r" (mva));
     }
     LOG(ARCH, INFO, "ARMv7Cache::invalidate_data() done");
-
 }
 
+/*****************************************************************************
+ * Method: ARMv7Cache::invalidate_instruction(void* start, void* end)
+ *
+ * @description
+ *  Invalidates all instruction cache lines containing physical addresses between
+ *  start and end.
+ * @params
+ *
+ * @returns
+ *  int         Error Code
+ *******************************************************************************/
 void ARMv7Cache::invalidate_instruction(void* start, void* end) {
-
     unint4 mva;
     unint4 start_address = (unint4) start;
     unint4 end_address = (unint4) end;
@@ -83,9 +99,8 @@ void ARMv7Cache::invalidate_instruction(void* start, void* end) {
      * If start address is not aligned to cache-line do not
      * invalidate the first cache-line
      */
-    if (start_address & (line_len - 1))
-    {
-        LOG(ARCH, WARN, "ARMv7Cache::invalidate_instruction() %s - start address is not aligned - 0x%08x\n",__func__, start);
+    if (start_address & (line_len - 1)) {
+        LOG(ARCH, WARN, "ARMv7Cache::invalidate_instruction() %s - start address is not aligned - 0x%08x\n", __func__, start);
         /* move to next cache line */
         start_address = (start_address + line_len - 1) & ~(line_len - 1);
     }
@@ -94,17 +109,15 @@ void ARMv7Cache::invalidate_instruction(void* start, void* end) {
      * If stop address is not aligned to cache-line do not
      * invalidate the last cache-line
      */
-    if (end_address & (line_len - 1))
-    {
+    if (end_address & (line_len - 1)) {
         LOG(ARCH, WARN, "ARMv7Cache::invalidate_instruction() %s - stop address is not aligned - 0x%08x\n", __func__, end);
         /* align to the beginning of this cache line */
         end_address &= ~(line_len - 1);
     }
 
-    for (mva = start_address; mva < end_address; mva = mva + line_len)
-    {
+    for (mva = start_address; mva < end_address; mva = mva + line_len) {
         /* DCIMVAC - Invalidate data cache by MVA to PoC */
-        asm volatile ("mcr p15, 0, %0, c7, c5, 1" : : "r" (mva));
+        asm volatile("mcr p15, 0, %0, c7, c5, 1" : : "r" (mva));
     }
 
     /* Full system DSB - make sure that the invalidation is complete */
@@ -113,15 +126,25 @@ void ARMv7Cache::invalidate_instruction(void* start, void* end) {
     //CP15ISB;
 }
 
+/*****************************************************************************
+ * Method: ARMv7Cache::invalidate(unint4 asid)
+ *
+ * @description
+ *  Ensures that no valid cache line exists containing addresses from
+ *  the given address space. For ARMv7 this unfortunatly means
+ *  we must invalidate the whole cache ..
+ * @params
+ *
+ * @returns
+ *  int         Error Code
+ *******************************************************************************/
 void ARMv7Cache::invalidate(unint4 asid) {
-    // unfortunatly we must invalidate the whole cache ..
-
+    /* unfortunatly we must invalidate the whole cache .. */
     asm volatile(
             "MOV r0, #0;"
-            "MCR p15, 0, r0, c7 , c5, 0;" // invalidate whole instruction cache
+            "MCR p15, 0, r0, c7 , c5, 0;"  /* invalidate whole instruction cache */
             :
             :
             : "r0"
     );
-
 }

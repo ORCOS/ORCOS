@@ -2,7 +2,7 @@
  * Omap3530SPI.hh
  *
  *  Created on: 24.02.2014
- *      Author: dbaldin
+ *     Copyright &  Author: dbaldin
  */
 
 #ifndef OMAP3530SPI_HH_
@@ -33,17 +33,62 @@ private:
     unint4 base;
 
 public:
-    Omap3530SPI(T_Omap3530SPI_Init *init);
-    virtual ~Omap3530SPI();
+    /*****************************************************************************
+     * Method: Omap3530SPI(T_Omap3530SPI_Init *init)
+     *
+     * @description
+     *  Constructor
+     *******************************************************************************/
+    explicit Omap3530SPI(T_Omap3530SPI_Init *init);
 
-    ErrorT readByte(char* p_byte);
+    ~Omap3530SPI();
 
-    ErrorT writeByte(char c_byte);
+    /*****************************************************************************
+     * Method: readByte(char* p_byte)
+     *
+     * @description
+     *  Reading single byte not supported due to SPI protocol
+     *******************************************************************************/
+    ErrorT readByte(char* p_byte) { return (cError); }
 
+    /*****************************************************************************
+     * Method: writeByte(char c_byte)
+     *
+     * @description
+     *  Writing single byte not supported due to SPI protocol
+     *******************************************************************************/
+    ErrorT writeByte(char c_byte) { return (cError); }
+
+    /*****************************************************************************
+     * Method: readBytes(char *bytes, unint4 &length)
+     *
+     * @description
+     *
+     *******************************************************************************/
     ErrorT readBytes(char *bytes, unint4 &length);
 
+    /*****************************************************************************
+     * Method: writeBytes(const char *bytes, unint4 length)
+     *
+     * @description
+     *
+     *******************************************************************************/
     ErrorT writeBytes(const char *bytes, unint4 length);
 
+    /*****************************************************************************
+     * Method: ioctl(int request, void* args)
+     *
+     * @description
+     *  Provides SPI configuration to user space
+     *  using ioctl syscalls.
+     *
+     * @params
+     *  request     Request type
+     *  args        argument of request
+     *
+     * @returns
+     *  int         Error Code
+     *******************************************************************************/
     ErrorT ioctl(int request, void* args);
 };
 

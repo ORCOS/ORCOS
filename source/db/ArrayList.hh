@@ -32,7 +32,7 @@
  * (H)eadPointer
  *
  *
- * Head						Tail
+ * Head                        Tail
  *
  * Case 1: numentries = 5
  * [1][2][3][4][5][0][0][0][0][0]
@@ -44,7 +44,7 @@
  *
  * Case 3: numentries = 6
  * [3][4][5][6][0][0][0][0][1][2]
- *  		 	    		H
+ *                           H
  *
  *
  * By using this structure databases with known maximum sizes
@@ -55,7 +55,6 @@
 class ArrayList {
 friend class Task; /* for export of numEntries */
 public:
-
     //! The array containing the DatabaseIems. public for speedup
     ListItem** entries;
 
@@ -70,32 +69,54 @@ private:
     unint1 headPointer;
 
 public:
-    ArrayList(unint1 maxEntries);
+    /*****************************************************************************
+     * Method: ArrayList(unint1 maxEntries)
+     *
+     * @description
+     *  Creates a new array with maxEntries maximum elements.
+     *******************************************************************************/
+    explicit ArrayList(unint1 maxEntries);
+
+
     ~ArrayList();
 
-    /*!
-     * \brief returns the number of elements in this database
-     */
+
+    /*****************************************************************************
+     * Method: size()
+     *
+     * @description
+     * returns the number of elements in this array
+     *******************************************************************************/
     inline unint1 size() {
         return (numEntries);
     }
 
-    /*!
-     * \brief Adds another element to the database at the end
-     */
+    /*****************************************************************************
+     * Method: addTail(ListItem* item)
+     *
+     * @description
+     *  Adds another element to the database at the end
+     *******************************************************************************/
     ErrorT addTail(ListItem* item);
 
-    /*!
-     * \brief Adds another element at the beginning of the database
+
+    /*****************************************************************************
+     * Method: addHead(ListItem* item)
+     *
+     * @description
+     * Adds another element at the beginning of the database
      *
      * This method performs bad since it may have to move all items
      * backwards in the database
-     */
+     *******************************************************************************/
     ErrorT addHead(ListItem* item);
 
-    /*!
-     * \brief Returns the head-element of this db or 0 if empty.
-     */
+    /*****************************************************************************
+     * Method: getHead()
+     *
+     * @description
+     * Returns the head-element of this db or 0 if empty.
+     *******************************************************************************/
     inline ListItem* getHead() {
         if (numEntries == 0)
             return (0);
@@ -103,53 +124,78 @@ public:
             return (entries[headPointer]);
     }
 
-    /*!
-     * \brief Returns the tail-element of this db or 0 if empty.
-     */
+
+    /*****************************************************************************
+     * Method: getTail()
+     *
+     * @description
+     * Returns the tail-element of this db or 0 if empty.
+     *******************************************************************************/
     ListItem* getTail();
 
-    /*!
-     * \brief Removes the head-element of the db and returns it.
-     */
+    /*****************************************************************************
+     * Method: removeHead()
+     *
+     * @description
+     * Removes the head-element of the db and returns it.
+     *******************************************************************************/
     ListItem* removeHead();
 
-    /*!
-     * \brief Removes the tail-element of the db and returns it.
-     */
+    /*****************************************************************************
+     * Method: removeTail()
+     *
+     * @description
+     * Removes the tail-element of the db and returns it.
+     *******************************************************************************/
     ListItem* removeTail();
 
-    /*!
-     * \brief Inserts a new element at the specified position.
+    /*****************************************************************************
+     * Method: insertItemAt(int at, ListItem* item)
      *
+     * @description
      * Inserts a new element at the specified position.
      * The position must exist (0<=position<=numEntries).
      * With insertion all elements (including position) are moved to the right.
-     */
+     *******************************************************************************/
     ErrorT insertItemAt(int at, ListItem* item);
 
-    /*!
-     * \brief Returns the element at the specified position.
-     */
-    ListItem* getItemAt(int i);
+    /*****************************************************************************
+     * Method: getItemAt(int pos)
+     *
+     * @description
+     *   Returns the element at the specified position.
+     *******************************************************************************/
+    ListItem* getItemAt(int pos);
 
-    /*!
-     * \brief Removes the element at the specified position.
+
+    /*****************************************************************************
+     * Method: removeItemAt(int pos)
+     *
+     * @description
+     *   Removes the element at the specified position.
      *
      * Removes the element at the specified position.
      * The position must exist (0<=position<=numEntries).
      * The item at position is removed and all elements
      * right of posiotion are moved left.
-     */
-    ListItem* removeItemAt(int);
+     *******************************************************************************/
+    ListItem* removeItemAt(int pos);
 
-    /*!
-     * \brief Removes the specified element.
+    /*****************************************************************************
+     * Method: removeItem(ListItem* item)
      *
-     * Removes the specified element. If the element is included
-     * in the db it is removed with the removeItemAt() function.
-     */
+     * @description
+     *   Removes the specified element. If the element is included
+     *   in the db it is removed with the removeItemAt() function.
+     *******************************************************************************/
     ListItem* removeItem(ListItem* item);
 
+    /*****************************************************************************
+    * Method: print()
+    *
+    * @description
+    *  Prints the array to stdout
+    *******************************************************************************/
     void print();
 };
 

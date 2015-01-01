@@ -21,24 +21,17 @@
 #include "assembler.h"
 
 extern Kernel* theOS;
-extern Kernel_ThreadCfdCl* pCurrentRunningThread;
 
 PriorityThread::PriorityThread(void* p_startRoutinePointer, void* p_exitRoutinePointer, Task* p_owner,
 Kernel_MemoryManagerCfdCl* memManager, unint4 stack_size, void* prioThreadAttributes, bool newThread) :
-        Thread(p_startRoutinePointer, p_exitRoutinePointer, p_owner, memManager, stack_size, prioThreadAttributes, newThread)
-
-{
-    if (prioThreadAttributes != 0)
-    {
+        Thread(p_startRoutinePointer, p_exitRoutinePointer, p_owner, memManager, stack_size, prioThreadAttributes, newThread) {
+    if (prioThreadAttributes != 0) {
         thread_attr_t* attr = static_cast<thread_attr_t*>(prioThreadAttributes);
         this->initialPriority   = attr->priority;
         this->effectivePriority = attr->priority;
-    }
-    else
-    {
+    } else {
         this->initialPriority   = cDefaultPriority;
         this->effectivePriority = cDefaultPriority;
     }
-
 }
 

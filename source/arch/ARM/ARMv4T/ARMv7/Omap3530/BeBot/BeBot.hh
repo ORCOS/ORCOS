@@ -28,8 +28,8 @@
 #include Board_LED_hh
 #include Board_UART2_hh
 #include Board_InterruptController_hh
-#include Board_Timer_hh
 #include Board_Clock_hh
+#include <OmapGPTimer.hh>
 #include Board_HCI_hh
 
 #ifndef RAM_SIZE

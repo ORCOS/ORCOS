@@ -38,81 +38,108 @@
  *  Use setTimer() to set the Timer to a new timeout.
  */
 
-class TimerDevice {
-private:
+class TimerDevice : public GenericDeviceDriver {
+protected:
+    bool isEnabled;         // status of the underlying hardware timer
+    unint4 time;            // the time [microseconds] after the callback should be called
+    unint4 elapsedCycles;   // the cycles elapsed after the last call of the callback
+    unint4 tickRate;        // the rate [cycles/tick] at which the Timer is ticked
 
     // the dispatcher which will be called by this timer
     Kernel_DispatcherCfdCl* dispatcher;
 
-protected:
-    bool isEnabled;  // status of the underlying hardware timer
-    unint4 time;  // the time [microseconds] after the callback should be called
-    unint4 elapsedCycles;  // the cycles elapsed after the last call of the callback
-    unint4 tickRate;  // the rate [cycles/tick] at which the Timer is ticked
-
-    ErrorT doHardwareStuffOnTick() {
-        return (cNotImplemented );
-    }
-
+    /* pointer to the low latency thread to be activated on timer interrupt */
+    Thread* llThread;
 public:
-
-    TimerDevice();
+    TimerDevice(const char* name);
     ~TimerDevice();
 
-    /*!
-     *   \brief Set the timer.
+    /*****************************************************************************
+     * Method: setTimer(TimeT t)
+     *
+     * @description
+     *  Set the timer.
      *
      *  The timer device will produce a cylic timer interrupt each \c t cycles
      *
-     *  \param t the amount of cycles
-     */
-    void setTimer(TimeT t) {
+     *  @params
+     *    t the number of cycles
+      *******************************************************************************/
+    virtual ErrorT setTimer(TimeT t) {
         time = t;
+        return (cOk);
     }
-    ;
 
-    /*!
-     *  \brief enable the timer hardware
+    /*****************************************************************************
+     * Method: setPeriod(unint4 microseconds)
+     *
+     * @description
+     *  Configures the Timer to periodic mode issuing timer ticks (IRQS) at the given
+     *  period. To be implemented by the architecture specific class.
+     *******************************************************************************/
+    virtual void setPeriod(unint4 microseconds) = 0;
+
+
+    /*****************************************************************************
+     * Method: enable()
+     *
+     * @description
+     *  enable the timer hardware
      *
      * calling this method enables the underlying timer hardware to generate ticks.
      * The programmer of the architecture port should ensure that he sets the granularity
      * of the hardware ticks fine enough to achive accurate time measure
-     */
-    ErrorT enable() {
-        return (cNotImplemented );
-    }
+     *******************************************************************************/
+    virtual ErrorT enable() = 0;
 
-    /*!
-     * \brief disable the timer hardware
+    /*****************************************************************************
+     * Method: disable()
+     *
+     * @description
+     * disable the timer hardware
      *
      * this method disables the time hardware and needs to be overwritten in the architecture
      * implementation.
      * when called no timer irqs are supposed to appear and thus the TimerDevice-Class
      * stops working.
-     */
-    ErrorT disable() {
-        return (cNotImplemented );
-    }
+     *******************************************************************************/
+    virtual ErrorT disable() = 0;
 
-    /*!
-     * \brief performs a tick to the timer object
+    /*****************************************************************************
+     * Method: handleIRQ()
      *
-     * method for usage in interrupt handler of the hardware timer. dont call this manually!
-     */
-    inline ErrorT tick() {
+     * @description
+     *  Handles Timer IRQS from this device. Provides the functionality for
+     *  ultra low latency thread activations.
+     *******************************************************************************/
+    ErrorT handleIRQ();
 
+    /*****************************************************************************
+     * Method: ioctl(int request, void* args)
+     *
+     * @description
+     *  Userspace configuration access to this timer devices.
+     *******************************************************************************/
+    ErrorT ioctl(int request, void* args);
+
+    /*****************************************************************************
+     * Method: tick()
+     *
+     * @description
+     *  performs a tick to the timer object
+     *
+     *  method for usage in interrupt handler of the hardware timer. dont call this manually!
+     *******************************************************************************/
+    inline void tick() {
         // tickRate= cycles / tick
         elapsedCycles += tickRate;
 
-        if (elapsedCycles >= time)
-        {
+        if (elapsedCycles >= time) {
             elapsedCycles = 0;
             dispatcher->dispatch();
         }
-
-        return (cOk );
+        return;
     }
-    ;
 };
 
 #endif /*TIMERDEVICE_HH_*/

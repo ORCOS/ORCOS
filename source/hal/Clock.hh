@@ -24,36 +24,13 @@
 #include "GenericDeviceDriver.hh"
 #include "CallableObject.hh"
 
-/*!
- * HAL Class for time dependent functions
- */
 
 /*!
- * \brief a time structure representing a date from years down to us.
- *
- * This structure represents a date consisting of
- * years, days, hours, minutes, seconds, ms and us.
- *
- * The size of the datatype is chosen accordingly the
- * datatypes in the normal calendar. for example you want to
- * store 90 minutes, don't write 90 to the minutes field but
- * write 1 to the hours field and 30 to the minutes field.
+ *  Clock provides an abstract interface for a
+ *  target-dependent hardware clock implementations.
+ *  Part of the HAL.
  */
-struct TimeStruct {
-    unint2 years;
-    unint2 days;
-    unint1 hours;
-    unint1 minutes;
-    unint1 seconds;
-    unint2 milliseconds;
-    unint2 microseconds;
-};
-
-/*!
- * \brief Clock provides an abstract interface for a target-dependend hardware clock implementations, part of the HAL
- */
-class Clock : public CallableObject{
-
+class Clock: public CallableObject {
 private:
     /* The Date Time at synchronization point*/
     unint4 synchDateTime;
@@ -61,38 +38,52 @@ private:
     /* The local time at synchronization point*/
     TimeT synchLocalCycles;
 
-public:
+    unint4 frequency;
 
-    Clock();
+public:
+    Clock(unint4 frequency);
 
     virtual ~Clock();
 
-    /*!
-     * \brief returns the time since startup
-     * abstract function to get the time since system startup in [us] since
-     * system startup.
-     */
+    /*****************************************************************************
+     * Method: getClockCycles()
+     *
+     * @description
+     *  returns the clock cycles since startup.
+     *  Abstract function to get the time since system startup in [us] since
+     *  system startup.
+     *******************************************************************************/
     virtual TimeT getClockCycles() = 0;
 
-
-    /*!
-     * \brief Returns the current Date Time as an 4 byte unsigned integer
-     *        counting as seconds from January 1. 1970.
-     */
+    /*****************************************************************************
+     * Method: getDateTime()
+     *
+     * @description
+     * Returns the current Date Time as an 4 byte unsigned integer
+     *        counting as seconds from January 1. 1970 if NTP SYNC was
+     *        successfull. Seconds since startup otherwise.
+     *
+     * @returns
+     *  int         The time in seconds since January 1. 1970
+     *******************************************************************************/
     unint4 getDateTime();
 
-
-    /*
-     * Updates the datetime
-     */
+    /*****************************************************************************
+     * Method: callbackFunc(void* param)
+     *
+     * @description
+     *  Callback scheduled after system startup to
+     *  perform NTP time synchronization if enabled.
+     *******************************************************************************/
     void callbackFunc(void* param);
 
-    /*!     *
-     * \brief resets the clock.
-     */
-    virtual void reset() {
-    }
-
+    /*****************************************************************************
+     * Method: reset()
+     *
+     * @description
+     *   Resets the clock.
+     *******************************************************************************/
+    virtual void reset() {}
 };
 
 #endif /*CLOCK_HH_*/

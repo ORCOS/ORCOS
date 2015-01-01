@@ -20,9 +20,9 @@
 #define SEQUENTIALFITMEMMANAGER_HH_
 
 #include "MemManager.hh"
-#include <inc/types.hh>
-#include <inc/error.hh>
-#include <Alignment.hh>
+#include "inc/types.hh"
+#include "inc/error.hh"
+#include "Alignment.hh"
 
 typedef struct Chunk_Header {
     Chunk_Header *prev_chunk;
@@ -63,8 +63,6 @@ typedef struct ChunkTrace {
 
 #define SAFETY_CHAR 0x2ffe9ab1
 
-// size of the Chunk Header
-//#define SZ_HEADER 16
 // Minimum payload needed for a chunk when splitting
 #define MINIMUM_PAYLOAD 0x20
 
@@ -119,10 +117,10 @@ typedef struct ChunkTrace {
  */
 class SequentialFitMemManager: public MemManager {
 private:
-
-    /*!
-     * \brief the memory chunk at the given address is splitted into a chunk of the given size and a chunk containing the remaining unused memory (if possible)
+    /*****************************************************************************
+     * Method: split(Chunk_Header* chunk, size_t &size, MemResource* segment)
      *
+     * @description
      * The splitting of the chunk is only possible if the following condition holds:
      * size of the payload of this chunk is bigger or equal to requested size + size of header + minimum payload size
      *
@@ -130,53 +128,60 @@ private:
      *            B will contain the remaining unused memory of the payload
      *
      * If false -> the whole chunk is used and its state is set to occupied.
-     */
+     *
+     *******************************************************************************/
     void split(Chunk_Header*, size_t&, MemResource* segment);
 
-    /*!
-     * \brief the memory chunk at the given address and his free neighbor chunks are merged into one chunk
+    /*****************************************************************************
+     * Method: merge(Chunk_Header* chunk, MemResource* segment)
      *
-     * There are four possible scenarios: <br>
-     *    Prev Chunk     Freed Chunk     Next Chunk <br>
-     * 1)      O              O               O  <br>
-     * 2)      F              O               O  <br>
-     * 3)      O              O               F <br>
-     * 4)      F              O               F <br>
+     * @description
+     *  Tries to merge a given chunk with its free neighbors to create
+     *  bigger fee memory areas for future assignments.
      *
-     * in 1) no merging of chunks is performed, only the state of the freed chunk is set to FREE. <br>
-     * in 2) the Prev Chunk and the Freed Chunk are merged - the PREV field of the Next Chunk is set to <br>
-     *       the Prev Chunk, the NEXT field of the Prev Chunk is set to teh Next Chunk, the SIZE field of <br>
-     *       the Prev Chunk is set to its old SIZE + size of header + SIZE(Freed Chunk) <br>
-     * in 3) the Next Chunk and the Freed Chunk are merged - the NEXT field of the Freed Chunk is set to the NEXT field <br>
-     *       of the Next Chunk, the PREV field of the chunk following the Next Chunk is set to Freed Chunk, the SIZE field of the <br>
-     *       Freed Chunk is set to its old  SIZE + size of header + SIZE(Next Chunk) <br>
-     * in 4) the Freed Chunk is merged with both neighbors - the NEXT field of the Prev Chunk is set to the NEXT field of the Next Chunk, <br>
-     *       the PREV field of the chunk following the Next Chunk is set to the Prev Chunk, the SIZE field of the Prev Chunk is set to its <br>
-     *       old SIZE + 2*size of header + SIZE(Freed Chunk) + SIZE(Next Chunk)  <br>
-     */
+     * @params
+     *  chunk       The free chunk to be merged
+     *  segement    Segement the chunk belongs to
+     *
+     *******************************************************************************/
     void merge(Chunk_Header* chunk, MemResource* segment);
 
-    /*!
-     * \brief it is checked for the given address if it points to a memory chunk in the linked list
+
+    /*****************************************************************************
+     * Method: isValidChunkAddress(Chunk_Header* chunk, MemResource* &segment)
      *
-     * The linked list of memory chunks is traversed. If the given address is the starting address of the payload section of a chunk, the method
-     * returns true, otherwise false.
-     */
+     * @description
+     *  Checks a given memory chunk on validity inside a given segment.
+     *
+     * @params
+     *  chunk       The chunk to be checked.
+     *  segment     The segment the chunked is supposed to be found inside.
+     *
+     * @returns
+     *  bool        True if the chunk is a valid element of the segment
+     *******************************************************************************/
     bool isValidChunkAddress(Chunk_Header* chunk,  MemResource* &segment);
 
-    /*!
-     * \brief a free memory chunk of sufficient size is searched according to the configured placement policy
-     *
-     * This chunk is searched by traversing the linked list of memory chunks.
-     * The chunk is chosen according to the configured placement policy (which can be configured by the user using SCL).
-     *
-     */
-    Chunk_Header* getFittingChunk(size_t, bool, unint4, Chunk_Header*, MemResource* segment);
 
-protected:
+    /*****************************************************************************
+     * Method: getFittingChunk(size_t size,
+     *                         bool aligned,
+     *                         unint4 align_val,
+     *                         Chunk_Header* current_chunk,
+     *                         MemResource* segment)
+     *
+     * @description
+     *  Tries to find a free memory chunk inside the given segment starting searching at
+     *  current_chunk.
+     *
+     * @params
+     *
+     * @returns
+     *  Chunk_Header*         Free fitting chunk or null if none
+     *******************************************************************************/
+    Chunk_Header* getFittingChunk(size_t size, bool aligned, unint4 align_val, Chunk_Header* current_chunk, MemResource* segment);
 
 public:
-
     /*!
      * \brief creates a new SequentialFitMemManager
      *
@@ -188,51 +193,86 @@ public:
     SequentialFitMemManager(void* startAddr, void* endAddr, void* istartAddr, void* iendAddr);
 #endif
 
-    /*!
-     * \brief allocates memory of given size from the managed memory segment
+    /*****************************************************************************
+     * Method: alloc(size_t size, bool aligned, unint4 align_val, MemResource* segment)
      *
-     * Implements the corresponding method in MemManager.hh
+     * @description
+     *  Tries to allocate a new memory chunk of given size inside the given segment.
      *
-     * The linked list of memory chunks is traversed in a search for a free chunk with sufficient payload size.
-     * The chunk to be allocated is chosen according to a configured placement policy(FirstFit, NextFit, BestFit, WorstFit).
-     * After that a split operation is performed by calling the split method on the allocated chunk: the chunk is divided into two chunks (if possible)
-     */
+     * @params
+     *
+     * @returns
+     *  void*         The assigned memory address. 0 on error
+     *******************************************************************************/
     void* alloc(size_t size, bool aligned = true, unint4 align_val = ALIGN_VAL, MemResource* segment = 0);
 
 #if MEM_CACHE_INHIBIT
-    /*!
-     *Allows allocation inside the Cache Inhibit data section
-     */
+    /*****************************************************************************
+     * Method: alloci(size_t size, bool aligned, unint4 align_val)
+     *
+     * @description
+     *  Tries to allocate a new memory chunk of given size inside the cache inhibit
+     *  memory segment.
+     *
+     * @params
+     *
+     * @returns
+     *  void*         The assigned memory address. 0 on error
+     *******************************************************************************/
     void* alloci(size_t size, bool aligned = true, unint4 align_val = ALIGN_VAL);
 #endif
 
-    /*!
-     * \brief releases allocated memory
+    /*****************************************************************************
+     * Method: free(void* addr)
      *
-     * Implements the corresponding method in MemManager.hh
+     * @description
+     *  If the given address is a valid address of a memory chunk,
+     *  it is attempted by calling the merge method to merge the memory chunk which is freed with his neighboring chunks (if these are free)
      *
-     * If the given address is a valid address of a memory chunk,
-     * it is attempted by calling the merge method to merge the memory chunk which is freed with his neighboring chunks (if these are free)
-     *
-     */
-    ErrorT free(void*);
+     *******************************************************************************/
+    ErrorT free(void* addr);
 
-    /*!
-     * \brief method to get the used heap size
+
+    /*****************************************************************************
+     * Method: getUsedMemSize(size_t &u_overhead, size_t &u_free_mem)
      *
-     * Implements corresponding method in MemManager.hh
-     *
-     * The linked list is traversed and returned is the sum of all Headers of free chunks and the Headers and Payload of occupied chunks
-     */
+     * @description
+     *  method to get the used heap size.
+     *  The linked list is traversed and returned is the sum of all
+     *  Headers of free chunks and the Headers and Payload of occupied chunks
+     *******************************************************************************/
     size_t getUsedMemSize(size_t &u_overhead, size_t &u_free_mem);
 
+    /*****************************************************************************
+     * Method: printChunk(Chunk_Header* chunk)
+     *
+     * @description
+     *
+     *******************************************************************************/
     void printChunk(Chunk_Header* chunk);
 
-    /*
-     * Service method to be called regular.
-     */
+    /*****************************************************************************
+     * Method: service()
+     *
+     * @description
+     *  Service method to be called regularly
+     * @params
+     *
+     * @returns
+     *  int         Error Code
+     *******************************************************************************/
     void service();
 
+    /*****************************************************************************
+     * Method: debug()
+     *
+     * @description
+     *
+     * @params
+     *
+     * @returns
+     *  int         Error Code
+     *******************************************************************************/
     void debug(MemResource* segment);
 };
 

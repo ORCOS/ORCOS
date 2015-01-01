@@ -18,77 +18,102 @@
  Author: dbaldin
  */
 
-#include "handle_syscalls.hh"
+#include "syscalls.hh"
 #include Kernel_Thread_hh
 #include "assemblerFunctions.hh"
-
 
 /*******************************************************************
  *				SIGNAL_WAIT Syscall
  *******************************************************************/
 
+/*****************************************************************************
+ * Method: sc_signal_wait(intptr_t int_sp)
+ *
+ * @description
+ *  signal_wait system call handler
+ *
+ * @params
+ *  int_sp:     The stack pointer at time of system call instruction execution
+ *
+ * @returns
+ *  int:    Error Code
+ *---------------------------------------------------------------------------*/
 #ifdef HAS_SyscallManager_signal_waitCfd
-int signal_wait( int4 int_sp ) {
+int sc_signal_wait(intptr_t int_sp) {
     void* sig;
     bool memAddrAsSig;
-    SYSCALLGETPARAMS2( int_sp, sig, memAddrAsSig );
+    SYSCALLGETPARAMS2(int_sp, sig, memAddrAsSig);
 
     /* signal null (0) is not allowed as it stands for "no" signal */
-    if (sig == 0) return (cInvalidArgument);
+    if (sig == 0)
+        return (cInvalidArgument );
 
 #ifdef HAS_Board_HatLayerCfd
     // if we want to use a Memory Address as the signal, we have to get the physical Address
     if (memAddrAsSig) {
-        sig = (void*) theOS->getHatLayer()->getPhysicalAddress( sig );
+        sig = static_cast<void*> (theOS->getHatLayer()->getPhysicalAddress(sig));
     }
 #endif //HAS_Board_HatLayerCfd
 
 #ifdef ORCOS_SUPPORT_SIGNALS
-    pCurrentRunningThread->sigwait( sig );
-
-    return (cOk);
+    pCurrentRunningThread->sigwait(sig);
+    __builtin_unreachable();
+    return (cOk );
 #else
     return (cError);
 #endif
 }
 #endif
 
-
 /*******************************************************************
  *				SIGNAL_SIGNAL Syscall
  *******************************************************************/
 
+/*****************************************************************************
+ * Method: sc_signal_signal(intptr_t int_sp)
+ *
+ * @description
+ *  signal_signal system call handler
+ *
+ * @params
+ *  int_sp:     The stack pointer at time of system call instruction execution
+ *
+ * @returns
+ *  int:    Error Code
+ *---------------------------------------------------------------------------*/
 #ifdef HAS_SyscallManager_signal_signalCfd
-int signal_signal( int4 int_sp ) {
+int sc_signal_signal(intptr_t int_sp) {
     void* sig;
     int value;
     bool memAddrAsSig;
-    SYSCALLGETPARAMS3( int_sp, sig,value, memAddrAsSig );
+    SYSCALLGETPARAMS3(int_sp, sig, value, memAddrAsSig);
 
     /* signal null (0) is not allowed as it stands for "no" signal */
-     if (sig == 0) return (cInvalidArgument);
+    if (sig == 0)
+        return (cInvalidArgument );
 
 #ifdef HAS_Board_HatLayerCfd
     // if we want to use a Memory Address as the signal, we have to get the physical Address
     if (memAddrAsSig) {
-        sig = (void*) theOS->getHatLayer()->getPhysicalAddress( sig );
+        sig = static_cast<void*> (theOS->getHatLayer()->getPhysicalAddress(sig));
     }
 #endif //HAS_Board_HatLayerCfd
 
 #ifdef ORCOS_SUPPORT_SIGNALS
-    theOS->getDispatcher()->signal( sig, value );
+    theOS->getDispatcher()->signal(sig, value);
 
     /* If we have priorities we may need to dispatch .. check this now! */
 #ifdef HAS_PRIORITY
-        DISABLE_IRQS(status);
-        SET_RETURN_VALUE((void*)int_sp,(void*)cOk);
-        // we may have unblocked a higher priority thread so we need to reschedule now!
-        theOS->getDispatcher()->dispatch(  );
+    DISABLE_IRQS(status);
+    SET_RETURN_VALUE((void*)int_sp, (void*)cOk);
+    // we may have unblocked a higher priority thread so we need to reschedule now!
+    theOS->getDispatcher()->dispatch();
+    __builtin_unreachable();
 #endif
 
-    return (cOk);
+    return (cOk );
 #else
-   return cError;
+    return cError;
 #endif
 }
 #endif

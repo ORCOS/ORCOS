@@ -35,17 +35,15 @@ class Kernel_ThreadCfdCl;
  * can be added to the filesystem of the system.
  */
 class Resource: public ListItem {
-
 protected:
-
     // making the name protected allows classes to change their name
     //! name identifying this resource
     const char* name;
 
     //! The access controlling mechanism
     Mutex* accessControl;
-private:
 
+private:
     //!  A global Resource counter.
     static ResourceIdT globalResourceIdCounter;
 
@@ -62,42 +60,83 @@ public:
     //! Destructor. Resources may only be deleted by the idle thread.
     virtual ~Resource();
 
-    //! initialize
+    /*****************************************************************************
+     * Method: initialize()
+     *
+     * @description
+     *  static initialization done at system boot
+     *******************************************************************************/
     static void initialize() {
         globalResourceIdCounter = cFirstResource;
     }
 
-    /*!
-     * \brief Acquire this resource
+    /*****************************************************************************
+     * Method: acquire(Thread* pThread, bool blocking)
      *
-     * The thread given as parameter tries to aquire this resource. If this
-     * resource is not available the thread will be blocked until it becomes
-     * available again.
-     */
-    int acquire(Thread* pThread, bool blocking = true);
-
-    /*!
-     * \brief Release the resource.
+     * @description
+     *  Tries to acquire the resource for the given thread. If blocking
+     *  and the resource is currently owned by another task and the resource
+     *  is protected the thread is blocked.
      *
-     * A resource can only be released if it has been acquired before by the same task.
-     */
-    ErrorT release(Thread* pThread);
+     * @params
+     *  pThread     Thread that wants to acquire the resource
+     *  blocking    Shall be block the thread if resource is owned and protected?
+     *
+     * @returns
+     *  int         Error Code
+     *******************************************************************************/
+    int acquire(Thread* pThread = 0, bool blocking = true);
 
-    //! Returns the type of this resource which helps to identify this resource
-    inline ResourceType getType() {
+
+    /*****************************************************************************
+     * Method: release(Thread* pThread)
+     *
+     * @description
+     *  Releases the resource. A resource can only be released if it has been acquired before by the same task.
+     *
+     * @params
+     *  pThread     The thread that releases the resource
+     *
+     * @returns
+     *  int         Error Code
+     *******************************************************************************/
+    ErrorT release(Thread* pThread = 0);
+
+
+    /*****************************************************************************
+     * Method: getType()
+     *
+     * @description
+     *  Returns the type of this resource which helps to identify this resource
+     *******************************************************************************/
+    inline ResourceType getType() const {
         return (restype);
     }
 
-    //! Returns the id
-    inline ResourceIdT getId() {
+
+    /*****************************************************************************
+     * Method: getId()
+     *
+     * @description
+     *  Returns global resource ID
+     *******************************************************************************/
+    inline ResourceIdT getId() const {
         return (this->myResourceId);
     }
 
-    //! Returns the name of this resource
-    inline const char* getName() {
-        if (name)
+
+    /*****************************************************************************
+      * Method: getName()
+      *
+      * @description
+      *  Returns the name of this resource
+      *******************************************************************************/
+    inline const char* getName() const {
+        if (name) {
             return (name);
-        else return ("{No Name}");
+        } else {
+            return ("{No Name}");
+        }
     }
 };
 

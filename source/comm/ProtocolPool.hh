@@ -58,10 +58,29 @@ public:
     ProtocolPool();
     ~ProtocolPool();
 
+    /*****************************************************************************
+     * Method: getAddressProtocolbyId(unint2 id)
+     *
+     * @description
+     *  Returns the Address protocol by its id if supported.
+     * @params
+     *
+     * @returns
+     *  int         Error Code
+     *******************************************************************************/
     AddressProtocol* getAddressProtocolbyId(unint2 id);
 
+    /*****************************************************************************
+     * Method: getTransportProtocolbyId(unint2 id)
+     *
+     * @description
+     *  Returns the Transport protocol by its id if supported.
+     * @params
+     *
+     * @returns
+     *  int         Error Code
+     *******************************************************************************/
     TransportProtocol* getTransportProtocolbyId(unint2 id);
-
 };
 
 #endif /*PROTOCOLPOOL_HH_*/

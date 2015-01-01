@@ -13,8 +13,8 @@
 extern Kernel* theOS;
 
 #define VALID_MODULE(module_cb) ((module_cb->pf_module_init > LOG_MODULE_SPACE_START) &&  \
-								(module_cb->pb_argument_area > LOG_MODULE_SPACE_START) && \
-								(module_cb->i_max_argument_size > 0))
+                                (module_cb->pb_argument_area > LOG_MODULE_SPACE_START) && \
+                                (module_cb->i_max_argument_size > 0))
 
 USCommDeviceDriver::USCommDeviceDriver(const char* dev_name, unint4 u_mmio_address, unint4 mmio_size, unint4 us_driver_addr) :
         CommDeviceDriver(dev_name),
@@ -25,22 +25,18 @@ USCommDeviceDriver::USCommDeviceDriver(const char* dev_name, unint4 u_mmio_addre
     // try to read out the module control block
     module_cb = (ORCOS_MCB*) us_driver_addr;
 
-    if (!VALID_MODULE(module_cb))
-    {
+    if (!VALID_MODULE(module_cb)) {
         valid_module = 0;
-        LOG(ARCH, ERROR, "Module '%s' at 0x%x invalid.. Can not load Module..",dev_name, us_driver_addr);
+        LOG(ARCH, ERROR, "Module '%s' at 0x%x invalid.. Can not load Module..", dev_name, us_driver_addr);
 
-    }
-    else
-    {
+    } else {
         valid_module = 1;
         // call initialization routine
-        LOG(ARCH, INFO, "Loading Module '%s' at 0x%x.",dev_name, us_driver_addr);
+        LOG(ARCH, INFO, "Loading Module '%s' at 0x%x.", dev_name, us_driver_addr);
     }
 
     // add the mmio address space to the virtual address space of this module
     theOS->getHatLayer()->map((void*) mmio_address, (void*) mmio_address, mmio_size, 7, 3, ((Module*) this)->getId(), !ICACHE_ENABLE);
-
 }
 
 USCommDeviceDriver::~USCommDeviceDriver() {
@@ -48,17 +44,14 @@ USCommDeviceDriver::~USCommDeviceDriver() {
 }
 
 ErrorT USCommDeviceDriver::lowlevel_send(char *data, int len) {
-
-    if (module_cb->i_max_argument_size < (size_t) len)
-    {
-        LOG(ARCH, INFO, "USCommDeviceDriver::lowlevel_send(): data length too big: %d > %d.",len,module_cb->i_max_argument_size );
-        return cError ;
+    if (module_cb->i_max_argument_size < (size_t) len) {
+        LOG(ARCH, INFO, "USCommDeviceDriver::lowlevel_send(): data length too big: %d > %d.", len, module_cb->i_max_argument_size);
+        return (cError);
     }
 
     // place the argument passing structure inside the user space of the module
     ORCOS_module_args *args = (ORCOS_module_args*) module_cb->pb_argument_area;
-    args->argument1 = (void*) (module_cb->pb_argument_area
-            + sizeof(ORCOS_module_args));
+    args->argument1 = (void*) (module_cb->pb_argument_area + sizeof(ORCOS_module_args));
     args->argument2 = (void*) len;
     memcpy(args->argument1, data, len);
 
@@ -66,45 +59,44 @@ ErrorT USCommDeviceDriver::lowlevel_send(char *data, int len) {
 
     // return the result value
     return (ErrorT) args->argument1;
-
 }
 
 ErrorT USCommDeviceDriver::broadcast(packet_layer* packet, int2 fromProtocol_ID) {
-    return cError ;
+    return (cError);
 }
 
 ErrorT USCommDeviceDriver::multicast(packet_layer* packet, int2 fromProtocol_ID, unint4 dest_addr) {
-    return cError ;
+    return (cError);
 }
 
 const char* USCommDeviceDriver::getMacAddr() {
-    return "0";
+    return ("0");
 }
 
 int1 USCommDeviceDriver::getMacAddrSize() {
-    return 0;
+    return (0);
 }
 
 unint2 USCommDeviceDriver::getMTU() {
-    return cError ;
+    return (cError);
 }
 
 int2 USCommDeviceDriver::getHardwareAddressSpaceId() {
-    return cError ;
+    return (cError);
 }
 
 const char* USCommDeviceDriver::getBroadcastAddr() {
-    return "0";
+    return ("0");
 }
 
 ErrorT USCommDeviceDriver::enableIRQ() {
-    return cError ;
+    return (cError);
 }
 
 ErrorT USCommDeviceDriver::disableIRQ() {
-    return cError ;
+    return (cError);
 }
 
 ErrorT USCommDeviceDriver::clearIRQ() {
-    return cError ;
+    return (cError);
 }

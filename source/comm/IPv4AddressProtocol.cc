@@ -23,22 +23,38 @@ extern Kernel* theOS;
 
 IPv4AddressProtocol::IPv4AddressProtocol(Directory* p_commdevsdir) :
         AddressProtocol(0x800, p_commdevsdir) {
-
 }
 
 IPv4AddressProtocol::~IPv4AddressProtocol() {
 }
 
+/*****************************************************************************
+ * Method: IPv4AddressProtocol::bind(sockaddr* addr, Socket* sock)
+ *
+ * @description
+ *
+ * @params
+ *
+ * @returns
+ *  int         Error Code
+ *******************************************************************************/
 ErrorT IPv4AddressProtocol::bind(sockaddr* addr, Socket* sock) {
-
     // lwip stuff
-    return cOk ;
+    return (cOk);
 }
 
+/*****************************************************************************
+ * Method: IPv4AddressProtocol::unbind(sockaddr* addr, Socket* sock)
+ *
+ * @description
+ *
+ * @params
+ *
+ * @returns
+ *  int         Error Code
+ *******************************************************************************/
 ErrorT IPv4AddressProtocol::unbind(sockaddr* addr, Socket* sock) {
-
     // lwip stuff
-
-    return cOk ;
+    return (cOk);
 }
 

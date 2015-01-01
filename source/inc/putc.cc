@@ -21,6 +21,12 @@
 
 extern "C" Kernel* theOS;
 
+/*****************************************************************************
+ * Method: putchar(char c)
+ *
+ * @description
+ *  Prints the given char on stdout
+ *******************************************************************************/
 void putchar(char c) {
 #ifdef HAS_Board_UARTCfd
     // output device may not be initilized yet

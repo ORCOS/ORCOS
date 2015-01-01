@@ -2,24 +2,27 @@
  * TWL4030.cc
  *
  *  Created on: 07.09.2013
- *      Author: dbaldin
+ *     Copyright & Author: dbaldin
  */
 
 #include "TWL4030.hh"
 #include "kernel/Kernel.hh"
 
-extern void kwait(int milliseconds);
 extern Kernel* theOS;
 
+/*****************************************************************************
+ * Method: TWL4030::i2c_read_u8(unint1 i2c_num, unint1 *val, unint1 reg)
+ *
+ * @description
+ *  Read from the TWL4030 chip via I2C
+ *******************************************************************************/
 ErrorT TWL4030::i2c_read_u8(unint1 i2c_num, unint1 *val, unint1 reg) {
-
-    if (i2c_dev == 0)
-    {
+    if (i2c_dev == 0) {
         return (cError );
     }
 
     char i2c_val[8];
-    i2c_val[0] = i2c_num;  // register group 4b
+    i2c_val[0] = i2c_num;
     i2c_val[1] = reg;
     unint4 length = 1;
     ErrorT err = i2c_dev->readBytes(i2c_val, length);
@@ -28,16 +31,20 @@ ErrorT TWL4030::i2c_read_u8(unint1 i2c_num, unint1 *val, unint1 reg) {
     return (err);
 }
 
+/*****************************************************************************
+ * Method: TWL4030::i2c_write_u8(unint1 i2c_num, unint1 val, unint1 reg)
+ *
+ * @description
+ *  Write to the TWL4030 chip via I2C
+ *******************************************************************************/
 ErrorT TWL4030::i2c_write_u8(unint1 i2c_num, unint1 val, unint1 reg) {
-
-    if (i2c_dev == 0)
-    {
+    if (i2c_dev == 0) {
         return (cError );
     }
 
     char i2c_val[8];
-    i2c_val[0] = i2c_num;  // register group 4b
-    i2c_val[1] = reg;	// VAUX2_DEDICATED register
+    i2c_val[0] = i2c_num;
+    i2c_val[1] = reg;
     i2c_val[2] = val;
     unint4 length = 3;
     ErrorT err = i2c_dev->writeBytes(i2c_val, length);
@@ -45,30 +52,37 @@ ErrorT TWL4030::i2c_write_u8(unint1 i2c_num, unint1 val, unint1 reg) {
     return (err);
 }
 
-void TWL4030::power_reset_init(void) {
+/*****************************************************************************
+ * Method: TWL4030::power_reset_init()
+ *
+ * @description
+ *   Issue a generic TWL4030 power reset
+ *******************************************************************************/
+void TWL4030::power_reset_init() {
     unint1 val = 0;
-    if (i2c_read_u8(TWL4030_CHIP_PM_MASTER, &val, TWL4030_PM_MASTER_P1_SW_EVENTS) != cOk)
-    {
+    if (i2c_read_u8(TWL4030_CHIP_PM_MASTER, &val, TWL4030_PM_MASTER_P1_SW_EVENTS) != cOk) {
         LOG(ARCH, WARN, "TWL4030() failed to write the power register. Could not initialize hardware reset");
-    }
-    else
-    {
+    } else {
         val |= TWL4030_PM_MASTER_SW_EVENTS_STOPON_PWRON;
-        if (i2c_write_u8(TWL4030_CHIP_PM_MASTER, val, TWL4030_PM_MASTER_P1_SW_EVENTS) != cOk)
-        {
-            LOG(ARCH, WARN,"TWL4030() failed to write the power register. Could not initialize hardware reset");
+        if (i2c_write_u8(TWL4030_CHIP_PM_MASTER, val, TWL4030_PM_MASTER_P1_SW_EVENTS) != cOk) {
+            LOG(ARCH, WARN, "TWL4030() failed to write the power register. Could not initialize hardware reset");
         }
     }
 }
 
+/*****************************************************************************
+ * Method: TWL4030::pmrecv_vsel_cfg(unint1 vsel_reg, unint1 vsel_val, unint1 dev_grp, unint1 dev_grp_sel)
+ *
+ * @description
+ *
+ *******************************************************************************/
 void TWL4030::pmrecv_vsel_cfg(unint1 vsel_reg, unint1 vsel_val, unint1 dev_grp, unint1 dev_grp_sel) {
     int ret;
 
     /* Select the Voltage */
     ret = i2c_write_u8(TWL4030_CHIP_PM_RECEIVER, vsel_val, vsel_reg);
-    if (ret != cOk)
-    {
-        LOG(ARCH, WARN, "TWL4030()Could not write vsel to reg %02x (%d)",vsel_reg, ret);
+    if (ret != cOk) {
+        LOG(ARCH, WARN, "TWL4030()Could not write vsel to reg %02x (%d)", vsel_reg, ret);
         return;
     }
 
@@ -78,11 +92,14 @@ void TWL4030::pmrecv_vsel_cfg(unint1 vsel_reg, unint1 vsel_val, unint1 dev_grp, 
         LOG(ARCH, WARN, "TWL4030()Could not write grp_sel to reg %02x (%d)", dev_grp, ret);
 }
 
-/*static inline int gpio_twl4030_write(unint1 address, unint1 data)
- {
- return twl4030_i2c_write_u8(TWL4030_MODULE_GPIO, data, address);
- }*/
-
+/*****************************************************************************
+ * Method: TWL4030::usb_write(unint1 address, unint1 data)
+ *
+ * @description
+ *  Write data to register address on the TWL4030 on its
+ *  USB component chip part. Shortcut for writing
+ *  i2c_write_u8(TWL4030_CHIP_USB, data, address);
+ *******************************************************************************/
 int TWL4030::usb_write(unint1 address, unint1 data) {
     int ret;
 
@@ -93,6 +110,14 @@ int TWL4030::usb_write(unint1 address, unint1 data) {
     return (ret);
 }
 
+/*****************************************************************************
+ * Method: TWL4030::usb_read(unint1 address)
+ *
+ * @description
+ *  Read data from register address on the TWL4030 on its
+ *  USB component chip part. Shortcut for writing
+ *  i2c_read_u8(TWL4030_CHIP_USB, &data, address);
+ *******************************************************************************/
 int TWL4030::usb_read(unint1 address) {
     unint1 data;
     int ret;
@@ -106,6 +131,12 @@ int TWL4030::usb_read(unint1 address) {
     return (ret);
 }
 
+/*****************************************************************************
+ * Method: TWL4030::usb_ldo_init(void)
+ *
+ * @description
+ *  Initialize and activate the TWL4030 output voltages
+ *******************************************************************************/
 void TWL4030::usb_ldo_init(void) {
     /* Enable writing to power configuration registers */
     i2c_write_u8(TWL4030_CHIP_PM_MASTER, 0xC0,
@@ -148,6 +179,12 @@ void TWL4030::usb_ldo_init(void) {
     TWL4030_PM_MASTER_PROTECT_KEY);
 }
 
+/*****************************************************************************
+ * Method: TWL4030::phy_power(void)
+ *
+ * @description
+ *  Turn on USB PHY power
+ *******************************************************************************/
 void TWL4030::phy_power(void) {
     unint1 pwr, clk;
 
@@ -161,15 +198,18 @@ void TWL4030::phy_power(void) {
     usb_write(TWL4030_USB_PHY_CLK_CTRL, clk);
 }
 
-/*
- * Initiaze the ULPI interface
- * ULPI : Universal Transceiver Macrocell Low Pin Interface
- * An interface between the USB link controller like musb and the
- * the PHY or transceiver that drives the actual bus.
- */
+
+/*****************************************************************************
+ * Method: TWL4030::usb_ulpi_init(void)
+ *
+ * @description
+ *  Initiaze the ULPI interface
+ *  ULPI : Universal Transceiver Macrocell Low Pin Interface
+ *  An interface between the USB link controller like musb and the
+ *  the PHY or transceiver that drives the actual bus.
+ *******************************************************************************/
 int TWL4030::usb_ulpi_init(void) {
-    long timeout = 1000 * 1000; /* 1 sec */
-    ;
+    unint4 timeout = 1000 * 1000; /* 1 sec */
     unint1 clk, sts, pwr;
 
     /* twl4030 ldo init */
@@ -185,8 +225,7 @@ int TWL4030::usb_ulpi_init(void) {
 
     /* Check if the PHY DPLL is locked */
     sts = (unint1) usb_read(TWL4030_USB_PHY_CLK_CTRL_STS);
-    while (!(sts & PHY_DPLL_CLK) && 0 < timeout)
-    {
+    while (!(sts & PHY_DPLL_CLK) && 0 < timeout) {
         kwait(1);
         sts = (unint1) usb_read(TWL4030_USB_PHY_CLK_CTRL_STS);
         timeout -= 10;
@@ -194,9 +233,8 @@ int TWL4030::usb_ulpi_init(void) {
 
     /* Final check */
     sts = (unint1) usb_read(TWL4030_USB_PHY_CLK_CTRL_STS);
-    if (!(sts & PHY_DPLL_CLK))
-    {
-        LOG(ARCH, WARN,"TWL4030(): Error:TWL4030:USB Timeout setting PHY DPLL clock");
+    if (!(sts & PHY_DPLL_CLK)) {
+        LOG(ARCH, WARN, "TWL4030(): Error:TWL4030:USB Timeout setting PHY DPLL clock");
         return (-1);
     }
 
@@ -223,9 +261,13 @@ int TWL4030::usb_ulpi_init(void) {
     return (0);
 }
 
-/**
- * Activates the general power supply for VAUX3, VPLL2, VDAC
- */
+
+/*****************************************************************************
+ * Method: TWL4030::power_init()
+ *
+ * @description
+ *   Activates the general power supply for VAUX3, VPLL2, VDAC
+ *******************************************************************************/
 void TWL4030::power_init(void) {
     /* set VAUX3 to 2.8V */
     pmrecv_vsel_cfg(TWL4030_PM_RECEIVER_VAUX3_DEDICATED,
@@ -244,9 +286,14 @@ void TWL4030::power_init(void) {
     TWL4030_PM_RECEIVER_VDAC_VSEL_18,
     TWL4030_PM_RECEIVER_VDAC_DEV_GRP,
     TWL4030_PM_RECEIVER_DEV_GRP_P1);
-
 }
 
+/*****************************************************************************
+ * Method: TWL4030::power_mmc_init()
+ *
+ * @description
+ *    Set VMMC1 to 3.15 Volts
+ *******************************************************************************/
 void TWL4030::power_mmc_init(void) {
     /* Set VMMC1 to 3.15 Volts */
     pmrecv_vsel_cfg(TWL4030_PM_RECEIVER_VMMC1_DEDICATED,
@@ -255,23 +302,19 @@ void TWL4030::power_mmc_init(void) {
     TWL4030_PM_RECEIVER_DEV_GRP_P1);
 }
 
-TWL4030::TWL4030(T_TWL4030_Init *init) :  GenericDeviceDriver(false, "twl4030") {
-
-    i2c_dev = (CharacterDevice*) theOS->getFileManager()->getResource(init->I2CDeviceName);
-    if (i2c_dev == 0)
-    {
-        LOG(ARCH, ERROR, "TWL4030(): I2C device '%s' not found. Not initializing TWL4030.",init->I2CDeviceName);
+TWL4030::TWL4030(T_TWL4030_Init *init) :
+        GenericDeviceDriver(false, "twl4030") {
+    i2c_dev = static_cast<CharacterDevice*>(theOS->getFileManager()->getResource(init->I2CDeviceName));
+    if (i2c_dev == 0) {
+        LOG(ARCH, ERROR, "TWL4030(): I2C device '%s' not found. Not initializing TWL4030.", init->I2CDeviceName);
         return;
     }
 
     power_init();
     power_reset_init();
-    LOG(ARCH, INFO, "TWL4030 initialized on '%s'",init->I2CDeviceName);
-
-
+    LOG(ARCH, INFO, "TWL4030 initialized on '%s'", init->I2CDeviceName);
 }
 
 TWL4030::~TWL4030() {
-
 }
 

@@ -20,7 +20,6 @@
 #define SIMPLEFILEMANAGER_H_
 
 #include "Directory.hh"
-#include "Filemanager.hh"
 #include "SCLConfig.hh"
 
 
@@ -29,66 +28,138 @@
  *
  * \ingroup filesystem
  *
- * This filemanager only supports accessing generic devices and
- * character devices as well as communication devices. Files are not supported.
- *
  * The filesystem is directory based and can thus be extended by any directory
  * and resource. This implementation also stores references to some predefined
  * directorys  "dev/" and "dev/comm/" for faster access to these directorys.
- * There also exists a "proc/" directory for debugging support if configured through SCL.
  */
-class SimpleFileManager /*: public Filemanager  //uncommented since saves ~ 70 bytes*/
-{
-
+class SimpleFileManager {
 private:
-    //! the root directory
     Directory rootDir;
+
+    //! the root directory
+    Directory* root;
 
 public:
     SimpleFileManager();
     ~SimpleFileManager();
 
-    /*!
-     * \brief Registration method for existing resources (e.g devices)
+
+    /*****************************************************************************
+     * Method: registerResource(Resource* res)
      *
-     * This implementation of a Filemanager only supports the registration
-     * of devices and sockets. Files on secondary storage or somewhere else are
-     * not supported here.
-     */
+     * @description
+     *  Registration method for existing resources (e.g devices)
+     * @params
+     *  res         Resource to register
+     * @returns
+     *  int         Error Code
+     *******************************************************************************/
     ErrorT registerResource(Resource* res);
 
-
+    /*****************************************************************************
+     * Method: unregisterResource(Resource* res)
+     *
+     * @description
+     *  Unregistration method for existing resources (e.g devices)
+     * @params
+     *  res         Resource to unregister
+     * @returns
+     *  int         Error Code
+     *******************************************************************************/
     ErrorT unregisterResource(Resource* res);
 
-    /*!
-     * \brief Resource creation is not imlpemented in this filemanager.
-     */
-    Resource* createResource(const char* pathname, int1 flags) {
-        return (0);
+
+    /*****************************************************************************
+     * Method: overlayDirectory(Directory* overlay, const char* path)
+     *
+     * @description
+     *  Tries to overlay the directory passed as overlay
+     *  on top of the directory specified by path.
+     *  If path references the root directory the root
+     *  directory will be overlayed.
+     *  Otherwise the resource specified by path is searched and overlayed
+     *  if it is an directory. If the resource specified by the path does not
+     *  exists a new directory is created with no overlay.
+     * @params
+     *  overlay         The directory which overlaying another directory
+     *  path            Path to the directory to be overlayed
+     *
+     * @returns
+     *  int         Error Code
+     *******************************************************************************/
+    ErrorT overlayDirectory(Directory* overlay, const char* path);
+
+
+    /*****************************************************************************
+     * Method: getResource(const char* pathname, Directory* &parentDir)
+     *
+     * @description
+     *  Returns the resource by the full pathname
+     * @params
+     *  path        Path to the resource
+     * @returns
+     *  Resource*   The resource if found or null
+     *  parentDir   Parent directory of the resource found
+     *******************************************************************************/
+    Resource* getResource(const char* pathname, Directory* &parentDir);
+
+
+    /*****************************************************************************
+     * Method: getResource(const char* pathname)
+     *
+     * @description
+     *  Returns the resource by the full pathname
+     * @params
+     *  path        Path to the resource
+     * @returns
+     *  Resource*   The resource if found or null
+     *******************************************************************************/
+    Resource* getResource(const char* pathname) {
+        Directory* dir;
+        return (getResource(pathname, dir));
+   }
+
+
+    /*****************************************************************************
+     * Method: getResourceByNameandType(const char* pathname,
+     *                                  ResourceType type,
+     *                                  Directory* &parentDir)
+     *
+     * @description
+     *  Returns the resource by the full pathname and filters by type including the parent directory
+     *
+     * @params
+     *  path        Path to the resource
+     *  type        Type of the resource
+     *
+     * @returns
+     *  Resource*   The resource if found or null
+     *  parentDir   Parent directory of the resource found
+     *******************************************************************************/
+    Resource* getResourceByNameandType(const char* pathname, ResourceType type, Directory* &parentDir);
+
+
+    Resource* getResourceByNameandType(const char* pathname, ResourceType type) {
+        Directory* dir;
+        return (getResourceByNameandType(pathname, type, dir));
     }
 
-    /*!
-     * \brief Removing resources is not implemented in this filemanger.
-     */
-    ErrorT removeResource(char* pathname, int1 flags) {
-        return (cNotImplemented) ;
+    /*****************************************************************************
+     * Method: getDirectory(const char* dir, Directory* &parentDir)
+     *
+     * @description
+     *  Returns the directory object if found.
+     * @params
+     *
+     * @returns
+     *  Directory* The directory if found
+     *******************************************************************************/
+    Directory* getDirectory(const char* dir, Directory* &parentDir);
+
+    Directory* getDirectory(const char* dir) {
+        Directory* parentDir;
+        return (getDirectory(dir, parentDir));
     }
-
-    /*!
-     * \brief Returns the resource by the full pathname
-     */
-    Resource* getResource(const char* pathname);
-
-    /*!
-     * \brief Returns the resource by the full pathname and filters by type
-     */
-    Resource* getResourceByNameandType(const char* pathname, ResourceType type);
-
-    /*!
-     * \brief Returns the directory object if found.
-     */
-    Directory* getDirectory(const char* dir);
-
 };
 
 #endif /*SIMPLEFILEMANAGER_H_*/

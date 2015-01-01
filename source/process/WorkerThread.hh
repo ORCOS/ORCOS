@@ -38,14 +38,13 @@ typedef enum {
  *
  * jobids: <BR>
  *
- * ExternalDeviceJob    	: packet reception on comm_device <BR>
- * TimedFunctionCallJob 	: call a function after a period of time <BR>
- * PeriodicFunctionCallJob	: call a function periodically (not implemented yet)<BR>
+ * ExternalDeviceJob          : packet reception on comm_device <BR>
+ * TimedFunctionCallJob       : call a function after a period of time <BR>
+ * PeriodicFunctionCallJob    : call a function periodically <BR>
  *
  */
 class WorkerThread: public Kernel_ThreadCfdCl {
 private:
-
     //! The job table of the worker thread. Layout : jobid | parameters ...
     // ArrayDatabase* job;
     void* param;
@@ -58,43 +57,85 @@ private:
      * this pid can change during the execution of the worker thread
      */
     unint1 pid;
-public:
 
-    WorkerThread(Task* owner);
+public:
+    /*****************************************************************************
+     * Method: WorkerThread(Task* owner)
+     *
+     * @description
+     *  Constructor
+     *******************************************************************************/
+    explicit WorkerThread(Task* owner);
+
+
     ~WorkerThread();
 
-    //! overloaded callMain method which starts this thread
+    /*****************************************************************************
+     * Method: callMain()
+     *
+     * @description
+     *  overloaded callMain method which starts this thread
+     *******************************************************************************/
     void callMain();
 
-    //! the working routine
-    void work();
+    /*****************************************************************************
+     * Method: work()
+     *
+     * @description
+     *  the working routine
+     *******************************************************************************/
+    void work() __attribute__((used));
 
-    //! Set the job of this workerthread
+    /*****************************************************************************
+     * Method: setJob(JOBType id, void* params)
+     *
+     * @description
+     *  Set the job of this workerthread
+     *******************************************************************************/
     inline void setJob(JOBType id, void* params) {
         jobid = id;
         param = params;
     }
 
-    //! Set the PID the workerthread shall work with
+
+    /*****************************************************************************
+     * Method: setPID(unint1 thread_pid)
+     *
+     * @description
+     *   Set the PID the workerthread shall work with
+     *******************************************************************************/
     inline void setPID(unint1 thread_pid) {
         this->pid = thread_pid;
     }
 
-    void stop() {
-        jobid = None;
-        param = 0;
-        this->block();
-    }
+    /*****************************************************************************
+     * Method: stop()
+     *
+     * @description
+     *  Stops the execution of this workerthread. Removes its current job
+     *  and makes the thread available for new jobs again.
+     *******************************************************************************/
+    void stop();
 
+    /*****************************************************************************
+     * Method: hasJob()
+     *
+     * @description
+     *
+     *******************************************************************************/
     inline bool hasJob() {
         return (jobid != None);
     }
 
-    //! Get the PID the workerthread is currently working with
+    /*****************************************************************************
+     * Method: getPID()
+     *
+     * @description
+     *   Get the PID the workerthread is currently working with
+     *******************************************************************************/
     inline unint1 getPID() {
         return (pid);
     }
-
 };
 
 #endif /*WORKERTHREAD_HH_*/

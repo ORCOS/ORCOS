@@ -27,8 +27,8 @@
 #include Board_InterruptHandler_hh
 #include Board_LED_hh
 #include Board_UART_hh
-#include Board_Timer_hh
 #include Board_Clock_hh
+#include <OmapGPTimer.hh>
 
 /*!
  * \brief Implementation of the HAL board for the Virtex2 architecture

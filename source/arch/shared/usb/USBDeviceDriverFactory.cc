@@ -2,7 +2,7 @@
  * USBDeviceDriver.cc
  *
  *  Created on: 02.05.2013
- *      Author: dbaldin
+ *    Copyright &  Author: dbaldin
  */
 
 #include "USBDeviceDriverFactory.hh"
@@ -11,20 +11,19 @@
 
 extern Kernel *theOS;
 
-USBDeviceDriverFactory::USBDeviceDriverFactory(char* p_name)
-: Resource(cUSBDriver,false,p_name)
-{
-	/* register ourself at the USBDriverLibrary */
-	Directory* usbdir = theOS->getFileManager()->getDirectory("/usb/");
-	if (usbdir != 0) {
-		usbdir->add(this);
-	}
+USBDeviceDriverFactory::USBDeviceDriverFactory(char* p_name) :
+        Resource(cUSBDriver, false, p_name) {
+    /* register ourself at the USBDriverLibrary */
+    Directory* usbdir = theOS->getFileManager()->getDirectory("/usb/");
+    if (usbdir != 0) {
+        usbdir->add(this);
+    }
 }
 
 USBDeviceDriverFactory::~USBDeviceDriverFactory() {
-	Directory* usbdir = theOS->getFileManager()->getDirectory("/usb/");
-	if (usbdir != 0) {
-		usbdir->remove(this);
-	}
+    Directory* usbdir = theOS->getFileManager()->getDirectory("/usb/");
+    if (usbdir != 0) {
+        usbdir->remove(this);
+    }
 }
 

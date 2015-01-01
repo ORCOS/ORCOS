@@ -20,92 +20,144 @@
 #include "kernel/Kernel.hh"
 #include "inc/const.hh"
 #include "process/RealTimeThread.hh"
+#include "assemblerFunctions.hh"
 
 extern Kernel* theOS;
 
-
+/*****************************************************************************
+ * Method: PriorityThreadScheduler::startScheduling()
+ *
+ * @description
+ *  Starts scheduling. As this is a dynamic scheduler nothing has to be
+ *  computed beforehand.
+ *******************************************************************************/
 void PriorityThreadScheduler::startScheduling() {
-  /* nothing to do */
+    /* nothing to do */
 }
 
 #ifndef REALTIME
-int PriorityThreadScheduler::getNextTimerEvent(LinkedListDatabase* sleepList,unint4 dt) {
-    // it makes no sense to return an unint8 here, since theOS->getTimerDevice()->setTimer(nextevent) will take
-     // a unint4 anyways (and the return value of this function is used to set the timer event).
-     int4 sleeptime = MAX_INT4;
+/*****************************************************************************
+ * Method: PriorityThreadScheduler::getNextTimerEvent(LinkedListDatabase* sleepList, unint4 dt)
+ *
+ * @description
+*  Returns the next timer event to be programmed for calling the scheduler again. This
+ *  may be a preemption point. ONLY used if no realtime scheduler is configured as this
+ *  method is overloaded then.
+ *
+ * @params
+ *
+ * @returns
+ *  int         Error Code
+ *******************************************************************************/
+int PriorityThreadScheduler::getNextTimerEvent(LinkedListDatabase* sleepList, unint4 dt) {
+    /* it makes no sense to return an unint8 here, since theOS->getTimerDevice()->setTimer(nextevent) will take
+     * a unint4 anyways (and the return value of this function is used to set the timer event). */
+    int4 sleeptime = MAX_INT4;
 
-     // only return a value smaller than sleeptime if there is some other competing threads inside the sleeplist!
-     LinkedListItem* pDBSleepItem = sleepList->getHead();
-     if ( pDBSleepItem != 0 ) {
-         LinkedListItem* pDBNextItem = database.getHead();
+    // only return a value smaller than sleeptime if there is some other competing threads inside the sleeplist!
+    LinkedListItem* pDBSleepItem = sleepList->getHead();
+    if (pDBSleepItem != 0) {
+        LinkedListItem* pDBNextItem = database.getHead();
 
-         // set variables which are needed to compare to later on, so we do not need to set these for every
-         // iteration of the while loop
-         TimeT nextPriority;
+        // set variables which are needed to compare to later on, so we do not need to set these for every
+        // iteration of the while loop
+        TimeT nextPriority;
 
-         if ( pDBNextItem != 0 ) {
-             nextPriority = (static_cast< PriorityThread* > ( pDBNextItem->getData() ))->effectivePriority;
-         }
-         else
-         {
-             nextPriority = 0;
-         }
+        if (pDBNextItem != 0) {
+            nextPriority = (static_cast<PriorityThread*>(pDBNextItem->getData()))->effectivePriority;
+        } else {
+            nextPriority = 0;
+        }
 
-         // this is the actual computation of the needed intervall. it compares the priority of the current
-         // thread with the future prioritys of the threads in the sleeplist. The smallest time intervall where
-         // the sleeping threads priority is higher than the current priority will be set as sleeptime.
-         do {
-             PriorityThread* pSleepThread = static_cast< PriorityThread*> ( pDBSleepItem->getData() );
+        // this is the actual computation of the needed intervall. it compares the priority of the current
+        // thread with the future prioritys of the threads in the sleeplist. The smallest time intervall where
+        // the sleeping threads priority is higher than the current priority will be set as sleeptime.
+        do {
+            PriorityThread* pSleepThread = static_cast<PriorityThread*>(pDBSleepItem->getData());
 
-             pSleepThread->sleepCycles -= dt;
-              if ( pSleepThread->sleepCycles <= 0 ) {
-                  pSleepThread->status.setBits( cReadyFlag );
-                  LinkedListItem* litem2 = pDBSleepItem;
-                  pDBSleepItem = pDBSleepItem->getSucc();
+            pSleepThread->sleepCycles -= dt;
+            if (pSleepThread->sleepCycles <= 0) {
+                pSleepThread->status.setBits(cReadyFlag);
+                LinkedListItem* litem2 = pDBSleepItem;
+                pDBSleepItem = pDBSleepItem->getSucc();
 
-                  this->enter( litem2 );
-              } else
-              {
-                  if ( ( pSleepThread->getSleepTime() < sleeptime ) && ( pSleepThread->effectivePriority > nextPriority ) )
-                          sleeptime = pSleepThread->getSleepTime();
+                this->enter(litem2);
+            } else {
+                if ((pSleepThread->getSleepTime() < sleeptime) && (pSleepThread->effectivePriority > nextPriority))
+                    sleeptime = pSleepThread->getSleepTime();
 
-                 pDBSleepItem = pDBSleepItem->getSucc();
-              }
-         } while ( pDBSleepItem != 0 );
+                pDBSleepItem = pDBSleepItem->getSucc();
+            }
+        } while (pDBSleepItem != 0);
+    }
 
-     }
-
-     return sleeptime;
-
+    return sleeptime;
 }
 #endif
 
-ListItem* PriorityThreadScheduler::getNext() {
+/*****************************************************************************
+ * Method: PriorityThreadScheduler::getNext()
+ *
+ * @description
+ *  Returns and removes the head of the priority queue.
+ *
+ * @returns
+ *  ListItem*         The head of the priority queue or null
+ *******************************************************************************/
+LinkedListItem* PriorityThreadScheduler::getNext() {
     /* we can just return the head since the queue is kept sorted by priority by the
-       enter method of this class. */
-    LOG(SCHEDULER,INFO,"PriorityThreadScheduler: Queue Size: %d", database.getSize() );
+     enter method of this class. */
+    LOG(SCHEDULER, INFO, "PriorityThreadScheduler: Queue Size: %d", database.getSize());
+
+#if 0
+    printf("Queue: ");
+    LinkedListItem* litem = this->database.getHead();
+    for (; litem; litem = litem->getSucc()){
+        Thread* thread = (Thread*) litem->getData();
+        printf(" %d",thread->getId());
+    }
+    printf("\n");
+#endif
     return (this->database.removeHead());
 }
 
-ErrorT PriorityThreadScheduler::enter( LinkedListItem* item ) {
+/*****************************************************************************
+ * Method: PriorityThreadScheduler::enter(LinkedListItem* item)
+ *
+ * @description
+ *  Inserts the given priority thread into the priority queue based on its
+ *  priority
+ *
+ * @params
+ *  item        Linkedlist item of the priority thread to be inserted
+ *
+ * @returns
+ *  int         Error Code
+ *******************************************************************************/
+ErrorT PriorityThreadScheduler::enter(LinkedListItem* item) {
     ASSERT(item);
 
-    PriorityThread* pPThread = static_cast< PriorityThread* > ( item->getData() );
+    PriorityThread* pPThread = static_cast<PriorityThread*>(item->getData());
 
     TRACE_THREAD_REGISTER(pPThread->getOwner()->getId(), pPThread->getId());
 
+    DISABLE_IRQS(status);
     /* Enter Thread in the database in accordance with it's priority.
      * The order will keep threads with the same priority in a round robin fashion due to ">="
      **/
     LinkedListItem* sItem = database.getTail();
-    while ( sItem != 0 ) {
-        if ( static_cast< PriorityThread* > ( sItem->getData() )->effectivePriority >= pPThread->effectivePriority ) {
-            return (database.insertAfter( item, sItem ));
+    while (sItem != 0) {
+        if (static_cast<PriorityThread*>(sItem->getData())->effectivePriority >= pPThread->effectivePriority) {
+            ErrorT ret = database.insertAfter(item, sItem);
+            RESTORE_IRQS(status);
+            return (ret);
         }
         sItem = sItem->getPred();
     }
 
     /* if this statement is reached, no thread with a bigger priority then the pRTThread was found,
-       so we add it at the very front of the queue. */
-    return (database.addHead( item ));
+     so we add it at the very front of the queue. */
+    ErrorT ret = database.addHead(item);
+    RESTORE_IRQS(status);
+    return (ret);
 }

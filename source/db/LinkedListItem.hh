@@ -30,7 +30,7 @@
  * and thus may be stored in a LinkedListDataBase. Every LinkedListDatabaseItem holds
  * a reference to some DatabaseItem which may e.g be a thread or some other kind of object.
  */
-class LinkedListItem: public ListItem {
+class LinkedListItem /*: public ListItem*/ {
 
     friend class LinkedList;
 
@@ -68,7 +68,7 @@ private:
 public:
 
     LinkedListItem() {
-        this->data = data;
+        this->data = 0;
         this->pred = 0;
         this->succ = 0;
         this->host_db = 0;
@@ -91,7 +91,7 @@ public:
     /*!
      * \brief Returns the reference to the DatabaseItem this LLDbItem is holding.
      */
-    inline ListItem* getData() {
+    inline ListItem* getData() const {
         return (data);
     }
 
@@ -107,14 +107,14 @@ public:
     /*!
      * \brief Get the predecessor of this LLDbItem
      */
-    inline LinkedListItem* getPred() {
+    inline LinkedListItem* getPred() const {
         return (pred);
     }
 
     /*!
      * \brief Get the successor of this LLDbItem
      */
-    inline LinkedListItem* getSucc() {
+    inline LinkedListItem* getSucc() const {
         return (succ);
     }
 
@@ -136,34 +136,8 @@ public:
      * \brief Removes this LinkedListDatabaseItem from its current list and updates the host_db
      */
     void remove() {
-        // if we are not stored anywhere just return
-        if (host_db == 0)
-            return;
-
-        if (host_db->getHead() == this)
-        {
-            // i'm the head of the db. update the head
-            host_db->removeHead();
-        }
-        else if (host_db->getTail() == this)
-        {
-            // i'm the tail of the db
-            host_db->removeTail();
-        }
-        else
-        {
-            // i'm neither the head nor the tail so we can just manipulate the pointers
-            host_db->size--;
-            host_db = 0;
-
-            // update both
-            pred->setSucc(succ);
-            succ->setPred(pred);
-
-            // finally set my succ and pred to null
-            pred = 0;
-            succ = 0;
-        }
+        if (host_db != 0)
+            host_db->remove(this);
     }
 
 

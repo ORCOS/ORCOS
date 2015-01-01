@@ -123,4 +123,5 @@ void* operator new(size_t s, bool aligned);
  */
 void operator delete(void* ptr);
 
+
 #endif /*NEWLIB_HELPER_HH_*/

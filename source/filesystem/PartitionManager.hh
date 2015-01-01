@@ -2,7 +2,7 @@
  * PartitionManager.hh
  *
  *  Created on: 19.06.2013
- *      Author: dbaldin
+ *    Copyright &  Author: dbaldin
  */
 
 #ifndef PARTITIONMANAGER_HH_
@@ -13,22 +13,44 @@
 #include "filesystem/Directory.hh"
 
 class PartitionManager: Directory {
+private:
+    /*****************************************************************************
+     * Method: tryDOSMBR(BlockDeviceDriver *bdev)
+     *
+     * @description
+     *  Tries to read a DOS MBR from the block device.
+     *
+     *  returns: cOk on success
+     *******************************************************************************/
+    ErrorT tryDOSMBR(BlockDeviceDriver *bdev);
+
+    /*****************************************************************************
+     * Method: handleEFIPartitionTable(BlockDeviceDriver* bdev)
+     *
+     * @description
+     *
+     *******************************************************************************/
+    ErrorT handleEFIPartitionTable(BlockDeviceDriver* bdev);
 
 public:
     PartitionManager();
 
+    /*****************************************************************************
+     * Method: registerBlockDevice(BlockDeviceDriver *bdev)
+     *
+     * @description
+     *
+     *******************************************************************************/
     void registerBlockDevice(BlockDeviceDriver *bdev);
 
+    /*****************************************************************************
+     * Method: unregisterBlockDevice(BlockDeviceDriver *bdev)
+     *
+     * @description
+     *  Try and find the correct partition type of the device
+     *******************************************************************************/
     void unregisterBlockDevice(BlockDeviceDriver *bdev);
 
-    ErrorT handleEFIPartitionTable(BlockDeviceDriver* bdev);
-
-    /*!
-     * Tries to read a DOS MBR from the block device.
-     *
-     * returns: cOk on success
-     */
-    ErrorT tryDOSMBR(BlockDeviceDriver *bdev);
 
     virtual ~PartitionManager();
 };

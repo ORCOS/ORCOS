@@ -28,8 +28,7 @@
  * \brief Base class which uses lists to store threads.
  *
  */
-class ListScheduler
-{
+class ListScheduler {
 public:
 
     /* the list of schedulableitems that will be scheduled */
@@ -38,37 +37,36 @@ public:
 public:
     ListScheduler() {
     }
-    ;
+
     ~ListScheduler() {
     }
-    ;
 
     /*!
      *  \brief Adds a new thread or reactivated service to this scheduler
      */
-    ErrorT enter( ScheduleableItem* item ) {
+    ErrorT enter(ScheduleableItem* item) {
         ASSERT(item);
-        return (this->database.addTail( item ));
+        return (this->database.addTail(item));
     }
-    ;
+
 
     /*!
      *  \brief Enter method which adds an already existing DatabaseItem to the scheduler.
      *
      *  Implemented to avoid reallocating memory for scheduleableitems if reentering the scheduler.
      */
-    ErrorT enter( LinkedListItem* item ) {
+    ErrorT enter(LinkedListItem* item) {
         ASSERT(item);
-        return (this->database.addTail( item ));
+        return (this->database.addTail(item));
     }
-    ;
+
 
     /*!
      * \brief Removes the item from the scheduler
      */
-    LinkedListItem* remove( ScheduleableItem* it ) {
-        LinkedListItem* item = (LinkedListItem*) this->database.getItem( it );
-        if ( item != 0 ) {
+    LinkedListItem* remove(ScheduleableItem* it) {
+        LinkedListItem* item = (LinkedListItem*) this->database.getItem(it);
+        if (item != 0) {
             item->remove();
             return (item);
         }

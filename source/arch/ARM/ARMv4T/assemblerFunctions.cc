@@ -35,27 +35,28 @@ extern "C" void dumpContext(void* sp_context);
  * and Resource to finish a syscall earlier.
  *
  */
-extern "C" void restoreContext(Thread* t) {
+extern "C" void restoreContext(Thread* t)  {
     void* sp            = 0; /* pointer to the context of the thread */
-    void* ptStartAddr   = 0; /* page table start address */
+    unint ptStartAddr   = 0; /* page table start address */
     void* mode          = 0; /* thread mode */
 
     /* IRQS disabled is assumed! */
 
-    ASSERT(t != 0);
-
-    if (!isOk(t->popStackPointer(mode)))
-        ERROR("Restore Context failed while popping the stack for context restore Mode!");
-
+   // ASSERT(t != 0);
+    t->popStackPointer(mode);
+    t->popStackPointer(sp);
+   /* if (!isOk(t->popStackPointer(mode)))
+        ERROR("Restore Context failed while popping the stack for context restore Mode!");*/
+/*
     if (!isOk(t->popStackPointer(sp)))
-        ERROR("Restore Context failed while popping the stack for stack pointer!");
+        ERROR("Restore Context failed while popping the stack for stack pointer!");*/
 
-   /* ASSERT(sp != 0); */
-   /* ASSERT(t->getOwner() != 0); */
+    /* ASSERT(sp != 0); */
+    /* ASSERT(t->getOwner() != 0); */
     TaskIdT pid = t->getOwner()->getId();
 
 #if HAS_Board_HatLayerCfd
-    ptStartAddr = (void*) (((unint) &__PageTableSec_start) + pid * 0x4000);
+    ptStartAddr =  (((unint) &__PageTableSec_start) + pid * 0x4000);
 
 #if ENABLE_BRANCH_PREDICTION
     /*
@@ -66,7 +67,7 @@ extern "C" void restoreContext(Thread* t) {
      *  entries on a change of instruction or instruction address mapping"
      */
     asm volatile(
-            "MCR p15, 0, r0, c7 , c5, 6;"  /* invalidate whole branch predictor array */
+            "MCR p15, 0, r0, c7 , c5, 6;" /* invalidate whole branch predictor array */
             :
             :
             : "r0"
@@ -75,13 +76,12 @@ extern "C" void restoreContext(Thread* t) {
 
 #endif
 
-    LOG(HAL, TRACE, "Restore Context: t: %x, sp@ 0x%x, mode:%x" , t,sp, mode);
+    LOG(HAL, TRACE, "Restore Context: t: %x, sp@ 0x%x, mode:%x", t, sp, mode);
 
     /* check if if this thread is waiting on a signal value */
     int signalvalue = t->signalvalue;
     int pass_signal = t->signal != 0;
-    if (pass_signal)
-    {
+    if (pass_signal) {
         t->signal = 0;
     }
 
@@ -99,27 +99,27 @@ extern "C" void restoreContext(Thread* t) {
 #if HAS_Board_HatLayerCfd
             "MOV    r2, #0x0;"
             "ORR    r1, r1, %2, lsl #8;"
-            "MCR    p15, 0, r1, c13, c0, 1;"  /* set ASID and PROCID field of CONTEXTIDR register */
-            "MCR    p15, 0, r2, c7 , c5, 4;"  /* Ensure completion of the CP15 write (ISB not working) */
-            "MCR    p15, 0, %1, c2 , c0, 0;"  /* set TBBR0 */
-            "MCR    p15, 0, r2, c7 , c5, 4;"  /* Ensure completion of the CP15 write (ISB not working) */
+            "MCR    p15, 0, r1, c13, c0, 1;"    /* set ASID and PROCID field of CONTEXTIDR register */
+            //"MCR    p15, 0, r2, c7 , c5, 4;"  /* Ensure completion of the CP15 write (ISB not working) */
+            "MCR    p15, 0, %1, c2 , c0, 0;"    /* set TBBR0 */
+            //"MCR    p15, 0, r2, c7 , c5, 4;"  /* Ensure completion of the CP15 write (ISB not working) */
 #endif
-            "LDR	sp, =__stack - 0x20;"   /* temporary accessible stack position for context restore */
-            "MOV    r0, %0;"                /* load context address*/
-            "MOV    r1, %3;"                /* set restore context mode */
-            "CMP    %4,1;"                  /* check if we need to return the signal value */
-            "STREQ  %5, [%0, #4];"          /* if so put into return register r0*/
+            //"LDR    sp, =__stack - 0x20;"       /* temporary accessible stack position for context restore */
+            "MOV    r0, %0;"                    /* load context address*/
+            "MOV    r1, %3;"                    /* set restore context mode */
+            "CMP    %4, #1;"                      /* check if we need to return the signal value */
+            "STREQ  %5, [%0, #4];"              /* if so put into return register r0*/
 
             /*"push {r0-r3};"
              "bl  dumpContext;"
              "pop  {r0-r3};"*/
 
-            "b 	    restoreThreadContext;"
+            "b         restoreThreadContext;"
             :
             : "r" (sp), "r" (ptStartAddr), "r" (pid) ,"r" (mode) , "r" (pass_signal), "r" (signalvalue)
             : "r0", "r1", "r2" , "r3"
     );
 
-    __builtin_unreachable ();
+    __builtin_unreachable();
 }
 

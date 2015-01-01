@@ -75,9 +75,46 @@
  *               Main Kernel Methods
  * ------------------------------------------------------ */
 
+/*****************************************************************************
+ * Method: kwait(int milliseconds)
+ *
+ * @description
+ *  Waits for the given number of milliseconds
+ *
+ * @params
+ *  milliseconds:   The number of milliseconds to wait
+ *
+ * @returns
+ *
+ *---------------------------------------------------------------------------*/
 void kwait(int milliseconds);
 
+/*****************************************************************************
+ * Method: kwait_us(int microseconds)
+ *
+ * @description
+ *  Waits for the given number of micro seconds
+ *
+ * @params
+ *  milliseconds:   The number of micro seconds to wait
+ *
+ * @returns
+ *
+ *---------------------------------------------------------------------------*/
 void kwait_us(int microseconds);
+
+void kwait_us_nonmem(int microseconds);
+
+#define TIMEOUT_WAIT(condition, timeout_us) ({  \
+    static int __timeout = timeout_us; \
+    while ((condition) && (__timeout)) \
+    { \
+        __timeout--; \
+        kwait_us_nonmem(1); \
+    } \
+    (__timeout <= 0); \
+})
+
 
 /*------------------------------------------------------
  *               The KERNEL class
@@ -92,7 +129,6 @@ void kwait_us(int microseconds);
  */
 class Kernel {
 private:
-
     //! The Filesystem Manager
     SimpleFileManager* fileManager;
 
@@ -127,14 +163,21 @@ private:
     Trace* trace;
 #endif
 
-    /*!
-     *  \brief Initialize the device drivers and the associated hardware components
-     */
+    /*****************************************************************************
+     * Method: initDeviceDrivers()
+     *
+     * @description
+     *  Initializes the Kernel Device driver infrastructure.
+     *  Instantiates the board.
+     *---------------------------------------------------------------------------*/
     void initDeviceDrivers();
 
-    /*!
-     * \brief Initialize all initial tasks
-     */
+    /*****************************************************************************
+    * Method: initInitialTaskSet()
+    *
+    * @description
+    *  Initializes the initial tasks provided inside the kernel image.
+    *---------------------------------------------------------------------------*/
     void initInitialTaskSet();
 
     /*!
@@ -145,7 +188,6 @@ private:
     CharacterDevice* stdOutputDevice;
 
 public:
-
     /*!
      *  \brief Constructor of the Kernel
      */
@@ -156,20 +198,36 @@ public:
      */
     ~Kernel();
 
-    /*!
-     * \brief Initialize the Kernel.
-     *
-     * This involves creating all initial Task CBs, creating the scheduler, cpumanager and initializing
-     * the hardware device drivers.
-     */
+    /*****************************************************************************
+    * Method: initialize()
+    *
+    * @description
+    *  Initializes the Kernel.
+    *---------------------------------------------------------------------------*/
     void initialize() __attribute__((noreturn));
 
-    //! The timer device of the system
+    /*****************************************************************************
+    * Method: getTimerDevice()
+    *
+    * @description
+    *  Returns the current cpu timer.
+    *
+    * @returns
+    *  Board_TimerCfdCl* The current Timer device used.
+    *---------------------------------------------------------------------------*/
     inline Board_TimerCfdCl* getTimerDevice() {
         return (board->getTimer());
     }
 
-    //! The clock of the system
+    /*****************************************************************************
+    * Method: getClock()
+    *
+    * @description
+    *  Returns the current cpu clock.
+    *
+    * @returns
+    *  Board_ClockCfdCl* The current clock device used.
+    *---------------------------------------------------------------------------*/
     inline Board_ClockCfdCl* getClock() {
         if (board != 0)
             return (board->getClock());
@@ -177,63 +235,175 @@ public:
     }
 
 #if USE_TRACE
+
 private:
     Trace* tracer;
 
 public:
-
-    Trace* getTrace()
-    {
+    /*****************************************************************************
+    * Method: getTrace()
+    *
+    * @description
+    *  Returns the current tracer module used for kernel profiling
+    *
+    * @returns
+    *  Trace* The current tracer
+    *---------------------------------------------------------------------------*/
+    Trace* getTrace() {
         return (tracer);
     }
 #endif
 
-    /*!
-     * \brief Returns the default scheduler for the cpu
-     */
+    /*****************************************************************************
+    * Method: getCPUScheduler()
+    *
+    * @description
+    *  Returns the current configured cpu scheduler
+    *
+    * @returns
+    *  Kernel_SchedulerCfdCl* The cpu scheduler
+    *---------------------------------------------------------------------------*/
     Kernel_SchedulerCfdCl* getCPUScheduler();
 
 #if ENABLE_NETWORKING
+    /*****************************************************************************
+    * Method: getProtocolPool()
+    *
+    * @description
+    *  Returns the networking protocol pool containing the supported
+    *  protocols. The Socket class uses this pool on creation.
+    *
+    * @returns
+    *  ProtocolPool* The protocol pool
+    *---------------------------------------------------------------------------*/
     inline ProtocolPool* getProtocolPool() {
         return (this->protopool);
     }
 #endif
 
+    /*****************************************************************************
+    * Method: getFileManager()
+    *
+    * @description
+    *  Returns the file manager.
+    *
+    * @returns
+    *  SimpleFileManager* The the file manager used by the kernel.
+    *---------------------------------------------------------------------------*/
     inline SimpleFileManager* getFileManager() {
         return (this->fileManager);
     }
 
 #if USE_WORKERTASK
-    /* Returns the worker thread of the kernel */
+    /*****************************************************************************
+    * Method: getWorkerTask()
+    *
+    * @description
+    *  Returns the WorkerTask used for scheduling aperiodic jobs as e.g.
+    *  IRQ requests to provide a low latency environment.
+    *
+    * @returns
+    *  WorkerTask* The worker task.
+    *---------------------------------------------------------------------------*/
     WorkerTask* getWorkerTask() {
         return (this->theWorkerTask);
     }
 #endif
 
-    //! Returns the database of all registered tasks
+    /*****************************************************************************
+    * Method: getTaskDatabase()
+    *
+    * @description
+    *  Returns the list of currently active tasks inside the system
+    *
+    * @returns
+    *  LinkedList* The list of all tasks used inside the system
+    *---------------------------------------------------------------------------*/
     inline LinkedList* getTaskDatabase() {
         return (this->taskManager->getTaskDatabase());
     }
 
+    /*****************************************************************************
+    * Method: getTaskManager()
+    *
+    * @description
+    *  Returns the task manager responsible for handler task loading/unloading,
+    *  task checking etc.
+    *
+    * @returns
+    *  TaskManager* The task manager
+    *---------------------------------------------------------------------------*/
     inline TaskManager* getTaskManager() {
         return (this->taskManager);
     }
 
+    /*****************************************************************************
+    * Method: getErrorHandler()
+    *
+    * @description
+    *  Returns the error handler
+    *
+    * @returns
+    *  TaskErrorHandler* The task error handler
+    *---------------------------------------------------------------------------*/
     inline TaskErrorHandler* getErrorHandler() {
         return (this->errorHandler);
     }
 
+    /*****************************************************************************
+    * Method: setStdOutputDevice(CharacterDevice* outputDevice)
+    *
+    * @description
+    *  Sets the standard output device
+    *
+    *  @params
+    *   outputDevice: The new standard output device
+    *
+    *---------------------------------------------------------------------------*/
     void setStdOutputDevice(CharacterDevice* outputDevice);
 
+    /*****************************************************************************
+    * Method: getStdOutputDevice()
+    *
+    * @description
+    *  Returns the current standard output device
+    *
+    *  @returns
+    *   CharacterDevice: The standard output device
+    *
+    *---------------------------------------------------------------------------*/
     CharacterDevice* getStdOutputDevice();
 
 #if HAS_Board_USB_HCCfd
-    //! Returns the usb driver library of the kernel
+    /*****************************************************************************
+    * Method: getUSBDriverLibrary()
+    *
+    * @description
+    *  Returns the USB Driver Library containing the list of
+    *  USB driver factories. This library is queried by the
+    *  USB EHCI implementation upon device detection for the corresponding
+    *  USB device attached.
+    *
+    *  @returns
+    *   USBDriverLibrary: The USB Driver library
+    *
+    *---------------------------------------------------------------------------*/
     inline USBDriverLibrary* getUSBDriverLibrary() {
         return (usbDriverLib);
     }
 #endif
 
+    /*****************************************************************************
+    * Method: getBoard()
+    *
+    * @description
+    *  Returns the board object containing references to the device driver (not
+    *  necessarily kernel driver but also user space device driver)
+    *
+    *  @returns
+    *   BoardCfdCl: The Board
+    *
+    *---------------------------------------------------------------------------*/
     inline BoardCfdCl* getBoard() {
         return (board);
     }

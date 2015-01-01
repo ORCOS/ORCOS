@@ -97,7 +97,7 @@ err_t tcp_send_ctrl(struct tcp_pcb *pcb, u8_t flags) {
  * it can send them more efficiently by combining them together).
  * To prompt the system to send data now, call tcp_output() after
  * calling tcp_write().
- * 
+ *
  * @param pcb Protocol control block of the TCP connection to enqueue data for.
  * @param data pointer to the data to send
  * @param len length (in bytes) of the data to send
@@ -105,7 +105,7 @@ err_t tcp_send_ctrl(struct tcp_pcb *pcb, u8_t flags) {
  * - TCP_WRITE_FLAG_COPY (0x01) data will be copied into memory belonging to the stack
  * - TCP_WRITE_FLAG_MORE (0x02) for TCP connection, PSH flag will be set on last segment sent,
  * @return ERR_OK if enqueued, another err_t on error
- * 
+ *
  * @see tcp_write()
  */
 /*err_t
@@ -260,7 +260,7 @@ err_t tcp_enqueue(struct tcp_pcb *pcb, struct pbuf *p_input, u16_t len, u8_t fla
 
         /*if (apiflags & TCP_WRITE_FLAG_COPY) {
          if ((seg->p = pbuf_alloc(PBUF_TRANSPORT, seglen + optlen, PBUF_RAM)) == NULL) {
-         LWIP_DEBUGF(TCP_OUTPUT_DEBUG | LWIP_DBG_LEVEL_SERIOUS, 
+         LWIP_DEBUGF(TCP_OUTPUT_DEBUG | LWIP_DBG_LEVEL_SERIOUS,
          ("tcp_enqueue : could not allocate memory for pbuf copy size %"U16_F""NEWLINE, seglen));
          goto memerr;
          }
@@ -545,7 +545,7 @@ err_t tcp_send_empty_ack(struct tcp_pcb *pcb) {
     {
         tcp_build_timestamp_option(pcb, (u32_t *)(tcphdr + 1));
     }
-#endif 
+#endif
 
 #if CHECKSUM_GEN_TCP
     tcphdr->chksum =
@@ -603,9 +603,7 @@ err_t tcp_output(struct tcp_pcb *pcb) {
      * If data is to be sent, we will just piggyback the ACK (see below).
      */
     if ((pcb->flags & TF_ACK_NOW)
-            && (seg == NULL
-                    || (ntohl(seg->tcphdr->seqno) - pcb->lastack + seg->len)
-                            > wnd))
+         && (seg == NULL  || (ntohl(seg->tcphdr->seqno) - pcb->lastack + seg->len) > wnd))
     {
         return tcp_send_empty_ack(pcb);
     }
@@ -614,8 +612,7 @@ err_t tcp_output(struct tcp_pcb *pcb) {
     useg = pcb->unacked;
     if (useg != NULL)
     {
-        for (; useg->next != NULL; useg = useg->next)
-            ;
+        for (; useg->next != NULL; useg = useg->next){};
     }
 
     /*#if TCP_OUTPUT_DEBUG
@@ -702,8 +699,7 @@ err_t tcp_output(struct tcp_pcb *pcb) {
                 {
                     /* add segment to before tail of unacked list, keeping the list sorted */
                     struct tcp_seg **cur_seg = &(pcb->unacked);
-                    while (*cur_seg
-                            && TCP_SEQ_LT(ntohl((*cur_seg)->tcphdr->seqno), ntohl(seg->tcphdr->seqno)))
+                    while (*cur_seg && TCP_SEQ_LT(ntohl((*cur_seg)->tcphdr->seqno), ntohl(seg->tcphdr->seqno)))
                     {
                         cur_seg = &((*cur_seg)->next);
                     }

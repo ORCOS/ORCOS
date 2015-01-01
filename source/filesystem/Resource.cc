@@ -21,7 +21,6 @@
 #include <assemblerFunctions.hh>
 #include "process/Task.hh"
 #include "filesystem/File.hh"
-#include "inc/newlib/newlib_helper.hh"
 #include "kernel/Kernel.hh"
 
 extern Kernel* theOS;
@@ -31,48 +30,68 @@ extern Kernel* theOS;
 ResourceIdT Resource::globalResourceIdCounter;
 
 Resource::Resource(ResourceType rt, bool sync_res, const char* p_name) {
-    this->restype = rt;
-    this->name = p_name;
+    this->restype   = rt;
+    this->name      = p_name;
     /* TODO: take care of integer overflows here.. need to guarantee the id is not used*/
     this->myResourceId = globalResourceIdCounter++;
+    if (globalResourceIdCounter == 0) {
+        ERROR("Out of Resource IDs!");
+    }
     /* if this is a resource that needs to be synchronized create Mutex */
     if (sync_res)
-        this->accessControl = new ( DO_ALIGN) Mutex();
+        this->accessControl = new Mutex();
     else
         this->accessControl = 0;
 }
 
+/*****************************************************************************
+ * Method: Resource::acquire(Thread* pThread, bool blocking)
+ *
+ * @description
+ *  Tries to acquire the resource for the given thread. If blocking
+ *  and the resource is currently owned by another task and the resource
+ *  is protected the thread is blocked.
+ *
+ * @params
+ *  pThread     Thread that wants to acquire the resource
+ * blocking     Shall be block the thread if resource is owned and protected?
+ *
+ * @returns
+ *  int         Error Code
+ *******************************************************************************/
 int Resource::acquire(Thread* pThread, bool blocking) {
-    ASSERT(pThread);
+   if (pThread == 0) {
+       pThread = pCurrentRunningThread;
+   }
 
     int retval = this->myResourceId;
 
-    if (this->accessControl != 0)
-    {
+    if (this->accessControl != 0) {
         /* blocking call */
-        if (accessControl->acquire(this, blocking) != cOk)
-            retval = cError;
+        if (accessControl->acquire(this, blocking) != cOk) {
+            return (cError);
+        }
     }
-    else
-    {
-        /* this resource is not synchronized. so just add it to the set of acquired resources */
+
+    if (pThread != 0) {
+        /* Add resource to the set of acquired resources */
         int result = pThread->getOwner()->aquiredResources.addTail(this);
         /* forward status back to user */
         if (result < 0)
             retval = result;
 
         /* for files we also reset the position */
-        if (this->getType() & (cFile | cDirectory) )
-            ((CharacterDevice*) this)->resetPosition();
+        if (this->getType() & (cFile | cDirectory)) {
+            CharacterDevice* cdev = static_cast<CharacterDevice*>(this);
+            cdev->resetPosition();
+        }
     }
 
     return (retval);
-
 }
 
 Resource::~Resource() {
-
-    LOG(FILESYSTEM, TRACE, "Deleting Resource %s.",this->name);
+    LOG(FILESYSTEM, TRACE, "Deleting Resource %s.", this->name);
     /* TODO: remove the resource from the thread acquired resources
      check for these threads..
      before deleting this resource check if some threads are blocked waiting for this resource
@@ -90,21 +109,36 @@ Resource::~Resource() {
     this->accessControl = 0;
 }
 
+/*****************************************************************************
+ * Method: Resource::release(Thread* pThread)
+ *
+ * @description
+ *  Releases the resource.
+ *
+ * @params
+ *  pThread     The thread that releases the resource
+ *
+ * @returns
+ *  int         Error Code
+ *******************************************************************************/
 ErrorT Resource::release(Thread* pThread) {
-    ASSERT(pThread);
+    if (pThread == 0) {
+          pThread = pCurrentRunningThread;
+    }
 
-    if (this->accessControl != 0)
-        return (accessControl->release(pThread));
-    else
-    {
-        /* remove myself from the database */
+    if (this->accessControl != 0) {
+        accessControl->release(pThread);
+    }
+
+    if (pThread != 0) {
+        /* remove resource from the database */
         DISABLE_IRQS(status);
         ListItem* removedItem = pThread->getOwner()->aquiredResources.removeItem(this);
         RESTORE_IRQS(status);
         if (removedItem == 0) {
-            return (cElementNotInDatabase);
+            return (cElementNotInDatabase );
         }
-        return (cOk );
     }
+    return (cOk );
 
 }

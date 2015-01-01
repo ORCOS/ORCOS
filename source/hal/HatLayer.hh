@@ -26,11 +26,11 @@
 #include <Bitmap.hh>
 
 typedef struct t_mapping {
-    unint4 vir_addr;
-    unint4 phy_addr;
-    size_t size;
+    unint4  vir_addr;
+    unint4  phy_addr;
+    size_t  size;
     BitmapT protection;
-    BitmapT flags;
+    int     cacheMode;
 } t_mapping;
 
 typedef struct t_archmappings {
@@ -43,8 +43,18 @@ typedef struct t_archmappings {
 #define hatProtectionWrite        (BitmapT)2
 #define hatProtectionExecute      (BitmapT)4
 
-/* Mapping Flags */
-#define hatCacheInhibit           (BitmapT)1
+/* Cache Modes */
+/* Normal cachable Memory Area in write back mode */
+#define hatCacheWriteBack         0
+/* Normal cachable Memory Area in write through mode */
+#define hatCacheWriteThrough      1
+/* Uncachable memory area */
+#define hatCacheInhibit           2
+/* Memory mapped IO area. On some platforms these areas can be mapped
+ * in a way that write transactions are queue and not waited for, thus,
+ *  speeding up the access to them */
+#define hatCacheMMIO              3
+
 
 /*!
  * \ingroup memmanager

@@ -27,12 +27,15 @@ public:
     ARMv4TProcessor();
     ~ARMv4TProcessor();
 
-    /*!
-     * \brief puts the processor to idle mode
+    /*****************************************************************************
+     * Method: idle()
+     *
+     * @description
+     * TODO: Puts the processor to idle mode
      *
      * enables the wait state of the arm processor. it will only be left again,
      * when an interrupt occurs.
-     */
+     *******************************************************************************/
     ErrorT idle();
 };
 

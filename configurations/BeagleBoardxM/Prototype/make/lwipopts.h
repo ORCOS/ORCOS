@@ -167,7 +167,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * - mem_free_callback(m);
  */
 #ifndef LWIP_ALLOW_MEM_FREE_FROM_OTHER_CONTEXT
-#define LWIP_ALLOW_MEM_FREE_FROM_OTHER_CONTEXT 0
+#define LWIP_ALLOW_MEM_FREE_FROM_OTHER_CONTEXT 1
 #endif
 
 /*
@@ -301,7 +301,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * PBUF_POOL_SIZE: the number of buffers in the pbuf pool.
  */
 #ifndef PBUF_POOL_SIZE
-#define PBUF_POOL_SIZE                  10
+#define PBUF_POOL_SIZE  20
 #endif
 
 
@@ -1277,7 +1277,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * ETHARP_STATS==1: Enable etharp stats.
  */
 #ifndef ETHARP_STATS
-#define ETHARP_STATS                    0//(LWIP_ARP)
+#define ETHARP_STATS  0
 #endif
 
 /**
@@ -1563,7 +1563,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * CHECKSUM_CHECK_UDP==1: Check checksums in software for incoming UDP packets.
  */
 #ifndef CHECKSUM_CHECK_UDP
-#define CHECKSUM_CHECK_UDP              1
+#define CHECKSUM_CHECK_UDP  1
 #endif
 
 /**
@@ -1599,21 +1599,21 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * ETHARP_DEBUG: Enable debugging in etharp.c.
  */
 #ifndef ETHARP_DEBUG
-#define ETHARP_DEBUG  LWIP_DBG_ON
+#define ETHARP_DEBUG  LWIP_DBG_OFF
 #endif
 
 /**
  * NETIF_DEBUG: Enable debugging in netif.c.
  */
 #ifndef NETIF_DEBUG
-#define NETIF_DEBUG  LWIP_DBG_ON
+#define NETIF_DEBUG  LWIP_DBG_OFF
 #endif
 
 /**
  * PBUF_DEBUG: Enable debugging in pbuf.c.
  */
 #ifndef PBUF_DEBUG
-#define PBUF_DEBUG                      LWIP_DBG_ON
+#define PBUF_DEBUG  LWIP_DBG_OFF
 #endif
 
 /**
@@ -1662,7 +1662,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * IP_DEBUG: Enable debugging for IP.
  */
 #ifndef IP_DEBUG
-#define IP_DEBUG  LWIP_DBG_ON
+#define IP_DEBUG  LWIP_DBG_OFF
 #endif
 
 /**
@@ -1704,7 +1704,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * TCP_DEBUG: Enable debugging for TCP.
  */
 #ifndef TCP_DEBUG
-#define TCP_DEBUG  LWIP_DBG_ON
+#define TCP_DEBUG  LWIP_DBG_OFF
 #endif
 
 /**
@@ -1761,14 +1761,14 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * TCP_QLEN_DEBUG: Enable debugging for TCP queue lengths.
  */
 #ifndef TCP_QLEN_DEBUG
-#define TCP_QLEN_DEBUG  				LWIP_DBG_OFF
+#define TCP_QLEN_DEBUG                  LWIP_DBG_OFF
 #endif
 
 /**
  * UDP_DEBUG: Enable debugging in UDP.
  */
 #ifndef UDP_DEBUG
-#define UDP_DEBUG                       LWIP_DBG_OFF
+#define UDP_DEBUG  LWIP_DBG_OFF
 #endif
 
 /**

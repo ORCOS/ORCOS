@@ -20,27 +20,30 @@
 #include "kernel/Kernel.hh"
 
 // if we are sure a -b is never > b we can use this!
-#define MODULO(a,b)  a >= b ? a-b : a
+#define MODULO(a, b)  a >= b ? a-b : a
 
 ArrayList::ArrayList(unint1 max) {
     maxEntries = max;
     numEntries = 0;
     entries = new ListItem*[max];
 
-    for (int i = 0; i < maxEntries; i++)
-    {
+    for (int i = 0; i < maxEntries; i++) {
         entries[i] = 0;
     }
 
     headPointer = 0;
-
 }
 
 ArrayList::~ArrayList() {
     delete[] entries;
 }
 
-
+/*****************************************************************************
+ * Method: ArrayList::getTail()
+ *
+ * @description
+ *
+ *******************************************************************************/
 ListItem* ArrayList::getTail() {
     if (numEntries == 0)
         return (0);
@@ -48,10 +51,14 @@ ListItem* ArrayList::getTail() {
         return (entries[MODULO((headPointer + numEntries - 1), maxEntries)]);
 }
 
+/*****************************************************************************
+ * Method: ArrayList::addTail(ListItem* item)
+ *
+ * @description
+ *
+ *******************************************************************************/
 ErrorT ArrayList::addTail(ListItem* item) {
-
-    if (numEntries + 1 > maxEntries)
-    {
+    if (numEntries + 1 > maxEntries) {
         return (cDatabaseOverflow );
     }
 
@@ -62,21 +69,22 @@ ErrorT ArrayList::addTail(ListItem* item) {
     return (cOk );
 }
 
+/*****************************************************************************
+ * Method: ArrayList::addHead(ListItem* item)
+ *
+ * @description
+ *
+ *******************************************************************************/
 ErrorT ArrayList::addHead(ListItem* item) {
-
-    if (numEntries + 1 > maxEntries)
-    {
+    if (numEntries + 1 > maxEntries) {
         return (cDatabaseOverflow );
     }
 
-    if (headPointer == 0)
-    {
+    if (headPointer == 0) {
         //addHead only grows to the left side,
         //so check whether it goes over 0
         headPointer = (unint1) (maxEntries - 1);
-    }
-    else
-    {
+    } else {
         headPointer--;
     }
 
@@ -84,12 +92,16 @@ ErrorT ArrayList::addHead(ListItem* item) {
     numEntries++;
 
     return (cOk );
-
 }
 
+/*****************************************************************************
+ * Method: ArrayList::removeHead()
+ *
+ * @description
+ *
+ *******************************************************************************/
 ListItem* ArrayList::removeHead() {
-    if (0 == numEntries)
-    {
+    if (0 == numEntries) {
         return (0);
     }
 
@@ -97,21 +109,23 @@ ListItem* ArrayList::removeHead() {
 
     entries[headPointer] = 0;
 
-    if (headPointer == (maxEntries - 1))
-    {
+    if (headPointer == (maxEntries - 1)) {
         headPointer = 0;
-    }
-    else
-    {
+    } else {
         headPointer++;
     }
     numEntries--;
     return (ret);
 }
 
+/*****************************************************************************
+ * Method: ArrayList::removeTail()
+ *
+ * @description
+ *
+ *******************************************************************************/
 ListItem* ArrayList::removeTail() {
-    if (0 == numEntries)
-    {
+    if (0 == numEntries) {
         return (0);
     }
 
@@ -122,10 +136,14 @@ ListItem* ArrayList::removeTail() {
     return (ret);
 }
 
+/*****************************************************************************
+ * Method: ArrayList::removeItemAt(int at)
+ *
+ * @description
+ *
+ *******************************************************************************/
 ListItem* ArrayList::removeItemAt(int at) {
-
-    if (at < 0 || at >= numEntries)
-    {
+    if (at < 0 || at >= numEntries) {
         return (0);
     }
 
@@ -133,8 +151,7 @@ ListItem* ArrayList::removeItemAt(int at) {
 
     ListItem* ret = entries[ptr];
     entries[ptr] = 0;
-    for (int i = 0; i < ((numEntries - 1) - at); i++)
-    {
+    for (int i = 0; i < ((numEntries - 1) - at); i++) {
         int p = MODULO((headPointer + at + i), maxEntries);
         entries[p] = entries[MODULO((p + 1), maxEntries)];
     }
@@ -143,20 +160,22 @@ ListItem* ArrayList::removeItemAt(int at) {
     return (ret);
 }
 
+/*****************************************************************************
+ * Method: ArrayList::insertItemAt(int at, ListItem* item)
+ *
+ * @description
+ *
+ *******************************************************************************/
 ErrorT ArrayList::insertItemAt(int at, ListItem* item) {
-
-    if (numEntries + 1 > maxEntries)
-    {
+    if (numEntries + 1 > maxEntries) {
         return (cDatabaseOverflow );
     }
 
-    if (at < 0 || at > numEntries)
-    {
+    if (at < 0 || at > numEntries) {
         return (cIndexOutOfBounds );
     }
 
-    for (int i = (numEntries - at); i >= 0; i--)
-    {
+    for (int i = (numEntries - at); i >= 0; i--) {
         int p = MODULO((headPointer + at + i), maxEntries);
         entries[MODULO((p + 1), maxEntries)] = entries[p];
     }
@@ -165,29 +184,44 @@ ErrorT ArrayList::insertItemAt(int at, ListItem* item) {
 
     numEntries++;
     return (cOk );
-
 }
 
+/*****************************************************************************
+ * Method: ArrayList::getItemAt(int i)
+ *
+ * @description
+ *
+ *******************************************************************************/
 ListItem* ArrayList::getItemAt(int i) {
     return (entries[MODULO((headPointer + i), maxEntries)]);
 }
 
+/*****************************************************************************
+ * Method: ArrayList::removeItem(ListItem* item)
+ *
+ * @description
+ *
+ *******************************************************************************/
 ListItem* ArrayList::removeItem(ListItem* item) {
-    for (int i = 0; i < numEntries; i++)
-    {
-        if (item == entries[MODULO((headPointer + i), maxEntries)])
-        {
+    for (int i = 0; i < numEntries; i++) {
+        if (item == entries[MODULO((headPointer + i), maxEntries)]) {
             return (removeItemAt(i));
         }
     }
     return (0);
 }
 
+/*****************************************************************************
+ * Method: ArrayList::print()
+ *
+ * @description
+ *
+ *******************************************************************************/
 void ArrayList::print() {
-    for (int i = 0; i < maxEntries; i++ ) {
+    for (int i = 0; i < maxEntries; i++) {
         if (headPointer == i)
             printf("H ");
-        printf("|%8x",entries[i]);
+        printf("|%8x", entries[i]);
     }
     printf("|"LINEFEED);
 }

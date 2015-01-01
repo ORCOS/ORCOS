@@ -59,20 +59,3 @@ size_t LinearMemManager::getUsedMemSize() {
     return ((size_t) FreeHeadPtr - start);
 }
 
-#ifdef SERIALIZE
-bool LinearMemManager::serialize(void* &serialized_object, unint2 &length)
-{
-    serialized_object = this;
-    length = sizeof(LinearMemManager);
-    return 1;
-}
-
-LinearMemManager* LinearMemManager::deserialize(void* serialized_object, unint2 length)
-{
-    if (length != sizeof(LinearMemManager)) return 0;
-
-    LinearMemManager* newobject = (LinearMemManager*) theOS->getMemoryManager()->alloc(length);
-    memcpy(newobject,serialized_object,length);
-    return newobject;
-}
-#endif

@@ -17,42 +17,39 @@
  */
 
 #include <kernel/Kernel.hh>
-#include "syscalls/handle_syscalls.hh"
+#include "syscalls/syscalls.hh"
 #include "inc/error.hh"
 #include "OMAP3530.h"
-#include "BeagleBoardxM.hh"
-
-#define STACK_CONTENT(sp_int,offset) *( (long*) ( ( (long) sp_int) + offset)  )
 
 extern "C" void handleTimerInterrupt(void* sp_int);
 
 extern Kernel* theOS;
 extern Board_TimerCfdCl* theTimer;
 extern Task* pCurrentRunningTask;
+extern Board_InterruptControllerCfdCl* theInterruptController;
 
 extern "C" void dumpContext(void* sp_context) {
-
-    LOG(ARCH, ERROR,"Context at 0x%08x:", (unint4) sp_context);
-    LOG(ARCH, ERROR, "PSR: 0x%08x  PC : 0x%08x", ((unint4*) sp_context)[0],((unint4*) sp_context)[14]);
-    LOG(ARCH, ERROR, "r0 : 0x%08x  r1 : 0x%08x  r2 : 0x%08x",((unint4*) sp_context)[1],((unint4*) sp_context)[2],((unint4*) sp_context)[3]);
-    LOG(ARCH, ERROR, "r3 : 0x%08x  r4 : 0x%08x  r5 : 0x%08x",((unint4*) sp_context)[4],((unint4*) sp_context)[5],((unint4*) sp_context)[6]);
-    LOG(ARCH, ERROR, "r6 : 0x%08x  r7 : 0x%08x  r8 : 0x%08x",((unint4*) sp_context)[7],((unint4*) sp_context)[8],((unint4*) sp_context)[9]);
-    LOG(ARCH, ERROR, "r9 : 0x%08x  r10: 0x%08x  r11: 0x%08x",((unint4*) sp_context)[10],((unint4*) sp_context)[11],((unint4*) sp_context)[12]);
-    LOG(ARCH, ERROR, "SP : 0x%08x  FP : 0x%08x", ((unint4*) sp_context)[16],((unint4*) sp_context)[17]);
+    unint4* context = reinterpret_cast<unint4*>(sp_context);
+    LOG(ARCH, ERROR, "Context at 0x%08x:", (unint4) sp_context);
+    LOG(ARCH, ERROR, "PSR: 0x%08x  PC : 0x%08x", context[0], context[13]);
+    LOG(ARCH, ERROR, "r0 : 0x%08x  r1 : 0x%08x  r2 : 0x%08x", context[1] , context[2] , context[3]);
+    LOG(ARCH, ERROR, "r3 : 0x%08x  r4 : 0x%08x  r5 : 0x%08x", context[4] , context[5] , context[6]);
+    LOG(ARCH, ERROR, "r6 : 0x%08x  r7 : 0x%08x  r8 : 0x%08x", context[7] , context[8] , context[9]);
+    LOG(ARCH, ERROR, "r9 : 0x%08x  r10: 0x%08x  r11: 0x%08x", context[10], context[11], context[12]);
+    LOG(ARCH, ERROR, "r12: 0x%08x  SP : 0x%08x  LR : 0x%08x", context[13], context[14], context[15]);
 
     //LOG(ARCH, ERROR,"LR: 0x%08x", ((unint4*) sp_context)[15]);
-
 }
 
 extern "C" void handleDataAbort(int addr, int instr, int context, int spsr) {
-    LOG(ARCH, ERROR, "Data Abort at address: 0x%08x , instr: 0x%08x, SPSR: 0x%08x",addr,instr,spsr);
+    LOG(ARCH, ERROR, "Data Abort at address: 0x%08x , instr: 0x%08x, SPSR: 0x%08x", addr, instr, spsr);
 
-    dumpContext((void*)context);
+    dumpContext(reinterpret_cast<void*>(context));
 
-    int sp = ((unint4*) context)[16];
+    int sp = (reinterpret_cast<unint4*>(context))[14];
 
     /* print the call trace */
-    backtrace_addr((void*) instr,sp);
+    backtrace_addr(reinterpret_cast<void*>(instr), sp);
 
     int tid = 0;
     if (pCurrentRunningTask != 0)
@@ -66,7 +63,7 @@ extern "C" void handleDataAbort(int addr, int instr, int context, int spsr) {
             :
     );
 
-    LOG(ARCH, ERROR,"TID: %d, DFSR: %x",tid, dfsr);
+    LOG(ARCH, ERROR, "TID: %d, DFSR: %x", tid, dfsr);
 
 #ifdef HAS_Board_HatLayerCfd
 
@@ -82,38 +79,32 @@ extern "C" void handleDataAbort(int addr, int instr, int context, int spsr) {
             : "r0"
     );
 
-    LOG(ARCH, ERROR, "ASID: %d, TBB0: 0x%x, Task PT: 0x%x",asid,tbb0,paget);
+    LOG(ARCH, ERROR, "ASID: %d, TBB0: 0x%x, Task PT: 0x%x", asid, tbb0, paget);
     theOS->getHatLayer()->dumpPageTable(tid);
 #endif
 
     /* handle the error */
     theOS->getErrorHandler()->handleError(cDataAbortError);
 
-    while (true)
-    {
-    };
+    __builtin_unreachable();
+    while (true) { }
 }
 
 extern "C" void handleUndefinedIRQ(int addr, int spsr, int context, int sp) {
-    LOG(ARCH, ERROR, "Undefined Instruction IRQ, Addr: 0x%x, SPSR: 0x%x",addr,spsr);
+    LOG(ARCH, ERROR, "Undefined Instruction IRQ, Addr: 0x%x, SPSR: 0x%x", addr, spsr);
 
-    for (int i = 0; i < 12; i++)
-    {
-        LOG(ARCH, ERROR,"r%d : %x",i,((unint4*) context)[i]);
-    }
+    dumpContext(reinterpret_cast<void*>(context));
 
     memdump(addr - 16, 8);
 
-
     /* print the call trace */
-    backtrace_addr((void*) addr,sp);
-
+    backtrace_addr(reinterpret_cast<void*>(addr), sp);
 
     int tid = 0;
     if (pCurrentRunningTask != 0)
         tid = pCurrentRunningTask->getId();
 
-    LOG(ARCH, ERROR, "TID: %d",tid);
+    LOG(ARCH, ERROR, "TID: %d", tid);
 
 #ifdef HAS_Board_HatLayerCfd
 
@@ -129,7 +120,7 @@ extern "C" void handleUndefinedIRQ(int addr, int spsr, int context, int sp) {
             : "r0"
     );
 
-    LOG(ARCH, ERROR, "ASID: %d %d, TBB0: 0x%x, Task PT: 0x%x",asid >> 8, asid & 0xff,tbb0,paget);
+    LOG(ARCH, ERROR, "ASID: %d %d, TBB0: 0x%x, Task PT: 0x%x", asid >> 8, asid & 0xff, tbb0, paget);
     theOS->getHatLayer()->dumpPageTable(tid);
 #endif
 
@@ -139,21 +130,16 @@ extern "C" void handleUndefinedIRQ(int addr, int spsr, int context, int sp) {
 
 extern "C" void handleFIQ() {
     LOG(ARCH, ERROR, "FIQ..");
-    while (true)
-    {
-    };
+    while (true) { }
 }
 
 extern "C" void handlePrefetchAbort(int instr, int context, int sp) {
-    LOG(ARCH, ERROR, "Prefetch Abort IRQ. instr: 0x%x",instr);
+    LOG(ARCH, ERROR, "Prefetch Abort IRQ. instr: 0x%x", instr);
 
-    for (int i = -1; i <= 13; i++)
-    {
-        LOG(ARCH, ERROR, "r%d : %x",i,((unint4*) context)[i]);
-    }
+    dumpContext(reinterpret_cast<void*>(context));
 
     /* print the call trace */
-    backtrace_addr((void*) instr,sp);
+    backtrace_addr(reinterpret_cast<void*>(instr), sp);
 
     int tid = 0;
     if (pCurrentRunningTask != 0)
@@ -168,7 +154,7 @@ extern "C" void handlePrefetchAbort(int instr, int context, int sp) {
             :
     );
 
-    LOG(ARCH, ERROR, "TID: %d, IFAR: %x, IFSR: %x",tid, ifar, ifsr);
+    LOG(ARCH, ERROR, "TID: %d, IFAR: %x, IFSR: %x", tid, ifar, ifsr);
 
 #ifdef HAS_Board_HatLayerCfd
 
@@ -184,7 +170,7 @@ extern "C" void handlePrefetchAbort(int instr, int context, int sp) {
             : "r0"
     );
 
-    LOG(ARCH, ERROR, "ASID: %d %d, TBB0: 0x%x, Task PT: 0x%x",asid >> 8, asid & 0xff,tbb0,paget);
+    LOG(ARCH, ERROR, "ASID: %d %d, TBB0: 0x%x, Task PT: 0x%x", asid >> 8, asid & 0xff, tbb0, paget);
     theOS->getHatLayer()->dumpPageTable(tid);
 #endif
 
@@ -199,57 +185,52 @@ extern "C" void handlePrefetchAbort(int instr, int context, int sp) {
  * - forwarding of all other irqs to the generic interrupt manager
  */
 extern "C" void dispatchIRQ(void* sp_int, int mode) {
-    if (pCurrentRunningThread != 0)
-    {
+    if (pCurrentRunningThread != 0) {
         ASSERT(isOk(pCurrentRunningThread->pushStackPointer(sp_int)));
-        ASSERT(isOk(pCurrentRunningThread->pushStackPointer((void*)mode)));
+        ASSERT(isOk(pCurrentRunningThread->pushStackPointer(reinterpret_cast<void*>(mode))));
     }
 
     int irqSrc;
-    irqSrc = theOS->getBoard()->getInterruptController()->getIRQStatusVector();
-    LOG(HAL, TRACE,"IRQ number: %d, sp_int %x, mode: %d",irqSrc, sp_int, mode);
+    irqSrc = theInterruptController->getIRQStatusVector();
+
+    LOG(HAL, TRACE, "IRQ number: %d, sp_int %x, mode: %d", irqSrc, sp_int, mode);
 
     /* jump to interrupt handler according to active interrupt */
     switch (irqSrc) {
-    /* General Purpose Timer interrupt used for scheduling */
-    case GPT10_IRQ: {
-        /* non returning irq ..*/
-        theOS->getBoard()->getInterruptController()->clearIRQ(irqSrc);
-        handleTimerInterrupt(sp_int);
-        break;
-    }
-    default: {
-        /* all other irqs are handled by the interrupt manager
-         * and scheduled using workerthreads if activated */
-        theOS->getInterruptManager()->handleIRQ(irqSrc);
-        theOS->getBoard()->getInterruptController()->clearIRQ(irqSrc);
-    }
+        /* General Purpose Timer interrupt used for scheduling */
+        case GPT1_IRQ: {
+            /* non returning irq ..*/
+            theTimer->clearIRQ();
+            /* allow new interrupts to occur */
+            theInterruptController->clearIRQ(irqSrc);
+            theTimer->tick();
+               __builtin_unreachable();
+            break;
+        }
+        default: {
+            /* all other irqs are handled by the interrupt manager
+             * and scheduled using workerthreads if activated */
+            theOS->getInterruptManager()->handleIRQ(irqSrc);
+        }
     }
 
-    /* Dispatch directly as a blocked thread might have been unblock by this irq handling */
-    /* If the same thread is resumed we unfortunately lost some time, by not calling
-     * assemblerfunctions::resumeThread directly */
-    theOS->getDispatcher()->dispatch();
+    /* get back to running thread if any. Otherwise try to dispatch.
+     * if some higher priority thread got unblocked a rescheduling irq
+     * will already be pending and ensure dispatch after context
+     * return*/
+    if (pCurrentRunningThread != 0) {
+        assembler::restoreContext(pCurrentRunningThread);
+    } else {
+        theOS->getDispatcher()->dispatch();
+    }
 
-    /* we should never get here */
-    while (1)
-        ;
+    __builtin_unreachable();
 }
 
 extern "C" void dispatchSWI(void* sp_int, int mode) {
-#if ENABLE_NESTED_INTERRUPTS
-    /* we want nested interrupts so enable interrupts again */
-    _enableInterrupts();
-#endif
-
     ASSERT(isOk(pCurrentRunningThread->pushStackPointer(sp_int)));
-    ASSERT(isOk(pCurrentRunningThread->pushStackPointer((void*)mode)));
+    ASSERT(isOk(pCurrentRunningThread->pushStackPointer(reinterpret_cast<void*>(mode))));
 
-    handleSyscall((unint4) sp_int);
+    handleSyscall((intptr_t) sp_int);
 }
 
-extern "C" void handleTimerInterrupt(void* sp_int) {
-    ASSERT(theTimer);
-    /* call Timer */
-    theTimer->tick();
-}

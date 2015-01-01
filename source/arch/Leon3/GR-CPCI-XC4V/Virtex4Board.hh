@@ -25,12 +25,12 @@
 #include Board_InterruptHandler_hh
 #include Board_SHM_hh
 #include Board_LED_hh
-#include Board_Timer_hh
 #include Board_Clock_hh
 #include Board_UART_hh
 #include Board_ETH_hh
 #include Board_InterruptController_hh
 #include  <arch/Leon3/GR-CPCI-XC4V/AISMemManager.hh>
+#include <OmapGPTimer.hh>
 
 /*!
  * \brief Implementation of the HAL board for the Virtex4 architecture

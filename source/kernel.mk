@@ -17,6 +17,7 @@ KOBJ 	= $(notdir $(KASRC:.S=.o)) $(ARCH_OBJ)
 OBJ 	= $(addprefix $(OUTPUT_DIR),$(KOBJ))
 MODULES = $(addprefix $(MODULES_DIR),$(MODULE_OBJ))
 
+CPPLINT_FILTER=-readability/multiline_string,-whitespace/line_length,-whitespace/indent,-whitespace/comments,-readability/todo,-runtime/references,-runtime/printf,-build/include,-runtime/threadsafe_fn
 # KOBJ and ARCH_OBJ specify the object-files used for linking.
 # For every .cc, .c or .S file there must be a corresponding entry in the KOBJ or ARCH_OBJ list
 # KOBJ specifies kernel-objects which are independent of the target archeticeture, 
@@ -37,17 +38,19 @@ KOBJ += ArrayList.o LinkedList.o
 KOBJ += Logger.o Trace.o dwarf.o
 
 #filesystem
-KOBJ += File.o Directory.o Filemanager.o Resource.o SimpleFileManager.o SharedMemResource.o FileSystemBase.o Partition.o KernelVariable.o
+KOBJ += File.o Directory.o Resource.o SimpleFileManager.o SharedMemResource.o FileSystemBase.o Partition.o SysFs.o
 
 #hal
-KOBJ += PowerManager.o CharacterDevice.o BlockDeviceDriver.o TimerDevice.o CommDeviceDriver.o USCommDeviceDriver.o Clock.o BufferDevice.o
+KOBJ += PowerManager.o CharacterDevice.o BlockDeviceDriver.o TimerDevice.o CommDeviceDriver.o  Clock.o BufferDevice.o
+
+# KOBJ += USCommDeviceDriver.o
 
 #inc
 #__udivdi3.o
 KOBJ += stringtools.o memtools.o sprintf.o putc.o libgccmath.o endian.o crc32.o
 
 #inc/newlib/
-KOBJ += newlib_helper.o
+#KOBJ += newlib_helper.o
 
 #kernel
 KOBJ += kwait.o kernelmain.o Kernel.o 
@@ -68,7 +71,7 @@ KOBJ += TaskErrorHandler.o
 KOBJ += Mutex.o 
 
 #syscall
-KOBJ += sc_common.o sc_io.o sc_mem.o sc_net.o sc_process.o sc_synchro.o
+KOBJ += sc_common.o sc_io.o sc_mem.o sc_net.o sc_process.o sc_synchro.o sc_table.o
 
 #Every directory containing source code must be specified in KERNEL_PATH or ARCH_VPATH, 
 #depending on whether they are common kernel code or specific to the archectiture.
@@ -130,6 +133,7 @@ checktools:
 	@echo All tools installed...
 	@echo 
 	
+	
 
 #---------------------------------------------------------------------------------------------------------------------------------------
 #                                                     Target: all
@@ -190,7 +194,7 @@ uImage: scl tasks $(OUTPUT_DIR)kernel.elf $(OUTPUT_DIR)kernel.bin
 	@echo "----------------------------------"
 	@echo "      Building the uImage"
 	@echo "----------------------------------"
-	/bin/bash $(RELATIVE_SOURCE_PATH)/source/uImage.sh $(UIMAGE_ARCH)
+	sh $(RELATIVE_SOURCE_PATH)/source/uImage.sh $(UIMAGE_ARCH)
 
 
 #---------------------------------------------------------------------------------------------------------------------------------------
@@ -214,6 +218,7 @@ SCLConfig.hh tasktable.S: SCLConfig.xml
 $(OUTPUT_DIR)%.o : %.cc %.hh SCLConfig.hh
 	@echo "kernel.mk[C++]: Compiling  $@"
 	@$(CXX) $(CPFLAGS) $(OPT_FLAGS)  $< --output $@
+	#@python $(KERNEL_DIR)/cpplint.py --extensions=cc,hh,h --filter=$(CPPLINT_FILTER) $< $(patsubst %.cc, %.hh, $<)
 
 $(MODULES_DIR)%.o : %.cc %.hh SCLConfig.hh $(OUTPUT_DIR)syscall.o
 	@echo mkmodules[C++]: Compiling $@	 
@@ -230,17 +235,19 @@ $(MODULES_DIR)%.o : %.cc %.hh SCLConfig.hh $(OUTPUT_DIR)syscall.o
 $(OUTPUT_DIR)%.o : %.cc SCLConfig.hh
 	@echo "kernel.mk[C++]: Compiling  $@"
 	@$(CXX) $(CPFLAGS) $(OPT_FLAGS)  $< --output $@
-
+	#@python $(KERNEL_DIR)/cpplint.py --extensions=cc,hh,h --filter=$(CPPLINT_FILTER) $<
+	
 #rule for compiling c files with header	
 $(OUTPUT_DIR)%.o : %.c %.h SCLConfig.hh
 	@echo "kernel.mk[C  ]: Compiling  $@"
 	@$(CC) $(CFLAGS) $(OPT_FLAGS) $< --output $@
+	#@python $(KERNEL_DIR)/cpplint.py --extensions=cc,hh,h --filter=$(CPPLINT_FILTER) $< $(patsubst %.c, %.h, $<)
 	
 #rule for compiling c files without header
 $(OUTPUT_DIR)%.o : %.c SCLConfig.hh
 	@echo "kernel.mk[C  ]: Compiling  $@"
 	@$(CC) -c $(CFLAGS) $(OPT_FLAGS)   $< --output $@
-
+	#@python $(KERNEL_DIR)/cpplint.py --extensions=cc,hh,h --filter=$(CPPLINT_FILTER) $<
 
 # Create static library of the OS so the linker only links the 
 # really used classes into the binary
@@ -264,12 +271,13 @@ SIGN 	= java -jar $(RELATIVE_SOURCE_PATH)/tools/SCL/dist/sn.jar
 $(OUTPUT_DIR)kernel.elf: output/_startup.o output/tasktable.o $(OUTPUT_DIR)liborcoskernel.a 
 	@echo
 	@echo kernel.mk[LD] : Linking $@	
-	$(LD) -L$(OUTPUT_DIR) output/_startup.o output/tasktable.o -lorcoskernel  $(LDFLAGS) 
+	$(CC) -L$(OUTPUT_DIR) output/_startup.o output/tasktable.o $(OUTPUT_DIR)liborcoskernel.a $(LDFLAGS) 
 	$(OBJDUMP) -h $(OUTPUT_DIR)kernel.elf > $(OUTPUT_DIR)kernel.sections
 	$(SIGN) stringtable $(OUTPUT_DIR)kernel.map
 	@$(CC) -c $(CFLAGS) $(OPT_FLAGS)   ./output/kernel_strtable.c --output ./output/kernel_strtable.o
-	$(LD) -L$(OUTPUT_DIR) output/_startup.o output/tasktable.o -lorcoskernel ./output/kernel_strtable.o $(LDFLAGS)
+	$(CC) -L$(OUTPUT_DIR) output/_startup.o output/tasktable.o $(OUTPUT_DIR)liborcoskernel.a $(LDFLAGS) 
 	$(SIZE) $(OUTPUT_DIR)liborcoskernel.a  > $(OUTPUT_DIR)sizes.txt
+
 	
 #no libc (-lc) linking since this increases the memory footprint by about 660 bytes
 # in order to use --gc-sections we need to be sure to always include interrupt vectors a.s.o

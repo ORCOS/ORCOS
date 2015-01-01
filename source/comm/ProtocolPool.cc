@@ -30,29 +30,30 @@ extern Kernel* theOS;
  * This ensures no race conditions to occur inside the tcp, ip, udp
  * and ethernet parts.
  *
- * This, however, leads to higher latencies for communcation operations.
+ * This, however, leads to higher latencies for communication operations.
  */
 Mutex* comStackMutex;
+void*  sysArchMutex;
 
 ProtocolPool::ProtocolPool() {
-    this->addressprotocols = new ArrayList(2);
+    this->addressprotocols   = new ArrayList(2);
     this->transportprotocols = new ArrayList(2);
 
     Directory* devdir = theOS->getFileManager()->getDirectory("dev/comm");
 
-    if (isError(this->addressprotocols->addTail((ListItem*) new IPv4AddressProtocol(devdir))))
-        LOG(COMM,ERROR,"Error adding IPv4 Protocol to protocol pool");
+    if (isError(this->addressprotocols->addTail(reinterpret_cast<ListItem*>(new IPv4AddressProtocol(devdir)))))
+        LOG(COMM, ERROR, "Error adding IPv4 Protocol to protocol pool");
 #if LWIP_TCP
-    if (isError(this->transportprotocols->addTail((ListItem*) new TCPTransportProtocol())))
-        LOG(COMM,ERROR,"Error adding TCP Protocol to protocol pool");
+    if (isError(this->transportprotocols->addTail(reinterpret_cast<ListItem*>(new TCPTransportProtocol()))))
+        LOG(COMM, ERROR, "Error adding TCP Protocol to protocol pool");
 #endif
 #if LWIP_UDP
-    if (isError(this->transportprotocols->addTail((ListItem*) new UDPTransportProtocol())))
-        LOG(COMM,ERROR,"Error adding UDP Protocol to protocol pool");
+    if (isError(this->transportprotocols->addTail(reinterpret_cast<ListItem*>(new UDPTransportProtocol()))))
+        LOG(COMM, ERROR, "Error adding UDP Protocol to protocol pool");
 #endif
 
     comStackMutex = new Mutex();
-
+    sysArchMutex = (void*) new Mutex();
 }
 
 ProtocolPool::~ProtocolPool() {
@@ -62,9 +63,8 @@ AddressProtocol*
 ProtocolPool::getAddressProtocolbyId(unint2 id) {
     // search database for protocol with id 'id'
 
-    for (int i = 0; i < addressprotocols->size(); i++)
-    {
-        AddressProtocol* ap = (AddressProtocol*) (addressprotocols->getItemAt(i));
+    for (int i = 0; i < addressprotocols->size(); i++) {
+        AddressProtocol* ap = reinterpret_cast<AddressProtocol*>(addressprotocols->getItemAt(i));
         if (ap->getId() == id)
             return (ap);
     }
@@ -76,9 +76,8 @@ TransportProtocol*
 ProtocolPool::getTransportProtocolbyId(unint2 id) {
     // search database for protocol with id 'id'
 
-    for (int i = 0; i < transportprotocols->size(); i++)
-    {
-        TransportProtocol* tp = (TransportProtocol*) transportprotocols->getItemAt(i);
+    for (int i = 0; i < transportprotocols->size(); i++) {
+        TransportProtocol* tp = reinterpret_cast<TransportProtocol*>(transportprotocols->getItemAt(i));
         if (tp->getId() == id)
             return (tp);
     }

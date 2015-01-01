@@ -31,9 +31,9 @@ typedef char service_name[17];
 
 //! Structure describing the address of a socket.
 typedef struct {
-    unint4      sa_data;            //!< socket address
-    unint2      port_data;          //!< port
-    sa_family_t sa_family;          //!< The adress family of this struct
+    unint4          sa_data;            //!< socket address
+    unint2          port_data;          //!< port
+    sa_family_t     sa_family;          //!< The adress family of this struct
     service_name    name_data;      //!< socket name, maximum 16 chars
 } sockaddr;
 
@@ -69,6 +69,25 @@ typedef struct {
     char    name[0]; /* variable length name entry */
 } Directory_Entry_t;
 
+
+
+typedef struct {
+    char    hwaddr[8];
+    unint4  ipv4addr;
+    unint4  gwipv4addr;
+    unint4  ipv4netmask;
+    unint4  flags;
+    unint4  rxpackets;
+    unint4  txpackets;
+    unint4  rxbytes;
+    unint4  txbytes;
+    unint4  dropped;
+    unint2  mtu;
+    unint2  errors;
+    unint4  irqnum;
+    char    ipv6addr[16];
+} netif_stat_t;
+
 /*
  * Type of a resource. Used inside fields
  * Directory_Entry_t.resType and
@@ -98,9 +117,9 @@ typedef enum {
 
 //! File statistics
 typedef struct {
-	unint4 st_size;
-	unint4 st_type;
-	unint4 st_flags;
+    unint4 st_size;
+    unint4 st_type;
+    unint4 st_flags;
 } stat_t;
 
 /*!

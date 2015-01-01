@@ -21,16 +21,15 @@
 #include <stringtools.hh>
 #include "inc/error.hh"
 
-//be able to log
 extern Kernel* theOS;
 
 SimpleFileManager::SimpleFileManager() :
-        rootDir("root")
+        rootDir("root") {
+    root = &rootDir;
 
-{
-    // create dir dev/
+    /* create dir dev/ */
     Directory* devDir = new Directory("dev");
-    // create dir dev/comm
+    /* create dir dev/comm */
     Directory* commDir = new Directory("comm");
 
     devDir->add(commDir);
@@ -50,79 +49,104 @@ SimpleFileManager::SimpleFileManager() :
 SimpleFileManager::~SimpleFileManager() {
 }
 
+/*****************************************************************************
+ * Method: SimpleFileManager::registerResource(Resource* res)
+ *
+ * @description
+ *  Registration method for existing resources (e.g devices)
+ * @params
+ *  res         Resource to register
+ * @returns
+ *  int         Error Code
+ *******************************************************************************/
 ErrorT SimpleFileManager::registerResource(Resource* res) {
+    if (res != 0) {
+        Directory* parentDir;
+        Directory* targetDir = 0;
 
-    if (res != 0)
-    {
-        if ((res->getType() & (cGenericDevice | cStreamDevice | cBlockDevice))
-                != 0)
-        {
-            // register this resource under dev/
-            getDirectory("dev")->add(res);
-            return (cOk );
-        }
-        else if (res->getType() & cCommDevice)
-        {
-            // register under dev/comm
-            getDirectory("dev/comm")->add(res);
-            return (cOk );
-        }
-        else if (res->getType() == cDirectory)
-        {
-            rootDir.add(res);
-            return (cOk );
-        }
+        if ((res->getType() & (cGenericDevice | cStreamDevice | cBlockDevice)) != 0) {
+            /* register this resource under dev/ */
+            targetDir = getDirectory("dev", parentDir);
+        } else if (res->getType() & cCommDevice) {
+            /* register under dev/comm */
+            targetDir = getDirectory("dev/comm", parentDir);
+        } else if (res->getType() == cDirectory) {
+            targetDir = &rootDir;
+        } else if (res->getType() == cSharedMem) {
 #if not MINIMAL_FILESYSTEM
-        else if (res->getType() == cSharedMem)
-        {
-            getDirectory("mem")->add(res);
-            return (cOk );
-        }
+            targetDir = getDirectory("mem", parentDir);
 #endif
-        return (cInvalidResourceType );
+        }
+        if (targetDir != 0) {
+            return (targetDir->add(res));
+        } else {
+            return (cInvalidResourceType );
+        }
     }
-    else
-        return (cNullPointerProvided );
 
+    return (cNullPointerProvided );
 }
 
+/*****************************************************************************
+ * Method: SimpleFileManager::unregisterResource(Resource* res)
+ *
+ * @description
+ *  Unregistration method for existing resources (e.g devices)
+ * @params
+ *  res         Resource to unregister
+ * @returns
+ *  int         Error Code
+ *******************************************************************************/
 ErrorT SimpleFileManager::unregisterResource(Resource* res) {
-    if (res != 0)
-    {
-        if ((res->getType() & (cGenericDevice | cStreamDevice | cBlockDevice))
-                != 0)
-        {
-            // resource under dev/
-            getDirectory("dev")->remove(res);
-            return (cOk );
-        }
-        else if (res->getType() == cCommDevice)
-        {
-            // register under dev/comm
-            getDirectory("dev/comm")->remove(res);
-            return (cOk );
-        }
+    if (res != 0) {
+        Directory* parentDir;
+        Directory* targetDir = 0;
+
+        if ((res->getType() & (cGenericDevice | cStreamDevice | cBlockDevice)) != 0) {
+            /* resource under dev/ */
+            targetDir = getDirectory("dev", parentDir);
+        } else if (res->getType() == cCommDevice) {
+            /* register under dev/comm */
+            targetDir = getDirectory("dev/comm", parentDir);
+        }  else if (res->getType() == cSharedMem) {
 #if not MINIMAL_FILESYSTEM
-        else if (res->getType() == cSharedMem)
-        {
-            getDirectory("mem")->remove(res);
-            return (cOk );
-        }
+            targetDir = getDirectory("mem", parentDir);
 #endif
-        return (cInvalidResourceType );
+        }
+
+        if (targetDir != 0) {
+            return (targetDir->remove(res));
+        } else {
+            return (cInvalidResourceType );
+        }
     }
-    else
-        return (cNullPointerProvided );
+
+    return (cNullPointerProvided );
 }
 
-Resource*
-SimpleFileManager::getResourceByNameandType(const char* pathname, ResourceType typefilter) {
-
-    // parse the directory tree for a resource matching the pathname
+/*****************************************************************************
+ * Method: SimpleFileManager::getResourceByNameandType(const char* pathname,
+ *                                  ResourceType type,
+ *                                  Directory* &parentDir)
+ *
+ * @description
+ *  Returns the resource by the full pathname and filters by type including the parent directory
+ *
+ * @params
+ *  path        Path to the resource
+ *  type        Type of the resource
+ *
+ * @returns
+ *  Resource*   The resource if found or null
+ *  parentDir   Parent directory of the resource found
+ *******************************************************************************/
+Resource* SimpleFileManager::getResourceByNameandType(const char* pathname, ResourceType typefilter, Directory* &parentDir) {
+    /* parse the directory tree for a resource matching the pathname */
     ASSERT(pathname);
 
-    register Resource* res = &rootDir;
+    register Resource* res = root;
     register Directory* dir;
+    parentDir = 0;
 
     /*
      * The following code parses the pathname string on substrings
@@ -136,91 +160,152 @@ SimpleFileManager::getResourceByNameandType(const char* pathname, ResourceType t
         token++;
     tokenlen = strpos2(token, '/');
 
-    // if not found root dir name assumned
+    /* if not found root dir name assumed */
     if (tokenlen < 0)
         tokenlen = 0;
 
-    // check for root dir match
-    if (tokenlen == 0)
-    {
-        // pathname == "/";
-        if ((res->getType() & typefilter) != 0)
-        {
-            LOG(FILESYSTEM, DEBUG, "Filesystem: Resource %s found",pathname);
+    /* check for root dir match */
+    if (tokenlen == 0) {
+        /* pathname == "/"; */
+        if ((res->getType() & typefilter) != 0) {
+            LOG(FILESYSTEM, TRACE, "Filesystem: Resource %s found", pathname);
             return (res);
-        }
-        else
-        {
-            LOG(FILESYSTEM, ERROR, "Filesystem: Resource %s found but invalid type!",pathname);
-            LOG(FILESYSTEM, ERROR, "Filesystem: Resource has type %d!",res->getType());
+        } else {
+            LOG(FILESYSTEM, ERROR, "Filesystem: Resource %s found but invalid type!", pathname);
+            LOG(FILESYSTEM, ERROR, "Filesystem: Resource has type %d!", res->getType());
             return (0);
         }
     }
 
-    while (token != 0)
-    {
-        // if we got here res is another directory and we haven't finished searching
+    while (token != 0) {
+        /* if we got here res is another directory and we haven't finished searching */
         dir = static_cast<Directory*>(res);
         res = dir->get(token, tokenlen);
-        if (res != 0)
-        {
-            // the directory contains the next token
-            // check if this is the last token
+        if (res != 0) {
+            parentDir = dir;
+            /* the directory contains the next token
+             * check if this is the last token */
             token += tokenlen;
-            while (token[0] == '/')
+            while (token[0] == '/') {
                 token++;
+            }
             tokenlen = strpos2(token, '/');
 
-            if (tokenlen == 0)
-            {
-                // end of pathname
-                // check whether the resource we found is of correct type
-                if ((res->getType() & typefilter) != 0)
-                {
-                    LOG(FILESYSTEM, DEBUG, "Filesystem: Resource %s found",pathname);
+            if (tokenlen == 0) {
+                /* end of pathname
+                 * check whether the resource we found is of correct type */
+                if ((res->getType() & typefilter) != 0) {
+                    LOG(FILESYSTEM, TRACE, "Filesystem: Resource %s found", pathname);
                     return (res);
-                }
-                else
-                {
-                    LOG(FILESYSTEM, ERROR, "Filesystem: Resource %s found but invalid type!",pathname);
-                    LOG(FILESYSTEM, ERROR, "Filesystem: Resource has type %d!",res->getType());
+                } else {
+                    LOG(FILESYSTEM, ERROR, "Filesystem: Resource %s found but invalid type!", pathname);
+                    LOG(FILESYSTEM, ERROR, "Filesystem: Resource has type %d!", res->getType());
                     return (0);
                 }
-            }
-            else
-            {
-                // check if the res is not an directory
-                // if so there is an error
-                if (res->getType() != cDirectory)
-                {
-                    LOG(FILESYSTEM, ERROR, "Filesystem: Wrong subname %s! Directory expected!",token);
+            } else {
+                /* check if the res is not an directory
+                 * if so there is an error */
+                if (res->getType() != cDirectory) {
+                    LOG(FILESYSTEM, ERROR, "Filesystem: Wrong subname %s! Directory expected!", token);
                     return (0);
                 }
             }
 
-        }
-        else
-        {
-            // path/file not found
-            LOG(FILESYSTEM, DEBUG, "Filesystem: Directory or File not found %s!",token);
+        } else {
+            /* path/file not found */
+            LOG(FILESYSTEM, DEBUG, "Filesystem: Directory or File not found %s!", token);
             return (0);
         }
     }
 
-    // if we got here the pathname was invalid
+    /* if we got here the pathname was invalid */
     return (0);
 }
 
-Resource* SimpleFileManager::getResource(const char* pathname) {
+/*****************************************************************************
+ * Method: SimpleFileManager::getResource(const char* pathname)
+ *
+ * @description
+ *  Returns the resource by the full pathname
+ * @params
+ *  path        Path to the resource
+ * @returns
+ *  Resource*   The resource if found or null
+ *******************************************************************************/
+Resource* SimpleFileManager::getResource(const char* pathname, Directory* &parentDir) {
+    LOG(FILESYSTEM, DEBUG, "Filesystem: getResource(%s)", pathname);
 
-    LOG(FILESYSTEM, DEBUG, "Filesystem: getResource(%s)",pathname);
-
-    // get the resource by the pathname and set the filter to any type except a directory!
-    return (this->getResourceByNameandType(pathname, cAnyResource));
+    /* get the resource by the pathname and set the filter to any type except a directory! */
+    return (this->getResourceByNameandType(pathname, cAnyResource, parentDir));
 }
 
-Directory*
-SimpleFileManager::getDirectory(const char* dir) {
-    LOG(FILESYSTEM, DEBUG,"Filesystem: getDirectory(%s)",dir);
-    return ((Directory*) this->getResourceByNameandType(dir, cDirectory));
+/*****************************************************************************
+ * Method: SimpleFileManager::getDirectory(const char* dir, Directory* &parentDir)
+ *
+ * @description
+ *  Returns the directory object if found.
+ * @params
+ *
+ * @returns
+ *  Directory* The directory if found
+ *******************************************************************************/
+Directory* SimpleFileManager::getDirectory(const char* dir, Directory* &parentDir) {
+    LOG(FILESYSTEM, DEBUG, "Filesystem: getDirectory(%s)", dir);
+    return (static_cast<Directory*>(this->getResourceByNameandType(dir, cDirectory, parentDir)));
+}
+
+/*****************************************************************************
+ * Method: SimpleFileManager::overlayDirectory(Directory* overlay, char* name, const char* path)
+ *
+ * @description
+ *  Tries to overlay the directory passed as overlay
+ *  on top of the directory specified by path.
+ *  If path references the root directory the root
+ *  directory will be overlayed.
+ *  Otherwise the resource specified by path is searched and overlayed
+ *  if it is an directory. If the resource specified by the path does not
+ *  exists a new directory is created with no overlay.
+ * @params
+ *  overlay         The directory which overlaying another directory
+ *  path            Path to the directory to be overlayed
+ *
+ * @returns
+ *  int         Error Code
+ *******************************************************************************/
+ErrorT SimpleFileManager::overlayDirectory(Directory* overlay, const char* path) {
+    if (overlay == 0 || path == 0)
+        return (cNullPointerProvided );
+
+    Directory* parentDir;
+    Directory* baseDir = getDirectory(path, parentDir);
+
+    if (baseDir != 0) {
+        /* Only one overlay at a time permitted */
+        if (baseDir->getType() & cOverlay)
+            return (cError );
+
+        if (baseDir == root) {
+            /* overlaying root */
+            OverlayDirectory* ovDir = new OverlayDirectory("ROOT_OVERLAY", &rootDir, overlay);
+            this->root = ovDir;
+            LOG(FILESYSTEM, WARN, "SimpleFileManager::overlayDirectory overlaying root");
+            return (cOk);
+        } else {
+            if (parentDir == 0) {
+                /* BUG */
+                LOG(FILESYSTEM, ERROR, "SimpleFileManager::overlayDirectory parentDir == 0 <BUG> for %s", path);
+                return (cError);
+            }
+
+            /* overlaying the given directory  */
+            OverlayDirectory* ovDir = new OverlayDirectory(baseDir->getName(), baseDir, overlay);
+            /* replace directory entry with overlay */
+            parentDir->remove(baseDir);
+            parentDir->add(ovDir);
+
+            return (cOk);
+        }
+    } else {
+        return (cInvalidPath);
+    }
 }

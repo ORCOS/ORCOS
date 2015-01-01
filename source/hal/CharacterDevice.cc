@@ -23,7 +23,6 @@ extern Kernel* theOS;
 
 CharacterDevice::CharacterDevice(bool sync_res, const char* p_name) :
         GenericDeviceDriver(cStreamDevice, sync_res, p_name) {
-
     this->position = 0;
     // register myself at the filesystem manager
     SimpleFileManager* fm = theOS->getFileManager();
@@ -33,18 +32,15 @@ CharacterDevice::CharacterDevice(bool sync_res, const char* p_name) :
 
     if (fm != 0)
         fm->registerResource(this);
-
 }
 
 CharacterDevice::CharacterDevice(ResourceType rt, bool sync_res, const char* p_name) :
         GenericDeviceDriver(rt, sync_res, p_name) {
-
     this->position = 0;
 
     // we are not registering for Directories ..
     // directories need to register themself at the apropriate directory
-    if (rt != cDirectory && rt != cFile)
-    {
+    if (rt != cDirectory && rt != cFile) {
         // register myself at the filesystem manager
         SimpleFileManager* fm = theOS->getFileManager();
 
@@ -54,9 +50,7 @@ CharacterDevice::CharacterDevice(ResourceType rt, bool sync_res, const char* p_n
         if (fm != 0)
             fm->registerResource(this);
     }
-
 }
 
 CharacterDevice::~CharacterDevice() {
-
 }

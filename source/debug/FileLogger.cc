@@ -21,6 +21,7 @@
 #include <sprintf.hh>
 #include <putc.hh>
 #include "kernel/Kernel.hh"
+#include "assemblerFunctions.hh"
 
 extern Kernel* theOS;
 extern Kernel_ThreadCfdCl* pCurrentRunningThread;
@@ -38,19 +39,25 @@ static const char* levelStrings[6] = { "FATAL", "ERROR", "WARN ", "INFO ", "DEBU
 #define ESC_GRAY        "\033[37m"
 #define ESC_WHITE       "\033[0m"
 
-static char buffer[2048];
+static char buffer1[2048];
+static char buffer2[2048];
 static unsigned int bufferpos;
+static char* bufferptr;
 
 FileLogger::FileLogger() :
-        logFile(0)   {
-
+        logFile(0) {
     bufferpos = 0;
     initialized = false;
+    bufferptr = buffer1;
 }
 
-
+/*****************************************************************************
+ * Method: FileLogger::init()
+ *
+ * @description
+ *
+ *******************************************************************************/
 void FileLogger::init() {
-
     if (initialized)
         return;
 
@@ -58,9 +65,8 @@ void FileLogger::init() {
 
     /* try permanent root storage! */
     Directory* rootDir = theOS->getFileManager()->getDirectory("mnt/TEST");
-    if (rootDir != 0)
-    {
-        File* logfile = (File*) rootDir->get("Kernel.log",strlen("Kernel.log"));
+    if (rootDir != 0) {
+        File* logfile = static_cast<File*>(rootDir->get("Kernel.log", strlen("Kernel.log")));
         if (logfile) {
             rootDir->remove(logfile);
         }
@@ -68,76 +74,94 @@ void FileLogger::init() {
         return;
     }
 
-#if 0
+//#if 0
     /* try ramdisk  */
     Directory* ramdisk = theOS->getFileManager()->getDirectory("mnt/ramdisk");
-    if (ramdisk != 0)
-    {
+    if (ramdisk != 0) {
         logFile = ramdisk->createFile("Kernel.log", 0);
         return;
     }
-#endif
+//#endif
 
     /* mount points not available .. try later*/
     initialized = false;
-
 }
 
+/*****************************************************************************
+ * Method: FileLogger::flush()
+ *
+ * @description
+ *
+ *******************************************************************************/
 void FileLogger::flush() {
-
     if (bufferpos > 0) {
-        int intstatus;
-       // GET_INTERRUPT_ENABLE_BIT(intstatus);
-        //_disableInterrupts();
+         DISABLE_IRQS(irqstatus);
+         char* curbuf = bufferptr;
+         int len = bufferpos;
+
+         if (bufferptr == buffer1)
+             bufferptr = buffer2;
+         else
+             bufferptr = buffer1;
+         bufferpos = 0;
+         RESTORE_IRQS(irqstatus);
 
         /* flush now */
-       if (logFile) {
-           /* write to file */
-           logFile->writeBytes(buffer,bufferpos);
-           bufferpos = 0;
-       }
-       else {
-           /* print to std out*/
-           buffer[bufferpos] = 0;
-           bufferpos = 0;
-           puts(buffer);
-       }
-/*       if (intstatus)
-           _enableInterrupts();*/
-
+        if (logFile) {
+            /* write to file */
+            logFile->writeBytes(curbuf, len);
+        } else {
+            /* print to std out*/
+            curbuf[len] = 0;
+            puts(curbuf);
+        }
     }
 }
 
+/*****************************************************************************
+ * Method: fileout(char** str, char c)
+ *
+ * @description
+ *
+ *******************************************************************************/
 static void fileout(char** str, char c) {
-    File* logfile = (File*) str;
+    File* logfile = reinterpret_cast<File*>(str);
 
-    if (bufferpos >= 2046)
-    {
-        int intstatus;
-        GET_INTERRUPT_ENABLE_BIT(intstatus);
-        _disableInterrupts();
+    if (bufferpos >= 2046) {
+        DISABLE_IRQS(irqstatus);
+        char* curbuf = bufferptr;
+        int len = bufferpos;
+
+        if (bufferptr == buffer1)
+            bufferptr = buffer2;
+        else
+            bufferptr = buffer1;
+        bufferpos = 0;
+        RESTORE_IRQS(irqstatus);
+
+
         /* flush now */
         if (logfile) {
             /* write to file */
-            logfile->writeBytes(buffer,bufferpos);
-            bufferpos = 0;
-        }
-        else {
+            logfile->writeBytes(curbuf, len);
+        } else {
             /* print to std out*/
-            buffer[bufferpos] = 0;
-            bufferpos = 0;
-            puts(buffer);
+            curbuf[len] = 0;
+            puts(curbuf);
         }
-        if (intstatus)
-            _enableInterrupts();
     }
 
-    buffer[bufferpos++] = c;
+    bufferptr[bufferpos++] = c;
 }
 
+/*****************************************************************************
+ * Method: FileLogger::log(Prefix prefix, Level level, const char* msg, ...)
+ *
+ * @description
+ *
+ *******************************************************************************/
 void FileLogger::log(Prefix prefix, Level level, const char* msg, ...) {
-    if ((int) level > (int) prefix)
-    {
+    if (level > prefix) {
         return;
     }
 
@@ -149,19 +173,18 @@ void FileLogger::log(Prefix prefix, Level level, const char* msg, ...) {
     if (theOS != 0 && theOS->getClock() != 0)
     time =(unint4) (theOS->getClock()->getTimeSinceStartup() MICROSECONDS);
 
-    fprintf(&fileout, (char**) logFile,"[%08u]",time);
+    fprintf(&fileout, reinterpret_cast<char**>(logFile), "[%08u]", time);
 #endif
 
     if (pCurrentRunningThread != 0)
-        fprintf(&fileout, (char**) logFile, "[%03d][%s] ", pCurrentRunningThread->getId(), levelStrings[level]);
+        fprintf(&fileout, reinterpret_cast<char**>(logFile), "[%03d][%s] ", pCurrentRunningThread->getId(), levelStrings[level]);
     else
-        fprintf(&fileout, (char**) logFile, "[KER][%s] ", levelStrings[level]);
+        fprintf(&fileout, reinterpret_cast<char**>(logFile), "[KER][%s] ", levelStrings[level]);
 
     va_list arglist;
     va_start(arglist, msg);
-    print(&fileout, (char**) logFile, msg, arglist);
-    print(&fileout, (char**) logFile, LINEFEED,arglist);
-
-   // fileout((char**) logFile,'\r');
+    print(&fileout, reinterpret_cast<char**>(logFile), msg, arglist);
+    print(&fileout, reinterpret_cast<char**>(logFile), LINEFEED, arglist);
+    va_end(arglist);
 }
 

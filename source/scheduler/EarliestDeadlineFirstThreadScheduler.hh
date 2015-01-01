@@ -36,47 +36,71 @@
  */
 class EarliestDeadlineFirstThreadScheduler: public PriorityThreadScheduler {
 public:
-    /*! \brief Computes the priority for the given thread according to EDF rules.
+    /*****************************************************************************
+     * Method: computePriority(RealTimeThread* pRTThread)
      *
-     * This method is used by the enter() method of this class to set the priority of a
-     * thread each time it is scheduled. Furthermore it is used by the getNextTimerEvent()
-     * method to decide on a time interval that minimizes the amount of necessary
-     * context switches.
-     */
-   void computePriority( RealTimeThread* item );
+     * @description
+     *  Computes and assignes the proiority of/to the given thread based on the the
+     *  EDF priority rule.
+     *
+     * @params
+     *  pRTThread   Realtime Thread
+     *******************************************************************************/
+   void computePriority(RealTimeThread* item);
 
-    /*!
-     *  \brief Enter method which adds an already existing DatabaseItem to the scheduler.
-     *
-     * 	This will enter the database item in accordance with it's priority in the list
-     *  of scheduled items. For this purpose a priority will be computed each time in accordance
-     *  with EDF priority rules. It also sets the arrival time of the Thread.
-     */
-    ErrorT enter( LinkedListItem* item );
 
-    /*! \brief Enter method which adds a thread to the scheduler for which no DatabaseItem already exists.
+   /*****************************************************************************
+    * Method: enter(LinkedListItem* item)
+    *
+    * @description
+    *  Inserts and schedules a new realtime thread, given by its linkedlist item,
+    *  into the scheduler queue.
+    *
+    * @params
+    *  item        Linked List item of the Realtime Thread
+    *******************************************************************************/
+    ErrorT enter(LinkedListItem* item);
+
+    /*****************************************************************************
+     * Method: enter(ScheduleableItem* item)
      *
-     * Be careful not to use this method if a DatabaseItem already exists for the thread. Otherwise a
-     * superflous DatabaseItem will be generated which results in a memory leak!
-     */
-    ErrorT enter( ScheduleableItem* item ) {
-        return (this->enter( new LinkedListItem( item ) ));
+     * @description
+     *  Inserts and schedules a new realtime thread, given by its linkedlist item,
+     *  into the scheduler queue.
+     *  Be careful not to use this method if a DatabaseItem already exists for the thread. Otherwise a
+     *  superflous DatabaseItem will be generated which results in a memory leak!
+     *
+     * @params
+     *  item        Linked List item of the Realtime Thread
+     *******************************************************************************/
+    ErrorT enter(ScheduleableItem* item) {
+        return (this->enter(new LinkedListItem(item)));
     }
 
-    /*! \brief Method returning the amount of microseconds for next timer event.
-     *
-     * The timer event is computed by analyzing all threads in the sleep state (which are normally waiting for their next
-     * instance depending on their period). It will be set, so that the running thread will only be interrupted, if a thread
-     * with higher priority finishes 'sleeping'. For this purpose it needs to compute the future priority of the sleeping
-     * threads, since their priority will change once they are scheduled. If a thread with lower future priority finishes no
-     * interrupt will be set, since it cannnot preempt the current thread anyway (this will prevent unnecessary context switches).
-     * This method is called by the dispatcher before it calls the getNext() method, so the priority of the 'running' thread
-     * can be gotten by looking at the next thread in line (at the head of the scheduling queue). The return value is a 4 byte
-     * integer, since the theOS->getTimerDevice()->setTimer() method is implemented to take an unint4 anyways (and we seldom
-     * will want to run more than 70 minutes uninterrupted).
-     */
-    TimeT getNextTimerEvent(LinkedList* sleepList,TimeT currentTime);
 
+    /*****************************************************************************
+     * Method: getNextTimerEvent(LinkedList* sleepList, TimeT currentTime)
+     *
+     * @description
+     *  Returns the next timer event to be programmed for calling the scheduler again. This
+     *  may be a preemption point.
+     *  The timer event is computed by analyzing all threads in the sleep state (which are normally waiting for their next
+     *  instance depending on their period). It will be set, so that the running thread will only be interrupted, if a thread
+     *  with higher priority finishes 'sleeping'. For this purpose it needs to compute the future priority of the sleeping
+     *  threads, since their priority will change once they are scheduled. If a thread with lower future priority finishes no
+     *  interrupt will be set, since it cannnot preempt the current thread anyway (this will prevent unnecessary context switches).
+     *  This method is called by the dispatcher before it calls the getNext() method, so the priority of the 'running' thread
+     *  can be gotten by looking at the next thread in line (at the head of the scheduling queue). The return value is a 4 byte
+     *  integer, since the theOS->getTimerDevice()->setTimer() method is implemented to take an unint4 anyways (and we seldom
+     *  will want to run more than 70 minutes uninterrupted).
+     *      *
+     * @params
+     *  sleepList       The list of sleeping threads which are updated.
+     *  currentTime     Current system time.
+     * @returns
+     *  TimeT           The next absolute time point the scheduler has to be called again
+     *******************************************************************************/
+    TimeT getNextTimerEvent(LinkedList* sleepList, TimeT currentTime);
 };
 
 

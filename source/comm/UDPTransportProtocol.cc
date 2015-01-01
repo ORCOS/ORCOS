@@ -29,6 +29,8 @@
 
 extern Kernel* theOS;
 
+extern "C" Mutex* comStackMutex;
+
 UDPTransportProtocol::UDPTransportProtocol() :
         TransportProtocol(17) {
 }
@@ -36,18 +38,31 @@ UDPTransportProtocol::UDPTransportProtocol() :
 UDPTransportProtocol::~UDPTransportProtocol() {
 }
 
-ErrorT UDPTransportProtocol::sendto(packet_layer* payload, const sockaddr* fromaddr, const sockaddr *dest_addr, AddressProtocol* NextLayer, Socket* fromsock) {
-
+/*****************************************************************************
+ * Method: UDPTransportProtocol::sendto(packet_layer* payload,
+ *                                      const sockaddr* fromaddr,
+ *                                      const sockaddr *dest_addr,
+ *                                      AddressProtocol* NextLayer,
+ *                                      Socket* fromsock)
+ *
+ * @description
+ *
+ *******************************************************************************/
+ErrorT UDPTransportProtocol::sendto(packet_layer* payload,
+                                    const sockaddr* fromaddr,
+                                    const sockaddr *dest_addr,
+                                    AddressProtocol* NextLayer,
+                                    Socket* fromsock) {
     struct udp_pcb* pcb = (struct udp_pcb*) fromsock->arg;
-    if ( pcb == 0)
-        return (cError);
+    if (pcb == 0)
+        return (cError );
 
-    LOG(COMM, INFO, "UDP:sendto(): size: %d",payload->size);
+    comStackMutex->acquire();
+    LOG(COMM, DEBUG, "UDP:sendto(): size: %d", payload->size);
 
     // allocate a pbuf
     struct pbuf *p = pbuf_alloc(PBUF_TRANSPORT, payload->size, PBUF_RAM);
-    if (p != 0)
-    {
+    if (p != 0) {
         memcpy(p->payload, payload->bytes, payload->size);
 
         ip_addr destaddr;
@@ -61,33 +76,48 @@ ErrorT UDPTransportProtocol::sendto(packet_layer* payload, const sockaddr* froma
 
         // check if sending was successfull
         if (ret != ERR_OK) {
-            LOG(COMM, WARN, "UDP:sendto(): failed: %d",ret);
+            comStackMutex->release();
+            LOG(COMM, WARN, "UDP:sendto(): failed: %d", ret);
             return (cError );
         }
 
+        comStackMutex->release();
         return (cOk );
     }
 
+    comStackMutex->release();
     return (cError );
 }
 
-
+/*****************************************************************************
+ * Method: UDPTransportProtocol::received(Socket* socket, pbuf* p)
+ *
+ * @description
+ *
+ *******************************************************************************/
 void UDPTransportProtocol::received(Socket* socket, pbuf* p) {
-     pbuf_free(p);
+    comStackMutex->acquire();
+    pbuf_free(p);
+    comStackMutex->release();
 }
 
+/*****************************************************************************
+ * Method: udp_recv_wrapper(void *arg, struct udp_pcb *upcb, struct pbuf *p, struct ip_addr *addr, u16_t port)
+ *
+ * @description
+ *
+ *******************************************************************************/
 static void udp_recv_wrapper(void *arg, struct udp_pcb *upcb, struct pbuf *p, struct ip_addr *addr, u16_t port) {
+    Socket *sock = reinterpret_cast<Socket*>(arg);
 
-    Socket *sock = (Socket*) arg;
+    LOG(COMM, DEBUG, "UDP received port: %d", port);
 
     sockaddr from;
     from.port_data = port;
     from.sa_data = addr->addr.ip4addr.addr;
 
-    if (p != 0)
-    {
-        if (sock != 0)
-        {
+    if (p != 0) {
+        if (sock != 0) {
             sock->addMessage(p, &from);
         }
     }
@@ -95,45 +125,56 @@ static void udp_recv_wrapper(void *arg, struct udp_pcb *upcb, struct pbuf *p, st
     return;
 }
 
-
+/*****************************************************************************
+ * Method: UDPTransportProtocol::register_socket(unint2 port, Socket* socket)
+ *
+ * @description
+ *
+ *******************************************************************************/
 ErrorT UDPTransportProtocol::register_socket(unint2 port, Socket* socket) {
-
     struct udp_pcb *pcb;
     /* Create a new TCP PCB. */
+    comStackMutex->acquire();
     pcb = udp_new();
+    comStackMutex->release();
     if (pcb != 0) {
         ip_addr bindaddr;
         bindaddr.version = 4;
         bindaddr.addr.ip4addr.addr = 0;
 
         err_t err = udp_bind(pcb, &bindaddr, port);
-        if (err != ERR_OK)  {
-            LOG(COMM, ERROR, "UDP:bind to port %d failed %d",port,err);
-            return (cError);
+        if (err != ERR_OK) {
+            LOG(COMM, ERROR, "UDP:bind to port %d failed %d", port, err);
+            return (cError );
         }
 
         /* set rx callback */
-        udp_recv(pcb, udp_recv_wrapper, (void*) socket);
+        udp_recv(pcb, udp_recv_wrapper, reinterpret_cast<void*>(socket));
         socket->arg = pcb;
 
         return (cOk );
     } else {
         LOG(COMM, ERROR, "UDP:bind could not create udp_pcb ");
         socket->arg = 0;
-        return (cError);
+        return (cError );
     }
 }
 
+/*****************************************************************************
+ * Method: UDPTransportProtocol::unregister_socket(Socket* socket)
+ *
+ * @description
+ *
+ *******************************************************************************/
 ErrorT UDPTransportProtocol::unregister_socket(Socket* socket) {
-
-    if (socket->arg != 0)
-    {
+    if (socket->arg != 0) {
+        comStackMutex->acquire();
         udp_remove((struct udp_pcb*) socket->arg);
+        comStackMutex->release();
         return (cOk );
     } else {
         LOG(COMM, ERROR, "UDPTransportProtocol::unregister_socket socket->arg == 0");
     }
     return (cError );
 }
-
-#endif // LWIP_UDP
+#endif

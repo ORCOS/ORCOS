@@ -43,23 +43,21 @@ class Mutex;
 ///////////////////////////////////////////////////////////////////////
 /// TYPES / DEFINES
 //////////////////////////////////////////////////////////////////////
-#define MAXSTACKPTRS 6
-
-extern LinkedListItem* pRunningThreadDbItem;
+#define MAXSTACKPTRS 10
 
 // Flag definitions
 //! thread is constructed
-#define cNewFlag		(BitmapT)1<<0
+#define cNewFlag        (BitmapT)1<<0
 //! thread is ready to run
-#define cReadyFlag		(BitmapT)1<<1
+#define cReadyFlag      (BitmapT)1<<1
 //! thread has stopped
-#define cBlockedFlag	(BitmapT)1<<2
+#define cBlockedFlag    (BitmapT)1<<2
 //! thread is terminated
-#define cTermFlag		(BitmapT)1<<3
+#define cTermFlag       (BitmapT)1<<3
 //! thread is waiting for a resource
 #define cResource       (BitmapT)1<<4
 //! thread execution stopped
-#define cStopped		(BitmapT)1<<5
+#define cStopped        (BitmapT)1<<5
 //! thread is waiting for a signal
 #define cSignalFlag     (BitmapT)1<<6
 //! thread shall terminate after current instance (soft termination)
@@ -72,7 +70,7 @@ struct ThreadStack {
     void* startAddr;                //!< The logical start addr of this stack
     void* endAddr;                  //!< The logical end addr of this stack
     void* stackptrs[MAXSTACKPTRS];  //!< stack pointer stack. contains pushed stack pointer (context) addresses
-    unsigned short top;
+    unint1 top;
 };
 
 ///////////////////////////////////////////////////////////////////////
@@ -86,7 +84,6 @@ struct ThreadStack {
  * Thread Control Block holding information about a thread.
  */
 class Thread: public ScheduleableItem {
-
     /* The task class needs to access all private data of a thread since its the owner. */
     friend class Task;
     friend class Mutex;
@@ -94,7 +91,6 @@ class Thread: public ScheduleableItem {
     friend class TaskManager;
 
 public:
-
     //! The stack of the thread also used to save/restore the context.
     ThreadStack         threadStack;
 
@@ -105,10 +101,6 @@ public:
     void*               startRoutinePointer;
 
 private:
-
-    //! The Mutex we are currently blocked by
-    Mutex*              pBlockedMutex;
-
     //! The owner task of this thread.
     Task*               owner;
 
@@ -127,9 +119,12 @@ private:
     /* the name of this thread */
     char                name[16];
 
-public:
+    /* The threads own linked list item which is used to
+     * place the thread into a scheduler list. */
+    LinkedListItem      myListItem;
 
-    //! The absolute time point in cycles this thread will sleeping up to
+public:
+    //! The absolute time point in cycles this thread will be sleeping up to
     TimeT               sleepTime;
 
     //! The arguments passed to the thread on startup
@@ -144,231 +139,371 @@ public:
     void*               signal;
 
     /*
-     * The signal value this thread received
+     * The last signal value this thread received
      */
     unint4              signalvalue;
 
-    /* The current timeout value of the blocked stated */
+    /* The current timeout value of the blocked stated. Periodically
+     * decremented if the thread is blocked and blockTimeout is > 0.
+     * If the value reaches 0 the thread is unblocked. This allows
+     * blocking operations with timeout to prevent system stalls. */
     unint4              blockTimeout;
 
     /* Constructor which takes the startRoutinePointer as argument */
-    Thread(void* startRoutinePointer, void* exitRoutinePointer, Task* owner, Kernel_MemoryManagerCfdCl* memManager, unint4 stack_size =
-                   DEFAULT_USER_STACK_SIZE, void* attr = 0, bool newThread =
-                   true);
+    Thread(void* startRoutinePointer, void* exitRoutinePointer, Task* owner, Kernel_MemoryManagerCfdCl* memManager,
+           unint4 stack_size = DEFAULT_USER_STACK_SIZE, void* attr = 0, bool newThread = true);
 
     /* Destructor */
     virtual ~Thread();
 
-
-    /* Static initialization of the Thread class*/
+    /*****************************************************************************
+     * Method: initialize()
+     *
+     * @description
+     *  Static initialization of the Thread class
+     *******************************************************************************/
     static void initialize() {
         globalThreadIdCounter = cFirstThread;
     }
 
-    //! Returns the owner task of this thread.
-    Task* getOwner() const {
+    /*****************************************************************************
+     * Method: getOwner()
+     *
+     * @description
+     *  Returns the owner task of this thread.
+     *
+     * @returns
+     *  Task*        The owning task
+     *******************************************************************************/
+    inline Task* getOwner() const {
         return (owner);
     }
 
-    //!  Get the flags of this Thread
-    Bitmap& getStatus() {
+    /*****************************************************************************
+     * Method: getStatus()
+     *
+     * @description
+     * Get the flags of this Thread
+     *
+     * @returns
+     *  Bitmap&        The owning task
+     *******************************************************************************/
+    inline Bitmap& getStatus() {
         return (status);
     }
 
-    //!  Set the flags of this Thread
-    ErrorT setStatus(Bitmap s) {
-        status = s;
+    /*****************************************************************************
+     * Method: setStatus()
+     *
+     * @description
+     *  Sets all flags of this Thread
+     *
+     * @params
+     *  flags   The flags
+     *******************************************************************************/
+    inline ErrorT setStatus(Bitmap flags) {
+        status = flags;
         return (cOk );
     }
 
-    //! Sets the given status flags
-    void setStatusFlag(int) {
-        status.setBits(cDoTermFlag);
+    /*****************************************************************************
+     * Method: setStatusFlag()
+     *
+     * @description
+     *  Sets the given flag for this Thread
+     *
+     * @params
+     *  flag   The flag to be set
+     *******************************************************************************/
+    inline void setStatusFlag(int flag) {
+        status.setBits(flag);
     }
 
-    //! Returns true iff the thread has never been run before
-    bool isNew() const {
+    /*****************************************************************************
+     * Method: isNew()
+     *
+     * @description
+     *  Returns true iff the thread has never been run before
+     *******************************************************************************/
+    inline bool isNew() const {
         return (status.areSet( cNewFlag ));
     }
 
-    //! Returns true iff the thread is scheduled for execution
-    bool isReady() const {
+    /*****************************************************************************
+     * Method: isReady()
+     *
+     * @description
+     *  Returns true iff the thread is scheduled for execution
+     *******************************************************************************/
+    inline bool isReady() const {
         return (status.areSet( cReadyFlag ));
     }
 
-    /*!
-     * \brief Returns true iff the thread is currently blocked (usually waiting on a
-     * 		 resource.
-     */
-    bool isBlocked() const {
+    /*****************************************************************************
+     * Method: isBlocked()
+     *
+     * @description
+     *   Returns true iff the thread is currently blocked (usually waiting on a
+     *       resource)
+     *******************************************************************************/
+    inline bool isBlocked() const {
         return (status.areSet( cBlockedFlag));
     }
 
-    /*!
-     * \brief Returns true iff the thread is stopped.
-     */
-    bool isStopped() const {
+    /*****************************************************************************
+     * Method: isStopped()
+     *
+     * @description
+     *   Returns true iff the thread is stopped.
+     *******************************************************************************/
+    inline bool isStopped() const {
         return (status.areSet( cStopped));
     }
 
-    bool isSleeping() const {
+    /*****************************************************************************
+     * Method: isSleeping()
+     *
+     * @description
+     *   Returns true iff the thread is currently sleeping
+     *******************************************************************************/
+    inline bool isSleeping() const {
         return (!status.anySet((BitmapT) cBlockedFlag | cReadyFlag | cNewFlag));
     }
 
-    //! Returns true iff the thread has terminated.
-    bool hasTerminated() const {
+    /*****************************************************************************
+     * Method: hasTerminated()
+     *
+     * @description
+     *   Returns true iff the thread has terminated.
+     *******************************************************************************/
+    inline bool hasTerminated() const {
         return (status.areSet( cTermFlag));
     }
 
-    //! Returns the currently set sleeptime
-    TimeT getSleepTime() const {
+    /*****************************************************************************
+     * Method: getSleepTime()
+     *
+     * @description
+     *   Returns the currently set absolute sleeping timepoint
+     *******************************************************************************/
+    inline TimeT getSleepTime() const {
         return (this->sleepTime);
     }
 
-    /*
-     * Push the address sp into the threads personal stack.
-     * This stack is to be used to store context related
-     * memory locations of a thread.
+    /*****************************************************************************
+     * Method: pushStackPointer(void* sp)
      *
-     * On interrupt or syscall the context of the thread has to be
-     * stored and the address should be pushed on this stack.
-     * Nested interrupts may force the use of multiple stack
-     * locations.
-     */
-    ErrorT __attribute__((noinline)) pushStackPointer(void* sp) {
-        if (threadStack.top < MAXSTACKPTRS - 1)
-        {
+     * @description
+     *  Push the address sp into the threads personal stack.
+     *  This stack is to be used to store context related
+     *  memory locations of a thread.
+     *
+     *  On interrupt or syscall the context of the thread has to be
+     *  stored and the address should be pushed on this stack.
+     *  Nested interrupts may force the use of multiple stack
+     *  locations.
+     *******************************************************************************/
+    inline ErrorT pushStackPointer(void* sp) {
+        if (threadStack.top < MAXSTACKPTRS - 1) {
             threadStack.stackptrs[threadStack.top] = sp;
             threadStack.top++;
             return (cOk );
-        }
-        else
-        {
-
+        } else {
             return (cStackOverflow );
         }
-
     }
 
-    /*
+    /*****************************************************************************
+     * Method: popStackPointer(void* &sp)
+     *
+     * @description
      * Pop a value from the threads personal stack.
-     */
-    ErrorT __attribute__((noinline)) popStackPointer(void* &sp) {
-        if (threadStack.top > 0)
-        {
+     *******************************************************************************/
+    inline ErrorT popStackPointer(void* &sp) {
+        if (threadStack.top > 0) {
             threadStack.top--;
             sp = threadStack.stackptrs[threadStack.top];
             return (cOk );
-        }
-        else
+        } else {
             return (cStackUnderflow );
+        }
     }
 
-    //! Returns the addr (pointer) of the startRoutine of this thread
-    void* getStartRoutinePointer() const {
+    /*****************************************************************************
+     * Method: getStartRoutinePointer()
+     *
+     * @description
+     *  Returns the addr (pointer) of the startRoutine of this thread
+     *******************************************************************************/
+    inline void* getStartRoutinePointer() const {
         return (startRoutinePointer);
     }
 
-    //! Returns the addr (pointer) of the exitRoutine of this thread
-    void* getExitRoutinePointer() const {
+    /*****************************************************************************
+     * Method: getExitRoutinePointer()
+     *
+     * @description
+     *  Returns the addr (pointer) of the exitRoutine of this thread
+     *******************************************************************************/
+    inline void* getExitRoutinePointer() const {
         return (exitRoutinePointer);
     }
 
-    //! Returns the arguments passed to the thread on startup
-    void* getStartArguments() const {
+    /*****************************************************************************
+     * Method: getStartArguments()
+     *
+     * @description
+     *  Returns the arguments passed to the thread on startup
+     *******************************************************************************/
+    inline void* getStartArguments() const {
         return (this->arguments);
     }
 
-    //! Returns the Memory Manager of the task the thread belongs to
+    /*****************************************************************************
+     * Method: getMemManager()
+     *
+     * @description
+     *  Returns the Memory Manager of the task the thread belongs to
+     *******************************************************************************/
     Kernel_MemoryManagerCfdCl* getMemManager();
 
-    /* Sets the name of this thread */
-    void setName(char* newName) {
+    /*****************************************************************************
+     * Method: setName(char* newName)
+     *
+     * @description
+     *  Sets the name of this thread. Maximum 13 chars
+     *******************************************************************************/
+   inline  void setName(char* newName) {
         int len = strlen(newName);
         if (len > 14) len = 14;
-        memcpy(this->name,newName,len);
+        memcpy(this->name, newName, len);
         this->name[len] = 0;
     }
 
-    /* Gets the name of this thread */
-    char* getName() {
+   /*****************************************************************************
+    * Method: getName()
+    *
+    * @description
+    *  Gets the name of this thread
+    *******************************************************************************/
+    inline char* getName() {
         return (this->name);
     }
 
-    /*!
-     * \brief This method sets up the thread for execution. This involves telling the scheduler
-     * 		 that we are ready for running.
-     */
+    /*****************************************************************************
+     * Method: getLinkedListItem()
+     *
+     * @description
+     * Returns the linked list item of this thread to be used to
+     * place the thread on the schdulers lists as e.g. sleeplist or blocked list
+     * or ready list.
+     *
+     *******************************************************************************/
+    inline LinkedListItem* getLinkedListItem() {
+        return (&myListItem);
+    }
+
+    /*****************************************************************************
+     * Method: run()
+     *
+     * @description
+     *  This method sets up the thread for execution. This involves telling the scheduler
+     *  that we are ready for running.
+     *******************************************************************************/
     ErrorT run();
 
-    /*!
-     * \brief Sends the thread to sleep until the absolute cycles of 'timePoint' have been reached.
+    /*****************************************************************************
+     * Method: sleep(TimeT timePoint)
      *
-     * Sends the thread to sleep. Involves informing the scheduler.
-     */
-    void sleep(TimeT timePoint, LinkedListItem* item = pRunningThreadDbItem);
+     * @description
+     *  Sends the thread to sleep until the absolute cycles of 'timePoint' have been reached.
+     *******************************************************************************/
+    void sleep(TimeT timePoint);
 
 #ifdef ORCOS_SUPPORT_SIGNALS
-    /*!
+    /*****************************************************************************
+     * Method: sigwait(void* sig)
+     *
+     * @description
      * Blocks the thread until the signal 'sig' is signaled from some other thread.
      * Caller will NOT return from this method. Instead the context will directly
      * be restored on signal reception!
-     */
+     *******************************************************************************/
     void sigwait(void* sig);
 #endif
 
-    /*!
-     * \brief Blocks the current thread.
+    /*****************************************************************************
+     * Method: block(unint4 timeout = 0)
      *
-     * \param timeout   specifies a timeout in clock ticks this thread shall be woken up anyway. if 0
-     *                  the thread may be blocked endlessly. The timeout condition is not perfectly matched
-     *                  as the timeout condition is only checked every now and then (e.g. every 250 ms). The
-     *                  block value is not supposed to be used for realtime synchronization. It is provided
-     *                  to avoid deadlocks on e.g. socket operations.
+     * @description
+     *  Blocks the current thread.
      *
-     * Involves informing the scheduler.
-     */
+     * @params
+     *  timeout   specifies a timeout in clock ticks this thread shall be woken up anyway. if 0
+     *            the thread may be blocked endlessly. The timeout condition is not perfectly matched
+     *            as the timeout condition is only checked every now and then (e.g. every 250 ms). The
+     *            block value is not supposed to be used for realtime synchronization. It is provided
+     *            to avoid deadlocks on e.g. socket operations.
+     *
+     *******************************************************************************/
     void block(unint4 timeout = 0);
 
-    /*!
-     * \brief Unblocks the thread that has been waiting on a resource.
-     */
+    /*****************************************************************************
+     * Method: unblock()
+     *
+     * @description
+     *  Unblocks the thread that has been waiting on a resource.
+     *******************************************************************************/
     void unblock();
 
-    /*!
-     * \brief Method needed to resume a thread if it was stopped by the task.
-     */
+    /*****************************************************************************
+     * Method: resume()
+     *
+     * @description
+     *  Method needed to resume a thread if it was stopped by the task.
+     *******************************************************************************/
     void resume();
 
-    /*!
-     * \brief stops the execution of this thread (controlled by task)
-     */
+    /*****************************************************************************
+     * Method: stop()
+     *
+     * @description
+     *   stops the execution of this thread (controlled by task)
+     *******************************************************************************/
     void stop();
 
 protected:
-    /*!
-     * \brief Terminates the thread.
+    /*****************************************************************************
+     * Method: terminate()
      *
-     * Involves informing the scheduler. May cause a whole task to be terminated
-     * if this is the last thread of a task.
-     */
+     * @description
+     *   Terminates the thread.
+     *   Involves informing the scheduler. May cause a whole task to be terminated
+     *   if this is the last thread of a task.
+     *******************************************************************************/
     void terminate();
 
 public:
-    /*!
-     * \brief Calling this method will setup the thread for first time execution and
-     * 		 call the entry function of the thread.
+    /*****************************************************************************
+     * Method: callMain()
      *
-     * This method can be overwritten in order to allow other thread classes like e.g.
-     * WorkerThread to implement their own behaviour.
-     */
+     * @description
+     *   Calling this method will setup the thread for first time execution and
+     *   call the entry function of the thread.
+     *   This method can be overloaded in order to allow other thread classes like e.g.
+     *   WorkerThread to implement their own behavior.
+     *******************************************************************************/
     virtual void callMain();
 
-    /* Returns the Id of this Thread. */
+    /*****************************************************************************
+     * Method: getId()
+     *
+     * @description
+     *   Returns the Id of this Thread.
+     *******************************************************************************/
     inline ThreadIdT getId() const {
         return (myThreadId);
     }
-
 };
 
 #endif /* _THREAD_HH */

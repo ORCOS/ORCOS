@@ -23,7 +23,7 @@
 #include "hal/CallableObject.hh"
 
 // The RR timeslice
-#define RRTimeSlice 200 ms
+#define RRTimeSlice 20 ms
 
 /*!
  * \ingroup scheduler
@@ -36,28 +36,47 @@ public:
 
     ~RoundRobinThreadScheduler();
 
-    inline void computePriority( Kernel_ThreadCfdCl* item ) {};
-    /*!
-     * \brief The scheduling policy.
+    /*****************************************************************************
+     * Method: computePriority(Kernel_ThreadCfdCl* item)
      *
-     * This method returns the the next thread to be executed. The old thread
-     * will be sorted back into the lists so it may be rescheduled later on.
-     */
-    ListItem* getNext();
+     * @description
+     *  Does nothing as round robin does ignor priorities.
+     *******************************************************************************/
+    inline void computePriority(Kernel_ThreadCfdCl* item) {}
 
-    /*!
-     * \brief The initialisation method called just before scheduling begins
+    /*****************************************************************************
+     * Method: getNext()
      *
-     * This method sets the timer device timeslice.
-     */
-    void startScheduling();
+     * @description
+     *  Returns the next item by round robin fashion.
+     *
+     * @returns
+     *  ListItem         The next item
+     *******************************************************************************/
+    LinkedListItem* getNext();
 
-    /*!
-     * \brief Method returning the amount of microseconds for next timer event.
+    /*****************************************************************************
+     * Method: startScheduling()
      *
-     * This may be 0 if no elements are in the list.
-     */
-    TimeT getNextTimerEvent( LinkedList* sleepList,TimeT currentTime  );
+     * @description
+     *  Does nothing as round robin does not need precomputation.
+     *******************************************************************************/
+    inline void startScheduling() {}
+
+    /****************************************************************************
+     * Method: getNextTimerEvent( LinkedList* sleepList, TimeT currentTime )
+     *
+     * @description
+     *  Returns the next timer event to be programmed for calling the scheduler again. This
+     *  may be a preemption point. This is the round robin time slice.
+     *
+     * @params
+     *  sleepList       The list of sleeping threads which are updated.
+     *  currentTime     Current system time.
+     * @returns
+     *  TimeT           The next absolute time point the scheduler has to be called again
+     *******************************************************************************/
+    TimeT getNextTimerEvent(LinkedList* sleepList, TimeT currentTime);
 };
 
 #endif /*ROUNDROBINTHREADSCHEDULER_HH_*/

@@ -30,26 +30,6 @@
 #include "hal/CharacterDevice.hh"
 #include "filesystem/Directory.hh"
 
-struct serializedThread {
-    ThreadStack threadStack;
-    Bitmap status;
-    TimeT sleepCycles;
-    void* arguments;
-#ifdef HAS_PRIORITY
-    TimeT phase;
-    TimeT initialPriority;
-    TimeT effectivePriority;
-#endif
-#ifdef REALTIME
-    TimeT period;
-    TimeT relativeDeadline;
-    TimeT absoluteDeadline;
-    TimeT executionTime;
-    TimeT arrivalTime;
-    int instance;
-#endif
-};
-
 class Resource;
 
 #ifndef MAX_NUM_TASKS
@@ -65,7 +45,6 @@ class Resource;
  *
  */
 class Task: public ScheduleableItem {
-
     friend class MigrationManager;
     friend class TaskManager;
 
@@ -144,8 +123,6 @@ protected:
     Directory*          sysFsDir;
 
 public:
-
-
     /*!
      * \brief platform specific flags which are used upon task start by the
      *        platform code. Copy of the task table entry (platform) for access
@@ -156,7 +133,7 @@ public:
     /*!
      *  \brief Constructor of a task taking the memory manager and the pointer to the tasktable of this task.
      */
-    Task( Kernel_MemoryManagerCfdCl* memoryManager, taskTable* tasktbl);
+    Task(Kernel_MemoryManagerCfdCl* memoryManager, taskTable* tasktbl);
 
     /*!
      * \brief Constructor only used for derived classes e.g. WorkerTask
@@ -168,9 +145,12 @@ public:
      */
     ~Task();
 
-    /*!
-     * static Task initialization.
-     */
+    /*****************************************************************************
+     * Method: initialize()
+     *
+     * @description
+     *  Static Task initialization.
+     *******************************************************************************/
     static void initialize() {
         globalTaskIdCounter = cFirstTask;
         freeTaskIDs = new ArrayList(MAX_NUM_TASKS);
@@ -181,151 +161,244 @@ public:
          user tasks must start at PID 1 to ensure
          the kernel page table to be not overwritten */
 #if USE_WORKERTASK
-        for (unint4 i = 0; i < MAX_NUM_TASKS; i++)
-        {
+        for (unint4 i = 0; i < MAX_NUM_TASKS; i++) {
 #else
-            for (unint4 i = 1; i < MAX_NUM_TASKS; i++)
-            {
+        for (unint4 i = 1; i < MAX_NUM_TASKS; i++) {
 #endif
-            freeTaskIDs->addTail((ListItem*) i);
+            freeTaskIDs->addTail(reinterpret_cast<ListItem*>(i));
         }
     }
 
-    /*!
-     * \brief Terminates the task.
+    /*****************************************************************************
+     * Method: terminate()
      *
-     * This will cause all threads to be terminated, resources to be released and connections (sockets) to be destroyed.
-     */
+     * @description
+     *  Terminates the task.
+     *  This will cause all threads to be terminated,
+     *  resources to be released and connections (sockets) to be destroyed.
+     *******************************************************************************/
     void terminate();
 
-    /*!
-     * \brief Run this task.
-     */
+
+    /*****************************************************************************
+     * Method: run()
+     *
+     * @description
+     *  Run this task.
+     *******************************************************************************/
     void run();
 
-    /*!
-     * \brief Adds a new thread to this task.
-     */
+
+    /*****************************************************************************
+     * Method: addThread(Thread* t)
+     *
+     * @description
+     *  Adds a new thread to this task.
+     *******************************************************************************/
     inline void addThread(Thread* t) {
         this->threadDb.addTail(t);
     }
 
-    /*!
-     * \brief Removes a given Thread.
-     */
+
+    /*****************************************************************************
+     * Method: removeThread(Thread* t)
+     *
+     * @description
+     *  Removes a given Thread.
+     *******************************************************************************/
     void removeThread(Thread* t);
 
-    /*!
-     * \brief Ask this task to try to aquire the resource res
-     */
+
+    /*****************************************************************************
+     * Method: acquireResource(Resource* res, Thread* t, bool blocking = true)
+     *
+     * @description
+     *  Ask this task to try to aquire the resource res
+     *******************************************************************************/
     ErrorT acquireResource(Resource* res, Thread* t, bool blocking = true);
 
-    /*!
-     * \brief Ask this task to try to aquire the resource res
-     */
+
+    /*****************************************************************************
+     * Method: releaseResource(Resource* res, Thread* t)
+     *
+     * @description
+     *  Ask this task to try to aquire the resource res
+     *******************************************************************************/
     ErrorT releaseResource(Resource* res, Thread* t);
 
-    /*!
-     * \brief Returns the thread given by id. May be null if non existend in this task.
-     */
+
+    /*****************************************************************************
+     * Method: getThreadbyId(ThreadIdT threadid)
+     *
+     * @description
+     *  Returns the thread given by id. May be null if non existent in this task.
+     *******************************************************************************/
     Kernel_ThreadCfdCl* getThreadbyId(ThreadIdT threadid);
 
-    /*!
-     *   \brief Get the identity of this task
-     */
+
+    /*****************************************************************************
+     * Method: getId()
+     *
+     * @description
+     *  Get the identity of this task
+     *******************************************************************************/
     inline TaskIdT getId() const {
         return (myTaskId);
     }
 
-    /*!
-     * \brief Reurns the name of this task
-     */
+
+    /*****************************************************************************
+     * Method: getName()
+     *
+     * @description
+     *  Returns the name of this task
+     *******************************************************************************/
     inline const char* getName() const {
            return (this->name);
     }
 
-    /*!
-     *  \brief Return the Memory Manager of the Task
-     */
+
+    /*****************************************************************************
+     * Method: getMemManager()
+     *
+     * @description
+     *   Return the Memory Manager of the Task
+     *******************************************************************************/
     inline Kernel_MemoryManagerCfdCl* getMemManager() const {
         return (memManager);
     }
 
-    /*!
-     *  \brief Set the Memory Manager of the Task
-     */
-    void setMemManager( Kernel_MemoryManagerCfdCl* mm) {
+
+    /*****************************************************************************
+     * Method: setMemManager(Kernel_MemoryManagerCfdCl* mm)
+     *
+     * @description
+     *   Set the Memory Manager of the Task
+     *******************************************************************************/
+    void setMemManager(Kernel_MemoryManagerCfdCl* mm) {
         memManager = mm;
     }
 
-    /*!
-     * \brief Sets he name of this task
-     */
+    /*****************************************************************************
+     * Method: setName(const char* newname)
+     *
+     * @description
+     *   Sets he name of this task. Maximum 32 characters
+     *******************************************************************************/
     void setName(const char* newname) {
-        strncpy(this->name,newname,32);
+        strncpy(this->name, newname, 32);
     }
 
+    /*****************************************************************************
+     * Method: setStdOut(CharacterDevice* dev)
+     *
+     * @description
+     *
+     *******************************************************************************/
     void setStdOut(CharacterDevice* dev) {
         this->stdOutput = dev;
     }
 
-    /*!
-     * \brief Get the resource with id 'id' owned by this resource. May return null if not owned or not existend.
-     */
+
+    /*****************************************************************************
+     * Method: getOwnedResourceById(ResourceIdT id)
+     *
+     * @description
+     *   Get the resource with id 'id' owned by this resource.
+     *   May return null if not owned or not existend.
+     *******************************************************************************/
     Resource* getOwnedResourceById(ResourceIdT id);
 
-    /*!
-     * \brief Returns the tasktable of this task.
-     */
+    /*****************************************************************************
+     * Method: getTaskTable()
+     *
+     * @description
+     *   Returns the tasktable of this task.
+     *******************************************************************************/
     inline taskTable* getTaskTable() const {
         return (tasktable);
     }
 
+    /*****************************************************************************
+     * Method: getWorkingDirectory()
+     *
+     * @description
+     *   Returns the current working directory of this task
+     *******************************************************************************/
+    inline char* getWorkingDirectory() {
+        return (this->workingDirectory);
+    }
 
-    /*!
-     * Returns the sysFs directory for this task containing
-     * it exported variables
-     */
-    Directory*      getSysFsDirectory() {
+    /*****************************************************************************
+     * Method: getWorkingDirectory()
+     *
+     * @description
+     *   Returns the current working directory of this task
+     *******************************************************************************/
+    inline void setWorkingDirectory(char* newDir) {
+        strncpy(this->workingDirectory, newDir, 255);
+    }
+
+
+    /*****************************************************************************
+     * Method: getSysFsDirectory()
+     *
+     * @description
+     *  Returns the sysFs directory for this task containing
+     *  it exported variables
+     *******************************************************************************/
+    inline Directory*      getSysFsDirectory() const {
         return (sysFsDir);
     }
 
-    /*!
-     * \brief Returns a ThreadCB of a suspended thread which has a stack that is >= stacksize
-     */
-    //LinkedListItem* getSuspendedThread(unint4 stacksize);
-
-    /*!
-     * \brief Returns the stdOutput of this task.
-     */
+    /*****************************************************************************
+     * Method: getStdOutputDevice()
+     *
+     * @description
+     *  Returns the stdOutput of this task.
+     *******************************************************************************/
     inline CharacterDevice* getStdOutputDevice() const {
         return (stdOutput);
     }
 
-    /*!
-     * \brief Stops the execution of this task until resumed or destroyed.
-     */
+    /*****************************************************************************
+     * Method: stop()
+     *
+     * @description
+     *  Stops the execution of this task until resumed or destroyed.
+     *******************************************************************************/
     void stop();
 
-    /*!
-     * \brief Resumes the execution of this task if stopped.
-     */
+
+    /*****************************************************************************
+     * Method: resume()
+     *
+     * @description
+     *  Resumes the execution of this task if stopped.
+     *******************************************************************************/
     void resume();
 
-    /*!
-     *  \brief Returns the ID of the Task, who will be created next
-     */
+
+    /*****************************************************************************
+     * Method: getIdOfNextCreatedTask()
+     *
+     * @description
+     *  Returns the ID of the Task, who will be created next
+     *******************************************************************************/
     static TaskIdT getIdOfNextCreatedTask();
 
-    /*!
-     *  \brief Returns the Database of all Threads of this task
+
+    /*****************************************************************************
+     * Method: getThreadDB()
      *
-     */
+     * @description
+     *   Returns the Database of all Threads of this task
+     * @returns
+     *  LinkedList  The Database of all Threads of this task
+     *******************************************************************************/
     inline LinkedList* getThreadDB() {
         return (&threadDb);
     }
-    ;
-
 };
 
 #endif /* _TASK_HH */

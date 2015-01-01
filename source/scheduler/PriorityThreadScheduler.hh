@@ -26,54 +26,82 @@
 /*!\ingroup scheduler
  * \brief Simple thread scheduler which schedules threads according to their priority.
  *
- *	This scheduler will not assign or change prioritys. Only use this scheduler with priority or
+ *    This scheduler will not assign or change prioritys. Only use this scheduler with priority or
  *  realtime threads... if the basic thread class is configured (which has no prioritys) bad
  *  things will occur (yes really).
  */
 class PriorityThreadScheduler: public ListScheduler {
-
 public:
-
-    /*!
-     *  \brief Enter method which adds an already existing DatabaseItem to the scheduler.
+    /*****************************************************************************
+     * Method: enter(LinkedListItem* item)
      *
-     *  This will enter the database item in accordance with it's priority in the list
-     *  of scheduled items.
-     */
-    ErrorT enter( LinkedListItem* item );
-
-    /*!
-     * \brief Enter method which adds a thread to the scheduler for which no DatabaseItem already exists.
+     * @description
+     *  Inserts the given priority thread into the priority queue based on its
+     *  priority
      *
-     * Be careful not to use this method if a DatabaseItem already exists for the thread. Otherwise a
-     * superflous DatabaseItem will be generated which results in a memory leak!
-     */
-    ErrorT enter( ScheduleableItem* item ) {
-        return (this->enter( new LinkedListItem( item ) ));
+     * @params
+     *  item        Linkedlist item of the priority thread to be inserted
+     *
+     * @returns
+     *  int         Error Code
+     *******************************************************************************/
+    ErrorT enter(LinkedListItem* item);
+
+    /*****************************************************************************
+     * Method: enter(LinkedListItem* item)
+     *
+     * @description
+     *  Enter method which adds a thread to the scheduler for which no DatabaseItem already exists.
+     *  Be careful not to use this method if a DatabaseItem already exists for the thread. Otherwise a
+     *  superflous DatabaseItem will be generated which results in a memory leak!
+     *
+     * @params
+     *  item        Linkedlist item of the priority thread to be inserted
+     *
+     * @returns
+     *  int         Error Code
+     *******************************************************************************/
+    ErrorT enter(ScheduleableItem* item) {
+        return (this->enter(new LinkedListItem(item)));
     }
 
-    /*!
-     * \brief This method returns the next thread to be executed.
+    /*****************************************************************************
+     * Method: getNext()
      *
-     * Since the actual scheduling logic is implemented in the enter method, this will always return the first
-     * item of the internal database of threads ready to run.
-     */
-    ListItem* getNext();
+     * @description
+     *  Returns and removes the head of the priority queue.
+     *
+     * @returns
+     *  ListItem*         The head of the priority queue or null
+     *******************************************************************************/
+    LinkedListItem* getNext();
 
-    /*!
-     * \brief The initialisation method called just before scheduling begins, enables the timer device.
+    /*****************************************************************************
+     * Method: startScheduling()
      *
-     */
+     * @description
+     *  Starts scheduling. As this is a dynamic scheduler nothing has to be
+     *  computed beforehand.
+     *******************************************************************************/
     void startScheduling();
 
-    /*!
-     * \brief Method returning the amount of microseconds for next timer event.
-     *
-     */
-#ifndef REALTIME
-    int getNextTimerEvent(LinkedList* sleepList,unint4 dt);
-#endif
 
+#ifndef REALTIME
+    /*****************************************************************************
+     * Method: getNextTimerEvent(LinkedListDatabase* sleepList, unint4 dt)
+     *
+     * @description
+    *  Returns the next timer event to be programmed for calling the scheduler again. This
+     *  may be a preemption point. ONLY used if no realtime scheduler is configured as this
+     *  method is overloaded then.
+     *
+     * @params
+     *
+     * @returns
+     *  int         Error Code
+     *******************************************************************************/
+    int getNextTimerEvent(LinkedList* sleepList, unint4 dt);
+#endif
 };
 
 #endif /*PRIORITYSCHEDULER_HH_*/

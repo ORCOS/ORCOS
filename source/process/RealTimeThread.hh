@@ -31,7 +31,6 @@
  * This class adds deadlines and periods to the priority thread base class.
  */
 class RealTimeThread: public PriorityThread {
-
 // friend classes
     friend class EarliestDeadlineFirstThreadScheduler;
     friend class RateMonotonicThreadScheduler;
@@ -67,15 +66,16 @@ public:
     ~RealTimeThread();
 
 protected:
-    /*! \brief Is automatically called when the thread finishes through a syscall.
+    /*****************************************************************************
+     * Method: terminate()
      *
+     * @description
      * If the period is not zero (meaning it is a periodic thread) this method will take care that the thread is
      * rescheduled. For this purpose the stack pointer is reset so when the thread runs again it will start at the
      * beginning without having to initialize everything again. It will then be entered in the sleeplist for the
      * remaining time till the next execution is due.
-     */
+     *******************************************************************************/
     void terminate();
-
 };
 
 #endif /*REALTIMETHREAD_HH_*/

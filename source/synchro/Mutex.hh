@@ -22,7 +22,6 @@
 // includes
 #include "SCLConfig.hh"
 #include "inc/const.hh"
-#include <assemblerFunctions.hh>
 #include "db/ArrayList.hh"
 #include Kernel_Scheduler_hh
 #include Kernel_Thread_hh
@@ -37,81 +36,53 @@ extern Kernel_ThreadCfdCl* pCurrentRunningThread;
  * \ingroup synchro
  * \brief Provides mutex functionality (-> a binary semaphore), optionally with resource management.
  *
- * 	This Mutex class provides normal mutex functionality with priority inheritance and scheduling functionality.
+ *     This Mutex class provides normal mutex functionality with priority inheritance and scheduling functionality.
  *
  *  This implementation is save regarding interrupts since it disables interrupts in its critical code parts.
  *
  */
 class Mutex {
-
 private:
-
     /*! \brief This member variable stores if the mutex is aquired or not.
      *
      * This should ALWAYS be the first variable of the Mutex class so it is guaranteed to be word
      * aligned.
      */
-    int4 				m_locked;
+    int4 m_locked;
 
     /*! Stores a pointer to the thread currently locking this mutex. */
     Kernel_ThreadCfdCl* m_pThread;
 
-#if MEM_NO_FREE
-    /*! \brief Is used to store unused LinkedList Database Items
-     *
-     * We internally keep track of free linked list database items so that we do not have to
-     * create new ones every time we need it (e.g. to add a thread to the scheduler) and delete it
-     * afterwards. This saves a bit of execution time (no unneccesary creating / deleting of objects)
-     * and makes it possible to use the Mutex class with a linear memory manager (which does not
-     * support release of memory) without memory leaks.
-     */
-    LinkedList 	        m_unusedLinkedListDBItems;
-#endif
-
-    //! Stores threads which are stopped by the user, but will want to acquire the mutex when they are resumed.
-    ArrayList 		    m_stoppedThreads;
-
     //! Stores a pointer to the Resource guarded by this mutex.
-    Resource* 		    m_pRes;
+    Resource* m_pRes;
 
-    //! configurable member scheduler
-    DEF_Kernel_SchedulerCfd
+    TimeT   acquirePriority;
 
-public    :
-
+public:
     //! Constructor, initializes m_locked to false, so the Mutex can be aquired, and initializes the scheduler.
     Mutex();
 
     //! Destructor, deletes scheduler object, if it has been allocated.
     ~Mutex();
 
-    /*!
-     * \brief Method used to acquire a Mutex
+    /*****************************************************************************
+     * Method: acquire(Resource* = 0, bool blocking = true)
      *
-     * Tries to acquire the mutex. If blocking == true the running thread will be blocked if the
-     * mutex can not be acquired. If a resource is provided the resource will be added to the running threads
-     * aquired resources in success.
-     *
-     */
+     * @description
+     *  Tries to acquire the mutex. If blocking == true the running thread will be blocked if the
+     *  mutex can not be acquired. If a resource is provided the resource will be added to the running threads
+     *  acquired resources in success.
+     *---------------------------------------------------------------------------*/
     ErrorT acquire(Resource* = 0, bool blocking = true);
 
-    /*!
-     * \brief Releases an acquired Mutex object.
+    /*****************************************************************************
+     * Method: release(Thread* pThread = pCurrentRunningThread)
      *
-     * pCurrentRunningThread releases the mutex.
-     */
+     * @description
+     *  Releases the current Mutex
+     *---------------------------------------------------------------------------*/
     ErrorT release(Thread* pThread = pCurrentRunningThread);
 
-    /* Remvoes a thread from the scheduler queue of this mutex */
-    void threadRemove(Thread* pThread);
-
-    /*!
-     * \brief Method called whenever a thread is resumed.
-     *
-     * This method is not called within the mutex itself but from the thread_resume syscall. It makes sure to
-     * reschedule the specified thread, if it has been added to the stoppedThreads list.
-     */
-    void   threadResume(Kernel_ThreadCfdCl* pThread);
 
 };
 

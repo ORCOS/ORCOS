@@ -31,9 +31,9 @@ extern "C" void thread_exit(int exitCode)
 
 extern "C" unint8 getCycles()
 {
-	unint8 time;
-	syscall(cGetTimeSyscallId,&time);
-	return (time);
+    unint8 time;
+    syscall(cGetTimeSyscallId,&time);
+    return (time);
 }
 
 extern "C" unint4 getTime()
@@ -126,9 +126,13 @@ extern "C" int parseArgs(char* str, char** &argv) {
 extern "C"  void compactPath(char* path) {
 
     char newpath[100];
-    newpath[0] = '/';
-    newpath[1] = '\0';
 
+    if (path[0] == '/') {
+        newpath[0] = '/';
+        newpath[1] = '\0';
+    } else  {
+        newpath[0] = 0;
+    }
 
     char* token = strtok(path,"/");
     char* next_token;
@@ -142,11 +146,17 @@ extern "C"  void compactPath(char* path) {
 
         if ((strcmp(token,".") != 0) && !nextisparent && (strcmp(token,"..") != 0 )) {
             strcat(newpath,token);
-            strcat(newpath,"/");
+            if (next_token != 0)
+                strcat(newpath,"/");
         }
 
         token = next_token;
     }
 
-    memcpy(path,newpath,strlen(newpath)+1);
+    int pathlen = strlen(newpath);
+    if (pathlen > 0 && newpath[pathlen-1] == '/') {
+        newpath[pathlen-1] = 0;
+    }
+
+    memcpy(path,newpath,pathlen+1);
 }

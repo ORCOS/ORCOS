@@ -25,53 +25,66 @@
 extern Kernel* theOS;
 
 RoundRobinThreadScheduler::RoundRobinThreadScheduler() {
-
 }
 
 RoundRobinThreadScheduler::~RoundRobinThreadScheduler() {
-
 }
 
-ListItem* RoundRobinThreadScheduler::getNext() {
+/*****************************************************************************
+ * Method: RoundRobinThreadScheduler::getNext()
+ *
+ * @description
+ *  Returns the next item by round robin fashion.
+ *
+ * @returns
+ *  ListItem         The next item
+ *******************************************************************************/
+LinkedListItem* RoundRobinThreadScheduler::getNext() {
     LinkedListItem* nextItem = this->database.removeHead();
 
-    // this implies that this thread will be the active thread then
-    return nextItem;
+    /* this implies that this thread will be the active thread then */
+    return (nextItem);
 }
 
-void RoundRobinThreadScheduler::startScheduling() {
-    // empty since no schedule needs to be calculated..
-}
 
-TimeT RoundRobinThreadScheduler::getNextTimerEvent( LinkedList* sleepList,TimeT currentTime ) {
+/****************************************************************************
+ * Method: RoundRobinThreadScheduler::getNextTimerEvent( LinkedList* sleepList, TimeT currentTime )
+ *
+ * @description
+ *  Returns the next timer event to be programmed for calling the scheduler again. This
+ *  may be a preemption point. This is the round robin time slice.
+ *
+ * @params
+ *  sleepList       The list of sleeping threads which are updated.
+ *  currentTime     Current system time.
+ * @returns
+ *  TimeT           The next absolute time point the scheduler has to be called again
+ *******************************************************************************/
+TimeT RoundRobinThreadScheduler::getNextTimerEvent(LinkedList* sleepList, TimeT currentTime) {
     ASSERT(sleepList);
+    TimeT shortest_sleeptime = 0x0fffffffffffffffll;//MAX_UINT8;
 
-     TimeT shortest_sleeptime = MAX_UINT8;
+    /* update sleeplist */
+    LinkedListItem* pDBSleepItem = sleepList->getHead();
+    if (pDBSleepItem != 0) {
+        do {
+            Thread* pSleepThread = static_cast<Thread*>(pDBSleepItem->getData());
 
-     // update sleeplist
-     LinkedListItem* pDBSleepItem = sleepList->getHead();
-     if ( pDBSleepItem != 0 ) {
+            if (pSleepThread->sleepTime <= currentTime) {
+                pSleepThread->status.setBits(cReadyFlag);
+                LinkedListItem* litem2 = pDBSleepItem;
+                pDBSleepItem = pDBSleepItem->getSucc();
+                pSleepThread->sleepTime = 0;
+                this->enter(litem2);
+            } else {
+                if (pSleepThread->getSleepTime() < shortest_sleeptime)
+                    shortest_sleeptime = pSleepThread->getSleepTime();
+                pDBSleepItem = pDBSleepItem->getSucc();
+            }
+        } while (pDBSleepItem != 0);
+    }
 
-         do {
-             Thread* pSleepThread = static_cast< Thread*> ( pDBSleepItem->getData() );
-
-              if ( pSleepThread->sleepTime <= currentTime ) {
-                  pSleepThread->status.setBits( cReadyFlag );
-                  LinkedListItem* litem2 = pDBSleepItem;
-                  pDBSleepItem = pDBSleepItem->getSucc();
-                  pSleepThread->sleepTime = 0;
-                  this->enter( litem2 );
-              } else
-              {
-                  if (  pSleepThread->getSleepTime() < shortest_sleeptime  )  shortest_sleeptime = pSleepThread->getSleepTime();
-                  pDBSleepItem = pDBSleepItem->getSucc();
-              }
-         } while ( pDBSleepItem != 0 );
-
-     }
-
-
-    if ( database.isEmpty() )
+    if (database.isEmpty())
         return (shortest_sleeptime);
     else
         return (RRTimeSlice);

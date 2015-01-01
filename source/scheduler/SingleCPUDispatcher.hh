@@ -39,7 +39,6 @@
  * the operating systems is supposed to run on.
  */
 class SingleCPUDispatcher {
-
     //! scheduler maintaining the ready list.
 DEF_Kernel_SchedulerCfd
 
@@ -71,62 +70,125 @@ public:
 
     ~SingleCPUDispatcher();
 
-    //! Returns the current number of elements in the dispatchers blockedList
-    unint getSizeOfBlockedList() {return (blockedList->getSize());}
-
-    //! Returns the current number of elements in the dispatchers sleepList
-    unint getSizeOfSleepList() {return (sleepList->getSize());}
-
-
-    inline LinkedList* getSleeplist() {   return (this->sleepList);}
-
-    /*!
-     * \brief The dispatch function triggered by the TimerDevice on timer interrupt
+    /*****************************************************************************
+     * Method: getSizeOfBlockedList()
      *
-     * Calling this functison results in rescheduling the cpu. Thus the next
-     * thread is taken from the cpu and assigned to the cpu (started/resumed).
-     * This might be the currently running thread again depending on the schedulers
-     * policy.
+     * @description
+     *  Returns the current number of threads on the blocked list.
      *
+     * @returns
+     *  unint   The current number of threads on the blocked list
+     *---------------------------------------------------------------------------*/
+    inline unint getSizeOfBlockedList() const {return (blockedList->getSize());}
+
+    /*****************************************************************************
+     * Method: getSizeOfSleepList()
      *
-     */
-    void dispatch();
+     * @description
+     *  Returns the current number of threads on the sleep list.
+     *
+     * @returns
+     *  unint   The current number of threads on the sleep list
+     *---------------------------------------------------------------------------*/
+    inline unint getSizeOfSleepList() const {return (sleepList->getSize());}
 
-    /*!
-     * \brief sleep method which sends the given / current thread to sleep mode
-     */
-    void sleep(LinkedListItem* pSleepDbItem = pRunningThreadDbItem);
+    /*****************************************************************************
+     * Method: getSleeplist()
+     *
+     * @description
+     *  Returns the sleep lists
+     *
+     * @returns
+     *  unint   The ´sleep list
+     *---------------------------------------------------------------------------*/
+    inline LinkedList* getSleeplist() const {   return (this->sleepList);}
 
-    /*!
-     * \brief block method which sends the current thread to blocked mode
-     */
+    /*****************************************************************************
+     * Method: dispatch()
+     *
+     * @description
+     *  Calling this function results in rescheduling the cpu. Thus the next
+     *  thread is taken from the schdulers list and assigned to the cpu (started/resumed).
+     *  This might be the currently running thread again depending on the schedulers
+     *  policy.
+     *
+     *---------------------------------------------------------------------------*/
+    void dispatch()  __attribute__((noreturn));
+
+    /*****************************************************************************
+     * Method: sleep(LinkedListItem* pSleepDbItem = pRunningThreadDbItem)
+     *
+     * @description
+     *  Places a thread into the sleep list using its own linked list item.
+     *
+     * @params
+     *  pSleepDbItem:     Pointer to the threads linked list item
+     *
+     *---------------------------------------------------------------------------*/
+    void sleep(Thread* thread);
+
+    /*****************************************************************************
+     * Method: block(Thread* thread)
+     *
+     * @description
+     *  Blocks the given thread, thereby placing it on the blocked list until
+     *  it is removed by calling unblock.
+     *
+     * @params
+     *  thread:     Pointer to the threads to be placed on the blocked list.
+     *
+     *---------------------------------------------------------------------------*/
     void block(Thread* thread);
 
-    /*!
-     *  \brief Unblocks the given thread
-     */
+    /*****************************************************************************
+     * Method: unblock(Thread* thread)
+     *
+     * @description
+     *  Removes the given thread from the blocked list inserting it into the
+     *  sleepList if it has some remaining sleeptime or into the ready queue.
+     *
+     * @params
+     *  thread:     The thread to be removed from the blocked list
+     *---------------------------------------------------------------------------*/
     void unblock(Thread* thread);
 
 #ifdef ORCOS_SUPPORT_SIGNALS
-    /*!
-     *  \brief Indicates to the dispatch that the given thread is waiting on a signal
+    /*****************************************************************************
+     * Method: sigwait(Thread* thread)
      *
-     *  The signal the thread is waiting on is given inside thread->signal
-     *  This signal itself can be a memory location, a define SIG_xx or anything else.
-     */
+     * @description
+     *  Places the given thread on the wait list.
+     *
+     * @params
+     *  thread:     The thread that waits for a signal
+     *---------------------------------------------------------------------------*/
     void sigwait(Thread* thread);
 
 
-    /*!
-     * \brief Resumes all threads waiting for the given signal. The corresponding signal_value
-     * will be set as return value.
-     */
+    /*****************************************************************************
+     * Method: signal(void* sig, int sigvalue)
+     *
+     * @description
+     *  Indicates that the given signal was raised. Wakes all threads currently
+     *  waiting for that signal and rescheudles them.
+     *
+     * @params
+     *  sig:      The signal raised.
+     *  sigvalue: The value of the signal passed as return code to the thread.
+     *---------------------------------------------------------------------------*/
     void signal(void* sig, int signalvalue = cOk);
 #endif
 
-    /*!
-     * \brief Terminates the given thread
-     */
+    /*****************************************************************************
+     * Method: terminate_thread(Thread* thread)
+     *
+     * @description
+     *  Tells the disptacher that the given thread has terminated. The thread is
+     *  removed from all lists.
+     *
+     * @params
+     *  thread:     The thread that terminated
+     *---------------------------------------------------------------------------*/
     void terminate_thread(Thread* thread);
 };
 

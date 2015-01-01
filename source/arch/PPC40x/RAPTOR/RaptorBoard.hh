@@ -28,8 +28,9 @@
 #include Board_LED_hh
 #include Board_UART_hh
 #include Board_InterruptController_hh
-#include Board_Timer_hh
 #include Board_Clock_hh
+#include <OmapGPTimer.hh>
+
 #include Board_ETH_hh
 #include "ppc405.h"
 

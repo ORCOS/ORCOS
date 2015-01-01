@@ -472,7 +472,7 @@ mem_realloc(void *rmem, mem_size_t newsize) {
     /* else {
      next struct mem is used but size between mem and mem2 is not big enough
      to create another struct mem
-     -> don't do anyhting. 
+     -> don't do anyhting.
      -> the remaining space stays unused since it is too small
      } */
 #if LWIP_ALLOW_MEM_FREE_FROM_OTHER_CONTEXT
@@ -521,7 +521,8 @@ mem_malloc(mem_size_t size) {
     }
 
     /* protect the heap from concurrent access */
-    sys_arch_sem_wait(mem_sem, 0);LWIP_MEM_ALLOC_PROTECT();
+    sys_arch_sem_wait(mem_sem, 0);
+    LWIP_MEM_ALLOC_PROTECT();
 #if LWIP_ALLOW_MEM_FREE_FROM_OTHER_CONTEXT
     /* run as long as a mem_free disturbed mem_malloc */
     do
@@ -608,9 +609,10 @@ mem_malloc(mem_size_t size) {
                 }
                 LWIP_ASSERT("mem_malloc: !lfree->used", ((lfree == ram_end)
                                     || (!lfree->used)));
-            }LWIP_MEM_ALLOC_UNPROTECT();sys_sem_signal(mem_sem);
+            }
+            LWIP_MEM_ALLOC_UNPROTECT();sys_sem_signal(mem_sem);
             LWIP_ASSERT("mem_malloc: allocated memory not above ram_end.", (mem_ptr_t)mem + SIZEOF_STRUCT_MEM + size <= (mem_ptr_t)ram_end);
-            LWIP_ASSERT("mem_malloc: allocated memory properly aligned.", ((mem_ptr_t)mem + SIZEOF_STRUCT_MEM) % MEM_ALIGNMENT == 0);
+            //LWIP_ASSERT("mem_malloc: allocated memory properly aligned.", ((mem_ptr_t)mem + SIZEOF_STRUCT_MEM) & (MEM_ALIGNMENT-1) == 0);
             LWIP_ASSERT("mem_malloc: sanity check alignment", (((mem_ptr_t)mem) & (MEM_ALIGNMENT-1)) == 0);
 
             MEM_STATS_DISPLAY();
@@ -622,7 +624,10 @@ mem_malloc(mem_size_t size) {
     /* if we got interrupted by a mem_free, try again */
 }while(local_mem_free_count != 0);
 #endif /* LWIP_ALLOW_MEM_FREE_FROM_OTHER_CONTEXT */
-    LWIP_DEBUGF(MEM_DEBUG | LWIP_DBG_LEVEL_SERIOUS, ("mem_malloc: could not allocate %"S16_F" bytes"NEWLINE, (s16_t)size));MEM_STATS_INC(err);LWIP_MEM_ALLOC_UNPROTECT();sys_sem_signal(mem_sem);
+    LWIP_DEBUGF(MEM_DEBUG | LWIP_DBG_LEVEL_SERIOUS, ("mem_malloc: could not allocate %"S16_F" bytes"NEWLINE, (s16_t)size));
+    MEM_STATS_INC(err);
+    LWIP_MEM_ALLOC_UNPROTECT();
+    sys_sem_signal(mem_sem);
     return NULL;
 }
 

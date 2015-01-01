@@ -18,6 +18,7 @@
 
 #include "LinkedList.hh"
 #include "LinkedListItem.hh"
+#include "assemblerFunctions.hh"
 
 LinkedList::LinkedList() {
     headItem = 0;
@@ -25,44 +26,59 @@ LinkedList::LinkedList() {
     size = 0;
 }
 
+/*****************************************************************************
+ * Method: LinkedList::removeHead()
+ *
+ * @description
+ *
+ *******************************************************************************/
 LinkedListItem* LinkedList::removeHead() {
+    DISABLE_IRQS(status);
     LinkedListItem* ret = this->headItem;
-    if (headItem != 0)
-    {
-        headItem = headItem->succ;
-        if (headItem != 0)
-        {
-            headItem->pred = 0;
-        }
-        else
-            tailItem = 0;
 
-        ret->pred = 0;
-        ret->succ = 0;
+    if (headItem != 0) {
+        headItem = headItem->succ;
+
+        if (headItem != 0) {
+            headItem->pred = 0;
+        } else {
+            tailItem = 0;
+        }
+
+        ret->pred    = 0;
+        ret->succ    = 0;
         ret->host_db = 0;
         size--;
     }
 
+    RESTORE_IRQS(status);
     return (ret);
 }
 
+
+/*****************************************************************************
+ * Method: LinkedList::removeTail()
+ *
+ * @description
+ *
+ *******************************************************************************/
 LinkedListItem* LinkedList::removeTail() {
+    DISABLE_IRQS(status);
     LinkedListItem* ret = this->tailItem;
-    if (tailItem != 0)
-    {
+    if (tailItem != 0) {
         tailItem = tailItem->pred;
-        if (tailItem != 0)
-        {
+        if (tailItem != 0) {
             tailItem->succ = 0;
-        }
-        else
+        } else {
             headItem = 0;
+        }
 
         ret->pred = 0;
         ret->succ = 0;
         ret->host_db = 0;
         size--;
     }
+    RESTORE_IRQS(status);
     return (ret);
 }
 
@@ -96,22 +112,28 @@ LinkedListItem* LinkedList::removeTail() {
  return ret;
  }*/
 
+/*****************************************************************************
+ * Method: LinkedList::addTail(LinkedListItem* llitem)
+ *
+ * @description
+ *
+ *******************************************************************************/
 ErrorT LinkedList::addTail(LinkedListItem* llitem) {
-    // if this item is already in a datase remove it there
+    ASSERT(llitem);
+    /* if this item is already in a database remove it there */
+    DISABLE_IRQS(status);
     if (llitem->host_db != 0)
         llitem->remove();
+
     llitem->host_db = this;
 
-    if (headItem == 0)
-    {
+    if (headItem == 0) {
         // no item in the list
         headItem = llitem;
         tailItem = llitem;
         llitem->setPred(0);
         llitem->setSucc(0);
-    }
-    else
-    {
+    } else {
         // got at least one item in the list
         // add the item to the end of the list
         llitem->setPred(tailItem);
@@ -120,27 +142,32 @@ ErrorT LinkedList::addTail(LinkedListItem* llitem) {
         tailItem = llitem;
     }
     size++;
+    RESTORE_IRQS(status);
     return (cOk );
 }
 
+/*****************************************************************************
+ * Method: LinkedList::addHead(LinkedListItem* llitem)
+ *
+ * @description
+ *
+ *******************************************************************************/
 ErrorT LinkedList::addHead(LinkedListItem* llitem) {
     ASSERT(llitem);
-    // if this item is already in a database, remove it there
+    /* if this item is already in a database, remove it there */
+    DISABLE_IRQS(status);
     if (llitem->host_db != 0)
         llitem->remove();
 
     llitem->host_db = this;
 
-    if (headItem == 0)
-    {
+    if (headItem == 0) {
         // no item in the list
         headItem = llitem;
         tailItem = llitem;
         llitem->setPred(0);
         llitem->setSucc(0);
-    }
-    else
-    {
+    } else {
         // got at least one item in the list
         // add the item to the head of the list
         if (headItem == tailItem)
@@ -152,37 +179,77 @@ ErrorT LinkedList::addHead(LinkedListItem* llitem) {
         headItem = llitem;
     }
     size++;
+    RESTORE_IRQS(status);
     return (cOk );
 }
 
+/*****************************************************************************
+ * Method: LinkedList::remove(ListItem* item)
+ *
+ * @description
+ *
+ *******************************************************************************/
 ErrorT LinkedList::remove(ListItem* item) {
     ASSERT(item);
-    // Create a new LinkedListDatabaseItem which stores a reference to this DatabaseItem
+
+    DISABLE_IRQS(status);
     LinkedListItem* llitem = getItem(item);
-    if (llitem != 0)
-    {
-        // set pointers
-        LinkedListItem *succ = llitem->getSucc();
-        LinkedListItem *pred = llitem->getPred();
-
-        if (pred == 0)
-            headItem = succ;
-        if (tailItem == llitem)
-            tailItem = pred;
-
-        if (pred != 0)
-            pred->succ = succ;
-        if (succ != 0)
-            succ->pred = pred;
-
+    if (llitem != 0) {
+        ErrorT ret = remove(llitem);
+        RESTORE_IRQS(status);
         delete llitem;
-        size--;
-        return (cOk );
+        return (ret);
     }
 
+    RESTORE_IRQS(status);
     return (cError );
 }
 
+
+/*****************************************************************************
+ * Method: LinkedList::remove(ListItem* item)
+ *
+ * @description
+ *
+ *******************************************************************************/
+ErrorT LinkedList::remove(LinkedListItem* litem) {
+
+    if (litem->host_db != this)
+        return (cElementNotInDatabase);
+
+    DISABLE_IRQS(status);
+
+   /* set pointers */
+   LinkedListItem *succ = litem->getSucc();
+   LinkedListItem *pred = litem->getPred();
+
+   if (litem->pred == 0)
+       headItem = succ;
+
+   if (tailItem == litem)
+       tailItem = pred;
+
+   if (pred != 0)
+       pred->succ = succ;
+   if (succ != 0)
+       succ->pred = pred;
+
+   litem->host_db = 0;
+   litem->pred = 0;
+   litem->succ = 0;
+
+   size--;
+   RESTORE_IRQS(status);
+   return (cOk);
+}
+
+
+/*****************************************************************************
+ * Method: LinkedList::addTail(ListItem* item)
+ *
+ * @description
+ *
+ *******************************************************************************/
 ErrorT LinkedList::addTail(ListItem* item) {
     ASSERT(item);
     // Create a new LinkedListDatabaseItem which stores a reference to this DatabaseItem
@@ -191,6 +258,12 @@ ErrorT LinkedList::addTail(ListItem* item) {
     return (addTail(llitem));
 }
 
+/*****************************************************************************
+ * Method: LinkedList::addHead(ListItem* item)
+ *
+ * @description
+ *
+ *******************************************************************************/
 ErrorT LinkedList::addHead(ListItem* item) {
     ASSERT(item);
     // Create a new LinkedListDatabaseItem which stores a reference to this DatabaseItem
@@ -199,28 +272,28 @@ ErrorT LinkedList::addHead(ListItem* item) {
     return (addHead(llitem));
 }
 
+/*****************************************************************************
+ * Method: LinkedList::insertAfter(LinkedListItem* llItem, LinkedListItem* existingItem)
+ *
+ * @description
+ *
+ *******************************************************************************/
 ErrorT LinkedList::insertAfter(LinkedListItem* llItem, LinkedListItem* existingItem) {
-
     ASSERT(llItem);
     ASSERT(existingItem);
+    ASSERT( (existingItem != llItem) );
 
-    if (existingItem == 0)
-    {
-        return (cError );
-    }
-
+    DISABLE_IRQS(status);
     if (llItem->host_db != 0)
         llItem->remove();
 
-    if (existingItem->succ != 0)
-    {
+    if (existingItem->succ != 0) {
         existingItem->succ->setPred(llItem);
         llItem->setSucc(existingItem->succ);
-    }
-    else
-    {
+    } else {
         // we must be the new tailitem
         tailItem = llItem;
+        llItem->setSucc(0);
     }
 
     existingItem->setSucc(llItem);
@@ -229,6 +302,8 @@ ErrorT LinkedList::insertAfter(LinkedListItem* llItem, LinkedListItem* existingI
     // set this database to its owner
     llItem->host_db = this;
     size++;
+    RESTORE_IRQS(status);
+
     return (cOk );
 }
 
@@ -255,9 +330,12 @@ ErrorT LinkedList::insertAfter(LinkedListItem* llItem, LinkedListItem* existingI
 
 LinkedListItem*
 LinkedList::getItem(ListItem* data) {
+    DISABLE_IRQS(status);
     LinkedListItem* curItem = headItem;
     while (curItem != 0 && curItem->getData() != data)
         curItem = curItem->getSucc();
+
+    RESTORE_IRQS(status);
     return (curItem);
 }
 

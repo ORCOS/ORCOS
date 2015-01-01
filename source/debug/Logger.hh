@@ -36,9 +36,6 @@ class Logger;
  *
  */
 class Logger {
-
-protected:
-
 public:
     Logger() {
     }
@@ -46,17 +43,25 @@ public:
     ~Logger() {
     }
 
-    /*!
-     * \brief Write msg to standard output.
+    /*****************************************************************************
+     * Method: log(Prefix prefix, Level level, const char* msg, ...)
      *
-     * the printf is used, so %d .. could be used to as variables.
-     * The prefix and level could be found in the logger_config.hh which is generated out of the SCLConfig.xml
+     * @description
+     *  Write msg to standard output.
      *
-     */
+     *  The printf is used, so %d .. could be used to as variables.
+     *  The prefix and level could be found in the logger_config.hh
+     *  which is generated out of the SCLConfig.xml
+     *******************************************************************************/
     void log(Prefix prefix, Level level, const char* msg, ...);
 
-    /* nothing to flush as everything is directly written to std out*/
-    void flush() {};
+    /*****************************************************************************
+     * Method: flush()
+     *
+     * @description
+     *   nothing to flush as everything is directly written to std out
+     *******************************************************************************/
+    void flush() {}
 };
 
 #endif /*DEBUG_HH_*/

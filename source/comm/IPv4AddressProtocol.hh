@@ -23,28 +23,50 @@
 #include "db/ArrayList.hh"
 #include "filesystem/Directory.hh"
 
-/*!
- * \brief A minimal implementation of the IPv4 Address Protocol.
- * \ingroup comm
- *
- *
- * All features supported except: IP packet fragmentation. Options and Flags.
- */
 class IPv4AddressProtocol: public AddressProtocol {
 public:
-    IPv4AddressProtocol(Directory* commdevsdir);
+    /*****************************************************************************
+     * Method: IPv4AddressProtocol(Directory* commdevsdir)
+     *
+     * @description
+     *
+     *******************************************************************************/
+    explicit IPv4AddressProtocol(Directory* commdevsdir);
+
     ~IPv4AddressProtocol();
 
-    static void initialize() {
+    /*****************************************************************************
+     * Method: initialize()
+     *
+     * @description
+     *
+     *******************************************************************************/
+    static void initialize() { }
 
-    }
-
-    //! Bind Method. If the addr is a multicast address tells the protocol to accept these multicast packets.
+    /*****************************************************************************
+     * Method: bind(sockaddr* addr, Socket* sock)
+     *
+     * @description
+     *  Bind Method. If the addr is a multicast address tells the protocol to accept these multicast packets.
+     * @params
+     *
+     * @returns
+     *  int         Error Code
+     *******************************************************************************/
     ErrorT bind(sockaddr* addr, Socket* sock);
 
-    //! Will unbind a socket from the addresprotocol domain. For multicast registered sockets this will stop the protocol to listen for that multicast address
+    /*****************************************************************************
+     * Method: unbind(sockaddr* addr, Socket* sock)
+     *
+     * @description
+     *  Will unbind a socket from the addresprotocol domain. For multicast
+     *  registered sockets this will stop the protocol to listen for that multicast address
+     * @params
+     *
+     * @returns
+     *  int         Error Code
+     *******************************************************************************/
     ErrorT unbind(sockaddr* addr, Socket* sock);
-
 };
 
 #endif /*IPV4ADDRESSPROTOCOL_HH_*/

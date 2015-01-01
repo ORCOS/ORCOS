@@ -19,6 +19,7 @@
 #include "IdleThread.hh"
 #include "kernel/Kernel.hh"
 #include "SCLConfig.hh"
+#include "assemblerFunctions.hh"
 
 extern Kernel* theOS;
 extern void* __stack;
@@ -29,28 +30,29 @@ IdleThread::IdleThread() {
 IdleThread::~IdleThread() {
 }
 
+/*****************************************************************************
+ * Method: IdleThread::run()
+ *
+ * @description
+ *  Simple idle loop that can be preempted at any time.
+ *---------------------------------------------------------------------------*/
 void IdleThread::run() {
-
-    // reset the stack pointer to the context address since we don't want to waste memory
-    // and cant access the stack from the previous thread
+    /* reset the stack pointer to the context address since we don't want to waste memory
+     * and cannot access the stack from the previous thread */
     SETSTACKPTR(&__stack);
     SETPID(0);
 
     _enableInterrupts();
 
-    // loop forever
-    while (true)
-    {
+    /* loop forever */
+    while (true) {
 #ifdef HAS_Kernel_PowerManagerCfd
-        // Kernel has PowerManager configured. hand over control
-        // to it to idle the system
+        /* Kernel has PowerManager configured. hand over control
+         * to it to idle the system */
         theOS->getPowerManager()->enterIdleThread();
-
 #else
-        // this nop is used to ensure that the endless loop is not optimized out by the compiler
+        /* this nop is used to ensure that the endless loop is not optimized out by the compiler */
         NOP;
 #endif
-        theOS->getLogger()->flush();
-
     }
 }

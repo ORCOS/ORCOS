@@ -3,7 +3,7 @@ OUTPUTFILE 			= telnet_server
 # Define the target ISA here if not provided from outside environment variable
 TARGET				= armv7
 
-ORCOS_LIB_DIR 		= D:/git/orcos_github/library/
+ORCOS_LIB_DIR		= ../../library
 KEEP_TEMP_FILES 	= 1
 
 INITIAL_PRIORITY 	= 1000

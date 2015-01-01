@@ -63,7 +63,6 @@ public:
         Segment.memSegSize  = (byte*) eaddr - (byte*) saddr;
         Segment.usedBytes   = 0;
 
-
 #if MEM_CACHE_INHIBIT
         Segment_Cache_Inhibit.startAddr = 0;
         Segment_Cache_Inhibit.memSegSize = 0;
@@ -94,7 +93,6 @@ public:
     void* operator new(size_t s, void* addr) {
         return (addr);
     }
-
 };
 
 #endif /*MEMMANAGER_HH_*/

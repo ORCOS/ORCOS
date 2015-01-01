@@ -23,58 +23,86 @@
 
 extern Kernel* theOS;
 
+/*****************************************************************************
+ * Method: RateMonotonicThreadScheduler::getNextTimerEvent( LinkedList* sleepList, TimeT currentTime )
+ *
+ * @description
+ *  Returns the next timer event to be programmed for calling the scheduler again. This
+ *  may be a preemption point.
+ *  The timer event is computed by analyzing all threads in the sleep state (which are normally waiting for their next
+ *  instance depending on their period). It will be set, so that the running thread will only be interrupted, if a thread
+ *  with higher priority finishes 'sleeping'. If a thread with lower priority finishes no interrupt will be set, since
+ *  it cannnot preempt the current thread anyway (this will prevent unnecessary context switches). This method is called
+ *  by the dispatcher before it calls the getNext() method, so the priority of the 'running' thread can be gotten by looking
+ *  at the next thread in line (at the head of the scheduling queue).
+ *
+ * @params
+ *  sleepList       The list of sleeping threads which are updated.
+ *  currentTime     Current system time.
+ * @returns
+ *  TimeT           The next absolute time point the scheduler has to be called again
+ *******************************************************************************/
+TimeT RateMonotonicThreadScheduler::getNextTimerEvent(LinkedList* sleepList, TimeT currentTime) {
+    /* it makes no sense to return an unint8 here, since theOS->getTimerDevice()->setTimer(nextevent) will take
+     * a unint4 anyways (and the return value of this function is used to set the timer event). */
+    TimeT sleeptime = MAX_UINT8;
 
-TimeT RateMonotonicThreadScheduler::getNextTimerEvent( LinkedList* sleepList, TimeT currentTime ) {
-    // it makes no sense to return an unint8 here, since theOS->getTimerDevice()->setTimer(nextevent) will take
-     // a unint4 anyways (and the return value of this function is used to set the timer event).
-     TimeT sleeptime = MAX_UINT8;
+    /* only return a value smaller than sleeptime if there is some other competing threads inside the sleeplist! */
+    LinkedListItem* pDBSleepItem = sleepList->getHead();
+    if (pDBSleepItem != 0) {
+        LinkedListItem* pDBNextItem = database.getHead();
 
-     // only return a value smaller than sleeptime if there is some other competing threads inside the sleeplist!
-     LinkedListItem* pDBSleepItem = sleepList->getHead();
-     if ( pDBSleepItem != 0 ) {
-         LinkedListItem* pDBNextItem = database.getHead();
+        /* set variables which are needed to compare to later on, so we do not need to set these for every
+         * iteration of the while loop */
+        TimeT nextPriority;
 
-         // set variables which are needed to compare to later on, so we do not need to set these for every
-         // iteration of the while loop
-         TimeT nextPriority;
+        if (pDBNextItem != 0) {
+            nextPriority = (static_cast<RealTimeThread*>(pDBNextItem->getData()))->effectivePriority;
+        } else {
+            nextPriority = 0;
+        }
 
-         if ( pDBNextItem != 0 ) {
-             nextPriority = (static_cast< RealTimeThread* > ( pDBNextItem->getData() ))->effectivePriority;
-         }
-         else
-         {
-             nextPriority = 0;
-         }
+        /* this is the actual computation of the needed interval. it compares the priority of the current
+         thread with the future priorities of the threads in the sleeplist. The smallest time interval where
+         the sleeping threads priority is higher than the current priority will be set as sleeptime.*/
+        do {
+            RealTimeThread* pSleepThread = static_cast<RealTimeThread*>(pDBSleepItem->getData());
 
-       /* this is the actual computation of the needed interval. it compares the priority of the current
-          thread with the future priorities of the threads in the sleeplist. The smallest time interval where
-          the sleeping threads priority is higher than the current priority will be set as sleeptime.*/
-         do {
-             RealTimeThread* pSleepThread = static_cast< RealTimeThread*> ( pDBSleepItem->getData() );
+            if (pSleepThread->sleepTime <= currentTime) {
+                pSleepThread->status.setBits(cReadyFlag);
+                LinkedListItem* litem2  = pDBSleepItem;
 
-              if ( pSleepThread->sleepTime <= currentTime ) {
-                  pSleepThread->status.setBits( cReadyFlag );
-                  LinkedListItem* litem2 = pDBSleepItem;
-                  pDBSleepItem = pDBSleepItem->getSucc();
-                  pSleepThread->sleepTime = 0;
-                  this->enter( litem2 );
-              } else
-              {
-            	  /* TODO: nextPriority might change due to new ready threads. this may lead to too many irqs */
-                  if ( ( pSleepThread->getSleepTime() <= sleeptime ) && ( pSleepThread->effectivePriority >= nextPriority ) )
-                          sleeptime = pSleepThread->getSleepTime();
+                pDBSleepItem            = pDBSleepItem->getSucc(); /* get the next item here is the next line will change the succ */
+                litem2->remove();
 
-                 pDBSleepItem = pDBSleepItem->getSucc();
-              }
-         } while ( pDBSleepItem != 0 );
+                pSleepThread->sleepTime = 0;
+                this->enter(litem2);
+            } else {
+                /* TODO: nextPriority might change due to new ready threads. this may lead to too many irqs */
+                if ((pSleepThread->getSleepTime() <= sleeptime) && (pSleepThread->effectivePriority >= nextPriority)) {
+                    sleeptime = pSleepThread->getSleepTime();
+                }
 
-     }
+                pDBSleepItem            = pDBSleepItem->getSucc();
+            }
 
-   	 return (sleeptime);
+        } while (pDBSleepItem != 0);
+    }
+
+    return (sleeptime);
 }
 
-void RateMonotonicThreadScheduler::computePriority( RealTimeThread* pRTThread ) {
-
+/*****************************************************************************
+ * Method: RateMonotonicThreadScheduler::computePriority(RealTimeThread* pRTThread)
+ *
+ * @description
+ *  Computes and assignes the proiority of/to the given thread based on the the
+ *  Rate Monotonic priority rule.
+ *
+ * @params
+ *  pRTThread   Realtime Thread
+ *******************************************************************************/
+void RateMonotonicThreadScheduler::computePriority(RealTimeThread* pRTThread) {
     TimeT priority = pRTThread->initialPriority;
 
     /* This computation assures, that a smaller period will result in a higher priority
@@ -82,28 +110,44 @@ void RateMonotonicThreadScheduler::computePriority( RealTimeThread* pRTThread ) 
     if (pRTThread->period != 0)
         priority = (MAX_UINT4 - pRTThread->period);
 
-    pRTThread->initialPriority   = priority;
-    pRTThread->effectivePriority = priority;
+    pRTThread->initialPriority      = priority;
+    pRTThread->effectivePriority    = priority;
 }
 
-ErrorT RateMonotonicThreadScheduler::enter( LinkedListItem* item ) {
+/*****************************************************************************
+ * Method: RateMonotonicThreadScheduler::enter(LinkedListItem* item)
+ *
+ * @description
+ *  Inserts and schedules a new realtime thread, given by its linkedlist item,
+ *  into the scheduler queue.
+ *  Be careful not to use this method if a DatabaseItem already exists for the thread. Otherwise a
+ *  superflous DatabaseItem will be generated which results in a memory leak!
+ *
+ * @params
+ *  item        Linked List item of the Realtime Thread
+ *******************************************************************************/
+ErrorT RateMonotonicThreadScheduler::enter(LinkedListItem* item) {
+    RealTimeThread* pRTThread = static_cast<RealTimeThread*>(item->getData());
 
-    RealTimeThread* pRTThread = static_cast< RealTimeThread* > ( item->getData() );
+    LOG(SCHEDULER, DEBUG, "RateMonotonicThreadScheduler::enter() Thread %d , Priority: %x %x",pRTThread->getId(),
+        (unint4) ((pRTThread->effectivePriority >> 32) & 0xffffffff),
+                       (unint4) ((pRTThread->effectivePriority) & 0xffffffff));
 
-     /* set priority if it has not been set yet.*/
-    if ( pRTThread->instance == 1 ) {
+
+    /* set priority if it has not been set yet.*/
+    if (pRTThread->instance == 1) {
         computePriority(pRTThread);
 
         // If an arrivaltime has been specified put the thread to sleep until that time
-        if ( pRTThread->sleepTime > 0 ) {
+        if (pRTThread->sleepTime > 0) {
             LOG(SCHEDULER, DEBUG, "RateMonotonicThreadScheduler::enter: TimePoint: %x %x",
-                  (unint4) ((pRTThread->sleepTime >> 32) & 0xffffffff),
-                  (unint4) ((pRTThread->sleepTime) & 0xffffffff));
-            pRTThread->sleep( pRTThread->arrivalTime, item );
-            return (cOk);
+                (unint4) ((pRTThread->sleepTime >> 32) & 0xffffffff),
+                (unint4) ((pRTThread->sleepTime) & 0xffffffff));
+            pRTThread->sleep(pRTThread->sleepTime);
+            return (cOk );
         }
     }
 
-    // enter Thread in the database in accordance with it's priority
-    return (PriorityThreadScheduler::enter( item ));
+    /* enter Thread in the database in accordance with it's priority */
+    return (PriorityThreadScheduler::enter(item));
 }

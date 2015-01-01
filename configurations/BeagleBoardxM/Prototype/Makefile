@@ -56,8 +56,14 @@ MODULES_DIR = ./modules/
 # The Linker Script used for this configuration
 LINKERSCRIPT = $(ARCH_DIR)/kernel.ld   
 
-#Optimization flag -flto
-OPT_FLAGS = -O2 -mthumb -mcpu=cortex-a8  -mthumb-interwork -DARM_THUMB=1 -fno-builtin -flto -mno-unaligned-access -fno-section-anchors
+
+# -fno-if-conversion2 enforces to not use THUMB ITT blocks..
+# it seams like they are not correctly executed after context restore ...
+# although the PSR is correct .. (ITSTATE)
+
+OPT_FLAGS = -O2 -mthumb -mcpu=cortex-a8  -DARM_THUMB=1 -fno-builtin -flto -mno-unaligned-access -fno-section-anchors -fno-if-conversion2
+OPT_FLAGS += -mfpu=neon
+# -mthumb-interwork
 
 #Command line arguments to compile .c files.
 CFLAGS = -Wall -g -I$(KERNEL_DIR)inc/ -I./make/ -I$(KERNEL_DIR)comm/lwip/include/ -I$(KERNEL_DIR)comm/lwip/ -I. -I$(KERNEL_DIR) -I$(KERNEL_LIB_DIR)/../../ $(ARCH_INCLUDES) -ffunction-sections -fno-exceptions -fno-unwind-tables -msoft-float -fno-stack-protector -Wno-write-strings -c $(CPU_FLAGS) 
@@ -68,10 +74,10 @@ CPFLAGS = -Wall -g -I$(KERNEL_DIR)inc/ -I./make/ -I$(KERNEL_DIR)comm/lwip/includ
 #CPFLAGS +=  -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wconversion
 
 #Command line arguments to the linker.
-LDFLAGS = -o output/kernel.elf -L$(LIBC_DIR) -L$(GCC_LIB_DIR) -Map output/kernel.map  -lgcc   --script=$(LINKERSCRIPT)
+LDFLAGS = -o output/kernel.elf -L$(LIBC_DIR) -L$(GCC_LIB_DIR) -Wl,-Map=output/kernel.map  -lgcc -flto -Wl,--script=$(LINKERSCRIPT) -nostartfiles $(OPT_FLAGS)
 
 #Command line arguments for the gcc to assemble .S files.
-ASFLAGS = -c -g -I$(KERNEL_DIR)inc/ -I. -I./make/ -I$(KERNEL_DIR) $(ARCH_INCLUDES) -flto  -fno-exceptions -fno-rtti -msoft-float -fno-stack-protector -mcpu=cortex-a8
+ASFLAGS = -c -g -I$(KERNEL_DIR)inc/ -I. -I./make/ -I$(KERNEL_DIR) $(ARCH_INCLUDES) -flto  -fno-exceptions -fno-rtti -fno-stack-protector -mcpu=cortex-a8 -mfpu=neon
 
 #---------------------------------------------------------------------------------------------------------------------------------------
 #                                                      Makefile Inclusion

@@ -2,7 +2,7 @@
  * lwipTMR.cc
  *
  *  Created on: 14.07.2011
- *      Author: dbaldin
+ *    Copyright &  Author: dbaldin
  */
 
 #include "lwipTMR.hh"
@@ -22,13 +22,19 @@ static int count;
 
 lwipTMR::lwipTMR() {
     count = 0;
-
 }
 
 lwipTMR::~lwipTMR() {
-
 }
 
+/*****************************************************************************
+ * Method: lwipTMR::callbackFunc(void* param)
+ *
+ * @description
+ *  TODO: Rename this to a generic service routine
+ * @params
+ *
+ *******************************************************************************/
 void lwipTMR::callbackFunc(void* param) {
     LOG(COMM, TRACE, "Kernel: lwipTMR called!");
 
@@ -42,8 +48,7 @@ void lwipTMR::callbackFunc(void* param) {
     netif_poll_all();
 #endif
 
-    if (count > 20)
-    {
+    if (count > 20) {
         ethar_tmr();
         count = 0;
     }
@@ -55,14 +60,12 @@ void lwipTMR::callbackFunc(void* param) {
     /* iterate over all tasks and threads to check for the blocked state */
     LinkedList* llt = theOS->getTaskDatabase();
 
-    for (LinkedListItem* lldi = llt->getHead(); lldi != 0; lldi = lldi->getSucc())
-    {
-        Task* task = (Task*) lldi->getData();
+    for (LinkedListItem* lldi = llt->getHead(); lldi != 0; lldi = lldi->getSucc()) {
+        Task* task = static_cast<Task*>(lldi->getData());
 
         LinkedList* lltask = task->getThreadDB();
-        for (LinkedListItem* lldthread = lltask->getHead(); lldthread != 0; lldthread = lldthread->getSucc())
-        {
-            Thread* thread = (Thread*) lldthread->getData();
+        for (LinkedListItem* lldthread = lltask->getHead(); lldthread != 0; lldthread = lldthread->getSucc()) {
+            Thread* thread = static_cast<Thread*>(lldthread->getData());
             if (thread->isBlocked() && thread->blockTimeout > 0) {
                 if (thread->blockTimeout <= 250 ms) {
                     // unblock the thread
@@ -73,7 +76,8 @@ void lwipTMR::callbackFunc(void* param) {
                 }
             }
         }
-
     }
 
+    /* Perform logger flush */
+    theOS->getLogger()->flush();
 }

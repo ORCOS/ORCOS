@@ -27,9 +27,14 @@
 /* include syscall library types (cross kernel/userspace used types) */
 #include "inc/types.h"
 #include <archtypes.h>
+/* Inclusion from the user space library */
+#include "inc/defines.h"
 
 #define MB * 0x100000
 #define KB * 0x400
+
+#define likely(x)       __builtin_expect((x),1)
+#define unlikely(x)     __builtin_expect((x),0)
 
 #define ATTR_CACHE_INHIBIT __attribute__((section (".cache_inhibit")))
 
@@ -92,7 +97,7 @@ typedef struct {
     unint4 pf_exit;
     unint4 pb_argument_area;
     unint4 i_max_argument_size;
-    unint4 pf_low_level_send; 	// address of the low_level_send method
+    unint4 pf_low_level_send;     // address of the low_level_send method
     unint4 pf_getMacAddr;
     unint4 pf_getMacAddrSize;
     unint4 pf_getMTU;
@@ -154,7 +159,7 @@ typedef struct {
  *  IPV4 -> UDP -> Payload
  */
 typedef struct packet_layer {
-    struct packet_layer* next; 	// next packet layer
+    struct packet_layer* next;     // next packet layer
     const char* bytes;       // pointer to the block
     unint2 total_size;  // total size of all blocks in the linked list starting with this packet
     unint2 size;        // size of this block
@@ -168,17 +173,17 @@ typedef struct packet_layer {
  *
  ****************************************************/
 
-#define TASK_CB_NONE		0	/* no next task cb header field */#define TASK_CB_CRC32		1	/* next task cb field is a crc32 sum of the task */#define TASK_CB_AUTH		2	/* next task cb field is an authentication header */
+#define TASK_CB_NONE        0    /* no next task cb header field */#define TASK_CB_CRC32        1    /* next task cb field is a crc32 sum of the task */#define TASK_CB_AUTH        2    /* next task cb field is an authentication header */
 /********************************************
- * 			PLATFORM IDENTIFIER as used
- * 			inside the task CB -> platform
+ *             PLATFORM IDENTIFIER as used
+ *             inside the task CB -> platform
  *
  *    PLATFORM DEPENDENT       PLATFORM
  * ---------------------------------------
- * |     24 Bit 			|   8 Bit    |
+ * |     24 Bit             |   8 Bit    |
  * ---------------------------------------
  *
- * 				 ARM platform:
+ *                  ARM platform:
  * ---------------------------------------
  * |  23 BIT         |  T   |     0x1    |
  * ---------------------------------------
@@ -186,7 +191,7 @@ typedef struct packet_layer {
  *
  ********************************************/
 
-#define PLATFORM_ARM		0x1
+#define PLATFORM_ARM        0x1
 #define PLATFORM_PPC        0x2
 #define PLATFORM_SPARC      0x3
 #define PLATFORM_X86        0x4
@@ -200,19 +205,19 @@ typedef struct packet_layer {
  * logical == virtual (if MMU enabled), physical otherwise
  */
 typedef struct {
-    unint4 task_magic_word;   	        // needs to be 0x230f7ae9
-    unint4 task_next_header;	        // defines the following task header field
-    unint4 platform;			        // platform identifier, see platform defines
+    unint4 task_magic_word;               // needs to be 0x230f7ae9
+    unint4 task_next_header;            // defines the following task header field
+    unint4 platform;                    // platform identifier, see platform defines
 
-    long   task_start;   			    // logical task start address
+    long   task_start;                   // logical task start address
 
-    long   task_entry_addr;   	        // logical entry function address
+    long   task_entry_addr;               // logical entry function address
     long   task_thread_exit_addr;       // logical address of the thread_exit method inside the task
 
-    long   task_heap_start;   	        // logical data start address
-    long   task_end;     	            // logical task end address
+    long   task_heap_start;               // logical data start address
+    long   task_end;                     // logical task end address
 
-    thread_attr_t initial_thread_attr; 	// attributes of the initial thread
+    thread_attr_t initial_thread_attr;     // attributes of the initial thread
 } taskTable;
 
 /*!
@@ -241,9 +246,11 @@ typedef enum {
     cPartition          = 1 << 8,
     cSharedMem          = 1 << 9,
     cKernelVariable     = 1 << 10,
-    cNonRemovableResource = cStreamDevice | cCommDevice | cGenericDevice | cSocket | cUSBDriver,
-    cAnyNoDirectory       = cStreamDevice | cCommDevice | cGenericDevice | cFile | cSocket | cUSBDriver | cBlockDevice | cSharedMem,
-    cAnyResource          = cStreamDevice | cCommDevice | cGenericDevice | cFile | cSocket | cUSBDriver | cDirectory | cBlockDevice | cSharedMem
+    cOverlay            = 1 << 11,
+    cTimerDevice        = 1 << 12,
+    cNonRemovableResource = cStreamDevice | cCommDevice | cGenericDevice | cSocket | cUSBDriver | cTimerDevice,
+    cAnyNoDirectory       = cStreamDevice | cCommDevice | cGenericDevice | cFile | cSocket | cUSBDriver | cBlockDevice | cSharedMem | cTimerDevice,
+    cAnyResource          = cStreamDevice | cCommDevice | cGenericDevice | cFile | cSocket | cUSBDriver | cDirectory | cBlockDevice | cSharedMem | cOverlay | cTimerDevice
 } ResourceType;
 
 #endif /* _TYPES_HH */

@@ -18,7 +18,7 @@
 
 #include "SCLConfig.hh"
 #include "assemblerFunctions.hh"
-#include <process/Task.hh>
+#include "process/Task.hh"
 #include "kernel/Kernel.hh"
 #include "memtools.hh"
 
@@ -26,33 +26,36 @@ extern Kernel* theOS;
 extern bool processChanged;
 extern void* __PageTableSec_start;
 extern void* __stack;
-void startThread(Thread* thread) __attribute__((noreturn));
 
-/*!
+/*****************************************************************************
+ * Method: startThread(Thread* thread)
+ *
+ * @description
  *  This method will jump to the addr given by the effective addr while
  *  setting the correct PID for the MMU and the correct stack pointer
  *
- *  thread - the thread we want to start for the first time
- *
- */
-void startThread(register Thread* thread) {
+ * @params
+ *   thread - the thread we want to start for the first time
+ *******************************************************************************/
+void startThread(Thread* thread) __attribute__((noreturn));
 
+void startThread(register Thread* thread) {
     /* used variables declarations. put them into registers to ensure the varibles
      * to be accessable after SETPID (stack is not accessible any more) */
 
-    register TaskIdT PIDvar = thread->getOwner()->getId();
-    register void* addr = thread->getStartRoutinePointer();
-    register void* returnaddr = thread->getExitRoutinePointer();
-    register void* arguments = thread->getStartArguments();
-    register void* ptStartAddr = 0;
+    register TaskIdT PIDvar     = thread->getOwner()->getId();
+    register void* addr         = thread->getStartRoutinePointer();
+    register void* returnaddr   = thread->getExitRoutinePointer();
+    register void* arguments    = thread->getStartArguments();
+    register unint ptStartAddr  = 0;
 
     ASSERT(addr);
     ASSERT(returnaddr);
 
-    register void* stack_addr = (void*) ((unint4) thread->threadStack.endAddr - RESERVED_BYTES_FOR_STACKFRAME);
+    register unint4 stack_addr =  ((unint4) thread->threadStack.endAddr - RESERVED_BYTES_FOR_STACKFRAME);
 
 #if HAS_Board_HatLayerCfd
-    ptStartAddr = (void*) (((unint) &__PageTableSec_start) + PIDvar * 0x4000);
+    ptStartAddr = (((unint) &__PageTableSec_start) + PIDvar * 0x4000);
 #endif
     unint4 spsrval = 16;
     /* check for thumb mode */
@@ -83,23 +86,25 @@ void startThread(register Thread* thread) {
 
             // switch to system mode (cps instruction not working here) to load the right registers
 
-            "MSR	CPSR_c, #0x1F | 0xC0;"
+            "MSR    CPSR_c, #0x1F | 0xC0;"
 
             // set stack pointer and link register for user mode
-            "mov 	lr, %3;"// write the return address into the user link register (returnaddr)
-            "mov	sp, %1;"// load the stack pointer into the user stack register (stack_addr)
+            "mov     lr, %3;"// write the return address into the user link register (returnaddr)
+            "mov    sp, %1;"// load the stack pointer into the user stack register (stack_addr)
             "and    r0, sp, #3;"
             "sub    sp, sp, r0;"// be sure the sp is 4 byte aligned!
 
             // switch back to supervisor mode
-            "MSR	CPSR_c,#0x13 | 0xC0;"
+            "MSR    CPSR_c,#0x13 | 0xC0;"
 
-            "MSR	SPSR, %6;"// write saved PSR register (SPSR)
-            "LDR	sp, =__stack - 0x20;"// temporary accessible stack position for jump to task
+            "MSR    SPSR, %6;"// write saved PSR register (SPSR)
+            "MOVW   sp, #:lower16:__stack;"
+            "MOVT   sp, #:upper16:__stack;"
+            //"LDR    sp, =__stack - 0x20;"// temporary accessible stack position for jump to task
             // push task start address on stack
             "push     {%2};"
             // set the arguments
-            "MOV 	r0, %4;"
+            "MOV     r0, %4;"
             // jump to task and switch to user mode
             "LDM      sp, {pc}^;"// do a exception return.. copies SPSR->CPSR
             "nop;"
@@ -109,5 +114,5 @@ void startThread(register Thread* thread) {
             : "r0", "r1"// clobber list
     );
 
-    __builtin_unreachable ();
+    __builtin_unreachable();
 }

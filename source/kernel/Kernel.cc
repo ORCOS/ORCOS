@@ -16,15 +16,16 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <filesystem/SysFs.hh>
 #include "Kernel.hh"
 #include "inc/sprintf.hh"
 #include "lwip/netif.h"
-#include "filesystem/KernelVariable.hh"
 
 extern Kernel* theOS;
 
 Board_ClockCfdCl* theClock = 0;
 Board_TimerCfdCl* theTimer = 0;
+Board_InterruptControllerCfdCl* theInterruptController = 0;
 
 extern void* _text_start;
 extern void* _heap_start;
@@ -36,7 +37,21 @@ extern void* __KERNELEND;
 extern void* __RAM_END;
 extern void* __RAM_START;
 
+/*****************************************************************************
+ * Method: lwip_init()
+ *
+ * @description
+ *  Initializes the lwip stack (TCP/UDP,etc.)
+ *****************************************************************************/
 extern "C" void lwip_init();
+
+/*****************************************************************************
+ * Method: dwarf_init()
+ *
+ * @description
+ *  Initializes the dwarf debugging component
+ *  used for stack backtracing on errors.
+ *****************************************************************************/
 extern void dwarf_init();
 
 #ifndef PRINT_BOOT_LOGO
@@ -56,7 +71,7 @@ extern void dwarf_init();
 \\/_________/ \\/_/    \\_\\/\\/____________/\\/_________/   \\_____\\/ "LINEFEED"\
 "LINEFEED""
 
-#define ORCOS_VERSION " 1.5 "
+#define ORCOS_VERSION " 1.5a "
 
 /*--------------------------------------------------------------------------*
  ** Kernel::Kernel
@@ -64,25 +79,31 @@ extern void dwarf_init();
  * actually the constructor is never called
  *---------------------------------------------------------------------------*/
 Kernel::Kernel() {
-
 }
 
 /*--------------------------------------------------------------------------*
  ** Kernel::~Kernel
  *---------------------------------------------------------------------------*/
 Kernel::~Kernel() {
-
 }
 
-
-ArrayList*  testList;
-
-
-/*--------------------------------------------------------------------------*
- ** Kernel::initialize
+/*****************************************************************************
+ * Method: Kernel::initialize()
+ *
+ * @description
+ *  Initializes the Kernel object. This is the main entry of the kernel c++ code
+ *  after kernelmain has been called. The kernel memory manager already exists.
+ *  The intitialization routine creates all kernel components,
+ *  initializes the architecture dependent board class which in turn
+ *  intiailizes all device driver. Afterwards all initial task contained
+ *  inside the kernel image are loaded and started.
+ *
+ * @params
+ *
+ * @returns
+ *
  *---------------------------------------------------------------------------*/
 void Kernel::initialize() {
-
     /* set all members to 0 for safety reasons */
     fileManager         = 0;
     taskManager         = 0;
@@ -100,7 +121,7 @@ void Kernel::initialize() {
     Thread::initialize();
     CommDeviceDriver::initialize();
     BlockDeviceDriver::initialize();
-
+    Partition::initialize();
 
     this->errorHandler          = new TaskErrorHandler();
 #ifdef HAS_Kernel_RamManagerCfd
@@ -127,10 +148,10 @@ void Kernel::initialize() {
     KernelVariable::init();
     Directory* memDir = new Directory("mem");
     fileManager->getDirectory("/sys")->add(memDir);
-    EXPORT_VARIABLE_BY_NAME(memDir,"used", SYSFS_UNSIGNED_INTEGER, theOS->getMemoryManager()->getSegment()->usedBytes,RO);
-    EXPORT_VARIABLE_BY_NAME(memDir,"total",SYSFS_UNSIGNED_INTEGER, theOS->getMemoryManager()->getSegment()->memSegSize,RO);
-    EXPORT_VARIABLE_BY_NAME(memDir,"memAddr",SYSFS_UNSIGNED_INTEGER,theOS->getMemoryManager()->getSegment()->startAddr,RO);
-    EXPORT_VARIABLE_BY_NAME(memDir,"last_allocated",SYSFS_UNSIGNED_INTEGER,theOS->getMemoryManager()->getSegment()->lastAllocated,RO);
+    SYSFS_ADD_RO_UINT_NAMED(memDir, "used"          , theOS->getMemoryManager()->getSegment()->usedBytes);
+    SYSFS_ADD_RO_UINT_NAMED(memDir, "total"         , theOS->getMemoryManager()->getSegment()->memSegSize);
+    SYSFS_ADD_RO_UINT_NAMED(memDir, "memAddr"       , theOS->getMemoryManager()->getSegment()->startAddr);
+    SYSFS_ADD_RO_UINT_NAMED(memDir, "last_allocated", theOS->getMemoryManager()->getSegment()->lastAllocated);
 #endif
 
     /* create the Task Manager which holds the list of all tasks */
@@ -179,7 +200,16 @@ void Kernel::initialize() {
     lwip_init();
 #endif
 
+    /* initialize debug environment */
     dwarf_init();
+
+#if USE_WORKERTASK
+    LOG(KERNEL, INFO, "Initializing Workertask.");
+    /* initialize the worker task */
+    theWorkerTask = new WorkerTask();
+    theWorkerTask->setName("[kwork]");
+    this->getTaskDatabase()->addTail(theWorkerTask);
+#endif
 
     /* now initialize the device drivers
      since some thread classes rely on classes like the timer or the clock */
@@ -193,22 +223,22 @@ void Kernel::initialize() {
 #endif
 
     LOG(KERNEL, INFO, "Initialized Device Driver");
-    LOG(KERNEL, INFO, "Platform RAM: [0x%x - 0x%x]",&__RAM_START, &__RAM_END);
+    LOG(KERNEL, INFO, "Platform RAM: [0x%x - 0x%x]", &__RAM_START, &__RAM_END);
     /* output some memory layout and usage information */
-    LOG(KERNEL, INFO, ".text_start at 0x%x, .text_end at 0x%x" ,&_text_start,&_text_end);
-    LOG(KERNEL, INFO, ".text size  %d" ,(int) &_text_end - (int) &_text_start);
-    LOG(KERNEL, INFO, ".data_start at 0x%x, .data_end at 0x%x" ,&_data_start,&_heap_start);
-    LOG(KERNEL, INFO, ".data size  %d" ,(int) &_heap_start - (int) &_data_start);
-    LOG(KERNEL, INFO, ".heap_start at 0x%x, .heap_end at 0x%x" ,&_heap_start,&_heap_end);
-    LOG(KERNEL, INFO, ".heap size  %d" ,(int) &_heap_end - (int) &_heap_start);
-    LOG(KERNEL, INFO, ".__stack at 0x%x" ,&__stack);
-    LOG(KERNEL, INFO, "Kernel Ends at 0x%x" ,&__KERNELEND);
+    LOG(KERNEL, INFO, ".text_start at 0x%x, .text_end at 0x%x" , &_text_start, &_text_end);
+    LOG(KERNEL, INFO, ".text size  %d" , (int) &_text_end - (int) &_text_start);
+    LOG(KERNEL, INFO, ".data_start at 0x%x, .data_end at 0x%x" , &_data_start, &_heap_start);
+    LOG(KERNEL, INFO, ".data size  %d" , (int) &_heap_start - (int) &_data_start);
+    LOG(KERNEL, INFO, ".heap_start at 0x%x, . heap_end at 0x%x" , &_heap_start, &_heap_end);
+    LOG(KERNEL, INFO, ".heap size  %d" , (int) &_heap_end - (int) &_heap_start);
+    LOG(KERNEL, INFO, ".__stack at 0x%x" , &__stack);
+    LOG(KERNEL, INFO, "Kernel Ends at 0x%x" , &__KERNELEND);
 
-    //if ((int) &_heap_start - (int) &_data_start <= 0) ERROR("Data Area mangled! Check ELF/Linkerscript for used but not specified sections!");
+    // if ((int) &_heap_start - (int) &_data_start <= 0) ERROR("Data Area mangled! Check ELF/Linkerscript for used but not specified sections!");
 
 #if USE_SAFE_KERNEL_STACKS
     /* This is a PPC extension for context switches */
-    LOG(KERNEL,INFO,"Available Safe Kernel Stacks: %d." ,((int) &__stack - (int) &_heap_end) / KERNEL_STACK_SIZE);
+    // LOG(KERNEL, INFO, "Available Safe Kernel Stacks: %d." , ((int) &__stack - (int) &_heap_end) / KERNEL_STACK_SIZE);
 #endif
 
 #ifdef HAS_Board_HatLayerCfd
@@ -225,14 +255,9 @@ void Kernel::initialize() {
 #endif
 
     /*
-     * Initialize Workertask before user tasks
+     * Initialize Workerthreads before user tasks
      */
 #if USE_WORKERTASK
-    LOG(KERNEL, INFO, "Initializing Workertask.");
-    // initialize the worker task
-    theWorkerTask = new WorkerTask();
-    theWorkerTask->setName("[kwork]");
-    this->getTaskDatabase()->addTail(theWorkerTask);
 
 #if (LWIP_TCP | LWIP_ARP) && ENABLE_NETWORKING
     PeriodicFunctionCall* jobparam      = new PeriodicFunctionCall;
@@ -240,7 +265,10 @@ void Kernel::initialize() {
     jobparam->functioncall.parameterptr = 0; /* no parameter */
     jobparam->functioncall.time         = 0; /* call directly!! */
     jobparam->period                    = 250 ms;  /* set to 250 ms */
-    theWorkerTask->addJob(PeriodicFunctionCallJob, 0, jobparam, 250000);
+    WorkerThread* wt = theWorkerTask->addJob(PeriodicFunctionCallJob, 0, jobparam, 250000);
+    if (wt) {
+        wt->setName("kservice");
+    }
 
     LOG(KERNEL, INFO, "Querying NTP Server for Time");
     TimedFunctionCall* ntpupdate        = new TimedFunctionCall;
@@ -252,7 +280,7 @@ void Kernel::initialize() {
 
 #else
 #if (LWIP_TCP | LWIP_ARP) && ENABLE_NETWORKING
-    LOG(KERNEL,WARN,(KERNEL,WARN,"TCP and ARP will not work correctly without workerthreads!!"));
+    LOG(KERNEL, WARN, (KERNEL, WARN, "TCP and ARP will not work correctly without workerthreads!!"));
 #warning "LWIP_TCP or LWIP_ARP defined without supporting Workerthreads.. \n The IPstack will not work correctly without workerthreads.."
 #endif
 #endif
@@ -273,7 +301,7 @@ void Kernel::initialize() {
      */
 #ifdef HAS_Kernel_ServiceDiscoveryCfd
     ServiceDiscoveryCfd = new NEW_Kernel_ServiceDiscoveryCfd;
-    LOG(KERNEL, INFO, (KERNEL, INFO, "ServiceDiscovery at:0x%x",getServiceDiscovery()));
+    LOG(KERNEL, INFO, (KERNEL, INFO, "ServiceDiscovery at:0x%x", getServiceDiscovery()));
 #endif
 
     /*
@@ -281,7 +309,7 @@ void Kernel::initialize() {
      */
 #ifdef HAS_Kernel_MigrationManagerCfd
     MigrationManagerCfd = new NEW_Kernel_MigrationManagerCfd;
-    LOG(KERNEL, INFO, (KERNEL, INFO, "MigrationManager at:0x%x",getMigrationManager()));
+    LOG(KERNEL, INFO, (KERNEL, INFO, "MigrationManager at:0x%x", getMigrationManager()));
 #endif
 
     /* Now we are done. start scheduling.
@@ -292,16 +320,6 @@ void Kernel::initialize() {
     LOG(KERNEL, INFO, "Scheduler initialized");
     LOG(KERNEL, INFO, "ORCOS completely booted");
     LOG(KERNEL, INFO, "Starting Dispatch Process");
-
-#if 0
-    LOG(KERNEL,INFO,"sizeof(Resource)        :%d",sizeof(Resource));
-    LOG(KERNEL,INFO,"sizeof(GenericDevice)   :%d",sizeof(GenericDeviceDriver));
-    LOG(KERNEL,INFO,"sizeof(CharacterDevice) :%d",sizeof(CharacterDevice));
-    LOG(KERNEL,INFO,"sizeof(File)            :%d",sizeof(File));
-    LOG(KERNEL,INFO,"sizeof(Directory)       :%d",sizeof(Directory));
-    LOG(KERNEL,INFO,"sizeof(LinkedListItem)  :%d",sizeof(LinkedListItem));
-    LOG(KERNEL,INFO,"sizeof(Mutex)           :%d",sizeof(Mutex));
-#endif
 
     /* Initial boot log flush before scheduling starts */
     getLogger()->flush();
@@ -317,7 +335,7 @@ void Kernel::initialize() {
 #endif
 
     /* Reset time again */
-    theTimer->setTimer(0);
+    //theTimer->setTimer(0);
     theTimer->enable();
 
     /* invoke the dispatcher so it starts the first thread */
@@ -325,11 +343,19 @@ void Kernel::initialize() {
     while (true)    { }
 }
 
-/*--------------------------------------------------------------------------*
- ** Kernel::initDeviceDrivers
+/*****************************************************************************
+ * Method: Kernel::initDeviceDrivers()
+ *
+ * @description
+ *  Initializes the Kernel Device driver infrastructure.
+ *  Instantiates the board.
+ *
+ * @params
+ *
+ * @returns
+ *
  *---------------------------------------------------------------------------*/
 void Kernel::initDeviceDrivers() {
-
     /* - Instantiate Board Class -
      * Give components of the board a chance to
      * reference each other by using theOS->getBoard() pointer. */
@@ -337,6 +363,7 @@ void Kernel::initDeviceDrivers() {
     board->initialize();            /* now initialize */
     theClock = board->getClock();   /* Get global reference to Clock */
     theTimer = board->getTimer();   /* Get global reference to the Timer*/
+    theInterruptController = board->getInterruptController();
 
     ASSERT(theClock);               /* Realtime clock is mandatory! */
     ASSERT(theTimer);               /* Timer is mandatory! */
@@ -353,33 +380,52 @@ void Kernel::initDeviceDrivers() {
 #else
     setStdOutputDevice(0);
 #endif
-
 }
 
-/*--------------------------------------------------------------------------*
- ** Kernel:::getCPUScheduler
+/*****************************************************************************
+ * Method: Kernel::getCPUScheduler()
+ *
+ * @description
+ *  Returns the configured cpu scheduler.
+ *
+ * @params
+ *
+ * @returns
+ *  Kernel_SchedulerCfdT:   The scheduler object or null if not yet initialized.
+ *                          However this should never be the case when this code
+ *                          is called.
  *---------------------------------------------------------------------------*/
-Kernel_SchedulerCfdT Kernel::getCPUScheduler()
-{
-    if ( DispatcherCfd )
-    {
+Kernel_SchedulerCfdT Kernel::getCPUScheduler() {
+    if ( DispatcherCfd ) {
         return (this->DispatcherCfd->getScheduler());
-    }
-    else
-    {
+    } else {
         return (0);
     }
 }
 
-/*!--------------------------------------------------------------------------*
- ** Kernel::setStdOutputDevice(OPB_UART_Lite outputDevice)
+/*****************************************************************************
+ * Method: Kernel::setStdOutputDevice(CharacterDevice* outputDevice)
+ *
+ * @description
+ *  Returns the configured cpu scheduler.
+ *
+ * @params
+ *  outputDevice: The new ouput device to be used as standard out.
  *---------------------------------------------------------------------------*/
 void Kernel::setStdOutputDevice(CharacterDevice* outputDevice) {
     this->stdOutputDevice = outputDevice;
 }
 
-/*!--------------------------------------------------------------------------*
- ** OPB_UART_Lite Kernel::getStdOutputDevice()
+/*****************************************************************************
+ * Method: Kernel::getStdOutputDevice()
+ *
+ * @description
+ *  Returns the configured cpu scheduler.
+ *
+ * @params
+ *
+ * @returns
+ *  CharacterDevice*: Pointer to the current standard output device or null.
  *---------------------------------------------------------------------------*/
 CharacterDevice* Kernel::getStdOutputDevice() {
     return (this->stdOutputDevice);

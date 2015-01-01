@@ -1,19 +1,19 @@
 /*
-	ORCOS - an Organic Reconfigurable Operating System
-	Copyright (C) 2008 University of Paderborn
+    ORCOS - an Organic Reconfigurable Operating System
+    Copyright (C) 2008 University of Paderborn
 
-	This program is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <orcos.hh>
@@ -26,73 +26,73 @@
 
 char* extractPath(char* &str) {
 
-	while (str[0] == ' ') str++;
+    while (str[0] == ' ') str++;
 
-	if (str[0] == '"') {
-		str = &str[1];
-		int len = strpos("\"",str);
-		if (len < 0) return 0;
-		str[len] = 0;
-		return &str[len+1];
-	}
+    if (str[0] == '"') {
+        str = &str[1];
+        int len = strpos("\"",str);
+        if (len < 0) return 0;
+        str[len] = 0;
+        return &str[len+1];
+    }
 
-	int len = strpos(" ",str);
-	if (len < 0) {
-		len = strlen(str);
-		return 0;
-	}
+    int len = strpos(" ",str);
+    if (len < 0) {
+        len = strlen(str);
+        return 0;
+    }
 
-	// something is following
-	str[len] = 0;
-	return &str[len+1];
+    // something is following
+    str[len] = 0;
+    return &str[len+1];
 
 
 }
 
 char* extractFilePath(char* &str) {
 
-	char* ret = str;
+    char* ret = str;
 
-	int len = strlen(str);
-	for (int i = len-1; i > 0; i--) {
-		if (str[i] == '/') {
-			str[i] = 0;
-			str = &str[i+1];
-			return ret;
-		}
-	}
+    int len = strlen(str);
+    for (int i = len-1; i > 0; i--) {
+        if (str[i] == '/') {
+            str[i] = 0;
+            str = &str[i+1];
+            return ret;
+        }
+    }
 
-	return 0;
+    return 0;
 }
 
 
 // reduces the path by "." and ".." statements
 void compactPath(char* path) {
 
-	char newpath[100];
-	newpath[0] = '/';
-	newpath[1] = '\0';
+    char newpath[100];
+    newpath[0] = '/';
+    newpath[1] = '\0';
 
 
-	char* token = strtok(path,"/");
-	char* next_token;
+    char* token = strtok(path,"/");
+    char* next_token;
 
-	while (token != 0) {
+    while (token != 0) {
 
-		next_token = strtok(0,"/");
+        next_token = strtok(0,"/");
 
-		bool nextisparent = false;
-		if ((next_token != 0) && ((strcmp(next_token,"..") == 0))) nextisparent = true;
+        bool nextisparent = false;
+        if ((next_token != 0) && ((strcmp(next_token,"..") == 0))) nextisparent = true;
 
-		if ((strcmp(token,".") != 0) && !nextisparent && (strcmp(token,"..") != 0 )) {
-			strcat(newpath,token);
-			strcat(newpath,"/");
-		}
+        if ((strcmp(token,".") != 0) && !nextisparent && (strcmp(token,"..") != 0 )) {
+            strcat(newpath,token);
+            strcat(newpath,"/");
+        }
 
-		token = next_token;
-	}
+        token = next_token;
+    }
 
-	memcpy(path,newpath,strlen(newpath)+1);
+    memcpy(path,newpath,strlen(newpath)+1);
 }
 
 
@@ -129,12 +129,12 @@ void* thread_entry(void* arg) {
 
         if (msglen == -1) {
             // disconnected
-            puts("HTTP Client disconnected..\r");
+            puts("HTTP Client disconnected..\r\n");
             fclose(newsock);
             return 0;
         } else if (msglen < 0) {
             // error close connection
-            puts("Connection Error .. closing..\r");
+            puts("Connection Error .. closing..\r\n");
             fclose(newsock);
             return 0;
         }
@@ -157,20 +157,20 @@ void* thread_entry(void* arg) {
              if (pos == 0)
                  msgptr = "index.html";
 
-             printf("GET for file: %s\r",msgptr);
+             printf("GET for file: %s\r\n",msgptr);
              sprintf(filename,"/mnt/ramdisk/%s",msgptr);
 
              int file = fopen(filename,false);
              if (file < 0) {
                  // not found
-                 puts("File not found.\r");
+                 puts("File not found.\r\n");
                  sendto(newsock,NotFoundMsg,strlen(NotFoundMsg),0);
 
              } else {
                  stat_t stat;
                  fstat(file,&stat);
 
-                 printf("File Size: %d\r",stat.st_size);
+                 printf("File Size: %d\r\n",stat.st_size);
 
                  // send file
                  sprintf(return_msg,"%s%d\r\n\r\n",fileRetMsg,stat.st_size);
@@ -213,9 +213,9 @@ void* thread_entry(void* arg) {
                   }
 
                   if (!abort)
-                      puts("File send\r");
+                      puts("File send\r\n");
                   else
-                      puts("File sending aborted\r");
+                      puts("File sending aborted\r\n");
 
                   fclose(file);
              }
@@ -223,17 +223,18 @@ void* thread_entry(void* arg) {
 
          }  else {
 
-             puts("Invalid GET pos\r");
+             puts("Invalid GET pos\r\n");
              sendto(newsock,NotFoundMsg,strlen(NotFoundMsg),0);
          }
 
      } else {
          // send error
-        puts("Unknown request\r");
+        puts("Unknown request\r\n");
         sendto(newsock,ErrorMsg,strlen(ErrorMsg),0);
      }
 
      //puts("Closing connection\r");
+     sleep(10);
      fclose(newsock);
      connected = 0;
 
@@ -244,42 +245,43 @@ void* thread_entry(void* arg) {
 
 extern "C" int task_main()
 {
-	int i = 0;
+    int i = 0;
 
 
-	int mysock = socket(IPV4,SOCK_STREAM,TCP);
+    int mysock = socket(IPV4,SOCK_STREAM,TCP);
 
-	// bind our socket to some address
-	sockaddr* addr = (sockaddr*) malloc(sizeof(sockaddr));
+    // bind our socket to some address
+    sockaddr* addr = (sockaddr*) malloc(sizeof(sockaddr));
 
-	addr->port_data 	= 	80; 			       	 //< the http port
-	addr->sa_data 		= 	IP4ADDR(192,168,1,100);
-	//memcpy(addr->name_data,"FTPServer\0",13);      //< register using this service name
+    addr->port_data     =     80;                         //< the http port
+    addr->sa_data       =     0;
+    //memcpy(addr->name_data,"FTPServer\0",13);      //< register using this service name
 
-	int error = bind(mysock,addr);
-	if (error < 0) {
-	    puts("Could not bind to port 80. Exiting.\r");
-	    return (1);
-	}
+    int error = bind(mysock,addr);
+    if (error < 0) {
+        puts("Could not bind to port 80. Exiting.\r\n");
+        return (1);
+    }
 
-	// prepare data local sock address structure
-	sockaddr* dataaddr  =  (sockaddr*) malloc(sizeof(sockaddr));
-	dataaddr->port_data = 	0; 			       	   //< let tcp stack choose a port for us
-	dataaddr->sa_data   = 	IP4ADDR(192,168,1,100);
+    // prepare data local sock address structure
+    sockaddr* dataaddr  =  (sockaddr*) malloc(sizeof(sockaddr));
+    dataaddr->port_data =     0;                           //< let tcp stack choose a port for us
+    dataaddr->sa_data   =     0;
 
-	// our handle to the data socket which is created on demand
-	int datasock;
-	// the current msg received
-	char* msgptr;
- 	puts("HTTP-Server bound and waiting for clients.\r");
+    // our handle to the data socket which is created on demand
+    int datasock;
+    // the current msg received
+    char* msgptr;
+    thread_name(0,"httpd");
+    puts("HTTP-Server bound and waiting for clients.\r\n");
 
-	while(1)
-	{
-		// wait for new connection
-		int newsock = listen(mysock);
+    while(1)
+    {
+        // wait for new connection
+        int newsock = listen(mysock);
 
-		if (newsock > 0) {
-            puts("New HTTP connection!\r");
+        if (newsock > 0) {
+            puts("New HTTP connection!\r\n");
 
             thread_attr_t attr;
             memset(&attr,0,sizeof(thread_attr_t));
@@ -288,12 +290,15 @@ extern "C" int task_main()
             attr.priority = 1 + newsock;
 
             int threadid;
-            if (thread_create(&threadid,&attr,thread_entry,(void*) newsock) == 0)
+            if (thread_create(&threadid,&attr,thread_entry,(void*) newsock) == 0) {
+                thread_name(threadid,"httpd thread");
                 thread_run(threadid);
-            else
+            }
+            else {
                 fclose(newsock);
-		}
+            }
+        }
 
-	} // loop forever
+    } // loop forever
 
 }

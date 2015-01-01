@@ -42,29 +42,28 @@ public:
     ListItem* getNext() {
         return 0;
     }
-    ;
+
 
     /*!
      * \brief Announces a new item to the Scheduler, that should be scheduled
      */
-    ErrorT enter( ScheduleableItem* ) {
-        return cNotImplemented;
+    ErrorT enter(ScheduleableItem*) {
+        return cNotImplemented ;
     }
 
     /*!
      * \brief Removes the item from the scheduler
      */
-    ErrorT remove( ScheduleableItem* ) {
-        return cNotImplemented;
+    ErrorT remove(ScheduleableItem*) {
+        return cNotImplemented ;
     }
 
     /*!
      * \brief Returns true if at least one element is in the queue.
      */
     bool isEmpty() {
-        return cNotImplemented;
+        return cNotImplemented ;
     }
-
 };
 
 #endif /*SCHEDULER_HH_*/

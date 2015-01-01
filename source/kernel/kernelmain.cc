@@ -17,73 +17,93 @@
  */
 
 #include "SCLConfig.hh"
-#include <kernel/Kernel.hh>
-#include "inc/newlib/newlib_helper.hh"
+#include "kernel/Kernel.hh"
 #include Kernel_MemoryManager_hh
 #include "inc/memtools.hh"
 #include "inc/memio.h"
+#include "inc/types.hh"
 
-//! global reference to the kernel object
+/* global reference to the kernel object */
 Kernel* theOS = 0;
 
-// heap_start and heap_end address used to clear the memory
+/* heap_start and heap_end address used to clear the memory */
 extern void* _heap_start;
 extern void* _heap_end;
-extern void* _data_start;
 
-// heap_start and heap_end address used to clear the memory
+/* init section containing compiler generated initialization  code for variables etc */
+extern void* __init_start;
+extern void* __init_end;
+
+/* heap_start and heap_end address used to clear the memory */
 #if MEM_CACHE_INHIBIT
 extern void* _heapi_start;
 extern void* _heapi_end;
 #endif
 
+/*****************************************************************************
+ * Method: void (*init_handler)(void)
+ *******************************************************************************/
+typedef  void (*init_handler)(void);
+
+/*****************************************************************************
+ * Method: abort()
+ *
+ * @description
+ *  Abort handler. Should not be executed however might by used
+ *  by compiler generated code.
+ *
+ *******************************************************************************/
 void abort() {
-    for (;;)
-    {
-    };
+    for (;;) {
+    }
 }
 
-/*!
- * \ingroup startup
- * The main "C" entry point for the OS after the assembler startup code has been executed.
- */
+/*****************************************************************************
+ * Method: kernelmain()
+ *
+ * @description
+ *  The main "C" entry point for the OS after the assembler startup code has been executed.
+ *******************************************************************************/
 extern "C" void kernelmain() {
-    // first of all clear the OS heap so we get a clean working system
-    size_t* addr = (size_t*) &_heap_start;
+    /* first of all clear the OS heap so we get a clean working system */
+    size_t* addr = reinterpret_cast<size_t*>(&_heap_start);
 
-    // use this address if you want to clear the whole os heap
-    // this may take quite a while
-    size_t* endaddr = (size_t*) &_heap_end;
+    /* use this address if you want to clear the whole os heap
+     *  this may take quite a while */
+    size_t* endaddr = reinterpret_cast<size_t*>(&_heap_end);
 
-    // now clear the memory area
-    while (addr < endaddr)
-    {
-        // use architecture size of void*
+    /* now clear the memory area */
+    while (addr < endaddr) {
         *(addr) = 0;
         addr++;
     }
 
+    size_t* init_start = reinterpret_cast<size_t*>(&__init_start);
+    size_t* init_end   = reinterpret_cast<size_t*>(&__init_end);
+    while (init_start < init_end) {
+        /* execute the init code */
+        init_handler initFunction = reinterpret_cast<init_handler>(*init_start);
+        initFunction();
+        init_start++;
+    }
 
     theOS = 0;
 
 #if MEM_CACHE_INHIBIT
     Kernel_MemoryManagerCfdCl* memMan = new (&_heap_start)
-            Kernel_MemoryManagerCfdCl(&_heap_start + sizeof(Kernel_MemoryManagerCfdCl), &_heap_end, &_heapi_start, &_heapi_end);
+    Kernel_MemoryManagerCfdCl(&_heap_start + sizeof(Kernel_MemoryManagerCfdCl), &_heap_end, &_heapi_start, &_heapi_end);
 #else
     // create MM working directly with the real physical addresses
-    Kernel_MemoryManagerCfdCl* memMan = new(&_heap_start) Kernel_MemoryManagerCfdCl(&_heap_start + sizeof(Kernel_MemoryManagerCfdCl) ,&_heap_end);
+    Kernel_MemoryManagerCfdCl* memMan = new(&_heap_start) Kernel_MemoryManagerCfdCl(&_heap_start + sizeof(Kernel_MemoryManagerCfdCl) , &_heap_end);
 #endif
 
-    // use the MM at its logical address for creating the kernel object
-    theOS = (Kernel*) memMan->alloc(sizeof(Kernel) + 16);
+    /* use the MM at its logical address for creating the kernel object */
+    theOS = reinterpret_cast<Kernel*>(memMan->alloc(sizeof(Kernel) + 16));
     theOS->setMemoryManager(memMan);
 
-    // Initialize the device drivers
+    /* Initialize the Kernel.. boot up the system*/
     theOS->initialize();
 
-    // we shouldn't get here!
-    while (true)
-    {
-    }
+    __builtin_unreachable();
 }
 

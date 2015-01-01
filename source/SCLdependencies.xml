@@ -1,101 +1,101 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Dependencies>
-  
- <!-- #################################################### 
-  						Board Skeleton. All Hardware dependent 
+
+ <!-- ####################################################
+                          Board Skeleton. All Hardware dependent
               stuff belongs here.
- 	    #################################################### -->
-  
+         #################################################### -->
+
   <Skeleton>
     <Name>Board</Name>
     <Superclasses>
 
 
-      <!-- #################################################### 
-  						Virtex2 Definition and Default Values              
- 	         #################################################### -->
-      
+      <!-- ####################################################
+                          Virtex2 Definition and Default Values
+              #################################################### -->
+
       <Superclass Provides="PPC405,Virtex2,FPGA" Name="arch/PPC40x/Virtex2/Virtex2Board"></Superclass>
 
-	  <Superclass Provides="ATMEGA,ATMEGA328" Name="arch/Atmel/ATMEGA328/RN-MicroFunk/MicroFunkBoard">
-	    <MemberRef Name="Timer"/>
-	    <MemberRef Name="Clock"/>
-	    <MemberRef Name="Processor"/>
-	    <MemberRef Name="UART"/>
-	  </Superclass>
-	
+      <Superclass Provides="ATMEGA,ATMEGA328" Name="arch/Atmel/ATMEGA328/RN-MicroFunk/MicroFunkBoard">
+        <MemberRef Name="Timer"/>
+        <MemberRef Name="Clock"/>
+        <MemberRef Name="Processor"/>
+        <MemberRef Name="UART"/>
+      </Superclass>
 
 
-      <!-- #################################################### 
-  						RaptorBoard Definition and Default Values
- 	         #################################################### -->
-      
+
+      <!-- ####################################################
+                          RaptorBoard Definition and Default Values
+              #################################################### -->
+
       <Superclass Provides="PPC405,RAPTOR,FPGA" Name="arch/PPC40x/RAPTOR/RaptorBoard">
         <MemberRef Name="Timer"/>
         <MemberRef Name="UART">
-		  <Defaults Class="arch/PPC40x/RAPTOR/OPB_UART_Lite">
+          <Defaults Class="arch/PPC40x/RAPTOR/OPB_UART_Lite">
             <PropertyValue Name="Address" Value="0x90210000" />
             <PropertyValue Name="Length" Value="16" />
-			<PropertyValue Name="Name" Value="serial0" />
+            <PropertyValue Name="Name" Value="serial0" />
           </Defaults>
-		</MemberRef>
+        </MemberRef>
         <MemberRef Name="UART2"/>
         <MemberRef Name="HatLayer"/>
         <MemberRef Name="Clock"/>
         <MemberRef Name="Processor"/>
         <MemberRef Name="Watchdog"/>
         <MemberRef Name="LED">
-		  <Defaults Class="arch/PPC40x/RAPTOR/LED">
+          <Defaults Class="arch/PPC40x/RAPTOR/LED">
             <PropertyValue Name="Address" Value="0x90220000" />
             <PropertyValue Name="Length" Value="16" />
-			<PropertyValue Name="Name" Value="led0" />
+            <PropertyValue Name="Name" Value="led0" />
           </Defaults>
-		</MemberRef>
-		<MemberRef Name="ETH">
-		  <Defaults Class="arch/PPC40x/RAPTOR/PLB_EMAC0">
+        </MemberRef>
+        <MemberRef Name="ETH">
+          <Defaults Class="arch/PPC40x/RAPTOR/PLB_EMAC0">
             <PropertyValue Name="Address" Value="0x90000000" />
             <PropertyValue Name="Length" Value="4096" />
-			<PropertyValue Name="Name" Value="eth0" />
+            <PropertyValue Name="Name" Value="eth0" />
           </Defaults>
-		</MemberRef>
+        </MemberRef>
         <MemberRef Name="InterruptHandler"/>
-        <MemberRef Name="InterruptController"/>    
+        <MemberRef Name="InterruptController"/>
       </Superclass>
 
 
-      <!-- #################################################### 
-  						Virtex4 Definition and Default Values
- 	         #################################################### -->
-      
+      <!-- ####################################################
+                          Virtex4 Definition and Default Values
+              #################################################### -->
+
       <Superclass Provides="SPARC,Leon3,Virtex4" Name="arch/Leon3/GR-CPCI-XC4V/Virtex4Board"></Superclass>
 
-      <!-- #################################################### 
-  						BeagleBoard Definition and Default Values
- 	         #################################################### -->
-      
+      <!-- ####################################################
+                          BeagleBoard Definition and Default Values
+              #################################################### -->
+
       <Superclass Provides="ARMv4,ARMv7,CortexA8,OMAP3530,BeagleBoard" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoard/BeagleBoard">
-	   <MemberRef Name="Timer" optional="false">
-          <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardGPTimer2">
+       <MemberRef Name="Timer" optional="false">
+          <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPTimer">
             <PropertyValue Name="Address" Value="0x49032000" />
             <PropertyValue Name="Length" Value="4096" />
           </Defaults>
         </MemberRef>
         <MemberRef Name="HatLayer"/>
-        <MemberRef Name="Cache"/>	
+        <MemberRef Name="Cache"/>
         <MemberRef Name="Clock" optional="false">
-			<Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530Clock">
-				<PropertyValue Name="Name" Value="sysclock0"/>
-			</Defaults>
-		</MemberRef>
+            <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530Clock">
+                <PropertyValue Name="Name" Value="sysclock0"/>
+            </Defaults>
+        </MemberRef>
         <MemberRef Name="Processor" optional="false"/>
         <!-- No Wachdog support -->
-		<!-- No DSS support as different register mapping compared to xM-->
+        <!-- No DSS support as different register mapping compared to xM-->
         <MemberRef Name="UART">
           <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardUART">
-		   <!--  First value of set is the default value, rest enum values -->
+           <!--  First value of set is the default value, rest enum values -->
             <PropertyValue Name="Address" Value="0x49020000" />
             <PropertyValue Name="Length" Value="1024" />
-            <PropertyValue Name="Name" Value="serial0"/>            
+            <PropertyValue Name="Name" Value="serial0"/>
           </Defaults>
           <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530i2c">
             <PropertyValue Name="Address" Value="0x48060000" />
@@ -122,7 +122,7 @@
             <PropertyValue Name="Name" Value="gpio1" />
             <PropertyValue Name="DirectionBits" Value="0x0" />
             <PropertyValue Name="ValueBits" Value="0x0"/>
-          </Defaults>          
+          </Defaults>
         </MemberRef>
         <MemberRef Name="GPIO2">
           <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO">
@@ -170,42 +170,42 @@
           </Defaults>
         </MemberRef>
         <MemberRef Name="USB_HC">
-		 <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/HighSpeedUSBHostController">
-			<PropertyValue Name="I2CDeviceName" Value="dev/i2c0" />
-		 </Defaults>
-		</MemberRef>
+         <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/HighSpeedUSBHostController">
+            <PropertyValue Name="I2CDeviceName" Value="dev/i2c0" />
+         </Defaults>
+        </MemberRef>
         <MemberRef Name="InterruptHandler" optional="false"/>
         <MemberRef Name="InterruptController" optional="false" />
-		<MemberRef Name="ExtPowerControl" optional="true" >
-			<Defaults Class="arch/shared/power/TWL4030">
-				<PropertyValue Name="I2CDeviceName" Value="dev/i2c0" />
-			</Defaults>
-		</MemberRef>
-		<MemberRef Name="MMC" optional="true">
-			<Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapMMC_SD_HC">
-				<PropertyValue Name="Address" Value="0x4809C000" />
-			</Defaults>	
-		</MemberRef>  
-	  </Superclass>
-     
-      <!-- #################################################### 
-  						BeBot Definition and Default Values
- 	         #################################################### -->
-      
+        <MemberRef Name="ExtPowerControl" optional="true" >
+            <Defaults Class="arch/shared/power/TWL4030">
+                <PropertyValue Name="I2CDeviceName" Value="dev/i2c0" />
+            </Defaults>
+        </MemberRef>
+        <MemberRef Name="MMC" optional="true">
+            <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapMMC_SD_HC">
+                <PropertyValue Name="Address" Value="0x4809C000" />
+            </Defaults>
+        </MemberRef>
+      </Superclass>
+
+      <!-- ####################################################
+                          BeBot Definition and Default Values
+              #################################################### -->
+
       <Superclass Provides="ARMv4,ARMv7,CortexA8,OMAP3530,BeBot" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/BeBot/BeBot">
          <MemberRef Name="Timer" optional="false">
-          <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardGPTimer2">
+          <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPTimer">
             <PropertyValue Name="Address" Value="0x49032000" />
             <PropertyValue Name="Length" Value="4096" />
           </Defaults>
         </MemberRef>
-        <MemberRef Name="Cache"/>	
+        <MemberRef Name="Cache"/>
          <MemberRef Name="UART">
           <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardUART">
-		   <!--  First value of set is the default value, rest enum values -->
+           <!--  First value of set is the default value, rest enum values -->
             <PropertyValue Name="Address" Value="0x49020000" />
             <PropertyValue Name="Length" Value="1024" />
-            <PropertyValue Name="Name" Value="serial0"/>            
+            <PropertyValue Name="Name" Value="serial0"/>
           </Defaults>
           <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530i2c">
             <PropertyValue Name="Address" Value="0x48060000" />
@@ -231,44 +231,43 @@
         <MemberRef Name="Watchdog"/>
         <MemberRef Name="HCI"/>
         <MemberRef Name="LED">
-		  <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/BeBot/Omap3530_BebotLED">
+          <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/BeBot/Omap3530_BebotLED">
             <PropertyValue Name="Address" Value="0x90220000" />
             <PropertyValue Name="Length" Value="1024" />
-			<PropertyValue Name="Name" Value="led0" />
+            <PropertyValue Name="Name" Value="led0" />
           </Defaults>
-		</MemberRef>
-		<MemberRef Name="USB_HC">
-		 <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/HighSpeedUSBHostController">
-			<PropertyValue Name="I2CDeviceName" Value="dev/i2c0" />
-		 </Defaults>
-		</MemberRef>
+        </MemberRef>
+        <MemberRef Name="USB_HC">
+         <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/HighSpeedUSBHostController">
+            <PropertyValue Name="I2CDeviceName" Value="dev/i2c0" />
+         </Defaults>
+        </MemberRef>
         <MemberRef Name="InterruptHandler"/>
         <MemberRef Name="InterruptController"/>
       </Superclass>
 
 
-      <!-- #################################################### 
-  						BeagleBoardxM Definition and Default Values
- 	         #################################################### -->
-      
+      <!-- ####################################################
+                          BeagleBoardxM Definition and Default Values
+              #################################################### -->
+
       <Superclass Provides="ARMv4,ARMv7,CortexA8,OMAP3530,BeagleBoard,BeagleBoardxM" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardxM/BeagleBoardxM">
         <MemberRef Name="Timer" optional="false">
-          <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardGPTimer1">
+          <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPTimer">
             <PropertyValue Name="Address" Value="0x48318000" />
             <PropertyValue Name="Length" Value="4096" />
-          </Defaults>
-          <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardGPTimer2">
-            <PropertyValue Name="Address" Value="0x49032000" />
-            <PropertyValue Name="Length" Value="4096" />
+            <PropertyValue Name="Name" Value="sched_timer" />
+            <PropertyValue Name="INTC_IRQ" Value="37" />
+            <PropertyValue Name="INTC_Priority" Value="50" />
           </Defaults>
         </MemberRef>
         <MemberRef Name="HatLayer"/>
         <MemberRef Name="Clock" optional="false">
-			<Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530Clock">
-				<PropertyValue Name="Name" Value="sysclock0"/>
-			</Defaults>
-		</MemberRef>
-		<MemberRef Name="Cache"/>						
+            <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530Clock">
+                <PropertyValue Name="Name" Value="sysclock0"/>
+            </Defaults>
+        </MemberRef>
+        <MemberRef Name="Cache"/>
         <MemberRef Name="Processor" optional="false"/>
         <!-- No Wachdog support -->
         <MemberRef Name="DSS">
@@ -279,10 +278,10 @@
         </MemberRef>
         <MemberRef Name="UART">
           <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardUART">
-		   <!--  First value of set is the default value, rest enum values -->
+           <!--  First value of set is the default value, rest enum values -->
             <PropertyValue Name="Address" Value="0x49020000" />
             <PropertyValue Name="Length" Value="1024" />
-            <PropertyValue Name="Name" Value="serial0"/>            
+            <PropertyValue Name="Name" Value="serial0"/>
           </Defaults>
           <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530i2c">
             <PropertyValue Name="Address" Value="0x48070000" />
@@ -304,9 +303,9 @@
         </MemberRef>
         <MemberRef Name="SPI">
           <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530SPI">
-		   <!--  First value of set is the default value, rest enum values -->
-            <PropertyValue Name="Address" Value="MCSPI3" />            
-            <PropertyValue Name="Name" Value="spi"/>            
+           <!--  First value of set is the default value, rest enum values -->
+            <PropertyValue Name="Address" Value="MCSPI3" />
+            <PropertyValue Name="Name" Value="spi"/>
           </Defaults>
           <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530i2c">
             <PropertyValue Name="Address" Value="0x48070000" />
@@ -321,7 +320,7 @@
             <PropertyValue Name="Name" Value="gpio1" />
             <PropertyValue Name="DirectionBits" Value="0x0" />
             <PropertyValue Name="ValueBits" Value="0x0"/>
-          </Defaults>          
+          </Defaults>
         </MemberRef>
         <MemberRef Name="GPIO2">
           <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO">
@@ -369,30 +368,30 @@
           </Defaults>
         </MemberRef>
         <MemberRef Name="USB_HC">
-		 <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/HighSpeedUSBHostController">
-			<PropertyValue Name="I2CDeviceName" Value="dev/i2c0" />
-			<PropertyValue Name="Priority" Value="5000" />
-		 </Defaults>
-		</MemberRef>
+         <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/HighSpeedUSBHostController">
+            <PropertyValue Name="I2CDeviceName" Value="dev/i2c0" />
+            <PropertyValue Name="Priority" Value="5000" />
+         </Defaults>
+        </MemberRef>
         <MemberRef Name="InterruptHandler" optional="false"/>
         <MemberRef Name="InterruptController" optional="false" />
-		<MemberRef Name="ExtPowerControl" optional="true" >
-			<Defaults Class="arch/shared/power/TWL4030">
-				<PropertyValue Name="I2CDeviceName" Value="dev/i2c0" />
-			</Defaults>
-		</MemberRef>
-		<MemberRef Name="MMC" optional="true">
-			<Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapMMC_SD_HC">
-				<PropertyValue Name="Address" Value="0x4809C000" />
-			</Defaults>	
-		</MemberRef>
+        <MemberRef Name="ExtPowerControl" optional="true" >
+            <Defaults Class="arch/shared/power/TWL4030">
+                <PropertyValue Name="I2CDeviceName" Value="dev/i2c0" />
+            </Defaults>
+        </MemberRef>
+        <MemberRef Name="MMC" optional="true">
+            <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapMMC_SD_HC">
+                <PropertyValue Name="Address" Value="0x4809C000" />
+            </Defaults>
+        </MemberRef>
       </Superclass>
-            
+
     </Superclasses>
 
-    <!-- #################################################### 
-  						Generic Member Definitions
- 	       #################################################### -->
+    <!-- ####################################################
+                          Generic Member Definitions
+            #################################################### -->
 
     <Member>
       <Name>Timer</Name>
@@ -404,19 +403,18 @@
           <Property Name="Address" Type="unsigned int" Optional="false" />
           <Property Name="Length" Type="unsigned int" Optional="false" />
         </Class>
-        <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardGPTimer1">
+        <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPTimer">
           <Property Name="Address" Type="unsigned int" Optional="false" />
           <Property Name="Length" Type="unsigned int" Optional="false" />
-        </Class>
-        <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardGPTimer2">
-          <Property Name="Address" Type="unsigned int" Optional="false" />
-          <Property Name="Length" Type="unsigned int" Optional="false" />
+          <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree."/>
+          <Property Name="INTC_IRQ" Type="unsigned int" Optional="false"  Description="Interrupt Line at the Interrupt Controller." />
+          <Property Name="INTC_Priority" Type="unsigned int" Optional="false" Description="IRQ Priority at the Interrupt Controller." />
         </Class>
       </Classes>
     </Member>
     <Member>
       <Name>HatLayer</Name>
-      <Classes>        
+      <Classes>
         <Class Requires="PPC405" Name="arch/PPC40x/PPC405HatLayer"/>
         <Class Requires="Leon3"  Name="arch/Leon3/Leon3HatLayer"/>
         <Class Requires="CortexA8" Name="arch/ARM/ARMv4T/ARMv7/ARMv7HatLayer"/>
@@ -425,7 +423,7 @@
     </Member>
     <Member>
       <Name>Cache</Name>
-      <Classes>        
+      <Classes>
         <Class Requires="CortexA8" Name="arch/ARM/ARMv4T/ARMv7/ARMv7Cache"/>
         <Class Name="hal/Cache"/>
       </Classes>
@@ -436,9 +434,9 @@
           <Class Name="hal/EmulatedClock"/>
           <Class Requires="PPC405" Name="arch/PPC40x/PPC405Clock"/>
           <Class Requires="Leon3" Name="arch/Leon3/Leon3Clock"/>
-          <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530Clock">		  
-		    <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree."/>
-		  </Class>
+          <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530Clock">
+            <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree."/>
+          </Class>
         </Classes>
     </Member>
     <Member>
@@ -571,11 +569,11 @@
           <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree."/>
           <Property Name="DirectionBits" Type="unsigned int" Optional="true" Description="The initial direction of the GPIO pins. Bit Semantics: 0 = output, 1= input"/>
           <Property Name="ValueBits" Type="unsigned int" Optional="true" Description="The initial value of a output pin programmed per bit."/>
-		  <Property Name="Priority" Type="int" Optional="false" Description="The Priority parameter of this device. The priority is used for scheduled IRQ handling."/>
+          <Property Name="Priority" Type="int" Optional="false" Description="The Priority parameter of this device. The priority is used for scheduled IRQ handling."/>
         </Class>
         <Class Name="arch/none/DummyCharDriver"/>
       </Classes>
-    </Member> 
+    </Member>
     <Member>
       <Name>GPIO2</Name>
       <Classes>
@@ -584,11 +582,11 @@
           <Property Name="Length" Type="unsigned int" Optional="true" Description="The Length (Bytes) of the Memory Mapped I/O Area of this device. This value is only needed if Virtual Memory is activated to create the corresponding memory maps."/>
           <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree."/>
           <Property Name="DirectionBits" Type="unsigned int" Optional="true" Description="The initial direction of the GPIO pins. Bit Semantics: 0 = output, 1= input"/>
-          <Property Name="ValueBits" Type="unsigned int" Optional="true" Description="The initial value of a output pin programmed per bit."/>        		  <Property Name="Priority" Type="int" Optional="false" Description="The Priority parameter of this device. The priority is used for scheduled IRQ handling."/>         
+          <Property Name="ValueBits" Type="unsigned int" Optional="true" Description="The initial value of a output pin programmed per bit."/>                  <Property Name="Priority" Type="int" Optional="false" Description="The Priority parameter of this device. The priority is used for scheduled IRQ handling."/>
         </Class>
         <Class Name="arch/none/DummyCharDriver"/>
       </Classes>
-    </Member> 
+    </Member>
      <Member>
       <Name>GPIO3</Name>
       <Classes>
@@ -598,11 +596,11 @@
           <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree."/>
           <Property Name="DirectionBits" Type="unsigned int" Optional="true" Description="The initial direction of the GPIO pins. Bit Semantics: 0 = output, 1= input"/>
           <Property Name="ValueBits" Type="unsigned int" Optional="true" Description="The initial value of a output pin programmed per bit."/>
-          <Property Name="Priority" Type="int" Optional="false" Description="The Priority parameter of this device. The priority is used for scheduled IRQ handling."/>          
+          <Property Name="Priority" Type="int" Optional="false" Description="The Priority parameter of this device. The priority is used for scheduled IRQ handling."/>
         </Class>
         <Class Name="arch/none/DummyCharDriver"/>
       </Classes>
-    </Member> 
+    </Member>
      <Member>
       <Name>GPIO4</Name>
       <Classes>
@@ -612,11 +610,11 @@
           <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree."/>
           <Property Name="DirectionBits" Type="unsigned int" Optional="true" Description="The initial direction of the GPIO pins. Bit Semantics: 0 = output, 1= input"/>
           <Property Name="ValueBits" Type="unsigned int" Optional="true" Description="The initial value of a output pin programmed per bit."/>
-		  <Property Name="Priority" Type="int" Optional="false" Description="The Priority parameter of this device. The priority is used for scheduled IRQ handling."/>
+          <Property Name="Priority" Type="int" Optional="false" Description="The Priority parameter of this device. The priority is used for scheduled IRQ handling."/>
         </Class>
         <Class Name="arch/none/DummyCharDriver"/>
       </Classes>
-    </Member>  
+    </Member>
     <Member>
       <Name>GPIO5</Name>
       <Classes>
@@ -626,11 +624,11 @@
           <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree."/>
           <Property Name="DirectionBits" Type="unsigned int" Optional="true" Description="The initial direction of the GPIO pins. Bit Semantics: 0 = output, 1= input"/>
           <Property Name="ValueBits" Type="unsigned int" Optional="true" Description="The initial value of a output pin programmed per bit."/>
-		  <Property Name="Priority" Type="int" Optional="false" Description="The Priority parameter of this device. The priority is used for scheduled IRQ handling."/>
+          <Property Name="Priority" Type="int" Optional="false" Description="The Priority parameter of this device. The priority is used for scheduled IRQ handling."/>
         </Class>
         <Class Name="arch/none/DummyCharDriver"/>
       </Classes>
-    </Member> 
+    </Member>
      <Member>
       <Name>GPIO6</Name>
       <Classes>
@@ -640,35 +638,35 @@
           <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree."/>
           <Property Name="DirectionBits" Type="unsigned int" Optional="true" Description="The initial direction of the GPIO pins. Bit Semantics: 0 = output, 1= input"/>
           <Property Name="ValueBits" Type="unsigned int" Optional="true" Description="The initial value of a output pin programmed per bit."/>
-          <Property Name="Priority" Type="int" Optional="false" Description="The Priority parameter of this device. The priority is used for scheduled IRQ handling."/>        
+          <Property Name="Priority" Type="int" Optional="false" Description="The Priority parameter of this device. The priority is used for scheduled IRQ handling."/>
         </Class>
         <Class Name="arch/none/DummyCharDriver"/>
       </Classes>
-    </Member>  
-    <Member>   
+    </Member>
+    <Member>
      <Name>USB_HC</Name>
       <Classes>
         <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/HighSpeedUSBHostController">
-		  <Property Name="I2CDeviceName" Type="char*" Optional="false" Description="The I2C Device Name as found in 'dev\i2cdevice' the TWL power chip is connected to. Used to setup the USB HC Power. Must match the device name of the configured I2C Device. \nDefault: 'i2c0'"/>
-		  <Property Name="Priority" Type="int" Optional="false" Description="The Priority parameter of this device. The priority is used for scheduled IRQ handling."/>
-		</Class>
+          <Property Name="I2CDeviceName" Type="char*" Optional="false" Description="The I2C Device Name as found in 'dev\i2cdevice' the TWL power chip is connected to. Used to setup the USB HC Power. Must match the device name of the configured I2C Device. \nDefault: 'i2c0'"/>
+          <Property Name="Priority" Type="int" Optional="false" Description="The Priority parameter of this device. The priority is used for scheduled IRQ handling."/>
+        </Class>
         <Class Name="arch/none/DummyClass"/>
       </Classes>
-    </Member> 
+    </Member>
     <Member>
       <Name>HCI</Name>
       <Classes>
         <Class Requires="BeBot" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardUARTforHCI"/>
         <Class Name="arch/none/DummyCharDriver"/>
       </Classes>
-    </Member>    
+    </Member>
     <Member>
       <Name>ETH</Name>
       <Classes>
         <Class Requires="RAPTOR" Name="arch/PPC40x/RAPTOR/PLB_EMAC0">
           <Property Name="Address" Type="unsigned int" Optional="false" Description="The Memory Mapped I/O (MMIO) Base Address of this device." />
           <Property Name="Length" Type="unsigned int" Optional="true" Description="The Length (Bytes) of the Memory Mapped I/O Area of this device. This value is only needed if Virtual Memory is activated to create the corresponding memory maps."/>
-          <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree."/> 
+          <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree."/>
         </Class>
         <Class Requires="Leon3" Name="arch/Leon3/GR-CPCI-XC4V/Leon3_GRETH">
           <Property Name="Address" Type="unsigned int" Optional="false" Description="The Memory Mapped I/O (MMIO) Base Address of this device." />
@@ -728,46 +726,46 @@
         <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardInterruptController"/>
       </Classes>
     </Member>
-	<Member>
-	<Name>ExtPowerControl</Name>
+    <Member>
+    <Name>ExtPowerControl</Name>
       <Classes>
         <Class Requires="OMAP3530" Name="arch/shared/power/TWL4030">
-		    <Property Name="I2CDeviceName" Type="char*" Optional="false" Description="The I2C Device this Power Control can be access with.\nDefault: 'dev/i2c0'" />
- 		</Class>
-      </Classes>	
-	</Member>
-	<Member>
-	<Name>MMC</Name>
+            <Property Name="I2CDeviceName" Type="char*" Optional="false" Description="The I2C Device this Power Control can be access with.\nDefault: 'dev/i2c0'" />
+         </Class>
+      </Classes>
+    </Member>
+    <Member>
+    <Name>MMC</Name>
       <Classes>
         <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapMMC_SD_HC">
-		    <Property Name="Address" Type="unsigned int" Optional="false" Description="The MMC controller base address. MMC1-3 are available." />
- 		</Class>
-      </Classes>	
-	</Member>
-	<Member>
-	<Name>SPI</Name>
+            <Property Name="Address" Type="unsigned int" Optional="false" Description="The MMC controller base address. MMC1-3 are available." />
+         </Class>
+      </Classes>
+    </Member>
+    <Member>
+    <Name>SPI</Name>
       <Classes>
         <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530SPI">
-		    <Property Name="Address" Type="unsigned int" Optional="false" Description="The SPI controller base address. SPI1-4 are available.\nUse MCSPI1,MCSPI2,MCSPI3,MCSPI3 as value or specify the address directly." />
-		    <Property Name="Name" Type="char*" Optional="false" Description="The device name as it will be registered under /dev/" />
- 		</Class>
-      </Classes>	
-	</Member>
+            <Property Name="Address" Type="unsigned int" Optional="false" Description="The SPI controller base address. SPI1-4 are available.\nUse MCSPI1,MCSPI2,MCSPI3,MCSPI3 as value or specify the address directly." />
+            <Property Name="Name" Type="char*" Optional="false" Description="The device name as it will be registered under /dev/" />
+         </Class>
+      </Classes>
+    </Member>
   </Skeleton>
 
-  <!-- #################################################### 
-  						Kernel Skeleton
-	     #################################################### -->
-  
+  <!-- ####################################################
+                          Kernel Skeleton
+         #################################################### -->
+
   <Skeleton>
     <Name>Kernel</Name>
     <Superclasses>
       <Superclass Name="kernel/Kernel">
-		<MemberRef Name="MemoryManager" optional="false">
-		 <Defaults Class="mem/SequentialFitMemManager">
+        <MemberRef Name="MemoryManager" optional="false">
+         <Defaults Class="mem/SequentialFitMemManager">
             <PropertyValue Name="LastFit" Value="0" />
-		 </Defaults>
-		</MemberRef>
+         </Defaults>
+        </MemberRef>
         <MemberRef Name="Thread" optional="false"/>
         <MemberRef Name="Dispatcher" optional="false"/>
         <MemberRef Name="Scheduler" optional="false"/>
@@ -780,7 +778,7 @@
         <MemberRef Name="RamManager"/>
         <MemberRef Name="InterruptManager"/>
       </Superclass>
-	  
+
     </Superclasses>
     <Member>
       <Name>MemoryManager</Name>
@@ -802,14 +800,14 @@
     <Member>
       <Name>InterruptManager</Name>
       <Classes>
-        <Class Name="hal/InterruptManager"/>        
+        <Class Name="hal/InterruptManager"/>
       </Classes>
-    </Member>    
+    </Member>
     <Member>
       <Name>Dispatcher</Name>
       <Classes>
-        <Class Name="scheduler/SingleCPUDispatcher"/>        
-        <Class Name="scheduler/SingleThreadDispatcher"/>        
+        <Class Name="scheduler/SingleCPUDispatcher"/>
+        <Class Name="scheduler/SingleThreadDispatcher"/>
       </Classes>
     </Member>
     <Member>
@@ -872,102 +870,107 @@
       </Classes>
     </Member>
   </Skeleton>
- 
-  <!-- #################################################### 
-  						      FileSystem Skeleton
-	        #################################################### -->
-	<Skeleton>
-	    <Name>FileSystems</Name>
-	    <Superclasses>
-			<Superclass Name="filesystem/SimpleFileManager">
-				<MemberRef Name="PartitionManager" optional="true"/>		
-				<MemberRef Name="DOSPartition"/>	
-				<MemberRef Name="FATFileSystem"/>
-			</Superclass>
-		</Superclasses>
-		<Member>
-	      <Name>PartitionManager</Name>
-	      <Classes> <Class Name="filesystem/PartitionManager"/> </Classes>
-	    </Member>
-	    <Member>
-	      <Name>DOSPartition</Name>
-	      <Classes> <Class Name="filesystem/DOSPartition"/> </Classes>
-	    </Member>
-	    <Member>
-	      <Name>FATFileSystem</Name>
-	      <Classes> <Class Name="filesystem/FATFileSystem"/> </Classes>
-	    </Member>    
-	</Skeleton> 
-	
-	 <!-- #################################################### 
-  						      USBDriver Skeleton
-	        #################################################### -->
-	
-	<Skeleton>
-	    <Name>USBDriver</Name>
-	    <Superclasses>
-			<Superclass Name="usb/USBDeviceDriverLibrary">
-				<MemberRef Name="Factory"/>		
-				<MemberRef Name="SMSC95xx"/>	
-				<MemberRef Name="MassStorage"/>
-			</Superclass>
-		</Superclasses>
-		<Member>
-	      <Name>Factory</Name>
-	      <Classes> <Class Name="usb/USBDeviceDriverFactory"/> </Classes>
-	    </Member>
-	    <Member>
-	      <Name>SMSC95xx</Name>
-	      <Classes> <Class Name="usb/SMSC95xxUSBDeviceDriver"/> </Classes>
-	    </Member>
-	    <Member>
-	      <Name>MassStorage</Name>
-	      <Classes> <Class Name="usb/MassStorageSCSIUSBDeviceDriver"/> </Classes>
-	    </Member>    
-	</Skeleton> 
- 
-     <!-- #################################################### 
-  						      SyscallManager Skeleton
-	        #################################################### -->
-  
+
+  <!-- ####################################################
+                                FileSystem Skeleton
+            #################################################### -->
+    <Skeleton>
+        <Name>FileSystems</Name>
+        <Superclasses>
+            <Superclass Name="filesystem/SimpleFileManager">
+                <MemberRef Name="PartitionManager" optional="true"/>
+                <MemberRef Name="DOSPartition"/>
+                <MemberRef Name="FATFileSystem"/>
+            </Superclass>
+        </Superclasses>
+        <Member>
+          <Name>PartitionManager</Name>
+          <Classes> <Class Name="filesystem/PartitionManager"/> </Classes>
+        </Member>
+        <Member>
+          <Name>DOSPartition</Name>
+          <Classes> <Class Name="filesystem/DOSPartition"/> </Classes>
+        </Member>
+        <Member>
+          <Name>FATFileSystem</Name>
+          <Classes> <Class Name="filesystem/FATFileSystem"/> </Classes>
+        </Member>
+    </Skeleton>
+
+     <!-- ####################################################
+                                USBDriver Skeleton
+            #################################################### -->
+
+    <Skeleton>
+        <Name>USBDriver</Name>
+        <Superclasses>
+            <Superclass Name="usb/USBDeviceDriverLibrary">
+                <MemberRef Name="Factory"/>
+                <MemberRef Name="SMSC95xx"/>
+                <MemberRef Name="MassStorage"/>
+            </Superclass>
+        </Superclasses>
+        <Member>
+          <Name>Factory</Name>
+          <Classes> <Class Name="usb/USBDeviceDriverFactory"/> </Classes>
+        </Member>
+        <Member>
+          <Name>SMSC95xx</Name>
+          <Classes> <Class Name="usb/SMSC95xxUSBDeviceDriver"/> </Classes>
+        </Member>
+        <Member>
+          <Name>MassStorage</Name>
+          <Classes> <Class Name="usb/MassStorageSCSIUSBDeviceDriver"/> </Classes>
+        </Member>
+    </Skeleton>
+
+     <!-- ####################################################
+                                SyscallManager Skeleton
+            #################################################### -->
+
    <Skeleton>
     <Name>SyscallManager</Name>
     <Superclasses>
       <Superclass Name="syscalls/SyscallManager">
-		<MemberRef Name="sleep"/>		 
+        <MemberRef Name="sleep"/>
         <MemberRef Name="thread_create"/>
         <MemberRef Name="thread_run" />
         <MemberRef Name="thread_self"/>
         <MemberRef Name="thread_yield"/>
+        <MemberRef Name="thread_terminate"/>
+        <MemberRef Name="thread_name"/>
         <MemberRef Name="getpid"/>
         <MemberRef Name="signal_wait"/>
         <MemberRef Name="signal_signal"/>
         <MemberRef Name="fputc"/>
         <MemberRef Name="fgetc"/>
-		<MemberRef Name="fcreate"/>
-		<MemberRef Name="fopen"/>
-		<MemberRef Name="fclose"/>
-		<MemberRef Name="fwrite"/>
-		<MemberRef Name="fread"/>
-		<MemberRef Name="fremove"/>
-		<MemberRef Name="new"/>
-		<MemberRef Name="delete"/>
-		<MemberRef Name="socket"/>
-		<MemberRef Name="connect"/>
-		<MemberRef Name="listen"/>
-		<MemberRef Name="bind"/>
-		<MemberRef Name="sendto"/>
-		<MemberRef Name="recv"/>
-		<MemberRef Name="task_stop"/>
-		<MemberRef Name="task_resume"/>
-		<MemberRef Name="ioctl"/>
-		<MemberRef Name="fstat"/>
-		<MemberRef Name="thread_wait"/>
-		<MemberRef Name="task_run"/>
-		<MemberRef Name="task_kill"/>
-		<MemberRef Name="shm_map"/>
-		<MemberRef Name="shm_unmap"/>
-		<MemberRef Name="mapMemory"/>
+        <MemberRef Name="fcreate"/>
+        <MemberRef Name="fopen"/>
+        <MemberRef Name="fclose"/>
+        <MemberRef Name="fwrite"/>
+        <MemberRef Name="fread"/>
+        <MemberRef Name="fseek"/>
+        <MemberRef Name="fremove"/>
+        <MemberRef Name="new"/>
+        <MemberRef Name="delete"/>
+        <MemberRef Name="socket"/>
+        <MemberRef Name="connect"/>
+        <MemberRef Name="listen"/>
+        <MemberRef Name="bind"/>
+        <MemberRef Name="sendto"/>
+        <MemberRef Name="recv"/>
+        <MemberRef Name="task_stop"/>
+        <MemberRef Name="task_resume"/>
+        <MemberRef Name="ioctl"/>
+        <MemberRef Name="fstat"/>
+        <MemberRef Name="thread_wait"/>
+        <MemberRef Name="task_run"/>
+        <MemberRef Name="task_kill"/>
+        <MemberRef Name="task_ioctl"/>
+        <MemberRef Name="shm_map"/>
+        <MemberRef Name="mapMemory"/>
+        <MemberRef Name="mkdev"/>
+        <MemberRef Name="mount"/>
       </Superclass>
     </Superclasses>
     <Member><Name>sleep</Name></Member>
@@ -975,6 +978,8 @@
     <Member><Name>thread_run</Name></Member>
     <Member><Name>thread_self</Name></Member>
     <Member><Name>thread_yield</Name></Member>
+    <Member><Name>thread_terminate</Name></Member>
+    <Member><Name>thread_name</Name></Member>
     <Member><Name>getpid</Name></Member>
     <Member><Name>thread_wait</Name></Member>
     <Member><Name>signal_wait</Name></Member>
@@ -987,6 +992,7 @@
     <Member><Name>fwrite</Name></Member>
     <Member><Name>fread</Name></Member>
     <Member><Name>fstat</Name></Member>
+    <Member><Name>fseek</Name></Member>
     <Member><Name>fremove</Name></Member>
     <Member><Name>new</Name></Member>
     <Member><Name>delete</Name></Member>
@@ -995,63 +1001,65 @@
     <Member><Name>listen</Name></Member>
     <Member><Name>bind</Name></Member>
     <Member><Name>sendto</Name></Member>
-    <Member><Name>recv</Name></Member>   
+    <Member><Name>recv</Name></Member>
     <Member><Name>task_stop</Name> </Member>
     <Member><Name>task_resume</Name></Member>
     <Member><Name>task_run</Name> </Member>
     <Member><Name>task_kill</Name> </Member>
-	<Member><Name>ioctl</Name> </Member>
-	<Member><Name>mapMemory</Name> </Member>	
-	<Member><Name>shm_map</Name> </Member>
-	<Member><Name>shm_unmap</Name> </Member>
+    <Member><Name>task_ioctl</Name> </Member>
+    <Member><Name>ioctl</Name> </Member>
+    <Member><Name>mapMemory</Name> </Member>
+    <Member><Name>shm_map</Name> </Member>
+    <Member><Name>mkdev</Name> </Member>
+    <Member><Name>mount</Name> </Member>
     </Skeleton>
-    
+
     <Defines>
         <Define>
             <Name>ENABLE_NESTED_INTERRUPTS</Name>
             <Description>Allows interrupts to occur while the kernel is handling an user interrupt e.g a syscall. Strongly recommended for Real-Time Systems!</Description>
         </Define>
-        
+
         <Define>
             <Name>HAS_PROCFS_ENABLED</Name>
             <Description>Enables the debug device /proc/info which can be read to get information on the running system.</Description>
         </Define>
-        
+
          <Define>
             <Name>USE_WORKERTASK</Name>
             <Description>Enables the use of the workertask which allows the scheduling of interrupts. Important for Real-Time Systems. Use in combination with NUM_WORKERTHREADS.</Description>
         </Define>
-        
+
         <Define>
             <Name>NUM_WORKERTHREADS</Name>
             <Description>The amount of workerthreads that shall be available. Keep as small as small as possible since every workerthread needs its own stack but as big enough to handle all interrupts and periodic or timed functionalities (e.g ARP resending a.s.o.). </Description>
         </Define>
-        
+
          <Define>
             <Name>LOG_TASK_SPACE_START</Name>
             <Description>The logical (virtual) address the memory space a tasks starts at. (Only used if HAT_LAYER is available) </Description>
         </Define>
-        
+
         <Define>
             <Name>NUM_ADDRESS_PROTOCOLS</Name>
             <Description>Do not modify. Its automatically modified if you change the protocols inside the Protocols Section. </Description>
         </Define>
-        
+
          <Define>
             <Name>NUM_TRANSPORT_PROTOCOLS</Name>
             <Description>Do not modify. Its automatically modified if you change the protocols inside the Protocols Section. </Description>
         </Define>
-        
+
          <Define>
             <Name>USE_SIMPLEADDRESSPROTOCOL</Name>
             <Description>Do not modify. Its automatically modified if you change the protocols inside the Protocols Section. </Description>
         </Define>
-        
+
          <Define>
             <Name>USE_ARP</Name>
             <Description>Do not modify. Its automatically modified if you change the protocols inside the Protocols Section. </Description>
         </Define>
-        
+
         <Define>
             <Name>USE_SIMPLETRANSPORTPROTOCOL</Name>
             <Description>Do not modify. Its automatically modified if you change the protocols inside the Protocols Section. </Description>
@@ -1061,77 +1069,77 @@
             <Name>MMIO_START_ADDRESS</Name>
             <Description>The start address of the memory mapped I/O. (Only used if HAT_LAYER is available)</Description>
         </Define>
-        
+
         <Define>
             <Name>MMIO_AREA_LENGTH</Name>
             <Description>The length of the MMIO area. All MMIO devices have to fit into this area! (Only used if HAT_LAYER is available)</Description>
         </Define>
-        
+
          <Define>
             <Name>ICACHE_ENABLE</Name>
             <Description>Enables the instruction cache (harvard architectures).</Description>
         </Define>
-        
+
         <Define>
             <Name>DCACHE_ENABLE</Name>
             <Description>Enables the data cache (harvard architectures).</Description>
         </Define>
-        
+
         <Define>
             <Name>DEFAULT_USER_STACK_SIZE</Name>
             <Description>The default size in bytes of a stack for a newly created thread.</Description>
         </Define>
-        
+
         <Define>
             <Name>STACK_GROWS_DOWNWARDS</Name>
             <Description>Indicates whether the stack pointer is decremented or incremented on this architecture.</Description>
         </Define>
-        
+
         <Define>
             <Name>RESERVED_BYTES_FOR_STACKFRAME</Name>
             <Description>The minimal size of a stack frame.</Description>
         </Define>
-        
+
         <Define>
             <Name>CLEAR_THREAD_STACKS</Name>
             <Description>Enables the clearing of the stack memory area whenever a thread is created. (Slows down the system a little bit) </Description>
         </Define>
-        
+
         <Define>
             <Name>WORKERTHREAD_STACK_SIZE</Name>
             <Description>The stack size for a workerthread. </Description>
         </Define>
-        
+
         <Define>
             <Name>WORKERTHREAD_UART_PRIORITY_PARAM</Name>
             <Description>The priority (parameter) for a workerthread handling an UART interrupt.</Description>
         </Define>
-        
+
         <Define>
             <Name>WORKERTHREAD_ETH_PRIORITY_PARAM</Name>
             <Description>The priority (parameter) for a workerthread handling an ETH interrupt.</Description>
         </Define>
-        
+
         <Define>
             <Name>USE_SAFE_KERNEL_STACKS</Name>
             <Description>Enabling this feature will cause every thread executing in kernel space (e.g whenever a syscall is handled) to use a new stack unaccessable from user space so no stack sniffing can be done.</Description>
         </Define>
-        
+
         <Define>
             <Name>KERNEL_STACK_SIZE</Name>
             <Description>If USE_SAFE_KERNEL_STACKS is set this define sets the size of the kernel stacks.</Description>
         </Define>
-        
+
         <Define>
             <Name>__DEBUG__</Name>
             <Description>Allows general debug messages. Will enable the ASSERT() statements.</Description>
         </Define>
-        
+
          <Define>
             <Name>__EARLY_SERIAL_SUPPORT__</Name>
             <Description>Will cause the serial device to be initialized first which allows debug or logging messages to be printed earlier.</Description>
         </Define>
-        
+
         <Define>
             <Name>QEMU_HACK</Name>
             <Description>Use other assembler instructions for QEMU on PPC to enable interrupts</Description>
@@ -1144,11 +1152,11 @@
             <Name>ORCOS_SUPPORT_SIGNALS</Name>
             <Description>Enables the Support of Signals (signal_wait, signal_signal e.t.c.)</Description>
         </Define>
-        <Define>        
+        <Define>
             <Name>ENABLE_BRANCH_PREDICTION</Name>
             <Description>Enables the Hardware Branch Prediction Unit if available and supported on the current platform.</Description>
         </Define>
-        <Define>        
+        <Define>
             <Name>RAM_SIZE</Name>
             <Description>Defines the size of available local RAM. Mandatory if PagedRamManager is configured.</Description>
         </Define>
@@ -1163,6 +1171,18 @@
          <Define>
             <Name>ALIGN_VAL</Name>
             <Description>Minimal alignment value for memory allocations.</Description>
+        </Define>
+        <Define>
+            <Name>TASK_CRC32</Name>
+            <Description>Activates support for task CRC32 validation using the CRC32 task header.</Description>
+        </Define>
+         <Define>
+            <Name>DWARF_DEBUG</Name>
+            <Description>Adds DRARF debug symbol support for the kernel. Adds code for backtracing call stacks.</Description>
+        </Define>
+        <Define>
+            <Name>SYSFS_SUPPORT</Name>
+            <Description>Enables the SYSFS (/sys/) which exports kernel information to user space.</Description>
         </Define>
     </Defines>
 </Dependencies>

@@ -2,7 +2,7 @@
  * File.hh
  *
  *  Created on: 23.06.2013
- *      Author: dbaldin
+ *     Copyright & Author: dbaldin
  */
 
 #ifndef FILE_HH_
@@ -12,7 +12,6 @@
 
 class File: public CharacterDevice {
 protected:
-
     /*File Size */
     unint4 filesize;
     /* File type specific flags */
@@ -27,29 +26,65 @@ public:
 
     virtual ~File();
 
-    unint4 getFileSize() {
+    /*****************************************************************************
+     * Method: getFileSize()
+     *
+     * @description
+     *  Returns the size of the file
+     *******************************************************************************/
+    unint4 getFileSize() const {
         return (this->filesize);
     }
 
-    unint4 getFlags() {
+    /*****************************************************************************
+     * Method: getFlags()
+     *
+     * @description
+     *  Returns the file flags
+     *******************************************************************************/
+    unint4 getFlags() const {
         return (this->flags);
     }
 
-    unint4 getDateTime() {
+    /*****************************************************************************
+     * Method: getDateTime()
+     *
+     * @description
+     *  Returns the datetime of the file
+     *******************************************************************************/
+    unint4 getDateTime() const {
         return (this->dateTime);
     }
 
-    /*
-     *Sets the current DateTime of the file
-     */
+    /*****************************************************************************
+     * Method: setDateTime(unint4 dateTime)
+     *
+     * @description
+     *  Sets the current DateTime of the file
+     *******************************************************************************/
     virtual ErrorT setDateTime(unint4 dateTime) {
         this->dateTime = dateTime;
         return (cOk);
     }
 
-    /*
-     * Allows renaming a file.
-     */
+    /*****************************************************************************
+    * Method: onClose()
+    *
+    * @description
+    *  Callback event, called when the file is closed. Allows
+    *  specialisations to e.g., flush internal cashed on close to permanent
+    *  storage.
+    *******************************************************************************/
+    virtual ErrorT onClose() {
+        return (cOk);
+    }
+
+    /*****************************************************************************
+     * Method: rename(char* newName)
+     *
+     * @description
+     *  Renames the file.
+     *******************************************************************************/
     virtual ErrorT rename(char* newName);
 };
 

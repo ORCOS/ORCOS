@@ -25,21 +25,62 @@
 extern "C" {
 #endif
 
-void* memcpy(void* dst0, const void* src0, size_t len0);
+/*****************************************************************************
+ * Method: memcpy(void* dst0, const void* src0, size_t len0)
+ *
+ * @description
+ *
+ * @returns
+ *  void*       dst0
+ *******************************************************************************/
+void*       memcpy(void* dst0, const void* src0, size_t len0);
 
-int memcmp(const void* m1, const void* m2, size_t n);
+/*****************************************************************************
+ * Method: memcpy(void* dst0, const void* src0, size_t len0)
+ *
+ * @description
+ *  Performs memory copy from src0 to dst0 using word transfers. len0
+ *  must be a multiple of the word length.
+ * @returns
+ *  void*       dst0
+ *******************************************************************************/
+void*       memcpyl(void* dst0, const void* src0, size_t len0);
 
-void* memset(void* ptr, int c, size_t n);
+/*****************************************************************************
+ * Method: memcmp(const void* m1, const void* m2, size_t n)
+ *
+ * @description
+ *
+ *******************************************************************************/
+int         memcmp(const void* m1, const void* m2, size_t n);
 
-void* memsetlong(void* ptr, int c, size_t n);
+/*****************************************************************************
+ * Method: memset(void* ptr, int c, size_t n)
+ *
+ * @description
+ *  Sets the area pointer to by ptr to c using byte memory stores
+ *******************************************************************************/
+void*       memset(void* ptr, int c, size_t n);
 
-#ifdef __cplusplus
-unint4 getNextWord(struct packet_layer* &packet, unint2 &position);
+/*****************************************************************************
+ * Method: memsetlong(void* ptr, int c, size_t n)
+ *
+ * @description
+ *   Sets the area pointer to by ptr to c using word memory stores
+ *******************************************************************************/
+void*       memsetlong(void* ptr, int c, size_t n);
 
-unint2 getNextHalfWord(struct packet_layer* &packet, unint2 &position);
-#endif
 
-void memdump(int addr, int length);
+/*****************************************************************************
+ * Method: memdump(int addr, int length)
+ *
+ * @description
+ *  Prints out length 32 bit words at the memory at location addr
+ *  to std out. The output is as e.g.:
+ *
+ *  0xab 0x34 0x12 0x14    char1 char2 char3 char 4
+ *******************************************************************************/
+void        memdump(int addr, int length);
 
 #ifdef __cplusplus
 }

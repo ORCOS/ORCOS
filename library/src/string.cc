@@ -84,8 +84,8 @@ void itoa( int value, char* str, int base ) {
     }
 
 
-	if ( ( sign = value ) < 0 )
-		value = -value;
+    if ( ( sign = value ) < 0 )
+        value = -value;
 
 
     // Conversion. Number is reversed.
@@ -156,10 +156,13 @@ static void prints( char **out, const char *string, int width, int pad ) {
 
 }
 
-extern "C" void print( char **out, const char *format, va_list args ) {
+extern "C" int print( char **out, const char *format, va_list args ) {
     register int width;
     register int pad;
     char scr[ 2 ];
+    char* outIn = 0;
+    if (out)
+        outIn = *out;
     char print_buf[ PRINT_BUF_LEN ];
 
     for ( ; *format != 0; ++format ) {
@@ -169,8 +172,8 @@ extern "C" void print( char **out, const char *format, va_list args ) {
             if ( *format == '\0' )
                 break;
             if ( *format == '%' ) {
-            	printchar( out, *format );
-            	continue;
+                printchar( out, *format );
+                continue;
             }
             if ( *format == '-' ) {
                 ++format;
@@ -200,9 +203,9 @@ extern "C" void print( char **out, const char *format, va_list args ) {
                 continue;
             }
             if( *format == 'u' ) {
-            	 uitoa( va_arg( args, unsigned int ), print_buf, 10 );
-            	 prints( out,  &print_buf[0], width, pad );
-            	 continue;
+                 uitoa( va_arg( args, unsigned int ), print_buf, 10 );
+                 prints( out,  &print_buf[0], width, pad );
+                 continue;
             }
             if ( *format == 'c' ) {
                 /* char are converted to int then pushed on the stack */
@@ -216,8 +219,12 @@ extern "C" void print( char **out, const char *format, va_list args ) {
             printchar( out, *format );
         }
     }
-    if ( out && *out )
-        **out = '\0';
+    if (out) {
+          **out = '\0';
+          return (*out - outIn);
+      }
+
+      return (0);
 
 }
 
@@ -229,13 +236,12 @@ extern "C" void print( char **out, const char *format, va_list args ) {
  * \param format    The format string to use
  * \param ...       Arguments for the format string
  */
-int sprintf( char *out, char *format, ... ) {
-	char* orig_out = out;
+int sprintf( char *out, const char *format, ... ) {
     va_list args;
     va_start( args, format );
-    print( &out, format, args );
+    int ret = print( &out, format, args );
     va_end(args);
-    return (out - orig_out);
+    return (ret);
 }
 
 
@@ -243,22 +249,15 @@ int sprintf( char *out, char *format, ... ) {
 // create a temporary buffer on the stack
 static char tmp[256];
 
-int printf( char *format, ... )
+int printf( const char *format, ... )
 {
-	for (int i = 0; i < 256; i++)
-		tmp[i] = 0;
-
     char* out = tmp;
-
     va_list args;
     va_start( args, format );
-    print( &out, format, args );
+    int ret = print( &out, format, args );
     va_end(args);
-
-    size_t size = strlen(tmp);
-
-    printToStdOut(tmp,size);
-    return (size);
+    printToStdOut(tmp,ret);
+    return (ret);
 }
 
 
@@ -279,10 +278,10 @@ void* memcpy( void* dst0, const void* src0, size_t len0 ) {
         *dst++ = *src++;
     }
 
-    return save;
+    return (save);
 }
 
-void* memset( void* ptr, char c, int n) {
+void* memset( void* ptr, int c, size_t n) {
     char* p = (char*) ptr;
 
     void* save = ptr;
@@ -291,7 +290,7 @@ void* memset( void* ptr, char c, int n) {
         *p++ = c;
     }
 
-    return save;
+    return (save);
 }
 
 // newlib strcmp method
@@ -301,7 +300,7 @@ int strcmp( const char *s1, const char *s2) {
         s2++;
     }
 
-    return ( *(unsigned char *) s1 ) - ( *(unsigned char *) s2 );
+    return (( *(unsigned char *) s1 ) - ( *(unsigned char *) s2 ));
 }
 
 /*!
@@ -317,11 +316,11 @@ size_t strlen(const char * s){
 
 
 int memcmp(const char* s1, const char* s2, int len) {
-	for (int i = 0; i < len; i++) {
-		if (s1[i] != s2[i]) return -1;
-	}
+    for (int i = 0; i < len; i++) {
+        if (s1[i] != s2[i]) return (-1);
+    }
 
-	return 0;
+    return (0);
 
 }
 
@@ -329,14 +328,14 @@ int memcmp(const char* s1, const char* s2, int len) {
  * Returns the position of s1 inside s2
  */
 int strpos(const char* s1, const char* s2) {
-	int s1_len = strlen(s1);
-	int s2_len = strlen(s2);
+    int s1_len = strlen(s1);
+    int s2_len = strlen(s2);
 
-	for (int i = 0; i <= s2_len - s1_len; i++) {
-		if ((memcmp(&s2[i],s1,s1_len)) == 0) return i;
-	}
+    for (int i = 0; i <= s2_len - s1_len; i++) {
+        if ((memcmp(&s2[i],s1,s1_len)) == 0) return i;
+    }
 
-	return -1;
+    return -1;
 }
 
 char* strcat( char *s1, const char *s2 ) {
@@ -450,7 +449,7 @@ char* strdup (const char *s)
 }
 
 extern "C" int puts(const char *s) {
-	return (printToStdOut(s,strlen(s)));
+    return (printToStdOut(s,strlen(s)));
 }
 
 

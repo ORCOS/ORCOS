@@ -27,7 +27,6 @@
  *
  */
 class TaskManager {
-
 private:
     /*!
      * \brief The database storing all tasks
@@ -35,59 +34,135 @@ private:
     LinkedList* taskDatabase;
 
 public:
-    TaskManager() {
+    explicit TaskManager() {
         /* create the task Database */
         this->taskDatabase = new LinkedList();
     }
-    ;
 
     ~TaskManager() {
     }
-    ;
 
-    /* Per-Initialization reoutine which registers the
-     memory pages of tasks loaded at boot time */
+    /*****************************************************************************
+     * Method: registerMemPages()
+     *
+     * @description
+     *  Registers all memory pages of the initial tasks at the RamManager as used.
+     *---------------------------------------------------------------------------*/
     void registerMemPages();
 
-    /* Initializes the task manager and creates the initially loaded tasks */
+    /*****************************************************************************
+     * Method: initialize()
+     *
+     * @description
+     *  Initializes the task manager creating all initial task
+     *  provided inside the kernel image.
+     *
+     *---------------------------------------------------------------------------*/
     void initialize();
 
-    /* Returns the database of all registered tasks */
-    LinkedList* getTaskDatabase() {
+    /*****************************************************************************
+     * Method: getTaskDatabase()
+     *
+     * @description
+     *  Returns the list of tasks currently active inside the system
+     *
+     * @returns
+     *  LinkedList*       The Task List
+     *---------------------------------------------------------------------------*/
+    inline LinkedList* getTaskDatabase() const {
         return (this->taskDatabase);
     }
 
-    /*!
-     * Tests a given task by its task control block on sanity
-     * Checks include CB check for valid values.
-     * CRC check if CRC header support is available.
-     * Signature based Authentication (tbd).
-     */
+    /*****************************************************************************
+     * Method: checkValidTask(taskTable* taskCB)
+     *
+     * @description
+     *  Checks the given task by its control block on correctness and validity.
+     *  Checks all headers provided by the task.
+     *
+     * @params
+     *  taskCB:     Pointer to the task control block to be checked
+     *
+     * @returns
+     *  int         Error Code
+     *---------------------------------------------------------------------------*/
     ErrorT  checkValidTask(taskTable* taskCB);
 
-    /*!
-     * Returns the task by its id or null
-     */
+    /*****************************************************************************
+     * Method: getTask(int taskId)
+     *
+     * @description
+     *  Returns the task object of the task with given id
+     *
+     * @params
+     *  taskId:     The ID of the task
+     *
+     * @returns
+     *  Task*       The Task with id taskId or null if none
+     *---------------------------------------------------------------------------*/
     Task*   getTask(int taskId);
 
-    /*!
-     * Tries to stop and remove a task by its ID
-     */
+    /*****************************************************************************
+     * Method: getThread(int threadId)
+     *
+     * @description
+     *  Returns the thread object of the thread with given id
+     *
+     * @params
+     *  threadId:     The ID of the thread
+     *
+     * @returns
+     *  Thread*       The Thread with id threadId or null if none
+     *---------------------------------------------------------------------------*/
+    Thread* getThread(int threadId);
+
+    /*****************************************************************************
+     * Method: removeTask(Task* task)
+     *
+     * @description
+     *  Removes the given task from the system thereby terminating all its threads
+     *  and freeing its memory.
+     *
+     * @params
+     *  task:     The task to be removed from the system
+     *
+     * @returns
+     *  int       Error Code
+     *---------------------------------------------------------------------------*/
     ErrorT  removeTask(Task* task);
 
-    /*
-     * Terminates the given thread
-     */
-    ErrorT  terminateThread( Kernel_ThreadCfdCl* thread);
+    /*****************************************************************************
+     * Method: terminateThread(Kernel_ThreadCfdCl* pThread)
+     *
+     * @description
+     *  Terminates the given thread
+     *
+     * @params
+     *  pThread:     The thread to be terminated
+     *
+     * @returns
+     *  int          Error Code
+     *---------------------------------------------------------------------------*/
+    ErrorT  terminateThread(Kernel_ThreadCfdCl* thread);
 
-    /*!
-     * Tries to load a given file as an executable task.
-     * Returns cOk on success, an error otherwise.
-     * The Out paramter tid is used to return the created task id on success.
-     */
-    ErrorT  loadTaskFromFile(File *file, TaskIdT &tid, char* arguments = 0, unint2 arg_length =
-                                    0);
-
+    /*****************************************************************************
+     * Method: loadTaskFromFile(File* file,
+     *                                       TaskIdT& tid,
+     *                                       char* arguments,
+     *                                       unint2 arg_length)
+     *
+     * @description
+     *  Tries to load a task from a given file.
+     *
+     * @params
+     *  arguments:    Pointer to the arguments passed to the new task
+     *  arg_length:   Length of the arguments area in bytes.
+     *
+     * @returns
+     *  int         Error Code
+     *  tid         The ID of the new task
+     *---------------------------------------------------------------------------*/
+    ErrorT  loadTaskFromFile(File *file, TaskIdT &tid, char* arguments = 0, unint2 arg_length = 0);
 };
 
 #endif /*TASKMANAGER_HH_*/

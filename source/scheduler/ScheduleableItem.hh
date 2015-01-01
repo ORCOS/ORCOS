@@ -31,11 +31,9 @@ class ScheduleableItem: public ListItem {
 public:
     ScheduleableItem() {
     }
-    ;
 
     ~ScheduleableItem() {
     }
-    ;
 };
 
 #endif /*SCHEDULEABLEITEM_HH_*/

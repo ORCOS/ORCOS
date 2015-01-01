@@ -42,19 +42,19 @@
 class Kernel_ThreadCfdCl;
 
 /* backtrace and print the call stack from the given address and stack pointer */
-extern void backtrace_addr(void* currentAddress, size_t stackPtr);
+extern "C" void     backtrace_addr(void* currentAddress, size_t stackPtr);
 
 /* backtrace and print the current call stack */
-extern void backtrace_current();
+extern "C" void     backtrace_current();
 
-extern void backtrace(void** buffer, int length);
+extern "C" void     backtrace(void** buffer, int length);
 
-extern char* getMethodSignature(unint4 address);
+extern "C" char*    getMethodSignature(unint4 address);
 
 /*
  *  SIGNAL DEFINITIONS
  */
-#define SIG_CHILD_TERMINATED 	1
+#define SIG_CHILD_TERMINATED     1
 
 /* All of the following codes 'x' indicate either an error code or a warning.
  This fact is distinguished by the value of x:
@@ -75,7 +75,7 @@ extern char* getMethodSignature(unint4 address);
  */
 
 /*-- Symbol name s ----------------------------|-- code C(s) --*/
-#define cOk					(int)0
+#define cOk                        (int)0
 
 // The following values with |C(s)| > 1000 are used globally (across component boundaries):
 
@@ -83,9 +83,9 @@ extern char* getMethodSignature(unint4 address);
 
 // Errors
 // General Error without further information
-#define cError				    (int)-1000
+#define cError                    (int)-1000
 // Error indicating that the method called is not implemented
-#define cNotImplemented		    (int)-1001
+#define cNotImplemented            (int)-1001
 // Error indicating that a parameter illegally was a null pointer
 #define cNullPointerProvided    (int)-1002
 
@@ -99,7 +99,7 @@ extern char* getMethodSignature(unint4 address);
 // A wrong resource type has been passed to a method.
 #define cWrongResourceType      (int)-1007
 
-#define cInvalidPath		    (int)-1008
+#define cInvalidPath            (int)-1008
 
 #define cNoData                 (int)-1009
 
@@ -148,12 +148,12 @@ extern char* getMethodSignature(unint4 address);
 // Communication            400 <= |C(s)| < 500
 //-----------------------------------------------------
 // Warning or Status Value
-#define cNotConnected   				(int)-400
-#define cTransportProtocolNotAvailable 	(int)-401
-#define cAddressProtocolNotAvailable 	(int)-402
-#define cSocketAlreadyBoundError 		(int)-403
-#define cTCPEnqueueFailed 				(int)-404
-#define cPBufNoMoreMemory 				(int)-405
+#define cNotConnected                   (int)-400
+#define cTransportProtocolNotAvailable     (int)-401
+#define cAddressProtocolNotAvailable     (int)-402
+#define cSocketAlreadyBoundError         (int)-403
+#define cTCPEnqueueFailed                 (int)-404
+#define cPBufNoMoreMemory                 (int)-405
 // Error
 
 //-----------------------------------------------------
@@ -170,7 +170,7 @@ extern char* getMethodSignature(unint4 address);
 // HAL                      600 <= |C(s)| < 700
 //-----------------------------------------------------
 // Warning or Status Value
-#define cInvalidArgument 	    (int)-600
+#define cInvalidArgument         (int)-600
 // Error
 
 //-----------------------------------------------------
@@ -201,7 +201,7 @@ extern char* getMethodSignature(unint4 address);
 #if __DEBUG__
 #define ASSERT(a) if (!(a)) {printf("ASSERTION in line %d in file %s",__LINE__,__FILE__); while (1) ;}
 #else
-#define ASSERT(a) if (!a) ;
+#define ASSERT(a) if (!(a)) ;
 #endif
 
 #endif /* _ERROR_HH */

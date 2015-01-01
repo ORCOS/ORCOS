@@ -2,7 +2,7 @@
  * MMC.hh
  *
  *  Created on: 15.09.2013
- *      Author: dbaldin
+ *    Copyright &  Author: dbaldin
  */
 
 #ifndef MMC_HH_
@@ -59,22 +59,51 @@ private:
     unint1 isHighCapacity;
 
 public:
-
-    OmapMMC_SD_HC(T_OmapMMC_SD_HC_Init *init);
+    /*****************************************************************************
+     * Method: OmapMMC_SD_HC(T_OmapMMC_SD_HC_Init *init)
+     *
+     * @description
+     *  Constructor called on board initialization
+     *******************************************************************************/
+    explicit OmapMMC_SD_HC(T_OmapMMC_SD_HC_Init *init);
 
     /*
      * Initializes the card and stars card identification
      */
+    /*****************************************************************************
+     * Method: init()
+     *
+     * @description
+     *  Initializes the card and stars card identification
+     *******************************************************************************/
     void init();
 
-    virtual ~OmapMMC_SD_HC();
+    ~OmapMMC_SD_HC();
 
+    /*****************************************************************************
+     * Method: sendCommand(unint4 cmd, unint4 arg)
+     *
+     * @description
+     *  Send the given MMC/SD Card command with argument to the
+     *  attached SD/MMS card.
+     *******************************************************************************/
     ErrorT sendCommand(unint4 cmd, unint4 arg);
 
-    ErrorT readBlock(unint4 blockNum, unint1* buffer, unint4 length);
+    /*****************************************************************************
+     * Method: readBlock(unint4 blockNum, char* buffer, unint4 length)
+     *
+     * @description
+     *
+     *******************************************************************************/
+    ErrorT readBlock(unint4 blockNum, char* buffer, unint4 length);
 
-    ErrorT writeBlock(unint4 blockNum, unint1* buffer, unint4 length);
-
+    /*****************************************************************************
+     * Method: writeBlock(unint4 blockNum, char* buffer, unint4 length)
+     *
+     * @description
+     *
+     *******************************************************************************/
+    ErrorT writeBlock(unint4 blockNum, char* buffer, unint4 length);
 };
 
 #endif /* MMC_HH_ */

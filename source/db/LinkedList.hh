@@ -34,7 +34,6 @@ class LinkedList {
     friend class LinkedListItem;
     friend class Task;  /* for export of size */
 private:
-
     LinkedListItem* headItem;
     LinkedListItem* tailItem;
 
@@ -44,105 +43,154 @@ private:
     unint1 size;
 
 public:
-
     LinkedList();
 
     ~LinkedList() {
     }
 
 
-    /*!
-     * Adds another LinkedListDatabaseItem to this linked list at its tail
-     */
+    /*****************************************************************************
+     * Method: addTail(LinkedListItem* item)
+     *
+     * @description
+     *  Adds another LinkedListDatabaseItem to this linked list at its tail
+     *******************************************************************************/
     ErrorT addTail(LinkedListItem* item);
 
-    /*!
-     * Adds another LinkedListDatabaseItem to this linked list at its tail
-     */
+
+    /*****************************************************************************
+     * Method: addHead(LinkedListItem* item)
+     *
+     * @description
+     *  Adds another LinkedListDatabaseItem to this linked list at its head
+     *******************************************************************************/
     ErrorT addHead(LinkedListItem* item);
 
-    /*!
-     * Adds another DatabaseItem to this linked list at its tail
-     */
+
+    /*****************************************************************************
+     * Method: addTail(ListItem* item)
+     *
+     * @description
+     *  Adds another DatabaseItem to this linked list at its tail thereby
+     *  creating a new LinkedListItem
+     *******************************************************************************/
     ErrorT addTail(ListItem* item);
 
-    /*!
-     * Adds another DatabaseItem to this linked list at its tail
-     */
+
+    /*****************************************************************************
+     * Method: addHead(ListItem* item)
+     *
+     * @description
+     *  Adds another DatabaseItem to this linked list at its tail thereby
+     *  creating a new LinkedListItem
+     *******************************************************************************/
     ErrorT addHead(ListItem* item);
 
-    /*!
-     * Adds another DatabaseItem to this linked list after the specified item
-     */
+    /*****************************************************************************
+     * Method: insertAfter(LinkedListItem* llItem, LinkedListItem* existingItem)
+     *
+     * @description
+     *  Adds llItem to this linked list after existingItem
+     *******************************************************************************/
     ErrorT insertAfter(LinkedListItem* llItem, LinkedListItem* existingItem);
 
-    /*!
-     * Adds another DatabaseItem to this linked list before the specified item
-     */
-    //ErrorT insertBefore( LinkedListDatabaseItem* llItem, LinkedListDatabaseItem* existingItem );
-    /*!
-     * Adds another DatabaseItem to this linked list after the specified item
-     */
+    /*****************************************************************************
+     * Method: insertAt(ListItem* newItem, int at)
+     *
+     * @description
+     *  Adds another DatabaseItem to this linked list after the specified item.
+     *  Currently not supported!
+     *******************************************************************************/
+#if 0
     ErrorT insertAt(ListItem* newItem, int at) {
-        return (cError );
+        return (cError);
     }
+#endif
 
-    /*!
-     * Returns the first LLDbItem in this database.
-     */
+    /*****************************************************************************
+     * Method: getHead()
+     *
+     * @description
+     *  Returns the first LinkedListItem in this Linked List
+     *******************************************************************************/
     inline LinkedListItem* getHead() {
         return (headItem);
     }
 
-    /*!
-     * Removes the associated linkedlistdatabase item of the item from this list.
+    /*****************************************************************************
+     * Method: remove(ListItem* item)
+     *
+     * @description
+     *  Removes the associated linkedlistdatabase item of the item from this list.
      * The associated linkedlistdatebase item is deleted.
-     */
+     *******************************************************************************/
     ErrorT remove(ListItem* item);
 
-    /*!
+
+    ErrorT remove(LinkedListItem* litem);
+
+    /*****************************************************************************
+     * Method: removeHead()
+     *
+     * @description
      * Returns the first LLDbItem in this database and removes it from the database.
-     */
+     *******************************************************************************/
     LinkedListItem* removeHead();
 
-    /*!
-     * Returns the specified LLDbItem in this database and removes it from the database.
-     */
-    // LinkedListDatabaseItem* removeAt( int position );
-    /*!
+
+    /*****************************************************************************
+     * Method: removeTail()
+     *
+     * @description
      * Returns the last LLDbItem in this database and removes it from the database.
-     */
+     *******************************************************************************/
     LinkedListItem* removeTail();
 
-    /*!
-     * Returns the last LLDbItem in this database.
-     */
+
+    /*****************************************************************************
+     * Method: getTail()
+     *
+     * @description
+     * Returns the last Linked List Item in this Linked List.
+     *******************************************************************************/
     inline LinkedListItem* getTail() {
         return (tailItem);
     }
 
-    /*!
-     * This method returns the LinkedListDatabaseItem holding the reference to the DatabaseItem given as parameter.
+
+    /*****************************************************************************
+     * Method: getItem(ListItem* data)
+     *
+     * @description
+     *  This method returns the LinkedListDatabaseItem holding the reference to the DatabaseItem given as parameter.
      * It is important to get the LinkedListDatabaseItem in order to add this LLDbItem to another linked list
      * manually! (e.g move thread from blocked list to ready list)
-     */
+     *******************************************************************************/
     LinkedListItem* getItem(ListItem* data);
 
-    /*!
-     * Checks wether this list is empty
-     */
+
+    /*****************************************************************************
+     * Method: isEmpty()
+     *
+     * @description
+     *  Checks whether this list is empty
+     *******************************************************************************/
     inline bool isEmpty() {
-        if (headItem == 0)
-        {
+        if (headItem == 0) {
             return (1);
         }
         return (0);
     }
 
+    /*****************************************************************************
+     * Method: getSize()
+     *
+     * @description
+     *  Returns the number of elements in this list
+     *******************************************************************************/
     inline unint getSize() {
         return (size);
     }
-
 };
 
 #endif /*LINKEDLISTDATABASE_HH_*/

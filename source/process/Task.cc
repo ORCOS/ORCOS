@@ -16,18 +16,19 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <filesystem/SysFs.hh>
 #include "process/Task.hh"
 #include "kernel/Kernel.hh"
 #include "filesystem/Resource.hh"
 #include "inc/memtools.hh"
 #include "filesystem/SharedMemResource.hh"
-#include "filesystem/KernelVariable.hh"
+#include "assemblerFunctions.hh"
 
 /* the kernel object */
 extern Kernel* theOS;
 
 /* static non-const member variable initialization
-   will be executed in ctor */
+ will be executed in ctor */
 TaskIdT Task::globalTaskIdCounter;
 
 /* array of free task ids for task creation */
@@ -36,48 +37,49 @@ ArrayList *Task::freeTaskIDs;
 /*--------------------------------------------------------------------------*
  ** Task::Task
  *---------------------------------------------------------------------------*/
-Task::Task( Kernel_MemoryManagerCfdCl* memoryManager, taskTable* tasktbl) :
+Task::Task(Kernel_MemoryManagerCfdCl* memoryManager, taskTable* tasktbl) :
         aquiredResources(20),
         exitValue(0),
         memManager(memoryManager),
         stopped(false),
         sysFsDir(0),
-        platform_flags(0)
-{
+        platform_flags(0) {
     myTaskId = (TaskIdT) ((unint4) Task::freeTaskIDs->removeHead());
 
     /* store reference to my tasktable */
     this->tasktable = tasktbl;
     /* Set initial name and working directory */
-    strcpy(this->name,"No Name");
-    strcpy(this->workingDirectory,"/");
+    strcpy(this->name, "No Name");
+    strcpy(this->workingDirectory, "/");
     stdOutput = theOS->getStdOutputDevice();
 
 #if SYSFS_SUPPORT
-    Directory* dir = KernelVariable::getEntry("tasks",true);
+    Directory* dir = KernelVariable::getEntry("tasks", true);
     if (dir) {
         char* idstr = new char[8];
-        sprintf(idstr,"%u",myTaskId);
-        sysFsDir    = new Directory(idstr);
+        sprintf(idstr, "%u", myTaskId);
+        sysFsDir = new Directory(idstr);
         dir->add(sysFsDir);
-
-        EXPORT_VARIABLE(sysFsDir,SYSFS_STRING,           workingDirectory,RO);
-        EXPORT_VARIABLE(sysFsDir,SYSFS_UNSIGNED_INTEGER, platform_flags,RO);
-        EXPORT_VARIABLE(sysFsDir,SYSFS_STRING,           name,RO);
-        EXPORT_VARIABLE(sysFsDir,SYSFS_UNSIGNED_INTEGER, myTaskId,RO);
-        EXPORT_VARIABLE(sysFsDir,SYSFS_UNSIGNED_INTEGER, stopped,RO);
-        EXPORT_VARIABLE_BY_NAME(sysFsDir,"num_resources",SYSFS_UNSIGNED_INTEGER,aquiredResources.numEntries,RO);
-        EXPORT_VARIABLE_BY_NAME(sysFsDir,"num_threads",SYSFS_UNSIGNED_INTEGER,threadDb.size,RO);
-        EXPORT_VARIABLE_BY_NAME(sysFsDir,"usedmem",SYSFS_UNSIGNED_INTEGER,memManager->getSegment()->usedBytes,RO);
-        EXPORT_VARIABLE_BY_NAME(sysFsDir,"totalmem",SYSFS_UNSIGNED_INTEGER,memManager->getSegment()->memSegSize,RO);
+        SYSFS_ADD_RO_STRING(sysFsDir, name);
+        SYSFS_ADD_RO_STRING(sysFsDir, workingDirectory);
+        SYSFS_ADD_RO_UINT  (sysFsDir, platform_flags);
+        SYSFS_ADD_RO_UINT  (sysFsDir, myTaskId);
+        SYSFS_ADD_RO_UINT  (sysFsDir, stopped);
+        SYSFS_ADD_RO_UINT_NAMED(sysFsDir, "num_resources", aquiredResources.numEntries);
+        SYSFS_ADD_RO_UINT_NAMED(sysFsDir, "num_threads"  , threadDb.size);
+        SYSFS_ADD_RO_UINT_NAMED(sysFsDir, "usedmem"      , memManager->getSegment()->usedBytes);
+        SYSFS_ADD_RO_UINT_NAMED(sysFsDir, "totalmem"     , memManager->getSegment()->memSegSize);
     }
 #endif
 
     /* create initial thread for this task */
-    new Kernel_ThreadCfdCl((void*) tasktbl->task_entry_addr, (void*) tasktbl->task_thread_exit_addr, this, memoryManager,
-                           DEFAULT_USER_STACK_SIZE, (void*) (&tasktbl->initial_thread_attr), false);
-
-
+    new Kernel_ThreadCfdCl(reinterpret_cast<void*>(tasktbl->task_entry_addr),
+                           reinterpret_cast<void*>(tasktbl->task_thread_exit_addr),
+                           this,
+                           memoryManager,
+                           DEFAULT_USER_STACK_SIZE,
+                           reinterpret_cast<void*>(&tasktbl->initial_thread_attr),
+                           false);
 }
 
 Task::Task() :
@@ -86,30 +88,29 @@ Task::Task() :
         memManager(0),
         stopped(false),
         sysFsDir(0),
-        platform_flags(0)
-{
+        platform_flags(0) {
     tasktable = 0;
     myTaskId = (TaskIdT) ((unint4) Task::freeTaskIDs->removeHead());
     /* Set initial name and working directory */
-    strcpy(this->name,"No Name");
-    strcpy(this->workingDirectory,"/");
+    strcpy(this->name, "No Name");
+    strcpy(this->workingDirectory, "/");
     stdOutput = theOS->getStdOutputDevice();
 
 #if SYSFS_SUPPORT
-    Directory* dir = KernelVariable::getEntry("tasks",true);
+    Directory* dir = KernelVariable::getEntry("tasks", true);
     if (dir) {
-          char* idstr = new char[8];
-          sprintf(idstr,"%u",myTaskId);
-          sysFsDir    = new Directory(idstr);
-          dir->add(sysFsDir);
+        char* idstr = new char[8];
+        sprintf(idstr, "%u", myTaskId);
+        sysFsDir = new Directory(idstr);
+        dir->add(sysFsDir);
 
-          EXPORT_VARIABLE(sysFsDir,SYSFS_STRING,           workingDirectory,RO);
-          EXPORT_VARIABLE(sysFsDir,SYSFS_UNSIGNED_INTEGER, platform_flags,RO);
-          EXPORT_VARIABLE(sysFsDir,SYSFS_STRING,           name,RO);
-          EXPORT_VARIABLE(sysFsDir,SYSFS_UNSIGNED_INTEGER, myTaskId,RO);
-          EXPORT_VARIABLE(sysFsDir,SYSFS_UNSIGNED_INTEGER, stopped,RO);
-          EXPORT_VARIABLE_BY_NAME(sysFsDir,"num_resources",SYSFS_UNSIGNED_INTEGER,aquiredResources.numEntries,RO);
-          EXPORT_VARIABLE_BY_NAME(sysFsDir,"num_threads",SYSFS_UNSIGNED_INTEGER,threadDb.size,RO);
+        SYSFS_ADD_RO_STRING(sysFsDir, name);
+        SYSFS_ADD_RO_STRING(sysFsDir, workingDirectory);
+        SYSFS_ADD_RO_UINT  (sysFsDir, platform_flags);
+        SYSFS_ADD_RO_UINT  (sysFsDir, myTaskId);
+        SYSFS_ADD_RO_UINT  (sysFsDir, stopped);
+        SYSFS_ADD_RO_UINT_NAMED(sysFsDir, "num_resources", aquiredResources.numEntries);
+        SYSFS_ADD_RO_UINT_NAMED(sysFsDir, "num_threads"  , threadDb.size);
     }
 #endif
 }
@@ -118,77 +119,89 @@ Task::~Task() {
     delete this->memManager;
 
 #if SYSFS_SUPPORT
-    Directory* dir = KernelVariable::getEntry("tasks",true);
-    if (dir){
+    Directory* dir = KernelVariable::getEntry("tasks", true);
+    if (dir) {
         dir->remove(sysFsDir);
         delete sysFsDir;
     }
 #endif
 }
 
+/*****************************************************************************
+ * Method: Task::getOwnedResourceById(ResourceIdT id)
+ *
+ * @description
+ *   Get the resource with id 'id' owned by this resource.
+ *   May return null if not owned or not existent.
+ *******************************************************************************/
 Resource* Task::getOwnedResourceById(ResourceIdT id) {
     /* parse database for a resource with id 'id' */
+    Resource* ret = 0;
     DISABLE_IRQS(status);
-    for (int i = 0; i < this->aquiredResources.size(); i++)
-    {
-        Resource* res = (Resource*) aquiredResources.getItemAt(i);
+
+    for (int i = 0; i < this->aquiredResources.size(); i++) {
+        Resource* res = static_cast<Resource*>(aquiredResources.getItemAt(i));
         if (res == 0) {
             LOG(PROCESS, ERROR, "Task::getOwnedResourceById res==null");
-            return (0);
+            goto out;
         }
         if (res->getId() == id) {
-            RESTORE_IRQS(status);
-            return (res);
-
+            ret = res;
+            goto out;
         }
     }
+
+out:
     RESTORE_IRQS(status);
-    return (0);
+    return (ret);
 }
 
+/*****************************************************************************
+ * Method: Task::acquireResource(Resource* res, Thread* t, bool blocking = true)
+ *
+ * @description
+ *  Ask this task to try to acquire the resource res
+ *******************************************************************************/
 ErrorT Task::acquireResource(Resource* res, Thread* t, bool blocking) {
-    //REMARK: check whether t is a thread belonging to this task
-
+    // REMARK: check whether t is a thread belonging to this task
     if (res == 0) {
         LOG(PROCESS, ERROR, "Task::acquireResource res==null");
-        return (cError);
+        return (cError );
     }
     // check whether the task already owns this resource
-    if (getOwnedResourceById(res->getId()) != 0)
-    {  // task already owns this resource
-
+    if (getOwnedResourceById(res->getId()) != 0) {  // task already owns this resource
         LOG(PROCESS, TRACE, "Task: Resource already owned");
         // increase the reference count of the res in this task
         // return the id of the resource so thread can continue working
         return (res->getId());
-    }
-    else
-    {
+    } else {
         LOG(PROCESS, TRACE, "Task: acquiring resource %d", res->getId());
         int error = res->acquire(t, blocking);
         if (isError(error)) {
-            LOG(PROCESS,ERROR,"Task::aquireResource() acquire failed: %d",error);
+            LOG(PROCESS, ERROR, "Task::aquireResource() acquire failed: %d", error);
         }
         return (error);
     }
 }
 
+/*****************************************************************************
+ * Method: Task::releaseResource(Resource* res, Thread* t)
+ *
+ * @description
+ *  Ask this task to try to acquire the resource res
+ *******************************************************************************/
 ErrorT Task::releaseResource(Resource* res, Thread* t) {
     /* REMARK: we might alos check whether t is a thread belonging to this task
-       get the resource to close by id from the tasks owned resource database */
-    if (res != 0)
-    {
-        if (res->getType() == cSocket)
-        {
+     get the resource to close by id from the tasks owned resource database */
+    if (res != 0) {
+        if (res->getType() == cSocket) {
             res->release(t);
-            Socket* s = (Socket*) res;
+            Socket* s = static_cast<Socket*>(res);
             LOG(KERNEL, DEBUG, "Task::removeThread(): destroying socket!");
             delete s;
             return (cOk );
-        }
-        else if (res->getType() == cSharedMem)
-        {
-            SharedMemResource* shmres = (SharedMemResource*) res;
+        } else if (res->getType() == cSharedMem) {
+            SharedMemResource* shmres = static_cast<SharedMemResource*>(res);
             shmres->unmapFromTask(t->getOwner());
             int retval = shmres->release(t);
             /* Cleanup unused areas */
@@ -196,79 +209,95 @@ ErrorT Task::releaseResource(Resource* res, Thread* t) {
                 delete shmres;
 
             return (retval);
+        } else if (res->getType() & cFile) {
+            File* pFile = static_cast<File*>(res);
+            pFile->onClose();
         }
 
-
-       int error = res->release(t);
-       if (isError(error)) {
-           LOG(PROCESS,ERROR,"Task::releaseResource() release failed: %d",error);
-       }
-       return (error);
+        int error = res->release(t);
+        if (isError(error)) {
+            LOG(PROCESS, ERROR, "Task::releaseResource() release failed: %d", error);
+        }
+        return (error);
     }
 
     return (cError );
 }
 
+
+/*****************************************************************************
+ * Method: Task::run()
+ *
+ * @description
+ *  Run this task.
+ *******************************************************************************/
 void Task::run() {
     /* run the very first thread!
-       this is supposed to be the thread at the head of the threaddb */
+     this is supposed to be the thread at the head of the threaddb */
     LinkedListItem* litem = this->threadDb.getHead();
-    if (litem != 0)
-    {
-        Kernel_ThreadCfdCl* thread = (Kernel_ThreadCfdCl*) litem->getData();
+    if (litem != 0) {
+        Kernel_ThreadCfdCl* thread = static_cast<Kernel_ThreadCfdCl*>(litem->getData());
         /* announce the thread to the scheduler (this does not mean running it directly) */
         thread->run();
     }
 }
 
+/*****************************************************************************
+ * Method: Task::terminate()
+ *
+ * @description
+ *  Terminates the task.
+ *  This will cause all threads to be terminated,
+ *  resources to be released and connections (sockets) to be destroyed.
+ *******************************************************************************/
 void Task::terminate() {
     LOG(KERNEL, DEBUG, "Task::terminate()");
 
     LinkedListItem* litem = this->threadDb.getHead();
-    while (litem != 0)
-    {
-        Thread* t = (Thread*) litem->getData();
+    while (litem != 0) {
+        Thread* t = static_cast<Thread*>(litem->getData());
         t->terminate();
         litem = litem->getSucc();
     }
 
     /* add our id back to the database */
-    Task::freeTaskIDs->addTail((ListItem*) (unint4) this->getId());
-
+    Task::freeTaskIDs->addTail(reinterpret_cast<ListItem*>(this->getId()));
 }
 
+/*****************************************************************************
+ * Method: Task::removeThread(Thread* t)
+ *
+ * @description
+ *  Removes a given Thread.
+ *******************************************************************************/
 void Task::removeThread(Thread* t) {
-    LOG(KERNEL, DEBUG, "Task::removeThread() removing %x",t);
+    LOG(KERNEL, DEBUG, "Task::removeThread() removing %x", t);
 
     LinkedListItem* litem = this->threadDb.getItem(t);
-    if (litem != 0)
-    {
+    if (litem != 0) {
         /* ok valid thread. remove it from its database (this->threadDb) */
         litem->remove();
         delete litem;
 
         /* check if all threads are terminated */
-        if (this->threadDb.isEmpty())
-        {
+        if (this->threadDb.isEmpty()) {
             /* no more threads. this task can be destroyed.
              * free all acquired resources if applicable */
 
             LOG(KERNEL, WARN, "Task::removeThread(): being destroyed! aq_size = %d", this->aquiredResources.size());
-            Resource* res = (Resource*) this->aquiredResources.getHead();
-            while (res != 0)
-            {
-                LOG(KERNEL, DEBUG,"Task::removeThread(): releasing resource %s, Id: %d",res->getName(),res->getId());
+            Resource* res = static_cast<Resource*>(this->aquiredResources.getHead());
+            while (res != 0) {
+                LOG(KERNEL, DEBUG, "Task::removeThread(): releasing resource %s, Id: %d", res->getName(), res->getId());
                 /* the last thread forces all resources to be released */
                 res->release(t);
 
-                if (res->getType() == cSocket)
-                {
-                    Socket* s = (Socket*) res;
+                if (res->getType() == cSocket) {
+                    Socket* s = static_cast<Socket*>(res);
                     LOG(KERNEL, DEBUG, "Task::removeThread(): destroying socket!");
                     delete s;
                 }
 
-                res = (Resource*) this->aquiredResources.getHead();
+                res = static_cast<Resource*>(this->aquiredResources.getHead());
             }
         }
 
@@ -276,39 +305,62 @@ void Task::removeThread(Thread* t) {
     }
 }
 
+/*****************************************************************************
+ * Method: Task::getThreadbyId(ThreadIdT threadid)
+ *
+ * @description
+ *  Returns the thread given by id. May be null if non existent in this task.
+ *******************************************************************************/
 Kernel_ThreadCfdCl* Task::getThreadbyId(ThreadIdT threadid) {
     LinkedListItem* litem = threadDb.getHead();
 
-    while (litem != 0 && ((Kernel_ThreadCfdCl*) litem->getData())->getId() != threadid)
+    while (litem != 0 && (static_cast<Kernel_ThreadCfdCl*>(litem->getData())->getId() != threadid)) {
         litem = litem->getSucc();
+    }
 
     if (litem != 0)
-        return ((Kernel_ThreadCfdCl*) litem->getData());
+        return (static_cast<Kernel_ThreadCfdCl*>(litem->getData()));
     else
         return (0);
 }
 
+/*****************************************************************************
+ * Method: Task::getIdOfNextCreatedTask()
+ *
+ * @description
+ *  Returns the ID of the Task, who will be created next
+ *******************************************************************************/
 TaskIdT Task::getIdOfNextCreatedTask() {
     return ((TaskIdT) ((unint4) Task::freeTaskIDs->getHead()));
 }
 
+/*****************************************************************************
+ * Method: Task::stop()
+ *
+ * @description
+ *  Stops the execution of this task until resumed or destroyed.
+ *******************************************************************************/
 void Task::stop() {
     /* stop the execution of all child threads */
     LinkedListItem* litem = this->threadDb.getHead();
-    while (litem != 0)
-    {
-        ((Thread*) litem->getData())->stop();
+    while (litem != 0) {
+        static_cast<Thread*>(litem->getData())->stop();
         litem = litem->getSucc();
     }
     /* done this task is stopped */
 }
 
+/*****************************************************************************
+ * Method: Task::resume()
+ *
+ * @description
+ *  Resumes the execution of this task if stopped.
+ *******************************************************************************/
 void Task::resume() {
     /* resume the execution of all child threads */
     LinkedListItem* litem = this->threadDb.getHead();
-    while (litem != 0)
-    {
-        ((Thread*) litem->getData())->resume();
+    while (litem != 0) {
+        static_cast<Thread*>(litem->getData())->resume();
         litem = litem->getSucc();
     }
     /* done this task is resumed */

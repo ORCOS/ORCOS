@@ -23,43 +23,74 @@
 #include "inc/memio.h"
 #include "OMAP3530.h"
 
-//#define	CLOCK_RATE	( 32768 )
-//#define	CLOCK_RATE	( 26 MHZ )
-#define	CLOCK_RATE	( 13000000 )
-
+#define CLOCK_RATE    (13000000)
 #define MILLISECONDS * 13000
-
 #define ms * 13000
-
 #define MICROSECONDS * 13
+
+/* upon dispatching we will get at least 3 microseconds delay on this architecture  */
+#define ARCH_DELAY 3 MICROSECONDS
 
 /*! \brief ARMv4T Clock, Implementation of HAL Clock
  *
  */
 class Omap3530Clock: public Clock {
-
 private:
     unint8 high_precision_time;
 
 public:
-    Omap3530Clock(T_Omap3530Clock_Init *init);
+    /*****************************************************************************
+     * Method: Omap3530Clock(T_Omap3530Clock_Init *init)
+     *
+     * @description
+     *  Initializes the omap3530 clock. The timer2 is abused for this task
+     *  using its overrun register to generate a 52 bit clock running at 13 MHZ.
+     * @params
+     *
+     * @returns
+     *  int         Error Code
+     *******************************************************************************/
+    explicit Omap3530Clock(T_Omap3530Clock_Init *init);
 
     ~Omap3530Clock();
 
-    /*
-     * Returns the Clock cycles since startup
-     **/
+     /*****************************************************************************
+     * Method: getClockCycles()
+     *
+     * @description
+     *  Returns the Clock cycles since startup. takes 400 ns to get due
+     *  to interface clocking.
+     * @params
+     *
+     * @returns
+     *  int         Error Code
+     *******************************************************************************/
     inline unint8 getClockCycles() {
-        /* reading this value takes ----- 200*2 = 400 ns due to interface clocking... */
-        unint8 ret = (((unint8) INW(GPT2_TOCR)) << 32) + ((unint8) INW(GPT2_TCRR));
+        unint4 high    = INW(GPT2_TOCR); /* upper 20 bits */
+        unint4 low     = INW(GPT2_TCRR); /* lower 32 bits */
+
+        /* check for overflow */
+        unint4 high2 = INW(GPT2_TOCR);
+        if (high2 != high) {
+            low = INW(GPT2_TCRR);
+            high = high2;
+        }
+
+        unint8 ret = (((unint8) high) << 32) | ((unint8) low);
         return (ret);
     }
 
-    /*!
-     * \brief Resets the time base registers.
-     */
+    /*****************************************************************************
+     * Method: reset()
+     *
+     * @description
+     *   Resets the time base registers.
+     * @params
+     *
+     * @returns
+     *  int         Error Code
+     *******************************************************************************/
     void reset();
-
 };
 
 #endif /*OMAP3530CLOCK_HH_*/

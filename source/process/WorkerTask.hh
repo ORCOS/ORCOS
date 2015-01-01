@@ -31,7 +31,6 @@
  * like any other realtime thread.
  */
 class WorkerTask: public Task {
-
     friend class WorkerThread;
 
 private:
@@ -41,30 +40,39 @@ private:
     ArrayList nonWorkingThreads;
 
 
-    /*!
-     * \brief Callback for the workerthread to indicate work has finished.
-     */
+    /*****************************************************************************
+     * Method: workFinished(WorkerThread* pwthread)
+     *
+     * @description
+     *  Function to be called by workerthreads when they finish working.
+     *
+     * @params
+     *  pwthread    The workerthread that finished its work
+     *******************************************************************************/
     void    workFinished(WorkerThread* pwthread);
 
 public:
-
     WorkerTask();
 
     ~WorkerTask();
 
-    /*!
-     * \brief Adds another job to the worker task
+    /*****************************************************************************
+     * Method: addJob(JOBType jobType, unint1 pid, void* param, unint priority_param)
      *
-     * This will activate one of the available worker threads to take over this job
+     * @description
+     *  Adds a new job to the workertash which is executed by a dedicated worker thread.
      *
-     * \param   id      the jobid of the job added
-     *          pid     the pid the workerthread shall work with
-     *          param   parameters passed to the job
-     *          priority_param  the priority/deadline of the workerthread in a priority/realtime based system
-     */
+     * @params
+     *  jobType    The type of job
+     *  pid        The address space id the thread shall be executed in. Running
+     *             in the address space of another task allows the workerthread
+     *             to access the data of that task
+     *  param      Parameter of the job
+     * @returns
+     *  WorkerThread*  Pointer to the workerthread assigned to the job or null if no
+     *                 workerthread could be assigned.
+     *******************************************************************************/
     WorkerThread* addJob(JOBType id, unint1 pid, void* param, unint priority_param);
-
-
 };
 
 #endif /*WORKERTASK_HH_*/

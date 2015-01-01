@@ -2,7 +2,7 @@
  * Omap3530SPI.cc
  *
  *  Created on: 24.02.2014
- *      Author: dbaldin
+ *   Copyright &  Author: dbaldin
  */
 
 #include "Omap3530SPI.hh"
@@ -16,7 +16,6 @@ extern Kernel* theOS;
 
 Omap3530SPI::Omap3530SPI(T_Omap3530SPI_Init *init) :
         CharacterDevice(true, init->Name) {
-
     this->base = init->Address;
 
     unint4 coreen = INW(CM_ICLKEN1_CORE);
@@ -27,9 +26,8 @@ Omap3530SPI::Omap3530SPI(T_Omap3530SPI_Init *init) :
     // set base settings and soft reset
     OUTW(base+ MCSPI_SYSCONFIG, 0x303);
     // wait for soft reset
-    while (INW(base+ MCSPI_SYSSTATUS) & 0x1)
-    {
-    };
+    while (INW(base+ MCSPI_SYSSTATUS) & 0x1) {
+    }
 
     // set to master mode multi channel
     OUTW(base+ MCSPI_MODULCTRL, 0x0);
@@ -45,40 +43,32 @@ Omap3530SPI::Omap3530SPI(T_Omap3530SPI_Init *init) :
 }
 
 Omap3530SPI::~Omap3530SPI() {
-
 }
 
-ErrorT Omap3530SPI::readByte(char* p_byte) {
-    return (cError );
-}
-
-ErrorT Omap3530SPI::writeByte(char c_byte) {
-    return (cError );
-}
-
+/*****************************************************************************
+ * Method: Omap3530SPI::readBytes(char *bytes, unint4 &length)
+ *
+ * @description
+ *
+ *******************************************************************************/
 ErrorT Omap3530SPI::readBytes(char* bytes, unint4& length) {
-
     int channel = bytes[0];
 
-    if (INW(base + MCSPI_IRQSTATUS) != 0)
-    {
+    if (INW(base + MCSPI_IRQSTATUS) != 0) {
         // data available
         int data = INW(base+ MCSPI_RX(channel));
         if (length == 1)
             bytes[0] = data & 0xff;
-        if (length == 2)
-        {
+        if (length == 2) {
             bytes[0] = data & 0xff;
             bytes[1] = (data >> 8) & 0xff;
         }
-        if (length == 3)
-        {
+        if (length == 3) {
             bytes[0] = data & 0xff;
             bytes[1] = (data >> 8) & 0xff;
             bytes[2] = (data >> 16) & 0xff;
         }
-        if (length == 4)
-        {
+        if (length == 4) {
             bytes[0] = data & 0xff;
             bytes[1] = (data >> 8) & 0xff;
             bytes[2] = (data >> 16) & 0xff;
@@ -86,13 +76,18 @@ ErrorT Omap3530SPI::readBytes(char* bytes, unint4& length) {
         }
 
         OUTW(base+ MCSPI_IRQSTATUS, -1);
-        return (cOk );
+        return (cOk);
+    } else {
+        return (cError);
     }
-    else
-        return (cError );
-
 }
 
+/*****************************************************************************
+ * Method: Omap3530SPI::writeBytes(const char *bytes, unint4 length)
+ *
+ * @description
+ *
+ *******************************************************************************/
 ErrorT Omap3530SPI::writeBytes(const char* bytes, unint4 length) {
     if (length < 2)
         return (cError );
@@ -113,63 +108,68 @@ ErrorT Omap3530SPI::writeBytes(const char* bytes, unint4 length) {
     int data = 0;
     if (length == 2)
         data = bytes[1];
-    if (length == 3)
-    {
+    if (length == 3) {
         // 2 bytes transfer
         data = bytes[2] | (bytes[1] << 8);
     }
-    if (length == 4)
-    {
+    if (length == 4) {
         // 3 bytes transfer
         data = bytes[3] | (bytes[2] << 8) | (bytes[1] << 16);
     }
-    if (length == 5)
-    {
+    if (length == 5) {
         data = bytes[4] | (bytes[3] << 8) | (bytes[2] << 16) | (bytes[1] << 24);
     }
 
     OUTW(base+ MCSPI_TX(channel), data);
 
-    while ( (INW(base + MCSPI_CHxSTAT(channel)) & (1 << 2) ) == 0);
+    while ((INW(base + MCSPI_CHxSTAT(channel)) & (1 << 2)) == 0) {}
 
     OUTW(base+ MCSPI_IRQSTATUS, -1);
 
     OUTW(base+ MCSPI_CHxCTRL(channel), 0);
 
-    char* retbytes = (char*) bytes;
+    char* retbytes = const_cast<char*>(bytes);
 
     // get RX data
     int data2 = INW(base+ MCSPI_RX(channel));
 
-    LOG(ARCH,TRACE,"SPI RX: %x, STATUS %x",data2, INW(base+ MCSPI_CHxSTAT(channel)));
+    LOG(ARCH, TRACE, "SPI RX: %x, STATUS %x", data2, INW(base+ MCSPI_CHxSTAT(channel)));
     if (length == 1)
         retbytes[0] = data2 & 0xff;
-    if (length == 2)
-    {
+    if (length == 2) {
         retbytes[0] = data2 & 0xff;
         retbytes[1] = (data2 >> 8) & 0xff;
     }
-    if (length == 3)
-    {
+    if (length == 3) {
         retbytes[0] = data2 & 0xff;
         retbytes[1] = (data2 >> 8) & 0xff;
         retbytes[2] = (data2 >> 16) & 0xff;
     }
-    if (length == 4)
-    {
+    if (length == 4) {
         retbytes[0] = data2 & 0xff;
         retbytes[1] = (data2 >> 8) & 0xff;
         retbytes[2] = (data2 >> 16) & 0xff;
         retbytes[3] = (data2 >> 24) & 0xff;
     }
 
-
-    return (cOk );
-
+    return (cOk);
 }
 
+/*****************************************************************************
+ * Method: Omap3530SPI::ioctl(int request, void* args)
+ *
+ * @description
+ *  Provides SPI configuration to user space
+ *  using ioctl syscalls.
+ *
+ * @params
+ *  request     Request type
+ *  args        argument of request
+ *
+ * @returns
+ *  int         Error Code
+ *******************************************************************************/
 ErrorT Omap3530SPI::ioctl(int request, void* args) {
-
     int channel = -1;
     if (request == SPI_CONFIGURE_CHANNEL0)
         channel = 0;
@@ -184,8 +184,7 @@ ErrorT Omap3530SPI::ioctl(int request, void* args) {
         return (cInvalidArgument );
 
     /* configure channel*/
-    OUTW(base+ MCSPI_CHxCONF(channel), ((unint4 ) args & ~(1 << 18)) | (1 << 16) );
-    LOG(ARCH,TRACE,"Channel %x CONF: %x",channel, INW(base+ MCSPI_CHxCONF(channel)));
+    OUTW(base + MCSPI_CHxCONF(channel), ((unint4) args & ~(1 << 18)) | (1 << 16));
+    LOG(ARCH, TRACE, "Channel %x CONF: %x", channel, INW(base+ MCSPI_CHxCONF(channel)));
     return (cOk );
-
 }

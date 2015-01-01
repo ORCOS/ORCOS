@@ -60,13 +60,12 @@ extern "C" err_t ethernet_input(struct pbuf *p, struct netif *netif);
 
 static err_t plbemac_low_level_output(struct netif *netif, struct pbuf *p) {
 
+    if (p == 0) return (ERR_ARG);
+
 	if (p->tot_len > 1500) {
 		LOG(ARCH,WARN,(ARCH,WARN,"SMSC95xxUSBDeviceDriver: not sending packet. Len > 1500."));
 		return (ERR_MEM);
 	}
-
-	if (p == 0) return (ERR_ARG);
-
 
 	PLB_EMAC0 *driver =  (PLB_EMAC0*) netif->state;
 	driver->lowlevel_send((char*) p->payload,p->tot_len);

@@ -28,20 +28,27 @@
 #include Board_UART_hh
 #include Board_UART2_hh
 #include Board_InterruptController_hh
-#include Board_Timer_hh
 #include Board_Clock_hh
 #include Board_USB_HC_hh
+#include <OmapGPTimer.hh>
 
 #ifndef RAM_SIZE
-#define RAM_SIZE 	128 MB
+#define RAM_SIZE     128 MB
 #endif
 
-#define PLATFORM	PLATFORM_ARM
+#define PLATFORM    PLATFORM_ARM
 /*!
  * \brief Implementation of the HAL board for the BeagleBoard architecture
  */
 class BeagleBoard {
-DEF_Board_ProcessorCfdDEF_Board_InterruptHandlerCfdDEF_Board_UARTCfdDEF_Board_UART2CfdDEF_Board_InterruptControllerCfdDEF_Board_TimerCfdDEF_Board_ClockCfdDEF_Board_USB_HCCfd
+DEF_Board_ProcessorCfd
+DEF_Board_InterruptHandlerCfd
+DEF_Board_UARTCfd
+DEF_Board_UART2Cfd
+DEF_Board_InterruptControllerCfd
+DEF_Board_TimerCfd
+DEF_Board_ClockCfd
+DEF_Board_USB_HCCfd
 
     CommDeviceDriver* getETH() {
         return 0;

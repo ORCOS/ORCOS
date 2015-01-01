@@ -1,4 +1,3 @@
-
 /*  <...> includes
  *********************************************************************/
 
@@ -45,8 +44,7 @@ static unsigned char ETH_LocalAddress[6] = { Board_ETH_UNIQUEID };
  */
 static void low_level_init(struct netif *netif) {
     int i;
-    for (i = 0; i < netif->hwaddr_len; i++)
-    {
+    for (i = 0; i < netif->hwaddr_len; i++) {
         netif->hwaddr[i] = ETH_LocalAddress[i];
     }
 
@@ -56,7 +54,7 @@ static void low_level_init(struct netif *netif) {
     /* device capabilities */
     /* don't set NETIF_FLAG_ETHARP if this device is not an ethernet one */
     netif->flags =
-            NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_LINK_UP;
+    NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_LINK_UP;
 }
 
 /**
@@ -79,8 +77,7 @@ static char data[1500];
 
 static err_t low_level_output(struct netif *netif, struct pbuf *p) {
 
-    if (p->tot_len > 1400)
-    {
+    if (p->tot_len > 1400) {
         //pbuf_free(p);
         printf("ERROR len > 1400!\n");
         return ERR_MEM;
@@ -90,8 +87,7 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p) {
 
     struct pbuf *curp = p;
 
-    while (curp != 0)
-    {
+    while (curp != 0) {
         memcpy(&data[pos], curp->payload, curp->len);
 
         pos += curp->len;

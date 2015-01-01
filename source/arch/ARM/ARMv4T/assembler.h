@@ -19,7 +19,7 @@
 #ifndef _SHARED_ARM_ASSEMBLER_H_
 #define _SHARED_ARM_ASSEMBLER_H_
 
-#include "OMAP3530.h"
+//#include "OMAP3530.h"
 
 #define _GLOBAL(n) .globl n
 

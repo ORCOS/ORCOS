@@ -24,18 +24,16 @@
 
 /*!
  * \ingroup devicedrivers
- * \brief	CharacterDeviceDriver
- * 			provides an interface for various character devices
- * 			which can be used for example inside the kernel for outputting debug info
+ * \brief    CharacterDeviceDriver
+ *             provides an interface for various character devices
+ *             which can be used for example inside the kernel for outputting debug info
  */
 
 class CharacterDevice: public GenericDeviceDriver {
-
 protected:
     unint4 position;
 
 public:
-
     CharacterDevice(bool sync_res, const char* name);
 
     /*!
@@ -53,45 +51,60 @@ public:
     }
 
 
-    unint4 getPosition() { return (position); }
+    /*****************************************************************************
+     * Method: getPosition()
+     *
+     * @description
+     *  Returns the current position of this characterdevice
+     *******************************************************************************/
+    unint4 getPosition() const { return (position); }
 
 
     virtual ~CharacterDevice();
 
-    /*!
-     * \brief reads a number of bytes from the device
+    /*****************************************************************************
+     * Method: readBytes(char *bytes, unint4 &length)
      *
-     * abstract function to read the bytes located given with the pointer *bytes
+     * @description
+     * Reads a number of bytes from the device.
+     *
+     * Abstract function to read the bytes located given with the pointer *bytes
      * to the device. the number of bytes to be read is specified by the 2nd
      * parameter length, which is given by reference.
      * the function should alter the length parameter according to the number
      * of bytes which could be read.
      * if no data could be read, length should be set to 0 and an error value
      * is returned by the function.
-     */
+      *******************************************************************************/
     virtual ErrorT readBytes(char *bytes, unint4 &length) {
-        return (cNotImplemented );
+        return (cNotImplemented);
     }
 
-    /*!
-     * \brief writes a number of bytes to the device
+    /*****************************************************************************
+     * Method: writeBytes(const char *bytes, unint4 length)
+     *
+     * @description
+     * writes a number of bytes to the device
      *
      * abstract function to write a number of bytes to the device.
      * if the device could not accept as much bytes as specified by length
      * an error value is returned.
-     */
+      *******************************************************************************/
     virtual ErrorT writeBytes(const char *bytes, unint4 length) {
         return (cNotImplemented );
     }
 
-    /*!
-     * \brief Seeks the position of the character device by the value 'seek_value'
+    /*****************************************************************************
+     * Method: seek(int4 seek_value)
+     *
+     * @description
+     * Seeks the position of the character device by the value 'seek_value'
      *
      * On some devices this might have an effect, as moving inside a file or block device.
      * Some other devices as e.g. serial devices may ignore the position.
      *
      * Block devices will interpret the seek_value as sectors NOT bytes!
-     */
+      *******************************************************************************/
     virtual ErrorT seek(int4 seek_value) {
         /* avoid negative positions */
         if (this->position + seek_value < 0)
@@ -102,14 +115,16 @@ public:
     }
 
 
-    /*!
-     * \brief Resets the position of this character device.
-     */
+    /*****************************************************************************
+     * Method: resetPosition()
+     *
+     * @description
+     *  Resets the position of this character device.
+      *******************************************************************************/
     virtual ErrorT resetPosition() {
         this->position = 0;
         return (cOk );
     }
-
 };
 
 #endif /*CHARACTERDEVICEDRIVER_H_*/

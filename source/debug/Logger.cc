@@ -38,22 +38,30 @@ static const char* levelStrings[6] = { "FATAL", "ERROR", "WARN ", "INFO ", "DEBU
 #define ESC_GRAY        "\033[37m"
 #define ESC_WHITE       "\033[0m"
 
+/*****************************************************************************
+ * Method: _putchar(char** str, char c)
+ *
+ * @description
+ *
+ *******************************************************************************/
 extern void _putchar(char** str, char c);
 
+/*****************************************************************************
+ * Method: Logger::log(Prefix prefix, Level level, const char* msg, ...)
+ *
+ * @description
+ *
+ *******************************************************************************/
 void Logger::log(Prefix prefix, Level level, const char* msg, ...) {
-    if ((int) level > (int) prefix)
-    {
+    if (level > prefix) {
         return;
     }
 
 #if LOGGER_PRINT_HIGHLIGHTS
-    if ( (int) level <= ERROR )
-    {
-        printf( ESC_RED );
-    }
-    else if ( (int) level == WARN )
-    {
-        printf( ESC_YELLOW );
+    if (level <= ERROR) {
+        printf(ESC_RED);
+    } else if ( level == WARN ) {
+        printf(ESC_YELLOW);
     }
 #endif
 
@@ -62,7 +70,7 @@ void Logger::log(Prefix prefix, Level level, const char* msg, ...) {
     if (theOS != 0 && theOS->getClock() != 0)
     time =(unint4) (theOS->getClock()->getTimeSinceStartup() MICROSECONDS);
 
-    printf("[%08u]",time);
+    printf("[%08u]", time);
 #endif
 
     if (pCurrentRunningThread != 0)
@@ -75,12 +83,12 @@ void Logger::log(Prefix prefix, Level level, const char* msg, ...) {
     print(&_putchar, 0, msg, arglist);
 
 #if LOGGER_PRINT_HIGHLIGHTS
-    if ( (int) level <= WARN )
-    {
-        printf( ESC_WHITE );
+    if ( level <= WARN ) {
+        printf(ESC_WHITE);
     }
 #endif
 
+    va_end(arglist);
     puts(LINEFEED);
 }
 

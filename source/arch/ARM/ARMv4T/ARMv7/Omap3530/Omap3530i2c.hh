@@ -2,7 +2,7 @@
  * Omap3530i2c.hh
  *
  *  Created on: 20.08.2012
- *      Author: dbaldin
+ *     Copyright &  Author: dbaldin
  */
 
 #ifndef OMAP3530I2C_HH_
@@ -12,16 +12,16 @@
 #include "assembler.h"
 
 // i2c bus speeds
-#define OMAP_I2C_FAST_MODE 		(400 kHZ)
-#define OMAP_I2C_STANDARD 		(100 kHZ)
+#define OMAP_I2C_FAST_MODE          (400 kHZ)
+#define OMAP_I2C_STANDARD           (100 kHZ)
 
-#define I2C_OWN_ADDRESS			44
+#define I2C_OWN_ADDRESS             44
 
-#define I2C_BASE 				(this->address)
+#define I2C_BASE                    (this->address)
 
-#define I2C_BASE1               0x48070000
-#define I2C_BASE3               0x48060000
-#define I2C_BASE2               0x48072000 /* nothing hooked up on h4 */
+#define I2C_BASE1                   0x48070000
+#define I2C_BASE3                   0x48060000
+#define I2C_BASE2                   0x48072000 /* nothing hooked up on h4 */
 
 #define I2C_REV                 (I2C_BASE + 0x00)
 #define I2C_IE                  (I2C_BASE + 0x04)
@@ -38,15 +38,15 @@
 #define I2C_SCLL                (I2C_BASE + 0x34)
 #define I2C_SCLH                (I2C_BASE + 0x38)
 #define I2C_SYSTEST             (I2C_BASE + 0x3c)
-#define I2C_WE            		(I2C_BASE + 0x0c)
+#define I2C_WE                  (I2C_BASE + 0x0c)
 
 /* I2C masks */
 
-#define I2C_SYSC_CLOCKACTIVITY_ALL (3 << 8)
-#define I2C_SYSC_IDLEMODE_NO	   (1 << 3)
-#define I2C_SYSC_IDLEMODE_SMART	   (2 << 3)
-#define I2C_SYSC_ENAWAKEUP	   	   (1 << 2)
-#define I2C_SYSC_AUTOIDLE	   	   (1 << 0)
+#define I2C_SYSC_CLOCKACTIVITY_ALL      (3 << 8)
+#define I2C_SYSC_IDLEMODE_NO            (1 << 3)
+#define I2C_SYSC_IDLEMODE_SMART         (2 << 3)
+#define I2C_SYSC_ENAWAKEUP              (1 << 2)
+#define I2C_SYSC_AUTOIDLE               (1 << 0)
 
 /* I2C Interrupt Enable Register (I2C_IE): */
 #define I2C_IE_GC_IE    (1 << 5)
@@ -113,71 +113,122 @@
 
 class Omap3530i2c: public CharacterDevice {
 private:
-
     // MMIO address of the i2c component
     int4 address;
 
+    /*****************************************************************************
+     * Method: wait_for_bus()
+     *
+     * @description
+     *  Waits for the I2C Bus to be not busy any more
+     *******************************************************************************/
     void wait_for_bus(void);
 
+    /*****************************************************************************
+     * Method: wait_for_pin
+     *
+     * @description
+     *
+     *******************************************************************************/
     unint2 wait_for_pin(void);
 
+    /*****************************************************************************
+     * Method: flush_fifo()
+     *
+     * @description
+     *
+     *******************************************************************************/
     void flush_fifo(void);
 
+    /*****************************************************************************
+     * Method: i2c_init(unint4 speed)
+     *
+     * @description
+     *
+     *******************************************************************************/
     void i2c_init(unint4 speed);
 
-    ErrorT i2c_read_byte(unint1 devaddr, unint1 regoffset, unint1 *values, unint1 length);
+    /*****************************************************************************
+     * Method: i2c_read_byte(unint1 devaddr,
+     *                       unint1 regoffset,
+     *                       unint1 *values,
+     *                       unint1 length)
+     *
+     * @description
+     *  Tries to read length bytes out of register 'regoffset' from the device with
+     *  devaddr connected to the I2C bus.
+     *******************************************************************************/
+    ErrorT i2c_read_byte(unint1 devaddr, unint1 regoffset, char *values, unint1 length);
 
+    /*****************************************************************************
+     * Method: i2c_write_bytes(unint1 devaddr, const char* value, unint1 length)
+     *
+     * @description
+     *  Tries to write length bytes to the device with addr devaddr
+     *******************************************************************************/
     ErrorT i2c_write_bytes(unint1 devaddr, const char* value, unint1 length);
 
 public:
-
-    Omap3530i2c(T_Omap3530i2c_Init *init);
+    /*****************************************************************************
+     * Method: Omap3530i2c(T_Omap3530i2c_Init *init)
+     *
+     * @description
+     *
+     *******************************************************************************/
+    explicit Omap3530i2c(T_Omap3530i2c_Init *init);
 
     ~Omap3530i2c();
 
-    /*!
-     * \brief reads a byte from the i2c Bus
+
+    /*****************************************************************************
+     * Method: readByte(char* p_byte)
      *
-     * Reads a Byte from the I2C bus polling the device. Loops until a byte is read.
-     *
-     */
+     * @description
+     *  Not supported as I2C requires at least 2 bytes for the slave address.
+     *******************************************************************************/
     ErrorT readByte(char* p_byte) {
-        return (cNotImplemented );
+        return (cNotImplemented);
     }
 
-    /*!
-     * \brief Not supported
+    /*****************************************************************************
+     * Method: writeByte(char c_byte)
      *
-     * Not supported as I2C requires at least 2 bytes.
-     */
+     * @description
+     *  Not supported as I2C requires at least 2 bytes.
+     *******************************************************************************/
     ErrorT writeByte(char c_byte) {
-        return (cNotImplemented );
+        return (cNotImplemented);
     }
 
-    /*!
-     * \brief Reads a number of bytes from the device
+    /*****************************************************************************
+     * Method: readBytes(char* bytes, unint4& length)
      *
-     * Reads multiple bytes from the I2C Bus. The number of bytes to be read is given in length.
-     * The number of bytes read will be returned in the length variable.
-     * If no bytes could be read length will be set to 0.
-     * The bytes array needs to be filled in the following format:
+     * @description
+     *  Tries to read length bytes out of register  defined by bytes[1] from the device with
+     *  addr bytes[0] connected to the I2C bus into the bytes array.
+     *
+     *  Reads multiple bytes from the I2C Bus. The number of bytes to be read is given in length.
+     *  The number of bytes read will be returned in the length variable.
+     *  If no bytes could be read length will be set to 0.
+     *  The bytes array needs to be filled in the following format:
      *
      *                8 bit            8 bit
      * bytes = | slave address |  register offset |
-     */
+     *******************************************************************************/
     ErrorT readBytes(char *bytes, unint4 &length);
 
-    /*!
-     * \brief Writes a number of bytes to the I2C Bus
+    /*****************************************************************************
+     * Method: writeBytes(const char *bytes, unint4 length)
      *
-     * The first byte passed is the I2C device receiver address.
-     * The second byte is the register offset start address
-     * of the receiver to be written
+     * @description
+     *  Tries to write length bytes.
+     *  The first byte passed is the I2C device receiver address.
+     *  The second byte is the register offset start address
+     *  of the receiver to be written
      *                8 bit            8 bit        8 bit   8 bit
-     * bytes = | slave address |  register offset | data  | data  | ...
-     */
+     *  bytes = | slave address |  register offset | data  | data  | ...
+     *******************************************************************************/
     ErrorT writeBytes(const char *bytes, unint4 length);
-
 };
 
 #endif /* OMAP3530I2C_HH_ */

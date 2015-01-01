@@ -24,12 +24,9 @@
  *
  */
 class ARMv4TInterruptHandler {
-
 public:
-
     ARMv4TInterruptHandler();
     ~ARMv4TInterruptHandler();
-
 };
 
 #endif /*ARMv4TINTERRUPTHANDLER_HH_*/

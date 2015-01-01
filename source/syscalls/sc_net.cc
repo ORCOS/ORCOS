@@ -18,208 +18,86 @@
  Author: dbaldin
  */
 
-
-
-#include "handle_syscalls.hh"
+#include "syscalls.hh"
 #include Kernel_Thread_hh
 #include "assemblerFunctions.hh"
 
 #if ENABLE_NETWORKING
 
 /*******************************************************************
- *				SOCKET Syscall
+ *                SOCKET Syscall
  *******************************************************************/
 
 #ifdef HAS_SyscallManager_socketCfd
-int socketSyscall( int4 int_sp ) {
+/*****************************************************************************
+ * Method: sc_socket(intptr_t sp_int)
+ *
+ * @description
+ *
+ * @params
+ *  sp_int:     The stack pointer at time of system call instruction execution
+ *
+ * @returns
+ *  int         Error Code
+ *---------------------------------------------------------------------------*/
+int sc_socket(intptr_t int_sp) {
     unint2 domain;
     SOCK_TYPE type;
     unint2 protocol;
 
-    SYSCALLGETPARAMS3(int_sp,domain,type,protocol);
+    SYSCALLGETPARAMS3(int_sp, domain, type, protocol);
 
-
-    // create new Socket
-    Socket* s = new Socket( domain, type, protocol );
+    /* create new Socket */
+    Socket* s = new Socket(domain, type, protocol);
     if (s->isValid()) {
-    	pCurrentRunningTask->aquiredResources.addTail( (ListItem*) s );
-
-    	LOG(SYSCALLS,TRACE,"Syscall: Socket created with id %d",s->getId());
-
-    	// return the id of this new resource (socket)
-    	return (s->getId());
-
+        pCurrentRunningTask->aquiredResources.addTail(s);
+        LOG(SYSCALLS, TRACE, "Syscall: Socket created with id %d", s->getId());
+        /* return the id of this new resource (socket) */
+        return (s->getId());
     } else {
-    	delete (s);
-    	return (cError);
+        delete (s);
+        return (cError );
     }
 }
 #endif
 
-
-
 /*******************************************************************
- *				CONNECT Syscall
+ *                CONNECT Syscall
  *******************************************************************/
 
 #ifdef HAS_SyscallManager_connectCfd
-int connectSyscall(int4 int_sp) {
-	 ResourceIdT socketid;
-	 sockaddr* addr;
-	 int retval;
-
-	 SYSCALLGETPARAMS2(int_sp,socketid,addr);
-
-	 VALIDATE_IN_PROCESS(addr);
-
-	 Resource* res;
-	 res = pCurrentRunningTask->getOwnedResourceById( socketid );
-	 if ( res != 0 ) {
-
-		LOG(SYSCALLS,TRACE,"Syscall: connect valid");
-
-		// resource valid and owned
-		// check if resource is a socket
-		if ( res->getType() == cSocket ) {
-			retval = ( (Socket*) res )->connect(pCurrentRunningThread, addr );
-		}
-		else
-			retval = cWrongResourceType;
-	 }
-	 // maybe resource not owned or resource doesnt exist
-
-	 else
-	    retval = cResourceNotOwned;
-
-	 return (retval);
-}
-#endif
-
-
-
-/*******************************************************************
- *				LISTEN Syscall
- *******************************************************************/
-
-#ifdef HAS_SyscallManager_listenCfd
-int listenSyscall(int4 int_sp) {
-	ResourceIdT socketid;
-	int retval;
-
-	SYSCALLGETPARAMS1(int_sp,socketid);
-
-	Resource* res;
-	res = pCurrentRunningTask->getOwnedResourceById( socketid );
-	if ( res != 0 ) {
-
-		LOG(SYSCALLS,TRACE,"Syscall: listen ");
-
-		// resource valid and owned
-		// check if resource is a socket
-		if ( res->getType() == cSocket ) {
-			retval = ( (Socket*) res )->listen(pCurrentRunningThread);
-		}
-		else {
-			retval = cWrongResourceType;
-			LOG(SYSCALLS,ERROR,"Syscall: listen invalid.. Resource is not a Socket. ");
-		}
-
-	}
-	// maybe resource not owned or resource doesn't exist
-	else {
-		retval = cResourceNotOwned;
-		LOG(SYSCALLS,ERROR,"Syscall: listen invalid.. Resource not owned.. ");
-	}
-
-	return (retval);
-}
-#endif
-
-
-
-/*******************************************************************
- *				BIND Syscall
- *******************************************************************/
-
-#ifdef HAS_SyscallManager_bindCfd
-int bindSyscall( int4 int_sp ) {
-	ResourceIdT socketid;
+/*****************************************************************************
+ * Method: sc_connect(intptr_t sp_int)
+ *
+ * @description
+ *
+ * @params
+ *  sp_int:     The stack pointer at time of system call instruction execution
+ *
+ * @returns
+ *  int         Error Code
+ *---------------------------------------------------------------------------*/
+int sc_connect(intptr_t int_sp) {
+    ResourceIdT socketid;
     sockaddr* addr;
     int retval;
 
-    SYSCALLGETPARAMS2(int_sp,socketid,addr);
+    SYSCALLGETPARAMS2(int_sp, socketid, addr);
 
     VALIDATE_IN_PROCESS(addr);
 
     Resource* res;
-    res = pCurrentRunningTask->getOwnedResourceById( socketid );
-    if ( res != 0 ) {
+    res = pCurrentRunningTask->getOwnedResourceById(socketid);
+    if (res != 0) {
+        LOG(SYSCALLS, TRACE, "Syscall: connect valid");
 
-        LOG(SYSCALLS,TRACE,"Syscall: bind valid");
-
-        // resource valid and owned
-        // check if resource is a socket
-        if ( res->getType() == cSocket ) {
-            retval = ( (Socket*) res )->bind( addr );
-
-        }
-        else {
-			retval = cWrongResourceType;
-			LOG(SYSCALLS,ERROR,"Syscall: bind invalid.. Resource is not a Socket. ");
-		}
-
-    }
-    // maybe resource not owned or resource doesnt exist
-    else{
-		retval = cResourceNotOwned;
-		LOG(SYSCALLS,ERROR,"Syscall: bind invalid.. Resource not owned.. ");
-	}
-    return (retval);
-}
-#endif
-
-
-
-/*******************************************************************
- *				SENDTO Syscall
- *******************************************************************/
-
-#ifdef HAS_SyscallManager_sendtoCfd
-int sendtoSyscall( int4 int_sp ) {
-	ResourceIdT socket;
-    const void* buffer;
-    size_t length;
-    const sockaddr *dest_addr;
-    int retval;
-
-    SYSCALLGETPARAMS4(int_sp,socket,buffer,length,dest_addr);
-
-    VALIDATE_IN_PROCESS(buffer);
-    VALIDATE_IN_PROCESS((unint4) buffer + length);
-    if (dest_addr != 0) {
-    	VALIDATE_IN_PROCESS(dest_addr);
-    }
-
-    Resource* res;
-    res = pCurrentRunningTask->getOwnedResourceById( socket );
-    if ( res != 0 ) {
-
-        LOG(SYSCALLS,TRACE,"Syscall: sendto valid");
-
-        /* resource valid and owned
-           check if resource is a socket */
-        if ( res->getType() == cSocket ) {
-            retval = ( (Socket*) res )->sendto( buffer, (unint2) length, dest_addr );
-
-        }
-        else
+        if (res->getType() == cSocket) {
+            Socket* sock = static_cast<Socket*>(res);
+            retval = sock->connect(pCurrentRunningThread, addr);
+        } else {
             retval = cWrongResourceType;
-
-    }
-    // maybe resource not owned or resource doesnt exist
-
-    else {
-        LOG(SYSCALLS,ERROR,"Syscall: sendto invalid! Resource %d not owned",socket);
+        }
+    } else {
         retval = cResourceNotOwned;
     }
 
@@ -227,16 +105,168 @@ int sendtoSyscall( int4 int_sp ) {
 }
 #endif
 
+/*******************************************************************
+ *                LISTEN Syscall
+ *******************************************************************/
 
+#ifdef HAS_SyscallManager_listenCfd
+/*****************************************************************************
+ * Method: sc_listen(intptr_t sp_int)
+ *
+ * @description
+ *
+ * @params
+ *  sp_int:     The stack pointer at time of system call instruction execution
+ *
+ * @returns
+ *  int         Error Code
+ *---------------------------------------------------------------------------*/
+int sc_listen(intptr_t int_sp) {
+    ResourceIdT socketid;
+    int retval;
+
+    SYSCALLGETPARAMS1(int_sp, socketid);
+
+    Resource* res;
+    res = pCurrentRunningTask->getOwnedResourceById(socketid);
+    if (res != 0) {
+        LOG(SYSCALLS, TRACE, "Syscall: listen ");
+
+        if (res->getType() == cSocket) {
+            Socket* sock = static_cast<Socket*>(res);
+            retval = sock->listen(pCurrentRunningThread);
+        } else {
+            retval = cWrongResourceType;
+            LOG(SYSCALLS, ERROR, "Syscall: listen invalid.. Resource is not a Socket. ");
+        }
+    } else {
+        retval = cResourceNotOwned;
+        LOG(SYSCALLS, ERROR, "Syscall: listen invalid.. Resource not owned.. ");
+    }
+
+    return (retval);
+}
+#endif
 
 /*******************************************************************
- *				RECV Syscall
+ *                BIND Syscall
+ *******************************************************************/
+
+#ifdef HAS_SyscallManager_bindCfd
+/*****************************************************************************
+ * Method: sc_bind(intptr_t sp_int)
+ *
+ * @description
+ *
+ * @params
+ *  sp_int:     The stack pointer at time of system call instruction execution
+ *
+ * @returns
+ *  int         Error Code
+ *---------------------------------------------------------------------------*/
+int sc_bind(intptr_t int_sp) {
+    ResourceIdT socketid;
+    sockaddr* addr;
+    int retval;
+
+    SYSCALLGETPARAMS2(int_sp, socketid, addr);
+    VALIDATE_IN_PROCESS(addr);
+
+    Resource* res;
+    res = pCurrentRunningTask->getOwnedResourceById(socketid);
+    if (res != 0) {
+        LOG(SYSCALLS, TRACE, "Syscall: bind valid");
+
+        /* resource valid and owned
+         * check if resource is a socket */
+        if (res->getType() == cSocket) {
+            Socket* sock = static_cast<Socket*>(res);
+            retval = sock->bind(addr);
+
+        } else {
+            retval = cWrongResourceType;
+            LOG(SYSCALLS, ERROR, "Syscall: bind invalid.. Resource is not a Socket. ");
+        }
+
+    } else {
+        retval = cResourceNotOwned;
+        LOG(SYSCALLS, ERROR, "Syscall: bind invalid.. Resource not owned.. ");
+    }
+    return (retval);
+}
+#endif
+
+/*******************************************************************
+ *                SENDTO Syscall
+ *******************************************************************/
+
+#ifdef HAS_SyscallManager_sendtoCfd
+/*****************************************************************************
+ * Method: sc_sendto(intptr_t sp_int)
+ *
+ * @description
+ *
+ * @params
+ *  sp_int:     The stack pointer at time of system call instruction execution
+ *
+ * @returns
+ *  int         Error Code
+ *---------------------------------------------------------------------------*/
+int sc_sendto(intptr_t int_sp) {
+    ResourceIdT socket;
+    const void* buffer;
+    size_t length;
+    const sockaddr *dest_addr;
+    int retval;
+
+    SYSCALLGETPARAMS4(int_sp, socket, buffer, length, dest_addr);
+
+    VALIDATE_IN_PROCESS(buffer);
+    VALIDATE_IN_PROCESS((unint4) buffer + length);
+    if (dest_addr != 0) {
+        VALIDATE_IN_PROCESS(dest_addr);
+    }
+
+    Resource* res;
+    res = pCurrentRunningTask->getOwnedResourceById(socket);
+    if (res != 0) {
+        LOG(SYSCALLS, TRACE, "Syscall: sendto valid");
+
+        /* resource valid and owned
+         check if resource is a socket */
+        if (res->getType() == cSocket) {
+            Socket* sock = static_cast<Socket*>(res);
+            retval = sock->sendto(buffer, (unint2) length, dest_addr);
+        } else {
+            retval = cWrongResourceType;
+        }
+    } else {
+        LOG(SYSCALLS, ERROR, "Syscall: sendto invalid! Resource %d not owned", socket);
+        retval = cResourceNotOwned;
+    }
+
+    return (retval);
+}
+#endif
+
+/*******************************************************************
+ *                RECV Syscall
  *******************************************************************/
 
 #ifdef HAS_SyscallManager_recvCfd
-int recvSyscall( int4 int_sp) {
-
-	ResourceIdT socketid;
+/*****************************************************************************
+ * Method: sc_recv(intptr_t sp_int)
+ *
+ * @description
+ *
+ * @params
+ *  sp_int:     The stack pointer at time of system call instruction execution
+ *
+ * @returns
+ *  int         Error Code
+ *---------------------------------------------------------------------------*/
+int sc_recv(intptr_t int_sp) {
+    ResourceIdT socketid;
     char* data_addr;
     size_t data_len;
     int flags;
@@ -244,40 +274,60 @@ int recvSyscall( int4 int_sp) {
     sockaddr* sender;
     unint4 timeout;
 
-    SYSCALLGETPARAMS6(int_sp,socketid,data_addr,data_len,flags,sender,timeout);
+    SYSCALLGETPARAMS6(int_sp, socketid, data_addr, data_len, flags, sender, timeout);
 
     VALIDATE_IN_PROCESS(data_addr);
     if (sender != 0)
-    	VALIDATE_IN_PROCESS(sender);
+        VALIDATE_IN_PROCESS(sender);
 
-    LOG(SYSCALLS,DEBUG,"Syscall: recv: socketid %d, msg_addr: 0x%x, flags: %x, sockaddr_ptr: 0x%x",socketid,data_addr,flags,sender);
-
-    timeout = timeout MICROSECONDS;
+    LOG(SYSCALLS, DEBUG, "Syscall: recv: socketid %d, msg_addr: 0x%x, flags: %x, sockaddr_ptr: 0x%x", socketid, data_addr, flags, sender);
 
     Resource* res;
-    res = pCurrentRunningTask->getOwnedResourceById( socketid );
-    if ( res != 0 ) {
-
-        LOG(SYSCALLS,TRACE,"Syscall: recv valid");
+    res = pCurrentRunningTask->getOwnedResourceById(socketid);
+    if (res != 0) {
+        LOG(SYSCALLS, TRACE, "Syscall: recv valid");
 
         /* resource valid and owned
-           check if resource is a socket */
-        if ( res->getType() == cSocket ) {
-            retval = ( (Socket*) res )->recvfrom( pCurrentRunningThread, data_addr,data_len, flags, sender, timeout );
-        }
-        else
+         check if resource is a socket */
+        if (res->getType() == cSocket) {
+            Socket* sock = static_cast<Socket*>(res);
+            retval = sock->recvfrom(pCurrentRunningThread, data_addr, data_len, flags, sender, timeout);
+        } else {
             retval = cWrongResourceType;
-
+        }
+    } else {
+        /* maybe resource not owned or resource doesnt exist */
+        retval = cResourceNotOwned;
     }
-    /* maybe resource not owned or resource doesnt exist */
-    else
-    	retval = cResourceNotOwned;
 
     return (retval);
 }
 #endif
 
+#else
+int sc_recv(intptr_t int_sp) {
+ return (cNotImplemented);
+}
+
+int sc_sendto(intptr_t int_sp) {
+ return (cNotImplemented);
+}
+
+int sc_bind(intptr_t int_sp) {
+ return (cNotImplemented);
+}
+
+int sc_socket(intptr_t int_sp) {
+ return (cNotImplemented);
+}
+
+int sc_connect(intptr_t int_sp) {
+ return (cNotImplemented);
+}
+
+int sc_listen(intptr_t int_sp) {
+ return (cNotImplemented);
+}
 
 #endif // networking enabled
-
 

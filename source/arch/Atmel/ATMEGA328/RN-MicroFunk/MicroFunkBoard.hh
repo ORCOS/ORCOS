@@ -26,8 +26,8 @@
 #include Board_UART_hh
 //#include Board_UART2_hh
 //#include Board_InterruptController_hh
-#include Board_Timer_hh
 #include Board_Clock_hh
+#include <OmapGPTimer.hh>
 
 #define ATMEL 0x1a
 

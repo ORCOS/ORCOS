@@ -26,5 +26,6 @@ KERNEL_LIB_DIR = $(ORCOS_LIB_DIR)/bin/armv7
 
 
 AFLAGS =
-CFLAGS = -c -I$(ORCOS_LIB_DIR)/inc -I$(ORCOS_LIB_DIR)/inc/$(BUILD_PLATFORM) -mno-unaligned-access -fno-exceptions -fno-rtti -O2 -mthumb -Wno-write-strings -ffunction-sections
+CFLAGS = -c -I$(ORCOS_LIB_DIR)/inc -I$(ORCOS_LIB_DIR)/inc/$(BUILD_PLATFORM) -mno-unaligned-access -fno-exceptions -fno-rtti -O2 -mthumb -Wno-write-strings -ffunction-sections -march=armv7
+CFLAGS += -fno-builtin -flto -mno-unaligned-access -fno-section-anchors -fno-if-conversion2 
 CPPFLAGS = $(CFLAGS) -g

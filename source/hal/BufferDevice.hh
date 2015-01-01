@@ -2,7 +2,7 @@
  * VirtualCharacterDevice.hh
  *
  *  Created on: 15.08.2014
- *      Author: Daniel
+ *   Copyright &   Author: Daniel
  */
 
 #ifndef VIRTUALCHARACTERDEVICE_HH_
@@ -36,12 +36,27 @@ private:
 public:
     BufferDevice(char* name, int bufferSize);
 
-    bool isValid() {return (buffer != 0); };
+    /*****************************************************************************
+     * Method: isValid()
+     *
+     * @description
+     *******************************************************************************/
+    bool isValid() {return (buffer != 0); }
 
     virtual ~BufferDevice();
 
+    /*****************************************************************************
+     * Method: readBytes(char *bytes, unint4 &length)
+     *
+     * @description
+     *******************************************************************************/
     ErrorT readBytes(char *bytes, unint4 &length);
 
+    /*****************************************************************************
+     * Method: writeBytes(const char *bytes, unint4 length)
+     *
+     * @description
+     *******************************************************************************/
     ErrorT writeBytes(const char *bytes, unint4 length);
 };
 

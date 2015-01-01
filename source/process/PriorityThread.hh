@@ -50,7 +50,6 @@ public:
     PriorityThread(void* startRoutinePointer, void* exitRoutinePointer, Task* owner, Kernel_MemoryManagerCfdCl* memManager, unint4 stack_size =
                            DEFAULT_USER_STACK_SIZE, void* prioThreadAttributes =
                            0, bool newThread = true);
-
 };
 
 #endif /*PRIORITYTHREAD_HH*/

@@ -99,9 +99,9 @@ void ethar_tmr(void) {
 }
 
 void ethar_init() {
-    int i;
 
 #if AR_QUEUEING
+    int i;
     for (i = 0; i < AR_TABLE_SIZE; i++)
     {
         ar_table[i].q = NULL;

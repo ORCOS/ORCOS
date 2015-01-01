@@ -50,6 +50,10 @@ extern "C" int task_run(char* path, char* arguments) {
     return syscall(cRunTaskId,path,arguments);
 }
 
+extern "C" int thread_name(int threadid,char* name) {
+    return syscall(cThreadNameSyscallId,threadid,name);
+}
+
 extern "C" int 	task_kill(int taskid) {
 	return syscall(cTask_KillSysCallId,taskid);
 }

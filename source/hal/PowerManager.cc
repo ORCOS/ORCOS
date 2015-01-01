@@ -27,6 +27,12 @@ PowerManager::PowerManager() {
 PowerManager::~PowerManager() {
 }
 
+/*****************************************************************************
+ * Method: PowerManager::enterIdleThread()
+ *
+ * @description
+ *
+ *******************************************************************************/
 ErrorT PowerManager::enterIdleThread() {
 #ifdef HAS_Board_ProcessorCfd
 
@@ -40,5 +46,4 @@ ErrorT PowerManager::enterIdleThread() {
 #else
 #error It makes no sense to configure a board without a processor.
 #endif
-
 }

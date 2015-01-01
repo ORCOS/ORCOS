@@ -21,12 +21,13 @@
 
 #include "CharacterDevice.hh"
 #include "GenericDeviceDriver.hh"
+#include "lwip/netif.h"
 
 class AddressProtocol;
 
 /*!
  * \ingroup devicedrivers
- * \brief	CommDeviceDriver which is the base class of all communication devices
+ * \brief    CommDeviceDriver which is the base class of all communication devices
  *
  * This is the base class of all communication devices. Be sure to implement all needed
  * functionality for the device. This may also include the mac functionality if there is no
@@ -35,26 +36,20 @@ class AddressProtocol;
 class CommDeviceDriver: public CharacterDevice {
 private:
     //! The global id counter
-    static int2 globalCommDeviceIdCounter;  //!< always needs to start at 0 and must increase by 1
+    //static int2 globalCommDeviceIdCounter;  //!< always needs to start at 0 and must increase by 1
 
-    //! The id of this communication device
-    // int2 myId;
-
+protected:
+    /*! The network interface for this commdevice driver inside lwip */
+    struct netif st_netif;
 public:
-
-    /*!
-     * All superclasses need to use this constructor to ensure
-     * a correct registration process.
-     */
-    CommDeviceDriver(const char* name);
-
-#if 0
-    /*!
-     * Anonymous Devices used this constructor!
-     */
-    CommDeviceDriver() {
-    }
-#endif
+    /*****************************************************************************
+     * Method: CommDeviceDriver(const char* name)
+     *
+     * @description
+     *  All superclasses need to use this constructor to ensure
+     *  a correct registration process.
+     *******************************************************************************/
+    explicit CommDeviceDriver(const char* name);
 
 
     virtual ~CommDeviceDriver();
@@ -64,52 +59,38 @@ public:
      globalCommDeviceIdCounter = 0;
      }*/
 
-    virtual ErrorT lowlevel_send(char* data, int len) = 0;
-
-    //! broadcast method which sends the message to the devices broadcast address
-    virtual ErrorT broadcast(packet_layer* packet, int2 fromProtocol_ID) = 0;
-
-    /*!
-     * \brief Sends a multicast packet
+    /*****************************************************************************
+     * Method: getMacAddr()
      *
-     *  dest_addr is needed since many mac protocols use the upper layer address to compute the multicast address
-     */
-    virtual ErrorT multicast(packet_layer* packet, int2 fromProtocol_ID, unint4 dest_addr) = 0;
-
-    //! returns the mac address of this device
-    virtual const char* getMacAddr() {
+     * @description
+     *  returns the mac address of this device
+     *******************************************************************************/
+    virtual const char* getMacAddr(int& length) {
+        length = 0;
         return ("0");
     }
 
-    //! returns the size (amount of bytes) mac addresses have on this device
-    virtual int1 getMacAddrSize() {
-        return (0);
-    }
-
-    /*!
-     * Returns the maximum transmit unit (MTU) of this device.
+    /*****************************************************************************
+     * Method: getMTU()
      *
-     * \returns The maximum amount of bytes the device is able to transmit in one unit.
-     */
+     * @description
+     *  Returns the maximum transmit unit (MTU) of this device.
+     *
+     * @returns
+     *  The maximum amount of bytes the device is able to transmit in one unit.
+     *******************************************************************************/
     virtual unint2 getMTU() {
         return (0);
     }
 
-    //! Returns the id of the hardware address space (ethernet, wlan ..)
-    virtual int2 getHardwareAddressSpaceId() {
-        return (0);
-    }
-
-    //! returns the broadcast address for this device medium
-    virtual const char* getBroadcastAddr() {
-        return ("0");
-    }
-
-    //! returns the id of this device
-    /*  int2 getId() {
-     return (myId);
-     }*/
-
+    /*****************************************************************************
+     * Method: ioctl(int request, void* args)
+     *
+     * @description
+     *  Provides generic I/O Control options for network devices
+     *  as e.g. setting the IP address, Gateway etc.
+     *******************************************************************************/
+    virtual ErrorT ioctl(int request, void* args);
 };
 
 #endif /*COMMDEVICEDRIVER_H_*/
