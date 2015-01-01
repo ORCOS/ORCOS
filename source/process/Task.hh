@@ -330,10 +330,10 @@ public:
     }
 
     /*****************************************************************************
-     * Method: getWorkingDirectory()
+     * Method: setWorkingDirectory(char* newDir)
      *
      * @description
-     *   Returns the current working directory of this task
+     *   Sets the current working directory of this task
      *******************************************************************************/
     inline void setWorkingDirectory(char* newDir) {
         strncpy(this->workingDirectory, newDir, 255);
@@ -399,7 +399,7 @@ public:
     inline LinkedList* getThreadDB() {
         return (&threadDb);
     }
-};
+}
 
 #endif /* _TASK_HH */
 

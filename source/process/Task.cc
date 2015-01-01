@@ -62,9 +62,9 @@ Task::Task(Kernel_MemoryManagerCfdCl* memoryManager, taskTable* tasktbl) :
         dir->add(sysFsDir);
         SYSFS_ADD_RO_STRING(sysFsDir, name);
         SYSFS_ADD_RO_STRING(sysFsDir, workingDirectory);
-        SYSFS_ADD_RO_UINT  (sysFsDir, platform_flags);
-        SYSFS_ADD_RO_UINT  (sysFsDir, myTaskId);
-        SYSFS_ADD_RO_UINT  (sysFsDir, stopped);
+        SYSFS_ADD_RO_UINT(sysFsDir, platform_flags);
+        SYSFS_ADD_RO_UINT(sysFsDir, myTaskId);
+        SYSFS_ADD_RO_UINT(sysFsDir, stopped);
         SYSFS_ADD_RO_UINT_NAMED(sysFsDir, "num_resources", aquiredResources.numEntries);
         SYSFS_ADD_RO_UINT_NAMED(sysFsDir, "num_threads"  , threadDb.size);
         SYSFS_ADD_RO_UINT_NAMED(sysFsDir, "usedmem"      , memManager->getSegment()->usedBytes);
@@ -106,9 +106,9 @@ Task::Task() :
 
         SYSFS_ADD_RO_STRING(sysFsDir, name);
         SYSFS_ADD_RO_STRING(sysFsDir, workingDirectory);
-        SYSFS_ADD_RO_UINT  (sysFsDir, platform_flags);
-        SYSFS_ADD_RO_UINT  (sysFsDir, myTaskId);
-        SYSFS_ADD_RO_UINT  (sysFsDir, stopped);
+        SYSFS_ADD_RO_UINT(sysFsDir, platform_flags);
+        SYSFS_ADD_RO_UINT(sysFsDir, myTaskId);
+        SYSFS_ADD_RO_UINT(sysFsDir, stopped);
         SYSFS_ADD_RO_UINT_NAMED(sysFsDir, "num_resources", aquiredResources.numEntries);
         SYSFS_ADD_RO_UINT_NAMED(sysFsDir, "num_threads"  , threadDb.size);
     }
