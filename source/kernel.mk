@@ -251,11 +251,12 @@ $(OUTPUT_DIR)%.o : %.c SCLConfig.hh
 
 # Create static library of the OS so the linker only links the 
 # really used classes into the binary
+PLUGIN_DIR=$(shell $(CC) -print-prog-name=liblto_plugin.so)
 $(OUTPUT_DIR)liborcoskernel.a : $(OBJ)
 	@echo
-	@echo Creating static library liborcoskernel.a
-	@$(RM) $(OUTPUT_DIR)liborcoskernel.a
-	@$(AR) qc $(OUTPUT_DIR)liborcoskernel.a $(OBJ)
+	@echo Creating static library liborcoskernel.a	
+	@$(RM) $(OUTPUT_DIR)liborcoskernel.a	
+	@$(AR) qc $(OUTPUT_DIR)liborcoskernel.a $(OBJ) --plugin $(PLUGIN_DIR)
 
 
 modules: $(MODULES)
