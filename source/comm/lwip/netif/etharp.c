@@ -70,7 +70,7 @@
 /** the time an ARP entry stays pending after first request,
  *  for ARP_TMR_INTERVAL = 5000, this is
  *  (2 * 5) seconds = 10 seconds.
- * 
+ *
  *  @internal Keep this number at least 2, otherwise it might
  *  run out instantly if the timeout occurs directly after a request.
  */
@@ -155,7 +155,7 @@ static s8_t find_entry(struct ip4_addr *ipaddr, u8_t flags, struct netif *netif)
 #endif
 
 /**
- * Responds to ARP requests to us. Upon ARP replies to us, add entry to cache  
+ * Responds to ARP requests to us. Upon ARP replies to us, add entry to cache
  * send out queued IP packets. Updates cache with snooped address pairs.
  *
  * Should be called for incoming ARP packets. The pbuf in the argument
@@ -184,9 +184,8 @@ void etharp_arp_input(struct netif *netif, struct eth_addr *ethaddr, struct pbuf
 
     /* drop short ARP packets: we have to check for p->len instead of p->tot_len here
      since a struct etharp_hdr is pointed to p->payload, so it musn't be chained! */
-    if (p->len < SIZEOF_ETHARP_PACKET)
-    {
-        LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_LEVEL_WARNING, ("etharp_arp_input: packet dropped, too short (%"S16_F"/%"S16_F")"NEWLINE, p->tot_len, (s16_t)SIZEOF_ETHARP_PACKET)); ETHARP_STATS_INC(etharp.lenerr); ETHARP_STATS_INC(etharp.drop);
+    if (p->len < SIZEOF_ETHARP_PACKET) {
+        LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_LEVEL_WARNING, ("etharp_arp_input: packet dropped, too short (%"S16_F"/%"S16_F")"NEWLINE, p->tot_len, (s16_t)SIZEOF_ETHARP_PACKET));ETHARP_STATS_INC(etharp.lenerr);ETHARP_STATS_INC(etharp.drop);
         pbuf_free(p);
         return;
     }
@@ -194,23 +193,18 @@ void etharp_arp_input(struct netif *netif, struct eth_addr *ethaddr, struct pbuf
     ethhdr = p->payload;
     hdr = (struct etharp_hdr *) ((u8_t*) ethhdr + SIZEOF_ETH_HDR);
 #if ETHARP_SUPPORT_VLAN
-    if (ethhdr->type == ETHTYPE_VLAN)
-    {
+    if (ethhdr->type == ETHTYPE_VLAN) {
         hdr = (struct etharp_hdr *)(((u8_t*)ethhdr) + SIZEOF_ETH_HDR + SIZEOF_VLAN_HDR);
     }
 #endif /* ETHARP_SUPPORT_VLAN */
 
     /* RFC 826 "Packet Reception": */
-    if ((hdr->hwtype != htons(HWTYPE_ETHERNET))
-            || (hdr->_hwlen_protolen
-                    != htons((ETHARP_HWADDR_LEN << 8) | sizeof(struct ip4_addr)))
-            || (hdr->proto != htons(ETHTYPE_IPV4))
-            || (ethhdr->type != htons(ETHTYPE_ARP)))
-    {
-        LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_LEVEL_WARNING, ("etharp_arp_input: packet dropped, wrong hw type, hwlen, proto, protolen or ethernet type (%"U16_F"/%"U16_F"/%"U16_F"/%"U16_F"/%"U16_F")"NEWLINE, hdr->hwtype, ARPH_HWLEN(hdr), hdr->proto, ARPH_PROTOLEN(hdr), ethhdr->type)); ETHARP_STATS_INC(etharp.proterr); ETHARP_STATS_INC(etharp.drop);
+    if ((hdr->hwtype != htons(HWTYPE_ETHERNET)) || (hdr->_hwlen_protolen != htons((ETHARP_HWADDR_LEN << 8) | sizeof(struct ip4_addr)))
+            || (hdr->proto != htons(ETHTYPE_IPV4)) || (ethhdr->type != htons(ETHTYPE_ARP))) {
+        LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_LEVEL_WARNING, ("etharp_arp_input: packet dropped, wrong hw type, hwlen, proto, protolen or ethernet type (%"U16_F"/%"U16_F"/%"U16_F"/%"U16_F"/%"U16_F")"NEWLINE, hdr->hwtype, ARPH_HWLEN(hdr), hdr->proto, ARPH_PROTOLEN(hdr), ethhdr->type));ETHARP_STATS_INC(etharp.proterr);ETHARP_STATS_INC(etharp.drop);
         pbuf_free(p);
         return;
-    } ETHARP_STATS_INC(etharp.recv);
+    }ETHARP_STATS_INC(etharp.recv);
 
 #if LWIP_AUTOIP
     /* We have to check if a host already has configured our random
@@ -225,12 +219,9 @@ void etharp_arp_input(struct netif *netif, struct eth_addr *ethaddr, struct pbuf
     SMEMCPY(&dipaddr, &hdr->dipaddr, sizeof(dipaddr));
 
     /* this interface is not configured? */
-    if (netif->ip4_addr.addr == 0)
-    {
+    if (netif->ip4_addr.addr == 0) {
         for_us = 0;
-    }
-    else
-    {
+    } else {
         /* ARP packet directed to us? */
         //for_us = ip4_addr_cmp(&dipaddr,(struct ip4_addr*) &(netif->ip4_addr.addr[0]));
         for_us = ip4_addr_cmp(&dipaddr, &(netif->ip4_addr));
@@ -241,15 +232,12 @@ void etharp_arp_input(struct netif *netif, struct eth_addr *ethaddr, struct pbuf
     ipaddr.addr.ip4addr.addr = sipaddr.addr;
 
     /* ARP message directed to us? */
-    if (for_us)
-    {
+    if (for_us) {
         /* add IP address in ARP cache; assume requester wants to talk to us.
          * can result in directly sending the queued packets for this host. */
         update_ar_entry(netif, &ipaddr, &(hdr->shwaddr), ETHAR_TRY_HARD);
         /* ARP message not directed to us? */
-    }
-    else
-    {
+    } else {
         /* update the source IP address in the cache, if present */
         update_ar_entry(netif, &ipaddr, &(hdr->shwaddr), 0);
     }
@@ -264,8 +252,7 @@ void etharp_arp_input(struct netif *netif, struct eth_addr *ethaddr, struct pbuf
 
         LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE, ("etharp_arp_input: incoming ARP request"NEWLINE));
         /* ARP request for our address? */
-        if (for_us)
-        {
+        if (for_us) {
 
             LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE, ("etharp_arp_input: replying to ARP request for our IP address"NEWLINE));
             /* Re-use pbuf to send ARP reply.
@@ -285,8 +272,7 @@ void etharp_arp_input(struct netif *netif, struct eth_addr *ethaddr, struct pbuf
             ethdst_hwaddr = ((netif->autoip != NULL) && (netif->autoip->state != AUTOIP_STATE_OFF)) ? (u8_t*)(ethbroadcast.addr) : hdr->shwaddr.addr;
 #endif /* LWIP_AUTOIP */
 
-            while (i > 0)
-            {
+            while (i > 0) {
                 i--;
                 hdr->dhwaddr.addr[i] = hdr->shwaddr.addr[i];
 #if LWIP_AUTOIP
@@ -295,7 +281,7 @@ void etharp_arp_input(struct netif *netif, struct eth_addr *ethaddr, struct pbuf
                 ethhdr->dest.addr[i] = hdr->shwaddr.addr[i];
 #endif /* LWIP_AUTOIP */
                 hdr->shwaddr.addr[i] = ethaddr->addr[i];
-                ethhdr->src.addr[i] = ethaddr->addr[i];
+                ethhdr->src.addr[i]  = ethaddr->addr[i];
             }
 
             /* hwtype, hwaddr_len, proto, protolen and the type in the ethernet header
@@ -304,15 +290,11 @@ void etharp_arp_input(struct netif *netif, struct eth_addr *ethaddr, struct pbuf
             /* return ARP reply */
             netif->linkoutput(netif, p);
             /* we are not configured? */
-        }
-        else if (netif->ip4_addr.addr == 0)
-        {
+        } else if (netif->ip4_addr.addr == 0) {
             /* { for_us == 0 and netif->ip_addr.addr == 0 } */
             LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE, ("etharp_arp_input: we are unconfigured, ARP request ignored."NEWLINE));
             /* request was not directed to us */
-        }
-        else
-        {
+        } else {
             /* { for_us == 0 and netif->ip_addr.addr != 0 } */
             LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE, ("etharp_arp_input: ARP request was not for us."NEWLINE));
         }
@@ -359,10 +341,9 @@ err_t etharp_output(struct netif *netif, struct pbuf *q, struct ip4_addr *ipaddr
     struct eth_addr *dest, mcastaddr;
 
     /* make room for Ethernet header - should not fail */
-    if (pbuf_header(q, sizeof(struct eth_hdr)) != 0)
-    {
+    if (pbuf_header(q, sizeof(struct eth_hdr)) != 0) {
         /* bail out */
-        LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_LEVEL_SERIOUS, ("etharp_output: could not allocate room for header."NEWLINE)); LINK_STATS_INC(link.lenerr);
+        LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_LEVEL_SERIOUS, ("etharp_output: could not allocate room for header."NEWLINE));LINK_STATS_INC(link.lenerr);
         return ERR_BUF;
     }
 
@@ -372,14 +353,11 @@ err_t etharp_output(struct netif *netif, struct pbuf *q, struct ip4_addr *ipaddr
      * are special, other IP addresses are looked up in the ARP table. */
 
     /* broadcast destination IP address? */
-    if (ip4_addr_isbroadcast(ipaddr, netif))
-    {
+    if (ip4_addr_isbroadcast(ipaddr, netif)) {
         /* broadcast on Ethernet also */
         dest = (struct eth_addr *) &ethbroadcast;
         /* multicast destination IP address? */
-    }
-    else if (ip4_addr_ismulticast(ipaddr))
-    {
+    } else if (ip4_addr_ismulticast(ipaddr)) {
         /* Hash IP multicast address to MAC address.*/
         mcastaddr.addr[0] = 0x01;
         mcastaddr.addr[1] = 0x00;
@@ -390,23 +368,17 @@ err_t etharp_output(struct netif *netif, struct pbuf *q, struct ip4_addr *ipaddr
         /* destination Ethernet address is multicast */
         dest = &mcastaddr;
         /* unicast destination IP address? */
-    }
-    else
-    {
+    } else {
         /* outside local network? */
         // if (!ip4_addr_netcmp(ipaddr,(struct ip4_addr*) &(netif->ip4_addr.addr[0]),(struct ip4_addr*) &(netif->ip4_netmask.addr[0]))) {
-        if (!ip4_addr_netcmp(ipaddr, &(netif->ip4_addr), &(netif->ip4_netmask)))
-        {
+        if (!ip4_addr_netcmp(ipaddr, &(netif->ip4_addr), &(netif->ip4_netmask))) {
             /* interface has default gateway? */
-            if (netif->ip4_gw.addr != 0)
-            {
+            if (netif->ip4_gw.addr != 0) {
                 /* send to hardware address of default gateway IP address */
                 // ipaddr = (struct ip4_addr*) &(netif->ip4_gw.addr[0]);
                 ipaddr = &(netif->ip4_gw);
                 LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_LEVEL_SERIOUS, ("etharp_output: sending to gateway %x."NEWLINE,netif->ip4_gw.addr));
-            }
-            else
-            {
+            } else {
                 /* no route to destination error (default gateway missing) */
                 return ERR_RTE;
             }
@@ -456,9 +428,8 @@ err_t etharp_raw(struct netif *netif, const struct eth_addr *ethsrc_addr, const 
     /* allocate a pbuf for the outgoing ARP request packet */
     p = pbuf_alloc(PBUF_RAW, SIZEOF_ETHARP_PACKET, PBUF_RAM);
     /* could allocate a pbuf for an ARP request? */
-    if (p == NULL)
-    {
-        LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_LEVEL_SERIOUS, ("etharp_raw: could not allocate pbuf for ARP request."NEWLINE)); ETHARP_STATS_INC(etharp.memerr);
+    if (p == NULL) {
+        LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_LEVEL_SERIOUS, ("etharp_raw: could not allocate pbuf for ARP request."NEWLINE));ETHARP_STATS_INC(etharp.memerr);
         return ERR_MEM;
     }
     LWIP_ASSERT("check that first pbuf can hold struct etharp_hdr", (p->len >= SIZEOF_ETHARP_PACKET));
@@ -476,8 +447,7 @@ err_t etharp_raw(struct netif *netif, const struct eth_addr *ethsrc_addr, const 
     ethdst_hwaddr = ((netif->autoip != NULL) && (netif->autoip->state != AUTOIP_STATE_OFF)) ? (u8_t*)(ethbroadcast.addr) : ethdst_addr->addr;
 #endif /* LWIP_AUTOIP */
     /* Write MAC-Addresses (combined loop for both headers) */
-    while (k > 0)
-    {
+    while (k > 0) {
         k--;
         /* Write the ARP MAC-Addresses */
         hdr->shwaddr.addr[k] = hwsrc_addr->addr[k];
@@ -496,8 +466,7 @@ err_t etharp_raw(struct netif *netif, const struct eth_addr *ethsrc_addr, const 
     hdr->hwtype = htons(HWTYPE_ETHERNET);
     hdr->proto = htons(ETHTYPE_IPV4);
     /* set hwlen and protolen together */
-    hdr->_hwlen_protolen = htons((ETHARP_HWADDR_LEN << 8)
-            | sizeof(struct ip4_addr));
+    hdr->_hwlen_protolen = htons((ETHARP_HWADDR_LEN << 8) | sizeof(struct ip4_addr));
 
     ethhdr->type = htons(ETHTYPE_ARP);
     /* send ARP query */
@@ -523,8 +492,7 @@ err_t etharp_raw(struct netif *netif, const struct eth_addr *ethsrc_addr, const 
 err_t etharp_request(struct netif *netif, struct ip4_addr *ipaddr) {
     LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE, ("etharp_request: sending ARP request."NEWLINE));
 
-    return etharp_raw(netif, (struct eth_addr *) netif->hwaddr, &ethbroadcast,
-    (struct eth_addr *) netif->hwaddr, &netif->ip4_addr, &ethzero, ipaddr, ARP_REQUEST);
+    return etharp_raw(netif, (struct eth_addr *) netif->hwaddr, &ethbroadcast, (struct eth_addr *) netif->hwaddr, &netif->ip4_addr, &ethzero, ipaddr, ARP_REQUEST);
 }
 
 #endif /* LWIP_ARP */

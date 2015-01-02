@@ -54,7 +54,7 @@ OmapIOMux::~OmapIOMux() {
      if (length != sizeof(omap_muxval_t)) {
          return (cInvalidArgument);
      }
-     omap_muxval_t* muxval = reinterpret_cast<omap_muxval_t*>(bytes);
+     omap_muxval_t* muxval = (omap_muxval_t*)(bytes);
 
      MUX_VAL(muxval->padconf, muxval->muxval);
      return (cError);
