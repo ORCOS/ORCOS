@@ -77,7 +77,7 @@ OmapGPTimer::~OmapGPTimer() {
 }
 
 /*****************************************************************************
- * Method:  OmapGPTimer::enable()
+ * Method: OmapGPTimer::enable()
  *
  * @description
  *  Enables the hardware timer using the current configuration.

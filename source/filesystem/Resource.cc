@@ -38,10 +38,11 @@ Resource::Resource(ResourceType rt, bool sync_res, const char* p_name) {
         ERROR("Out of Resource IDs!");
     }
     /* if this is a resource that needs to be synchronized create Mutex */
-    if (sync_res)
+    if (sync_res) {
         this->accessControl = new Mutex();
-    else
+    } else {
         this->accessControl = 0;
+    }
 }
 
 /*****************************************************************************
@@ -140,5 +141,4 @@ ErrorT Resource::release(Thread* pThread) {
         }
     }
     return (cOk );
-
 }

@@ -41,7 +41,7 @@
  *
  * @returns
  *  int         Error Code
- *---------------------------------------------------------------------------*/
+ *******************************************************************************/
 int sc_shm_map(intptr_t sp_int) {
     const char* file;
     unint4* mapped_address;
@@ -116,10 +116,16 @@ int sc_shm_map(intptr_t sp_int) {
 #endif
 
 #else
+/*****************************************************************************
+ * Method: sc_shm_map(intptr_t sp_int)
+ *
+ * @description
+ *  Dummy if no virtual memory is available
+ *******************************************************************************/
 int sc_shm_map(intptr_t sp_int) {
     return (cNotImplemented);
 }
-#endif // check if hat layer is available
+#endif /* check if hat layer is available */
 
 /*******************************************************************
  *                DELETE Syscall
@@ -135,7 +141,7 @@ int sc_shm_map(intptr_t sp_int) {
  *
  * @returns
  *  int         Error Code
- *---------------------------------------------------------------------------*/
+ *******************************************************************************/
 int sc_delete(intptr_t int_sp) {
     void* addr;
     SYSCALLGETPARAMS1(int_sp, addr);
@@ -168,7 +174,7 @@ int sc_delete(intptr_t int_sp) {
  *
  * @returns
  *  int         Error Code
- *---------------------------------------------------------------------------*/
+ *******************************************************************************/
 int sc_new(intptr_t int_sp) {
     size_t size;
     SYSCALLGETPARAMS1(int_sp, size);

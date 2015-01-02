@@ -12,7 +12,7 @@
 
 extern Kernel* theOS;
 
-#define BLOCK_SIZE 4096
+#define RAMDISK_BLOCK_SIZE 4096
 
 Ramdisk::Ramdisk(T_Ramdisk_Init* init) {
     /* get Ramdisk location and size from SCL configuration */
@@ -21,15 +21,15 @@ Ramdisk::Ramdisk(T_Ramdisk_Init* init) {
 
     blockChain = reinterpret_cast<unint4*>(start);
 
-    unint4 numblocks        = ((end - start) / BLOCK_SIZE);
+    unint4 numblocks        = ((end - start) / RAMDISK_BLOCK_SIZE);
     unint4 blockChainSize   = (sizeof(unint4*)) * numblocks;
-    numblocks              -= (blockChainSize / BLOCK_SIZE);
+    numblocks              -= (blockChainSize / RAMDISK_BLOCK_SIZE);
     blockChainSize          = (sizeof(unint4*)) * numblocks;
 
     blockChainEntries = numblocks;
 
     firstBlock = start + (numblocks * sizeof(unint4*));
-    firstBlock = (unint4) alignCeil(reinterpret_cast<char*>(firstBlock), BLOCK_SIZE);
+    firstBlock = (unint4) alignCeil(reinterpret_cast<char*>(firstBlock), RAMDISK_BLOCK_SIZE);
 
     if (theOS->getRamManager() != 0) {
         /* Mark the ram disk area as used so it can not be used to allocate tasks a.s.o*/
@@ -68,7 +68,7 @@ unint4 Ramdisk::allocateBlock(unint4 prev) {
  * Method: Ramdisk::freeBlock(unint4 blockNum)
  *
  * @description
- *   Fress a block
+ *   Frees a block chain starting at block #blocknum
  *******************************************************************************/
 int Ramdisk::freeBlock(unint4 blockNum) {
     if (blockNum != (unint4) -1) {
@@ -170,6 +170,15 @@ File* RamdiskDirectory::createFile(char* name, unint4 flags) {
 }
 
 
+/*****************************************************************************
+ * Method: RamdiskDirectory::createDirectory(char* name, unint4 flags)
+ *
+ * @description
+ *   Creates a new Ramdisk Directory inside the given Ramdisk directory.
+ *
+ * @returns
+ *  Directory*  Pointer to the directory or null if an error occured.
+ *******************************************************************************/
 Directory* RamdiskDirectory::createDirectory(char* name, unint4 flags) {
     if (get(name, strlen(name))) {
        LOG(FILESYSTEM, ERROR, "RamdiskDirectory::createDirectory(): Directory already exists '%s'", name);
@@ -208,10 +217,10 @@ ErrorT RamdiskFile::readBytes(char* bytes, unint4& length) {
         // position inside our current sector
         // sector_pos         = this->position % sector_size;
         // sector size must be a multiple of 2
-        sector_pos = this->readPos & (BLOCK_SIZE - 1);
+        sector_pos = this->readPos & (RAMDISK_BLOCK_SIZE - 1);
 
         // set readlength to remaining bytes in this sector
-        sector_read_len = BLOCK_SIZE - sector_pos;
+        sector_read_len = RAMDISK_BLOCK_SIZE - sector_pos;
 
         // check if we read less than the remaining bytes in this sector
         if (readlength < sector_read_len) {
@@ -220,7 +229,7 @@ ErrorT RamdiskFile::readBytes(char* bytes, unint4& length) {
             sector_changed = true;
         }
 
-        buffer = reinterpret_cast<char*>((currentBlock * BLOCK_SIZE) + myRamDisk->getFirstBlockAddress());
+        buffer = reinterpret_cast<char*>((currentBlock * RAMDISK_BLOCK_SIZE) + myRamDisk->getFirstBlockAddress());
         // copy the desired bytes in this sector into the buffer
         memcpy(&bytes[pos], &buffer[sector_pos], sector_read_len);
 
@@ -265,8 +274,8 @@ ErrorT RamdiskFile::writeBytes(const char* bytes, unint4 length) {
     // keep writing while we have bytes to write
     while (length > 0) {
         // check if the next write operation is overwriting something or appending
-        sector_pos = this->position & (BLOCK_SIZE - 1);  // position inside the sector
-        sector_write_len = BLOCK_SIZE - sector_pos;      // the length we are writing inside this sector
+        sector_pos = this->position & (RAMDISK_BLOCK_SIZE - 1);  // position inside the sector
+        sector_write_len = RAMDISK_BLOCK_SIZE - sector_pos;      // the length we are writing inside this sector
 
         // check if we read less than the remaining bytes in this sector
         if (length < sector_write_len) {
@@ -275,7 +284,7 @@ ErrorT RamdiskFile::writeBytes(const char* bytes, unint4 length) {
             sector_changed = true;
         }
 
-        buffer = reinterpret_cast<char*>((currentBlock * BLOCK_SIZE) + myRamDisk->getFirstBlockAddress());
+        buffer = reinterpret_cast<char*>((currentBlock * RAMDISK_BLOCK_SIZE) + myRamDisk->getFirstBlockAddress());
 
         // copy the desired bytes in this sector into the buffer
         memcpy(&buffer[sector_pos], &bytes[pos], sector_write_len);

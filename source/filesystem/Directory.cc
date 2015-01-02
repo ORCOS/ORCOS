@@ -125,16 +125,15 @@ Directory*  Directory::createDirectory(char* p_name, unint4 flags) {
         return (0);
 
     char* name = new char[strlen(p_name)+1];
-    strcpy(name,p_name);
+    strcpy(name, p_name);
 
     dir = new Directory(name);
     ErrorT ret = this->add(dir);
     if (isError(ret)) {
-        LOG(FILESYSTEM,ERROR,"Directory::createDirectory(): Error creating directory %d",ret);
+        LOG(FILESYSTEM, ERROR, "Directory::createDirectory(): Error creating directory %d", ret);
         return (0);
     }
     return (dir);
-
 }
 
 /*****************************************************************************

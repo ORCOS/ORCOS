@@ -264,7 +264,7 @@ int sc_fopen(intptr_t int_sp) {
         res = theOS->getFileManager()->getResource(filename);
     } else {
         Directory* dir = theOS->getFileManager()->getDirectory(pCurrentRunningTask->getWorkingDirectory());
-        res = dir->get(filename,strlen(filename));
+        res = dir->get(filename, strlen(filename));
     }
 
     if (res != 0) {
@@ -408,7 +408,7 @@ int sc_fread(intptr_t int_sp) {
     Resource* res;
     res = pCurrentRunningTask->getOwnedResourceById(read_stream);
     if (res != 0) {
-        LOG(SYSCALLS, TRACE, "Syscall: fread valid. Resource: %s",res->getName());
+        LOG(SYSCALLS, TRACE, "Syscall: fread valid. Resource: %s", res->getName());
 
         if (res->getType() & (cStreamDevice | cCommDevice | cFile | cDirectory)) {
             char* pointer = read_ptr;

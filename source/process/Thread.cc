@@ -121,11 +121,11 @@ Thread::Thread(void* p_startRoutinePointer,
 
         SYSFS_ADD_RO_STRING(sysFsDir, name);
         SYSFS_ADD_RO_UINT_NAMED(sysFsDir, "tid", myThreadId);
-        SYSFS_ADD_RO_UINT  (sysFsDir, blockTimeout);
-        SYSFS_ADD_RO_UINT  (sysFsDir, signal);
-        SYSFS_ADD_RO_UINT  (sysFsDir, signalvalue);
-        SYSFS_ADD_RO_UINT  (sysFsDir, sleepTime);
-        SYSFS_ADD_RO_UINT  (sysFsDir, status);
+        SYSFS_ADD_RO_UINT(sysFsDir, blockTimeout);
+        SYSFS_ADD_RO_UINT(sysFsDir, signal);
+        SYSFS_ADD_RO_UINT(sysFsDir, signalvalue);
+        SYSFS_ADD_RO_UINT(sysFsDir, sleepTime);
+        SYSFS_ADD_RO_UINT(sysFsDir, status);
 
 #ifdef HAS_PRIORITY
         PriorityThread* prioThread = static_cast<PriorityThread*>(this);
@@ -160,7 +160,7 @@ Thread::~Thread() {
 ErrorT Thread::run() {
     /* set my state to ready */
     this->status.setBits(cReadyFlag);
-    LOG(PROCESS, DEBUG, "Thread::run Id: %d Name: %s",this->getId(), this->getName() );
+    LOG(PROCESS, DEBUG, "Thread::run Id: %d Name: %s", this->getId(), this->getName() );
 
     /* inform the global cpu scheduler that i am ready to run */
     return (theOS->getCPUScheduler()->enter(getLinkedListItem()));

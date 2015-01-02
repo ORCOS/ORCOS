@@ -61,9 +61,7 @@ Mutex::Mutex() :
  * @returns
  *---------------------------------------------------------------------------*/
 Mutex::~Mutex() {
-
     // TODO: waiting threads?? should not happen
-
 }
 
 /*****************************************************************************
@@ -82,7 +80,6 @@ ErrorT Mutex::acquire(Resource* pRes, bool blocking) {
 
     DISABLE_IRQS(irqstatus);
     do  {
-
         _disableInterrupts();
         /* spinningly try to get this lock!
          * if not dispatch and give the running thread the higher priority!
@@ -126,7 +123,6 @@ ErrorT Mutex::acquire(Resource* pRes, bool blocking) {
         _enableInterrupts();
 
         NOP;
-
     } while (blocking);
 
     RESTORE_IRQS(irqstatus);
@@ -156,9 +152,9 @@ ErrorT Mutex::release(Thread* pThread) {
     Kernel_ThreadCfdCl* pCallingThread = static_cast<Kernel_ThreadCfdCl*>(pThread);
     /* reset the priority of the currentRunning thread as it might have been boosted by
      * higher priority waiting threads  */
-    if (pCallingThread != 0)
+    if (pCallingThread != 0) {
         pCallingThread->effectivePriority = acquirePriority;
-
+    }
 
     RESTORE_IRQS(irqstatus);
 

@@ -39,7 +39,7 @@
  *
  * @returns
  *  int         Error Code
- *---------------------------------------------------------------------------*/
+ *******************************************************************************/
 int sc_socket(intptr_t int_sp) {
     unint2 domain;
     SOCK_TYPE type;
@@ -76,7 +76,7 @@ int sc_socket(intptr_t int_sp) {
  *
  * @returns
  *  int         Error Code
- *---------------------------------------------------------------------------*/
+ *******************************************************************************/
 int sc_connect(intptr_t int_sp) {
     ResourceIdT socketid;
     sockaddr* addr;
@@ -120,7 +120,7 @@ int sc_connect(intptr_t int_sp) {
  *
  * @returns
  *  int         Error Code
- *---------------------------------------------------------------------------*/
+ *******************************************************************************/
 int sc_listen(intptr_t int_sp) {
     ResourceIdT socketid;
     int retval;
@@ -163,7 +163,7 @@ int sc_listen(intptr_t int_sp) {
  *
  * @returns
  *  int         Error Code
- *---------------------------------------------------------------------------*/
+ *******************************************************************************/
 int sc_bind(intptr_t int_sp) {
     ResourceIdT socketid;
     sockaddr* addr;
@@ -211,7 +211,7 @@ int sc_bind(intptr_t int_sp) {
  *
  * @returns
  *  int         Error Code
- *---------------------------------------------------------------------------*/
+ *******************************************************************************/
 int sc_sendto(intptr_t int_sp) {
     ResourceIdT socket;
     const void* buffer;
@@ -264,7 +264,7 @@ int sc_sendto(intptr_t int_sp) {
  *
  * @returns
  *  int         Error Code
- *---------------------------------------------------------------------------*/
+ *******************************************************************************/
 int sc_recv(intptr_t int_sp) {
     ResourceIdT socketid;
     char* data_addr;
@@ -305,26 +305,62 @@ int sc_recv(intptr_t int_sp) {
 #endif
 
 #else
+/*****************************************************************************
+ * Method: sc_recv(intptr_t sp_int)
+ *
+ * @description
+ *  Dummy if networking is disabled.
+ *******************************************************************************/
 int sc_recv(intptr_t int_sp) {
  return (cNotImplemented);
 }
 
+/*****************************************************************************
+ * Method: sc_sendto(intptr_t int_sp)
+ *
+ * @description
+ *  Dummy if networking is disabled.
+ *******************************************************************************/
 int sc_sendto(intptr_t int_sp) {
  return (cNotImplemented);
 }
 
+/*****************************************************************************
+ * Method: sc_bind(intptr_t int_sp)
+ *
+ * @description
+ *  Dummy if networking is disabled.
+ *******************************************************************************/
 int sc_bind(intptr_t int_sp) {
  return (cNotImplemented);
 }
 
+/*****************************************************************************
+ * Method: sc_socket(intptr_t int_sp)
+ *
+ * @description
+ *  Dummy if networking is disabled.
+ *******************************************************************************/
 int sc_socket(intptr_t int_sp) {
  return (cNotImplemented);
 }
 
+/*****************************************************************************
+ * Method: sc_connect(intptr_t int_sp)
+ *
+ * @description
+ *  Dummy if networking is disabled.
+ *******************************************************************************/
 int sc_connect(intptr_t int_sp) {
  return (cNotImplemented);
 }
 
+/*****************************************************************************
+ * Method: sc_listen(intptr_t int_sp)
+ *
+ * @description
+ *  Dummy if networking is disabled.
+ *******************************************************************************/
 int sc_listen(intptr_t int_sp) {
  return (cNotImplemented);
 }
