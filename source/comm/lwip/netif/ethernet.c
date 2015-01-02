@@ -13,10 +13,8 @@
 #include "netif/ethar.h"
 
 extern void* comStackMutex;
-
-extern void acquireMutex(void* mutex);
-
-extern void releaseMutex(void* mutex);
+extern void  acquireMutex(void* mutex);
+extern void  releaseMutex(void* mutex);
 
 /**
  * Process received ethernet frames. Using this function instead of directly
@@ -36,12 +34,10 @@ err_t ethernet_input(struct pbuf *p, struct netif *netif) {
 
     type = htons(ethhdr->type);
 #if ETHARP_SUPPORT_VLAN
-    if (type == ETHTYPE_VLAN)
-    {
+    if (type == ETHTYPE_VLAN) {
         struct eth_vlan_hdr *vlan = (struct eth_vlan_hdr*)(((char*)ethhdr) + SIZEOF_ETH_HDR);
 #ifdef ETHARP_VLAN_CHECK /* if not, allow all VLANs */
-        if (VLAN_ID(vlan) != ETHARP_VLAN_CHECK)
-        {
+        if (VLAN_ID(vlan) != ETHARP_VLAN_CHECK) {
             /* silently ignore this packet: not for our VLAN */
             pbuf_free(p);
             return ERR_OK;
@@ -61,14 +57,11 @@ err_t ethernet_input(struct pbuf *p, struct netif *netif) {
         ethar_ip_input(netif, p);
 #endif /* ETHARP_TRUST_IP_MAC */
         /* skip Ethernet header */
-        if (pbuf_header(p, -(s16_t) SIZEOF_ETH_HDR))
-        {
+        if (pbuf_header(p, -(s16_t) SIZEOF_ETH_HDR)) {
             LWIP_ASSERT("Can't move over header in packet", 0);
             pbuf_free(p);
             p = NULL;
-        }
-        else
-        {
+        } else {
             /* pass to IP layer */
             ip4_input(p, netif);
         }
@@ -81,15 +74,11 @@ err_t ethernet_input(struct pbuf *p, struct netif *netif) {
         ethar_ip_input(netif, p);
 #endif /* ETHARP_TRUST_IP_MAC */
 
-        if (pbuf_header(p, -(s16_t) SIZEOF_ETH_HDR))
-        {
+        if (pbuf_header(p, -(s16_t) SIZEOF_ETH_HDR)) {
             LWIP_ASSERT("Can't move over header in packet", 0);
             pbuf_free(p);
             p = NULL;
-        }
-        else
-        {
-
+        } else {
             ip6_input(p, netif);
         }
         break;
@@ -117,7 +106,7 @@ err_t ethernet_input(struct pbuf *p, struct netif *netif) {
         break;
     }
 
-    releaseMutex(comStackMutex);
+    //releaseMutex(comStackMutex);
 
     /* This means the pbuf is freed or consumed,
      so the caller doesn't have to free it again */
