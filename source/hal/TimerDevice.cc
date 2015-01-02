@@ -23,7 +23,7 @@
 
 extern Kernel* theOS;
 
-TimerDevice::TimerDevice(const char* name) : GenericDeviceDriver((ResourceType) (cGenericDevice | cTimerDevice),true,name){
+TimerDevice::TimerDevice(const char* name) : GenericDeviceDriver((ResourceType) (cGenericDevice | cTimerDevice), true, name) {
     elapsedCycles   = 0;
     dispatcher      = theOS->getDispatcher();
     tickRate        = 0;
@@ -42,8 +42,6 @@ TimerDevice::TimerDevice(const char* name) : GenericDeviceDriver((ResourceType) 
 
 TimerDevice::~TimerDevice() {
 }
-
-
 
 /*****************************************************************************
  * Method: TimerDevice::handleIRQ()
@@ -83,7 +81,7 @@ ErrorT TimerDevice::ioctl(int request, void* args) {
     switch (request) {
         case TIMER_IOCTL_CONFIG: {
             VALIDATE_IN_PROCESS(args);
-            timer_t* timer_conf = (timer_t*) args;
+            timer_t* timer_conf = reinterpret_cast<timer_t*>(args);
 
             if (timer_conf->threadId == 0) {
                 llThread = pCurrentRunningThread;

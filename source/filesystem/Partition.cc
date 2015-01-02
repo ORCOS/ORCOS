@@ -31,7 +31,7 @@ void Partition::initialize() {
         CachedBlocks[i].block_start  = -1;
         CachedBlocks[i].pPartition   = 0;
         CachedBlocks[i].modified     = 0;
-        BlockCacheList->addTail((ListItem*)&CachedBlocks[i]);
+        BlockCacheList->addTail(reinterpret_cast<ListItem*>(&CachedBlocks[i]));
     }
 }
 
@@ -43,7 +43,7 @@ ErrorT Partition::accessSector(unint4 sector_num, char* buffer, int operation) {
     int block_num = sector_num & ~(sectorsPerBlock-1);
 
     while (litem) {
-        blockCache = (tPartitionBlockCache*) litem->getData();
+        blockCache = reinterpret_cast<tPartitionBlockCache*>(litem->getData());
         if (blockCache->pPartition == this && blockCache->block_start == block_num) {
             break;
         }
@@ -53,7 +53,7 @@ ErrorT Partition::accessSector(unint4 sector_num, char* buffer, int operation) {
     if (!litem) {
         /* not cached .. drop least recently used cached block and read new block */
         litem = BlockCacheList->getTail();
-        blockCache = (tPartitionBlockCache*) litem->getData();
+        blockCache = reinterpret_cast<tPartitionBlockCache*>(litem->getData());
 
         /* write back block */
         if (blockCache->pPartition != 0 && blockCache->modified)
@@ -69,10 +69,10 @@ ErrorT Partition::accessSector(unint4 sector_num, char* buffer, int operation) {
     /* found in cache */
     int offset = sector_num & (sectorsPerBlock-1);
     if (operation == SECTOR_READ) {
-        memcpyl(buffer,&blockCache->buffer[getSectorSize()*offset],getSectorSize());
+        memcpyl(buffer, &blockCache->buffer[getSectorSize()*offset], getSectorSize());
     } else {
         blockCache->modified = 1;
-        memcpyl(&blockCache->buffer[getSectorSize()*offset],buffer,getSectorSize());
+        memcpyl(&blockCache->buffer[getSectorSize()*offset], buffer, getSectorSize());
     }
     /* put block at head */
     litem->remove();
@@ -82,10 +82,10 @@ ErrorT Partition::accessSector(unint4 sector_num, char* buffer, int operation) {
 
 void Partition::flushCache() {
     LinkedListItem* litem = BlockCacheList->getHead();
-    tPartitionBlockCache* blockCache = 0;
 
      while (litem) {
-         blockCache = (tPartitionBlockCache*) litem->getData();
+         tPartitionBlockCache* blockCache;
+         blockCache = reinterpret_cast<tPartitionBlockCache*>(litem->getData());
          if (blockCache->pPartition == this && blockCache->modified) {
              blockCache->modified = 0;
              /* write back this block */
@@ -103,11 +103,10 @@ void Partition::flushCache() {
  *  Tries to read the given sector of this partition into the buffer.
  *******************************************************************************/
 ErrorT Partition::readSectors(unint4 sector_start, char* buffer, unint4 num_sectors) {
-    if (sector_start + num_sectors < sectors)
-    {
+    if (sector_start + num_sectors < sectors) {
         ErrorT ret = cOk;
-        for (int i = 0; i < num_sectors; i++) {
-            ret = accessSector(sector_start + i, &buffer[i*getSectorSize()],SECTOR_READ);
+        for (unint4 i = 0; i < num_sectors; i++) {
+            ret = accessSector(sector_start + i, &buffer[i*getSectorSize()], SECTOR_READ);
             if (isError(ret)) return (ret);
         }
         return (ret);
@@ -139,13 +138,12 @@ ErrorT Partition::clearBytes(unint4 sector_start, unint4 offset, unint4 length) 
     }
 
     /* check for valid sector access*/
-    if (sector < sectors)
-    {
+    if (sector < sectors) {
         int bytesCleared    = 0;
 
         /* clear all bytes until length is == 0 or sector reached end of partition */
         while (length > 0 && sector < sectors) {
-            int len  = length;
+            unint4 len  = length;
 
             /* shrink len to fit current sector */
             if (offset + length > getSectorSize()) {
@@ -154,13 +152,13 @@ ErrorT Partition::clearBytes(unint4 sector_start, unint4 offset, unint4 length) 
             if (offset > 0 || len < getSectorSize()) {
                 myBlockDevice->readBlock(this->lba_start + sector, buffer, 1);
             }
-            memset(buffer + offset,0,len);
+            memset(buffer + offset, 0, len);
             myBlockDevice->writeBlock(this->lba_start + sector, buffer, 1);
 
-            length -= len;
+            length       -= len;
             bytesCleared += len;
             sector++;
-            offset = 0;
+            offset        = 0;
         }
 
         return (bytesCleared);
@@ -175,16 +173,14 @@ ErrorT Partition::clearBytes(unint4 sector_start, unint4 offset, unint4 length) 
  *
  *******************************************************************************/
 ErrorT Partition::writeSectors(unint4 sector_start, char* buffer, unint4 num_sectors) {
-    if (sector_start + num_sectors < sectors)
-       {
+    if (sector_start + num_sectors < sectors) {
          ErrorT ret = cOk;
-         for (int i = 0; i < num_sectors; i++) {
-             ret = accessSector(sector_start + i, &buffer[i*getSectorSize()],SECTOR_WRITE);
+         for (unint4 i = 0; i < num_sectors; i++) {
+             ret = accessSector(sector_start + i, &buffer[i*getSectorSize()], SECTOR_WRITE);
              if (isError(ret)) return (ret);
          }
          return (ret);
-       }
-       else {
+    } else {
          return (cError);
-       }
-   }
+    }
+}

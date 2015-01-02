@@ -22,7 +22,7 @@
 #define RO READ
 
 /* the syscall handler signature */
-typedef  ErrorT (*sysfs_write_handler_t)(const void* data, int size);
+typedef ErrorT (*sysfs_write_handler_t)(const void* data, int size);
 
 
 class KernelVariable: public File {

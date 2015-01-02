@@ -53,7 +53,7 @@ extern void _putchar(char** str, char c);
  *
  *******************************************************************************/
 void Logger::log(Prefix prefix, Level level, const char* msg, ...) {
-    if ((int)level > (int)prefix) {
+    if (static_cast<int>(level) > static_cast<int>(prefix)) {
         return;
     }
 
@@ -73,10 +73,11 @@ void Logger::log(Prefix prefix, Level level, const char* msg, ...) {
     printf("[%08u]", time);
 #endif
 
-    if (pCurrentRunningThread != 0)
+    if (pCurrentRunningThread != 0) {
         printf("[%03d][%s] ", pCurrentRunningThread->getId(), levelStrings[level]);
-    else
+    } else {
         printf("[KER][%s] ", levelStrings[level]);
+    }
 
     va_list arglist;
     va_start(arglist, msg);

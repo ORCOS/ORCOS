@@ -122,7 +122,6 @@ MassStorageSCSIUSBDeviceDriver::MassStorageSCSIUSBDeviceDriver(MassStorageSCSIUS
         theOS->getPartitionManager()->registerBlockDevice(this);
         theOS->getFileManager()->getDirectory("dev")->add(this);
     }
-
 }
 
 

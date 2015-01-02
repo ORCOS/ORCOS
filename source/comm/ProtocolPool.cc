@@ -53,7 +53,7 @@ ProtocolPool::ProtocolPool() {
 #endif
 
     comStackMutex = new Mutex();
-    sysArchMutex = (void*) new Mutex();
+    sysArchMutex = reinterpret_cast<void*>(new Mutex());
 }
 
 ProtocolPool::~ProtocolPool() {

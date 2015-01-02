@@ -2,7 +2,7 @@
  * crc32.c
  *
  *  Created on: 27.01.2013
- *      Author: Daniel
+ *      Copyright & Author: Daniel Baldin
  */
 
 #include "inc/types.hh"
@@ -56,13 +56,18 @@ static unint4 crc_32_tab[] = { /* CRC polynomial 0xedb88320 */
 
 #define UPDC32(octet, crc) (crc_32_tab[((crc) ^ (octet)) & 0xff] ^ ((crc) >> 8))
 
+/*****************************************************************************
+ * Method: crc32(unsigned char *buf, size_t len)
+ *
+ * @description
+ * Calculates the crc32 value over the bytes inside the given buffer of size len.
+ *******************************************************************************/
 unint4 crc32(unsigned char *buf, size_t len) {
     register unint4 oldcrc32;
 
     oldcrc32 = 0xFFFFFFFF;
 
-    for (; len; --len, ++buf)
-    {
+    for (; len; --len, ++buf) {
         oldcrc32 = UPDC32(*buf, oldcrc32);
     }
 
@@ -72,7 +77,7 @@ unint4 crc32(unsigned char *buf, size_t len) {
 #else
 
 /* Table of CRCs of all 8-bit messages. */
-unsigned long crc_table[256];
+unint4 crc_table[256];
 
 /* Flag: has the table been computed? Initially false. */
 int crc_table_computed = 0;
@@ -80,18 +85,17 @@ int crc_table_computed = 0;
 /* Make the table for a fast CRC. */
 void make_crc_table(void)
 {
-    unsigned long c;
+    unint4 c;
     int n, k;
 
-    for (n = 0; n < 256; n++)
-    {
-        c = (unsigned long) n;
-        for (k = 0; k < 8; k++)
-        {
-            if (c & 1)
-            c = 0xedb88320L ^ (c >> 1);
-            else
-            c = c >> 1;
+    for (n = 0; n < 256; n++) {
+        c = n;
+        for (k = 0; k < 8; k++) {
+            if (c & 1) {
+                c = 0xedb88320L ^ (c >> 1);
+            } else {
+                c = c >> 1;
+            }
         }
         crc_table[n] = c;
     }
@@ -103,24 +107,22 @@ void make_crc_table(void)
  is the 1's complement of the final running CRC (see the
  crc() routine below). */
 
-unint4 update_crc(unsigned long crc, unsigned char *buf,
-        int len)
-{
+unint4 update_crc(unint4 crc, unsigned char *buf, int len) {
     unint4 c = crc;
     int n;
 
-    if (!crc_table_computed)
-    make_crc_table();
-    for (n = 0; n < len; n++)
-    {
+    if (!crc_table_computed) {
+        make_crc_table();
+    }
+
+    for (n = 0; n < len; n++) {
         c = crc_table[(c ^ buf[n]) & 0xff] ^ (c >> 8);
     }
     return c;
 }
 
 /* Return the CRC of the bytes buf[0..len-1]. */
-unint4 crc32(unsigned char *buf, size_t len)
-{
+unint4 crc32(unsigned char *buf, size_t len) {
     return (update_crc(0xffffffffL, buf, len) ^ 0xffffffffL);
 }
 #endif

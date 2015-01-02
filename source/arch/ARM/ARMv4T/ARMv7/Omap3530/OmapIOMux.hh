@@ -2,7 +2,7 @@
  * OmapIOMux.hh
  *
  *  Created on: 21.12.2014
- *      Author: Daniel
+ *      Copyright & Author: Daniel Baldin
  */
 
 #ifndef SOURCE_ARCH_ARM_ARMV4T_ARMV7_OMAP3530_OMAPIOMUX_HH_
@@ -11,13 +11,12 @@
 #include <hal/CharacterDevice.hh>
 
 /*
- *
+ * IO Muxing support for Omap Devices Chips.
  */
 class OmapIOMux: public CharacterDevice {
 public:
-    explicit OmapIOMux();
+    OmapIOMux();
     ~OmapIOMux();
-
 
     /*****************************************************************************
       * Method: readBytes(char *bytes, unint4 &length)

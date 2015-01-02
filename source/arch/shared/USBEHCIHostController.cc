@@ -85,7 +85,7 @@ volatile QH QHmain __attribute__((aligned(32))) ATTR_CACHE_INHIBIT;
 unint4 framelist[FRAME_LIST_SIZE] __attribute__((aligned(0x1000))) ATTR_CACHE_INHIBIT;
 
 static char recv_buf[256] __attribute__((aligned(4))) ATTR_CACHE_INHIBIT;
-volatile static qTD qtds[8] __attribute__((aligned(32))) ATTR_CACHE_INHIBIT;
+static volatile qTD qtds[8] __attribute__((aligned(32))) ATTR_CACHE_INHIBIT;
 static int ATTR_CACHE_INHIBIT qtdnum = 0;
 
 USB_EHCI_Host_Controller::USB_EHCI_Host_Controller(unint4 ehci_dev_base) :
@@ -106,6 +106,10 @@ USB_EHCI_Host_Controller::USB_EHCI_Host_Controller(unint4 ehci_dev_base) :
         registered_devices[i] = 0;
     }
 
+    /* regarding cpplint error:
+     *  can not use reinterpret cast:
+     *  error: reinterpret_cast from type 'volatile QH*' to type 'void*' casts away qualifiers
+     */
     memset((void*)(&QHmain), 0, sizeof(QH));
     QHmain.qh_endpt1                = QH_ENDPT1_H(1); // | QH_ENDPT1_I(1);
     QHmain.qh_curtd                 = QT_NEXT_TERMINATE;
@@ -455,8 +459,8 @@ int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1
     /* check on error .. ignore ping state bit as this is taken care of by the HC*/
     if ((QT_TOKEN_GET_STATUS(qtd_last->qt_token) & 0xFE) != 0x0) {
         LOG(ARCH, ERROR, "USB_EHCI_Host_Controller::send() error on bulk packet..");
-        LOG(ARCH, ERROR, "USBSTS: %x",INW(operational_register_base + USBSTS_OFFSET));
-        LOG(ARCH, ERROR, "USBCMD: %x",INW(operational_register_base + USBCMD_OFFSET));
+        LOG(ARCH, ERROR, "USBSTS: %x", INW(operational_register_base + USBSTS_OFFSET));
+        LOG(ARCH, ERROR, "USBCMD: %x", INW(operational_register_base + USBCMD_OFFSET));
         LOG(ARCH, ERROR, "qtd     \t(%08x)\tstatus: %x", qtd, qtd->qt_token);
         LOG(ARCH, ERROR, "qtd_last\t(%08x)\tstatus: %x", qtd_last, qtd_last->qt_token);
         LOG(ARCH, ERROR, "AsyncListAddr: 0x%x", INW(operational_register_base + ASYNCLISTADDR_OFFSET));
@@ -1033,7 +1037,7 @@ ErrorT USB_EHCI_Host_Controller::enableIRQ() {
 * Method: USB_EHCI_Host_Controller::disableIRQ()
 *
 * @description
-*  Disables EHCI HC IRQs
+*  Disables all EHCI HC IRQs
 *
 * @returns
 *  ErrorT         Error Code
@@ -1046,7 +1050,7 @@ ErrorT USB_EHCI_Host_Controller::disableIRQ() {
 
 
 /*****************************************************************************
- * Method: clearIRQ()
+ * Method: USB_EHCI_Host_Controller::clearIRQ()
  *
  * @description
  *  Clears all pending EHCI HC IRQs.
@@ -1553,7 +1557,7 @@ ErrorT USBDevice::activateEndpoint(int num, QH* pqh, qTD* pqtd) {
 }
 
 USBDevice::USBDevice(USB_EHCI_Host_Controller *p_controller, USBDevice *p_parent, unint1 u_port, unint1 u_speed)
-     : Resource(cGenericDevice,true,"USB_Device") {
+     : Resource(cGenericDevice, true, "USB_Device") {
     this->controller    = p_controller;
     this->parent        = p_parent;
     this->port          = u_port;

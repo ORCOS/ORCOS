@@ -112,9 +112,9 @@ LinkedListItem* PriorityThreadScheduler::getNext() {
 #if 0
     printf("Queue: ");
     LinkedListItem* litem = this->database.getHead();
-    for (; litem; litem = litem->getSucc()){
-        Thread* thread = (Thread*) litem->getData();
-        printf(" %d",thread->getId());
+    for (; litem; litem = litem->getSucc()) {
+        Thread* thread = static_cast<Thread*>(litem->getData());
+        printf(" %d", thread->getId());
     }
     printf("\n");
 #endif

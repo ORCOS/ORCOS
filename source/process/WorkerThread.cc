@@ -72,11 +72,11 @@ void WorkerThread::callMain() {
  *******************************************************************************/
 void WorkerThread::work() {
     /* now we are ready to finish the job
-     // at this point we are also able to access the
-     // jobs parameter since it lies either on the
-     // stack of the thread which issued this job
-     // or on the heap. Both is accessible since
-     // the pid is set correctly. */
+     * at this point we are also able to access the
+     * jobs parameter since it lies either on the
+     * stack of the thread which issued this job
+     * or on the heap. Both is accessible since
+     * the pid is set correctly. */
 
     /* enable interrupts here since we are now executing like a user thread except that we are in kernel space */
     _enableInterrupts();
@@ -106,15 +106,15 @@ void WorkerThread::work() {
 
     _disableInterrupts();
 
-    // reset the new flag so next time we will execute callMain again next time
-    // and do not try to restore some context that does not exist
+    /* reset the new flag so next time we will execute callMain again next time
+     * and do not try to restore some context that does not exist */
 
     this->status.setBits(cNewFlag);
 
     if (jobid == PeriodicFunctionCallJob) {
-        // we are a periodic thread. dont block myself bet get to sleep instead
+        /* we are a periodic thread. dont block myself bet get to sleep instead */
         PeriodicFunctionCall* pcall = reinterpret_cast<PeriodicFunctionCall*>(param);
-        // set the absolute time of execution
+        /* set the absolute time of execution */
         pcall->functioncall.time += pcall->period;
         /* increase instance counter */
         this->instance++;
@@ -129,7 +129,10 @@ void WorkerThread::work() {
         this->stop();
     }
 
-    while(1);
+    __builtin_unreachable();
+    while (1) {
+        NOP;
+    }
 }
 
 /*****************************************************************************

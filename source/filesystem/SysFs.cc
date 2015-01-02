@@ -132,7 +132,6 @@ ErrorT KernelVariable::writeBytes(const char *bytes, unint4 length) {
         length = this->filesize;
 
         if (onWriteHandler == 0) {
-
             for (unint i = 0; i < this->filesize; i++) {
                 (reinterpret_cast<char*>(this->address))[i] = bytes[i];
             }

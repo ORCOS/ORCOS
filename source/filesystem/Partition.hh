@@ -16,6 +16,8 @@ class FileSystemBase;
 
 #define SECTOR_READ  0
 #define SECTOR_WRITE 1
+
+/* The block size can be tuned for better performance */
 #define BLOCK_SIZE 4096*2
 
 /*
@@ -37,17 +39,37 @@ protected:
     // The partition number
     unint4 partition_number;
 
-    // we support only one Filesystem per partition (are there any other cases anyway?)
+    /* we support only one Filesystem per partition (are there any other cases anyway?) */
     FileSystemBase* mountedFileSystem;
 
+    /* The number of sectors per block */
     unint4 sectorsPerBlock;
 
+    /*****************************************************************************
+     * Method: accessSector(unint4 sector_num, char* buffer, int operation)
+     *
+     * @description
+     *  Performs SECTOR_READ or SECTOR_WRITE operation on a given sector using the data inside the buffer.
+     *  On SECTOR_WRITE write the data inside the buffer into the sector.
+     *  On SECTOR_READ reads the sector into the buffer.
+     *******************************************************************************/
     ErrorT accessSector(unint4 sector_num, char* buffer, int operation);
 
 public:
-
+    /*****************************************************************************
+     * Method: initialize()
+     *
+     * @description
+     *  Static initialization of the Partition Buffer Cache.
+     *******************************************************************************/
     static void initialize();
 
+    /*****************************************************************************
+     * Method: flushCache()
+     *
+     * @description
+     *  Flushes all buffered sectors to the block devices.
+     *******************************************************************************/
     void flushCache();
 
     Partition(BlockDeviceDriver *p_bdev, char* p_name, unint4 i_lba_start, unint4 i_sectors, unint4 i_partition_num) :
@@ -85,10 +107,6 @@ public:
     void setMountedFileSystem(FileSystemBase* fs) {
         this->mountedFileSystem = fs;
     }
-
-    // TODO add method to create cached partition regions
-    // to highly speed up access to e.g. fat tables etc.
-    // and add synch method which can be used to synch the cached partition regions
 
     /*****************************************************************************
      * Method: readSectors(unint4 sector_start, char* buffer, unint4 num_sectors)

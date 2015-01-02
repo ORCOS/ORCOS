@@ -50,8 +50,9 @@ protected:
 
     /* pointer to the low latency thread to be activated on timer interrupt */
     Thread* llThread;
+
 public:
-    TimerDevice(const char* name);
+    explicit TimerDevice(const char* name);
     ~TimerDevice();
 
     /*****************************************************************************
@@ -131,7 +132,6 @@ public:
      *  method for usage in interrupt handler of the hardware timer. dont call this manually!
      *******************************************************************************/
     inline void tick() {
-        // tickRate= cycles / tick
         elapsedCycles += tickRate;
 
         if (elapsedCycles >= time) {

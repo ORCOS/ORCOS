@@ -41,7 +41,7 @@ private:
     unint4 frequency;
 
 public:
-    Clock(unint4 frequency);
+    explicit Clock(unint4 frequency);
 
     virtual ~Clock();
 

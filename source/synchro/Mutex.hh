@@ -82,8 +82,6 @@ public:
      *  Releases the current Mutex
      *---------------------------------------------------------------------------*/
     ErrorT release(Thread* pThread = pCurrentRunningThread);
-
-
 };
 
 #endif  // MUTEX_HH

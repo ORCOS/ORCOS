@@ -138,6 +138,16 @@ FATFileSystem::FATFileSystem(Partition* p_myPartition) :
     FATAccess->release();
 }
 
+/*****************************************************************************
+ * Method: FATFileSystem::isFATFileSystem(Partition* part)
+ *
+ * @description
+ *  Checks if a given partition contains a FAT filesystem.
+ *
+ * @returns
+ *  bool     True if the partition contains a FAT filesystem.
+ *           False otherwise.
+ *******************************************************************************/
 bool FATFileSystem::isFATFileSystem(Partition* part) {
     /* Create the mutex if not created before */
     if (FATAccess == 0)
@@ -152,7 +162,7 @@ bool FATFileSystem::isFATFileSystem(Partition* part) {
       return (false);
     }
 
-    FAT_BS_BPB* myFAT_BPB = (FAT_BS_BPB*) buffer;
+    FAT_BS_BPB* myFAT_BPB = reinterpret_cast<FAT_BS_BPB*>(buffer);
     if ((myFAT_BPB->BS_jmpBoot[0] == 0xeb) || (myFAT_BPB->BS_jmpBoot[0] == 0xe9)) {
         if (myFAT_BPB->BPB_BytsPerSec != 512) {
             FATAccess->release();
@@ -800,7 +810,21 @@ Resource* FATDirectory::get(const char* p_name, unint1 name_len) {
     return (Directory::get(p_name, name_len));
 }
 
-
+/*****************************************************************************
+ * Method: FATDirectory::allocateEntry(char* p_name,
+ *                    int DIR_Attr,
+ *                    FAT32_DirEntry* &fsrootdir_entry,
+ *                    unint4 &fileEntrySector,
+ *                    unint2 &fileSectorEntry,
+ *                    unint4 &longNameEntrySector,
+ *                    unint2 &longNameSectorEntry)
+ *
+ * @description
+ *   Tries to allocate a new fat entry inside the given fat directory.
+ *
+ * @returns
+ *   fsrootdir_entry    Pointer to the directory entry
+ *******************************************************************************/
 ErrorT FATDirectory::allocateEntry(char* p_name,
                      int DIR_Attr,
                      FAT32_DirEntry* &fsrootdir_entry,
@@ -808,7 +832,6 @@ ErrorT FATDirectory::allocateEntry(char* p_name,
                      unint2 &fileSectorEntry,
                      unint4 &longNameEntrySector,
                      unint2 &longNameSectorEntry) {
-
     if (get(p_name, strlen(p_name))) {
           LOG(FILESYSTEM, ERROR, " FATDirectory::allocateEntry failed for '%s': entry exists.", p_name);
           return (cError);
@@ -939,7 +962,7 @@ File* FATDirectory::createFile(char* p_name, unint4 flags) {
     char* namepcpy = new char[namelen +1];
     memcpy(namepcpy, p_name, namelen + 1);
 
-    ErrorT ret = allocateEntry(namepcpy,ATTR_ARCHIVE,fsrootdir_entry,fileEntrySector,fileSectorEntry,longNameEntrySector,longNameSectorEntry);
+    ErrorT ret = allocateEntry(namepcpy, ATTR_ARCHIVE, fsrootdir_entry, fileEntrySector, fileSectorEntry, longNameEntrySector, longNameSectorEntry);
     if (isError(ret)) {
         return (0);
     }
@@ -969,13 +992,13 @@ Directory* FATDirectory::createDirectory(char* p_name, unint4 flags) {
     char* namepcpy = new char[namelen +1];
     memcpy(namepcpy, p_name, namelen + 1);
 
-    ErrorT ret = allocateEntry(namepcpy,ATTR_DIRECTORY,fsrootdir_entry,fileEntrySector,fileSectorEntry,longNameEntrySector,longNameSectorEntry);
+    ErrorT ret = allocateEntry(namepcpy, ATTR_DIRECTORY, fsrootdir_entry, fileEntrySector, fileSectorEntry, longNameEntrySector, longNameSectorEntry);
     if (isError(ret)) {
         return (0);
     }
 
     unint4 clusterNum =  (fsrootdir_entry->DIR_FstClusHI << 16) | (fsrootdir_entry->DIR_FstClusLO & 0xffff);
-    FATDirectory* dir = new FATDirectory(myFS,clusterNum,namepcpy);
+    FATDirectory* dir = new FATDirectory(myFS, clusterNum, namepcpy);
     dir->initialize(this->mycluster_num);
 
     this->add(dir);
@@ -996,22 +1019,22 @@ void FATDirectory::initialize(unint4 parentCluster) {
     FAT32_DirEntry* fsrootdir_entry;
     fsrootdir_entry = resetToFirstEntry();
 
-    memset(fsrootdir_entry,0,sizeof(FAT32_DirEntry));
-    memcpy(fsrootdir_entry->DIR_Name,".          ",11);
+    memset(fsrootdir_entry, 0, sizeof(FAT32_DirEntry));
+    memcpy(fsrootdir_entry->DIR_Name, ".          ", 11);
     fsrootdir_entry->DIR_FstClusHI = (unint2) (this->mycluster_num >> 16);
     fsrootdir_entry->DIR_FstClusLO = mycluster_num & 0xffff;
     fsrootdir_entry->DIR_Attr       = ATTR_DIRECTORY;
 
     fsrootdir_entry = getNextEntry(false,true);
-    memset(fsrootdir_entry,0,sizeof(FAT32_DirEntry));
+    memset(fsrootdir_entry, 0, sizeof(FAT32_DirEntry));
     memcpy(fsrootdir_entry->DIR_Name,"..         ",11);
     fsrootdir_entry->DIR_FstClusHI = (unint2) (parentCluster >> 16);
     fsrootdir_entry->DIR_FstClusLO = parentCluster & 0xffff;
-    fsrootdir_entry->DIR_Attr       = ATTR_DIRECTORY;
+    fsrootdir_entry->DIR_Attr      = ATTR_DIRECTORY;
 
     /* create end entry */
     FAT32_DirEntry* next_entry = getNextEntry(false, true);
-    memset(next_entry,0,sizeof(FAT32_DirEntry));
+    memset(next_entry, 0, sizeof(FAT32_DirEntry));
 
     synchEntries();
 
@@ -1110,7 +1133,7 @@ FAT32_DirEntry* FATDirectory::getNextEntry(bool writeBack, bool allocate) {
         if (it_currentSectorEntry +1 >= entries_per_sector) {
             /* first write back the current sector */
             if (writeBack) {
-                if (isError(myFS->myPartition->writeSectors(it_currentSector, buffer, 1))) {                 ;
+                if (isError(myFS->myPartition->writeSectors(it_currentSector, buffer, 1))) {
                     return (0);
                 }
             }
@@ -1242,7 +1265,7 @@ ErrorT FATDirectory::remove(Resource *res) {
     /* iterate over all longname entries and the final short entry and mark them as free */
     do {
         memset(fsrootdir_entry, 0, sizeof(FAT32_DirEntry));
-        LOG(FILESYSTEM, DEBUG, " FATDirectory::remove() invalidating entry %d in sector %d",it_currentSectorEntry, it_currentSector);
+        LOG(FILESYSTEM, DEBUG, " FATDirectory::remove() invalidating entry %d in sector %d", it_currentSectorEntry, it_currentSector);
         fsrootdir_entry->DIR_Name[0] = 0xE5;
         fsrootdir_entry = getNextEntry(true, false);
     } while (it_currentSector != file->directory_sector && it_currentSectorEntry != file->directory_entry_number);
@@ -1617,14 +1640,14 @@ ErrorT FATFile::seek(int4 seek_value) {
             this->seek(this->filesize - this->position);
             /* now fill up remaining bytes with zeros */
             unint4 fill_length = new_position - this->filesize;
-            memset(fill_buffer,0,512);
+            memset(fill_buffer, 0, 512);
 
             while (fill_length > 0) {
                 if (fill_length > 512) {
-                    this->writeBytes(fill_buffer,512);
+                    this->writeBytes(fill_buffer, 512);
                     fill_length -= 512;
                 } else {
-                    this->writeBytes(fill_buffer,fill_length);
+                    this->writeBytes(fill_buffer, fill_length);
                     fill_length = 0;
                 }
             }

@@ -55,7 +55,7 @@ extern Board_ClockCfdCl* theClock;
 #define CM_FCLKEN_PER  0x48005000
 
 #define SETBITS(a, UP, LOW, val) a = ((a & ~(( (1 << (UP - LOW + 1)) -1) << LOW)) | ((val & ((1 << (UP - LOW + 1)) -1)) << LOW) )
-#define writew(b, addr) (void)((*(volatile unsigned short *) (addr)) = (b))
+#define writew(b, addr) (void)((*(volatile unint2 *) (addr)) = (b))
 
 /*****************************************************************************
  * ARCHITECTURE MEMORY MAPPING
@@ -148,7 +148,7 @@ void BeagleBoardxM::initialize() {
     //OUTW(CM_CLKSEL_CORE, 0x0000130a);
     /* L3 CLK is  CORE_CLK / 2, L4 CLK is CORE_CLK / 2, GPTIMER10 + 11 use SYS_CLK*/
     OUTW(CM_CLKSEL_CORE, 0x000013ca);
-    OUTW(CM_CLKSEL_PER , 0xFF );
+    OUTW(CM_CLKSEL_PER , 0xFF);
 
     // divide sys clock by 2! = sys_clock = 13 mhz
     //PRM_CLKSRC_CTRL

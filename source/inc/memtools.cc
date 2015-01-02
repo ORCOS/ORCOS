@@ -47,7 +47,7 @@ void* memcpy(void* dst0, const void* src0, size_t len0) {
 }
 
 /*****************************************************************************
- * Method: memcpy(void* dst0, const void* src0, size_t len0)
+ * Method: memcpyl(void* dst0, const void* src0, size_t len0)
  *
  * @description
  *  Performs memory copy from src0 to dst0 using word transfers. len0
@@ -55,7 +55,7 @@ void* memcpy(void* dst0, const void* src0, size_t len0) {
  * @returns
  *  void*       dst0
  *******************************************************************************/
-void*       memcpyl(void* dst0, const void* src0, size_t len0) {
+void* memcpyl(void* dst0, const void* src0, size_t len0) {
    long *dst = reinterpret_cast<long *>(dst0);
    long *src = const_cast<long *>((const long*) src0);
 

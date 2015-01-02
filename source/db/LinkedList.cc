@@ -213,7 +213,6 @@ ErrorT LinkedList::remove(ListItem* item) {
  *
  *******************************************************************************/
 ErrorT LinkedList::remove(LinkedListItem* litem) {
-
     if (litem->host_db != this)
         return (cElementNotInDatabase);
 
@@ -281,7 +280,7 @@ ErrorT LinkedList::addHead(ListItem* item) {
 ErrorT LinkedList::insertAfter(LinkedListItem* llItem, LinkedListItem* existingItem) {
     ASSERT(llItem);
     ASSERT(existingItem);
-    ASSERT( (existingItem != llItem) );
+    ASSERT((existingItem != llItem));
 
     DISABLE_IRQS(status);
     if (llItem->host_db != 0)

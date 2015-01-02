@@ -85,7 +85,6 @@ TimeT RateMonotonicThreadScheduler::getNextTimerEvent(LinkedList* sleepList, Tim
 
                 pDBSleepItem            = pDBSleepItem->getSucc();
             }
-
         } while (pDBSleepItem != 0);
     }
 
@@ -129,16 +128,15 @@ void RateMonotonicThreadScheduler::computePriority(RealTimeThread* pRTThread) {
 ErrorT RateMonotonicThreadScheduler::enter(LinkedListItem* item) {
     RealTimeThread* pRTThread = static_cast<RealTimeThread*>(item->getData());
 
-    LOG(SCHEDULER, DEBUG, "RateMonotonicThreadScheduler::enter() Thread %d , Priority: %x %x",pRTThread->getId(),
+    LOG(SCHEDULER, DEBUG, "RateMonotonicThreadScheduler::enter() Thread %d , Priority: %x %x", pRTThread->getId(),
         (unint4) ((pRTThread->effectivePriority >> 32) & 0xffffffff),
-                       (unint4) ((pRTThread->effectivePriority) & 0xffffffff));
-
+        (unint4) ((pRTThread->effectivePriority) & 0xffffffff));
 
     /* set priority if it has not been set yet.*/
     if (pRTThread->instance == 1) {
         computePriority(pRTThread);
 
-        // If an arrivaltime has been specified put the thread to sleep until that time
+        /* If an arrivaltime has been specified put the thread to sleep until that time */
         if (pRTThread->sleepTime > 0) {
             LOG(SCHEDULER, DEBUG, "RateMonotonicThreadScheduler::enter: TimePoint: %x %x",
                 (unint4) ((pRTThread->sleepTime >> 32) & 0xffffffff),

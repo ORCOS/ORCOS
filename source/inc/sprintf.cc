@@ -173,7 +173,6 @@ int print(charout outfunc, char **out, const char *format, va_list args) {
     }
 
     return (0);
-
 }
 
 /*****************************************************************************
