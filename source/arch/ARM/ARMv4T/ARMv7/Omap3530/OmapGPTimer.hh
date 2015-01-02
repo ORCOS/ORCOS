@@ -62,7 +62,7 @@ private:
 
 public:
     /*****************************************************************************
-     * Method: BeagleBoardGPTimer2(T_OmapGPTimer_Init * init)
+     * Method: OmapGPTimer(T_OmapGPTimer_Init * init)
      *
      * @description
      *******************************************************************************/

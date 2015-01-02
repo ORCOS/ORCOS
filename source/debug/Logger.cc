@@ -53,7 +53,7 @@ extern void _putchar(char** str, char c);
  *
  *******************************************************************************/
 void Logger::log(Prefix prefix, Level level, const char* msg, ...) {
-    if (level > prefix) {
+    if ((int)level > (int)prefix) {
         return;
     }
 

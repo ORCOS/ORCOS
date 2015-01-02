@@ -311,10 +311,10 @@ OmapMMC_SD_HC::~OmapMMC_SD_HC() {
  *******************************************************************************/
 ErrorT OmapMMC_SD_HC::sendCommand(unint4 cmd, unint4 arg) {
     LOG(ARCH, DEBUG, "MMC/SD HC() Issuing CMD 0x%x, ARG: 0x%x", cmd, arg);
-    // wait until cmd line is not used any more
-    bool timeout = TIMEOUT_WAIT( INW(baseAddress + MMCHS_PSTATE) & 0x1, 300000);
+    /* wait until cmd line is not used any more */
+    bool timeout = TIMEOUT_WAIT(INW(baseAddress + MMCHS_PSTATE) & 0x1, 300000);
     if (timeout) {
-        LOG(ARCH, ERROR, "MMC/SD HC()::sendCommand Timeout waiting on smd lines");
+        LOG(ARCH, ERROR, "MMC/SD HC()::sendCommand Timeout waiting on cmd lines");
         return (cError);
     }
 
@@ -414,7 +414,6 @@ ErrorT OmapMMC_SD_HC::readBlock(unint4 blockNum, char* buffer, unint4 length) {
         LOG(ARCH, WARN, "MMC/SD HC()::readBlock failed: STAT: %x", mmc_stat);
         ret = cError;
         goto out;
-
     }
 
     if (timeout) {
@@ -433,7 +432,7 @@ ErrorT OmapMMC_SD_HC::readBlock(unint4 blockNum, char* buffer, unint4 length) {
         length -= 4;
     }
 
-    TIMEOUT_WAIT( ((INW(baseAddress + MMCHS_STAT) & (STAT_TC)) == 0), 30000);
+    TIMEOUT_WAIT(((INW(baseAddress + MMCHS_STAT) & (STAT_TC)) == 0), 30000);
 
     // CMD 12 (Stop transmission)
     //sendCommand(0x0c1a0000,0x0);
@@ -531,7 +530,7 @@ ErrorT OmapMMC_SD_HC::writeBlock(unint4 blockNum, char* buffer, unint4 length) {
         length -= 4;
     }
 
-    timeout = TIMEOUT_WAIT( ((INW(baseAddress + MMCHS_STAT) & (STAT_TC)) == 0), 300000);
+    timeout = TIMEOUT_WAIT(((INW(baseAddress + MMCHS_STAT) & (STAT_TC)) == 0), 300000);
 
     // test error bit
     mmc_stat = INW(baseAddress + MMCHS_STAT);

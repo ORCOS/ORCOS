@@ -397,7 +397,7 @@ ErrorT SequentialFitMemManager::free(void* chunk) {
     if (!isValidChunkAddress(chunk_head, segment)) {
         LOG(MEM, DEBUG, "SequentialFitMemManager::free() Trying to free invalid address %x", (unint4) chunk);
         /* show call stack to identify the component that is causing this bug*/
-        if (DEBUG <= MEM)
+        if ((int)DEBUG <= (int)MEM)
             backtrace_current();
         return (cNoValidChunkAddress );
     }

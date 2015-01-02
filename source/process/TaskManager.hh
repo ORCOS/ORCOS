@@ -34,7 +34,10 @@ private:
     LinkedList* taskDatabase;
 
 public:
-    explicit TaskManager() {
+    /*****************************************************************************
+     * Method: TaskManager()
+     *---------------------------------------------------------------------------*/
+    TaskManager() {
         /* create the task Database */
         this->taskDatabase = new LinkedList();
     }

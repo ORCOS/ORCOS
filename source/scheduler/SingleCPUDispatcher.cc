@@ -215,7 +215,7 @@ void SingleCPUDispatcher::unblock(Thread* thread) {
     } else {
         this->SchedulerCfd->enter(thread->getLinkedListItem());
 
-        Kernel_ThreadCfdCl *pThread = (Kernel_ThreadCfdCl *) thread;
+        Kernel_ThreadCfdCl *pThread = static_cast<Kernel_ThreadCfdCl *>(thread);
         /*  Ensure Dispatch if no thread is running or the unblocked threads has
          * a higher priority!  */
         if (pCurrentRunningThread == 0 || pThread->effectivePriority > pCurrentRunningThread->effectivePriority) {
@@ -321,7 +321,6 @@ void SingleCPUDispatcher::signal(void* sig, int sigvalue) {
  *  thread:     The thread that terminated
  *---------------------------------------------------------------------------*/
 void SingleCPUDispatcher::terminate_thread(Thread* thread) {
-
     DISABLE_IRQS(irqstatus);
     thread->getLinkedListItem()->remove();
 
@@ -329,8 +328,6 @@ void SingleCPUDispatcher::terminate_thread(Thread* thread) {
         TRACE_THREAD_STOP(pCurrentRunningTask->getId(), pCurrentRunningThread->getId());
 
         pCurrentRunningThread = 0;
-
-       // delete pRunningThreadDbItem;
 
         /* Delete thread object.
          * Beware: It must have been removed from the task! */

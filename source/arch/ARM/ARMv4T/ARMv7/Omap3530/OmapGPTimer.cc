@@ -25,7 +25,7 @@
 extern Kernel* theOS;
 
 OmapGPTimer::OmapGPTimer(T_OmapGPTimer_Init * init) : TimerDevice(init->Name) {
-    hwregs = (omapgp_regs*) init->Address;
+    hwregs = reinterpret_cast<omapgp_regs*>(init->Address);
 
     /* functional and interface clocks must be enabled */
 
@@ -53,7 +53,7 @@ OmapGPTimer::OmapGPTimer(T_OmapGPTimer_Init * init) : TimerDevice(init->Name) {
 
     theOS->getBoard()->getInterruptController()->setIRQPriority(init->INTC_IRQ, init->INTC_Priority);
     theOS->getBoard()->getInterruptController()->unmaskIRQ(init->INTC_IRQ);
-    theOS->getInterruptManager()->registerIRQ(init->INTC_IRQ,this,0,IRQ_NOTHREAD);
+    theOS->getInterruptManager()->registerIRQ(init->INTC_IRQ, this, 0, IRQ_NOTHREAD);
 
     /* match value */
     hwregs->tmar = -1;
@@ -77,43 +77,42 @@ OmapGPTimer::~OmapGPTimer() {
 }
 
 /*****************************************************************************
- * Method: BeagleBoardGPTimer2::enable()
+ * Method:  OmapGPTimer::enable()
  *
  * @description
+ *  Enables the hardware timer using the current configuration.
  *******************************************************************************/
 ErrorT OmapGPTimer::enable() {
     this->setTimer(time);
 
-    // start timer
+    /* start timer */
     hwregs->tclr = 0x1;
-    //OUTW(GPT10_TCLR, INW(GPT10_TCLR) | 0x1);
-
     isEnabled = true;
     return (cOk );
 }
 
 /*****************************************************************************
- * Method: BeagleBoardGPTimer2::disable()
+ * Method: OmapGPTimer::disable()
  *
  * @description
+ *  Disables the hardware timer and clears all interrupt flags.
  *******************************************************************************/
 ErrorT OmapGPTimer::disable() {
     isEnabled = false;
-
-    // stop timer
-   // OUTW(GPT10_TCLR, INW(GPT10_TCLR) & ~0x1);
+    /* stop timer */
     hwregs->tclr = 0;
-    //OUTW(GPT10_TCLR, 0x0);
     /* reset timer interrupt pending bit */
     hwregs->tisr = 0xf;
-    //OUTW(GPT10_TISR, 0x1);
     return (cOk );
 }
 
 /*****************************************************************************
- * Method: BeagleBoardGPTimer2::setTimer(TimeT t)
+ * Method: OmapGPTimer::setTimer(TimeT t)
  *
  * @description
+ *  Programs the hardware timer to generate an interrupt at time t. Also starts the
+ *  timer. If t - currenTime does not fit into an int32 the hw interrupt
+ *  will be programmed to the maximum time possible.
  *******************************************************************************/
 ErrorT OmapGPTimer::setTimer(TimeT t) {
     TimeT currentTime = theOS->getClock()->getClockCycles() + 3 MICROSECONDS;

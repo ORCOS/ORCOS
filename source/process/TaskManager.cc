@@ -89,7 +89,7 @@ Task* TaskManager::getTask(int taskId) {
 }
 
 /*****************************************************************************
- * Method: getThread(int threadId)
+ * Method: TaskManager::getThread(int threadId)
  *
  * @description
  *  Returns the thread object of the thread with given id
