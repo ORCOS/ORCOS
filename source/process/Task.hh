@@ -399,7 +399,7 @@ public:
     inline LinkedList* getThreadDB() {
         return (&threadDb);
     }
-}
+};
 
 #endif /* _TASK_HH */
 
