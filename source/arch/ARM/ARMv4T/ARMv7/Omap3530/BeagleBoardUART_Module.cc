@@ -22,21 +22,14 @@
 #include "kernel/Kernel.hh"
 #include "OMAP3530.h"
 
+/* THIS FILE IS TODO */
+
 //ORCOS_INIT_MODULE(BeagleBoardUART,CommDeviceDriver);
 
-/*---------------------------------------------------------------------------*/
-BeagleBoardUART::~BeagleBoardUART()
-/*---------------------------------------------------------------------------*/
-{
-
+BeagleBoardUART::~BeagleBoardUART(){
 }
 
-/*---------------------------------------------------------------------------*/
-BeagleBoardUART::BeagleBoardUART(const char* name, int4 a) :
-        CommDeviceDriver(name)
-/*---------------------------------------------------------------------------*/
-{
-
+BeagleBoardUART::BeagleBoardUART(const char* name, int4 a) : CommDeviceDriver(name) {
     baseAddr = a;
     //char read_byte = 0;
 
@@ -92,9 +85,9 @@ BeagleBoardUART::BeagleBoardUART(const char* name, int4 a) :
 
     disableIRQ();
 
-    /*	// Test:
+    /*    // Test:
      // read something
-     OUT8(baseAddr + UART_FCR_REG_OFFSET, 0x02);	// RX_FIFO_CLEAR
+     OUT8(baseAddr + UART_FCR_REG_OFFSET, 0x02);    // RX_FIFO_CLEAR
      read_byte = IN8(baseAddr + UART_RHR_REG_OFFSET);
 
      // write something
@@ -114,47 +107,39 @@ BeagleBoardUART::BeagleBoardUART(const char* name, int4 a) :
     TX_COUNT = 0;
     RX_COUNT = 0;
 #endif
-
 }
 
-/*---------------------------------------------------------------------------*/
-ErrorT BeagleBoardUART::enableIRQ()
-/*---------------------------------------------------------------------------*/
-{
+/*****************************************************************************
+ * Method: BeagleBoardUART::enableIRQ()
+ *
+ * @description
+ *
+ *******************************************************************************/
+ErrorT BeagleBoardUART::enableIRQ() {
     // enable all irqs within UART module
     OUTW(baseAddr + UART_IER_REG_OFFSET, (INW(baseAddr + UART_IER_REG_OFFSET) | UART_IER_MODEM | UART_IER_LINE | UART_IER_THR | UART_IER_RHR));
     return 0;
 }
 
-/*---------------------------------------------------------------------------*/
-ErrorT BeagleBoardUART::disableIRQ()
-/*---------------------------------------------------------------------------*/
-{
+/*****************************************************************************
+ * Method: BeagleBoardUART::disableIRQ()
+ *
+ * @description
+ *
+ *******************************************************************************/
+ErrorT BeagleBoardUART::disableIRQ() {
     // disable all irqs
-    OUTW(baseAddr + UART_IER_REG_OFFSET, (INW(baseAddr + UART_IER_REG_OFFSET) & ~( UART_IER_MODEM | UART_IER_LINE | UART_IER_THR | UART_IER_RHR )));
+    OUTW(baseAddr + UART_IER_REG_OFFSET, (INW(baseAddr + UART_IER_REG_OFFSET) & ~(UART_IER_MODEM | UART_IER_LINE | UART_IER_THR | UART_IER_RHR )));
     return 0;
 }
 
-/*---------------------------------------------------------------------------*/
-ErrorT BeagleBoardUART::readByte(char* byteptr)
-/*---------------------------------------------------------------------------*/
-{
-    inputSCC(1, (byte*) byteptr);
-    return cOk ;;
-}
-
-/*---------------------------------------------------------------------------*/
-ErrorT BeagleBoardUART::writeByte(char byte)
-/*---------------------------------------------------------------------------*/
-{
-    outputSCC(-1, byte);
-    return cOk ;
-}
-
-/*---------------------------------------------------------------------------*/
-ErrorT BeagleBoardUART::readBytes(char* bytes, unint4 &length)
-/*---------------------------------------------------------------------------*/
-{
+/*****************************************************************************
+ * Method: BeagleBoardUART::readBytes(char* bytes, unint4 &length)
+ *
+ * @description
+ *
+ *******************************************************************************/
+ErrorT BeagleBoardUART::readBytes(char* bytes, unint4 &length) {
     // This method polls (no waiting) for new data
 
     ErrorT err;
@@ -166,10 +151,13 @@ ErrorT BeagleBoardUART::readBytes(char* bytes, unint4 &length)
     return err;
 }
 
-/*---------------------------------------------------------------------------*/
-ErrorT BeagleBoardUART::writeBytes(const char* bytes, unint4 length)
-/*---------------------------------------------------------------------------*/
-{
+/*****************************************************************************
+ * Method: BeagleBoardUART::writeBytes(const char* bytes, unint4 length)
+ *
+ * @description
+ *
+ *******************************************************************************/
+ErrorT BeagleBoardUART::writeBytes(const char* bytes, unint4 length) {
     // This method sends the bytes and waits whenever the queue is full.
     unint count;
     ErrorT err;
@@ -180,53 +168,38 @@ ErrorT BeagleBoardUART::writeBytes(const char* bytes, unint4 length)
     return err;
 }
 
-/*---------------------------------------------------------------------------*/
-void BeagleBoardUART::recv()
-/*---------------------------------------------------------------------------*/
-{
-
-}
-
-/*---------------------------------------------------------------------------*/
-ErrorT BeagleBoardUART::send(packet_layer* packet, char* dest_addr, int addr_len, int2 fromProtocol_ID)
-/*---------------------------------------------------------------------------*/
-{
-    return 0;
-}
-
-/*---------------------------------------------------------------------------*/
-ErrorT BeagleBoardUART::broadcast(packet_layer* packet, int2 fromProtocol_ID)
-/*---------------------------------------------------------------------------*/
-
-{
-    return send(packet, 0, 0, fromProtocol_ID);
-}
-
-/*---------------------------------------------------------------------------*/
-byte BeagleBoardUART::recvByte()
-/*---------------------------------------------------------------------------*/
-{
+/*****************************************************************************
+ * Method: BeagleBoardUART::recvByte()
+ *
+ * @description
+ *
+ *******************************************************************************/
+byte BeagleBoardUART::recvByte() {
     return IN8(baseAddr + UART_RHR_REG_OFFSET);
 }
 
-/*---------------------------------------------------------------------------*/
-void BeagleBoardUART::sendByte(byte Data)
-/*---------------------------------------------------------------------------*/
-{
+/*****************************************************************************
+ * Method: BeagleBoardUART::sendByte(byte Data)
+ *
+ * @description
+ *
+ *******************************************************************************/
+void BeagleBoardUART::sendByte(byte Data) {
     OUT8(baseAddr + UART_THR_REG_OFFSET, Data);
 }
 
-/*---------------------------------------------------------------------------*/
-ErrorT BeagleBoardUART::inputSCC(int4 Timeout, byte *c)
-/*---------------------------------------------------------------------------*/
-{
+/*****************************************************************************
+ * Method: BeagleBoardUART::isTransmitBufferFull()
+ *
+ * @description
+ *
+ *******************************************************************************/
+ErrorT BeagleBoardUART::inputSCC(int4 Timeout, byte *c) {
     int ret = cError;
 
-    while (Timeout == -1 || Timeout--)
-    {
+    while (Timeout == -1 || Timeout--) {
         {
-            if (hasPendingData())
-            {
+            if (hasPendingData()) {
                 *c = recvByte(); /* get char */
                 ret = cOk;
                 break;
@@ -236,17 +209,18 @@ ErrorT BeagleBoardUART::inputSCC(int4 Timeout, byte *c)
     return ret;
 }
 
-/*---------------------------------------------------------------------------*/
-ErrorT BeagleBoardUART::outputSCC(int4 Timeout, byte c)
-/*---------------------------------------------------------------------------*/
-{
+/*****************************************************************************
+ * Method: BeagleBoardUART::isTransmitBufferFull()
+ *
+ * @description
+ *
+ *******************************************************************************/
+ErrorT BeagleBoardUART::outputSCC(int4 Timeout, byte c) {
     int ret = cError;
 
-    while (Timeout == -1 || Timeout--)
-    {
+    while (Timeout == -1 || Timeout--) {
         {
-            if (!isTransmitBufferFull())
-            {
+            if (!isTransmitBufferFull()) {
                 sendByte(c); /* output char */
                 ret = cOk;
                 break;
@@ -256,25 +230,34 @@ ErrorT BeagleBoardUART::outputSCC(int4 Timeout, byte c)
     return ret;
 }
 
-/*---------------------------------------------------------------------------*/
-bool BeagleBoardUART::isTransmitBufferFull()
-/*---------------------------------------------------------------------------*/
-{
+/*****************************************************************************
+ * Method: BeagleBoardUART::isTransmitBufferFull()
+ *
+ * @description
+ *
+ *******************************************************************************/
+bool BeagleBoardUART::isTransmitBufferFull() {
     byte ret = ((IN8(baseAddr + UART_SSR_REG_OFFSET)) & 0x01);
     return (bool) ret;
 }
 
-/*---------------------------------------------------------------------------*/
-bool BeagleBoardUART::isReceiveBufferFull()
-/*---------------------------------------------------------------------------*/
-{
+/*****************************************************************************
+ * Method: BeagleBoardUART::isReceiveBufferFull()
+ *
+ * @description
+ *
+ *******************************************************************************/
+bool BeagleBoardUART::isReceiveBufferFull() {
     return 0;
 }
 
-/*---------------------------------------------------------------------------*/
-bool BeagleBoardUART::hasPendingData()
-/*---------------------------------------------------------------------------*/
-{
+/*****************************************************************************
+ * Method: BeagleBoardUART::hasPendingData()
+ *
+ * @description
+ *
+ *******************************************************************************/
+bool BeagleBoardUART::hasPendingData() {
     int ret = ((INW(baseAddr + UART_LSR_REG_OFFSET)) & 0x01);
     return (bool) ret;
 }

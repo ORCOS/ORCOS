@@ -10,17 +10,16 @@
 extern Kernel* theOS;
 
 extern "C" void handleEXT_INT0() {
-    LOG(ARCH,INFO,"EXTINT0");
+    LOG(ARCH, INFO, "EXTINT0");
 }
 
 extern "C" void handleEXT_INT1() {
-    LOG(ARCH,INFO,"EXTINT1");
+    LOG(ARCH, INFO, "EXTINT1");
 }
 
 extern "C"  void handleWatchdog() {
-    LOG(ARCH,INFO,"Watchdog");
+    LOG(ARCH, INFO, "Watchdog");
 }
-
 
 extern "C" void handleTIM0() {
     //LOG(ARCH,INFO,"TIM0 irq");
@@ -28,14 +27,14 @@ extern "C" void handleTIM0() {
 }
 
 extern "C" void handleTIM1() {
-    LOG(ARCH,INFO,"TIM1 irq");
+    LOG(ARCH, INFO, "TIM1 irq");
 }
 
 extern "C" void invalidIRQ() {
-    LOG(ARCH,INFO,"invalid IRQ.");
+    LOG(ARCH, INFO, "invalid IRQ.");
 }
 
 extern "C" void handleTIM2() {
-    LOG(ARCH,INFO,"woke up..");
-	theOS->getTimerDevice()->tick();
+    LOG(ARCH, INFO, "woke up..");
+    theOS->getTimerDevice()->tick();
 }

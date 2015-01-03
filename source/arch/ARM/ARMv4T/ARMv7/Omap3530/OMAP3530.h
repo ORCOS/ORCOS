@@ -16,8 +16,8 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef OMAP3530_H_
-#define OMAP3530_H_
+#ifndef SOURCE_ARCH_ARM_ARMV4T_ARMV7_OMAP3530_OMAP3530_H_
+#define SOURCE_ARCH_ARM_ARMV4T_ARMV7_OMAP3530_OMAP3530_H_
 
 #define MHZ            *1000000
 #define kHZ            *1000
@@ -38,14 +38,14 @@
 /*
  * INTC MPU Interrupt Controller Module
  */
-#define GPT1_IRQ            37
-#define GPT2_IRQ            38
-#define GPT10_IRQ           46
+#define GPT1_IRQ                  37
+#define GPT2_IRQ                  38
+#define GPT10_IRQ                 46
+#define UART1_IRQ                 72
+#define UART2_IRQ                 73
+#define UART3_IRQ                 74
+#define EHCI_IRQ                  77
 
-#define UART1_IRQ           72
-#define UART2_IRQ           73
-#define UART3_IRQ           74
-#define EHCI_IRQ            77
 #define MPU_INTC_BASE_ADDR        0x48200000
 #define MPU_INTCPS                MPU_INTC_BASE_ADDR + 0x100
 #define MPU_INTCPS_ILR(m)         MPU_INTCPS + (0x4 * (m))
@@ -123,4 +123,4 @@
 #define GPT3_TOCR    GPT3_BASE_ADDR + TOCR_OFFSET
 #define GPT3_TOWR    GPT3_BASE_ADDR + TOWR_OFFSET
 
-#endif /* OMAP3530_H_ */
+#endif // SOURCE_ARCH_ARM_ARMV4T_ARMV7_OMAP3530_OMAP3530_H_

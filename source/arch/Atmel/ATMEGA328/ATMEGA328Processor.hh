@@ -24,7 +24,7 @@
 
 class ATMEGA328Processor {
 public:
-	ATMEGA328Processor();
+    ATMEGA328Processor();
     ~ATMEGA328Processor();
 
     /*!

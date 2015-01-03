@@ -50,14 +50,11 @@ extern Kernel* theOS;
 #define CM_CLKSEL2_PLL 0x48004D44
 #define CM_CLKSEL3_PLL 0x48004D48
 
-static t_mapping OMAP3530Mappings[4] = { { 0x0, 0x0, 0xFFFFF,
-        hatProtectionExecute | hatProtectionRead, 0 }, /* OMAP3630 ROM vectors */
-{ 0x40200000, 0x40200000, 0xFFFF, hatProtectionExecute | hatProtectionRead
-        | hatProtectionWrite, 0 }, /* SRAM irq vectors */
-{ 0x48000000, 0x48000000, 0xFFFFFF, hatProtectionRead | hatProtectionWrite,
-        hatCacheInhibit }, /* MMIO */
-{ 0x49000000, 0x49000000, 0xFFFFF, hatProtectionRead | hatProtectionWrite,
-        hatCacheInhibit }, /* L4 peripherie */
+static t_mapping OMAP3530Mappings[4] = {
+        { 0x0, 0x0, 0xFFFFF, hatProtectionExecute | hatProtectionRead, 0 },                                   /* OMAP3630 ROM vectors */
+        { 0x40200000, 0x40200000, 0xFFFF, hatProtectionExecute | hatProtectionRead | hatProtectionWrite, 0 }, /* SRAM irq vectors */
+        { 0x48000000, 0x48000000, 0xFFFFFF, hatProtectionRead | hatProtectionWrite,  hatCacheInhibit },       /* MMIO */
+        { 0x49000000, 0x49000000, 0xFFFFF, hatProtectionRead | hatProtectionWrite,   hatCacheInhibit },       /* L4 peripherie */
 };
 
 /* The important architecture kernel mapping structure */
@@ -65,11 +62,16 @@ t_archmappings arch_kernelmappings =
 {   .count = 4, .mappings = OMAP3530Mappings};
 
 BeagleBoard::BeagleBoard() {
-
 }
 
-void BeagleBoard::initialize() {
 
+/*****************************************************************************
+ * Method: BeagleBoard::initialize()
+ *
+ * @description
+ *  Initialization method of the beagleboard device drivers
+ *******************************************************************************/
+void BeagleBoard::initialize() {
 // created first so we can very early write to the serial console
 // to e.g. write error messages!
 #ifdef HAS_Board_UARTCfd
@@ -78,7 +80,6 @@ void BeagleBoard::initialize() {
 #if __EARLY_SERIAL_SUPPORT__
     theOS->setStdOutputDevice(UARTCfd);
 #endif
-
 #endif
 
     OUTW(CM_CLKSEL2_PLL, 0x0001b00c);
@@ -169,7 +170,7 @@ void BeagleBoard::initialize() {
 
 #ifdef HAS_Board_UARTCfd
 #ifdef HAS_BoardLEDCfd
-    UARTCfd->setLED( LEDCfd );
+    UARTCfd->setLED(LEDCfd);
 #endif
 #endif
 
@@ -199,7 +200,6 @@ void BeagleBoard::initialize() {
     // dss = new BeagleBoardDSS("dss");
     //dss->init();
     // theOS->setStdOutputDevice( dss );
-
 }
 
 BeagleBoard::~BeagleBoard() {

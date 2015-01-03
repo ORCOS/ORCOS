@@ -20,16 +20,16 @@
 #define LEON3HATLAYER_HH_
 
 // mapping sizes in bytes
-#define CONTEXT_SIZE	((unint) 0x80000000) 	// 2 GB
-#define REGION_SIZE		((unint) 0x01000000)		// 16 MB
-#define SEGMENT_SIZE	((unint) 0x00040000)		// 256 KB
-#define PAGE_SIZE		((unint) 0x00001000)		// 4 KB
+#define CONTEXT_SIZE    ((unint) 0x80000000)     // 2 GB
+#define REGION_SIZE     ((unint) 0x01000000)        // 16 MB
+#define SEGMENT_SIZE    ((unint) 0x00040000)        // 256 KB
+#define PAGE_SIZE       ((unint) 0x00001000)        // 4 KB
 
 // mapping levels
-#define CONTEXT			3
-#define REGION			2
-#define SEGMENT			1
-#define PAGE			0
+#define CONTEXT         3
+#define REGION          2
+#define SEGMENT         1
+#define PAGE            0
 
 
 #include <hal/HatLayer.hh>
@@ -42,15 +42,15 @@
 class Leon3HatLayer {
 
 private:
-	unsigned int* contextTable;
+    unsigned int* contextTable;
 
-	unint4 createPte(unint4 address, BitmapT protection, byte zsel, bool cacheable);
-	unint4 createPtd(unint4 address);
-	unint4 addSegmentEntry(void* logBaseAddr, void* physBaseAddr, unint4 mappingSize, BitmapT protection, byte zsel, bool cache_inhibit, unint4* l2Table);
-	unint4 addRegionEntry(void* logBaseAddr, void* physBaseAddr, unint4 mappingSize, BitmapT protection, byte zsel, bool cache_inhibit, unint4* l2Table);
-	unint4 addPageEntry(void* logBaseAddr, void* physBaseAddr, unint4 mappingSize, BitmapT protection, byte zsel, bool cache_inhibit, unint4* l2Table);
-	unint4 getMappingLevel(size_t size);
-	unint4 bitmapToACC(BitmapT protection, byte zsel);
+    unint4 createPte(unint4 address, BitmapT protection, byte zsel, bool cacheable);
+    unint4 createPtd(unint4 address);
+    unint4 addSegmentEntry(void* logBaseAddr, void* physBaseAddr, unint4 mappingSize, BitmapT protection, byte zsel, bool cache_inhibit, unint4* l2Table);
+    unint4 addRegionEntry(void* logBaseAddr, void* physBaseAddr, unint4 mappingSize, BitmapT protection, byte zsel, bool cache_inhibit, unint4* l2Table);
+    unint4 addPageEntry(void* logBaseAddr, void* physBaseAddr, unint4 mappingSize, BitmapT protection, byte zsel, bool cache_inhibit, unint4* l2Table);
+    unint4 getMappingLevel(size_t size);
+    unint4 bitmapToACC(BitmapT protection, byte zsel);
 
 public:
     /*!
@@ -59,7 +59,7 @@ public:
      * The member taskID is set to 0 (as this constructor should only be called by the Kernel's MM).
      * The necessary mappings for the Kernel should be executed here (Kernelcode, Kernelheap, Memory-Mapped I/O)
      */
-	Leon3HatLayer();
+    Leon3HatLayer();
 
      /*!
      *  \brief map an address space with a logical address to a physical address
@@ -75,7 +75,7 @@ public:
      *
      *  Returns the real page (physical address) that has been assigned to enclose the segment.
      */
-	void* map( void*, void*, size_t, BitmapT, byte, int pid,  bool cache_inhibit );
+    void* map( void*, void*, size_t, BitmapT, byte, int pid,  bool cache_inhibit );
 
     /*!
      * \brief unmap an address space with a logical address from his given physical address
@@ -193,15 +193,15 @@ public:
      * Sets mmu registers to zero
      */
     static void initialize() {
-    	asm volatile(					   											\
-    					"set  0x100, %%g7;" 		/* context pointer register */	\
-    					"sta  %%g0,  [%%g7] 0x19;" 									\
-    					"set  0x200, %%g7;"	    	/* context register */			\
-    					"sta  %%g0,  [%%g7] 0x19;" 									\
-    					:						 									\
-    					: 						 									\
-    					:"%g7"														\
-    			);
+        asm volatile(                                                                   \
+                        "set  0x100, %%g7;"         /* context pointer register */    \
+                        "sta  %%g0,  [%%g7] 0x19;"                                     \
+                        "set  0x200, %%g7;"            /* context register */            \
+                        "sta  %%g0,  [%%g7] 0x19;"                                     \
+                        :                                                             \
+                        :                                                              \
+                        :"%g7"                                                        \
+                );
     }
 };
 

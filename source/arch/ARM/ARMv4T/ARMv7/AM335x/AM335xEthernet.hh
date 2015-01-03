@@ -179,7 +179,7 @@ public:
     struct netif tEMAC0Netif;
     int intc_irq;
 public:
-    explicit AM335xEthernet();
+    AM335xEthernet();
 
     ~AM335xEthernet();
 

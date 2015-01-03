@@ -1,19 +1,19 @@
 /*
-	ORCOS - an Organic Reconfigurable Operating System
-	Copyright (C) 2010 University of Paderborn
+    ORCOS - an Organic Reconfigurable Operating System
+    Copyright (C) 2010 University of Paderborn
 
-	This program is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <SCLConfig.hh>
@@ -21,7 +21,7 @@
 #include "avr/common.h"
 
 // Interrupt verctor section
-.section	.iv
+.section    .iv
 .org 0x0000
  rjmp RESET ; Reset Handler
  rjmp EXT_INT0 ; IRQ0 Handler
@@ -52,8 +52,8 @@
 
 .globl RESET
  RESET:
-   ldi r16, hi8(__stack)  	; Main program start
-   sts SPH, r16 			; Set Stack Pointer to top of RAM
+   ldi r16, hi8(__stack)      ; Main program start
+   sts SPH, r16             ; Set Stack Pointer to top of RAM
    ldi r16, lo8(__stack)
    sts SPL, r16
 
@@ -102,13 +102,13 @@
    reti
 
 __copy_data:
- 	 ldi     r26, lo8(__data_start) // XL
+      ldi     r26, lo8(__data_start) // XL
      ldi     r27, hi8(__data_start) // XH
      ldi     r30, lo8(__data_load_start) //ZL
      ldi     r31, hi8(__data_load_start) // ZH
      rjmp    cmp
  loop:
- 	 lpm     r24, Z
+      lpm     r24, Z
      st      X+, r24
      adiw    r30, 0x01
  cmp:
@@ -121,7 +121,7 @@ __copy_data:
 
 
 __clear_bss:
-	 ldi     XL, lo8(__bss_start)
+     ldi     XL, lo8(__bss_start)
      ldi     XH, hi8(__bss_start)
      rjmp    cmp2
  loop2:

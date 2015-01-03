@@ -12,21 +12,11 @@
 #include <types.hh>
 #include "SCLConfig.hh"
 
-class USART0 /*: public CharacterDeviceDriver*/ {
+class USART0  {
 public:
-
-	USART0();
+    USART0();
 
     ~USART0();
-
-	// interface to meet the CharacterDeviceDriver
-	// ErrorT readByte  (char* byte);
-
-	 //ErrorT writeByte (char byte);
-
-	 //ErrorT readBytes (char *bytes, unint4 &length);
-
-	 //ErrorT writeBytes(const char *bytes, unint4 length);
 };
 
 #endif /* USART0_HH_ */

@@ -26,7 +26,7 @@ extern Kernel* theOS;
 
 Leon3Clock::Leon3Clock( const char* name ) :
     Clock( name ) {
-	baseAddr = (unsigned int) 0x80000310;
+    baseAddr = (unsigned int) 0x80000310;
 
     totalTime = 0;
 
@@ -80,14 +80,14 @@ bool Leon3Clock::getTimeSinceStartup( TimeStruct* ts ) {
 
 void Leon3Clock::reset() {
 
-	//set reload value
-	    OUTW(baseAddr + RELOAD_REG_OFFSET, 0xFFFFFFFF);
+    //set reload value
+        OUTW(baseAddr + RELOAD_REG_OFFSET, 0xFFFFFFFF);
 
-	    //set value register
-	    OUTW(baseAddr + VALUE_REG_OFFSET, 0xFFFFFFFF);
+        //set value register
+        OUTW(baseAddr + VALUE_REG_OFFSET, 0xFFFFFFFF);
 
-	    //enable timer and timer interrupt
-	    OUTW(baseAddr + CTRL_REG_OFFSET, TCR_EN | TCR_RS | TCR_LD | TCR_IE);
+        //enable timer and timer interrupt
+        OUTW(baseAddr + CTRL_REG_OFFSET, TCR_EN | TCR_RS | TCR_LD | TCR_IE);
 }
 
 unint8 Leon3Clock::getTimeSinceStartup() {
@@ -108,15 +108,15 @@ unint8 Leon3Clock::getTimeSinceStartup() {
 }
 
 void Leon3Clock::updateTotalTime(){
-	unint4 time = 0;
-	asm volatile (
-			"set 0x80000314, %%g1;"
-			"ld [%%g1], %0;"
-			: //no output variables
-			: "r" (time)
-			: "g1" //clobber list
-			);
+    unint4 time = 0;
+    asm volatile (
+            "set 0x80000314, %%g1;"
+            "ld [%%g1], %0;"
+            : //no output variables
+            : "r" (time)
+            : "g1" //clobber list
+            );
 
-	totalTime += time;
+    totalTime += time;
 
 }

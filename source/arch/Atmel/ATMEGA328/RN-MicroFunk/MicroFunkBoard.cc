@@ -44,25 +44,23 @@ extern Kernel* theOS;
 #define STRINGIZE(A) STRINGIZE_NX(A)
 
 MicroFunkBoard::MicroFunkBoard() {
-
-
 }
 
 void MicroFunkBoard::initialize() {
     CLKPR = 128; // allow clock change!
-      CLKPR = 0;   // divide by 1!
+    CLKPR = 0;   // divide by 1!
 
-      for (volatile int i = 0; i < 1000; i++);
+    for (volatile int i = 0; i < 1000; i++);
 
 #ifdef HAS_Board_UARTCfd
 
- 	INIT_Board_UARTCfd;
+    INIT_Board_UARTCfd;
     UARTCfd = new NEW_Board_UARTCfd;
 
    // theOS->setStdOutputDevice( UARTCfd );
 
- 	LOG(ARCH,INFO,"Mikrofunkboard Initializing...");
- 	LOG(ARCH,INFO,"Board UART: [" STRINGIZE(Board_UARTCfdCl) "]" );
+     LOG(ARCH,INFO,"Mikrofunkboard Initializing...");
+     LOG(ARCH,INFO,"Board UART: [" STRINGIZE(Board_UARTCfdCl) "]" );
 #endif
 
 #ifdef HAS_Board_ClockCfd
@@ -88,7 +86,6 @@ void MicroFunkBoard::initialize() {
   INIT_Board_TimerCfd;
   TimerCfd = new NEW_Board_TimerCfd;
 #endif
-
 }
 
 MicroFunkBoard::~MicroFunkBoard() {

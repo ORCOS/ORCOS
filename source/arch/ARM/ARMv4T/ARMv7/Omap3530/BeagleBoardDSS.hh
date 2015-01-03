@@ -2,7 +2,7 @@
  * BeagleBoardDSS.hh
  *
  *  Created on: 07.08.2012
- *      Author: danielb
+ *    Copyright & Author: danielb
  */
 
 #ifndef BEAGLEBOARDDSS_HH_
@@ -15,20 +15,33 @@
 // CharacterDevice Driver for support as the standard output device
 // console
 class BeagleBoardDSS: public CharacterDevice {
-
 private:
-
     SharedMemResource* framebuffer;
 
 public:
-    BeagleBoardDSS(T_BeagleBoardDSS_Init *init);
+    explicit BeagleBoardDSS(T_BeagleBoardDSS_Init *init);
 
     ~BeagleBoardDSS();
 
+    /*****************************************************************************
+     * Method: init()
+     *
+     * @description
+     *******************************************************************************/
     void init();
 
+    /*****************************************************************************
+     * Method: writeByte(char byte)
+     *
+     * @description
+     *******************************************************************************/
     ErrorT writeByte(char byte);
 
+    /*****************************************************************************
+     * Method: writeBytes(const char *bytes, unint4 length)
+     *
+     * @description
+     *******************************************************************************/
     ErrorT writeBytes(const char *bytes, unint4 length);
 };
 

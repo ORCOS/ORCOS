@@ -50,21 +50,37 @@ DEF_Board_TimerCfd
 DEF_Board_ClockCfd
 DEF_Board_USB_HCCfd
 
+    /*****************************************************************************
+     * Method: getETH()
+     *
+     * @description
+     *
+     *******************************************************************************/
     CommDeviceDriver* getETH() {
         return 0;
     }
 
 public:
-
     BeagleBoard();
     ~BeagleBoard();
 
+    /*****************************************************************************
+     * Method: initialize()
+     *
+     * @description
+     *  Initializes the beagleboard device drivers.
+     *******************************************************************************/
     void initialize();
 
+    /*****************************************************************************
+     * Method: getBoardInfo()
+     *
+     * @description
+     *  Returns the board information string.
+     *******************************************************************************/
     char* getBoardInfo() {
         return (char*) "         BeagleBoard revision B5. SOC: OMAP3530\n\n";
     }
-    ;
 };
 
 #endif /*BEAGLEBOARD_HH_*/

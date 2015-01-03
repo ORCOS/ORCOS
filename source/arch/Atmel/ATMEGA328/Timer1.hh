@@ -44,36 +44,45 @@
  * this is the hardware specific implementation of the TimerDevice HAL class
  */
 class Timer1 {
-
 private:
-	unint4 time;
-public:
+    unint4 time;
 
-	Timer1();
+public:
+    Timer1();
 
     ~Timer1();
 
-    /*!
-     * \brief enable the general purpose timer
-     */
+    /*****************************************************************************
+     * Method: enable()
+     *
+     * @description
+     *  enables the general purpose timer
+     *******************************************************************************/
     ErrorT enable();
 
-    /*!
-     * \brief enable the general purpose timer
-     */
+    /*****************************************************************************
+     * Method: disable()
+     *
+     * @description
+     *  disbales the general purpose timer
+     *******************************************************************************/
     ErrorT disable();
 
-    /*!
-     * \brief Set the timer register.
-     */
-	ErrorT setTimer( unint4 t );
+    /*****************************************************************************
+     * Method: setTimer(unint4 t)
+     *
+     * @description
+     *  Set the timer register.
+     *******************************************************************************/
+    ErrorT setTimer(unint4 t);
 
-
-	ErrorT tick();
-
-
-
-
+    /*****************************************************************************
+     * Method: tick(unint4 t)
+     *
+     * @description
+     *  Tick handling of the timer.
+     *******************************************************************************/
+    ErrorT tick();
 };
 
 #endif /* Timer1_HH_ */

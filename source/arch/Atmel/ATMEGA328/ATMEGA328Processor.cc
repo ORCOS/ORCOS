@@ -25,8 +25,6 @@ ATMEGA328Processor::~ATMEGA328Processor() {
 }
 
 ErrorT ATMEGA328Processor::idle() {
-
-	// perform sleep to save energy on return dispatch
-
+    // perform sleep to save energy on return dispatch
     return cOk;
 }

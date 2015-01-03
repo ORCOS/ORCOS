@@ -1,19 +1,19 @@
 /*
-	ORCOS - an Organic Reconfigurable Operating System
-	Copyright (C) 2008 University of Paderborn
+    ORCOS - an Organic Reconfigurable Operating System
+    Copyright (C) 2008 University of Paderborn
 
-	This program is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "assemblerFunctions.hh"
@@ -30,18 +30,18 @@ extern "C" long testandset(
 {
 
     asm(
-    		"ldstub [%2], %%g1;"
-    		"xorcc %0, %%g1, %%g0;"
-    		"bne exit;"	//lock
-    		"mov 0, %%i0;"
+            "ldstub [%2], %%g1;"
+            "xorcc %0, %%g1, %%g0;"
+            "bne exit;"    //lock
+            "mov 0, %%i0;"
 
-    		"stb %1, [%2];"
-    		"mov 1, %%i0;"
+            "stb %1, [%2];"
+            "mov 1, %%i0;"
 
-    		"exit:"
-    		"stb %%g1, [%2];"
-    		"ret;"
-    		"restore;"
+            "exit:"
+            "stb %%g1, [%2];"
+            "ret;"
+            "restore;"
 
             : // no output variables
             : "r" (testValue) , "r" (setValue) , "r" (addr) // input variables
@@ -58,28 +58,28 @@ extern "C" long testandset(
  */
 extern "C" void readTimeRegister(unint4* regValuePtr)
 {
-	asm volatile (
-	            "set 0x80000310, %%g1;"
-				"ld [%%g1], %%g1;"
-				"st %%g1, [%0+4];"
-	            :
-	            : "r" (regValuePtr)
-	            : "g1" // these registers get altered during calc
-	    );
+    asm volatile (
+                "set 0x80000310, %%g1;"
+                "ld [%%g1], %%g1;"
+                "st %%g1, [%0+4];"
+                :
+                : "r" (regValuePtr)
+                : "g1" // these registers get altered during calc
+        );
 }
 
 extern "C" void restoreContext(Thread*  t) {
-	void* sp = 0;
+    void* sp = 0;
 
-	if (!isOk(t->popStackPointer(sp))){
-		ERROR("Restore Context failed while popping the stack!");
-	}
+    if (!isOk(t->popStackPointer(sp))){
+        ERROR("Restore Context failed while popping the stack!");
+    }
 
-	ASSERT(sp);
+    ASSERT(sp);
 
-	TaskIdT pid = t->getOwner()->getId();
+    TaskIdT pid = t->getOwner()->getId();
 
-	LOG(PROCESS,TRACE,(PROCESS,TRACE,"Restore Context: sp @  0x%x." ,sp));
+    LOG(PROCESS,TRACE,(PROCESS,TRACE,"Restore Context: sp @  0x%x." ,sp));
 
     #if USE_SAFE_KERNEL_STACKS
         // we use safe kernel stacks so we must free the stack slot
@@ -94,15 +94,15 @@ extern "C" void restoreContext(Thread*  t) {
   //LOG(PROCESS,TRACE,(PROCESS,TRACE,"i4 : 0x%x, i5: 0x%x, i6: 0x%x, l7:0x%x" , STACK_CONTENT(sp, 48),STACK_CONTENT(sp,52),STACK_CONTENT(sp,56),STACK_CONTENT(sp,60)));
   //LOG(PROCESS,TRACE,(PROCESS,TRACE,"g0 : 0x%x, g1: 0x%x, g2: 0x%x, g3:0x%x" , STACK_CONTENT(sp, 64),STACK_CONTENT(sp,68),STACK_CONTENT(sp,72),STACK_CONTENT(sp,76)));
 
-	asm volatile (
-		//set stack pointer and branch to leaveHandler
-		"mov %0, %%g5;"
-		"mov %1, %%g6;"
-		"ba leavehandler;"
-		"nop"
-		:
-		:"r" (sp), "r" (pid)
-		:
-	);
+    asm volatile (
+        //set stack pointer and branch to leaveHandler
+        "mov %0, %%g5;"
+        "mov %1, %%g6;"
+        "ba leavehandler;"
+        "nop"
+        :
+        :"r" (sp), "r" (pid)
+        :
+    );
 }
 

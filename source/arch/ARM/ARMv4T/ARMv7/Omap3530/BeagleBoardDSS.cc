@@ -27,11 +27,12 @@ struct disp_setting {
     unint1 vsync;
 };
 
-struct disp_setting disp_settings[4] = { { 640, 480, 25170, 16, 48, 96, 11, 31,
-        2, 1 }, { 720, 1280, 72426, 190, 120, 32, 13, 3, 5, 0 },
 //{1024,768,65000,24,160,136,3,29,6,1},
-        { 1024, 768, 96000, 24, 160, 136, 3, 29, 6, 1 }, { 640, 480, 19200, 1,
-                28, 2, 1, 1, 1, 1 } };
+struct disp_setting disp_settings[4] = {
+        { 640, 480, 25170, 16, 48, 96, 11, 31, 2, 1 },
+        { 1280, 720, 72426, 190, 120, 32, 13, 3, 5, 0 },
+        { 1024, 768, 96000, 24, 160, 136, 3, 29, 6, 1 },
+        { 640, 480, 19200, 1, 28, 2, 1, 1, 1, 1 } };
 
 #define SCREEN_WIDTH 1024
 #define SCREEN_HEIGHT 768
@@ -571,7 +572,7 @@ unsigned char font[2048] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  //
         0x50, 0x68, 0x48, 0x48, 0x00, 0x00, 0x00, 0x00,  // Char 252 (.)
         0xF0, 0x30, 0xC0, 0xF0, 0x00, 0x00, 0x00, 0x00,  // Char 253 (.)
         0x00, 0x00, 0x00, 0x3C, 0x3C, 0x3C, 0x3C, 0x00,  // Char 254 (.)
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00	// Char 255 (.)
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00    // Char 255 (.)
         };
 #endif
 #ifdef FONT_STANDARD
@@ -836,118 +837,110 @@ unsigned char font[2048] =
 };
 #endif
 
-void drawChar(char c, int x = x_cursor, int y = y_cursor, char r = 0, char g =
-                      255, char b = 30);
+/*****************************************************************************
+ * Method: drawChar(char c, int x = x_cursor, int y = y_cursor, char r = 0, char g = 255, char b = 30)
+ *
+ * @description
+ *******************************************************************************/
+void drawChar(char c, int x = x_cursor, int y = y_cursor, char r = 0, char g = 255, char b = 30);
 
+/*****************************************************************************
+ * Method: drawChar(char c, int x, int y, char r, char g, char b)
+ *
+ * @description
+ *******************************************************************************/
 void drawChar(char c, int x, int y, char r, char g, char b) {
-
     int offset = x * 3 * 8 + y * SCREEN_WIDTH * 3 * 8;
 
-    for (int i = 0; i < 8; i++)
-    {
+    for (int i = 0; i < 8; i++) {
         // every row
         int pixel = font[c * 8 + i];
-        for (int j = 0; j < 8; j++)
-        {
+        for (int j = 0; j < 8; j++) {
             int v = (pixel & (1 << (7 - j))) > 0;
 
             screen[offset + i * SCREEN_WIDTH * 3 + j * 3] = v * b;
             screen[offset + i * SCREEN_WIDTH * 3 + j * 3 + 1] = v * g;
             screen[offset + i * SCREEN_WIDTH * 3 + j * 3 + 2] = v * r;
-
         }
     }
-
 }
 
+/*****************************************************************************
+ * Method: drawRect(int x, int y, int width)
+ *
+ * @description
+ *******************************************************************************/
 void drawRect(int x, int y, int width) {
-
     int r = 255;
     int g = 0;
     int b = 0;
 
-    for (int i = x * 3; i < x * 3 + width * 3; i += 3)
-    {
-
+    for (int i = x * 3; i < x * 3 + width * 3; i += 3) {
         screen[i + y * SCREEN_WIDTH * 3] = b;
         screen[i + 1 + y * SCREEN_WIDTH * 3] = g;
         screen[i + 2 + y * SCREEN_WIDTH * 3] = r;
     }
-
 }
 
 BeagleBoardDSS::BeagleBoardDSS(T_BeagleBoardDSS_Init *init) :
         CharacterDevice(false, init->Name) {
+    /* create a new framebuffer for rendering*/
     this->framebuffer = new SharedMemResource(FRAMEBUFFER_SIZE, "fb0");
 
-    LOG(ARCH, INFO, (ARCH,INFO,"BeagleBoardDSS: Framebuffer @ 0x%x, size: %d",framebuffer->getPhysicalStartAddress(),FRAMEBUFFER_SIZE));
+    LOG(ARCH, INFO,"BeagleBoardDSS: Framebuffer @ 0x%x, size: %d", framebuffer->getPhysicalStartAddress(),FRAMEBUFFER_SIZE);
+    LOG(ARCH, INFO,"BeagleBoardDSS: Clearing Framebuffer.. [%d MB]", FRAMEBUFFER_SIZE / (1024 * 1024));
 
-    LOG(ARCH, INFO, (ARCH,INFO,"BeagleBoardDSS: Clearing Framebuffer.. [%d MB]",FRAMEBUFFER_SIZE / (1024 * 1024)));
-
-    if (framebuffer->getPhysicalStartAddress() != 0)
-    {
-        memsetlong((void*) framebuffer->getPhysicalStartAddress(), 0x30303030, FRAMEBUFFER_SIZE
-                           / 4);
+    if (framebuffer->getPhysicalStartAddress() != 0) {
+        memsetlong((void*) framebuffer->getPhysicalStartAddress(), 0x30303030, FRAMEBUFFER_SIZE / 4);
         screen = (char*) framebuffer->getPhysicalStartAddress();
     }
 
-    LOG(ARCH, INFO, (ARCH,INFO,"BeagleBoardDSS: Framebuffer cleared.."));
-
-//	printf("DSS: Screen cleared..\n\r");
-
+    LOG(ARCH, INFO, "BeagleBoardDSS: Framebuffer cleared..");
 }
 
 BeagleBoardDSS::~BeagleBoardDSS() {
-
 }
 
+/*****************************************************************************
+ * Method: BeagleBoardDSS::writeByte(char byte)
+ *
+ * @description
+ *******************************************************************************/
 ErrorT BeagleBoardDSS::writeByte(char byte) {
     if (byte == '\n')
-        return cOk ;
+        return (cOk);
 
-    if (byte != '\r')
-    {
+    if (byte != '\r') {
         drawChar(byte);
 
         if (y_cursor > 60)
             drawChar(byte, x_cursor, y_cursor - 60);
 
         x_cursor++;
-        if (x_cursor > 79)
-        {
+        if (x_cursor > 79) {
             x_cursor = 0;
             y_cursor++;
         }
-    }
-    else
-    {
+    } else {
         x_cursor = 0;
         y_cursor++;
         // clear the current line
         memsetlong((void*) (((unint) &screen) + SCREEN_WIDTH * 3 * 8 * y_cursor), (int) 0, 3840);
         if (y_cursor > 60)
-            memsetlong((void*) (((unint) &screen)
-                               + SCREEN_WIDTH * 3 * 8 * (y_cursor - 60)), (int) 0, 3840);
+            memsetlong((void*) (((unint) &screen) + SCREEN_WIDTH * 3 * 8 * (y_cursor - 60)), (int) 0, 3840);
     }
 
-    if (y_cursor > 60 && y_cursor < 120)
-    {
-        *((unint *) 0x48050480) = ((unint) &screen)
-                + SCREEN_WIDTH * 3 * 8 * (y_cursor - 60);
-        *((unint *) 0x48050484) = ((unint) &screen)
-                + SCREEN_WIDTH * 3 * 8 * (y_cursor - 60);
+    if (y_cursor > 60 && y_cursor < 120) {
+        *((unint *) 0x48050480) = ((unint) &screen) + SCREEN_WIDTH * 3 * 8 * (y_cursor - 60);
+        *((unint *) 0x48050484) = ((unint) &screen) + SCREEN_WIDTH * 3 * 8 * (y_cursor - 60);
 
         *((unint *) 0x48050440) = 0x0001836b;
 
         //*((unint *) 0x48050488) = ((y_cursor - 59)*8) << 16;
 
-        memcpy(&screen, (void*) (((unint) &screen) + 640 * 3 * 8), 640 * 480 * 3
-                       - 640 * 3 * 8);
-        memset((void*) (((unint) &screen) + 640 * 480 * 3 - 640 * 3 * 8), (char) 0, 640
-                       * 3 * 8);
-    }
-    else if (y_cursor >= 120)
-    {
+        memcpy(&screen, (void*) (((unint) &screen) + 640 * 3 * 8), 640 * 480 * 3 - 640 * 3 * 8);
+        memset((void*) (((unint) &screen) + 640 * 480 * 3 - 640 * 3 * 8), (char) 0, 640 * 3 * 8);
+    } else if (y_cursor >= 120) {
         y_cursor = 60;
 
         *((unint *) 0x48050480) = ((unint) &screen);
@@ -956,9 +949,14 @@ ErrorT BeagleBoardDSS::writeByte(char byte) {
         *((unint *) 0x48050440) = 0x0001836b;
     }
 
-    return cOk ;
+    return (cOk);
 }
 
+/*****************************************************************************
+ * Method: BeagleBoardDSS::writeBytes(const char* bytes, unint4 length)
+ *
+ * @description
+ *******************************************************************************/
 ErrorT BeagleBoardDSS::writeBytes(const char* bytes, unint4 length) {
     for (unint i = 0; i < length; i++)
         writeByte(bytes[i]);
@@ -992,7 +990,13 @@ ErrorT BeagleBoardDSS::writeBytes(const char* bytes, unint4 length) {
 #define DSS_SYSCONFIG  *((unint *) 0x48050010)
 #define DSS_SYSSTATUS *((unint *) 0x48050014)
 
+/*****************************************************************************
+ * Method: BeagleBoardDSS::init()
+ *
+ * @description
+ *******************************************************************************/
 void BeagleBoardDSS::init() {
+    /* TODO: used structs for access to registers to make this portable! */
 
     // get system clock to calculate pixel and DSS1_ALWON clock
     unint sys_clk = REG_PRM_CLKSEL;
@@ -1013,14 +1017,14 @@ void BeagleBoardDSS::init() {
     // 4 = 38.4 MHZ
 
     struct disp_setting *disp = &disp_settings[config];
-    LOG(ARCH, INFO, (ARCH,INFO,"Screen Settings: width=%d height=%d pixelclock=%d",disp->width,disp->height,disp->freq));
-    LOG(ARCH, INFO, (ARCH,INFO,"hfp=%d hbp=%d hsw=%d",disp->hfp,disp->hbp,disp->hsw));
-    LOG(ARCH, INFO, (ARCH,INFO,"vfp=%d vbp=%d vsw=%d",disp->vfp,disp->vbp,disp->vsw));
+    LOG(ARCH, INFO, "Screen Settings: width=%d height=%d pixelclock=%d", disp->width, disp->height, disp->freq);
+    LOG(ARCH, INFO, "hfp=%d hbp=%d hsw=%d", disp->hfp, disp->hbp, disp->hsw);
+    LOG(ARCH, INFO, "vfp=%d vbp=%d vsw=%d", disp->vfp, disp->vbp, disp->vsw);
 
     writeBytes("This is the ORCOS framebuffer..", 31);
 
     // reset DSS
-    /*	printf("Resetting DSS!\r");
+    /*    printf("Resetting DSS!\r");
      DISPC_CONTROL = 0;
      DISPC_IRQSTATUS = 1;
      while ((DISPC_IRQSTATUS & 0x1) != 1) {};
@@ -1054,7 +1058,7 @@ void BeagleBoardDSS::init() {
     //unint dss1_alwon_fclk = dpll4_clock * 2 / div1;
     unint dss1_alwon_fclk = dpll4_clock / div1;
     // dss1_alwon_fclk max 173 mhz -- best 96 mhz
-    LOG(ARCH, INFO, (ARCH,INFO,"DSS1_ALWON_FCLK    = %d khZ [div = %d]",dss1_alwon_fclk,div1));
+    LOG(ARCH, INFO, "DSS1_ALWON_FCLK    = %d khZ [div = %d]", dss1_alwon_fclk, div1);
 
     // CM_CLKEN_PLL
     *((unint *) 0x48004D00) = 0x00370037;
@@ -1078,24 +1082,22 @@ void BeagleBoardDSS::init() {
     *((unint *) 0x48050410) = 0x00002015;
     //*((unint *) 0x48050410) = 0x0000100c;
 
-    LOG(ARCH, INFO, (ARCH,INFO,"Resetting DSS.."));
+    LOG(ARCH, INFO, "Resetting DSS..");
 
     *((unint *) 0x48050414) = 0x00000001;
 
     volatile int timeout = 100000000;
 
     // READ_ONLY: DISPC_SYSSTATUS
-    while (*((unint *) 0x48050414) == 0 && (timeout-- > 0))
-    {
+    while (*((unint *) 0x48050414) == 0 && (timeout-- > 0)) {
     };
 
-    if (timeout <= 0)
-    {
-        LOG(ARCH, ERROR, (ARCH,ERROR,"Timeout resetting display. DSS not functional."));
+    if (timeout <= 0) {
+        LOG(ARCH, ERROR, "Timeout resetting display. DSS not functional.");
         return;
     }
 
-    LOG(ARCH, INFO, (ARCH,INFO,"Resetting complete"));
+    LOG(ARCH, INFO, "Resetting complete");
 
     //DISPC_CONFIG
     *((unint *) 0x48050444) = 0x00000004;
@@ -1113,29 +1115,27 @@ void BeagleBoardDSS::init() {
     /*
 
 
-     .timing_h	= 0x1a4024c9,
-     .timing_v	= 0x02c00509,
-     .pol_freq	= 0x00007028,
-     .divisor	= 0x00010001, // 96MHz Pixel Clock
-     .lcd_size	= 0x02ff03ff, // 1024x768
+     .timing_h    = 0x1a4024c9,
+     .timing_v    = 0x02c00509,
+     .pol_freq    = 0x00007028,
+     .divisor    = 0x00010001, // 96MHz Pixel Clock
+     .lcd_size    = 0x02ff03ff, // 1024x768
 
      */
 
-    unint timingh = ((disp->hsw - 1) & 0xff) | (((disp->hfp - 1) & 0xfff) << 8)
-            | (((disp->hbp - 1) & 0xfff) << 20);
+    unint timingh = ((disp->hsw - 1) & 0xff) | (((disp->hfp - 1) & 0xfff) << 8) | (((disp->hbp - 1) & 0xfff) << 20);
 
     timingh = 0x1a4024c9;
     *((unint *) 0x48050464) = timingh;
-    LOG(ARCH, INFO, (ARCH,INFO,"TIMING_H           = %x",timingh));
+    LOG(ARCH, INFO, "TIMING_H           = %x", timingh);
     //DISPC_TIMING_V
     //*((unint *) 0x48050468) = 0x01400504;
 
-    unint timingv = ((disp->vsw - 1) & 0xff) | ((disp->vfp & 0xfff) << 8)
-            | ((disp->vbp & 0xfff) << 20);
+    unint timingv = ((disp->vsw - 1) & 0xff) | ((disp->vfp & 0xfff) << 8) | ((disp->vbp & 0xfff) << 20);
     timingv = 0x02c00509;
 
     *((unint *) 0x48050468) = timingv;
-    LOG(ARCH, INFO, (ARCH,INFO,"TIMING_V           = %x",timingv));
+    LOG(ARCH, INFO, "TIMING_V           = %x", timingv);
 
     // 1 = falling edge -sync
     // 0 = rising edge +sync
@@ -1156,7 +1156,7 @@ void BeagleBoardDSS::init() {
     //640*480
     //*((unint *) 0x48050470) = 0x00010004;
 
-    DISPC_DIVISOR = 0x00010001;	// | divm2;
+    DISPC_DIVISOR = 0x00010001;  // | divm2;
 
     //DISPC_DIVISOR = 18 << 16 | 18;// | divm2;
 
@@ -1170,21 +1170,21 @@ void BeagleBoardDSS::init() {
     unint LCD = (DISPC_DIVISOR >> 16) & 0xff;
     unint pixel_clock = dss1_alwon_fclk / (LCD * PCD);
     unint logic_clock = dss1_alwon_fclk / LCD;
-    LOG(ARCH, INFO, (ARCH,INFO,"Pixel Clock        = %d kHz [PCD = %d]",pixel_clock,PCD));
-    LOG(ARCH, INFO, (ARCH,INFO,"Logic Clock        = %d kHz [LCD = %d]",logic_clock,LCD));
+    LOG(ARCH, INFO, "Pixel Clock        = %d kHz [PCD = %d]", pixel_clock, PCD);
+    LOG(ARCH, INFO, "Logic Clock        = %d kHz [LCD = %d]", logic_clock, LCD);
 
     //float fps =
 
     unint r = (disp->hsw) + disp->hfp + disp->width + disp->hbp;
     unint s = disp->vsw + disp->vfp + disp->vbp + disp->height;
     r = r * s;
-    LOG(ARCH, INFO, (ARCH,INFO,"Pixels             = %d",r));
+    LOG(ARCH, INFO, "Pixels             = %d", r);
 
     unint period = 10000000 / pixel_clock;  // = (1 / pixelclock) * 1000
     r = r * period / 10;
-    LOG(ARCH, INFO, (ARCH,INFO,"pixel period = %d, r =%d",period,r));
+    LOG(ARCH, INFO, "pixel period = %d, r =%d", period, r);
     unint fps = 1000000000 / r;
-    LOG(ARCH, INFO, (ARCH,INFO,"fps  = %dHz",fps));
+    LOG(ARCH, INFO, "fps  = %dHz", fps);
 
     //DISPC_SIZE_DIG
     //*((unint *) 0x48050478) = 0x00ef027f;
@@ -1254,12 +1254,11 @@ void BeagleBoardDSS::init() {
     //*((unint *) 0x480504b8) = 0x807ff000;
 
     //SET FRAMEBUFFER ALPHA BUFFER
-    //	*((unint *) 0x480504b8) = (unint) &screen;
+    //    *((unint *) 0x480504b8) = (unint) &screen;
 
-    LOG(ARCH, INFO, (ARCH,INFO,"DSS: starting display output..."));
+    LOG(ARCH, INFO, "DSS: starting display output...");
 
     *((unint *) 0x480504cc) = 0x00083F7;
 
     DISPC_CONTROL = 0x0001836b;
-
 }
