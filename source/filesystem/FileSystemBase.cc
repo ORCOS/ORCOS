@@ -19,6 +19,7 @@ FileSystemBase::FileSystemBase(Partition* p_myPartition) {
     freeBlocks = 0;
 
     /* create sys fs entries */
+#if SYSFS_SUPPORT
     Directory* dir = KernelVariable::getEntry("fs", true);
     if (dir) {
         char* idstr = new char[32];
@@ -30,6 +31,7 @@ FileSystemBase::FileSystemBase(Partition* p_myPartition) {
         SYSFS_ADD_RO_UINT(sysFsDir, blockSize);
         SYSFS_ADD_RO_UINT(sysFsDir, freeBlocks);
     }
+#endif
 }
 
 FileSystemBase::~FileSystemBase() {

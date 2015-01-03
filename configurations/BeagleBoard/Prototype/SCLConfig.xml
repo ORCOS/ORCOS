@@ -41,9 +41,12 @@
     <Skeleton>
       <Name>Board</Name>
       <Superclass>arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoard/BeagleBoard</Superclass>
-      <Member Name="Timer" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardGPTimer2" None="false" UserSpace="false" PhyLoadAddress="0x0">
+      <Member Name="Timer" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPTimer" None="false" UserSpace="false" PhyLoadAddress="0x0">
         <PropertyValue Name="Address" Value="0x49032000" Type="unsigned int" />
         <PropertyValue Name="Length" Value="4096" Type="unsigned int" />
+        <PropertyValue Name="Name" Value="sched_timer" Type="char*" />
+        <PropertyValue Name="INTC_IRQ" Value="37" Type="unsigned int" />
+        <PropertyValue Name="INTC_Priority" Value="50" Type="unsigned int" />
       </Member>
       <Member Name="HatLayer" Class="arch/ARM/ARMv4T/ARMv7/ARMv7HatLayer" None="true" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="Clock" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530Clock" None="false" UserSpace="false" PhyLoadAddress="0x0">
@@ -225,11 +228,11 @@
     </Define>
     <Define>
       <Name>ICACHE_ENABLE</Name>
-      <Value>0</Value>
+      <Value>1</Value>
     </Define>
     <Define>
       <Name>DCACHE_ENABLE</Name>
-      <Value>0</Value>
+      <Value>1</Value>
     </Define>
     <Define>
       <Name>DEFAULT_USER_STACK_SIZE</Name>
