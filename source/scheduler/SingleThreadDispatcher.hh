@@ -28,42 +28,64 @@
  *
  */
 class SingleThreadDispatcher {
-
-
-private    :
-
-
 public:
-	SingleThreadDispatcher();
+    SingleThreadDispatcher();
 
     ~SingleThreadDispatcher();
 
-    /*!
-     */
+    /*****************************************************************************
+     * Method: dispatch()
+     *
+     * @description
+     *  Starts the single thread.
+     *******************************************************************************/
     void dispatch();
 
-    Kernel_SchedulerCfdCl* getScheduler() { return 0;}
+    /*****************************************************************************
+     * Method: getScheduler()
+     *
+     * @description
+     *  Dummy method as this is not supported by the SingleThreadDispatcher
+     *******************************************************************************/
+    Kernel_SchedulerCfdCl* getScheduler() {
+        return 0;
+    }
 
-    /*!
-       * \brief sleep method which sends the given / current thread to sleep mode
-       */
-      void sleep(LinkedListItem* pSleepDbItem = 0) {}
+    /*****************************************************************************
+     * Method: sleep(Thread* thread)
+     *
+     * @description
+     *  Dummy method as this is not supported by the SingleThreadDispatcher
+     *******************************************************************************/
+    void sleep(Thread* thread) {
+    }
 
-      /*!
-       * \brief block method which sends the current thread to blocked mode
-       */
-      void block(Thread* thread) {}
+    /*****************************************************************************
+     * Method: block(Thread* thread)
+     *
+     * @description
+     *  Dummy method as this is not supported by the SingleThreadDispatcher
+     *******************************************************************************/
+    void block(Thread* thread) {
+    }
 
-      /*!
-       *  \brief Unblocks the given thread
-       */
-      void unblock(Thread* thread) {}
+    /*****************************************************************************
+     * Method: unblock(Thread* thread)
+     *
+     * @description
+     *  Dummy method as this is not supported by the SingleThreadDispatcher
+     *******************************************************************************/
+    void unblock(Thread* thread) {
+    }
 
-      /*!
-       * \brief Terminates the given thread
-       */
-      void terminate_thread(Thread* thread) {}
-
+    /*****************************************************************************
+     * Method: terminate_thread(Thread* thread)
+     *
+     * @description
+     *  Dummy method as this is not supported by the SingleThreadDispatcher
+     *******************************************************************************/
+    void terminate_thread(Thread* thread) {
+    }
 };
 
 #endif /*SingleCPUDispatcher_H_*/

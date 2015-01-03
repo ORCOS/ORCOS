@@ -20,59 +20,79 @@
 #include "inc/const.hh"
 
 SingleThreadScheduler::SingleThreadScheduler() {
+    singleThread = 0;
+    wrappingItem = 0;
 }
 
 SingleThreadScheduler::~SingleThreadScheduler() {
 }
 
+/*****************************************************************************
+ * Method: SingleThreadScheduler::enter(LinkedListItem* item)
+ *
+ * @description
+ *  Registers the single thread.
+ *---------------------------------------------------------------------------*/
 ErrorT SingleThreadScheduler::enter(LinkedListItem* item) {
     this->singleThread = item;
-    return cOk ;
+    return (cOk);
 }
 
+/*****************************************************************************
+ * Method: SingleThreadScheduler::getNext()
+ *
+ * @description
+ *  Returns the single thread
+ *---------------------------------------------------------------------------*/
 LinkedListItem* SingleThreadScheduler::getNext() {
     LinkedListItem* ret = this->singleThread;
     this->singleThread = 0;
-    return ret;
+    return (ret);
 }
 
+/*****************************************************************************
+ * Method: SingleThreadScheduler::remove(ListItem* item)
+ *
+ * @description
+ *  Removes the single thread if its list item is given.
+ *---------------------------------------------------------------------------*/
 LinkedListItem* SingleThreadScheduler::remove(ListItem* item) {
-
-    if (this->singleThread->getData() == item)
-    {
+    if (this->singleThread->getData() == item) {
         LinkedListItem* ret = this->singleThread;
         singleThread = 0;
-        return ret;
+        return (ret);
     }
-    return 0;
+    return (0);
 }
 
+/*****************************************************************************
+ * Method: SingleThreadScheduler::getNextTimerEvent(LinkedList* sleepList,
+ *                                                  TimeT currentTime)
+ *
+ * @description
+ *  Returns the next timer event for scheduling.
+ *---------------------------------------------------------------------------*/
 TimeT SingleThreadScheduler::getNextTimerEvent(LinkedList* sleepList, TimeT currentTime) {
-    // update sleeplist. Since this is a specialized class
-    // we only update the first thread in the sleeplist since there should only be one!
+    /* update sleeplist. Since this is a specialized class
+     * we only update the first thread in the sleeplist since there should only be one! */
 
     LinkedListItem* pDBSleepItem = sleepList->getHead();
-    if (pDBSleepItem != 0)
-    {
-        Kernel_ThreadCfdCl* pSleepThread =
-                static_cast< Kernel_ThreadCfdCl*>(pDBSleepItem->getData());
+    if (pDBSleepItem != 0) {
+        Kernel_ThreadCfdCl* pSleepThread = static_cast< Kernel_ThreadCfdCl*>(pDBSleepItem->getData());
 
-        // check for wakeup time of thread
-        if (pSleepThread->sleepTime <= currentTime)
-        {
+        /* check for wakeup time of thread */
+        if (pSleepThread->sleepTime <= currentTime) {
             pSleepThread->status.setBits( cReadyFlag);
             LinkedListItem* litem2 = pDBSleepItem;
             pDBSleepItem = pDBSleepItem->getSucc();
 
             this->enter(litem2);
-        }
-        else
-        {
+        } else {
             TimeT ret = pSleepThread->sleepTime - currentTime;
             return (ret);
         }
     }
 
-    return MAX_INT4;
+    return (MAX_INT4);
 }
 

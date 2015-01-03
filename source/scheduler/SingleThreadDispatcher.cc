@@ -24,31 +24,50 @@
 
 extern Kernel* theOS;
 extern Board_TimerCfdCl* theTimer;
-extern "C" int task_main();
-extern void startThread( Thread* thread );
 
-TimeT           		lastCycleStamp = 0;
-Kernel_ThreadCfdCl*    	pCurrentRunningThread = 0;
-Task*          			pCurrentRunningTask = 0;
+/*****************************************************************************
+ * Method: task_main()
+ *
+ * @description
+ *  The entry symbol of the task to be executed. The task must thus be known
+ *  to the kernel at link time.
+ *******************************************************************************/
+extern "C" int task_main();
+
+/*****************************************************************************
+ * Method: startThread(Thread* thread)
+ *
+ * @description
+ *  The startThread method.
+ *******************************************************************************/
+extern void startThread(Thread* thread);
+
+TimeT lastCycleStamp = 0;
+Kernel_ThreadCfdCl* pCurrentRunningThread = 0;
+Task* pCurrentRunningTask = 0;
 
 taskTable singleTask;
 
-SingleThreadDispatcher::SingleThreadDispatcher()
-{
-	singleTask.task_entry_addr = (long) &task_main;
-	pCurrentRunningTask   = 0;
-	pCurrentRunningThread = 0;
-	pCurrentRunningTask   = new Task(theOS->getMemoryManager(),&singleTask);
-	pCurrentRunningThread = (Kernel_ThreadCfdCl*) pCurrentRunningTask->getThreadDB()->getHead()->getData();
+SingleThreadDispatcher::SingleThreadDispatcher() {
+    singleTask.task_entry_addr = (long) &task_main;
+    pCurrentRunningTask   = 0;
+    pCurrentRunningThread = 0;
+    pCurrentRunningTask   = new Task(theOS->getMemoryManager(), &singleTask);
+    pCurrentRunningThread = (Kernel_ThreadCfdCl*) pCurrentRunningTask->getThreadDB()->getHead()->getData();
 }
 
 SingleThreadDispatcher::~SingleThreadDispatcher() {
 }
 
+/*****************************************************************************
+ * Method: SingleThreadDispatcher::dispatch()
+ *
+ * @description
+ *  Starts the single thread.
+ *******************************************************************************/
 void SingleThreadDispatcher::dispatch() {
-    LOG(SCHEDULER,ERROR,"starting Thread");
-	// just start the single thread we have if we get here
-	startThread(pCurrentRunningThread);
+    LOG(SCHEDULER, ERROR, "starting Thread");
+    /* just start the single thread we have if we get here */
+    startThread(pCurrentRunningThread);
 }
-
 

@@ -41,29 +41,35 @@ public:
     ~ListScheduler() {
     }
 
-    /*!
-     *  \brief Adds a new thread or reactivated service to this scheduler
-     */
+    /*****************************************************************************
+     * Method: enter(ScheduleableItem* item)
+     *
+     * @description
+     *  Adds a new thread or reactivated service to this scheduler
+     *******************************************************************************/
     ErrorT enter(ScheduleableItem* item) {
         ASSERT(item);
         return (this->database.addTail(item));
     }
 
-
-    /*!
-     *  \brief Enter method which adds an already existing DatabaseItem to the scheduler.
+    /*****************************************************************************
+     * Method: enter(LinkedListItem* item)
      *
+     * @description
+     *  Enter method which adds an already existing DatabaseItem to the scheduler.
      *  Implemented to avoid reallocating memory for scheduleableitems if reentering the scheduler.
-     */
+     *******************************************************************************/
     ErrorT enter(LinkedListItem* item) {
         ASSERT(item);
         return (this->database.addTail(item));
     }
 
-
-    /*!
-     * \brief Removes the item from the scheduler
-     */
+    /*****************************************************************************
+     * Method: remove(ScheduleableItem* it)
+     *
+     * @description
+     *  Removes the item from the scheduler
+     *******************************************************************************/
     LinkedListItem* remove(ScheduleableItem* it) {
         LinkedListItem* item = (LinkedListItem*) this->database.getItem(it);
         if (item != 0) {
@@ -73,13 +79,15 @@ public:
         return (0);
     }
 
-    /*!
-     * \brief Returns true if at least one element is in the queue.
-     */
+    /*****************************************************************************
+     * Method: isEmpty()
+     *
+     * @description
+     *  Returns true if at least one element is in the queue.
+     *******************************************************************************/
     bool isEmpty() {
         return (this->database.isEmpty());
     }
-
 };
 
 #endif /*LISTSCHEDULER_HH_*/

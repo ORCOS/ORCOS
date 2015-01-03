@@ -53,13 +53,13 @@ extern TimeT                lastCycleStamp;
  * Validation increases syscall overhead, however increases security as buffer overflow attacks
  * are minimized */
 #if VALIDATE_SYSCALL_ADDRESS_RANGES
-#define VALIDATE_IN_PROCESS( addr ) \
+#define VALIDATE_IN_PROCESS(addr) \
     if (((unint4) (addr) < LOG_TASK_SPACE_START) || ((unint4) (addr) > LOG_TASK_SPACE_START + MAX_TASK_SIZE)) { \
-        LOG(SYSCALLS,WARN,"SYSCALL: Address Space Violation: %x, at %s, %d",addr,__FILE__,__LINE__);\
+        LOG(SYSCALLS, WARN, "SYSCALL: Address Space Violation: %x, at %s, %d", addr, __FILE__, __LINE__);\
         return (cError); \
     }
 #else
-#define VALIDATE_IN_PROCESS( addr )
+#define VALIDATE_IN_PROCESS(addr)
 #endif
 
 /* the syscall handler signature */
@@ -72,20 +72,45 @@ extern p_syscall_handler_t syscall_handler[];
  *            MANDATORY SYSCALLS
  *******************************************************************/
 
-/* the default system call handler for invalid or not implemented syscalls */
+/*****************************************************************************
+ * Method: sc_default_handler(intptr_t sp_int)
+ *
+ * @description
+ *  the default system call handler for invalid or not implemented syscalls
+ *******************************************************************************/
 int sc_default_handler(intptr_t sp_int);
 
-/* The thread exit syscall. not configurable and always used as it
- * is the exit point of every thread. */
+/*****************************************************************************
+ * Method: sc_thread_exit(intptr_t sp_int)
+ *
+ * @description
+ *  The thread exit syscall. not configurable and always used as it
+ *  is the exit point of every thread
+ *******************************************************************************/
 int sc_thread_exit(intptr_t sp_int);
 
-/* Standard out printing support */
-int sc_printToStdOut(intptr_t sp_int );
+/*****************************************************************************
+ * Method: sc_printToStdOut(intptr_t sp_int)
+ *
+ * @description
+ *  Standard out printing support
+ *******************************************************************************/
+int sc_printToStdOut(intptr_t sp_int);
 
-/* Syscall handler to return the current processor cycles */
+/*****************************************************************************
+ * Method: sc_getCycles(intptr_t sp_int)
+ *
+ * @description
+ *  Syscall handler to return the current processor cycles
+ *******************************************************************************/
 int sc_getCycles(intptr_t sp_int);
 
-/* Syscall handler to return the current date time of the system*/
+/*****************************************************************************
+ * Method: sc_getDateTime(intptr_t sp_int)
+ *
+ * @description
+ *  Syscall handler to return the current date time of the system
+ *******************************************************************************/
 int sc_getDateTime(intptr_t sp_int);
 
 /*******************************************************************

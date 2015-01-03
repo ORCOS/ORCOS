@@ -25,36 +25,44 @@
 
 extern Kernel* theOS;
 
-
-
+/*****************************************************************************
+ * Method: LinearMemManager::alloc(size_t size, bool aligned, unint align_value)
+ *
+ * @description
+ *  Tries to allocate size bytes.
+ *---------------------------------------------------------------------------*/
 void* LinearMemManager::alloc(size_t size, bool aligned, unint align_value) {
     register char* ptr;
     register void* retval;
 
     ATOMAR(
-
-    if ( aligned )
-        ptr = align( FreeHeadPtr, align_value);
-    else ptr = FreeHeadPtr;
-
-    // see if we fit into our memory segment
-    if ( (size_t) ptr + size <=  end ) {
-        FreeHeadPtr =  ptr + size;
-        retval =(void*) ptr;
+    if (aligned) {
+        ptr = align(FreeHeadPtr, align_value);
+    } else {
+        ptr = FreeHeadPtr;
     }
-    else
-    {
+
+    /* see if we fit into our memory segment */
+    if ((size_t) ptr + size <= end) {
+        FreeHeadPtr = ptr + size;
+        retval =(void*) ptr;
+    } else {
         // big fat oops
         LOG(MEM,ERROR,"Out Of memory!");
         retval = 0;
     }
-
     );
 
     ASSERT(retval);
     return (retval);
 }
 
+/*****************************************************************************
+ * Method: LinearMemManager::getUsedMemSize()
+ *
+ * @description
+ *
+ *---------------------------------------------------------------------------*/
 size_t LinearMemManager::getUsedMemSize() {
     return ((size_t) FreeHeadPtr - start);
 }

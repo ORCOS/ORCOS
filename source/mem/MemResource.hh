@@ -32,7 +32,7 @@
 class MemResource {
     friend class MemManager;
     friend class Kernel; /* for exporting RO variables */
-    friend class Task;   /* for exporting RO variables */
+    friend class Task; /* for exporting RO variables */
 private:
     //! size of the represented memory segment
     size_t memSegSize;
@@ -40,16 +40,15 @@ private:
     void* startAddr;
 
 public:
-
     size_t usedBytes;
 
     size_t overheadBytes;
 
-    void*  lastAllocated;
+    void* lastAllocated;
 
-    void*  firstFreed;
+    void* firstFreed;
 
-    void*  firstAddr;
+    void* firstAddr;
 
     /*!
      *  \brief Constructor to create a new MemResource
@@ -58,51 +57,78 @@ public:
      *  the represented memory segment is given a defined size
      */
     MemResource() {
-        memSegSize      = 0;
-        startAddr       = 0;
-        usedBytes       = 0;
-        overheadBytes   = 0;
-        lastAllocated   = 0;
-        firstFreed      = 0;
-        firstAddr       = 0;
+        memSegSize    = 0;
+        startAddr     = 0;
+        usedBytes     = 0;
+        overheadBytes = 0;
+        lastAllocated = 0;
+        firstFreed    = 0;
+        firstAddr     = 0;
     }
 
-    /*!
-     *  \brief returns the size of the represented memory segment
+
+    /*****************************************************************************
+     * Method: getSize()
      *
-     *  method should not be used if the memory segment is unlimited
-     *  as the size is then undefined
-     */
+     * @description
+     *   Returns the size of the represented memory segment
+     *
+     *---------------------------------------------------------------------------*/
     inline size_t getSize() {
         return (memSegSize);
     }
 
-    //! returns the starting address of the represented memory segment
+    /*****************************************************************************
+     * Method: getStartAddr()
+     *
+     * @description
+     *   returns the starting address of the represented memory segment
+     *---------------------------------------------------------------------------*/
     inline void* getStartAddr() {
         return (startAddr);
     }
 
-    //! set starting address of the represented memory segment
+    /*****************************************************************************
+     * Method: setStartAddr(void* s)
+     *
+     * @description
+     * set starting address of the represented memory segment
+     *---------------------------------------------------------------------------*/
     inline void setStartAddr(void* s) {
         startAddr = s;
     }
 
+    /*****************************************************************************
+     * Method: getEndAddr()
+     *
+     * @description
+     *
+     *---------------------------------------------------------------------------*/
     inline void* getEndAddr() {
         return ((byte*) startAddr + memSegSize);
     }
 
+    /*****************************************************************************
+     * Method: containsAddr(void* addr)
+     *
+     * @description
+     *
+     *---------------------------------------------------------------------------*/
     inline bool containsAddr(void* addr) {
-       if (((intptr_t)startAddr <= (intptr_t) addr) &&
-           ((intptr_t)startAddr + (intptr_t) memSegSize) > ((intptr_t) addr) )
-           return (true);
-       return (false);
+        if (((intptr_t) startAddr <= (intptr_t) addr) && ((intptr_t) startAddr + (intptr_t) memSegSize) > ((intptr_t) addr))
+            return (true);
+        return (false);
     }
 
-    //! new operator used to initialize MemResource
+    /*****************************************************************************
+     * Method: new(size_t s, void* addr)
+     *
+     * @description
+     *   new operator used to initialize MemResource
+     *---------------------------------------------------------------------------*/
     void* operator new(size_t s, void* addr) {
         return (addr);
     }
-
 };
 
 #endif /*MEMRESOURCE_HH_*/

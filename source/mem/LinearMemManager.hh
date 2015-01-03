@@ -58,42 +58,58 @@ public:
         end = (size_t) endAddr;
     }
 
-    /*!
-     * \brief allocates memory of given size from the managed memory segment
+    /*****************************************************************************
+     * Method: alloc(size_t size, bool aligned, unint align_value)
+     *
+     * @description
+     *   Allocates memory of given size from the managed memory segment
      *
      * Implements the corresponding method in MemManager.hh
      *
      * A pointer to the beginning of the allocated memory is returned.
      * The pointer FreeHeadPtr is moved by the allocated memory size.
-     */
+     *---------------------------------------------------------------------------*/
     void* alloc(size_t, bool = false, unint align_value = ALIGN_VAL);
 
-    //! Free is not supported
+    /*****************************************************************************
+     * Method: free(void*)
+     *
+     * @description
+     *   Free is not supported.
+     *---------------------------------------------------------------------------*/
     ErrorT free(void*) {
-        return (cNotImplemented);
+        return (cNotImplemented );
     }
 
-
-
-    //! new-Operator for Memory Managers, to place it directly at an desired address
+    /*****************************************************************************
+     * Method: new(size_t s, void* addr)
+     *
+     * @description
+     *   new-Operator for Memory Managers, to place it directly at an desired address
+     *---------------------------------------------------------------------------*/
     void* operator new(size_t s, void* addr) {
-         return (addr);
+        return (addr);
     }
 
+    /*****************************************************************************
+     * Method: containsAddr(void* addr)
+     *
+     * @description
+     *
+     *---------------------------------------------------------------------------*/
     bool containsAddr(void* addr) {
-          return ((intptr_t) addr >= (intptr_t) start &&
-                  (intptr_t) addr < (intptr_t) end);
+        return ((intptr_t) addr >= (intptr_t) start && (intptr_t) addr < (intptr_t) end);
     }
 
-    /*!
-     * \brief method to get the used heap size
+    /*****************************************************************************
+     * Method: getUsedMemSize()
      *
-     * Implements corresponding method in MemManager.hh
-     *
-     * Returns difference between FreeHeadPtr and startAddr
-     */
+     * @description
+     *  Method to get the used heap size
+     *  Implements corresponding method in MemManager.hh
+     *  Returns difference between FreeHeadPtr and startAddr
+     *---------------------------------------------------------------------------*/
     size_t getUsedMemSize();
-
 };
 
 #endif /*LINEARMEMMANAGER_HH_*/

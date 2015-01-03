@@ -23,10 +23,7 @@
 #include <inc/types.hh>
 #include "SCLConfig.hh"
 #include "MemResource.hh"
-//#include MemoryManager_HatLayer_hh
 
-//forward declaration of configured Threadtype
-class Kernel_ThreadCfdCl;
 
 #if !MEM_CACHE_INHIBIT
 #define alloci alloc
@@ -52,15 +49,15 @@ protected:
 #endif
 
 public:
-
-    /*!
-     * \brief Constructor
+     /*****************************************************************************
+     * Constructor
      *
-     * Places the HatLayer directly at physaddr followed by the Segment Descriptor. The managed memory segment starts at saddr and ends at eddr.
-     */
+     * @description
+     *   The managed memory segment starts at saddr and ends at eddr.
+     *---------------------------------------------------------------------------*/
     MemManager(void* saddr, void* eaddr) {
         Segment.startAddr   = saddr;
-        Segment.memSegSize  = (byte*) eaddr - (byte*) saddr;
+        Segment.memSegSize  = reinterpret_cast<byte*>(eaddr) - reinterpret_cast<byte*>(saddr);
         Segment.usedBytes   = 0;
 
 #if MEM_CACHE_INHIBIT
@@ -72,24 +69,41 @@ public:
 #if MEM_CACHE_INHIBIT
     MemManager(void* saddr, void* eaddr, void* isaddr, void* ieaddr) {
         Segment.startAddr   = saddr;
-        Segment.memSegSize  = (byte*) eaddr - (byte*) saddr;
+        Segment.memSegSize  = reinterpret_cast<byte*>(eaddr) - reinterpret_cast<byte*>(saddr);
         Segment.usedBytes   = 0;
 
         Segment_Cache_Inhibit.startAddr     = isaddr;
-        Segment_Cache_Inhibit.memSegSize    = (byte*) ieaddr - (byte*) isaddr;
+        Segment_Cache_Inhibit.memSegSize    =  reinterpret_cast<byte*>(ieaddr) - reinterpret_cast<byte*>(isaddr);
         Segment_Cache_Inhibit.usedBytes     = 0;
     }
 #endif
 
+    /*****************************************************************************
+     * Method: getSegment()
+     *
+     * @description
+     *   Returns the managed memory segment.
+     *---------------------------------------------------------------------------*/
     MemResource* getSegment() {
         return (&Segment);
     }
 
+    /*****************************************************************************
+     * Method: containsAddr(void* addr)
+     *
+     * @description
+     *   Returns true if the memory address is inside the managed memory segment.
+     *---------------------------------------------------------------------------*/
     bool containsAddr(void* addr) {
         return (Segment.containsAddr(addr));
     }
 
-    //! new-Operator for Memory Managers, to place it directly at an desired address
+    /*****************************************************************************
+     * Method: new(size_t s, void* addr)
+     *
+     * @description
+     *   new-Operator for Memory Managers, to place it directly at an desired address
+     *---------------------------------------------------------------------------*/
     void* operator new(size_t s, void* addr) {
         return (addr);
     }

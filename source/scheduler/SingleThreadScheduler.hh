@@ -22,43 +22,79 @@
 #include <SCLConfig.hh>
 #include Kernel_Thread_hh
 
-
-
 /*!
  * \ingroup scheduler
  * \brief Scheduler only schedules one single thread. Special Class.
  *
  */
 class SingleThreadScheduler {
-	LinkedListItem* singleThread;
-	LinkedListItem wrappingItem;
+    LinkedListItem* singleThread;
+    LinkedListItem  wrappingItem;
 public:
     SingleThreadScheduler();
     ~SingleThreadScheduler();
 
-    inline void computePriority( Kernel_ThreadCfdCl* item ) {};
-
-    /*!
-     * Due this Scheduler is for singlethreading, only one thread could be set.
-     */
-    ErrorT enter( LinkedListItem* item );
-
-    ErrorT enter( ListItem* item ) {
-		wrappingItem.setData(item);
-		return (this->enter(&wrappingItem));
+    /*****************************************************************************
+    * Method: computePriority(Kernel_ThreadCfdCl* item)
+    *
+    * @description
+    *  Dummy implementation as no priority needed with a single thread.
+    *---------------------------------------------------------------------------*/
+    inline void computePriority(Kernel_ThreadCfdCl* item) {
     }
 
+
+     /*****************************************************************************
+     * Method: enter(LinkedListItem* item)
+     *
+     * @description
+     *  Registers the single thread.
+     *---------------------------------------------------------------------------*/
+    ErrorT enter(LinkedListItem* item);
+
+    /*****************************************************************************
+    * Method: enter(ListItem* item)
+    *
+    * @description
+    *  Registers the single thread.
+    *---------------------------------------------------------------------------*/
+    ErrorT enter(ListItem* item) {
+        wrappingItem.setData(item);
+        return (this->enter(&wrappingItem));
+    }
+
+    /*****************************************************************************
+    * Method: remove(ListItem* item)
+    *
+    * @description
+    *  Removes the single thread if its list item is given.
+    *---------------------------------------------------------------------------*/
     LinkedListItem* remove(ListItem* item);
 
-     /*!
-     * Start the scheduling.
-     */
-    void startScheduling() {};
+    /*****************************************************************************
+     * Method: startScheduling()
+     *
+     * @description
+     *   Empty.
+     *---------------------------------------------------------------------------*/
+    void startScheduling() {
+    }
 
-    TimeT getNextTimerEvent(LinkedList* sleepList, TimeT currentTime );
+    /*****************************************************************************
+     * Method: getNextTimerEvent(LinkedList* sleepList, TimeT currentTime)
+     *
+     * @description
+     *   Returns the next timer event for scheduling.
+     *---------------------------------------------------------------------------*/
+    TimeT getNextTimerEvent(LinkedList* sleepList, TimeT currentTime);
 
+    /*****************************************************************************
+     * Method: getNext()
+     *
+     * @description
+     *   Returns the next Thread to be activated.
+     *---------------------------------------------------------------------------*/
     LinkedListItem* getNext();
-
 };
 
 #endif /*SINGLETHREADSCHEDULER_H_*/

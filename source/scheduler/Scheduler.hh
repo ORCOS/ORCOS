@@ -35,34 +35,44 @@
  */
 class Scheduler {
 public:
-
-    /*!
-     * \brief The schedule policy implemented in this method.
-     */
+    /*****************************************************************************
+     * Method: getNext()
+     *
+     * @description
+     *  The schedule policy implemented in this method.
+     *******************************************************************************/
     ListItem* getNext() {
-        return 0;
+        return (0);
     }
 
-
-    /*!
-     * \brief Announces a new item to the Scheduler, that should be scheduled
-     */
+    /*****************************************************************************
+     * Method: enter(ScheduleableItem*)
+     *
+     * @description
+     *  Announces a new item to the Scheduler, that should be scheduled
+     *******************************************************************************/
     ErrorT enter(ScheduleableItem*) {
-        return cNotImplemented ;
+        return (cNotImplemented);
     }
 
-    /*!
-     * \brief Removes the item from the scheduler
-     */
+    /*****************************************************************************
+     * Method: remove(ScheduleableItem*)
+     *
+     * @description
+     *  Removes the item from the scheduler
+     *******************************************************************************/
     ErrorT remove(ScheduleableItem*) {
-        return cNotImplemented ;
+        return (cNotImplemented);
     }
 
-    /*!
-     * \brief Returns true if at least one element is in the queue.
-     */
+    /*****************************************************************************
+     * Method: isEmpty()
+     *
+     * @description
+     *  Returns true if at least one element is in the queue.
+     *******************************************************************************/
     bool isEmpty() {
-        return cNotImplemented ;
+        return (cNotImplemented);
     }
 };
 

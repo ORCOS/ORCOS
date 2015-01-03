@@ -19,7 +19,6 @@
 #ifndef EARLIESTDEADLINEFIRSTTHREADSCHEDULER_TBS_H_
 #define EARLIESTDEADLINEFIRSTTHREADSCHEDULER_TBS_H_
 
-
 #include "scheduler/PriorityThreadScheduler.hh"
 #include "hal/CallableObject.hh"
 #include "inc/const.hh"
@@ -46,44 +45,56 @@
 class EarliestDeadlineFirstThreadScheduler_TBS: public PriorityThreadScheduler {
 private:
     TimeT lastdeadline;
-    float  inverse_utilization;
-public:
+    float inverse_utilization;
 
-    EarliestDeadlineFirstThreadScheduler_TBS(){
+public:
+    EarliestDeadlineFirstThreadScheduler_TBS() {
         this->inverse_utilization = INVERSE_UTILIZATION;
         lastdeadline = 0;
     }
 
-    /*! \brief Computes the priority for the given thread according to EDF rules.
+    /*****************************************************************************
+     * Method: computePriority(RealTimeThread* item)
      *
+     * @description
      * This method is used by the enter() method of this class to set the priority of a
      * thread each time it is scheduled. Furthermore it is used by the getNextTimerEvent()
      * method to decide on a time interval that minimizes the amount of necessary
      * context switches.
-     */
-   inline void computePriority( RealTimeThread* item );
+     *---------------------------------------------------------------------------*/
+    inline void computePriority(RealTimeThread* item);
 
-    /*!
-     *  \brief Enter method which adds an already existing DatabaseItem to the scheduler.
+    /*****************************************************************************
+     * Method: enter(LinkedListItem* item)
      *
-     * 	This will enter the database item in accordance with it's priority in the list
+     * @description
+     *  Enter method which adds an already existing DatabaseItem to the scheduler.
+     *
+     *  This will enter the database item in accordance with it's priority in the list
      *  of scheduled items. For this purpose a priority will be computed each time in accordance
      *  with EDF priority rules. It also sets the arrival time of the Thread.
-     */
-    ErrorT enter( LinkedListItem* item );
+     *---------------------------------------------------------------------------*/
+    ErrorT enter(LinkedListItem* item);
 
-    /*! \brief Enter method which adds a thread to the scheduler for which no DatabaseItem already exists.
+    /*****************************************************************************
+     * Method: enter(ScheduleableItem* item)
      *
-     * Be careful not to use this method if a DatabaseItem already exists for the thread. Otherwise a
-     * superflous DatabaseItem will be generated which results in a memory leak!
-     */
-    ErrorT enter( ScheduleableItem* item ) {
-        return this->enter( new LinkedListItem( item ) );
+     * @description
+     *  Enter method which adds a thread to the scheduler for which no DatabaseItem already exists.
+     *
+     *  Be careful not to use this method if a DatabaseItem already exists for the thread. Otherwise a
+     *  superflous DatabaseItem will be generated which results in a memory leak!
+     *---------------------------------------------------------------------------*/
+    ErrorT enter(ScheduleableItem* item) {
+        return (this->enter(new LinkedListItem(item)));
     }
 
-    /*! \brief Method returning the amount of microseconds for next timer event.
+
+    /*****************************************************************************
+     * Method: getNextTimerEvent(LinkedList* sleepList, unint4 dt)
      *
-     * The timer event is computed by analyzing all threads in the sleep state (which are normally waiting for their next
+     * @description
+     *  The timer event is computed by analyzing all threads in the sleep state (which are normally waiting for their next
      * instance depending on their period). It will be set, so that the running thread will only be interrupted, if a thread
      * with higher priority finishes 'sleeping'. For this purpose it needs to compute the future priority of the sleeping
      * threads, since their priority will change once they are scheduled. If a thread with lower future priority finishes no
@@ -92,28 +103,27 @@ public:
      * can be gotten by looking at the next thread in line (at the head of the scheduling queue). The return value is a 4 byte
      * integer, since the theOS->getTimerDevice()->setTimer() method is implemented to take an unint4 anyways (and we seldom
      * will want to run more than 70 minutes uninterrupted).
-     */
-    unint4 getNextTimerEvent(LinkedList* sleepList,unint4 dt);
-
+     *---------------------------------------------------------------------------*/
+    unint4 getNextTimerEvent(LinkedList* sleepList, unint4 dt);
 };
 
-inline void EarliestDeadlineFirstThreadScheduler_TBS::computePriority( RealTimeThread* item ) {
+/*****************************************************************************
+ * Method: EarliestDeadlineFirstThreadScheduler_TBS::computePriority(RealTimeThread* item)
+ *
+ * @description
+ *
+ *---------------------------------------------------------------------------*/
+inline void EarliestDeadlineFirstThreadScheduler_TBS::computePriority(RealTimeThread* item) {
+    if (item->period > 0) {
+        // for this we first compute the absolute deadline according to the following formular:
+        // arrival time + relative deadline (arrival time contains the time the current instance of this thread has arrived)
+        item->absoluteDeadline = item->arrivalTime + item->relativeDeadline;
+    } else {
+        item->absoluteDeadline = MAX(item->arrivaltime, lastdeadline) + item->executionTime * inverse_utilization;
+    }
 
- if (item->period > 0)
- {
-     // for this we first compute the absolute deadline according to the following formular:
-     // arrival time + relative deadline (arrival time contains the time the current instance of this thread has arrived)
-     item->absoluteDeadline     = item->arrivalTime + item->relativeDeadline;
- }
- else
- {
-     item->absoluteDeadline = MAX(item->arrivaltime,lastdeadline) + item->executionTime * inverse_utilization;
- }
-
- item->effectivePriority    = (( 1 << sizeof(TimeT)) -1) - item->absoluteDeadline;
- item->initialPriority      = item->effectivePriority;
-
+    item->effectivePriority = ((1 << sizeof(TimeT)) - 1) - item->absoluteDeadline;
+    item->initialPriority = item->effectivePriority;
 }
-
 
 #endif /*EARLIESTDEADLINEFIRSTTHREADSCHEDULER_TBS_H_*/

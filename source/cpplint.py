@@ -2889,7 +2889,7 @@ def CheckFunctionComments(filename, clean_lines, orig_lines, linenum,
                 commentfound = True
 
     if not commentfound:
-        error(filename,linenum,'readability/fn_comment', 5,
+        error(filename,linenum,'readability/fn_comment', 3,
             'Function comment missing for: ' + function_name)
 
 
