@@ -221,7 +221,7 @@ void ArrayList::print() {
     for (int i = 0; i < maxEntries; i++) {
         if (headPointer == i)
             printf("H ");
-        printf("|%8x", entries[i]);
+        printf("|%8x", reinterpret_cast<unint4>(entries[i]));
     }
     printf("|"LINEFEED);
 }

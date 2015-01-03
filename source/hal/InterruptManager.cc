@@ -212,7 +212,7 @@ ErrorT InterruptManager::readBytes(char* bytes, unint4& length) {
                 goto out;
             }
 
-            sprintf(bytes, " %3u %10u   %7u  %s"LINEFEED, i, irqTable[i].triggerCount, irqTable[i].priority, name);
+            sprintf(bytes, " %3d %10u   %7u  %s"LINEFEED, i, irqTable[i].triggerCount, irqTable[i].priority, name);
             len += 16 + namelen + 13;
             bytes += 16 + namelen + 13;
         }

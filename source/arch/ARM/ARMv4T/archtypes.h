@@ -5,8 +5,8 @@
  *      Author: dbaldin
  */
 
-#ifndef ARCHTYPES_H_
-#define ARCHTYPES_H_
+#ifndef SOURCE_ARCH_ARM_ARMV4T_ARCHTYPES_H_
+#define SOURCE_ARCH_ARM_ARMV4T_ARCHTYPES_H_
 
 /*!
  * various integer types for ARMv4+
@@ -30,4 +30,4 @@ typedef unint8 TimeT;
 /* No harvard architecture. Program == data memory*/
 #define printf_p printf
 
-#endif /* ARCHTYPES_H_ */
+#endif // SOURCE_ARCH_ARM_ARMV4T_ARCHTYPES_H_

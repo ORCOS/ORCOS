@@ -16,10 +16,8 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _SHARED_ARM_ASSEMBLER_H_
-#define _SHARED_ARM_ASSEMBLER_H_
-
-//#include "OMAP3530.h"
+#ifndef SOURCE_ARCH_ARM_ARMV4T_ASSEMBLER_H_
+#define SOURCE_ARCH_ARM_ARMV4T_ASSEMBLER_H_
 
 #define _GLOBAL(n) .globl n
 
@@ -29,4 +27,4 @@
 #define EXPORT_VAR(type, var)           _GLOBAL(var)
 #define EXPORT_FCN(type, fcnname, args) _GLOBAL(fcnname)
 
-#endif /* _SHARED_ARM_ASSEMBLER_H_ */
+#endif // SOURCE_ARCH_ARM_ARMV4T_ASSEMBLER_H_

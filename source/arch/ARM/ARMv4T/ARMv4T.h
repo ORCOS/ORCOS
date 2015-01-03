@@ -16,8 +16,8 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ARMV4T_H_
-#define ARMV4T_H_
+#ifndef SOURCE_ARCH_ARM_ARMV4T_ARMV4T_H_
+#define SOURCE_ARCH_ARM_ARMV4T_ARMV4T_H_
 
 /* Program Status Register (CPSR)
  *
@@ -59,4 +59,4 @@
 #define PROCESSOR_CONTEXT_SIZE     324
 #endif
 
-#endif /* ARMV4T_H_ */
+#endif // SOURCE_ARCH_ARM_ARMV4T_ARMV4T_H_

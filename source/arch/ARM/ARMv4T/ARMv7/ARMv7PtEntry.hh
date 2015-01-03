@@ -40,18 +40,38 @@ public:
     //! standard constructor
     ARMv7PtEntry() {
     }
+
     //! standard destructor
     ~ARMv7PtEntry() {
     }
 
+    /*****************************************************************************
+     * Method: Clear()
+     *
+     * @description
+     *  Clears the L1 Page table descriptor
+     *******************************************************************************/
     void Clear() {
         ptL1Descriptor.clear();
     }
 
+    /*****************************************************************************
+     * Method: getDesc(void)
+     *
+     * @description
+     *  Returns the Descriptor as a Bitmap
+     *******************************************************************************/
     Bitmap getDesc(void) {
-        return ptL1Descriptor;
+        return (ptL1Descriptor);
     }
 
+    /*****************************************************************************
+     * Method: setType(int type)
+     *
+     * @description
+     *  Sets the type of the page table entry.
+     *  Valid types: ptTypeSection, ptTypeSuperSection
+     *******************************************************************************/
     void setType(int type) {
         switch (type) {
         case ptTypeSection: {
@@ -68,40 +88,108 @@ public:
             break;
         }
     }
+
+    /*****************************************************************************
+     * Method: setDomain(int dom)
+     *
+     * @description
+     *  Sets the domain field of the descriptor
+     *******************************************************************************/
     void setDomain(int dom) {
         ptL1Descriptor.clearBits(0x1E0);
         ptL1Descriptor.setBits(dom << 5);
     }
+
+    /*****************************************************************************
+     * Method: setCBit(int value)
+     *
+     * @description
+     *  Sets the C Bit
+     *******************************************************************************/
     void setCBit(int value) {
         ptL1Descriptor.clearBits(1 << 3);
         ptL1Descriptor.setBits((value & 0x1) << 3);
     }
+
+    /*****************************************************************************
+     * Method: setBBit(int value)
+     *
+     * @description
+     *  Sets the B Bit
+     *******************************************************************************/
     void setBBit(int value) {
         ptL1Descriptor.clearBits(1 << 2);
         ptL1Descriptor.setBits((value & 0x1) << 2);
     }
-    void setSBit() {
 
+    /*****************************************************************************
+     * Method: setSBit()
+     *
+     * @description
+     *  Sets the S Bit
+     *******************************************************************************/
+    void setSBit() {
     }
+
+    /*****************************************************************************
+     * Method: setXNBit(Bitmap permission)
+     *
+     * @description
+     *  Sets the Execute Permission Bit
+     *******************************************************************************/
     void setXNBit(Bitmap permission) {
         ptL1Descriptor.clearBits(0x10);
         ptL1Descriptor.setBits(permission << 4);
     }
-    void setNSBit() {
 
+    /*****************************************************************************
+     * Method: setNSBit()
+     *
+     * @description
+     *  Sets the NS Bit
+     *******************************************************************************/
+    void setNSBit() {
     }
+
+    /*****************************************************************************
+     * Method: setTex(int value)
+     *
+     * @description
+     *  Sets the Tex Field
+     *******************************************************************************/
     void setTex(int value) {
         ptL1Descriptor.clearBits(0x7 << 12);
         ptL1Descriptor.setBits((value & 0x7) << 12);
     }
+
+    /*****************************************************************************
+     * Method: setAP(Bitmap permission)
+     *
+     * @description
+     *  Sets the C Bit
+     *******************************************************************************/
     void setAP(Bitmap permission) {
         ptL1Descriptor.clearBits(0xC00);
         ptL1Descriptor.setBits(permission << 10);
     }
+
+    /*****************************************************************************
+     * Method: setnGBit(bool nonGlobal)
+     *
+     * @description
+     *
+     *******************************************************************************/
     void setnGBit(bool nonGlobal) {
         ptL1Descriptor.clearBits(0x20000);
         ptL1Descriptor.setBits(nonGlobal << 17);
     }
+
+    /*****************************************************************************
+     * Method: setBaseAddr(int type, void* physAddr)
+     *
+     * @description
+     *
+     *******************************************************************************/
     void setBaseAddr(int type, void* physAddr) {
         unint addr = ((unint) physAddr) >> 20;
         switch (type) {
@@ -112,14 +200,19 @@ public:
             break;
         }
         case ptTypeSuperSection: {
-
             break;
         }
         default:
             break;
         }
-
     }
+
+    /*****************************************************************************
+     * Method: setSuperSectionBaseAddr()
+     *
+     * @description
+     *  Sets the C Bit
+     *******************************************************************************/
     void setSuperSectionBaseAddr() {
         // only [31:24], extended base address not supported
     }
