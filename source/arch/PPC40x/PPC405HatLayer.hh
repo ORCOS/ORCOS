@@ -82,7 +82,7 @@
  *   For the TLB entries for the Kernel heap and the memory-mapped I/O read and write rights are set, execute rights are refused.
  *   The ZSEL field is set to a ZPR Region with the value 00 (meaning no (even no read) access in problem state, access corresponding to the given rights in supervisor state)
  */
-class PPC405HatLayer /*: public HatLayer*/ {
+class PPC405HatLayer /*: public HatLayer*/{
 private:
     static unint8 TLBEntries;
 
@@ -92,7 +92,7 @@ private:
      * The entries are searched from 0 up to 63. At the address of the given int* parameter, the
      * index is written. If there is no free TLB entry any more, an error code is returned.
      */
-    ErrorT getFreeEntry( int* );
+    ErrorT getFreeEntry(int*);
 
     /*!
      * \brief Set the corresponding flag in the global Bitmap representing the TLB entries
@@ -100,7 +100,7 @@ private:
      * If the parameter is > 32, HighEntries is set to 1 at the corresponding position in the Bitmap,
      * otherwise LowEntries
      */
-    ErrorT setEntry( int );
+    ErrorT setEntry(int);
 
     /*!
      * \brief Deletes the corresponding flag in the global Bitmap representing the TLB entries
@@ -108,7 +108,7 @@ private:
      * If the parameter is > 32, HighEntries is set to 0 at the corresponding position in the Bitmap,
      * otherwise LowEntries
      */
-    ErrorT releaseEntry( int );
+    ErrorT releaseEntry(int);
 
     /*!
      * \brief Gets for the given size_t the next higher possible size for a proper TLB entry
@@ -116,7 +116,7 @@ private:
      * The given size is enlarged to the next higher size: 1K, 4K, 16K, 64K, 256K, 1M, 4M, 16M
      * If the given size is bigger than 16M, then 16M is returned
      */
-    byte getCorrectSizeEntry( size_t );
+    byte getCorrectSizeEntry(size_t);
 
 public:
 
@@ -146,16 +146,16 @@ public:
      *  the flag corresponding to the index of the TLB entry is set.
      *  If there exists no more free entry in the TLB the method aborts and returns an error value.
      */
-    void* map( void*, void*, size_t, BitmapT, byte, int pid,  bool cache_inhibit );
+    void* map(void*, void*, size_t, BitmapT, byte, int pid, bool cache_inhibit);
 
     /*!
-       * \brief Maps a physical base address into an arbitray free virtual address determined by the HATLayer.
-       *
-       */
-      void* map( void* phyBaseAddr, size_t, BitmapT, byte, int pid,  bool cache_inhibit ) {
-          // TODO
-          return 0;
-      }
+     * \brief Maps a physical base address into an arbitray free virtual address determined by the HATLayer.
+     *
+     */
+    void* map(void* phyBaseAddr, size_t, BitmapT, byte, int pid, bool cache_inhibit) {
+        // TODO
+        return 0;
+    }
 
     /*!
      * \brief unmap an address space with a logical address from his given physical address
@@ -166,7 +166,7 @@ public:
      * An error value is returned if there is no entry written by this HATLayer instance with
      * the given logical address
      */
-    ErrorT unmap( void* logBaseAddr, unint1 tid = 0 ) ;
+    ErrorT unmap(void* logBaseAddr, unint1 tid = 0);
 
     /*!
      * \brief unmap all address spaces with logical addresses which has been mapped before by this HATLayer-Instance
@@ -186,21 +186,21 @@ public:
      * The TLB entry with the given address is searched, saved in a data structure, changed and
      * written back to the TLB.
      */
-    ErrorT changeProtection( void*, BitmapT );
+    ErrorT changeProtection(void*, BitmapT);
 
     /*!
      * \brief clear all protections of an address space of a given logical address
      *
      * Implements the corresponding method in HATLayer.hh
      */
-    ErrorT clearProtection( void* );
+    ErrorT clearProtection(void*);
 
     /*!
      * \brief get the protection of an address space for a given logical address
      *
      * Implements the corresponding method in HATLayer.hh
      */
-    BitmapT getProtection( void* );
+    BitmapT getProtection(void*);
 
     /*!
      * \brief enable hardware address translation
@@ -230,21 +230,21 @@ public:
      *
      * Implements the corresponding method in HATLayer.hh
      */
-    void* getLogicalAddress( void* );
+    void* getLogicalAddress(void*);
 
     /*!
      * \brief returns the physical address translation for a given logical address and tid
      *
      * Implements the corresponding method in HATLayer.hh
      */
-    void* getPhysicalAddress( void* , int tid );
+    void* getPhysicalAddress(void*, int tid);
 
     /*!
-    * \brief returns the physical address translation for a given logical address with the current pid as tid
-    *
-    * Implements the corresponding method in HATLayer.hh
-    */
-    void* getPhysicalAddress( void* );
+     * \brief returns the physical address translation for a given logical address with the current pid as tid
+     *
+     * Implements the corresponding method in HATLayer.hh
+     */
+    void* getPhysicalAddress(void*);
 
     /*!
      * \brief handles errors if for a given logical address no mapping can be found
