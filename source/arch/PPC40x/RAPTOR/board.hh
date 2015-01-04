@@ -19,12 +19,12 @@
 #ifndef BOARD_HH_
 #define BOARD_HH_
 
-#define cStartOfRAM		0x00000000
-#define cStartOfROM		0x00800000
-#define cBootRAM_Size       (4 MByte)
-#define cBootROM_Size		(4 MByte)
-#define cSharedMemSize          0
+#define cStartOfRAM        0x00000000
+#define cStartOfROM        0x00800000
+#define cBootRAM_Size      (4 MByte)
+#define cBootROM_Size      (4 MByte)
+#define cSharedMemSize     0
 
-#define cTopOfBootMemAddr      (__stack - cSharedMemSize)
+#define cTopOfBootMemAddr  (__stack - cSharedMemSize)
 
 #endif /*BOARD_HH_*/

@@ -18,7 +18,7 @@
 
 #include "PPC405TlbEntry.hh"
 
-void PPC405TlbEntry::setEffectivePage( BitmapT b ) {
+void PPC405TlbEntry::setEffectivePage(BitmapT b) {
     tag.clearBits( 0xFFFFFC00 );
     byte bits = 22 - ( getSize() << 1 );
     BitmapT mask = ~( 0xffffffff >> bits );
@@ -31,7 +31,7 @@ BitmapT PPC405TlbEntry::getEffectivePage() {
     return tag & mask;
 }
 
-void PPC405TlbEntry::setRealPage( BitmapT b ) {
+void PPC405TlbEntry::setRealPage(BitmapT b) {
     data.clearBits( 0xFFFFFC00 );
     byte bits = 22 - ( getSize() << 1 );
     BitmapT mask = ~( 0xffffffff >> bits );

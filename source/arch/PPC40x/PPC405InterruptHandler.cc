@@ -40,7 +40,6 @@ extern Thread*  pCurrentRunningThread;
 extern Task*    pCurrentRunningTask;
 extern unint8   lastCycleStamp;
 
-
 /*--------------------------------------------------------------------------*
  ** PPC405InterruptHandler::PPC405InterruptHandler
  *---------------------------------------------------------------------------*/
@@ -53,11 +52,11 @@ PPC405InterruptHandler::PPC405InterruptHandler() {
 
     asm volatile (
             // Save DCCR
-            "	mfspr	%0,1018;"
-            " 	li		%%r11,0;"
+            "   mfspr    %0,1018;"
+            "   li        %%r11,0;"
             "   sync;"
             "   isync;"
-            "	mtspr  	1018,%%r11;"
+            "   mtspr     1018,%%r11;"
             "   sync;"
             "   isync;"
             : "=r" (dccrval)
@@ -95,7 +94,7 @@ PPC405InterruptHandler::PPC405InterruptHandler() {
             // Restore DCCR
             "   sync;"
             "   isync;"
-            "	mtspr  	1018,%0;"
+            "    mtspr      1018,%0;"
             "   sync;"
             "   isync;"
             :

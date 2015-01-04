@@ -33,9 +33,10 @@
  * in this implementation nothing is done, so the watchdog just resets the system.
  */
 class PPC405Watchdog: public Watchdog {
+private:
+    bool enabled;
 
 public:
-
     PPC405Watchdog( );
     ~PPC405Watchdog();
 
@@ -57,10 +58,6 @@ public:
      * beforehand with a call to the enable() function.
      */
     ErrorT kick();
-
-private:
-    bool enabled;
-
 };
 
 #endif /*PPC405WATCHDOG_*/

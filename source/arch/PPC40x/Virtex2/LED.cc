@@ -25,13 +25,10 @@
 #endif
 
 #define WRITE_VALUE_IN_REGISTER(Reg_Addr,Value) \
-	 { ((*(volatile unsigned int*)(Reg_Addr)) = Value); SYNCHRONIZE_IO; }
+     { ((*(volatile unsigned int*)(Reg_Addr)) = Value); SYNCHRONIZE_IO; }
 
-/*---------------------------------------------------------------------------*/
-LED::LED( const char* name, int4 baseaddr ) :
-    CharacterDevice( true, name )
-/*---------------------------------------------------------------------------*/
-{
+LED::LED(const char* name, int4 baseaddr) :
+        CharacterDevice(true, name) {
     leds = 0;
     this->baseaddr = baseaddr;
 
@@ -39,61 +36,52 @@ LED::LED( const char* name, int4 baseaddr ) :
     WRITE_VALUE_IN_REGISTER(baseaddr + XGPIO_TRI_OFFSET, 0)
 }
 
-/*---------------------------------------------------------------------------*/
-LED::~LED()
-/*---------------------------------------------------------------------------*/
-{
+LED::~LED() {
     leds = 0;
     //reset the led_gpio to default input direction
     WRITE_VALUE_IN_REGISTER(baseaddr + XGPIO_TRI_OFFSET, 0xFFFFFFFF)
 }
 
-/*---------------------------------------------------------------------------*/
-void LED::LedOn( int4 ledNumber )
-/*---------------------------------------------------------------------------*/
-{
-    if ( ledNumber > AVNET_LEDS_NUMBER )
+void LED::LedOn(int4 ledNumber) {
+    if (ledNumber > AVNET_LEDS_NUMBER)
         return;
     int4 led_on = 1;
-    led_on = led_on << ( ledNumber - 1 );
+    led_on = led_on << (ledNumber - 1);
     //
     leds = leds | led_on;
     WRITE_VALUE_IN_REGISTER(baseaddr + XGPIO_DATA_OFFSET, leds)
 }
 
-/*---------------------------------------------------------------------------*/
-void LED::LedOff( int4 ledNumber )
-/*---------------------------------------------------------------------------*/
-{
-    if ( ledNumber > AVNET_LEDS_NUMBER )
+void LED::LedOff(int4 ledNumber) {
+    if (ledNumber > AVNET_LEDS_NUMBER)
         return;
     int4 led_off = 1;
-    led_off = led_off << ( ledNumber - 1 );
+    led_off = led_off << (ledNumber - 1);
     //
-    leds = leds & ~( led_off );
+    leds = leds & ~(led_off);
     WRITE_VALUE_IN_REGISTER(baseaddr + XGPIO_DATA_OFFSET, leds)
 }
 
-ErrorT LED::writeByte( char byte ) {
+ErrorT LED::writeByte(char byte) {
     short b;
 
-    for ( unint2 i = 0; i < 8; i++ ) {
-        b = ( 1 << i );
-        b = ( byte & b );
-        if ( b == ( 1 << i ) )
-            LedOn( i + 1 );
+    for (unint2 i = 0; i < 8; i++) {
+        b = (1 << i);
+        b = (byte & b);
+        if (b == (1 << i))
+            LedOn(i + 1);
         else
-            LedOff( i + 1 );
+            LedOff(i + 1);
     }
 }
 
-ErrorT LED::readByte( char* byte ) {
+ErrorT LED::readByte(char* byte) {
     *byte = leds;
-    return cOk;
+    return cOk ;
 }
-ErrorT LED::readBytes( const char *bytes, int4 length ) {
-    return cError;
+ErrorT LED::readBytes(const char *bytes, int4 length) {
+    return cError ;
 }
-ErrorT LED::writeBytes( const char *bytes, int4 length ) {
-    return cError;
+ErrorT LED::writeBytes(const char *bytes, int4 length) {
+    return cError ;
 }

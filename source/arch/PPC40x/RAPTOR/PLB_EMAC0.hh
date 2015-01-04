@@ -48,11 +48,9 @@
 #define EMAC_HDR_SIZE       14      /* size of Ethernet header */
 #define MAC_ADDR_SIZE        6      /* size of MAC address */
 
-
 /* TODO: replace with new init code*/
-static unsigned char LocalAddress[ MAC_ADDR_SIZE ] = { 0x01, 0x01, 0x01, 0x01, 0x01, 0x01  };
-
-static unsigned char BroadcastAddress[ MAC_ADDR_SIZE ] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
+static unsigned char LocalAddress[ MAC_ADDR_SIZE]     = { 0x01, 0x01, 0x01, 0x01, 0x01, 0x01 };
+static unsigned char BroadcastAddress[ MAC_ADDR_SIZE] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
 
 /*!
  *  \brief PLB_EMAC0 driver class
@@ -61,16 +59,15 @@ static unsigned char BroadcastAddress[ MAC_ADDR_SIZE ] = { 0xFF, 0xFF, 0xFF, 0xF
  */
 class PLB_EMAC0: public CommDeviceDriver {
 private:
-
     int4 base_addr;
 
     int1 tx_frame_number;
 
     int1 rx_frame_number;
-public:
 
+public:
     //!  constructor
-    PLB_EMAC0( T_PLB_EMAC0_Init* init);
+    PLB_EMAC0(T_PLB_EMAC0_Init* init);
 
     //!  destructor
     ~PLB_EMAC0();
@@ -84,32 +81,7 @@ public:
     //! Clears all pending irqs from this device
     ErrorT clearIRQ();
 
-    /*!
-     * \brief Receive method as specified in the interface from the CommDeviceDriver
-     *
-     * Method which gets called whenever this devices throws an external IRQ.
-     * The method will be called by a workerthread running insde the kernelspace.
-     */
-    void recv();
-
-    ErrorT lowlevel_send( char* data, int len );
-
-    /*!
-     * \brief Send method which sends the packet given to the destination addr
-     *
-     */
-    //ErrorT send( packet_layer* packet, char* dest_addr, int addr_len, int2 fromProtocol_ID );
-
-    /*!
-     * \brief Broadcasts a packet.
-     */
-    ErrorT broadcast( packet_layer* packet, int2 fromProtocol_ID );
-
-    /*!
-     * \brief Sends a multicast packet.
-     *
-     */
-    ErrorT multicast( packet_layer* packet, int2 fromProtocol_ID, unint4 dest_addr );
+    ErrorT handleIRQ();
 
     //! Checks whether there is some data available inside the receive fifo.
     bool hasPendingData();
@@ -133,8 +105,6 @@ public:
     const char* getBroadcastAddr() {
         return (char*) &BroadcastAddress;
     }
-
-
 };
 
 #endif /* _PLB_EMAC0_HH */

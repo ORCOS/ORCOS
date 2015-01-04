@@ -23,16 +23,15 @@
 extern Kernel* theOS;
 
 
-RaptorBoard::RaptorBoard() { }
+RaptorBoard::RaptorBoard() {
+}
 
-void RaptorBoard::initialize()
-{
-
+void RaptorBoard::initialize() {
 // OPB_UART_Lite Instance
 // created first so we can very early write to the serial console
 // to e.g. write error messages!
 #ifdef HAS_Board_UARTCfd
-	INIT_Board_UARTCfd;
+    INIT_Board_UARTCfd;
     UARTCfd = new NEW_Board_UARTCfd;
 #if __EARLY_SERIAL_SUPPORT__
      theOS->setStdOutputDevice( UARTCfd );
@@ -88,7 +87,6 @@ void RaptorBoard::initialize()
     InterruptControllerCfd = new NEW_Board_InterruptControllerCfd;
     InterruptControllerCfd->enableIRQs();
 #endif
-
 }
 
 RaptorBoard::~RaptorBoard() {

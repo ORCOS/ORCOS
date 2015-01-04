@@ -34,18 +34,17 @@
  * \brief Implementation of the HAL board for the Virtex2 architecture
  */
 class Virtex2Board {
-DEF_Board_ProcessorCfd
-DEF_Board_WatchdogCfd    DEF_Board_InterruptHandlerCfd
+    DEF_Board_ProcessorCfd
+    DEF_Board_WatchdogCfd
+    DEF_Board_InterruptHandlerCfd
     DEF_Board_LEDCfd
     DEF_Board_UARTCfd
     DEF_Board_TimerCfd
     DEF_Board_ClockCfd
 
 public:
-
     Virtex2Board();
     ~Virtex2Board();
-
 };
 
 #endif /*VIRTEX2BOARD_HH_*/

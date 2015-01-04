@@ -12,15 +12,15 @@ int OPB_Interrupt_Controller::getIRQStatusVector() {
     return reg;
 }
 
-void OPB_Interrupt_Controller::clearIRQ( int num ) {
+void OPB_Interrupt_Controller::clearIRQ(int num) {
     int clearval = 0;
     clearval |= num;
-    OUTW(OPB_INTC_BASE + OPB_INTC_IAR_OFFSET,clearval);
+    OUTW(OPB_INTC_BASE + OPB_INTC_IAR_OFFSET, clearval);
 }
 
 void OPB_Interrupt_Controller::enableIRQs() {
     // unmask all interrupts
-    OUTW(OPB_INTC_BASE + OPB_INTC_IER_OFFSET,0xFFFFFFFF);
+    OUTW(OPB_INTC_BASE + OPB_INTC_IER_OFFSET, 0xFFFFFFFF);
     // enable interrupt requests of the interrupt controller
-    OUTW(OPB_INTC_BASE + OPB_INTC_MER_OFFSET,0xFFFFFFFF);
+    OUTW(OPB_INTC_BASE + OPB_INTC_MER_OFFSET, 0xFFFFFFFF);
 }

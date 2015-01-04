@@ -36,17 +36,17 @@ void startThread( Thread* thread ) {
     // set the initial stack address. The IRQStackPointerAdress has been set to the top of the stack before.
 
     void* stack_addr = thread->threadStack.endAddr;
-    TaskIdT PIDvar = thread->getOwner()->getId();
-    void* addr = thread->getStartRoutinePointer();
+    TaskIdT PIDvar   = thread->getOwner()->getId();
+    void* addr       = thread->getStartRoutinePointer();
     void* returnaddr = thread->getExitRoutinePointer();
-    void* arguments = thread->getStartArguments();
+    void* arguments  = thread->getStartArguments();
 
 /*
  *  This is for logging time points with an external logic analyzer
  *   GPIO_VAL = ((1UL << (29 + thread->getId() )));
- *   *((volatile unsigned*) 0x90230000) = 	0;
- *   *((volatile unsigned*) 0x90230000) = 	GPIO_VAL;
- *   *((volatile unsigned*) 0x90230000) = 	0;
+ *   *((volatile unsigned*) 0x90230000) =     0;
+ *   *((volatile unsigned*) 0x90230000) =     GPIO_VAL;
+ *   *((volatile unsigned*) 0x90230000) =     0;
  */
 
     ASSERT(stack_addr);
@@ -61,7 +61,7 @@ void startThread( Thread* thread ) {
             "isync;"
 #endif
 
-            "mr   	%%r1, %1;" /* load the stack pointer into the stack register*/
+            "mr       %%r1, %1;" /* load the stack pointer into the stack register*/
             "mtspr  %%lr, %3;" /* write the return addr into the link register*/
 
             // set the arguments

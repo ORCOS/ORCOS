@@ -25,7 +25,7 @@
 #include "../powerpc.h"
 
 //#ifndef AVNET_LEDS_BASE_ADDRESS
-//#define AVNET_LEDS_BASE_ADDRESS		0x80020000
+//#define AVNET_LEDS_BASE_ADDRESS        0x80020000
 //#endif
 
 #define AVNET_LEDS_NUMBER 20
@@ -45,18 +45,18 @@ private:
     int leds;
     int4 baseaddr;
 public:
-    LED( T_LED_Init* init );
+    LED(T_LED_Init* init);
     ~LED();
 
-    void LedOn( int4 ledNumber );
-    void LedOff( int4 ledNumber );
+    void LedOn(int4 ledNumber);
+    void LedOff(int4 ledNumber);
 
     void Clear();
 
-    ErrorT writeByte( char byte );
-    ErrorT readByte( char* byte );
-    ErrorT readBytes( char *bytes, unint4 &length  );
-    ErrorT writeBytes( const char *bytes, unint4 length );
+    ErrorT writeByte(char byte);
+    ErrorT readByte(char* byte);
+    ErrorT readBytes(char *bytes, unint4 &length);
+    ErrorT writeBytes(const char *bytes, unint4 length);
 };
 
 #endif /* _LED_HH */

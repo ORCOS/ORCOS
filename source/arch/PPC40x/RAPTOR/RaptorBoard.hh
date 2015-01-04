@@ -34,14 +34,15 @@
 #include Board_ETH_hh
 #include "ppc405.h"
 
-#define PLATFORM	PLATFORM_PPC
+#define PLATFORM    PLATFORM_PPC
 
 /*!
  * \brief Implementation of the HAL board for the RAPTOR architecture
  */
 class RaptorBoard : public Board {
-DEF_Board_ProcessorCfd
-DEF_Board_WatchdogCfd    DEF_Board_InterruptHandlerCfd
+    DEF_Board_ProcessorCfd
+    DEF_Board_WatchdogCfd
+    DEF_Board_InterruptHandlerCfd
     DEF_Board_LEDCfd
     DEF_Board_UARTCfd
     DEF_Board_InterruptControllerCfd
@@ -50,12 +51,10 @@ DEF_Board_WatchdogCfd    DEF_Board_InterruptHandlerCfd
     DEF_Board_ETHCfd
 
 public:
-
     RaptorBoard();
     ~RaptorBoard();
 
     void initialize();
-
 };
 
 #endif /*RAPTORBOARD_HH_*/

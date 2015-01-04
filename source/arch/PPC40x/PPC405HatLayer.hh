@@ -23,21 +23,21 @@
 #include "PPC405MMU.hh"
 
 ///  Page size 1 KB
-#define PPC405PageSize1Kb	0
+#define PPC405PageSize1Kb    0
 ///  Page size 4 KB
-#define PPC405PageSize4Kb	1
+#define PPC405PageSize4Kb    1
 ///  Page size 16 KB
-#define PPC405PageSize16Kb	2
+#define PPC405PageSize16Kb   2
 ///  Page size 64 KB
-#define PPC405PageSize64Kb	3
+#define PPC405PageSize64Kb   3
 ///  Page size 256 KB
-#define PPC405PageSize256Kb	4
+#define PPC405PageSize256Kb  4
 ///  Page size 1 MB
-#define PPC405PageSize1Mb	5
+#define PPC405PageSize1Mb    5
 ///  Page size 4 MB
-#define PPC405PageSize4Mb	6
+#define PPC405PageSize4Mb    6
 ///  Page size 16 MB
-#define PPC405PageSize16Mb	7
+#define PPC405PageSize16Mb   7
 
 #define MAX_PAGE_SIZE 0x1000000
 
@@ -153,8 +153,8 @@ public:
        *
        */
       void* map( void* phyBaseAddr, size_t, BitmapT, byte, int pid,  bool cache_inhibit ) {
-    	  // TODO
-    	  return 0;
+          // TODO
+          return 0;
       }
 
     /*!
@@ -264,7 +264,6 @@ public:
      * All TLB entries are invalidated (all V flags are cleared)
      */
     static void initialize();
-
 };
 
 #endif /*PPC405HATLAYER_HH_*/

@@ -22,12 +22,9 @@
 extern Kernel* theOS;
 extern Board_TimerCfdCl* theTimer;
 
-
-extern "C" void handleSyscallIRQ(void* sp_int, void* myKernelStackBucketIndex)
-{
-
+extern "C" void handleSyscallIRQ(void* sp_int, void* myKernelStackBucketIndex) {
     // there cant be nested syscalls so just store at normal IRQStackPointerAddr
-    pCurrentRunningThread->setIRQStackPointerAddr( (void*) sp_int );
+    pCurrentRunningThread->setIRQStackPointerAddr((void*) sp_int);
 #if USE_SAFE_KERNEL_STACKS
     // store the used stack bucket index
     pCurrentRunningThread->setKernelStackBucketIndex((int)myKernelStackBucketIndex);
@@ -41,24 +38,22 @@ extern "C" void handleSyscallIRQ(void* sp_int, void* myKernelStackBucketIndex)
 #endif
 
     // get the syscallmanager now (since it could have been replaced..) and call syscall handling method
-    handleSyscall( (int4) sp_int);
+    handleSyscall((int4) sp_int);
 }
 
-extern "C" void handleTimerIRQ(void* sp_int, void* myKernelStackBucketIndex)
-{
+extern "C" void handleTimerIRQ(void* sp_int, void* myKernelStackBucketIndex) {
 #if ENABLE_NESTED_INTERRUPTS
-    if ( !pCurrentRunningThread->executinginthandler ) {
+    if (!pCurrentRunningThread->executinginthandler) {
         // Store the Stack pointer addresses into the thread TCB since we got interrupted
-        pCurrentRunningThread->setIRQStackPointerAddr( (void*) sp_int );
+        pCurrentRunningThread->setIRQStackPointerAddr((void*) sp_int);
 #if USE_SAFE_KERNEL_STACKS
         // store the used stack bucket index
         pCurrentRunningThread->setKernelStackBucketIndex((int)myKernelStackBucketIndex);
 #endif
-    }
-    else {
+    } else {
         // we have been interrupted while executing the interrupt handler
         // set the stack pointer of the nested interrupt handler
-        pCurrentRunningThread->setNestedIRQStackPointerAddr( (void*) sp_int );
+        pCurrentRunningThread->setNestedIRQStackPointerAddr((void*) sp_int);
     }
 #else
     // No nested interrupts are enabled so just store the addresses
@@ -71,30 +66,26 @@ extern "C" void handleTimerIRQ(void* sp_int, void* myKernelStackBucketIndex)
 #endif
 
 #ifdef HAS_Board_WatchdogCfd
-        theOS->getBoard()->getWatchdog()->kick();
+    theOS->getBoard()->getWatchdog()->kick();
 #endif
-
 
     // call Timer
     theTimer->tick();
 }
 
-
-extern "C" void handleExternalIRQ(void* sp_int, void* myKernelStackBucketIndex)
-{
+extern "C" void handleExternalIRQ(void* sp_int, void* myKernelStackBucketIndex) {
 #if ENABLE_NESTED_INTERRUPTS
-    if ( !pCurrentRunningThread->executinginthandler ) {
+    if (!pCurrentRunningThread->executinginthandler) {
         // Store the Stack pointer addresses into the thread TCB since we got interrupted
-        pCurrentRunningThread->setIRQStackPointerAddr( (void*) sp_int );
+        pCurrentRunningThread->setIRQStackPointerAddr((void*) sp_int);
 #if USE_SAFE_KERNEL_STACKS
         // store the used stack bucket index
         pCurrentRunningThread->setKernelStackBucketIndex((int)myKernelStackBucketIndex);
 #endif
-    }
-    else {
+    } else {
         // we have been interrupted while executing the interrupt handler
         // set the stack pointer of the nested interrupt handler
-        pCurrentRunningThread->setNestedIRQStackPointerAddr( (void*) sp_int );
+        pCurrentRunningThread->setNestedIRQStackPointerAddr((void*) sp_int);
     }
 #else
     // No nested interrupts are enabled so just store the addresses
@@ -106,40 +97,37 @@ extern "C" void handleExternalIRQ(void* sp_int, void* myKernelStackBucketIndex)
 #endif
 #endif
 
-
-        // UART threw an interrupt
-        // disable the interrupts from the comm device since it will be still pending after we exit this
-        // handler routine.
-        register CommDeviceDriver* uart = theOS->getBoard()->getUART();
-        uart->disableIRQ();
-        uart->interruptPending = true;
+    // UART threw an interrupt
+    // disable the interrupts from the comm device since it will be still pending after we exit this
+    // handler routine.
+    register CommDeviceDriver* uart = theOS->getBoard()->getUART();
+    uart->disableIRQ();
+    uart->interruptPending = true;
 
 #if USE_WORKERTASK
-        if (!uart->hasAssignedWokerThread)
-        {
-            if (theOS->getWorkerTask()->addJob(ExternalDeviceJob,0,(void*) uart, WORKERTHREAD_UART_PRIORITY_PARAM))
+    if (!uart->hasAssignedWokerThread) {
+        if (theOS->getWorkerTask()->addJob(ExternalDeviceJob, 0, (void*) uart, WORKERTHREAD_UART_PRIORITY_PARAM))
             uart->hasAssignedWokerThread = true;
-        }
+    }
 #else
-        uart->recv();
+    uart->recv();
 #endif
-
 
 #ifdef HAS_PRIORITY
     // the workerthread may have a higher priority so we need to reschedule here!
-    theOS->getCPUDispatcher()->dispatch( theOS->getClock()->getTimeSinceStartup() - lastCycleStamp );
+    theOS->getCPUDispatcher()->dispatch(theOS->getClock()->getTimeSinceStartup() - lastCycleStamp);
 #endif
 
 // if we get here we need to restore the context
-    assembler::restoreContext( pCurrentRunningThread );
+    assembler::restoreContext(pCurrentRunningThread);
 
 }
 
-extern "C" void handleWatchdogIRQ(void* sp_int)
-{
+extern "C" void handleWatchdogIRQ(void* sp_int) {
 #ifdef HAS_Kernel_LoggerCfd
-    theOS->getLogger()->log(ARCH,FATAL,"Watchdog Exception! - CRITICAL");
+    theOS->getLogger()->log(ARCH, FATAL, "Watchdog Exception! - CRITICAL");
 #endif
-    while (true) {}
+    while (true) {
+    }
 }
 

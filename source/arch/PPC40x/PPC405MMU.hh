@@ -31,8 +31,6 @@
  *  So it is possible to read, write and search TLB Entries.
  */
 class PPC405MMU {
-private:
-
 public:
     //! standard constructor
     PPC405MMU();
@@ -89,7 +87,7 @@ public:
         asm volatile(
                 "tlbsx. %1, 0, %2;" // search tlb entry which corresponds to the given address
                 "xor %0, %0, %0;"   // set result to zero
-                "beq 8;"        	// entry found, branch to .SUCCESS and finish
+                "beq 8;"            // entry found, branch to .SUCCESS and finish
                 "li %0, -101;"      // result is error code (like defined in error.hh)
                 : "=r"(result),"=r"(index)
                 : "r"(addr)
@@ -108,7 +106,6 @@ public:
 
         ppc_isync();
     }
-
 };
 
 #endif /*PPC405MMU_HH_*/

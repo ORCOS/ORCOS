@@ -18,54 +18,42 @@
 
 #include <arch/PPC40x/Virtex2/SegmentDisplay.hh>
 
-/*---------------------------------------------------------------------------*/
-SegmentDisplay::SegmentDisplay()
-/*---------------------------------------------------------------------------*/
-{
+SegmentDisplay::SegmentDisplay() {
     overflow();
 }
 
-/*---------------------------------------------------------------------------*/
-ErrorT SegmentDisplay::driveSegment( unint1 segNo, unint1 val )
-/*---------------------------------------------------------------------------*/
-{
-    unint1 shift = 24 - ( segNo << 3 );
-    Digits &= ~( 0xff << shift );
+ErrorT SegmentDisplay::driveSegment(unint1 segNo, unint1 val) {
+    unint1 shift = 24 - (segNo << 3);
+    Digits &= ~(0xff << shift);
     Digits |= val << shift;
-    return driveSegments( Digits );
+    return driveSegments(Digits);
 }
 
-/*---------------------------------------------------------------------------*/
-ErrorT SegmentDisplay::driveDecValue( unword val )
-/*---------------------------------------------------------------------------*/
-{
-    if ( val > 9999 ) {
+ErrorT SegmentDisplay::driveDecValue(unword val) {
+    if (val > 9999) {
         overflow();
         //return cOutOfRange;
-        return cError;
-    }
-    else
-        for ( int4 i = 0; i < 4; i++ ) {
-            driveDigit( i, val % 10 );
+        return cError ;
+    } else {
+        for (int4 i = 0; i < 4; i++) {
+            driveDigit(i, val % 10);
             val /= 10;
         }
-    return cOk;
+    }
+    return cOk ;
 }
 
-/*---------------------------------------------------------------------------*/
-ErrorT SegmentDisplay::driveHexValue( unword val )
-/*---------------------------------------------------------------------------*/
-{
-    if ( val > 0xffff ) {
+ErrorT SegmentDisplay::driveHexValue(unword val) {
+    if (val > 0xffff) {
         overflow();
         //return cOutOfRange;
-        return cError;
-    }
-    else
-        for ( int4 i = 0; i < 4; i++ ) {
-            driveDigit( i, val % 16 );
+        return cError ;
+    } else {
+        for (int4 i = 0; i < 4; i++) {
+            driveDigit(i, val % 16);
             val /= 16;
         }
-    return cOk;
+    }
+    return cOk ;
 }
 

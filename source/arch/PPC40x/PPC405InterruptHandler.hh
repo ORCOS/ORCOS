@@ -30,12 +30,9 @@
  *
  */
 class PPC405InterruptHandler {
-
 public:
-
     PPC405InterruptHandler();
     ~PPC405InterruptHandler();
-
 };
 
 #endif /*PPC405INTERRUPTHANDLER_HH_*/

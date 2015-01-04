@@ -1,15 +1,15 @@
 #ifndef OPB_INTERRUPT_CONTROLLER_HH_
 #define OPB_INTERRUPT_CONTROLLER_HH_
 
-#define OPB_INTC_BASE 0x90240000
+#define OPB_INTC_BASE       0x90240000
 #define OPB_INTC_ISR_OFFSET 0x0 // Interrupt Status Register
 #define OPB_INTC_IER_OFFSET 0x8 // Interrupt Enable Register
 #define OPB_INTC_IAR_OFFSET 0xC // Interrupt Acknowledge Register
 #define OPB_INTC_MER_OFFSET 0x1C // Master Enable Register
 
-#define OPB_UART_LITE_IRQ 	2	// Interrupt port of OPB_UART_LITE
-#define PLB_EMAC0_IRQ		1 	// Interrupt port of the ethernet EMAC
-#define PUSH_BUTTON_IRQ 	5 	// Interrupt port of the PUSH_BUTTON
+#define OPB_UART_LITE_IRQ   2    // Interrupt port of OPB_UART_LITE
+#define PLB_EMAC0_IRQ       1     // Interrupt port of the ethernet EMAC
+#define PUSH_BUTTON_IRQ     5     // Interrupt port of the PUSH_BUTTON
 /*!
  * \brief Interrupt Controller Class for the OPB_Interrupt_Controller
  *
@@ -32,7 +32,7 @@ public:
     /*!
      *  \brief clears the interrupt number 'num'
      */
-    void clearIRQ( int num );
+    void clearIRQ(int num);
 
     /*!
      * \brief enable all IRQs

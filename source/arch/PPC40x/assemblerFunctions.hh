@@ -34,12 +34,12 @@
  * retval: The return value of the syscall
  */
 #define SET_RETURN_VALUE(sp_int,retval) \
-										asm volatile ( \
-										"   stw   %1  , -116(%0);" \
-										: \
-										: "b" (sp_int), "r" (retval) \
-										: \
-									)
+                                        asm volatile ( \
+                                        "   stw   %1  , -116(%0);" \
+                                        : \
+                                        : "b" (sp_int), "r" (retval) \
+                                        : \
+                                    )
 
 
 #define GET_METHOD_RETURN_VALUE(variable) \
@@ -52,121 +52,121 @@
 
 // syscall number stored in r3 on context
 #define GET_SYSCALL_NUM(sp_int,syscallnum) \
-										   asm volatile(\
-										   "lwz    %0,-116(%1);"\
-										   : "=&r" (syscallnum)\
-										   : "b" (sp_int)\
-										   :\
-										   )
+                                           asm volatile(\
+                                           "lwz    %0,-116(%1);"\
+                                           : "=&r" (syscallnum)\
+                                           : "b" (sp_int)\
+                                           :\
+                                           )
 
 
 #define SYSCALLGETPARAMS1(int_sp,param1) \
-											asm volatile(\
-											"lwz  %0,-112(%1);"\
-											: "=&r" (param1)\
-											: "b" (int_sp)\
-											:\
-											)
+                                            asm volatile(\
+                                            "lwz  %0,-112(%1);"\
+                                            : "=&r" (param1)\
+                                            : "b" (int_sp)\
+                                            :\
+                                            )
 
 
 
 #define SYSCALLGETPARAMS2(int_sp,param1,param2) \
-											asm volatile(\
-											"lwz  %0,-112(%2);"\
-											"lwz  %1,-108(%2);"\
-											: "=&r" (param1), "=&r" (param2)\
-											: "b" (int_sp)\
-											:\
-											)
+                                            asm volatile(\
+                                            "lwz  %0,-112(%2);"\
+                                            "lwz  %1,-108(%2);"\
+                                            : "=&r" (param1), "=&r" (param2)\
+                                            : "b" (int_sp)\
+                                            :\
+                                            )
 
 
 
 #define SYSCALLGETPARAMS3(int_sp,param1,param2,param3) \
-											asm volatile(\
-											"lwz  %0,-112(%3);"\
-											"lwz  %1,-108(%3);"\
-											"lwz  %2,-104(%3);"\
-											: "=&r" (param1), "=&r" (param2) , "=&r" (param3)\
-											: "b" (int_sp)\
-											:\
-											)
+                                            asm volatile(\
+                                            "lwz  %0,-112(%3);"\
+                                            "lwz  %1,-108(%3);"\
+                                            "lwz  %2,-104(%3);"\
+                                            : "=&r" (param1), "=&r" (param2) , "=&r" (param3)\
+                                            : "b" (int_sp)\
+                                            :\
+                                            )
 
 
 
 #define SYSCALLGETPARAMS4(int_sp,param1,param2,param3,param4) \
-											asm volatile(\
-											"lwz  %0,-112(%4);"\
-											"lwz  %1,-108(%4);"\
-											"lwz  %2,-104(%4);"\
-											"lwz  %3,-100(%4);"\
-											: "=&r" (param1), "=&r" (param2) , "=&r" (param3)  , "=&r" (param4)\
-											: "b" (int_sp)\
-											:\
-											)
+                                            asm volatile(\
+                                            "lwz  %0,-112(%4);"\
+                                            "lwz  %1,-108(%4);"\
+                                            "lwz  %2,-104(%4);"\
+                                            "lwz  %3,-100(%4);"\
+                                            : "=&r" (param1), "=&r" (param2) , "=&r" (param3)  , "=&r" (param4)\
+                                            : "b" (int_sp)\
+                                            :\
+                                            )
 
 
 #define SYSCALLGETPARAMS5(int_sp,param1,param2,param3,param4,param5) \
-											asm volatile(\
-											"lwz  %0,-112(%5);"\
-											"lwz  %1,-108(%5);"\
-											"lwz  %2,-104(%5);"\
-											"lwz  %3,-100(%5);"\
-											"lwz  %4,-96(%5);"\
-											: "=&r" (param1), "=&r" (param2) , "=&r" (param3)  , "=&r" (param4) , "=&r" (param5)\
-											: "b" (int_sp)\
-											:\
-											)
+                                            asm volatile(\
+                                            "lwz  %0,-112(%5);"\
+                                            "lwz  %1,-108(%5);"\
+                                            "lwz  %2,-104(%5);"\
+                                            "lwz  %3,-100(%5);"\
+                                            "lwz  %4,-96(%5);"\
+                                            : "=&r" (param1), "=&r" (param2) , "=&r" (param3)  , "=&r" (param4) , "=&r" (param5)\
+                                            : "b" (int_sp)\
+                                            :\
+                                            )
 
 #define SYSCALLGETPARAM1(int_sp,param1) \
-											asm volatile(\
-											"lwz  %0,-112(%1);"\
-											: "=&r" (param1)\
-											: "b" (int_sp)\
-											:\
-											)
+                                            asm volatile(\
+                                            "lwz  %0,-112(%1);"\
+                                            : "=&r" (param1)\
+                                            : "b" (int_sp)\
+                                            :\
+                                            )
 
 #define SYSCALLGETPARAM2(int_sp,param2) \
-											asm volatile(\
-											"lwz  %0,-108(%1);"\
-											: "=&r" (param2)\
-											: "b" (int_sp)\
-											:\
-											)
+                                            asm volatile(\
+                                            "lwz  %0,-108(%1);"\
+                                            : "=&r" (param2)\
+                                            : "b" (int_sp)\
+                                            :\
+                                            )
 
 #define SYSCALLGETPARAM3(int_sp,param3) \
-											asm volatile(\
-											"lwz  %0,-104(%1);"\
-											: "=&r" (param3)\
-											: "b" (int_sp)\
-											:\
-											)
+                                            asm volatile(\
+                                            "lwz  %0,-104(%1);"\
+                                            : "=&r" (param3)\
+                                            : "b" (int_sp)\
+                                            :\
+                                            )
 
 #define SYSCALLGETPARAM4(int_sp,param4) \
-											asm volatile(\
-											"lwz  %0,-100(%1);"\
-											: "=&r" (param4)\
-											: "b" (int_sp)\
-											:\
-											)
+                                            asm volatile(\
+                                            "lwz  %0,-100(%1);"\
+                                            : "=&r" (param4)\
+                                            : "b" (int_sp)\
+                                            :\
+                                            )
 
 #define SYSCALLGETPARAM5(int_sp,param5) \
-											asm volatile(\
-											"lwz  %0,-96(%1);"\
-											: "=&r" (param5)\
-											: "b" (int_sp)\
-											:\
-											)
+                                            asm volatile(\
+                                            "lwz  %0,-96(%1);"\
+                                            : "=&r" (param5)\
+                                            : "b" (int_sp)\
+                                            :\
+                                            )
 
 /*!
  * \brief Issues a system call. only use inside a thread
  */
 #define SYSCALL(ret,syscallnumber) \
-	 asm volatile(   \
-	    "sc;"\
-		"lwz %0,-116(%%r1);"\
-		: "=r" (ret)\
-		: "r" (syscallnumber)\
-	    )
+     asm volatile(   \
+        "sc;"\
+        "lwz %0,-116(%%r1);"\
+        : "=r" (ret)\
+        : "r" (syscallnumber)\
+        )
 
 
 
@@ -182,12 +182,12 @@
  */
 
 #define SETPID(pid) \
-	asm volatile(\
-			"mtspr 945,%0;"\
-			"isync;"\
-			: \
-			: "b" (pid)\
-			)
+    asm volatile(\
+            "mtspr 945,%0;"\
+            "isync;"\
+            : \
+            : "b" (pid)\
+            )
 
 
 
@@ -205,11 +205,11 @@
  */
 
 #define SETSTACKPTR(stack_addr) \
-	asm volatile(\
-			"mr   	%%r1, %0;"\
-			: \
-			: "b" (stack_addr)\
-			)\
+    asm volatile(\
+            "mr       %%r1, %0;"\
+            : \
+            : "b" (stack_addr)\
+            )\
 
 
 /*!
@@ -219,22 +219,22 @@
  * so they are discarded by using this macro.
  */
 #define _resetStackPtr(sp_int)\
-	asm volatile(\
-			"mr		%%r1,	%0;"\
-			"addi   %%r1,%%r1,-172;"\
-			: \
-			: "b" (sp_int)\
-			:)\
+    asm volatile(\
+            "mr        %%r1,    %0;"\
+            "addi   %%r1,%%r1,-172;"\
+            : \
+            : "b" (sp_int)\
+            :)\
 
 
 //! Calls the method specifed by the 'methodcall' string and sets the this pointer to 'object'
 #define CALLMETHOD(objectptr,methodcall) \
-	asm volatile(\
-			"mr 	%%r3,%0;"  \
-			methodcall \
-			: \
-			: "b" (objectptr) \
-			:)
+    asm volatile(\
+            "mr     %%r3,%0;"  \
+            methodcall \
+            : \
+            : "b" (objectptr) \
+            :)
 
 
 /*!
@@ -266,15 +266,15 @@
  */
 
 #define BRANCHTO_WORKERTHREAD_WORK(objectptr,pid, stack_addr) \
-		asm volatile(\
-					"mr    %%r1, %0;"\
-					"mr    %%r3, %2;"  \
-					"mtspr 945, %1;"\
-					"isync;"\
-					"b _ZN12WorkerThread4workEv;" \
-					: \
-					: "b" (stack_addr), "b" (pid), "b" (objectptr) \
-					)\
+        asm volatile(\
+                    "mr    %%r1, %0;"\
+                    "mr    %%r3, %2;"  \
+                    "mtspr 945, %1;"\
+                    "isync;"\
+                    "b _ZN12WorkerThread4workEv;" \
+                    : \
+                    : "b" (stack_addr), "b" (pid), "b" (objectptr) \
+                    )\
 
 
 
@@ -335,7 +335,7 @@
     GET_INTERRUPT_ENABLE_BIT(irqstatus); \
     _disableInterrupts();
 
-#define RESTORE_IRQS(irqstatus) if ( irqstatus ) { _enableInterrupts(); }
+#define RESTORE_IRQS(irqstatus) if (irqstatus) { _enableInterrupts(); }
 
 
 #else

@@ -19,61 +19,22 @@
 #include "PPC405Clock.hh"
 #include "assemblerFunctions.hh"
 
-PPC405Clock::PPC405Clock( ) :
-    Clock( "clock" ) {
-
-	reset();
+PPC405Clock::PPC405Clock( ) : Clock( "clock" ) {
+    reset();
 }
 
 PPC405Clock::~PPC405Clock() {
 }
 
-/*
-bool PPC405Clock::getTimeSinceStartup( TimeStruct* ts ) {
-    unint8 time = 0; // make sure it fits
-
-
-    // update the current Time
-    assembler::readTimeRegister( &time );
-
-    // calculate elapsed time in us
-    time = time / ( CLOCK_RATE / 1000000 );
-
-    // break time down to the datatyped provided from
-    // TimeStruct
-    ts->years = time / ( 1000 * 1000 * 60 * 60 * 24 * 365 );
-    time -= ts->years * ( 1000 * 1000 * 60 * 60 * 24 * 365 );
-
-    ts->days = time / ( 1000 * 1000 * 60 * 60 * 24 );
-    time -= ts->days * ( 1000 * 1000 * 60 * 60 * 24 );
-
-    ts->hours = time / ( 1000 * 1000 * 60 * 60 );
-    time -= ts->hours * ( 1000 * 1000 * 60 * 60 );
-
-    ts->minutes = time / ( 1000 * 1000 * 60 );
-    time -= ts->minutes * ( 1000 * 1000 * 60 );
-
-    ts->seconds = time / ( 1000 * 1000 );
-    time -= ts->seconds * ( 1000 * 1000 );
-
-    ts->milliseconds = time / ( 1000 );
-    time -= ts->milliseconds * ( 1000 );
-
-    ts->microseconds = time;
-
-    return true;
-}*/
-
 void PPC405Clock::reset() {
     asm volatile (
-            "li		%%r5, 0;" // load 0 into register 5
+            "li        %%r5, 0;" // load 0 into register 5
             "mtspr  285, %%r5;" // reset TBU (set to 0)
             "mtspr  284, %%r5;" // reset TBL (set to 0)
             : // no output variables
             : // no input variables
             : "r5" // these registers get altered during calc
     );
-
 }
 
 unint8 PPC405Clock::getTimeSinceStartup() {
@@ -91,7 +52,6 @@ unint8 PPC405Clock::getTimeSinceStartup() {
                 :
                 : "11"
         );
-
 
     return time;
 }

@@ -70,7 +70,6 @@ public:
      * Resets all time base registers (TBU, TBL) to 0.
      */
     void reset();
-
 };
 
 #endif /*PPC405CLOCK_HH_*/

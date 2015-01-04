@@ -28,11 +28,8 @@ PPC405ProgrammableIntervalTimer::~PPC405ProgrammableIntervalTimer() {
 
 ErrorT PPC405ProgrammableIntervalTimer::enable() {
     isEnabled = true;
-
     this->setTimer( time );
-
     ppc_mtspr(TCR, ppc_mfspr(TCR) | PPC_TCR_PIE );
-
     return cOk;
 }
 
@@ -41,17 +38,15 @@ ErrorT PPC405ProgrammableIntervalTimer::disable() {
     ppc_mtspr(TCR, ppc_mfspr(TCR) & ~(PPC_TCR_PIE ));
     ppc_mtspr(PIT, 0);
     ppc_mtspr(TSR, PPC_TSR_PIS);
-
     return cOk;
 }
 
-ErrorT PPC405ProgrammableIntervalTimer::setTimer( unint4 t ) {
+ErrorT PPC405ProgrammableIntervalTimer::setTimer(unint4 t) {
     tickRate = t;
     // clear the pit tsr flag
     ppc_mtspr(TSR, PPC_TSR_PIS);
     ppc_mtspr(PIT,t);
     TimerDevice::setTimer( t );
-
     return cOk;
 }
 

@@ -45,8 +45,7 @@
  * immer auf 0 setzen beim kick
  */
 
-PPC405Watchdog::PPC405Watchdog( ) :
-    Watchdog( "watchdog" ) {
+PPC405Watchdog::PPC405Watchdog() : Watchdog("watchdog") {
     enabled = false;
 }
 
@@ -55,7 +54,7 @@ PPC405Watchdog::~PPC405Watchdog() {
 }
 
 ErrorT PPC405Watchdog::enable() {
-    if ( !enabled ) {
+    if (!enabled) {
         ppc_mtspr(TCR, ppc_mfspr(TCR) | PPC_TCR_WIE | (1<<30) | (1<<31));
     }
 
@@ -64,13 +63,13 @@ ErrorT PPC405Watchdog::enable() {
     // kich the watchdog once to be sure the ENW bit of TSC gets set
     this->kick();
 
-    return cOk;
+    return cOk ;
 }
 
 ErrorT PPC405Watchdog::kick() {
-    if ( enabled ) {
+    if (enabled) {
         ppc_mtspr(TSR, PPC_TSR_WIS | PPC_TSR_ENW);
     }
-    return cOk;
+    return cOk ;
 }
 

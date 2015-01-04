@@ -79,6 +79,5 @@ ErrorT PPC405FixedIntervalTimer::disable() {
 
 ErrorT PPC405FixedIntervalTimer::tick() {
     this->doHardwareStuffOnTick();
-
     return TimerDevice::tick();
 }

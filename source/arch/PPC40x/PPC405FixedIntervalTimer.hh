@@ -30,9 +30,6 @@
  * this is the hardware specific implementation of the TimerDevice HAL class
  */
 class PPC405FixedIntervalTimer: public TimerDevice {
-
-private:
-
 protected:
     /*!
      * \brief performs hardware specific stuff individual to the PPC405 hardware
@@ -43,7 +40,6 @@ protected:
     void doHardwareStuffOnTick();
 
 public:
-
     PPC405FixedIntervalTimer();
     ~PPC405FixedIntervalTimer();
 
@@ -54,7 +50,6 @@ public:
     ErrorT disable();
 
     ErrorT tick();
-
 };
 
 #endif /*PPC405FIXEDINTERVALTIMER_HH_*/

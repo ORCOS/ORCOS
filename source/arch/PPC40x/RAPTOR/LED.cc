@@ -19,19 +19,13 @@
 #include <LED.hh>
 #include "inc/memio.h"
 
-/*---------------------------------------------------------------------------*/
-LED::LED( T_LED_Init* init ) :
-    CharacterDeviceDriver( true, init->Name )
-/*---------------------------------------------------------------------------*/
-{
+LED::LED(T_LED_Init* init) :
+        CharacterDeviceDriver(true, init->Name) {
     leds = 0;
     this->baseaddr = init->Address;
 }
 
-/*---------------------------------------------------------------------------*/
-LED::~LED()
-/*---------------------------------------------------------------------------*/
-{
+LED::~LED() {
     leds = 0;
 
     // clear the leds. turn them all off
@@ -46,57 +40,53 @@ void LED::Clear() {
     __asm__ volatile ("eieio");
 }
 
-/*---------------------------------------------------------------------------*/
-void LED::LedOn( int4 ledNumber )
-/*---------------------------------------------------------------------------*/
-{
-    if ( ledNumber > AVNET_LEDS_NUMBER )
+void LED::LedOn(int4 ledNumber) {
+    if (ledNumber > AVNET_LEDS_NUMBER)
         return;
     register int4 led_on = 1;
-    led_on = led_on << ( ledNumber - 1 );
+    led_on = led_on << (ledNumber - 1);
 
     leds = leds | led_on;
-    register int4 ledval = ( leds ^ 0xFFFFFFFF ) << 12;
-    OUTW(baseaddr + XGPIO_DATA_OFFSET,ledval);
+    register int4 ledval = (leds ^ 0xFFFFFFFF) << 12;
+    OUTW(baseaddr + XGPIO_DATA_OFFSET, ledval);
     __asm__ volatile ("eieio");
 }
 
-/*---------------------------------------------------------------------------*/
-void LED::LedOff( int4 ledNumber )
-/*---------------------------------------------------------------------------*/
-{
-    if ( ledNumber > AVNET_LEDS_NUMBER )
+void LED::LedOff(int4 ledNumber) {
+    if (ledNumber > AVNET_LEDS_NUMBER)
         return;
     register int4 led_off = 1;
-    led_off = led_off << ( ledNumber - 1 );
+    led_off = led_off << (ledNumber - 1);
 
-    leds = leds & ~( led_off );
-    register int4 ledval = ( leds ^ 0xFFFFFFFF ) << 12;
-    OUTW(baseaddr + XGPIO_DATA_OFFSET,ledval);
+    leds = leds & ~(led_off);
+    register int4 ledval = (leds ^ 0xFFFFFFFF) << 12;
+    OUTW(baseaddr + XGPIO_DATA_OFFSET, ledval);
     __asm__ volatile ("eieio");
 }
 
-ErrorT LED::writeByte( char byte ) {
+ErrorT LED::writeByte(char byte) {
     register short b;
 
-    for ( unint2 i = 0; i < 8; i++ ) {
-        b = ( 1 << i );
-        b = ( byte & b );
-        if ( b == ( 1 << i ) )
-            LedOn( i + 1 );
+    for (unint2 i = 0; i < 8; i++) {
+        b = (1 << i);
+        b = (byte & b);
+        if (b == (1 << i))
+            LedOn(i + 1);
         else
-            LedOff( i + 1 );
+            LedOff(i + 1);
     }
     return cOk;
 }
 
-ErrorT LED::readByte( char* byte ) {
+ErrorT LED::readByte(char* byte) {
     *byte = leds;
     return cOk;
 }
-ErrorT LED::readBytes( char *bytes, unint4 &length  ) {
+
+ErrorT LED::readBytes(char *bytes, unint4 &length) {
     return cError;
 }
-ErrorT LED::writeBytes( const char *bytes, unint4 length ) {
+
+ErrorT LED::writeBytes(const char *bytes, unint4 length) {
     return cError;
 }

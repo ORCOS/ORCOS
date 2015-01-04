@@ -21,12 +21,12 @@
 
 #include <error.hh>
 #include <types.hh>
-#include <hal/CharacterDeviceDriver.hh>
+#include <hal/CharacterDevice.hh>
 #include "../powerpc.h"
 
 //#ifndef AVNET_LEDS_BASE_ADDRESS
-//#define AVNET_LEDS_BASE_ADDRESS		0x89000000
-//#define AVNET_LEDS_BASE_ADDRESS		0x80000200
+//#define AVNET_LEDS_BASE_ADDRESS        0x89000000
+//#define AVNET_LEDS_BASE_ADDRESS        0x80000200
 //#endif
 
 #define AVNET_LEDS_NUMBER 14
@@ -46,15 +46,15 @@ private:
     char leds;
     int4 baseaddr;
 public:
-    LED( const char* name, int4 baseaddr );
+    LED(const char* name, int4 baseaddr);
     ~LED();
 
-    void LedOn( int4 ledNumber );
-    void LedOff( int4 ledNumber );
-    ErrorT writeByte( char byte );
-    ErrorT readByte( char* byte );
-    ErrorT readBytes( const char *bytes, int4 length );
-    ErrorT writeBytes( const char *bytes, int4 length );
+    void LedOn(int4 ledNumber);
+    void LedOff(int4 ledNumber);
+    ErrorT writeByte(char byte);
+    ErrorT readByte(char* byte);
+    ErrorT readBytes(const char *bytes, int4 length);
+    ErrorT writeBytes(const char *bytes, int4 length);
 };
 
 #endif /* _LED_HH */

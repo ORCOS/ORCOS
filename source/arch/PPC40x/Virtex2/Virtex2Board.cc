@@ -19,7 +19,6 @@
 #include "Virtex2Board.hh"
 
 Virtex2Board::Virtex2Board() {
-
     // PPC405Fx Processor
 #ifdef HAS_Board_ProcessorCfd
     ProcessorCfd = new NEW_Board_ProcessorCfd;
@@ -58,8 +57,6 @@ Virtex2Board::Virtex2Board() {
     UARTCfd->setLED( LEDCfd );
 #endif
 #endif
-
-
 }
 
 Virtex2Board::~Virtex2Board() {

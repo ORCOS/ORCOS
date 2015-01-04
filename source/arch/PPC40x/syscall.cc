@@ -10,12 +10,12 @@
  * \brief Issues a system call. only use inside a thread
  */
 #define SYSCALL(ret,syscallnumber) \
-	 asm volatile(   \
-	    "sc;"\
-		"lwz %0,-116(%%r1);"\
-		: "=r" (ret)\
-		: "r" (syscallnumber)\
-	    )
+     asm volatile(   \
+        "sc;"\
+        "lwz %0,-116(%%r1);"\
+        : "=r" (ret)\
+        : "r" (syscallnumber)\
+        )
 /*!
  * All parameters of any function call are stored on the stack,
  * so the procedure for doing a system call uses this fact.
@@ -35,12 +35,9 @@
  * if more parameters are needed the parameters need to be fetched from the stack of the calling method
  * to be explained later :)
  */
-extern "C" int syscall (int syscallnumber, ...)
-{
+extern "C" int syscall (int syscallnumber, ...) {
     volatile int ret;
-
-    SYSCALL(ret,syscallnumber);
-
+    SYSCALL(ret, syscallnumber);
     // return the result
     return ret;
 }
