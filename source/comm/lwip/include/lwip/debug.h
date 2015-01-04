@@ -34,8 +34,16 @@
 
 #include "lwip/arch.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* backtrace and print the current call stack */
 void     backtrace_current();
+
+#ifdef __cplusplus
+} // extern "C"
+#endif
 
 /** lower two bits indicate debug level
  * - 0 all
@@ -66,7 +74,8 @@ void     backtrace_current();
 
 #ifndef LWIP_NOASSERT
 #define LWIP_ASSERT(message, assertion) do { if(!(assertion)) {\
-  LWIP_PLATFORM_ASSERT(message); backtrace_current();} } while(0)
+                                             LWIP_PLATFORM_ASSERT(message); \
+                                             backtrace_current(); } } while(0)
 #else  /* LWIP_NOASSERT */
 #define LWIP_ASSERT(message, assertion)
 #endif /* LWIP_NOASSERT */

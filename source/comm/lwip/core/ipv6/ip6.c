@@ -318,10 +318,8 @@ err_t ip6_output(struct pbuf *p, struct ip6_addr *src, struct ip6_addr *dest, u8
 }
 
 #if LWIP_NETIF_HWADDRHINT
-err_t
-ip_output_hinted(struct pbuf *p, struct ip_addr *src, struct ip_addr *dest,
-        u8_t ttl, u8_t tos, u8_t proto, u8_t *addr_hint)
-{
+err_t ip_output_hinted(struct pbuf *p, struct ip_addr *src, struct ip_addr *dest,
+                       u8_t ttl, u8_t tos, u8_t proto, u8_t *addr_hint) {
     struct netif *netif;
     err_t err;
 
