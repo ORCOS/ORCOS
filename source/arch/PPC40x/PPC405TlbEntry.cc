@@ -19,27 +19,27 @@
 #include "PPC405TlbEntry.hh"
 
 void PPC405TlbEntry::setEffectivePage(BitmapT b) {
-    tag.clearBits( 0xFFFFFC00 );
-    byte bits = 22 - ( getSize() << 1 );
-    BitmapT mask = ~( 0xffffffff >> bits );
-    tag.setBits( b & mask );
+    tag.clearBits(0xFFFFFC00);
+    byte bits = 22 - (getSize() << 1);
+    BitmapT mask = ~(0xffffffff >> bits);
+    tag.setBits(b & mask);
 }
 
 BitmapT PPC405TlbEntry::getEffectivePage() {
-    byte bits = 22 - ( getSize() << 1 );
-    BitmapT mask = ~( 0xffffffff >> bits );
+    byte bits = 22 - (getSize() << 1);
+    BitmapT mask = ~(0xffffffff >> bits);
     return tag & mask;
 }
 
 void PPC405TlbEntry::setRealPage(BitmapT b) {
-    data.clearBits( 0xFFFFFC00 );
-    byte bits = 22 - ( getSize() << 1 );
-    BitmapT mask = ~( 0xffffffff >> bits );
-    data.setBits( b & mask );
+    data.clearBits(0xFFFFFC00);
+    byte bits = 22 - (getSize() << 1);
+    BitmapT mask = ~(0xffffffff >> bits);
+    data.setBits(b & mask);
 }
 
 BitmapT PPC405TlbEntry::getRealPage() {
-    byte bits = 22 - ( getSize() << 1 );
-    BitmapT mask = ~( 0xffffffff >> bits );
+    byte bits = 22 - (getSize() << 1);
+    BitmapT mask = ~(0xffffffff >> bits);
     return data & mask;
 }

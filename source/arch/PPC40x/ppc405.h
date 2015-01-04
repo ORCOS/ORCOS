@@ -26,7 +26,6 @@
 /*   Cache related definition                           */
 /*------------------------------------------------------*/
 
-
 #ifndef PPC_CACHE_BLOCK_SIZE
 #define PPC_CACHE_BLOCK_SIZE        32
 #endif
@@ -192,39 +191,39 @@
 #define ppc_mftsr()        ppc_mfspr(TSR)
 #define ppc_mfpit()        ppc_mfspr(PIT)
 
-#define ppc_mtccr0(_)      ppc_mtspr(CCR0,_)
-#define ppc_mtsprg4(_)     ppc_mtspr(SPRG4,_)
-#define ppc_mtsprg5(_)     ppc_mtspr(SPRG5,_)
-#define ppc_mtsprg6(_)     ppc_mtspr(SPRG6,_)
-#define ppc_mtsprg7(_)     ppc_mtspr(SPRG7,_)
-#define ppc_mtpid(_)       ppc_mtspr(PID,_)
-#define ppc_mtzpr(_)       ppc_mtspr(ZPR,_)
-#define ppc_mtdccr(_)      ppc_mtspr(DCCR,_)
-#define ppc_mtdcwr(_)      ppc_mtspr(DCWR,_)
-#define ppc_mticcr(_)      ppc_mtspr(ICCR,_)
-#define ppc_mtsgr(_)       ppc_mtspr(SGR,_)
-#define ppc_mtsler(_)      ppc_mtspr(SLER,_)
-#define ppc_mtsu0r(_)      ppc_mtspr(SU0R,_)
-#define ppc_mtevpr(_)      ppc_mtspr(EVPR,_)
-#define ppc_mtesr(_)       ppc_mtspr(ESR,_)
-#define ppc_mtdear(_)      ppc_mtspr(DEAR,_)
-#define ppc_mtsrr2(_)      ppc_mtspr(SRR2,_)
-#define ppc_mtsrr3(_)      ppc_mtspr(SRR3,_)
-#define ppc_mtdbsr(_)      ppc_mtspr(DBSR,_)
-#define ppc_mtdbcr0(_)     ppc_mtspr(DBCR0,_)
-#define ppc_mtdbcr1(_)     ppc_mtspr(DBCR1,_)
-#define ppc_mtdac1(_)      ppc_mtspr(DAC1,_)
-#define ppc_mtdac2(_)      ppc_mtspr(DAC2,_)
-#define ppc_mtdvc1(_)      ppc_mtspr(DVC1,_)
-#define ppc_mtdvc2(_)      ppc_mtspr(DVC2,_)
-#define ppc_mtiac1(_)      ppc_mtspr(IAC1,_)
-#define ppc_mtiac2(_)      ppc_mtspr(IAC2,_)
-#define ppc_mtiac3(_)      ppc_mtspr(IAC3,_)
-#define ppc_mtiac4(_)      ppc_mtspr(IAC4,_)
-#define ppc_mticdbr(_)     ppc_mtspr(ICDBR,_)
-#define ppc_mttcr(_)       ppc_mtspr(TCR,_)
-#define ppc_mttsr(_)       ppc_mtspr(TSR,_)
-#define ppc_mtpit(_)       ppc_mtspr(PIT,_)
+#define ppc_mtccr0(_)      ppc_mtspr(CCR0, _)
+#define ppc_mtsprg4(_)     ppc_mtspr(SPRG4, _)
+#define ppc_mtsprg5(_)     ppc_mtspr(SPRG5, _)
+#define ppc_mtsprg6(_)     ppc_mtspr(SPRG6, _)
+#define ppc_mtsprg7(_)     ppc_mtspr(SPRG7, _)
+#define ppc_mtpid(_)       ppc_mtspr(PID, _)
+#define ppc_mtzpr(_)       ppc_mtspr(ZPR, _)
+#define ppc_mtdccr(_)      ppc_mtspr(DCCR, _)
+#define ppc_mtdcwr(_)      ppc_mtspr(DCWR, _)
+#define ppc_mticcr(_)      ppc_mtspr(ICCR, _)
+#define ppc_mtsgr(_)       ppc_mtspr(SGR, _)
+#define ppc_mtsler(_)      ppc_mtspr(SLER, _)
+#define ppc_mtsu0r(_)      ppc_mtspr(SU0R, _)
+#define ppc_mtevpr(_)      ppc_mtspr(EVPR, _)
+#define ppc_mtesr(_)       ppc_mtspr(ESR, _)
+#define ppc_mtdear(_)      ppc_mtspr(DEAR, _)
+#define ppc_mtsrr2(_)      ppc_mtspr(SRR2, _)
+#define ppc_mtsrr3(_)      ppc_mtspr(SRR3, _)
+#define ppc_mtdbsr(_)      ppc_mtspr(DBSR, _)
+#define ppc_mtdbcr0(_)     ppc_mtspr(DBCR0, _)
+#define ppc_mtdbcr1(_)     ppc_mtspr(DBCR1, _)
+#define ppc_mtdac1(_)      ppc_mtspr(DAC1, _)
+#define ppc_mtdac2(_)      ppc_mtspr(DAC2, _)
+#define ppc_mtdvc1(_)      ppc_mtspr(DVC1, _)
+#define ppc_mtdvc2(_)      ppc_mtspr(DVC2, _)
+#define ppc_mtiac1(_)      ppc_mtspr(IAC1, _)
+#define ppc_mtiac2(_)      ppc_mtspr(IAC2, _)
+#define ppc_mtiac3(_)      ppc_mtspr(IAC3, _)
+#define ppc_mtiac4(_)      ppc_mtspr(IAC4, _)
+#define ppc_mticdbr(_)     ppc_mtspr(ICDBR, _)
+#define ppc_mttcr(_)       ppc_mtspr(TCR, _)
+#define ppc_mttsr(_)       ppc_mtspr(TSR, _)
+#define ppc_mtpit(_)       ppc_mtspr(PIT, _)
 
 //-----------------------------------------------------------------------------
 // Initial Register Values
@@ -254,7 +253,6 @@
 /// Interrupt enable (critical and external).
 #define PPC_MSR_IE              PPC_MSR_CE | PPC_MSR_EE
 //#define PPC_MSR_IE                (1<<14) | (1<<16)
-
 
 //-----------------------------------------------------------------------------
 // Timer Control Register Bits
@@ -341,11 +339,11 @@
 
 ///  \brief Write high portion of TLB entry.
 ///
-#define ppc_tlbwehi(rS,rA)    asm volatile ("tlbwehi %0, %1" : : "r" (rS), "r" (rA))
+#define ppc_tlbwehi(rS, rA)    asm volatile ("tlbwehi %0, %1" : : "r" (rS), "r" (rA))
 
 ///  \brief Write low portion of TLB entry.
 ///
-#define ppc_tlbwelo(rS,rA)    asm volatile ("tlbwelo %0, %1" : : "r" (rS), "r" (rA))
+#define ppc_tlbwelo(rS, rA)    asm volatile ("tlbwelo %0, %1" : : "r" (rS), "r" (rA))
 
 ///  \brief Read high portion of TLB entry.
 ///
@@ -357,6 +355,6 @@
 
 ///  \brief Search TLB for a valid entry.
 ///
-#define ppc_tlbsx(rA,rB)    ({greg_t rT; asm volatile ("tlbsx. %0, %1, %2" : "=r" (rT) : "b" (rA), "r" (rB)); rT;})
+#define ppc_tlbsx(rA, rB)    ({greg_t rT; asm volatile ("tlbsx. %0, %1, %2" : "=r" (rT) : "b" (rA), "r" (rB)); rT;})
 
 #endif /* _PPC405_H */
