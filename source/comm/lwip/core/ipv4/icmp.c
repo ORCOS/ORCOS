@@ -85,12 +85,11 @@ void icmp_input(struct pbuf *p, struct netif *inp) {
     struct ip4_addr tmpaddr;
     s16_t hlen;
 
-    ICMP_STATS_INC(icmp.recv); snmp_inc_icmpinmsgs();
+    ICMP_STATS_INC(icmp.recv);snmp_inc_icmpinmsgs();
 
     iphdr = p->payload;
     hlen = IP4H_HL(iphdr) * 4;
-    if (pbuf_header(p, -hlen) || (p->tot_len < sizeof(u16_t) * 2))
-    {
+    if (pbuf_header(p, -hlen) || (p->tot_len < sizeof(u16_t) * 2)) {
         LWIP_DEBUGF(ICMP_DEBUG, ("icmp_input: short ICMP (%"U16_F" bytes) received\n", p->tot_len));
         goto lenerr;
     }
@@ -106,73 +105,62 @@ void icmp_input(struct pbuf *p, struct netif *inp) {
         int accepted = 1;
 #if !LWIP_MULTICAST_PING
         /* multicast destination address? */
-        if (ip4_addr_ismulticast(&iphdr->dest))
-        {
+        if (ip4_addr_ismulticast(&iphdr->dest)) {
             accepted = 0;
         }
 #endif /* LWIP_MULTICAST_PING */
 #if !LWIP_BROADCAST_PING
         /* broadcast destination address? */
-        if (ip4_addr_isbroadcast(&iphdr->dest, inp))
-        {
+        if (ip4_addr_isbroadcast(&iphdr->dest, inp)) {
             accepted = 0;
         }
 #endif /* LWIP_BROADCAST_PING */
         /* broadcast or multicast destination address not acceptd? */
-        if (!accepted)
-        {
-            LWIP_DEBUGF(ICMP_DEBUG, ("icmp_input: Not echoing to multicast or broadcast pings\n")); ICMP_STATS_INC(icmp.err);
+        if (!accepted) {
+            LWIP_DEBUGF(ICMP_DEBUG, ("icmp_input: Not echoing to multicast or broadcast pings\n"));ICMP_STATS_INC(icmp.err);
             pbuf_free(p);
             return;
         }
     }
 #endif /* !LWIP_MULTICAST_PING || !LWIP_BROADCAST_PING */
         LWIP_DEBUGF(ICMP_DEBUG, ("icmp_input: ping\n"));
-        if (p->tot_len < sizeof(struct icmp_echo_hdr))
-        {
+        if (p->tot_len < sizeof(struct icmp_echo_hdr)) {
             LWIP_DEBUGF(ICMP_DEBUG, ("icmp_input: bad ICMP echo received\n"));
             goto lenerr;
         }
         //if (inet_chksum_pbuf(p) != 0) {
-        if (inet_chksum(p->payload, p->len) != 0)
-        {
+        if (inet_chksum(p->payload, p->len) != 0) {
             LWIP_DEBUGF(ICMP_DEBUG, ("icmp_input: checksum failed for received ICMP echo\n"));
             pbuf_free(p);
-            ICMP_STATS_INC(icmp.chkerr); snmp_inc_icmpinerrors();
+            ICMP_STATS_INC(icmp.chkerr);snmp_inc_icmpinerrors();
             return;
         }
 #if LWIP_ICMP_ECHO_CHECK_INPUT_PBUF_LEN
-        if (pbuf_header(p, (PBUF_IP4_HLEN + PBUF_LINK_HLEN)))
-        {
+        if (pbuf_header(p, (PBUF_IP4_HLEN + PBUF_LINK_HLEN))) {
             /* p is not big enough to contain link headers
              * allocate a new one and copy p into it
              */
             struct pbuf *r;
             /* switch p->payload to ip header */
-            if (pbuf_header(p, hlen))
-            {
+            if (pbuf_header(p, hlen)) {
                 LWIP_ASSERT("icmp_input: moving p->payload to ip header failed\n", 0);
                 goto memerr;
             }
             /* allocate new packet buffer with space for link headers */
             r = pbuf_alloc(PBUF_LINK, p->tot_len, PBUF_RAM);
-            if (r == NULL)
-            {
+            if (r == NULL) {
                 LWIP_DEBUGF(ICMP_DEBUG, ("icmp_input: allocating new pbuf failed\n"));
                 goto memerr;
             }
-            LWIP_ASSERT("check that first pbuf can hold struct the ICMP header", (r->len
-                                >= hlen + sizeof(struct icmp_echo_hdr)));
+            LWIP_ASSERT("check that first pbuf can hold struct the ICMP header", (r->len >= hlen + sizeof(struct icmp_echo_hdr)));
             /* copy the whole packet including ip header */
-            if (pbuf_copy(r, p) != ERR_OK)
-            {
+            if (pbuf_copy(r, p) != ERR_OK) {
                 LWIP_ASSERT("icmp_input: copying to new pbuf failed\n", 0);
                 goto memerr;
             }
             iphdr = r->payload;
             /* switch r->payload back to icmp header */
-            if (pbuf_header(r, -hlen))
-            {
+            if (pbuf_header(r, -hlen)) {
                 LWIP_ASSERT("icmp_input: restoring original p->payload failed\n", 0);
                 goto memerr;
             }
@@ -180,12 +168,9 @@ void icmp_input(struct pbuf *p, struct netif *inp) {
             pbuf_free(p);
             /* we now have an identical copy of p that has room for link headers */
             p = r;
-        }
-        else
-        {
+        } else {
             /* restore p->payload to point to icmp header */
-            if (pbuf_header(p, -(s16_t)(PBUF_IP4_HLEN + PBUF_LINK_HLEN)))
-            {
+            if (pbuf_header(p, -(s16_t) (PBUF_IP4_HLEN + PBUF_LINK_HLEN))) {
                 LWIP_ASSERT("icmp_input: restoring original p->payload failed\n", 0);
                 goto memerr;
             }
@@ -200,12 +185,9 @@ void icmp_input(struct pbuf *p, struct netif *inp) {
         iphdr->dest.addr = tmpaddr.addr;
         ICMPH_TYPE_SET(iecho, ICMP_ER);
         /* adjust the checksum */
-        if (iecho->chksum >= htons(0xffff - (ICMP_ECHO << 8)))
-        {
+        if (iecho->chksum >= htons(0xffff - (ICMP_ECHO << 8))) {
             iecho->chksum += htons(ICMP_ECHO << 8) + 1;
-        }
-        else
-        {
+        } else {
             iecho->chksum += htons(ICMP_ECHO << 8);
         }
 
@@ -222,17 +204,13 @@ void icmp_input(struct pbuf *p, struct netif *inp) {
         /* increase number of echo replies attempted to send */
         snmp_inc_icmpoutechoreps();
 
-        if (pbuf_header(p, hlen))
-        {
+        if (pbuf_header(p, hlen)) {
             LWIP_ASSERT("Can't move over header in packet", 0);
-        }
-        else
-        {
+        } else {
             err_t ret;
             ret = ip4_output_if(p, &(iphdr->src), IP4_HDRINCL,
             ICMP_TTL, 0, IP4_PROTO_ICMP, inp);
-            if (ret != ERR_OK)
-            {
+            if (ret != ERR_OK) {
                 LWIP_DEBUGF(ICMP_DEBUG, ("icmp_input: ip_output_if returned an error: %c.\n", ret));
             }
         }
@@ -245,11 +223,11 @@ void icmp_input(struct pbuf *p, struct netif *inp) {
     pbuf_free(p);
     return;
     lenerr: pbuf_free(p);
-    ICMP_STATS_INC(icmp.lenerr); snmp_inc_icmpinerrors();
+    ICMP_STATS_INC(icmp.lenerr);snmp_inc_icmpinerrors();
     return;
 #if LWIP_ICMP_ECHO_CHECK_INPUT_PBUF_LEN
     memerr: pbuf_free(p);
-    ICMP_STATS_INC(icmp.err); snmp_inc_icmpinerrors();
+    ICMP_STATS_INC(icmp.err);snmp_inc_icmpinerrors();
     return;
 #endif /* LWIP_ICMP_ECHO_CHECK_INPUT_PBUF_LEN */
 }
@@ -276,8 +254,7 @@ void icmp_dest_unreach(struct pbuf *p, enum icmp_dur_type t) {
  * @param t type of the 'time exceeded' packet
  */
 void
-icmp_time_exceeded(struct pbuf *p, enum icmp_te_type t)
-{
+icmp_time_exceeded(struct pbuf *p, enum icmp_te_type t) {
     icmp_send_response(p, ICMP_TE, t);
 }
 
@@ -298,10 +275,8 @@ static void icmp_send_response(struct pbuf *p, u8_t type, u8_t code) {
     struct icmp_echo_hdr *icmphdr;
 
     /* ICMP header + IP header + 8 bytes of data */
-    q = pbuf_alloc(PBUF_IP, sizeof(struct icmp_echo_hdr) + IP4_HLEN
-                           + ICMP_DEST_UNREACH_DATASIZE, PBUF_RAM);
-    if (q == NULL)
-    {
+    q = pbuf_alloc(PBUF_IP, sizeof(struct icmp_echo_hdr) + IP4_HLEN + ICMP_DEST_UNREACH_DATASIZE, PBUF_RAM);
+    if (q == NULL) {
         LWIP_DEBUGF(ICMP_DEBUG, ("icmp_time_exceeded: failed to allocate pbuf for ICMP packet.\n"));
         return;
     }

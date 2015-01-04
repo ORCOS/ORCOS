@@ -7,13 +7,13 @@
  * The authors hereby grant permission to use, copy, modify, distribute,
  * and license this software and its documentation for any purpose, provided
  * that existing copyright notices are retained in all copies and that this
- * notice and the following disclaimer are included verbatim in any 
+ * notice and the following disclaimer are included verbatim in any
  * distributions. No written agreement, license, or royalty fee is required
  * for any of the authorized uses.
  *
  * THIS SOFTWARE IS PROVIDED BY THE CONTRIBUTORS *AS IS* AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
  * IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
  * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
@@ -96,8 +96,7 @@
 /*
  * Each interface is described by upap structure.
  */
-typedef struct upap_state
-{
+typedef struct upap_state {
     int us_unit; /* Interface unit number */
     const char *us_user; /* User */
     int us_userlen; /* User length */
@@ -110,7 +109,7 @@ typedef struct upap_state
     int us_transmits; /* Number of auth-reqs sent */
     int us_maxtransmits; /* Maximum number of auth-reqs to send */
     int us_reqtimeout; /* Time to wait for auth-req from peer */
-}upap_state;
+} upap_state;
 
 /***********************
  *** PUBLIC FUNCTIONS ***
@@ -119,8 +118,8 @@ typedef struct upap_state
 extern upap_state upap[];
 
 void upap_setloginpasswd(int unit, const char *luser, const char *lpassword);
-void upap_authwithpeer (int, char *, char *);
-void upap_authpeer (int);
+void upap_authwithpeer(int, char *, char *);
+void upap_authpeer(int);
 
 extern struct protent pap_protent;
 

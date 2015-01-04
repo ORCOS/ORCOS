@@ -108,8 +108,7 @@ err_t ethndp_request(struct netif *netif, struct ip6_addr *ipaddr) {
     struct icmp6_nsm_hdr *icmphdr;
 
     int len = SIZEOF_ETHNSM_PACKET;
-    if (netif->ip6_addr_state == IP6_ADDR_STATE_VALID)
-    {
+    if (netif->ip6_addr_state == IP6_ADDR_STATE_VALID) {
         // if weve got a valid ip6 address we will send the source link layer address inside an additional
         // option frame
         len += SIZEOF_ICMP6_OPTIONS_HDR + 6;
@@ -118,20 +117,17 @@ err_t ethndp_request(struct netif *netif, struct ip6_addr *ipaddr) {
     /* allocate a pbuf for the outgoing ARP request packet */
     p = pbuf_alloc(PBUF_RAW, len, PBUF_RAM);
     /* could allocate a pbuf for an ARP request? */
-    if (p == NULL)
-    {
+    if (p == NULL) {
         LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_LEVEL_SERIOUS, ("etharp_raw: could not allocate pbuf for ARP request.\n"));
         //ETHARP_STATS_INC(etharp.memerr);
         return ERR_MEM;
     }
 
-    LWIP_ASSERT("check that first pbuf can hold struct etharp_hdr", (p->len
-                        >= len));
+    LWIP_ASSERT("check that first pbuf can hold struct etharp_hdr", (p->len >= len));
 
     ethhdr = p->payload;
     hdr = (struct ip6_hdr *) ((u8_t*) ethhdr + SIZEOF_ETH_HDR);
-    icmphdr = (struct icmp6_nsm_hdr *) ((u8_t*) ethhdr + SIZEOF_ETH_HDR
-            + IP6_HLEN);
+    icmphdr = (struct icmp6_nsm_hdr *) ((u8_t*) ethhdr + SIZEOF_ETH_HDR + IP6_HLEN);
 
     ethhdr->type = htons(ETHTYPE_IPV6);
     ethhdr->dest.addr[0] = 0xFF;
@@ -141,8 +137,7 @@ err_t ethndp_request(struct netif *netif, struct ip6_addr *ipaddr) {
     ethhdr->dest.addr[4] = ((ipaddr->addr[3] >> 8) & 0xFF);
     ethhdr->dest.addr[5] = (ipaddr->addr[3] & 0xFF);
 
-    for (k = 0; k < 6; k++)
-    {
+    for (k = 0; k < 6; k++) {
         ethhdr->src.addr[k] = netif->hwaddr[k];
     }
 
@@ -167,22 +162,17 @@ err_t ethndp_request(struct netif *netif, struct ip6_addr *ipaddr) {
     ip6_addr_set(&icmphdr->target_addr, ipaddr);
 
     // fill source address field
-    if (netif->ip6_addr_state == IP6_ADDR_STATE_VALID)
-    {
+    if (netif->ip6_addr_state == IP6_ADDR_STATE_VALID) {
         ip6_addr_set(&hdr->src, &netif->ip6_addr);
 
         // place the options header behind
-        struct icmp6_options_hdr *opthdr =
-                (struct icmp6_options_hdr *) ((u8_t*) ethhdr
-                        + SIZEOF_ETHNSM_PACKET);
+        struct icmp6_options_hdr *opthdr = (struct icmp6_options_hdr *) ((u8_t*) ethhdr + SIZEOF_ETHNSM_PACKET);
         opthdr->type = ICMP6_OPTIONS_SOURCEADDR;
         opthdr->length = 1;
 
         SMEMCPY(((u8_t*)ethhdr + SIZEOF_ETHNSM_PACKET+SIZEOF_ICMP6_OPTIONS_HDR), &netif->hwaddr[0], 6);
 
-    }
-    else
-    {
+    } else {
         hdr->src.addr[0] = 0;
         hdr->src.addr[1] = 0;
         hdr->src.addr[2] = 0;
@@ -192,8 +182,7 @@ err_t ethndp_request(struct netif *netif, struct ip6_addr *ipaddr) {
     // calculate checksum
     icmphdr->chksum = 0;
     pbuf_header(p, -(SIZEOF_ETH_HDR + IP6_HLEN));
-    icmphdr->chksum =
-            inet_chksum_pseudo(p, &hdr->src.addr, &hdr->dest.addr, IPV6, IP6_PROTO_ICMP, ntohs(hdr->len));
+    icmphdr->chksum = inet_chksum_pseudo(p, &hdr->src.addr, &hdr->dest.addr, IPV6, IP6_PROTO_ICMP, ntohs(hdr->len));
     pbuf_header(p, SIZEOF_ETH_HDR + IP6_HLEN);
 
     LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE, ("ethndp: sending NSM" NEWLINE));
@@ -217,8 +206,7 @@ err_t ethndp_output(struct netif *netif, struct pbuf *q, struct ip6_addr *ipaddr
     struct eth_addr *dest, mcastaddr;
 
     /* make room for Ethernet header - should not fail */
-    if (pbuf_header(q, sizeof(struct eth_hdr)) != 0)
-    {
+    if (pbuf_header(q, sizeof(struct eth_hdr)) != 0) {
         /* bail out */
         LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_LEVEL_SERIOUS, ("ethndp_output: could not allocate room for header." NEWLINE));
         //LINK_STATS_INC(link.lenerr);
@@ -230,8 +218,7 @@ err_t ethndp_output(struct netif *netif, struct pbuf *q, struct ip6_addr *ipaddr
     /* Determine on destination hardware address. Broadcasts and multicasts
      * are special, other IP addresses are looked up in the ARP table. */
 
-    if (ip6_addr_ismulticast(ipaddr))
-    {
+    if (ip6_addr_ismulticast(ipaddr)) {
         /* Hash IP multicast address to MAC address.*/
         // See RFC 2464 Chapter 7
         mcastaddr.addr[0] = 0x33;
@@ -246,12 +233,9 @@ err_t ethndp_output(struct netif *netif, struct pbuf *q, struct ip6_addr *ipaddr
         /* obtain source Ethernet address of the given interface */
         /* send packet directly on the link */
         return ethar_send_ip(netif, q, (struct eth_addr*) (netif->hwaddr), dest, IPV6);
-    }
-    else
-    {
+    } else {
         /* outside local network? */
-        if (!ip6_addr_netcmp(ipaddr, &(netif->ip6_addr), &(netif->ip6_netmask)))
-        {
+        if (!ip6_addr_netcmp(ipaddr, &(netif->ip6_addr), &(netif->ip6_netmask))) {
             /* interface has default gateway? */
 
             /*if (!ip6_addr_isany(&netif->ip6_gw)) {

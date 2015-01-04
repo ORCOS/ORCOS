@@ -18,7 +18,7 @@ struct ip {
 #if BYTE_ORDER == LITTLE_ENDIAN
     unsigned ip_hl :4, /* header length */
     ip_v :4; /* version */
-#elif BYTE_ORDER == BIG_ENDIAN 
+#elif BYTE_ORDER == BIG_ENDIAN
     unsigned ip_v :4, /* version */
     ip_hl:4; /* header length */
 #else
@@ -58,7 +58,7 @@ struct tcphdr {
     unsigned th_x2 :4, /* (unused) */
     th_off :4; /* data offset */
 #endif
-#if BYTE_ORDER == BIG_ENDIAN 
+#if BYTE_ORDER == BIG_ENDIAN
     unsigned th_off:4, /* data offset */
     th_x2 :4; /* (unused) */
 #endif

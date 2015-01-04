@@ -6,9 +6,9 @@
 
 /*
  * Copyright (c) 2001-2004 Swedish Institute of Computer Science.
- * All rights reserved. 
- * 
- * Redistribution and use in source and binary forms, with or without modification, 
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
  *
  * 1. Redistributions of source code must retain the above copyright notice,
@@ -17,21 +17,21 @@
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
  * 3. The name of the author may not be used to endorse or promote products
- *    derived from this software without specific prior written permission. 
+ *    derived from this software without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED 
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT 
- * SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT 
- * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
- * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY 
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
+ * SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
+ * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+ * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  *
  * This file is part of the lwIP TCP/IP stack.
- * 
+ *
  * Author: Adam Dunkels <adam@sics.se>
  *
  */
@@ -49,9 +49,7 @@
 struct stats_ lwip_stats;
 
 #if LWIP_STATS_DISPLAY
-void
-stats_display_proto(struct stats_proto *proto, char *name)
-{
+void stats_display_proto(struct stats_proto *proto, char *name) {
     LWIP_PLATFORM_DIAG(("\n%s\n\t", name));
     LWIP_PLATFORM_DIAG(("xmit: %"STAT_COUNTER_F"\n\t", proto->xmit));
     LWIP_PLATFORM_DIAG(("recv: %"STAT_COUNTER_F"\n\t", proto->recv));
@@ -68,9 +66,7 @@ stats_display_proto(struct stats_proto *proto, char *name)
 }
 
 #if IGMP_STATS
-void
-stats_display_igmp(struct stats_igmp *igmp)
-{
+void stats_display_igmp(struct stats_igmp *igmp) {
     LWIP_PLATFORM_DIAG(("\nIGMP\n\t"));
     LWIP_PLATFORM_DIAG(("lenerr: %"STAT_COUNTER_F"\n\t", igmp->lenerr));
     LWIP_PLATFORM_DIAG(("chkerr: %"STAT_COUNTER_F"\n\t", igmp->chkerr));
@@ -85,9 +81,7 @@ stats_display_igmp(struct stats_igmp *igmp)
 #endif /* IGMP_STATS */
 
 #if MEM_STATS || MEMP_STATS
-void
-stats_display_mem(struct stats_mem *mem, char *name)
-{
+void stats_display_mem(struct stats_mem *mem, char *name) {
     LWIP_PLATFORM_DIAG(("MEM %s\t", name));
     LWIP_PLATFORM_DIAG(("avail: %5"U32_F"\t", (u32_t)mem->avail));
     LWIP_PLATFORM_DIAG(("used: %5"U32_F"\t", (u32_t)mem->used));
@@ -96,16 +90,12 @@ stats_display_mem(struct stats_mem *mem, char *name)
 }
 
 #if MEMP_STATS
-void
-stats_display_memp(struct stats_mem *mem, int index)
-{
-    char * memp_names[] =
-    {
+void stats_display_memp(struct stats_mem *mem, int index) {
+    char * memp_names[] =     {
 #define LWIP_MEMPOOL(name,num,size,desc) desc,
 #include "lwip/memp_std.h"
     };
-    if(index < MEMP_MAX)
-    {
+    if(index < MEMP_MAX) {
         stats_display_mem(mem, memp_names[index]);
     }
 }
@@ -113,9 +103,7 @@ stats_display_memp(struct stats_mem *mem, int index)
 #endif /* MEM_STATS || MEMP_STATS */
 
 #if SYS_STATS
-void
-stats_display_sys(struct stats_sys *sys)
-{
+void stats_display_sys(struct stats_sys *sys) {
     LWIP_PLATFORM_DIAG(("\nSYS\n\t"));
     LWIP_PLATFORM_DIAG(("sem.used: %"U32_F"\n\t", (u32_t)sys->sem.used));
     LWIP_PLATFORM_DIAG(("sem.max:  %"U32_F"\n\t", (u32_t)sys->sem.max));
@@ -126,9 +114,7 @@ stats_display_sys(struct stats_sys *sys)
 }
 #endif /* SYS_STATS */
 
-void
-stats_display(void)
-{
+void stats_display(void) {
     s16_t i;
 
     LINK_STATS_DISPLAY();
@@ -140,8 +126,7 @@ stats_display(void)
     UDP_STATS_DISPLAY();
     TCP_STATS_DISPLAY();
     MEM_STATS_DISPLAY();
-    for (i = 0; i < MEMP_MAX; i++)
-    {
+    for (i = 0; i < MEMP_MAX; i++) {
         MEMP_STATS_DISPLAY(i);
     }
     SYS_STATS_DISPLAY();

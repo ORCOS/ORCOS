@@ -43,19 +43,19 @@ extern "C"
 
     /* For a totally minimal and standalone system, we provide null
      definitions of the sys_ functions. */
-//typedef u8_t sys_sem_t;
     typedef void* sys_sem_t;
     typedef u8_t sys_mbox_t;
-    struct sys_timeo
-    {   u8_t dummy;};
+    struct sys_timeo {
+        u8_t dummy;
+    };
 
 #define sys_init()
-#define sys_timeout(m,h,a)
-#define sys_untimeout(m,a)
+#define sys_timeout(m, h, a)
+#define sys_untimeout(m, a)
 
-    extern void* createMutex();
-    extern void acquireMutex(void* mutex);
-    extern void releaseMutex(void* mutex);
+extern void* createMutex();
+extern void acquireMutex(void* mutex);
+extern void releaseMutex(void* mutex);
 
 #define sys_sem_new(c) c
 #define sys_sem_signal(s)
@@ -65,19 +65,19 @@ extern "C"
 //#define sys_sem_signal(s) releaseMutex(s)
 //#define sys_sem_wait(s) acquireMutex(s)
 
-#define sys_sem_wait_timeout(s,t)
+#define sys_sem_wait_timeout(s, t)
 //#define sys_arch_sem_wait(s,t) acquireMutex(s)
-#define sys_arch_sem_wait(s,t)
+#define sys_arch_sem_wait(s, t)
 #define sys_sem_free(s)
 
 #define sys_mbox_new(s) 0
-#define sys_mbox_fetch(m,d)
-#define sys_mbox_tryfetch(m,d)
-#define sys_mbox_post(m,d)
-#define sys_mbox_trypost(m,d)
+#define sys_mbox_fetch(m, d)
+#define sys_mbox_tryfetch(m, d)
+#define sys_mbox_post(m, d)
+#define sys_mbox_trypost(m, d)
 #define sys_mbox_free(m)
 
-#define sys_thread_new(n,t,a,s,p)
+#define sys_thread_new(n, t, a, s, p)
 
 #else /* NO_SYS */
 
@@ -94,16 +94,14 @@ extern "C"
 
     typedef void (* sys_timeout_handler)(void *arg);
 
-    struct sys_timeo
-    {
+    struct sys_timeo {
         struct sys_timeo *next;
         u32_t time;
         sys_timeout_handler h;
         void *arg;
     };
 
-    struct sys_timeouts
-    {
+    struct sys_timeouts {
         struct sys_timeo *next;
     };
 
@@ -205,9 +203,9 @@ extern "C"
 
 #include "assemblerFunctions.hh"
 
-extern void acquireMutex(void* mutex);
-extern void releaseMutex(void* mutex);
-extern void* sysArchMutex;
+    extern void acquireMutex(void* mutex);
+    extern void releaseMutex(void* mutex);
+    extern void* sysArchMutex;
 
 #define SYS_ARCH_DECL_PROTECT(lev)
 #define SYS_ARCH_PROTECT(lev)       acquireMutex(sysArchMutex)

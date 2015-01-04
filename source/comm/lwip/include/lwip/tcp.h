@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2001-2004 Swedish Institute of Computer Science.
- * All rights reserved. 
- * 
- * Redistribution and use in source and binary forms, with or without modification, 
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
  *
  * 1. Redistributions of source code must retain the above copyright notice,
@@ -11,21 +11,21 @@
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
  * 3. The name of the author may not be used to endorse or promote products
- *    derived from this software without specific prior written permission. 
+ *    derived from this software without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED 
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT 
- * SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT 
- * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
- * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY 
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
+ * SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
+ * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+ * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  *
  * This file is part of the lwIP TCP/IP stack.
- * 
+ *
  * Author: Adam Dunkels <adam@sics.se>
  *
  */
@@ -43,45 +43,42 @@
 //#include "ipv4/icmp.h"
 #include "lwip/err.h"
 
+#define TCP_PRIO_MIN    1
+#define TCP_PRIO_NORMAL 64
+#define TCP_PRIO_MAX    127
+
+#define tcp_mss(pcb)            ((pcb)->mss)
+#define tcp_sndbuf(pcb)         ((pcb)->snd_buf)
+#define tcp_nagle_disable(pcb)  ((pcb)->flags |= TF_NODELAY)
+#define tcp_nagle_enable(pcb)   ((pcb)->flags &= ~TF_NODELAY)
+#define tcp_nagle_disabled(pcb) (((pcb)->flags & TF_NODELAY) != 0)
+#define tcp_listen(pcb)         tcp_listen_with_backlog(pcb, TCP_DEFAULT_LISTEN_BACKLOG)
+#define tcp_abort(pcb)          tcp_abandon((pcb), 1)
+
+    /* Flags for "apiflags" parameter in tcp_write and tcp_enqueue */
+#define TCP_WRITE_FLAG_COPY 0x01
+#define TCP_WRITE_FLAG_MORE 0x02
+
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-
     struct tcp_pcb;
-
     /* Functions for interfacing with TCP: */
-
     /* Lower layer interface to TCP: */
-//#define tcp_init() /* Compatibility define, not init needed. */
-    void tcp_tmr (void); /* Must be called every
-     TCP_TMR_INTERVAL
-     ms. (Typically 250 ms). */
+    void tcp_tmr(void); /* Must be called every  TCP_TMR_INTERVAL  ms. (Typically 250 ms). */
+
     /* Application program's interface: */
-    struct tcp_pcb * tcp_new (void);
-    struct tcp_pcb * tcp_alloc (u8_t prio);
+    struct tcp_pcb * tcp_new(void);
+    struct tcp_pcb * tcp_alloc(u8_t prio);
 
     void tcp_arg (struct tcp_pcb *pcb, void *arg);
-    void tcp_accept (struct tcp_pcb *pcb,
-            err_t (* accept)(void *arg, struct tcp_pcb *newpcb,
-                    err_t err));
-    void tcp_recv (struct tcp_pcb *pcb,
-            err_t (* recv)(void *arg, struct tcp_pcb *tpcb,
-                    struct pbuf *p, err_t err));
-    void tcp_sent (struct tcp_pcb *pcb,
-            err_t (* sent)(void *arg, struct tcp_pcb *tpcb,
-                    u16_t len));
-    void tcp_poll (struct tcp_pcb *pcb,
-            err_t (* poll)(void *arg, struct tcp_pcb *tpcb),
-            u8_t interval);
-    void tcp_err (struct tcp_pcb *pcb,
-            void (* err)(void *arg, err_t err));
 
-#define          tcp_mss(pcb)      ((pcb)->mss)
-#define          tcp_sndbuf(pcb)   ((pcb)->snd_buf)
-#define          tcp_nagle_disable(pcb)  ((pcb)->flags |= TF_NODELAY)
-#define          tcp_nagle_enable(pcb) ((pcb)->flags &= ~TF_NODELAY)
-#define          tcp_nagle_disabled(pcb) (((pcb)->flags & TF_NODELAY) != 0)
+    void tcp_accept(struct tcp_pcb *pcb, err_t (* accept)(void *arg, struct tcp_pcb *newpcb, err_t err));
+    void tcp_recv(struct tcp_pcb *pcb, err_t (* recv)(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err));
+    void tcp_sent(struct tcp_pcb *pcb, err_t (* sent)(void *arg, struct tcp_pcb *tpcb, u16_t len));
+    void tcp_poll(struct tcp_pcb *pcb, err_t (* poll)(void *arg, struct tcp_pcb *tpcb), u8_t interval);
+    void tcp_err(struct tcp_pcb *pcb, void (* err)(void *arg, err_t err));
 
 #if TCP_LISTEN_BACKLOG
 #define          tcp_accepted(pcb) (((struct tcp_pcb_listen *)(pcb))->accepts_pending--)
@@ -89,51 +86,43 @@ extern "C"
 #define          tcp_accepted(pcb)
 #endif /* TCP_LISTEN_BACKLOG */
 
-    void tcp_recved (struct tcp_pcb *pcb, u16_t len);
-    err_t tcp_bind (struct tcp_pcb *pcb, struct ip_addr *ipaddr,
+    void tcp_recved(struct tcp_pcb *pcb, u16_t len);
+
+    err_t tcp_bind(struct tcp_pcb *pcb,
+            struct ip_addr *ipaddr,
             u16_t port);
-    err_t tcp_connect (struct tcp_pcb *pcb, struct ip_addr *ipaddr,
-            u16_t port, err_t (* connected)(void *arg,
-                    struct tcp_pcb *tpcb,
-                    err_t err));
+
+    err_t tcp_connect(struct tcp_pcb *pcb,
+            struct ip_addr *ipaddr,
+            u16_t port,
+            err_t (* connected)(void *arg, struct tcp_pcb *tpcb, err_t err));
 
     struct tcp_pcb * tcp_listen_with_backlog(struct tcp_pcb *pcb, u8_t backlog);
-#define          tcp_listen(pcb) tcp_listen_with_backlog(pcb, TCP_DEFAULT_LISTEN_BACKLOG)
 
-    void tcp_abandon (struct tcp_pcb *pcb, int reset);
-#define          tcp_abort(pcb) tcp_abandon((pcb), 1)
+    void  tcp_abandon (struct tcp_pcb *pcb, int reset);
+
     err_t tcp_close (struct tcp_pcb *pcb);
 
-    /* Flags for "apiflags" parameter in tcp_write and tcp_enqueue */
-#define TCP_WRITE_FLAG_COPY 0x01
-#define TCP_WRITE_FLAG_MORE 0x02
 
-    /*err_t            tcp_write   (struct tcp_pcb *pcb, const void *dataptr, u16_t len,
-     u8_t apiflags);*/
-    err_t
-    tcp_write(struct tcp_pcb *pcb, struct pbuf* p_data, u16_t len, u8_t apiflags);
+    err_t tcp_write(struct tcp_pcb *pcb, struct pbuf* p_data, u16_t len, u8_t apiflags);
 
-    void tcp_setprio (struct tcp_pcb *pcb, u8_t prio);
+    void  tcp_setprio (struct tcp_pcb *pcb, u8_t prio);
 
-    void tcp_init();
-
-#define TCP_PRIO_MIN    1
-#define TCP_PRIO_NORMAL 64
-#define TCP_PRIO_MAX    127
+    void  tcp_init();
 
     /* It is also possible to call these two functions at the right
      intervals (instead of calling tcp_tmr()). */
-    void tcp_slowtmr (void);
-    void tcp_fasttmr (void);
+    void  tcp_slowtmr (void);
+    void  tcp_fasttmr (void);
 
     /* Only used by IP to pass a TCP segment to TCP: */
-    void tcp_input (struct pbuf *p, struct netif *inp);
+    void  tcp_input (struct pbuf *p, struct netif *inp);
     /* Used within the TCP code only: */
     err_t tcp_send_empty_ack(struct tcp_pcb *pcb);
     err_t tcp_output (struct tcp_pcb *pcb);
-    void tcp_rexmit (struct tcp_pcb *pcb);
-    void tcp_rexmit_rto (struct tcp_pcb *pcb);
-    void tcp_rexmit_fast (struct tcp_pcb *pcb);
+    void  tcp_rexmit (struct tcp_pcb *pcb);
+    void  tcp_rexmit_rto (struct tcp_pcb *pcb);
+    void  tcp_rexmit_fast (struct tcp_pcb *pcb);
     u32_t tcp_update_rcv_ann_wnd(struct tcp_pcb *pcb);
 
     /**
@@ -362,7 +351,7 @@ extern "C"
         /* These are ordered by sequence number: */
         struct tcp_seg *unsent; /* Unsent (queued) segments. */
         struct tcp_seg *unacked; /* Sent but unacknowledged segments. */
-#if TCP_QUEUE_OOSEQ  
+#if TCP_QUEUE_OOSEQ
         struct tcp_seg *ooseq; /* Received out of sequence segments. */
 #endif /* TCP_QUEUE_OOSEQ */
 
@@ -640,7 +629,7 @@ extern "C"
 
     extern struct tcp_pcb *tcp_tmp_pcb; /* Only used for temporary storage. */
 
-    /* Axioms about the above lists:   
+    /* Axioms about the above lists:
      1) Every TCP PCB that is not CLOSED is in one of the lists.
      2) A PCB is only in one of the lists.
      3) All PCBs in the tcp_listen_pcbs list is in LISTEN state.
@@ -653,8 +642,8 @@ extern "C"
 #define TCP_REG(pcbs, npcb) do {\
                             LWIP_DEBUGF(TCP_DEBUG, ("TCP_REG %p local port %d"NEWLINE, npcb, npcb->local_port)); \
                             for(tcp_tmp_pcb = *pcbs; \
-                            		tcp_tmp_pcb != NULL; \
-                            		tcp_tmp_pcb = tcp_tmp_pcb->next) { \
+                                    tcp_tmp_pcb != NULL; \
+                                    tcp_tmp_pcb = tcp_tmp_pcb->next) { \
                                 LWIP_ASSERT("TCP_REG: already registered"NEWLINE, tcp_tmp_pcb != npcb); \
                             } \
                             npcb->next = *pcbs; \

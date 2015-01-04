@@ -11,13 +11,13 @@
  * The authors hereby grant permission to use, copy, modify, distribute,
  * and license this software and its documentation for any purpose, provided
  * that existing copyright notices are retained in all copies and that this
- * notice and the following disclaimer are included verbatim in any 
+ * notice and the following disclaimer are included verbatim in any
  * distributions. No written agreement, license, or royalty fee is required
  * for any of the authorized uses.
  *
  * THIS SOFTWARE IS PROVIDED BY THE CONTRIBUTORS *AS IS* AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
  * IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
  * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
@@ -92,12 +92,11 @@
 /************************/
 /*** LOCAL DATA TYPES ***/
 /************************/
-typedef struct
-{
+typedef struct {
     u_char LANManResp[24];
     u_char NTResp[24];
     u_char UseNT; /* If 1, ignore the LANMan response field */
-}MS_ChapResponse;
+} MS_ChapResponse;
 /* We use MS_CHAP_RESPONSE_LEN, rather than sizeof(MS_ChapResponse),
  in case this struct gets padded. */
 
@@ -109,37 +108,25 @@ typedef struct
 extern void setkey(const char *);
 extern void encrypt(char *, int);
 
-static void DesEncrypt (u_char *, u_char *, u_char *);
-static void MakeKey (u_char *, u_char *);
+static void DesEncrypt(u_char *, u_char *, u_char *);
+static void MakeKey(u_char *, u_char *);
 
 #ifdef USE_CRYPT
-static void Expand (u_char *, u_char *);
-static void Collapse (u_char *, u_char *);
+static void Expand(u_char *, u_char *);
+static void Collapse(u_char *, u_char *);
 #endif
 
-static void ChallengeResponse(
-        u_char *challenge, /* IN   8 octets */
-        u_char *pwHash, /* IN  16 octets */
-        u_char *response /* OUT 24 octets */
+static void ChallengeResponse(u_char *challenge, /* IN   8 octets */
+u_char *pwHash, /* IN  16 octets */
+u_char *response /* OUT 24 octets */
 );
-static void ChapMS_NT(
-        char *rchallenge,
-        int rchallenge_len,
-        char *secret,
-        int secret_len,
-        MS_ChapResponse *response
-);
-static u_char Get7Bits(
-        u_char *input,
-        int startBit
-);
+static void ChapMS_NT(char *rchallenge, int rchallenge_len, char *secret, int secret_len, MS_ChapResponse *response);
+static u_char Get7Bits(u_char *input, int startBit);
 
 /***********************************/
 /*** PUBLIC FUNCTION DEFINITIONS ***/
 /***********************************/
-void
-ChapMS( chap_state *cstate, char *rchallenge, int rchallenge_len, char *secret, int secret_len)
-{
+void ChapMS(chap_state *cstate, char *rchallenge, int rchallenge_len, char *secret, int secret_len) {
     MS_ChapResponse response;
 #ifdef MSLANMAN
     extern int ms_lanman;
@@ -169,11 +156,9 @@ ChapMS( chap_state *cstate, char *rchallenge, int rchallenge_len, char *secret, 
 /**********************************/
 /*** LOCAL FUNCTION DEFINITIONS ***/
 /**********************************/
-static void
-ChallengeResponse( u_char *challenge, /* IN   8 octets */
-        u_char *pwHash, /* IN  16 octets */
-        u_char *response /* OUT 24 octets */)
-{
+static void ChallengeResponse(u_char *challenge, /* IN   8 octets */
+u_char *pwHash, /* IN  16 octets */
+u_char *response /* OUT 24 octets */) {
     char ZPasswordHash[21];
 
     BZERO(ZPasswordHash, sizeof(ZPasswordHash));
@@ -193,11 +178,9 @@ ChallengeResponse( u_char *challenge, /* IN   8 octets */
 }
 
 #ifdef USE_CRYPT
-static void
-DesEncrypt( u_char *clear, /* IN  8 octets */
-        u_char *key, /* IN  7 octets */
-        u_char *cipher /* OUT 8 octets */)
-{
+static void DesEncrypt(u_char *clear, /* IN  8 octets */
+u_char *key, /* IN  7 octets */
+u_char *cipher /* OUT 8 octets */) {
     u_char des_key[8];
     u_char crypt_key[66];
     u_char des_input[66];
@@ -251,13 +234,11 @@ DesEncrypt( u_char *clear, /* IN  8 octets */
 
 #endif /* USE_CRYPT */
 
-static u_char
-Get7Bits( u_char *input, int startBit)
-{
+static u_char Get7Bits(u_char *input, int startBit) {
     register unsigned int word;
 
-    word = (unsigned)input[startBit / 8] << 8;
-    word |= (unsigned)input[startBit / 8 + 1];
+    word = (unsigned) input[startBit / 8] << 8;
+    word |= (unsigned) input[startBit / 8 + 1];
 
     word >>= 15 - (startBit % 8 + 7);
 
@@ -270,17 +251,13 @@ Get7Bits( u_char *input, int startBit)
  * out == 64-byte string where each byte is either 1 or 0
  * Note that the low-order "bit" is always ignored by by setkey()
  */
-static void
-Expand(u_char *in, u_char *out)
-{
+static void Expand(u_char *in, u_char *out) {
     int j, c;
     int i;
 
-    for(i = 0; i < 64; in++)
-    {
+    for (i = 0; i < 64; in++) {
         c = *in;
-        for(j = 7; j >= 0; j--)
-        {
+        for (j = 7; j >= 0; j--) {
             *out++ = (c >> j) & 01;
         }
         i += 8;
@@ -289,18 +266,14 @@ Expand(u_char *in, u_char *out)
 
 /* The inverse of Expand
  */
-static void
-Collapse(u_char *in, u_char *out)
-{
+static void Collapse(u_char *in, u_char *out) {
     int j;
     int i;
     unsigned int c;
 
-    for (i = 0; i < 64; i += 8, out++)
-    {
+    for (i = 0; i < 64; i += 8, out++) {
         c = 0;
-        for (j = 7; j >= 0; j--, in++)
-        {
+        for (j = 7; j >= 0; j--, in++) {
             c |= *in << j;
         }
         *out = c & 0xff;
@@ -308,10 +281,8 @@ Collapse(u_char *in, u_char *out)
 }
 #endif
 
-static void
-MakeKey( u_char *key, /* IN  56 bit DES key missing parity bits */
-        u_char *des_key /* OUT 64 bit DES key with parity bits added */)
-{
+static void MakeKey(u_char *key, /* IN  56 bit DES key missing parity bits */
+u_char *des_key /* OUT 64 bit DES key with parity bits added */) {
     des_key[0] = Get7Bits(key, 0);
     des_key[1] = Get7Bits(key, 7);
     des_key[2] = Get7Bits(key, 14);
@@ -333,13 +304,7 @@ MakeKey( u_char *key, /* IN  56 bit DES key missing parity bits */
 #endif
 }
 
-static void
-ChapMS_NT( char *rchallenge,
-        int rchallenge_len,
-        char *secret,
-        int secret_len,
-        MS_ChapResponse *response)
-{
+static void ChapMS_NT(char *rchallenge, int rchallenge_len, char *secret, int secret_len, MS_ChapResponse *response) {
     int i;
     MDstruct md4Context;
     u_char unicodePassword[MAX_NT_PASSWORD * 2];
@@ -348,25 +313,22 @@ ChapMS_NT( char *rchallenge,
     /* Initialize the Unicode version of the secret (== password). */
     /* This implicitly supports 8-bit ISO8859/1 characters. */
     BZERO(unicodePassword, sizeof(unicodePassword));
-    for (i = 0; i < secret_len; i++)
-    {
-        unicodePassword[i * 2] = (u_char)secret[i];
+    for (i = 0; i < secret_len; i++) {
+        unicodePassword[i * 2] = (u_char) secret[i];
     }
     MDbegin(&md4Context);
     MDupdate(&md4Context, unicodePassword, secret_len * 2 * 8); /* Unicode is 2 bytes/char, *8 for bit count */
 
-    if (low_byte_first == -1)
-    {
-        low_byte_first = (htons((unsigned short int)1) != 1);
+    if (low_byte_first == -1) {
+        low_byte_first = (htons((unsigned short int) 1) != 1);
     }
-    if (low_byte_first == 0)
-    {
-        MDreverse((u_long *)&md4Context); /*  sfb 961105 */
+    if (low_byte_first == 0) {
+        MDreverse((u_long *) &md4Context); /*  sfb 961105 */
     }
 
     MDupdate(&md4Context, NULL, 0); /* Tell MD4 we're done */
 
-    ChallengeResponse(rchallenge, (char *)md4Context.buffer, response->NTResp);
+    ChallengeResponse(rchallenge, (char *) md4Context.buffer, response->NTResp);
 }
 
 #ifdef MSLANMAN

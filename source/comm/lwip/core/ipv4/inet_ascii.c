@@ -25,8 +25,7 @@
 u32_t inet_addr(const char *cp) {
     struct in_addr val;
 
-    if (inet_aton(cp, &val))
-    {
+    if (inet_aton(cp, &val)) {
         return (val.s_addr);
     }
     return (INADDR_NONE);
@@ -51,8 +50,7 @@ int inet_aton(const char *cp, struct in_addr *addr) {
     u32_t *pp = parts;
 
     c = *cp;
-    for (;;)
-    {
+    for (;;) {
         /*
          * Collect number up to ``.''.
          * Values are specified as for C:
@@ -62,34 +60,25 @@ int inet_aton(const char *cp, struct in_addr *addr) {
             return (0);
         val = 0;
         base = 10;
-        if (c == '0')
-        {
+        if (c == '0') {
             c = *++cp;
-            if (c == 'x' || c == 'X')
-            {
+            if (c == 'x' || c == 'X') {
                 base = 16;
                 c = *++cp;
-            }
-            else
+            } else
                 base = 8;
         }
-        for (;;)
-        {
-            if (isdigit(c))
-            {
+        for (;;) {
+            if (isdigit(c)) {
                 val = (val * base) + (int) (c - '0');
                 c = *++cp;
-            }
-            else if (base == 16 && isxdigit(c))
-            {
+            } else if (base == 16 && isxdigit(c)) {
                 val = (val << 4) | (int) (c + 10 - (islower(c) ? 'a' : 'A'));
                 c = *++cp;
-            }
-            else
+            } else
                 break;
         }
-        if (c == '.')
-        {
+        if (c == '.') {
             /*
              * Internet format:
              *  a.b.c.d
@@ -100,8 +89,7 @@ int inet_aton(const char *cp, struct in_addr *addr) {
                 return (0);
             *pp++ = val;
             c = *++cp;
-        }
-        else
+        } else
             break;
     }
     /*
@@ -152,8 +140,7 @@ int inet_aton(const char *cp, struct in_addr *addr) {
  * @return pointer to a global static (!) buffer that holds the ASCII
  *         represenation of addr
  */
-char *
-inet_ntoa(struct in_addr addr) {
+char* inet_ntoa(struct in_addr addr) {
     static char str[16];
     u32_t s_addr = addr.s_addr;
     char inv[3];
@@ -165,11 +152,9 @@ inet_ntoa(struct in_addr addr) {
 
     rp = str;
     ap = (u8_t *) &s_addr;
-    for (n = 0; n < 4; n++)
-    {
+    for (n = 0; n < 4; n++) {
         i = 0;
-        do
-        {
+        do {
             rem = *ap % (u8_t) 10;
             *ap /= (u8_t) 10;
             inv[i++] = '0' + rem;

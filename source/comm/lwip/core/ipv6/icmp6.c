@@ -58,8 +58,7 @@ void icmp6_input(struct pbuf *p, struct netif *inp) {
     ICMP_STATS_INC(icmp.recv);
 
     /* TODO: check length before accessing payload! */
-    if (pbuf_header(p, -IP6_HLEN))
-    {
+    if (pbuf_header(p, -IP6_HLEN)) {
         LWIP_ASSERT("icmpv6: Can't move over ip6 header in packet", 0);
         return;
     }
@@ -72,8 +71,7 @@ void icmp6_input(struct pbuf *p, struct netif *inp) {
     case ICMP6_ECHO:
         LWIP_DEBUGF(ICMP_DEBUG, ("icmp_input: ping\n"));
 
-        if (p->tot_len < sizeof(struct icmp6_echo_hdr))
-        {
+        if (p->tot_len < sizeof(struct icmp6_echo_hdr)) {
             LWIP_DEBUGF(ICMP_DEBUG, ("icmp_input: bad ICMP echo received\n"));
 
             pbuf_free(p);
@@ -84,8 +82,7 @@ void icmp6_input(struct pbuf *p, struct netif *inp) {
         iphdr = (struct ip6_hdr *) ((u8_t *) p->payload - IP6_HLEN);
 
         if (inet_chksum_pseudo(p, &iphdr->src.addr, &iphdr->dest.addr,
-        IPV6, IP6_PROTO_ICMP, ntohs(iphdr->len)) != 0)
-        {
+        IPV6, IP6_PROTO_ICMP, ntohs(iphdr->len)) != 0) {
             LWIP_DEBUGF(ICMP_DEBUG, ("icmp_input: checksum failed!\n"));
             //LWIP_DEBUGF(ICMP_DEBUG, ("icmp_input: checksum failed for received ICMP echo (%"X16_F")\n", inet_chksum_pseudo(p, &(iphdr->src), &(iphdr->dest), IP6_PROTO_ICMP, p->tot_len)));
             ICMP_STATS_INC(icmp.chkerr);
@@ -97,14 +94,6 @@ void icmp6_input(struct pbuf *p, struct netif *inp) {
         ip6_addr_set(&(iphdr->dest), &tmpaddr);
         iecho->type = ICMP6_ER;
         /* adjust the checksum */
-        /* if (iecho->chksum >= htons(0xffff - (ICMP6_ECHO << 8)))
-         {
-         iecho->chksum += htons(ICMP6_ECHO << 8) + 1;
-         }
-         else
-         {
-         iecho->chksum += htons(ICMP6_ECHO << 8);
-         }*/
         iecho->chksum -= htons(0x100);
         //LWIP_DEBUGF(ICMP_DEBUG, ("icmp_input: checksum failed for received ICMP echo (%"X16_F")\n", inet_chksum_pseudo(p, &(iphdr->src), &(iphdr->dest), IP_PROTO_ICMP, p->tot_len)));
         ICMP_STATS_INC(icmp.xmit);
@@ -129,16 +118,13 @@ void icmp6_input(struct pbuf *p, struct netif *inp) {
     case ICMP6_NSM:
         // Neighborhood Solicitation Message
         ps_nsm = p->payload;
-        if (ip6_addr_cmp(&ps_nsm->target_addr, &inp->ip6_addr)
-                && (inp->ip6_addr_state == IP6_ADDR_STATE_VALID))
-        {
+        if (ip6_addr_cmp(&ps_nsm->target_addr, &inp->ip6_addr) && (inp->ip6_addr_state == IP6_ADDR_STATE_VALID)) {
             // we are the target
             // send answer. in place modify the packet to use it as a NAD packet
             LWIP_DEBUGF(ICMP_DEBUG, ("icmp: received NSM for our address!\n"));
             iphdr = (struct ip6_hdr *) ((u8_t *) p->payload - IP6_HLEN);
 
-            if (p->len < 32)
-            {
+            if (p->len < 32) {
                 LWIP_DEBUGF(ICMP_DEBUG, ("icmpv6: not enough room in packet for options frame!\n"));
                 break;
             }
@@ -150,8 +136,7 @@ void icmp6_input(struct pbuf *p, struct netif *inp) {
             ps_nsm->icode = 0;
             ps_nsm->unused = htonl(0x3UL << 29);
 
-            struct icmp6_options_hdr *opthdr =
-                    (struct icmp6_options_hdr *) ((u8_t*) ps_nsm + 24);
+            struct icmp6_options_hdr *opthdr = (struct icmp6_options_hdr *) ((u8_t*) ps_nsm + 24);
             opthdr->type = ICMP6_OPTIONS_TARGETADDR;
             opthdr->length = 1;
 
@@ -165,25 +150,21 @@ void icmp6_input(struct pbuf *p, struct netif *inp) {
 
             ps_nsm->chksum = 0;
             pbuf_header(p, -(SIZEOF_ETH_HDR + IP6_HLEN));
-            ps_nsm->chksum =
-                    inet_chksum_pseudo(p, &iphdr->src.addr, &iphdr->dest.addr, IPV6, IP6_PROTO_ICMP, ntohs(iphdr->len));
+            ps_nsm->chksum = inet_chksum_pseudo(p, &iphdr->src.addr, &iphdr->dest.addr, IPV6, IP6_PROTO_ICMP, ntohs(iphdr->len));
             pbuf_header(p, SIZEOF_ETH_HDR + IP6_HLEN);
 
             LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE, ("icmpv6: sending NAD on NSM\n"));
 
             // send!
             inp->linkoutput(inp, p);
-
         }
-
         break;
 
     case ICMP6_NAD:
         // Handle Neighborhood Advertisements
         ps_nad = p->payload;
 
-        if (p->len < 32)
-        {
+        if (p->len < 32) {
             LWIP_DEBUGF(ICMP_DEBUG, ("icmpv6: nad link layer address missing. ignoring!\n"));
             break;
         }
@@ -194,15 +175,12 @@ void icmp6_input(struct pbuf *p, struct netif *inp) {
         ipaddr.version = IPV6;
         ip6_addr_set(&ipaddr.addr.ip6addr, &iphdr->src);
 
-        struct icmp6_options_hdr *opthdr =
-                (struct icmp6_options_hdr *) ((u8_t*) ps_nad + 24);
+        struct icmp6_options_hdr *opthdr = (struct icmp6_options_hdr *) ((u8_t*) ps_nad + 24);
 
         update_ar_entry(inp, &ipaddr, (struct eth_addr*) ((u8_t*) opthdr + 2), ETHAR_TRY_HARD);
         // check if this advertisement is for us
 
-        if (ip6_addr_cmp(&ps_nad->target_addr, &inp->ip6_addr)
-                && (inp->ip6_addr_state == IP6_ADDR_STATE_TENTATIVE))
-        {
+        if (ip6_addr_cmp(&ps_nad->target_addr, &inp->ip6_addr) && (inp->ip6_addr_state == IP6_ADDR_STATE_TENTATIVE)) {
             // Duplicate Address Detected!
             // we are screwed up. IP6 address needs to be set manually!
             //LOG(LOG_WARNING,("IP6 Address invalid: Duplicate Address detected!"));
@@ -227,8 +205,7 @@ void icmp6_dest_unreach(struct pbuf *p, enum icmp6_dur_type t) {
     /* @todo: can this be PBUF_LINK instead of PBUF_IP? */
     q = pbuf_alloc(PBUF_IP, 8 + IP6_HLEN + 8, PBUF_RAM);
     /* ICMP header + IP header + 8 bytes of data */
-    if (q == NULL)
-    {
+    if (q == NULL) {
         LWIP_DEBUGF(ICMP_DEBUG, ("icmp_dest_unreach: failed to allocate pbuf for ICMP packet.\n"));
         pbuf_free(p);
         return;
@@ -263,8 +240,7 @@ void icmp6_time_exceeded(struct pbuf *p, enum icmp6_te_type t) {
     /* @todo: can this be PBUF_LINK instead of PBUF_IP? */
     q = pbuf_alloc(PBUF_IP, 8 + IP6_HLEN + 8, PBUF_RAM);
     /* ICMP header + IP header + 8 bytes of data */
-    if (q == NULL)
-    {
+    if (q == NULL) {
         LWIP_DEBUGF(ICMP_DEBUG, ("icmp_dest_unreach: failed to allocate pbuf for ICMP packet.\n"));
         pbuf_free(p);
         return;

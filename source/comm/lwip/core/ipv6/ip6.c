@@ -70,10 +70,8 @@ struct netif *
 ip6_route(struct ip6_addr *dest) {
     struct netif *netif;
 
-    for (netif = netif_list; netif != NULL; netif = netif->next)
-    {
-        if (ip6_addr_netcmp(dest, &(netif->ip6_addr), &(netif->ip6_netmask)))
-        {
+    for (netif = netif_list; netif != NULL; netif = netif->next) {
+        if (ip6_addr_netcmp(dest, &(netif->ip6_addr), &(netif->ip6_netmask))) {
             return netif;
         }
     }
@@ -88,15 +86,12 @@ ip6_route(struct ip6_addr *dest) {
  * appropriate interface.
  */
 #if IP6_FORWARD
-static void
-ip6_forward(struct pbuf *p, struct ip6_hdr *iphdr)
-{
+static void ip6_forward(struct pbuf *p, struct ip6_hdr *iphdr) {
     struct netif *netif;
 
     PERF_START;
 
-    if ((netif = ip6_route((struct ip6_addr *)&(iphdr->dest))) == NULL)
-    {
+    if ((netif = ip6_route((struct ip6_addr *) &(iphdr->dest))) == NULL) {
 
         LWIP_DEBUGF(IP_DEBUG, ("ip_input: no forwarding route found for "));
 #if IP_DEBUG
@@ -107,12 +102,10 @@ ip6_forward(struct pbuf *p, struct ip6_hdr *iphdr)
         return;
     }
     /* Decrement TTL and send ICMP if ttl == 0. */
-    if (--iphdr->hoplim == 0)
-    {
+    if (--iphdr->hoplim == 0) {
 #if LWIP_ICMP
         /* Don't send ICMP messages in response to ICMP messages */
-        if (iphdr->nexthdr != IP6_PROTO_ICMP)
-        {
+        if (iphdr->nexthdr != IP6_PROTO_ICMP) {
             icmp6_time_exceeded(p, ICMP_TE_TTL);
         }
 #endif /* LWIP_ICMP */
@@ -133,12 +126,11 @@ ip6_forward(struct pbuf *p, struct ip6_hdr *iphdr)
 #endif /* IP_DEBUG */
     LWIP_DEBUGF(IP_DEBUG, ("\n"));
 
-    IP_STATS_INC(ip.fw);
-    IP_STATS_INC(ip.xmit);
+    IP_STATS_INC(ip.fw); IP_STATS_INC(ip.xmit);
 
     PERF_STOP("ip_forward");
 
-    netif->ip6_output(netif, p, (struct ip6_addr *)&(iphdr->dest));
+    netif->ip6_output(netif, p, (struct ip6_addr *) &(iphdr->dest));
 }
 #endif
 
@@ -167,22 +159,20 @@ void ip6_input(struct pbuf *p, struct netif *inp) {
     /* identify the IP header */
     iphdr = p->payload;
 
-    if (iphdr->v != 6)
-    {
+    if (iphdr->v != 6) {
         LWIP_DEBUGF(IP_DEBUG, ("IP packet dropped due to bad version number\n"));
 #if IP_DEBUG
         ip6_debug_print(p);
 #endif /* IP_DEBUG */
         pbuf_free(p);
-        IP_STATS_INC(ip.err); IP_STATS_INC(ip.drop);
+        IP_STATS_INC(ip.err);IP_STATS_INC(ip.drop);
         return;
     }
 
     char forus = 0;
 
     /* is this packet for us? */
-    for (netif = netif_list; netif != NULL; netif = netif->next)
-    {
+    for (netif = netif_list; netif != NULL; netif = netif->next) {
 #if IP_DEBUG
         LWIP_DEBUGF(IP_DEBUG, ("ip_input: iphdr->dest "));
         ip6_addr_debug_print(IP_DEBUG, ((struct ip6_addr *)&(iphdr->dest)));
@@ -190,14 +180,12 @@ void ip6_input(struct pbuf *p, struct netif *inp) {
         ip6_addr_debug_print(IP_DEBUG, ((struct ip6_addr *)&(netif->ip6_addr)));
         LWIP_DEBUGF(IP_DEBUG, ("\n\r"));
 #endif /* IP_DEBUG */
-        if (ip6_addr_cmp(&(iphdr->dest), &(netif->ip6_addr)))
-        {
+        if (ip6_addr_cmp(&(iphdr->dest), &(netif->ip6_addr))) {
             forus = 1;
             LWIP_DEBUGF(IP_DEBUG, ("ip6_input: packet for us: perfect match"));
             break;
         }
-        if (ip6_addr_issolicitedmulticast(&(iphdr->dest), &(netif->ip6_addr)))
-        {
+        if (ip6_addr_issolicitedmulticast(&(iphdr->dest), &(netif->ip6_addr))) {
             forus = 1;
             LWIP_DEBUGF(IP_DEBUG, ("ip6_input: packet for us on solicited multicast address\n"));
             break;
@@ -209,8 +197,7 @@ void ip6_input(struct pbuf *p, struct netif *inp) {
     if (ip6_addr_isallnodes(&(iphdr->dest)))
         forus = 1;
 
-    if (forus == 0)
-    {
+    if (forus == 0) {
         /* packet not for us, route or discard */
         LWIP_DEBUGF(IP_DEBUG, ("ip6_input: packet not for us.\n"));
 #if IP_FORWARD
@@ -260,8 +247,7 @@ void ip6_input(struct pbuf *p, struct netif *inp) {
 
         IP_STATS_INC(ip.proterr);
         IP_STATS_INC(ip.drop);
-    }
-    PERF_STOP("ip_input");
+    }PERF_STOP("ip_input");
 }
 
 /* ip_output_if:
@@ -277,9 +263,8 @@ err_t ip6_output_if(struct pbuf *p, struct ip6_addr *src, struct ip6_addr *dest,
     PERF_START;
 
     LWIP_DEBUGF(IP_DEBUG, ("len %"U16_F" tot_len %"U16_F"\n", p->len, p->tot_len));
-    if (pbuf_header(p, IP6_HLEN))
-    {
-        LWIP_DEBUGF(IP_DEBUG, ("ip_output: not enough room for IP header in pbuf\n")); IP_STATS_INC(ip.err);
+    if (pbuf_header(p, IP6_HLEN)) {
+        LWIP_DEBUGF(IP_DEBUG, ("ip_output: not enough room for IP header in pbuf\n"));IP_STATS_INC(ip.err);
 
         return ERR_BUF;
     }
@@ -287,8 +272,7 @@ err_t ip6_output_if(struct pbuf *p, struct ip6_addr *src, struct ip6_addr *dest,
 
     iphdr = p->payload;
 
-    if (dest != IP_HDRINCL)
-    {
+    if (dest != IP_HDRINCL) {
         LWIP_DEBUGF(IP_DEBUG, ("!IP_HDRLINCL\n"));
         iphdr->hoplim = ttl;
         iphdr->nexthdr = proto;
@@ -297,18 +281,12 @@ err_t ip6_output_if(struct pbuf *p, struct ip6_addr *src, struct ip6_addr *dest,
 
         iphdr->v = 6;
 
-        if (ip6_addr_isany(src))
-        {
+        if (ip6_addr_isany(src)) {
             ip6_addr_set(&(iphdr->src), &(netif->ip6_addr));
-        }
-        else
-        {
+        } else {
             ip6_addr_set(&(iphdr->src), src);
         }
-
-    }
-    else
-    {
+    } else {
         dest = &(iphdr->dest);
     }
 
@@ -331,9 +309,8 @@ err_t ip6_output_if(struct pbuf *p, struct ip6_addr *src, struct ip6_addr *dest,
 
 err_t ip6_output(struct pbuf *p, struct ip6_addr *src, struct ip6_addr *dest, u8_t ttl, u8_t proto) {
     struct netif *netif;
-    if ((netif = ip6_route(dest)) == NULL)
-    {
-        LWIP_DEBUGF(IP_DEBUG, ("ip6_output: No route to dest\n")); IP_STATS_INC(ip.rterr);
+    if ((netif = ip6_route(dest)) == NULL) {
+        LWIP_DEBUGF(IP_DEBUG, ("ip6_output: No route to dest\n"));IP_STATS_INC(ip.rterr);
         return ERR_RTE;
     }
 
@@ -348,8 +325,7 @@ ip_output_hinted(struct pbuf *p, struct ip_addr *src, struct ip_addr *dest,
     struct netif *netif;
     err_t err;
 
-    if ((netif = ip_route(dest)) == NULL)
-    {
+    if ((netif = ip_route(dest)) == NULL) {
         LWIP_DEBUGF(IP_DEBUG, ("ip_output: No route to 0x%"X32_F"\n", dest->addr));
         IP_STATS_INC(ip.rterr);
         return ERR_RTE;

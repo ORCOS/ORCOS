@@ -2,9 +2,8 @@
 <Dependencies>
 
  <!-- ####################################################
-                          Board Skeleton. All Hardware dependent
-              stuff belongs here.
-         #################################################### -->
+       Board Skeleton. All Hardware dependent stuff belongs here.
+   #################################################### -->
 
   <Skeleton>
     <Name>Board</Name>
@@ -12,8 +11,8 @@
 
 
       <!-- ####################################################
-                          Virtex2 Definition and Default Values
-              #################################################### -->
+               Virtex2 Definition and Default Values
+           #################################################### -->
 
       <Superclass Provides="PPC405,Virtex2,FPGA" Name="arch/PPC40x/Virtex2/Virtex2Board"></Superclass>
 
@@ -27,8 +26,8 @@
 
 
       <!-- ####################################################
-                          RaptorBoard Definition and Default Values
-              #################################################### -->
+                RaptorBoard Definition and Default Values
+           #################################################### -->
 
       <Superclass Provides="PPC405,RAPTOR,FPGA" Name="arch/PPC40x/RAPTOR/RaptorBoard">
         <MemberRef Name="Timer"/>

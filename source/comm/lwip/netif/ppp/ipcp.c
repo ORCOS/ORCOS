@@ -7,13 +7,13 @@
  * The authors hereby grant permission to use, copy, modify, distribute,
  * and license this software and its documentation for any purpose, provided
  * that existing copyright notices are retained in all copies and that this
- * notice and the following disclaimer are included verbatim in any 
+ * notice and the following disclaimer are included verbatim in any
  * distributions. No written agreement, license, or royalty fee is required
  * for any of the authorized uses.
  *
  * THIS SOFTWARE IS PROVIDED BY THE CONTRIBUTORS *AS IS* AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
  * IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
  * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
@@ -83,32 +83,32 @@
 /*
  * Callbacks for fsm code.  (CI = Configuration Information)
  */
-static void ipcp_resetci (fsm *); /* Reset our CI */
-static int ipcp_cilen (fsm *); /* Return length of our CI */
-static void ipcp_addci (fsm *, u_char *, int *); /* Add our CI */
-static int ipcp_ackci (fsm *, u_char *, int); /* Peer ack'd our CI */
-static int ipcp_nakci (fsm *, u_char *, int); /* Peer nak'd our CI */
-static int ipcp_rejci (fsm *, u_char *, int); /* Peer rej'd our CI */
-static int ipcp_reqci (fsm *, u_char *, int *, int); /* Rcv CI */
-static void ipcp_up (fsm *); /* We're UP */
-static void ipcp_down (fsm *); /* We're DOWN */
+static void ipcp_resetci(fsm *); /* Reset our CI */
+static int ipcp_cilen(fsm *); /* Return length of our CI */
+static void ipcp_addci(fsm *, u_char *, int *); /* Add our CI */
+static int ipcp_ackci(fsm *, u_char *, int); /* Peer ack'd our CI */
+static int ipcp_nakci(fsm *, u_char *, int); /* Peer nak'd our CI */
+static int ipcp_rejci(fsm *, u_char *, int); /* Peer rej'd our CI */
+static int ipcp_reqci(fsm *, u_char *, int *, int); /* Rcv CI */
+static void ipcp_up(fsm *); /* We're UP */
+static void ipcp_down(fsm *); /* We're DOWN */
 #if 0
 static void ipcp_script (fsm *, char *); /* Run an up/down script */
 #endif
-static void ipcp_finished (fsm *); /* Don't need lower layer */
+static void ipcp_finished(fsm *); /* Don't need lower layer */
 
 /*
  * Protocol entry points from main code.
  */
-static void ipcp_init (int);
-static void ipcp_open (int);
-static void ipcp_close (int, char *);
-static void ipcp_lowerup (int);
-static void ipcp_lowerdown (int);
-static void ipcp_input (int, u_char *, int);
-static void ipcp_protrej (int);
+static void ipcp_init(int);
+static void ipcp_open(int);
+static void ipcp_close(int, char *);
+static void ipcp_lowerup(int);
+static void ipcp_lowerdown(int);
+static void ipcp_input(int, u_char *, int);
+static void ipcp_protrej(int);
 
-static void ipcp_clear_addrs (int);
+static void ipcp_clear_addrs(int);
 
 #define CODENAME(x) ((x) == CONFACK ? "ACK" : \
                      (x) == CONFNAK ? "NAK" : "REJ")
@@ -124,28 +124,18 @@ ipcp_options ipcp_hisoptions[NUM_PPP]; /* Options that we ack'd */
 
 fsm ipcp_fsm[NUM_PPP]; /* IPCP fsm structure */
 
-struct protent ipcp_protent =
-{
-    PPP_IPCP,
-    ipcp_init,
-    ipcp_input,
-    ipcp_protrej,
-    ipcp_lowerup,
-    ipcp_lowerdown,
-    ipcp_open,
-    ipcp_close,
+struct protent ipcp_protent = { PPP_IPCP, ipcp_init, ipcp_input, ipcp_protrej, ipcp_lowerup, ipcp_lowerdown, ipcp_open, ipcp_close,
 #if 0
-    ipcp_printpkt,
-    NULL,
+        ipcp_printpkt,
+        NULL,
 #endif
-    1,
-    "IPCP",
+        1, "IPCP",
 #if 0
-    ip_check_options,
-    NULL,
-    ip_active_pkt
+        ip_check_options,
+        NULL,
+        ip_active_pkt
 #endif
-};
+    };
 
 /*****************************/
 /*** LOCAL DATA STRUCTURES ***/
@@ -154,23 +144,22 @@ struct protent ipcp_protent =
 static int cis_received[NUM_PPP]; /* # Conf-Reqs received */
 static int default_route_set[NUM_PPP]; /* Have set up a default route */
 
-static fsm_callbacks ipcp_callbacks =
-{ /* IPCP callback routines */
-    ipcp_resetci, /* Reset our Configuration Information */
-    ipcp_cilen, /* Length of our Configuration Information */
-    ipcp_addci, /* Add our Configuration Information */
-    ipcp_ackci, /* ACK our Configuration Information */
-    ipcp_nakci, /* NAK our Configuration Information */
-    ipcp_rejci, /* Reject our Configuration Information */
-    ipcp_reqci, /* Request peer's Configuration Information */
-    ipcp_up, /* Called when fsm reaches LS_OPENED state */
-    ipcp_down, /* Called when fsm leaves LS_OPENED state */
-    NULL, /* Called when we want the lower layer up */
-    ipcp_finished, /* Called when we want the lower layer down */
-    NULL, /* Called when Protocol-Reject received */
-    NULL, /* Retransmission is necessary */
-    NULL, /* Called to handle protocol-specific codes */
-    "IPCP" /* String name of protocol */
+static fsm_callbacks ipcp_callbacks = { /* IPCP callback routines */
+ipcp_resetci, /* Reset our Configuration Information */
+ipcp_cilen, /* Length of our Configuration Information */
+ipcp_addci, /* Add our Configuration Information */
+ipcp_ackci, /* ACK our Configuration Information */
+ipcp_nakci, /* NAK our Configuration Information */
+ipcp_rejci, /* Reject our Configuration Information */
+ipcp_reqci, /* Request peer's Configuration Information */
+ipcp_up, /* Called when fsm reaches LS_OPENED state */
+ipcp_down, /* Called when fsm leaves LS_OPENED state */
+NULL, /* Called when we want the lower layer up */
+ipcp_finished, /* Called when we want the lower layer down */
+NULL, /* Called when Protocol-Reject received */
+NULL, /* Retransmission is necessary */
+NULL, /* Called to handle protocol-specific codes */
+"IPCP" /* String name of protocol */
 };
 
 /**********************************/
@@ -182,9 +171,7 @@ static fsm_callbacks ipcp_callbacks =
 /*
  * ipcp_init - Initialize IPCP.
  */
-static void
-ipcp_init(int unit)
-{
+static void ipcp_init(int unit) {
     fsm *f = &ipcp_fsm[unit];
     ipcp_options *wo = &ipcp_wantoptions[unit];
     ipcp_options *ao = &ipcp_allowoptions[unit];
@@ -223,45 +210,35 @@ ipcp_init(int unit)
 /*
  * ipcp_open - IPCP is allowed to come up.
  */
-static void
-ipcp_open(int unit)
-{
+static void ipcp_open(int unit) {
     fsm_open(&ipcp_fsm[unit]);
 }
 
 /*
  * ipcp_close - Take IPCP down.
  */
-static void
-ipcp_close(int unit, char *reason)
-{
+static void ipcp_close(int unit, char *reason) {
     fsm_close(&ipcp_fsm[unit], reason);
 }
 
 /*
  * ipcp_lowerup - The lower layer is up.
  */
-static void
-ipcp_lowerup(int unit)
-{
+static void ipcp_lowerup(int unit) {
     fsm_lowerup(&ipcp_fsm[unit]);
 }
 
 /*
  * ipcp_lowerdown - The lower layer is down.
  */
-static void
-ipcp_lowerdown(int unit)
-{
+static void ipcp_lowerdown(int unit) {
     fsm_lowerdown(&ipcp_fsm[unit]);
 }
 
 /*
  * ipcp_input - Input IPCP packet.
  */
-static void
-ipcp_input(int unit, u_char *p, int len)
-{
+static void ipcp_input(int unit, u_char *p, int len) {
     fsm_input(&ipcp_fsm[unit], p, len);
 }
 
@@ -270,27 +247,21 @@ ipcp_input(int unit, u_char *p, int len)
  *
  * Pretend the lower layer went down, so we shut up.
  */
-static void
-ipcp_protrej(int unit)
-{
+static void ipcp_protrej(int unit) {
     fsm_lowerdown(&ipcp_fsm[unit]);
 }
 
 /*
  * ipcp_resetci - Reset our CI.
  */
-static void
-ipcp_resetci(fsm *f)
-{
+static void ipcp_resetci(fsm *f) {
     ipcp_options *wo = &ipcp_wantoptions[f->unit];
 
     wo->req_addr = wo->neg_addr && ipcp_allowoptions[f->unit].neg_addr;
-    if (wo->ouraddr == 0)
-    {
+    if (wo->ouraddr == 0) {
         wo->accept_local = 1;
     }
-    if (wo->hisaddr == 0)
-    {
+    if (wo->hisaddr == 0) {
         wo->accept_remote = 1;
     }
     /* Request DNS addresses from the peer */
@@ -303,9 +274,7 @@ ipcp_resetci(fsm *f)
 /*
  * ipcp_cilen - Return length of our CI.
  */
-static int
-ipcp_cilen(fsm *f)
-{
+static int ipcp_cilen(fsm *f) {
     ipcp_options *go = &ipcp_gotoptions[f->unit];
     ipcp_options *wo = &ipcp_wantoptions[f->unit];
     ipcp_options *ho = &ipcp_hisoptions[f->unit];
@@ -318,25 +287,19 @@ ipcp_cilen(fsm *f)
      * First see if we want to change our options to the old
      * forms because we have received old forms from the peer.
      */
-    if (wo->neg_addr && !go->neg_addr && !go->old_addrs)
-    {
+    if (wo->neg_addr && !go->neg_addr && !go->old_addrs) {
         /* use the old style of address negotiation */
         go->neg_addr = 1;
         go->old_addrs = 1;
     }
-    if (wo->neg_vj && !go->neg_vj && !go->old_vj)
-    {
+    if (wo->neg_vj && !go->neg_vj && !go->old_vj) {
         /* try an older style of VJ negotiation */
-        if (cis_received[f->unit] == 0)
-        {
+        if (cis_received[f->unit] == 0) {
             /* keep trying the new style until we see some CI from the peer */
             go->neg_vj = 1;
-        }
-        else
-        {
+        } else {
             /* use the old style only if the peer did */
-            if (ho->neg_vj && ho->old_vj)
-            {
+            if (ho->neg_vj && ho->old_vj) {
                 go->neg_vj = 1;
                 go->old_vj = 1;
                 go->vj_protocol = ho->vj_protocol;
@@ -344,18 +307,13 @@ ipcp_cilen(fsm *f)
         }
     }
 
-    return (LENCIADDR(go->neg_addr, go->old_addrs) +
-            LENCIVJ(go->neg_vj, go->old_vj) +
-            LENCIDNS(go->req_dns1) +
-            LENCIDNS(go->req_dns2));
+    return (LENCIADDR(go->neg_addr, go->old_addrs) + LENCIVJ(go->neg_vj, go->old_vj) + LENCIDNS(go->req_dns1) + LENCIDNS(go->req_dns2));
 }
 
 /*
  * ipcp_addci - Add our desired CIs to a packet.
  */
-static void
-ipcp_addci(fsm *f, u_char *ucp, int *lenp)
-{
+static void ipcp_addci(fsm *f, u_char *ucp, int *lenp) {
     ipcp_options *go = &ipcp_gotoptions[f->unit];
     int len = *lenp;
 
@@ -409,11 +367,9 @@ ipcp_addci(fsm *f, u_char *ucp, int *lenp)
     } \
   }
 
-    ADDCIADDR((go->old_addrs? CI_ADDRS: CI_ADDR), go->neg_addr,
-            go->old_addrs, go->ouraddr, go->hisaddr);
+    ADDCIADDR((go->old_addrs? CI_ADDRS: CI_ADDR), go->neg_addr, go->old_addrs, go->ouraddr, go->hisaddr);
 
-    ADDCIVJ(CI_COMPRESSTYPE, go->neg_vj, go->vj_protocol, go->old_vj,
-            go->maxslotindex, go->cflag);
+    ADDCIVJ(CI_COMPRESSTYPE, go->neg_vj, go->vj_protocol, go->old_vj, go->maxslotindex, go->cflag);
 
     ADDCIDNS(CI_MS_DNS1, go->req_dns1, go->dnsaddr[0]);
 
@@ -429,9 +385,7 @@ ipcp_addci(fsm *f, u_char *ucp, int *lenp)
  *  0 - Ack was bad.
  *  1 - Ack was good.
  */
-static int
-ipcp_ackci(fsm *f, u_char *p, int len)
-{
+static int ipcp_ackci(fsm *f, u_char *p, int len) {
     ipcp_options *go = &ipcp_gotoptions[f->unit];
     u_short cilen, citype, cishort;
     u32_t cilong;
@@ -517,11 +471,9 @@ ipcp_ackci(fsm *f, u_char *p, int len)
     } \
   }
 
-    ACKCIADDR((go->old_addrs? CI_ADDRS: CI_ADDR), go->neg_addr,
-            go->old_addrs, go->ouraddr, go->hisaddr);
+    ACKCIADDR((go->old_addrs? CI_ADDRS: CI_ADDR), go->neg_addr, go->old_addrs, go->ouraddr, go->hisaddr);
 
-    ACKCIVJ(CI_COMPRESSTYPE, go->neg_vj, go->vj_protocol, go->old_vj,
-            go->maxslotindex, go->cflag);
+    ACKCIVJ(CI_COMPRESSTYPE, go->neg_vj, go->vj_protocol, go->old_vj, go->maxslotindex, go->cflag);
 
     ACKCIDNS(CI_MS_DNS1, go->req_dns1, go->dnsaddr[0]);
 
@@ -530,14 +482,12 @@ ipcp_ackci(fsm *f, u_char *p, int len)
     /*
      * If there are any remaining CIs, then this packet is bad.
      */
-    if (len != 0)
-    {
+    if (len != 0) {
         goto bad;
     }
     return (1);
 
-    bad:
-    IPCPDEBUG((LOG_INFO, "ipcp_ackci: received bad Ack!\n"));
+    bad: IPCPDEBUG((LOG_INFO, "ipcp_ackci: received bad Ack!\n"));
     return (0);
 }
 
@@ -550,9 +500,7 @@ ipcp_ackci(fsm *f, u_char *p, int len)
  *  0 - Nak was bad.
  *  1 - Nak was good.
  */
-static int
-ipcp_nakci(fsm *f, u_char *p, int len)
-{
+static int ipcp_nakci(fsm *f, u_char *p, int len) {
     ipcp_options *go = &ipcp_gotoptions[f->unit];
     u_char cimaxslotindex, cicflag;
     u_char citype, cilen, *next;
@@ -618,20 +566,9 @@ ipcp_nakci(fsm *f, u_char *p, int len)
      * Accept the peer's idea of {our,his} address, if different
      * from our idea, only if the accept_{local,remote} flag is set.
      */
-    NAKCIADDR((go->old_addrs? CI_ADDRS: CI_ADDR), neg_addr, go->old_addrs,
-            if (go->accept_local && ciaddr1)
-            { /* Do we know our address? */
-                try.ouraddr = ciaddr1;
-                IPCPDEBUG((LOG_INFO, "local IP address %s\n",
-                                inet_ntoa(ciaddr1)));
-            }
-            if (go->accept_remote && ciaddr2)
-            { /* Does he know his? */
-                try.hisaddr = ciaddr2;
-                IPCPDEBUG((LOG_INFO, "remote IP address %s\n",
-                                inet_ntoa(ciaddr2)));
-            }
-    );
+    NAKCIADDR((go->old_addrs? CI_ADDRS: CI_ADDR), neg_addr, go->old_addrs, if (go->accept_local && ciaddr1) { /* Do we know our address? */
+    try.ouraddr = ciaddr1; IPCPDEBUG((LOG_INFO, "local IP address %s\n", inet_ntoa(ciaddr1))); } if (go->accept_remote && ciaddr2) { /* Does he know his? */
+    try.hisaddr = ciaddr2; IPCPDEBUG((LOG_INFO, "remote IP address %s\n", inet_ntoa(ciaddr2))); });
 
     /*
      * Accept the peer's value of maxslotindex provided that it
@@ -639,51 +576,11 @@ ipcp_nakci(fsm *f, u_char *p, int len)
      * if the peer wants.  Send old-style compress-type option if
      * the peer wants.
      */
-    NAKCIVJ(CI_COMPRESSTYPE, neg_vj,
-            if (cilen == CILEN_VJ)
-            {
-                GETCHAR(cimaxslotindex, p);
-                GETCHAR(cicflag, p);
-                if (cishort == IPCP_VJ_COMP)
-                {
-                    try.old_vj = 0;
-                    if (cimaxslotindex < go->maxslotindex)
-                    {
-                        try.maxslotindex = cimaxslotindex;
-                    }
-                    if (!cicflag)
-                    {
-                        try.cflag = 0;
-                    }
-                }
-                else
-                {
-                    try.neg_vj = 0;
-                }
-            }
-            else
-            {
-                if (cishort == IPCP_VJ_COMP || cishort == IPCP_VJ_COMP_OLD)
-                {
-                    try.old_vj = 1;
-                    try.vj_protocol = cishort;
-                }
-                else
-                {
-                    try.neg_vj = 0;
-                }
-            }
-    );
+    NAKCIVJ(CI_COMPRESSTYPE, neg_vj, if (cilen == CILEN_VJ) { GETCHAR(cimaxslotindex, p); GETCHAR(cicflag, p); if (cishort == IPCP_VJ_COMP) { try.old_vj = 0; if (cimaxslotindex < go->maxslotindex) { try.maxslotindex = cimaxslotindex; } if (!cicflag) { try.cflag = 0; } } else { try.neg_vj = 0; } } else { if (cishort == IPCP_VJ_COMP || cishort == IPCP_VJ_COMP_OLD) { try.old_vj = 1; try.vj_protocol = cishort; } else { try.neg_vj = 0; } });
 
-    NAKCIDNS(CI_MS_DNS1, req_dns1,
-            try.dnsaddr[0] = cidnsaddr;
-            IPCPDEBUG((LOG_INFO, "primary DNS address %s\n", inet_ntoa(cidnsaddr)));
-    );
+    NAKCIDNS(CI_MS_DNS1, req_dns1, try.dnsaddr[0] = cidnsaddr; IPCPDEBUG((LOG_INFO, "primary DNS address %s\n", inet_ntoa(cidnsaddr))););
 
-    NAKCIDNS(CI_MS_DNS2, req_dns2,
-            try.dnsaddr[1] = cidnsaddr;
-            IPCPDEBUG((LOG_INFO, "secondary DNS address %s\n", inet_ntoa(cidnsaddr)));
-    );
+    NAKCIDNS(CI_MS_DNS2, req_dns2, try.dnsaddr[1] = cidnsaddr; IPCPDEBUG((LOG_INFO, "secondary DNS address %s\n", inet_ntoa(cidnsaddr))););
 
     /*
      * There may be remaining CIs, if the peer is requesting negotiation
@@ -691,62 +588,50 @@ ipcp_nakci(fsm *f, u_char *p, int len)
      * If they want to negotiate about IP addresses, we comply.
      * If they want us to ask for compression, we refuse.
      */
-    while (len > CILEN_VOID)
-    {
+    while (len > CILEN_VOID) {
         GETCHAR(citype, p);
         GETCHAR(cilen, p);
-        if( (len -= cilen) < 0 )
-        {
+        if ((len -= cilen) < 0) {
             goto bad;
         }
         next = p + cilen - 2;
 
-        switch (citype)
-        {
-            case CI_COMPRESSTYPE:
-            if (go->neg_vj || no.neg_vj ||
-                    (cilen != CILEN_VJ && cilen != CILEN_COMPRESS))
-            {
+        switch (citype) {
+        case CI_COMPRESSTYPE:
+            if (go->neg_vj || no.neg_vj || (cilen != CILEN_VJ && cilen != CILEN_COMPRESS)) {
                 goto bad;
             }
             no.neg_vj = 1;
             break;
-            case CI_ADDRS:
-            if ((go->neg_addr && go->old_addrs) || no.old_addrs
-                    || cilen != CILEN_ADDRS)
-            {
+        case CI_ADDRS:
+            if ((go->neg_addr && go->old_addrs) || no.old_addrs || cilen != CILEN_ADDRS) {
                 goto bad;
             }
             try.neg_addr = 1;
             try.old_addrs = 1;
             GETLONG(l, p);
             ciaddr1 = htonl(l);
-            if (ciaddr1 && go->accept_local)
-            {
+            if (ciaddr1 && go->accept_local) {
                 try.ouraddr = ciaddr1;
             }
             GETLONG(l, p);
             ciaddr2 = htonl(l);
-            if (ciaddr2 && go->accept_remote)
-            {
+            if (ciaddr2 && go->accept_remote) {
                 try.hisaddr = ciaddr2;
             }
             no.old_addrs = 1;
             break;
-            case CI_ADDR:
-            if (go->neg_addr || no.neg_addr || cilen != CILEN_ADDR)
-            {
+        case CI_ADDR:
+            if (go->neg_addr || no.neg_addr || cilen != CILEN_ADDR) {
                 goto bad;
             }
             try.old_addrs = 0;
             GETLONG(l, p);
             ciaddr1 = htonl(l);
-            if (ciaddr1 && go->accept_local)
-            {
+            if (ciaddr1 && go->accept_local) {
                 try.ouraddr = ciaddr1;
             }
-            if (try.ouraddr != 0)
-            {
+            if (try.ouraddr != 0) {
                 try.neg_addr = 1;
             }
             no.neg_addr = 1;
@@ -756,32 +641,27 @@ ipcp_nakci(fsm *f, u_char *p, int len)
     }
 
     /* If there is still anything left, this packet is bad. */
-    if (len != 0)
-    {
+    if (len != 0) {
         goto bad;
     }
 
     /*
      * OK, the Nak is good.  Now we can update state.
      */
-    if (f->state != LS_OPENED)
-    {
+    if (f->state != LS_OPENED) {
         *go = try;
     }
 
     return 1;
 
-    bad:
-    IPCPDEBUG((LOG_INFO, "ipcp_nakci: received bad Nak!\n"));
+    bad: IPCPDEBUG((LOG_INFO, "ipcp_nakci: received bad Nak!\n"));
     return 0;
 }
 
 /*
  * ipcp_rejci - Reject some of our CIs.
  */
-static int
-ipcp_rejci(fsm *f, u_char *p, int len)
-{
+static int ipcp_rejci(fsm *f, u_char *p, int len) {
     ipcp_options *go = &ipcp_gotoptions[f->unit];
     u_char cimaxslotindex, ciflag, cilen;
     u_short cishort;
@@ -861,11 +741,9 @@ ipcp_rejci(fsm *f, u_char *p, int len)
     try.neg = 0; \
   }
 
-    REJCIADDR((go->old_addrs? CI_ADDRS: CI_ADDR), neg_addr,
-            go->old_addrs, go->ouraddr, go->hisaddr);
+    REJCIADDR((go->old_addrs? CI_ADDRS: CI_ADDR), neg_addr, go->old_addrs, go->ouraddr, go->hisaddr);
 
-    REJCIVJ(CI_COMPRESSTYPE, neg_vj, go->vj_protocol, go->old_vj,
-            go->maxslotindex, go->cflag);
+    REJCIVJ(CI_COMPRESSTYPE, neg_vj, go->vj_protocol, go->old_vj, go->maxslotindex, go->cflag);
 
     REJCIDNS(CI_MS_DNS1, req_dns1, go->dnsaddr[0]);
 
@@ -874,21 +752,18 @@ ipcp_rejci(fsm *f, u_char *p, int len)
     /*
      * If there are any remaining CIs, then this packet is bad.
      */
-    if (len != 0)
-    {
+    if (len != 0) {
         goto bad;
     }
     /*
      * Now we can update state.
      */
-    if (f->state != LS_OPENED)
-    {
+    if (f->state != LS_OPENED) {
         *go = try;
     }
     return 1;
 
-    bad:
-    IPCPDEBUG((LOG_INFO, "ipcp_rejci: received bad Reject!\n"));
+    bad: IPCPDEBUG((LOG_INFO, "ipcp_rejci: received bad Reject!\n"));
     return 0;
 }
 
@@ -899,9 +774,7 @@ ipcp_rejci(fsm *f, u_char *p, int len)
  * appropriately.  If reject_if_disagree is non-zero, doesn't return
  * CONFNAK; returns CONFREJ if it can't return CONFACK.
  */
-static int
-ipcp_reqci(fsm *f, u_char *inp/* Requested CIs */,int *len/* Length of requested CIs */,int reject_if_disagree)
-{
+static int ipcp_reqci(fsm *f, u_char *inp/* Requested CIs */, int *len/* Length of requested CIs */, int reject_if_disagree) {
     ipcp_options *wo = &ipcp_wantoptions[f->unit];
     ipcp_options *ho = &ipcp_hisoptions[f->unit];
     ipcp_options *ao = &ipcp_allowoptions[f->unit];
@@ -934,14 +807,12 @@ ipcp_reqci(fsm *f, u_char *inp/* Requested CIs */,int *len/* Length of requested
      * Process all his options.
      */
     next = inp;
-    while (l)
-    {
+    while (l) {
         orc = CONFACK; /* Assume success */
         cip = p = next; /* Remember begining of CI */
         if (l < 2 || /* Not enough data for CI header or */
-                p[1] < 2 || /*  CI length too small or */
-                p[1] > l)
-        { /*  CI length too big? */
+        p[1] < 2 || /*  CI length too small or */
+        p[1] > l) { /*  CI length too big? */
             IPCPDEBUG((LOG_INFO, "ipcp_reqci: bad CI length!\n"));
             orc = CONFREJ; /* Reject bad CI */
             cilen = l; /* Reject till end of packet */
@@ -953,89 +824,85 @@ ipcp_reqci(fsm *f, u_char *inp/* Requested CIs */,int *len/* Length of requested
         l -= cilen; /* Adjust remaining length */
         next += cilen; /* Step to next CI */
 
-        switch (citype)
-        { /* Check CI type */
+        switch (citype) { /* Check CI type */
 #ifdef OLD_CI_ADDRS /* Need to save space... */
-            case CI_ADDRS:
-            IPCPDEBUG((LOG_INFO, "ipcp_reqci: received ADDRS\n"));
-            if (!ao->neg_addr ||
-                    cilen != CILEN_ADDRS)
-            { /* Check CI length */
-                orc = CONFREJ; /* Reject CI */
-                break;
-            }
+        case CI_ADDRS:
+        IPCPDEBUG((LOG_INFO, "ipcp_reqci: received ADDRS\n"));
+        if (!ao->neg_addr ||
+                cilen != CILEN_ADDRS)
+        { /* Check CI length */
+            orc = CONFREJ; /* Reject CI */
+            break;
+        }
 
+        /*
+         * If he has no address, or if we both have his address but
+         * disagree about it, then NAK it with our idea.
+         * In particular, if we don't know his address, but he does,
+         * then accept it.
+         */
+        GETLONG(tl, p); /* Parse source address (his) */
+        ciaddr1 = htonl(tl);
+        IPCPDEBUG((LOG_INFO, "his addr %s\n", inet_ntoa(ciaddr1)));
+        if (ciaddr1 != wo->hisaddr
+                && (ciaddr1 == 0 || !wo->accept_remote))
+        {
+            orc = CONFNAK;
+            if (!reject_if_disagree)
+            {
+                DECPTR(sizeof(u32_t), p);
+                tl = ntohl(wo->hisaddr);
+                PUTLONG(tl, p);
+            }
+        }
+        else if (ciaddr1 == 0 && wo->hisaddr == 0)
+        {
             /*
-             * If he has no address, or if we both have his address but
-             * disagree about it, then NAK it with our idea.
-             * In particular, if we don't know his address, but he does,
-             * then accept it.
+             * If neither we nor he knows his address, reject the option.
              */
-            GETLONG(tl, p); /* Parse source address (his) */
-            ciaddr1 = htonl(tl);
-            IPCPDEBUG((LOG_INFO, "his addr %s\n", inet_ntoa(ciaddr1)));
-            if (ciaddr1 != wo->hisaddr
-                    && (ciaddr1 == 0 || !wo->accept_remote))
+            orc = CONFREJ;
+            wo->req_addr = 0; /* don't NAK with 0.0.0.0 later */
+            break;
+        }
+
+        /*
+         * If he doesn't know our address, or if we both have our address
+         * but disagree about it, then NAK it with our idea.
+         */
+        GETLONG(tl, p); /* Parse desination address (ours) */
+        ciaddr2 = htonl(tl);
+        IPCPDEBUG((LOG_INFO, "our addr %s\n", inet_ntoa(ciaddr2)));
+        if (ciaddr2 != wo->ouraddr)
+        {
+            if (ciaddr2 == 0 || !wo->accept_local)
             {
                 orc = CONFNAK;
                 if (!reject_if_disagree)
                 {
                     DECPTR(sizeof(u32_t), p);
-                    tl = ntohl(wo->hisaddr);
+                    tl = ntohl(wo->ouraddr);
                     PUTLONG(tl, p);
                 }
             }
-            else if (ciaddr1 == 0 && wo->hisaddr == 0)
+            else
             {
-                /*
-                 * If neither we nor he knows his address, reject the option.
-                 */
-                orc = CONFREJ;
-                wo->req_addr = 0; /* don't NAK with 0.0.0.0 later */
-                break;
+                go->ouraddr = ciaddr2; /* accept peer's idea */
             }
+        }
 
-            /*
-             * If he doesn't know our address, or if we both have our address
-             * but disagree about it, then NAK it with our idea.
-             */
-            GETLONG(tl, p); /* Parse desination address (ours) */
-            ciaddr2 = htonl(tl);
-            IPCPDEBUG((LOG_INFO, "our addr %s\n", inet_ntoa(ciaddr2)));
-            if (ciaddr2 != wo->ouraddr)
-            {
-                if (ciaddr2 == 0 || !wo->accept_local)
-                {
-                    orc = CONFNAK;
-                    if (!reject_if_disagree)
-                    {
-                        DECPTR(sizeof(u32_t), p);
-                        tl = ntohl(wo->ouraddr);
-                        PUTLONG(tl, p);
-                    }
-                }
-                else
-                {
-                    go->ouraddr = ciaddr2; /* accept peer's idea */
-                }
-            }
-
-            ho->neg_addr = 1;
-            ho->old_addrs = 1;
-            ho->hisaddr = ciaddr1;
-            ho->ouraddr = ciaddr2;
-            break;
+        ho->neg_addr = 1;
+        ho->old_addrs = 1;
+        ho->hisaddr = ciaddr1;
+        ho->ouraddr = ciaddr2;
+        break;
 #endif
 
-            case CI_ADDR:
-            if (!ao->neg_addr)
-            {
+        case CI_ADDR:
+            if (!ao->neg_addr) {
                 IPCPDEBUG((LOG_INFO, "ipcp_reqci: Reject ADDR not allowed\n"));
                 orc = CONFREJ; /* Reject CI */
                 break;
-            }
-            else if (cilen != CILEN_ADDR)
-            { /* Check CI length */
+            } else if (cilen != CILEN_ADDR) { /* Check CI length */
                 IPCPDEBUG((LOG_INFO, "ipcp_reqci: Reject ADDR bad len\n"));
                 orc = CONFREJ; /* Reject CI */
                 break;
@@ -1049,20 +916,14 @@ ipcp_reqci(fsm *f, u_char *inp/* Requested CIs */,int *len/* Length of requested
              */
             GETLONG(tl, p); /* Parse source address (his) */
             ciaddr1 = htonl(tl);
-            if (ciaddr1 != wo->hisaddr
-                    && (ciaddr1 == 0 || !wo->accept_remote))
-            {
+            if (ciaddr1 != wo->hisaddr && (ciaddr1 == 0 || !wo->accept_remote)) {
                 orc = CONFNAK;
-                if (!reject_if_disagree)
-                {
+                if (!reject_if_disagree) {
                     DECPTR(sizeof(u32_t), p);
                     tl = ntohl(wo->hisaddr);
                     PUTLONG(tl, p);
-                }
-                IPCPDEBUG((LOG_INFO, "ipcp_reqci: Nak ADDR %s\n", inet_ntoa(ciaddr1)));
-            }
-            else if (ciaddr1 == 0 && wo->hisaddr == 0)
-            {
+                }IPCPDEBUG((LOG_INFO, "ipcp_reqci: Nak ADDR %s\n", inet_ntoa(ciaddr1)));
+            } else if (ciaddr1 == 0 && wo->hisaddr == 0) {
                 /*
                  * Don't ACK an address of 0.0.0.0 - reject it instead.
                  */
@@ -1077,22 +938,19 @@ ipcp_reqci(fsm *f, u_char *inp/* Requested CIs */,int *len/* Length of requested
             IPCPDEBUG((LOG_INFO, "ipcp_reqci: ADDR %s\n", inet_ntoa(ciaddr1)));
             break;
 
-            case CI_MS_DNS1:
-            case CI_MS_DNS2:
+        case CI_MS_DNS1:
+        case CI_MS_DNS2:
             /* Microsoft primary or secondary DNS request */
             d = citype == CI_MS_DNS2;
 
             /* If we do not have a DNS address then we cannot send it */
-            if (ao->dnsaddr[d] == 0 ||
-                    cilen != CILEN_ADDR)
-            { /* Check CI length */
+            if (ao->dnsaddr[d] == 0 || cilen != CILEN_ADDR) { /* Check CI length */
                 IPCPDEBUG((LOG_INFO, "ipcp_reqci: Rejecting DNS%d Request\n", d+1));
                 orc = CONFREJ; /* Reject CI */
                 break;
             }
             GETLONG(tl, p);
-            if (htonl(tl) != ao->dnsaddr[d])
-            {
+            if (htonl(tl) != ao->dnsaddr[d]) {
                 IPCPDEBUG((LOG_INFO, "ipcp_reqci: Naking DNS%d Request %d\n",
                                 d+1, inet_ntoa(tl)));
                 DECPTR(sizeof(u32_t), p);
@@ -1103,22 +961,19 @@ ipcp_reqci(fsm *f, u_char *inp/* Requested CIs */,int *len/* Length of requested
             IPCPDEBUG((LOG_INFO, "ipcp_reqci: received DNS%d Request\n", d+1));
             break;
 
-            case CI_MS_WINS1:
-            case CI_MS_WINS2:
+        case CI_MS_WINS1:
+        case CI_MS_WINS2:
             /* Microsoft primary or secondary WINS request */
             d = citype == CI_MS_WINS2;
             IPCPDEBUG((LOG_INFO, "ipcp_reqci: received WINS%d Request\n", d+1));
 
             /* If we do not have a DNS address then we cannot send it */
-            if (ao->winsaddr[d] == 0 ||
-                    cilen != CILEN_ADDR)
-            { /* Check CI length */
+            if (ao->winsaddr[d] == 0 || cilen != CILEN_ADDR) { /* Check CI length */
                 orc = CONFREJ; /* Reject CI */
                 break;
             }
             GETLONG(tl, p);
-            if (htonl(tl) != ao->winsaddr[d])
-            {
+            if (htonl(tl) != ao->winsaddr[d]) {
                 DECPTR(sizeof(u32_t), p);
                 tl = ntohl(ao->winsaddr[d]);
                 PUTLONG(tl, p);
@@ -1126,24 +981,19 @@ ipcp_reqci(fsm *f, u_char *inp/* Requested CIs */,int *len/* Length of requested
             }
             break;
 
-            case CI_COMPRESSTYPE:
-            if (!ao->neg_vj)
-            {
+        case CI_COMPRESSTYPE:
+            if (!ao->neg_vj) {
                 IPCPDEBUG((LOG_INFO, "ipcp_reqci: Rejecting COMPRESSTYPE not allowed\n"));
                 orc = CONFREJ;
                 break;
-            }
-            else if (cilen != CILEN_VJ && cilen != CILEN_COMPRESS)
-            {
+            } else if (cilen != CILEN_VJ && cilen != CILEN_COMPRESS) {
                 IPCPDEBUG((LOG_INFO, "ipcp_reqci: Rejecting COMPRESSTYPE len=%d\n", cilen));
                 orc = CONFREJ;
                 break;
             }
             GETSHORT(cishort, p);
 
-            if (!(cishort == IPCP_VJ_COMP ||
-                            (cishort == IPCP_VJ_COMP_OLD && cilen == CILEN_COMPRESS)))
-            {
+            if (!(cishort == IPCP_VJ_COMP || (cishort == IPCP_VJ_COMP_OLD && cilen == CILEN_COMPRESS))) {
                 IPCPDEBUG((LOG_INFO, "ipcp_reqci: Rejecting COMPRESSTYPE %d\n", cishort));
                 orc = CONFREJ;
                 break;
@@ -1151,35 +1001,28 @@ ipcp_reqci(fsm *f, u_char *inp/* Requested CIs */,int *len/* Length of requested
 
             ho->neg_vj = 1;
             ho->vj_protocol = cishort;
-            if (cilen == CILEN_VJ)
-            {
+            if (cilen == CILEN_VJ) {
                 GETCHAR(maxslotindex, p);
-                if (maxslotindex > ao->maxslotindex)
-                {
+                if (maxslotindex > ao->maxslotindex) {
                     IPCPDEBUG((LOG_INFO, "ipcp_reqci: Naking VJ max slot %d\n", maxslotindex));
                     orc = CONFNAK;
-                    if (!reject_if_disagree)
-                    {
+                    if (!reject_if_disagree) {
                         DECPTR(1, p);
                         PUTCHAR(ao->maxslotindex, p);
                     }
                 }
                 GETCHAR(cflag, p);
-                if (cflag && !ao->cflag)
-                {
+                if (cflag && !ao->cflag) {
                     IPCPDEBUG((LOG_INFO, "ipcp_reqci: Naking VJ cflag %d\n", cflag));
                     orc = CONFNAK;
-                    if (!reject_if_disagree)
-                    {
+                    if (!reject_if_disagree) {
                         DECPTR(1, p);
                         PUTCHAR(wo->cflag, p);
                     }
                 }
                 ho->maxslotindex = maxslotindex;
                 ho->cflag = cflag;
-            }
-            else
-            {
+            } else {
                 ho->old_vj = 1;
                 ho->maxslotindex = MAX_SLOTS - 1;
                 ho->cflag = 1;
@@ -1189,34 +1032,26 @@ ipcp_reqci(fsm *f, u_char *inp/* Requested CIs */,int *len/* Length of requested
                             ho->vj_protocol, ho->old_vj, ho->maxslotindex, ho->cflag));
             break;
 
-            default:
+        default:
             IPCPDEBUG((LOG_INFO, "ipcp_reqci: Rejecting unknown CI type %d\n", citype));
             orc = CONFREJ;
             break;
         }
 
-        endswitch:
-        if (orc == CONFACK && /* Good CI */
-                rc != CONFACK)
-        { /*  but prior CI wasnt? */
+        endswitch: if (orc == CONFACK && /* Good CI */
+        rc != CONFACK) { /*  but prior CI wasnt? */
             continue; /* Don't send this one */
         }
 
-        if (orc == CONFNAK)
-        { /* Nak this CI? */
-            if (reject_if_disagree)
-            { /* Getting fed up with sending NAKs? */
+        if (orc == CONFNAK) { /* Nak this CI? */
+            if (reject_if_disagree) { /* Getting fed up with sending NAKs? */
                 IPCPDEBUG((LOG_INFO, "ipcp_reqci: Rejecting too many naks\n"));
                 orc = CONFREJ; /* Get tough if so */
-            }
-            else
-            {
-                if (rc == CONFREJ)
-                { /* Rejecting prior CI? */
+            } else {
+                if (rc == CONFREJ) { /* Rejecting prior CI? */
                     continue; /* Don't send this one */
                 }
-                if (rc == CONFACK)
-                { /* Ack'd all prior CIs? */
+                if (rc == CONFACK) { /* Ack'd all prior CIs? */
                     rc = CONFNAK; /* Not anymore... */
                     ucp = inp; /* Backup */
                 }
@@ -1224,15 +1059,13 @@ ipcp_reqci(fsm *f, u_char *inp/* Requested CIs */,int *len/* Length of requested
         }
 
         if (orc == CONFREJ && /* Reject this CI */
-                rc != CONFREJ)
-        { /*  but no prior ones? */
+        rc != CONFREJ) { /*  but no prior ones? */
             rc = CONFREJ;
             ucp = inp; /* Backup */
         }
 
         /* Need to move CI? */
-        if (ucp != cip)
-        {
+        if (ucp != cip) {
             BCOPY(cip, ucp, cilen); /* Move it */
         }
 
@@ -1247,12 +1080,9 @@ ipcp_reqci(fsm *f, u_char *inp/* Requested CIs */,int *len/* Length of requested
      * input buffer is long enough that we can append the extra
      * option safely.
      */
-    if (rc != CONFREJ && !ho->neg_addr &&
-            wo->req_addr && !reject_if_disagree)
-    {
+    if (rc != CONFREJ && !ho->neg_addr && wo->req_addr && !reject_if_disagree) {
         IPCPDEBUG((LOG_INFO, "ipcp_reqci: Requesting peer address\n"));
-        if (rc == CONFACK)
-        {
+        if (rc == CONFACK) {
             rc = CONFNAK;
             ucp = inp; /* reset pointer */
             wo->req_addr = 0; /* don't ask again */
@@ -1263,7 +1093,7 @@ ipcp_reqci(fsm *f, u_char *inp/* Requested CIs */,int *len/* Length of requested
         PUTLONG(tl, ucp);
     }
 
-    *len = (int)(ucp - inp); /* Compute output length */
+    *len = (int) (ucp - inp); /* Compute output length */
     IPCPDEBUG((LOG_INFO, "ipcp_reqci: returning Configure-%s\n", CODENAME(rc)));
     return (rc); /* Return final code */
 }
@@ -1295,9 +1125,7 @@ ip_check_options(u_long localAddr)
  *
  * Configure the IP network interface appropriately and bring it up.
  */
-static void
-ipcp_up(fsm *f)
-{
+static void ipcp_up(fsm *f) {
     u32_t mask;
     ipcp_options *ho = &ipcp_hisoptions[f->unit];
     ipcp_options *go = &ipcp_gotoptions[f->unit];
@@ -1309,34 +1137,29 @@ ipcp_up(fsm *f)
     /*
      * We must have a non-zero IP address for both ends of the link.
      */
-    if (!ho->neg_addr)
-    {
+    if (!ho->neg_addr) {
         ho->hisaddr = wo->hisaddr;
     }
 
-    if (ho->hisaddr == 0)
-    {
+    if (ho->hisaddr == 0) {
         IPCPDEBUG((LOG_ERR, "Could not determine remote IP address\n"));
         ipcp_close(f->unit, "Could not determine remote IP address");
         return;
     }
-    if (go->ouraddr == 0)
-    {
+    if (go->ouraddr == 0) {
         IPCPDEBUG((LOG_ERR, "Could not determine local IP address\n"));
         ipcp_close(f->unit, "Could not determine local IP address");
         return;
     }
 
-    if (ppp_settings.usepeerdns && (go->dnsaddr[0] || go->dnsaddr[1]))
-    {
+    if (ppp_settings.usepeerdns && (go->dnsaddr[0] || go->dnsaddr[1])) {
         /*pppGotDNSAddrs(go->dnsaddr[0], go->dnsaddr[1]);*/
     }
 
     /*
      * Check that the peer is allowed to use the IP address it wants.
      */
-    if (!auth_ip_addr(f->unit, ho->hisaddr))
-    {
+    if (!auth_ip_addr(f->unit, ho->hisaddr)) {
         IPCPDEBUG((LOG_ERR, "Peer is not authorized to use remote address %s\n",
                         inet_ntoa(ho->hisaddr)));
         ipcp_close(f->unit, "Unauthorized remote IP address");
@@ -1351,16 +1174,14 @@ ipcp_up(fsm *f)
      */
     mask = GetMask(go->ouraddr);
 
-    if (!sifaddr(f->unit, go->ouraddr, ho->hisaddr, mask, go->dnsaddr[0], go->dnsaddr[1]))
-    {
+    if (!sifaddr(f->unit, go->ouraddr, ho->hisaddr, mask, go->dnsaddr[0], go->dnsaddr[1])) {
         IPCPDEBUG((LOG_WARNING, "sifaddr failed\n"));
         ipcp_close(f->unit, "Interface configuration failed");
         return;
     }
 
     /* bring the interface up for IP */
-    if (!sifup(f->unit))
-    {
+    if (!sifup(f->unit)) {
         IPCPDEBUG((LOG_WARNING, "sifup failed\n"));
         ipcp_close(f->unit, "Interface configuration failed");
         return;
@@ -1369,22 +1190,17 @@ ipcp_up(fsm *f)
     sifnpmode(f->unit, PPP_IP, NPMODE_PASS);
 
     /* assign a default route through the interface if required */
-    if (ipcp_wantoptions[f->unit].default_route)
-    {
-        if (sifdefaultroute(f->unit, go->ouraddr, ho->hisaddr))
-        {
+    if (ipcp_wantoptions[f->unit].default_route) {
+        if (sifdefaultroute(f->unit, go->ouraddr, ho->hisaddr)) {
             default_route_set[f->unit] = 1;
         }
     }
 
-    IPCPDEBUG((LOG_NOTICE, "local  IP address %s\n", inet_ntoa(go->ouraddr)));
-    IPCPDEBUG((LOG_NOTICE, "remote IP address %s\n", inet_ntoa(ho->hisaddr)));
-    if (go->dnsaddr[0])
-    {
+    IPCPDEBUG((LOG_NOTICE, "local  IP address %s\n", inet_ntoa(go->ouraddr)));IPCPDEBUG((LOG_NOTICE, "remote IP address %s\n", inet_ntoa(ho->hisaddr)));
+    if (go->dnsaddr[0]) {
         IPCPDEBUG((LOG_NOTICE, "primary   DNS address %s\n", inet_ntoa(go->dnsaddr[0])));
     }
-    if (go->dnsaddr[1])
-    {
+    if (go->dnsaddr[1]) {
         IPCPDEBUG((LOG_NOTICE, "secondary DNS address %s\n", inet_ntoa(go->dnsaddr[1])));
     }
 }
@@ -1395,9 +1211,7 @@ ipcp_up(fsm *f)
  * Take the IP network interface down, clear its addresses
  * and delete routes through it.
  */
-static void
-ipcp_down(fsm *f)
-{
+static void ipcp_down(fsm *f) {
     IPCPDEBUG((LOG_INFO, "ipcp: down\n"));
     np_down(f->unit, PPP_IP);
     sifvjcomp(f->unit, 0, 0, 0);
@@ -1409,15 +1223,12 @@ ipcp_down(fsm *f)
 /*
  * ipcp_clear_addrs() - clear the interface addresses, routes, etc.
  */
-static void
-ipcp_clear_addrs(int unit)
-{
+static void ipcp_clear_addrs(int unit) {
     u32_t ouraddr, hisaddr;
 
     ouraddr = ipcp_gotoptions[unit].ouraddr;
     hisaddr = ipcp_hisoptions[unit].hisaddr;
-    if (default_route_set[unit])
-    {
+    if (default_route_set[unit]) {
         cifdefaultroute(unit, ouraddr, hisaddr);
         default_route_set[unit] = 0;
     }
@@ -1427,16 +1238,12 @@ ipcp_clear_addrs(int unit)
 /*
  * ipcp_finished - possibly shut down the lower layers.
  */
-static void
-ipcp_finished(fsm *f)
-{
+static void ipcp_finished(fsm *f) {
     np_finished(f->unit, PPP_IP);
 }
 
 #if 0
-static int
-ipcp_printpkt(u_char *p, int plen, void (*printer) (void *, char *, ...), void *arg)
-{
+static int ipcp_printpkt(u_char *p, int plen, void (*printer)(void *, char *, ...), void *arg) {
     LWIP_UNUSED_ARG(p);
     LWIP_UNUSED_ARG(plen);
     LWIP_UNUSED_ARG(printer);
@@ -1467,34 +1274,27 @@ ipcp_printpkt(u_char *p, int plen, void (*printer) (void *, char *, ...), void *
 #define get_tcpoff(x)   (((unsigned char *)(x))[12] >> 4)
 #define get_tcpflags(x) (((unsigned char *)(x))[13])
 
-static int
-ip_active_pkt(u_char *pkt, int len)
-{
+static int ip_active_pkt(u_char *pkt, int len) {
     u_char *tcp;
     int hlen;
 
     len -= PPP_HDRLEN;
     pkt += PPP_HDRLEN;
-    if (len < IP_HDRLEN)
-    {
+    if (len < IP_HDRLEN) {
         return 0;
     }
-    if ((get_ipoff(pkt) & IP_OFFMASK) != 0)
-    {
+    if ((get_ipoff(pkt) & IP_OFFMASK) != 0) {
         return 0;
     }
-    if (get_ipproto(pkt) != IPPROTO_TCP)
-    {
+    if (get_ipproto(pkt) != IPPROTO_TCP) {
         return 1;
     }
     hlen = get_iphl(pkt) * 4;
-    if (len < hlen + TCP_HDRLEN)
-    {
+    if (len < hlen + TCP_HDRLEN) {
         return 0;
     }
     tcp = pkt + hlen;
-    if ((get_tcpflags(tcp) & TH_FIN) != 0 && len == hlen + get_tcpoff(tcp) * 4)
-    {
+    if ((get_tcpflags(tcp) & TH_FIN) != 0 && len == hlen + get_tcpoff(tcp) * 4) {
         return 0;
     }
     return 1;

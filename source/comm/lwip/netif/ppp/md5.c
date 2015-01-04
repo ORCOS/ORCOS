@@ -58,8 +58,7 @@
 /* forward declaration */
 static void Transform (u32_t *buf, u32_t *in);
 
-static unsigned char PADDING[64] =
-{
+static unsigned char PADDING[64] = {
     0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -116,8 +115,7 @@ static unsigned char PADDING[64] =
  mdContext. All fields are set to zero.
  */
 void
-MD5Init (MD5_CTX *mdContext)
-{
+MD5Init (MD5_CTX *mdContext) {
     mdContext->i[0] = mdContext->i[1] = (u32_t)0;
 
     /* Load magic initialization constants. */
@@ -132,8 +130,7 @@ MD5Init (MD5_CTX *mdContext)
  in the message whose digest is being computed.
  */
 void
-MD5Update(MD5_CTX *mdContext, unsigned char *inBuf, unsigned int inLen)
-{
+MD5Update(MD5_CTX *mdContext, unsigned char *inBuf, unsigned int inLen) {
     u32_t in[16];
     int mdi;
     unsigned int i, ii;
@@ -147,8 +144,7 @@ MD5Update(MD5_CTX *mdContext, unsigned char *inBuf, unsigned int inLen)
     mdi = (int)((mdContext->i[0] >> 3) & 0x3F);
 
     /* update number of bits */
-    if ((mdContext->i[0] + ((u32_t)inLen << 3)) < mdContext->i[0])
-    {
+    if ((mdContext->i[0] + ((u32_t)inLen << 3)) < mdContext->i[0]) {
         mdContext->i[1]++;
     }
     mdContext->i[0] += ((u32_t)inLen << 3);

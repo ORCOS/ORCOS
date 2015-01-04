@@ -34,6 +34,9 @@
 
 #include "lwip/arch.h"
 
+/* backtrace and print the current call stack */
+void     backtrace_current();
+
 /** lower two bits indicate debug level
  * - 0 all
  * - 1 warning

@@ -215,30 +215,27 @@ void udp_input(struct pbuf *p, struct netif *inp) {
 
     u8_t cmp_addr;
 
-    if (iphdr->v == IPV4)
+    if (iphdr->v == IPV4) {
         cmp_addr = ip4_addr_cmp(&dest_ipaddr.addr.ip4addr, &inp->ip4_addr);
-    else
+    } else {
         cmp_addr = ip6_addr_cmp(&dest_ipaddr.addr.ip6addr, &inp->ip6_addr);
+    }
 
     /* Check checksum if this is a match or if it was directed at us. */
     if (pcb != NULL || cmp_addr) {
         LWIP_DEBUGF(UDP_DEBUG | LWIP_DBG_TRACE, ("udp_input: calculating checksum"NEWLINE));
 #if LWIP_UDPLITE
-        if (IPH_PROTO(iphdr) == IP_PROTO_UDPLITE)
-        {
+        if (IPH_PROTO(iphdr) == IP_PROTO_UDPLITE) {
             /* Do the UDP Lite checksum */
 #if CHECKSUM_CHECK_UDP
             u16_t chklen = ntohs(udphdr->len);
-            if (chklen < sizeof(struct udp_hdr))
-            {
-                if (chklen == 0)
-                {
+            if (chklen < sizeof(struct udp_hdr)) {
+                if (chklen == 0) {
                     /* For UDP-Lite, checksum length of 0 means checksum
                      over the complete packet (See RFC 3828 chap. 3.1) */
                     chklen = p->tot_len;
                 }
-                else
-                {
+                else {
                     /* At least the UDP-Lite header must be covered by the
                      checksum! (Again, see RFC 3828 chap. 3.1) */
                     UDP_STATS_INC(udp.chkerr);
@@ -248,10 +245,11 @@ void udp_input(struct pbuf *p, struct netif *inp) {
                     goto end;
                 }
             }
-            if (inet_chksum_pseudo_partial(p, (struct ip_addr *)&(iphdr->src),
-                            (struct ip_addr *)&(iphdr->dest),
-                            IP_PROTO_UDPLITE, p->tot_len, chklen) != 0)
-            {
+            if (inet_chksum_pseudo_partial(p,
+                                           (struct ip_addr *)&(iphdr->src),
+                                           (struct ip_addr *)&(iphdr->dest),
+                                           IP_PROTO_UDPLITE,
+                                           p->tot_len, chklen) != 0) {
                 LWIP_DEBUGF(UDP_DEBUG | LWIP_DBG_LEVEL_SERIOUS,
                         ("udp_input: UDP Lite datagram discarded due to failing checksum"NEWLINE));
                 UDP_STATS_INC(udp.chkerr);
@@ -401,8 +399,7 @@ err_t udp_sendto_if(struct udp_pcb *pcb, struct pbuf *p, struct ip_addr *dst_ip,
 
 #if IP_SOF_BROADCAST
     /* broadcast filter? */
-    if ( ((pcb->so_options & SOF_BROADCAST) == 0) && ip_addr_isbroadcast(dst_ip, netif) )
-    {
+    if (((pcb->so_options & SOF_BROADCAST) == 0) && ip_addr_isbroadcast(dst_ip, netif)) {
         LWIP_DEBUGF(UDP_DEBUG | LWIP_DBG_LEVEL_SERIOUS,
                 ("udp_sendto_if: SOF_BROADCAST not enabled on pcb %p"NEWLINE, (void *)pcb));
         return ERR_VAL;
@@ -492,16 +489,13 @@ err_t udp_sendto_if(struct udp_pcb *pcb, struct pbuf *p, struct ip_addr *dst_ip,
 
 #if LWIP_UDPLITE
     /* UDP Lite protocol? */
-    if (pcb->flags & UDP_FLAGS_UDPLITE)
-    {
+    if (pcb->flags & UDP_FLAGS_UDPLITE) {
         u16_t chklen, chklen_hdr;
         LWIP_DEBUGF(UDP_DEBUG, ("udp_send: UDP LITE packet length %"U16_F""NEWLINE, q->tot_len));
         /* set UDP message length in UDP header */
         chklen_hdr = chklen = pcb->chksum_len_tx;
-        if ((chklen < sizeof(struct udp_hdr)) || (chklen > q->tot_len))
-        {
-            if (chklen != 0)
-            {
+        if ((chklen < sizeof(struct udp_hdr)) || (chklen > q->tot_len)) {
+            if (chklen != 0) {
                 LWIP_DEBUGF(UDP_DEBUG, ("udp_send: UDP LITE pcb->chksum_len is illegal: %"U16_F""NEWLINE, chklen));
             }
             /* For UDP-Lite, checksum length of 0 means checksum
@@ -675,12 +669,7 @@ err_t udp_bind(struct udp_pcb *pcb, struct ip_addr *ipaddr, u16_t port) {
         pcb->next = udp_pcbs;
         udp_pcbs = pcb;
     }
-    /*  LWIP_DEBUGF(UDP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_STATE,
-     ("udp_bind: bound to %"U16_F".%"U16_F".%"U16_F".%"U16_F", port %"U16_F""NEWLINE,
-     (u16_t)((ntohl(pcb->local_ip.addr) >> 24) & 0xff),
-     (u16_t)((ntohl(pcb->local_ip.addr) >> 16) & 0xff),
-     (u16_t)((ntohl(pcb->local_ip.addr) >> 8) & 0xff),
-     (u16_t)(ntohl(pcb->local_ip.addr) & 0xff), pcb->local_port));*/
+
     return ERR_OK;
 }
 /**
@@ -715,8 +704,7 @@ err_t udp_connect(struct udp_pcb *pcb, struct ip_addr *ipaddr, u16_t port) {
     /** TODO: this functionality belongs in upper layers */
 #ifdef LWIP_UDP_TODO
     /* Nail down local IP for netconn_addr()/getsockname() */
-    if (ip_addr_isany(&pcb->local_ip) && !ip_addr_isany(&pcb->remote_ip))
-    {
+    if (ip_addr_isany(&pcb->local_ip) && !ip_addr_isany(&pcb->remote_ip)) {
         struct netif *netif;
 
         if ((netif = ip_route(&(pcb->remote_ip))) == NULL)
@@ -730,17 +718,10 @@ err_t udp_connect(struct udp_pcb *pcb, struct ip_addr *ipaddr, u16_t port) {
          might want to accept incoming packets on any interface! */
         pcb->local_ip = netif->ip_addr;
     }
-    else if (ip_addr_isany(&pcb->remote_ip))
-    {
+    else if (ip_addr_isany(&pcb->remote_ip)) {
         pcb->local_ip.addr = 0;
     }
 #endif
-    /* LWIP_DEBUGF(UDP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_STATE,
-     ("udp_connect: connected to %"U16_F".%"U16_F".%"U16_F".%"U16_F",port %"U16_F""NEWLINE,
-     (u16_t)((ntohl(pcb->remote_ip.addr) >> 24) & 0xff),
-     (u16_t)((ntohl(pcb->remote_ip.addr) >> 16) & 0xff),
-     (u16_t)((ntohl(pcb->remote_ip.addr) >> 8) & 0xff),
-     (u16_t)(ntohl(pcb->remote_ip.addr) & 0xff), pcb->remote_port));*/
 
     /* Insert UDP PCB into the list of active UDP PCBs. */
     for (ipcb = udp_pcbs; ipcb != NULL; ipcb = ipcb->next) {
@@ -800,7 +781,7 @@ void udp_remove(struct udp_pcb *pcb) {
         /* make list start at 2nd pcb */
         udp_pcbs = udp_pcbs->next;
         /* pcb not 1st in list */
-    } else
+    } else {
         for (pcb2 = udp_pcbs; pcb2 != NULL; pcb2 = pcb2->next) {
             /* find pcb in udp_pcbs list */
             if (pcb2->next != NULL && pcb2->next == pcb) {
@@ -808,6 +789,7 @@ void udp_remove(struct udp_pcb *pcb) {
                 pcb2->next = pcb->next;
             }
         }
+    }
 
     memp_free(MEMP_UDP_PCB, pcb);
 }
@@ -842,9 +824,7 @@ udp_new(void) {
  *
  * @param udphdr pointer to the udp header in memory.
  */
-void
-udp_debug_print(struct udp_hdr *udphdr)
-{
+void udp_debug_print(struct udp_hdr *udphdr) {
     LWIP_DEBUGF(UDP_DEBUG, ("UDP header:"NEWLINE));
     LWIP_DEBUGF(UDP_DEBUG, ("+-------------------------------+"NEWLINE));
     LWIP_DEBUGF(UDP_DEBUG, ("|     %5"U16_F"     |     %5"U16_F"     | (src port, dest port)"NEWLINE,

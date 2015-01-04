@@ -8,13 +8,13 @@
  * The authors hereby grant permission to use, copy, modify, distribute,
  * and license this software and its documentation for any purpose, provided
  * that existing copyright notices are retained in all copies and that this
- * notice and the following disclaimer are included verbatim in any 
+ * notice and the following disclaimer are included verbatim in any
  * distributions. No written agreement, license, or royalty fee is required
  * for any of the authorized uses.
  *
  * THIS SOFTWARE IS PROVIDED BY THE CONTRIBUTORS *AS IS* AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
  * IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
  * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
@@ -98,54 +98,46 @@
 /*
  * Protocol entry points.
  */
-static void ChapInit (int);
-static void ChapLowerUp (int);
-static void ChapLowerDown (int);
-static void ChapInput (int, u_char *, int);
-static void ChapProtocolReject (int);
+static void ChapInit(int);
+static void ChapLowerUp(int);
+static void ChapLowerDown(int);
+static void ChapInput(int, u_char *, int);
+static void ChapProtocolReject(int);
 #if 0
 static int ChapPrintPkt (u_char *, int, void (*) (void *, char *, ...), void *);
 #endif
 
-static void ChapChallengeTimeout (void *);
-static void ChapResponseTimeout (void *);
-static void ChapReceiveChallenge (chap_state *, u_char *, int, int);
-static void ChapRechallenge (void *);
-static void ChapReceiveResponse (chap_state *, u_char *, int, int);
+static void ChapChallengeTimeout(void *);
+static void ChapResponseTimeout(void *);
+static void ChapReceiveChallenge(chap_state *, u_char *, int, int);
+static void ChapRechallenge(void *);
+static void ChapReceiveResponse(chap_state *, u_char *, int, int);
 static void ChapReceiveSuccess(chap_state *cstate, u_char *inp, u_char id, int len);
 static void ChapReceiveFailure(chap_state *cstate, u_char *inp, u_char id, int len);
-static void ChapSendStatus (chap_state *, int);
-static void ChapSendChallenge (chap_state *);
-static void ChapSendResponse (chap_state *);
-static void ChapGenChallenge (chap_state *);
+static void ChapSendStatus(chap_state *, int);
+static void ChapSendChallenge(chap_state *);
+static void ChapSendResponse(chap_state *);
+static void ChapGenChallenge(chap_state *);
 
 /******************************/
 /*** PUBLIC DATA STRUCTURES ***/
 /******************************/
 chap_state chap[NUM_PPP]; /* CHAP state; one for each unit */
 
-struct protent chap_protent =
-{
-    PPP_CHAP,
-    ChapInit,
-    ChapInput,
-    ChapProtocolReject,
-    ChapLowerUp,
-    ChapLowerDown,
-    NULL,
-    NULL,
+struct protent chap_protent = { PPP_CHAP, ChapInit, ChapInput, ChapProtocolReject, ChapLowerUp, ChapLowerDown,
+NULL,
+NULL,
 #if 0
-    ChapPrintPkt,
-    NULL,
+        ChapPrintPkt,
+        NULL,
 #endif
-    1,
-    "CHAP",
+        1, "CHAP",
 #if 0
-    NULL,
-    NULL,
-    NULL
+        NULL,
+        NULL,
+        NULL
 #endif
-};
+    };
 
 /***********************************/
 /*** PUBLIC FUNCTION DEFINITIONS ***/
@@ -154,17 +146,13 @@ struct protent chap_protent =
  * ChapAuthWithPeer - Authenticate us with our peer (start client).
  *
  */
-void
-ChapAuthWithPeer(int unit, char *our_name, int digest)
-{
+void ChapAuthWithPeer(int unit, char *our_name, int digest) {
     chap_state *cstate = &chap[unit];
 
     cstate->resp_name = our_name;
     cstate->resp_type = digest;
 
-    if (cstate->clientstate == CHAPCS_INITIAL ||
-            cstate->clientstate == CHAPCS_PENDING)
-    {
+    if (cstate->clientstate == CHAPCS_INITIAL || cstate->clientstate == CHAPCS_PENDING) {
         /* lower layer isn't up - wait until later */
         cstate->clientstate = CHAPCS_PENDING;
         return;
@@ -172,7 +160,7 @@ ChapAuthWithPeer(int unit, char *our_name, int digest)
 
     /*
      * We get here as a result of LCP coming up.
-     * So even if CHAP was open before, we will 
+     * So even if CHAP was open before, we will
      * have to re-authenticate ourselves.
      */
     cstate->clientstate = CHAPCS_LISTEN;
@@ -181,17 +169,13 @@ ChapAuthWithPeer(int unit, char *our_name, int digest)
 /*
  * ChapAuthPeer - Authenticate our peer (start server).
  */
-void
-ChapAuthPeer(int unit, char *our_name, int digest)
-{
+void ChapAuthPeer(int unit, char *our_name, int digest) {
     chap_state *cstate = &chap[unit];
 
     cstate->chal_name = our_name;
     cstate->chal_type = digest;
 
-    if (cstate->serverstate == CHAPSS_INITIAL ||
-            cstate->serverstate == CHAPSS_PENDING)
-    {
+    if (cstate->serverstate == CHAPSS_INITIAL || cstate->serverstate == CHAPSS_PENDING) {
         /* lower layer isn't up - wait until later */
         cstate->serverstate = CHAPSS_PENDING;
         return;
@@ -208,9 +192,7 @@ ChapAuthPeer(int unit, char *our_name, int digest)
 /*
  * ChapInit - Initialize a CHAP unit.
  */
-static void
-ChapInit(int unit)
-{
+static void ChapInit(int unit) {
     chap_state *cstate = &chap[unit];
 
     BZERO(cstate, sizeof(*cstate));
@@ -225,21 +207,16 @@ ChapInit(int unit)
 /*
  * ChapChallengeTimeout - Timeout expired on sending challenge.
  */
-static void
-ChapChallengeTimeout(void *arg)
-{
+static void ChapChallengeTimeout(void *arg) {
     chap_state *cstate = (chap_state *) arg;
 
     /* if we aren't sending challenges, don't worry.  then again we */
     /* probably shouldn't be here either */
-    if (cstate->serverstate != CHAPSS_INITIAL_CHAL &&
-            cstate->serverstate != CHAPSS_RECHALLENGE)
-    {
+    if (cstate->serverstate != CHAPSS_INITIAL_CHAL && cstate->serverstate != CHAPSS_RECHALLENGE) {
         return;
     }
 
-    if (cstate->chal_transmits >= cstate->max_transmits)
-    {
+    if (cstate->chal_transmits >= cstate->max_transmits) {
         /* give up on peer */
         CHAPDEBUG((LOG_ERR, "Peer failed to respond to CHAP challenge\n"));
         cstate->serverstate = CHAPSS_BADAUTH;
@@ -253,14 +230,11 @@ ChapChallengeTimeout(void *arg)
 /*
  * ChapResponseTimeout - Timeout expired on sending response.
  */
-static void
-ChapResponseTimeout(void *arg)
-{
+static void ChapResponseTimeout(void *arg) {
     chap_state *cstate = (chap_state *) arg;
 
     /* if we aren't sending a response, don't worry. */
-    if (cstate->clientstate != CHAPCS_RESPONSE)
-    {
+    if (cstate->clientstate != CHAPCS_RESPONSE) {
         return;
     }
 
@@ -270,14 +244,11 @@ ChapResponseTimeout(void *arg)
 /*
  * ChapRechallenge - Time to challenge the peer again.
  */
-static void
-ChapRechallenge(void *arg)
-{
+static void ChapRechallenge(void *arg) {
     chap_state *cstate = (chap_state *) arg;
 
     /* if we aren't sending a response, don't worry. */
-    if (cstate->serverstate != CHAPSS_OPEN)
-    {
+    if (cstate->serverstate != CHAPSS_OPEN) {
         return;
     }
 
@@ -291,26 +262,18 @@ ChapRechallenge(void *arg)
  *
  * Start up if we have pending requests.
  */
-static void
-ChapLowerUp(int unit)
-{
+static void ChapLowerUp(int unit) {
     chap_state *cstate = &chap[unit];
 
-    if (cstate->clientstate == CHAPCS_INITIAL)
-    {
+    if (cstate->clientstate == CHAPCS_INITIAL) {
         cstate->clientstate = CHAPCS_CLOSED;
-    }
-    else if (cstate->clientstate == CHAPCS_PENDING)
-    {
+    } else if (cstate->clientstate == CHAPCS_PENDING) {
         cstate->clientstate = CHAPCS_LISTEN;
     }
 
-    if (cstate->serverstate == CHAPSS_INITIAL)
-    {
+    if (cstate->serverstate == CHAPSS_INITIAL) {
         cstate->serverstate = CHAPSS_CLOSED;
-    }
-    else if (cstate->serverstate == CHAPSS_PENDING)
-    {
+    } else if (cstate->serverstate == CHAPSS_PENDING) {
         ChapGenChallenge(cstate);
         ChapSendChallenge(cstate);
         cstate->serverstate = CHAPSS_INITIAL_CHAL;
@@ -322,24 +285,16 @@ ChapLowerUp(int unit)
  *
  * Cancel all timeouts.
  */
-static void
-ChapLowerDown(int unit)
-{
+static void ChapLowerDown(int unit) {
     chap_state *cstate = &chap[unit];
 
     /* Timeout(s) pending?  Cancel if so. */
-    if (cstate->serverstate == CHAPSS_INITIAL_CHAL ||
-            cstate->serverstate == CHAPSS_RECHALLENGE)
-    {
+    if (cstate->serverstate == CHAPSS_INITIAL_CHAL || cstate->serverstate == CHAPSS_RECHALLENGE) {
         UNTIMEOUT(ChapChallengeTimeout, cstate);
-    }
-    else if (cstate->serverstate == CHAPSS_OPEN
-            && cstate->chal_interval != 0)
-    {
+    } else if (cstate->serverstate == CHAPSS_OPEN && cstate->chal_interval != 0) {
         UNTIMEOUT(ChapRechallenge, cstate);
     }
-    if (cstate->clientstate == CHAPCS_RESPONSE)
-    {
+    if (cstate->clientstate == CHAPCS_RESPONSE) {
         UNTIMEOUT(ChapResponseTimeout, cstate);
     }
     cstate->clientstate = CHAPCS_INITIAL;
@@ -349,19 +304,13 @@ ChapLowerDown(int unit)
 /*
  * ChapProtocolReject - Peer doesn't grok CHAP.
  */
-static void
-ChapProtocolReject(int unit)
-{
+static void ChapProtocolReject(int unit) {
     chap_state *cstate = &chap[unit];
 
-    if (cstate->serverstate != CHAPSS_INITIAL &&
-            cstate->serverstate != CHAPSS_CLOSED)
-    {
+    if (cstate->serverstate != CHAPSS_INITIAL && cstate->serverstate != CHAPSS_CLOSED) {
         auth_peer_fail(unit, PPP_CHAP);
     }
-    if (cstate->clientstate != CHAPCS_INITIAL &&
-            cstate->clientstate != CHAPCS_CLOSED)
-    {
+    if (cstate->clientstate != CHAPCS_INITIAL && cstate->clientstate != CHAPCS_CLOSED) {
         auth_withpeer_fail(unit, PPP_CHAP);
     }
     ChapLowerDown(unit); /* shutdown chap */
@@ -370,9 +319,7 @@ ChapProtocolReject(int unit)
 /*
  * ChapInput - Input CHAP packet.
  */
-static void
-ChapInput(int unit, u_char *inpacket, int packet_len)
-{
+static void ChapInput(int unit, u_char *inpacket, int packet_len) {
     chap_state *cstate = &chap[unit];
     u_char *inp;
     u_char code, id;
@@ -383,21 +330,18 @@ ChapInput(int unit, u_char *inpacket, int packet_len)
      * If packet too short, drop it.
      */
     inp = inpacket;
-    if (packet_len < CHAP_HEADERLEN)
-    {
+    if (packet_len < CHAP_HEADERLEN) {
         CHAPDEBUG((LOG_INFO, "ChapInput: rcvd short header.\n"));
         return;
     }
     GETCHAR(code, inp);
     GETCHAR(id, inp);
     GETSHORT(len, inp);
-    if (len < CHAP_HEADERLEN)
-    {
+    if (len < CHAP_HEADERLEN) {
         CHAPDEBUG((LOG_INFO, "ChapInput: rcvd illegal length.\n"));
         return;
     }
-    if (len > packet_len)
-    {
+    if (len > packet_len) {
         CHAPDEBUG((LOG_INFO, "ChapInput: rcvd short packet.\n"));
         return;
     }
@@ -406,25 +350,24 @@ ChapInput(int unit, u_char *inpacket, int packet_len)
     /*
      * Action depends on code (as in fact it usually does :-).
      */
-    switch (code)
-    {
-        case CHAP_CHALLENGE:
+    switch (code) {
+    case CHAP_CHALLENGE:
         ChapReceiveChallenge(cstate, inp, id, len);
         break;
 
-        case CHAP_RESPONSE:
+    case CHAP_RESPONSE:
         ChapReceiveResponse(cstate, inp, id, len);
         break;
 
-        case CHAP_FAILURE:
+    case CHAP_FAILURE:
         ChapReceiveFailure(cstate, inp, id, len);
         break;
 
-        case CHAP_SUCCESS:
+    case CHAP_SUCCESS:
         ChapReceiveSuccess(cstate, inp, id, len);
         break;
 
-        default: /* Need code reject? */
+    default: /* Need code reject? */
         CHAPDEBUG((LOG_WARNING, "Unknown CHAP code (%d) received.\n", code));
         break;
     }
@@ -433,9 +376,7 @@ ChapInput(int unit, u_char *inpacket, int packet_len)
 /*
  * ChapReceiveChallenge - Receive Challenge and send Response.
  */
-static void
-ChapReceiveChallenge(chap_state *cstate, u_char *inp, int id, int len)
-{
+static void ChapReceiveChallenge(chap_state *cstate, u_char *inp, int id, int len) {
     int rchallenge_len;
     u_char *rchallenge;
     int secret_len;
@@ -445,32 +386,27 @@ ChapReceiveChallenge(chap_state *cstate, u_char *inp, int id, int len)
     u_char hash[MD5_SIGNATURE_SIZE];
 
     CHAPDEBUG((LOG_INFO, "ChapReceiveChallenge: Rcvd id %d.\n", id));
-    if (cstate->clientstate == CHAPCS_CLOSED ||
-            cstate->clientstate == CHAPCS_PENDING)
-    {
+    if (cstate->clientstate == CHAPCS_CLOSED || cstate->clientstate == CHAPCS_PENDING) {
         CHAPDEBUG((LOG_INFO, "ChapReceiveChallenge: in state %d\n",
                         cstate->clientstate));
         return;
     }
 
-    if (len < 2)
-    {
+    if (len < 2) {
         CHAPDEBUG((LOG_INFO, "ChapReceiveChallenge: rcvd short packet.\n"));
         return;
     }
 
     GETCHAR(rchallenge_len, inp);
-    len -= sizeof (u_char) + rchallenge_len; /* now name field length */
-    if (len < 0)
-    {
+    len -= sizeof(u_char) + rchallenge_len; /* now name field length */
+    if (len < 0) {
         CHAPDEBUG((LOG_INFO, "ChapReceiveChallenge: rcvd short packet.\n"));
         return;
     }
     rchallenge = inp;
     INCPTR(rchallenge_len, inp);
 
-    if (len >= sizeof(rhostname))
-    {
+    if (len >= sizeof(rhostname)) {
         len = sizeof(rhostname) - 1;
     }
     BCOPY(inp, rhostname, len);
@@ -479,23 +415,20 @@ ChapReceiveChallenge(chap_state *cstate, u_char *inp, int id, int len)
     CHAPDEBUG((LOG_INFO, "ChapReceiveChallenge: received name field '%s'\n", rhostname));
 
     /* Microsoft doesn't send their name back in the PPP packet */
-    if (ppp_settings.remote_name[0] != 0 && (ppp_settings.explicit_remote || rhostname[0] == 0))
-    {
+    if (ppp_settings.remote_name[0] != 0 && (ppp_settings.explicit_remote || rhostname[0] == 0)) {
         strncpy(rhostname, ppp_settings.remote_name, sizeof(rhostname));
         rhostname[sizeof(rhostname) - 1] = 0;
         CHAPDEBUG((LOG_INFO, "ChapReceiveChallenge: using '%s' as remote name\n", rhostname));
     }
 
     /* get secret for authenticating ourselves with the specified host */
-    if (!get_secret(cstate->unit, cstate->resp_name, rhostname, secret, &secret_len, 0))
-    {
+    if (!get_secret(cstate->unit, cstate->resp_name, rhostname, secret, &secret_len, 0)) {
         secret_len = 0; /* assume null secret if can't find one */
         CHAPDEBUG((LOG_WARNING, "No CHAP secret found for authenticating us to %s\n", rhostname));
     }
 
     /* cancel response send timeout if necessary */
-    if (cstate->clientstate == CHAPCS_RESPONSE)
-    {
+    if (cstate->clientstate == CHAPCS_RESPONSE) {
         UNTIMEOUT(ChapResponseTimeout, cstate);
     }
 
@@ -503,13 +436,12 @@ ChapReceiveChallenge(chap_state *cstate, u_char *inp, int id, int len)
     cstate->resp_transmits = 0;
 
     /*  generate MD based on negotiated type */
-    switch (cstate->resp_type)
-    {
+    switch (cstate->resp_type) {
 
-        case CHAP_DIGEST_MD5:
+    case CHAP_DIGEST_MD5:
         MD5Init(&mdContext);
         MD5Update(&mdContext, &cstate->resp_id, 1);
-        MD5Update(&mdContext, (u_char*)secret, secret_len);
+        MD5Update(&mdContext, (u_char*) secret, secret_len);
         MD5Update(&mdContext, rchallenge, rchallenge_len);
         MD5Final(hash, &mdContext);
         BCOPY(hash, cstate->response, MD5_SIGNATURE_SIZE);
@@ -522,7 +454,7 @@ ChapReceiveChallenge(chap_state *cstate, u_char *inp, int id, int len)
         break;
 #endif
 
-        default:
+    default:
         CHAPDEBUG((LOG_INFO, "unknown digest type %d\n", cstate->resp_type));
         return;
     }
@@ -534,9 +466,7 @@ ChapReceiveChallenge(chap_state *cstate, u_char *inp, int id, int len)
 /*
  * ChapReceiveResponse - Receive and process response.
  */
-static void
-ChapReceiveResponse(chap_state *cstate, u_char *inp, int id, int len)
-{
+static void ChapReceiveResponse(chap_state *cstate, u_char *inp, int id, int len) {
     u_char *remmd, remmd_len;
     int secret_len, old_state;
     int code;
@@ -547,16 +477,13 @@ ChapReceiveResponse(chap_state *cstate, u_char *inp, int id, int len)
 
     CHAPDEBUG((LOG_INFO, "ChapReceiveResponse: Rcvd id %d.\n", id));
 
-    if (cstate->serverstate == CHAPSS_CLOSED ||
-            cstate->serverstate == CHAPSS_PENDING)
-    {
+    if (cstate->serverstate == CHAPSS_CLOSED || cstate->serverstate == CHAPSS_PENDING) {
         CHAPDEBUG((LOG_INFO, "ChapReceiveResponse: in state %d\n",
                         cstate->serverstate));
         return;
     }
 
-    if (id != cstate->chal_id)
-    {
+    if (id != cstate->chal_id) {
         return; /* doesn't match ID of last challenge */
     }
 
@@ -565,19 +492,16 @@ ChapReceiveResponse(chap_state *cstate, u_char *inp, int id, int len)
      * we have to send the same answer (Success/Failure)
      * as we did for the first Response we saw.
      */
-    if (cstate->serverstate == CHAPSS_OPEN)
-    {
+    if (cstate->serverstate == CHAPSS_OPEN) {
         ChapSendStatus(cstate, CHAP_SUCCESS);
         return;
     }
-    if (cstate->serverstate == CHAPSS_BADAUTH)
-    {
+    if (cstate->serverstate == CHAPSS_BADAUTH) {
         ChapSendStatus(cstate, CHAP_FAILURE);
         return;
     }
 
-    if (len < 2)
-    {
+    if (len < 2) {
         CHAPDEBUG((LOG_INFO, "ChapReceiveResponse: rcvd short packet.\n"));
         return;
     }
@@ -585,17 +509,15 @@ ChapReceiveResponse(chap_state *cstate, u_char *inp, int id, int len)
     remmd = inp; /* get pointer to MD */
     INCPTR(remmd_len, inp);
 
-    len -= sizeof (u_char) + remmd_len;
-    if (len < 0)
-    {
+    len -= sizeof(u_char) + remmd_len;
+    if (len < 0) {
         CHAPDEBUG((LOG_INFO, "ChapReceiveResponse: rcvd short packet.\n"));
         return;
     }
 
     UNTIMEOUT(ChapChallengeTimeout, cstate);
 
-    if (len >= sizeof(rhostname))
-    {
+    if (len >= sizeof(rhostname)) {
         len = sizeof(rhostname) - 1;
     }
     BCOPY(inp, rhostname, len);
@@ -608,37 +530,31 @@ ChapReceiveResponse(chap_state *cstate, u_char *inp, int id, int len)
      * do the hash ourselves, and compare the result.
      */
     code = CHAP_FAILURE;
-    if (!get_secret(cstate->unit, rhostname, cstate->chal_name, secret, &secret_len, 1))
-    {
+    if (!get_secret(cstate->unit, rhostname, cstate->chal_name, secret, &secret_len, 1)) {
         /* CHAPDEBUG((LOG_WARNING, TL_CHAP, "No CHAP secret found for authenticating %s\n", rhostname)); */
         CHAPDEBUG((LOG_WARNING, "No CHAP secret found for authenticating %s\n",
                         rhostname));
-    }
-    else
-    {
+    } else {
         /*  generate MD based on negotiated type */
-        switch (cstate->chal_type)
-        {
+        switch (cstate->chal_type) {
 
-            case CHAP_DIGEST_MD5: /* only MD5 is defined for now */
-            if (remmd_len != MD5_SIGNATURE_SIZE)
-            {
+        case CHAP_DIGEST_MD5: /* only MD5 is defined for now */
+            if (remmd_len != MD5_SIGNATURE_SIZE) {
                 break; /* it's not even the right length */
             }
             MD5Init(&mdContext);
             MD5Update(&mdContext, &cstate->chal_id, 1);
-            MD5Update(&mdContext, (u_char*)secret, secret_len);
+            MD5Update(&mdContext, (u_char*) secret, secret_len);
             MD5Update(&mdContext, cstate->challenge, cstate->chal_len);
             MD5Final(hash, &mdContext);
 
             /* compare local and remote MDs and send the appropriate status */
-            if (memcmp (hash, remmd, MD5_SIGNATURE_SIZE) == 0)
-            {
+            if (memcmp(hash, remmd, MD5_SIGNATURE_SIZE) == 0) {
                 code = CHAP_SUCCESS; /* they are the same! */
             }
             break;
 
-            default:
+        default:
             CHAPDEBUG((LOG_INFO, "unknown digest type %d\n", cstate->chal_type));
         }
     }
@@ -646,21 +562,16 @@ ChapReceiveResponse(chap_state *cstate, u_char *inp, int id, int len)
     BZERO(secret, sizeof(secret));
     ChapSendStatus(cstate, code);
 
-    if (code == CHAP_SUCCESS)
-    {
+    if (code == CHAP_SUCCESS) {
         old_state = cstate->serverstate;
         cstate->serverstate = CHAPSS_OPEN;
-        if (old_state == CHAPSS_INITIAL_CHAL)
-        {
+        if (old_state == CHAPSS_INITIAL_CHAL) {
             auth_peer_success(cstate->unit, PPP_CHAP, rhostname, len);
         }
-        if (cstate->chal_interval != 0)
-        {
+        if (cstate->chal_interval != 0) {
             TIMEOUT(ChapRechallenge, cstate, cstate->chal_interval);
         }
-    }
-    else
-    {
+    } else {
         CHAPDEBUG((LOG_ERR, "CHAP peer authentication failed\n"));
         cstate->serverstate = CHAPSS_BADAUTH;
         auth_peer_fail(cstate->unit, PPP_CHAP);
@@ -670,22 +581,18 @@ ChapReceiveResponse(chap_state *cstate, u_char *inp, int id, int len)
 /*
  * ChapReceiveSuccess - Receive Success
  */
-static void
-ChapReceiveSuccess(chap_state *cstate, u_char *inp, u_char id, int len)
-{
+static void ChapReceiveSuccess(chap_state *cstate, u_char *inp, u_char id, int len) {
     LWIP_UNUSED_ARG(id);
     LWIP_UNUSED_ARG(inp);
 
     CHAPDEBUG((LOG_INFO, "ChapReceiveSuccess: Rcvd id %d.\n", id));
 
-    if (cstate->clientstate == CHAPCS_OPEN)
-    {
+    if (cstate->clientstate == CHAPCS_OPEN) {
         /* presumably an answer to a duplicate response */
         return;
     }
 
-    if (cstate->clientstate != CHAPCS_RESPONSE)
-    {
+    if (cstate->clientstate != CHAPCS_RESPONSE) {
         /* don't know what this is */
         CHAPDEBUG((LOG_INFO, "ChapReceiveSuccess: in state %d\n", cstate->clientstate));
         return;
@@ -696,8 +603,7 @@ ChapReceiveSuccess(chap_state *cstate, u_char *inp, u_char id, int len)
     /*
      * Print message.
      */
-    if (len > 0)
-    {
+    if (len > 0) {
         PRINTMSG(inp, len);
     }
 
@@ -709,16 +615,13 @@ ChapReceiveSuccess(chap_state *cstate, u_char *inp, u_char id, int len)
 /*
  * ChapReceiveFailure - Receive failure.
  */
-static void
-ChapReceiveFailure(chap_state *cstate, u_char *inp, u_char id, int len)
-{
+static void ChapReceiveFailure(chap_state *cstate, u_char *inp, u_char id, int len) {
     LWIP_UNUSED_ARG(id);
     LWIP_UNUSED_ARG(inp);
 
     CHAPDEBUG((LOG_INFO, "ChapReceiveFailure: Rcvd id %d.\n", id));
 
-    if (cstate->clientstate != CHAPCS_RESPONSE)
-    {
+    if (cstate->clientstate != CHAPCS_RESPONSE) {
         /* don't know what this is */
         CHAPDEBUG((LOG_INFO, "ChapReceiveFailure: in state %d\n", cstate->clientstate));
         return;
@@ -729,8 +632,7 @@ ChapReceiveFailure(chap_state *cstate, u_char *inp, u_char id, int len)
     /*
      * Print message.
      */
-    if (len > 0)
-    {
+    if (len > 0) {
         PRINTMSG(inp, len);
     }
 
@@ -741,16 +643,14 @@ ChapReceiveFailure(chap_state *cstate, u_char *inp, u_char id, int len)
 /*
  * ChapSendChallenge - Send an Authenticate challenge.
  */
-static void
-ChapSendChallenge(chap_state *cstate)
-{
+static void ChapSendChallenge(chap_state *cstate) {
     u_char *outp;
     int chal_len, name_len;
     int outlen;
 
     chal_len = cstate->chal_len;
     name_len = strlen(cstate->chal_name);
-    outlen = CHAP_HEADERLEN + sizeof (u_char) + chal_len + name_len;
+    outlen = CHAP_HEADERLEN + sizeof(u_char) + chal_len + name_len;
     outp = outpacket_buf[cstate->unit];
 
     MAKEHEADER(outp, PPP_CHAP); /* paste in a CHAP header */
@@ -776,19 +676,14 @@ ChapSendChallenge(chap_state *cstate)
 /*
  * ChapSendStatus - Send a status response (ack or nak).
  */
-static void
-ChapSendStatus(chap_state *cstate, int code)
-{
+static void ChapSendStatus(chap_state *cstate, int code) {
     u_char *outp;
     int outlen, msglen;
     char msg[256];
 
-    if (code == CHAP_SUCCESS)
-    {
+    if (code == CHAP_SUCCESS) {
         strcpy(msg, "Welcome!");
-    }
-    else
-    {
+    } else {
         strcpy(msg, "I don't like you.  Go 'way.");
     }
     msglen = strlen(msg);
@@ -814,26 +709,20 @@ ChapSendStatus(chap_state *cstate, int code)
  * *cstate are initialized.
  */
 
-static void
-ChapGenChallenge(chap_state *cstate)
-{
+static void ChapGenChallenge(chap_state *cstate) {
     int chal_len;
     u_char *ptr = cstate->challenge;
     int i;
 
-    /* pick a random challenge length between MIN_CHALLENGE_LENGTH and 
+    /* pick a random challenge length between MIN_CHALLENGE_LENGTH and
      MAX_CHALLENGE_LENGTH */
-    chal_len = (unsigned)
-    ((((magic() >> 16) *
-                            (MAX_CHALLENGE_LENGTH - MIN_CHALLENGE_LENGTH)) >> 16)
-            + MIN_CHALLENGE_LENGTH);
+    chal_len = (unsigned) ((((magic() >> 16) * (MAX_CHALLENGE_LENGTH - MIN_CHALLENGE_LENGTH)) >> 16) + MIN_CHALLENGE_LENGTH);
     cstate->chal_len = chal_len;
     cstate->chal_id = ++cstate->id;
     cstate->chal_transmits = 0;
 
     /* generate a random string */
-    for (i = 0; i < chal_len; i++ )
-    {
+    for (i = 0; i < chal_len; i++) {
         *ptr++ = (char) (magic() & 0xff);
     }
 }
@@ -843,15 +732,13 @@ ChapGenChallenge(chap_state *cstate)
  * in *cstate.
  */
 /* ARGSUSED */
-static void
-ChapSendResponse(chap_state *cstate)
-{
+static void ChapSendResponse(chap_state *cstate) {
     u_char *outp;
     int outlen, md_len, name_len;
 
     md_len = cstate->resp_length;
     name_len = strlen(cstate->resp_name);
-    outlen = CHAP_HEADERLEN + sizeof (u_char) + md_len + name_len;
+    outlen = CHAP_HEADERLEN + sizeof(u_char) + md_len + name_len;
     outp = outpacket_buf[cstate->unit];
 
     MAKEHEADER(outp, PPP_CHAP);
@@ -875,71 +762,56 @@ ChapSendResponse(chap_state *cstate)
 }
 
 #if 0
-static char *ChapCodenames[] =
-{
-    "Challenge", "Response", "Success", "Failure"
-};
+static char *ChapCodenames[] = { "Challenge", "Response", "Success", "Failure" };
 /*
  * ChapPrintPkt - print the contents of a CHAP packet.
  */
-static int
-ChapPrintPkt( u_char *p, int plen, void (*printer) (void *, char *, ...), void *arg)
-{
+static int ChapPrintPkt(u_char *p, int plen, void (*printer)(void *, char *, ...), void *arg) {
     int code, id, len;
     int clen, nlen;
     u_char x;
 
-    if (plen < CHAP_HEADERLEN)
-    {
+    if (plen < CHAP_HEADERLEN) {
         return 0;
     }
     GETCHAR(code, p);
     GETCHAR(id, p);
     GETSHORT(len, p);
-    if (len < CHAP_HEADERLEN || len > plen)
-    {
+    if (len < CHAP_HEADERLEN || len > plen) {
         return 0;
     }
-    if (code >= 1 && code <= sizeof(ChapCodenames) / sizeof(char *))
-    {
-        printer(arg, " %s", ChapCodenames[code-1]);
-    }
-    else
-    {
+    if (code >= 1 && code <= sizeof(ChapCodenames) / sizeof(char *)) {
+        printer(arg, " %s", ChapCodenames[code - 1]);
+    } else {
         printer(arg, " code=0x%x", code);
     }
     printer(arg, " id=0x%x", id);
     len -= CHAP_HEADERLEN;
-    switch (code)
-    {
-        case CHAP_CHALLENGE:
-        case CHAP_RESPONSE:
-        if (len < 1)
-        {
+    switch (code) {
+    case CHAP_CHALLENGE:
+    case CHAP_RESPONSE:
+        if (len < 1) {
             break;
         }
         clen = p[0];
-        if (len < clen + 1)
-        {
+        if (len < clen + 1) {
             break;
         }
         ++p;
         nlen = len - clen - 1;
         printer(arg, " <");
-        for (; clen > 0; --clen)
-        {
+        for (; clen > 0; --clen) {
             GETCHAR(x, p);
             printer(arg, "%.2x", x);
         }
         printer(arg, ">, name = %.*Z", nlen, p);
         break;
-        case CHAP_FAILURE:
-        case CHAP_SUCCESS:
+    case CHAP_FAILURE:
+    case CHAP_SUCCESS:
         printer(arg, " %.*Z", len, p);
         break;
-        default:
-        for (clen = len; clen > 0; --clen)
-        {
+    default:
+        for (clen = len; clen > 0; --clen) {
             GETCHAR(x, p);
             printer(arg, " %.2x", x);
         }
