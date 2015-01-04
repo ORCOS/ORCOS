@@ -22,7 +22,6 @@
 #include <error.hh>
 #include <types.hh>
 
-
 /*!
  *  \brief DummyClass
  *
@@ -30,15 +29,15 @@
  *  functionality from the OS if wanted.
  */
 class DummyClass {
-
 public:
     //!  constructor
-	DummyClass() {};
+    DummyClass() {
+    }
+
 
     //!  destructor
-    ~DummyClass() {};
-
-
+    ~DummyClass() {
+    }
 };
 
 #endif

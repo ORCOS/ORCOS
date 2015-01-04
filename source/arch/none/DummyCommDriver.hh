@@ -23,48 +23,19 @@
 #include <types.hh>
 #include <hal/CommDeviceDriver.hh>
 
-
-
-
 /*!
  *  \brief DummyCommDriver driver class
  *
  */
 class DummyCommDriver: public CommDeviceDriver {
-
 public:
-
     //!  constructor
-	DummyCommDriver( const char *name, int4 a ) {}
+    DummyCommDriver(const char *name, int4 a) {
+    }
 
     //!  destructor
-    ~DummyCommDriver() {};
-
-    void recv() {};
-
-
-    ErrorT lowlevel_send( char* data, int len ) {
-        return cNotImplemented;
+    ~DummyCommDriver() {
     }
-
-
-    ErrorT send( packet_layer* packet, char* dest_addr, int addr_len, int2 fromProtocol_ID ) {
-        return cNotImplemented;
-    }
-
-
-    ErrorT broadcast( packet_layer* packet, int2 fromProtocol_ID ) {
-        return cNotImplemented;
-    };
-
-
-    ErrorT multicast( packet_layer* packet, int2 fromProtocol_ID, unint4 dest_addr ) {
-        return cNotImplemented;
-    };
-
-
-
-
 };
 
 #endif

@@ -31,11 +31,13 @@
  *  *
  */
 class DummyWatchdog: public Watchdog {
-
 public:
 
-    DummyWatchdog( const char* name ) {};
-    ~DummyWatchdog() {};
+    DummyWatchdog(const char* name) {
+    }
+
+    ~DummyWatchdog() {
+    }
 
     /*!
      * \brief Enable the watchdog
@@ -43,7 +45,7 @@ public:
      * No functionality..
      */
     ErrorT enable() {
-        return cNotImplemented;
+        return (cNotImplemented);
     }
 
     /*!
@@ -52,10 +54,8 @@ public:
      * No functionality..
      */
     ErrorT kick() {
-        return cNotImplemented;
+        return (cNotImplemented);
     }
-
-
 };
 
 #endif /*PPC405WATCHDOG_*/

@@ -21,7 +21,7 @@
 
 #include <error.hh>
 #include <types.hh>
-#include <hal/CharacterDeviceDriver.hh>
+#include <hal/CharacterDevice.hh>
 
 /*!
  *  \brief DummyUART driver
@@ -29,16 +29,16 @@
  *  This driver offers no functionality and is only used for removing the UART
  *  functionality from the OS if wanted.
  */
-class DummyCharDriver: public CharacterDeviceDriver {
-
+class DummyCharDriver: public CharacterDevice {
 public:
     //!  constructor
-	DummyCharDriver( const char *name, int4 a ) {};
+    DummyCharDriver(const char *name, int4 a) {
+    }
+
 
     //!  destructor
-    ~DummyCharDriver() {};
-
-
+    ~DummyCharDriver() {
+    }
 };
 
 #endif
