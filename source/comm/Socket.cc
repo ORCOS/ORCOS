@@ -86,9 +86,11 @@ Socket::~Socket() {
  * Method: Socket::bind(sockaddr* address)
  *
  * @description
- *
+ *  Bin call on sockets. Called by user space applications to
+ *  bind a socket to a given transport protocol port and address
+ *  protocol address (if applicable).
  * @params
- *
+ *  address     The socket address the socket shall be bound to. See sockaddr struct.
  * @returns
  *  int         Error Code
  *******************************************************************************/
@@ -99,23 +101,24 @@ ErrorT Socket::bind(sockaddr* address) {
 
     ErrorT error = cOk;
 
-    // register this socket at transportprotocol so we can receive something from now on
-    if (tproto != 0)
+    /* register this socket at transportprotocol so we can receive something from now on */
+    if (tproto != 0) {
         error = tproto->register_socket(address->port_data, this);
-    else
+    } else {
         error = cTransportProtocolNotAvailable;
+    }
 
-    // bind at addressprotocol
-    if (aproto != 0)
+    /* bind at addressprotocol */
+    if (aproto != 0) {
         error |= aproto->bind(address, this);
-    else
+    } else {
         error |= cAddressProtocolNotAvailable;
+    }
 
     if (isOk(error)) {
-        // finally if both previous steps succeeded remember my bound address
+        /* finally if both previous steps succeeded remember my bound address */
         myboundaddr = *address;
         myboundaddr.sa_data = address->sa_data;
-
         LOG(COMM, INFO, "Socket::bind(): binding socket to addr: 0x%x port: %d", myboundaddr.sa_data, myboundaddr.port_data);
     } else {
         LOG(COMM, ERROR, "Socket::bind(): could not bind address. Errorcode: %d", error);
@@ -142,9 +145,13 @@ ErrorT Socket::bind(sockaddr* address) {
  * Method: Socket::connected(int error)
  *
  * @description
- *
+ *  Callbacl from transport protocl layer when the a connection
+ *  belonging to this socket has been connected or the connection
+ *  establishment failed. Error is provided inside the argument and
+ *  must be either cOk (Connection successfull) or any other error code
+ *  for non successfull connections.
  * @params
- *
+ *  error       Error Code. cOk on success.
  * @returns
  *  int         Error Code
  *******************************************************************************/
@@ -154,9 +161,10 @@ void Socket::connected(int error) {
         return;
 
     if (error != cOk) {
-        // we are not connected
+        /* we are not connected */
         this->state = SOCKET_DISCONNECTED;
     } else {
+        /* TODO propagate error code to user */
         state = SOCKET_CONNECTED;
     }
 
@@ -170,15 +178,19 @@ void Socket::connected(int error) {
  * Method: Socket::disconnected(int error)
  *
  * @description
+ *  Callback from transport protocol is a connection was closed.
  *
  * @params
- *
+ *  error       Error Code from transport protocol. May propagate
+ *              reason the connection was closed.
  * @returns
  *  int         Error Code
  *******************************************************************************/
 void Socket::disconnected(int error) {
     LOG(COMM, DEBUG, "Socket::disconnected(): status %d", error);
     this->state = SOCKET_DISCONNECTED;
+
+    /* TODO: propagate error code to user if remotely closed. */
 
     if (this->blockedThread != 0) {
         this->blockedThread->unblock();
@@ -254,10 +266,8 @@ int Socket::accepted(Socket* newConnection) {
             blockedThread->unblock();
             this->blockedThread = 0;
         }
-
         return (error);
     }
-
     return (cError );
 }
 
