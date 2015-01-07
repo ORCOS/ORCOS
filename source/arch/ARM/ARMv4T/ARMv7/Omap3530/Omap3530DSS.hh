@@ -14,14 +14,14 @@
 
 // CharacterDevice Driver for support as the standard output device
 // console
-class BeagleBoardDSS: public CharacterDevice {
+class Omap3530DSS: public CharacterDevice {
 private:
     SharedMemResource* framebuffer;
 
 public:
-    explicit BeagleBoardDSS(T_BeagleBoardDSS_Init *init);
+    explicit Omap3530DSS(T_Omap3530DSS_Init *init);
 
-    ~BeagleBoardDSS();
+    ~Omap3530DSS();
 
     /*****************************************************************************
      * Method: init()

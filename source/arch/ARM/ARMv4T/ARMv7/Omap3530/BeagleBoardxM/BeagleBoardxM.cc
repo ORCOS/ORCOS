@@ -412,6 +412,7 @@ void BeagleBoardxM::initialize() {
     OUTW(0x49056000 + 0x34, ~(GPIO31 | GPIO30 | GPIO29 | GPIO11 | GPIO28 | GPIO22 | GPIO21 | GPIO15 | GPIO14 | GPIO13 | GPIO12));
 
 #ifdef HAS_Board_InterruptControllerCfd
+    INIT_Board_InterruptControllerCfd
     InterruptControllerCfd = new NEW_Board_InterruptControllerCfd;
     LOG(ARCH, INFO, "BeagleBoardxM: Board Interrupt Controller: [" STRINGIZE(Board_InterruptControllerCfdCl) "]");
     InterruptControllerCfd->clearIRQ(1);

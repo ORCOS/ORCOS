@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BoardDefinition>
+   <!-- ####################################################
+         BeagleBoardxM Board Definition and Default Values
+       #################################################### -->
+   <Superclasses>
+    <Superclass Provides="ARMv4,ARMv7,CortexA8,OMAP3530,TWL4030,BeagleBoard,BeagleBoardxM"
+               Name="arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardxM/BeagleBoardxM">
+
+     <MemberRef Name="Timer" optional="false">
+       <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPTimer">
+         <PropertyValue Name="Address" Value="0x48318000" />
+         <PropertyValue Name="Length" Value="4096" />
+         <PropertyValue Name="Name" Value="sched_timer" />
+         <PropertyValue Name="INTC_IRQ" Value="37" />
+         <PropertyValue Name="INTC_Priority" Value="50" />
+       </Defaults>
+     </MemberRef>
+
+     <MemberRef Name="HatLayer"/>
+
+     <MemberRef Name="Clock" optional="false">
+         <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530Clock">
+             <PropertyValue Name="Name" Value="sysclock0"/>
+         </Defaults>
+     </MemberRef>
+
+     <MemberRef Name="Cache">
+       <Defaults Class="arch/ARM/ARMv4T/ARMv7/ARMv7Cache"/>
+     </MemberRef>
+
+     <MemberRef Name="Processor" optional="false"/>
+
+     <!-- No Watchdog support yet -->
+   <MemberRef Name="DSS">
+     <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530DSS">
+       <PropertyValue Name="Name" Value="dss0"/>
+       <PropertyValue Name="FramebufferName" Value="fb0"/>
+       <PropertyValue Name="Resolution" Value="1024x768" />
+     </Defaults>
+   </MemberRef>
+
+   <MemberRef Name="UART">
+     <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530UART">
+       <!--  UART3 -->
+       <!--  First value of set is the default value, rest enum values -->
+       <PropertyValue Name="Address" Value="0x49020000" />
+       <PropertyValue Name="Length" Value="1024" />
+       <PropertyValue Name="Name" Value="serial0"/>
+       <PropertyValue Name="INTC_IRQ" Value="74" />
+       <PropertyValue Name="INTC_Priority" Value="10" />
+     </Defaults>
+     <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530i2c">
+       <!--  I2C1 -->
+       <PropertyValue Name="Address" Value="0x48070000" />
+       <PropertyValue Name="Length" Value="1024" />
+       <PropertyValue Name="Name" Value="i2c0"/>
+       <PropertyValue Name="INTC_IRQ" Value="56" />
+       <PropertyValue Name="INTC_Priority" Value="10" />
+     </Defaults>
+   </MemberRef>
+
+   <MemberRef Name="UART2">
+     <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530UART">
+       <!--  UART3 -->
+       <!--  First value of set is the default value, rest enum values -->
+       <PropertyValue Name="Address" Value="0x49020000" />
+       <PropertyValue Name="Length" Value="1024" />
+       <PropertyValue Name="Name" Value="serial0"/>
+       <PropertyValue Name="INTC_IRQ" Value="74" />
+       <PropertyValue Name="INTC_Priority" Value="10" />
+     </Defaults>
+    <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530i2c">
+       <!--  I2C1 -->
+       <PropertyValue Name="Address" Value="0x48070000" />
+       <PropertyValue Name="Length" Value="1024" />
+       <PropertyValue Name="Name" Value="i2c0"/>
+       <PropertyValue Name="INTC_IRQ" Value="56" />
+       <PropertyValue Name="INTC_Priority" Value="10" />
+     </Defaults>
+   </MemberRef>
+
+   <MemberRef Name="SPI">
+     <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530SPI">
+      <!--  First value of set is the default value, rest enum values -->
+         <PropertyValue Name="Address" Value="MCSPI3" />
+         <PropertyValue Name="Name" Value="spi"/>
+       </Defaults>
+     </MemberRef>
+
+     <MemberRef Name="GPIO1">
+       <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO">
+         <PropertyValue Name="Address" Value="0x48310000" />
+         <PropertyValue Name="Length" Value="4096" />
+         <PropertyValue Name="Name" Value="gpio1" />
+         <PropertyValue Name="DirectionBits" Value="0x0" />
+         <PropertyValue Name="ValueBits" Value="0x0"/>
+         <PropertyValue Name="Priority" Value="1000" />
+         <PropertyValue Name="INTC_IRQ" Value="29" />
+         <PropertyValue Name="INTC_Priority" Value="10" />
+       </Defaults>
+     </MemberRef>
+
+     <MemberRef Name="GPIO2">
+       <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO">
+         <PropertyValue Name="Address" Value="0x49050000" />
+         <PropertyValue Name="Length" Value="4096" />
+         <PropertyValue Name="Name" Value="gpio2" />
+         <PropertyValue Name="DirectionBits" Value="0x0" />
+         <PropertyValue Name="ValueBits" Value="0x0"/>
+         <PropertyValue Name="Priority" Value="1000" />
+         <PropertyValue Name="INTC_IRQ" Value="30" />
+         <PropertyValue Name="INTC_Priority" Value="10" />
+       </Defaults>
+     </MemberRef>
+
+     <MemberRef Name="GPIO3">
+       <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO">
+         <PropertyValue Name="Address" Value="0x49052000" />
+         <PropertyValue Name="Length" Value="4096" />
+         <PropertyValue Name="Name" Value="gpio3" />
+         <PropertyValue Name="DirectionBits" Value="0x0" />
+         <PropertyValue Name="ValueBits" Value="0x0"/>
+         <PropertyValue Name="Priority" Value="1000" />
+         <PropertyValue Name="INTC_IRQ" Value="31" />
+         <PropertyValue Name="INTC_Priority" Value="10" />
+       </Defaults>
+     </MemberRef>
+
+     <MemberRef Name="GPIO4">
+       <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO">
+         <PropertyValue Name="Address" Value="0x49054000" />
+         <PropertyValue Name="Length" Value="4096" />
+         <PropertyValue Name="Name" Value="gpio4" />
+         <PropertyValue Name="DirectionBits" Value="0x0" />
+         <PropertyValue Name="ValueBits" Value="0x0"/>
+         <PropertyValue Name="Priority" Value="1000" />
+         <PropertyValue Name="INTC_IRQ" Value="32" />
+         <PropertyValue Name="INTC_Priority" Value="10" />
+       </Defaults>
+     </MemberRef>
+
+     <MemberRef Name="GPIO5">
+       <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO">
+         <PropertyValue Name="Address" Value="0x49056000" />
+         <PropertyValue Name="Length" Value="4096" />
+         <PropertyValue Name="Name" Value="gpio5" />
+         <PropertyValue Name="DirectionBits" Value="(~(F060F000))" />
+         <PropertyValue Name="ValueBits" Value="F060F000"/>
+         <PropertyValue Name="Priority" Value="1000" />
+         <PropertyValue Name="INTC_IRQ" Value="33" />
+         <PropertyValue Name="INTC_Priority" Value="10" />
+       </Defaults>
+     </MemberRef>
+
+     <MemberRef Name="GPIO6">
+       <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO">
+         <PropertyValue Name="Address" Value="0x49058000" />
+         <PropertyValue Name="Length" Value="4096" />
+         <PropertyValue Name="Name" Value="gpio6" />
+         <PropertyValue Name="DirectionBits" Value="(~(0x800506))" />
+         <PropertyValue Name="ValueBits" Value="0x800506"/>
+         <PropertyValue Name="Priority" Value="1000" />
+         <PropertyValue Name="INTC_IRQ" Value="34" />
+         <PropertyValue Name="INTC_Priority" Value="10" />
+       </Defaults>
+     </MemberRef>
+
+     <MemberRef Name="USB_HC">
+      <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/HighSpeedUSBHostController">
+         <PropertyValue Name="I2CDeviceName" Value="dev/i2c0" />
+         <PropertyValue Name="Priority" Value="5000" />
+      </Defaults>
+     </MemberRef>
+
+     <MemberRef Name="InterruptHandler" optional="false"/>
+
+     <MemberRef Name="InterruptController" optional="false" >
+         <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530InterruptController">
+             <PropertyValue Name="Address" Value="0x48200000" />
+         </Defaults>
+     </MemberRef>
+
+     <MemberRef Name="ExtPowerControl" optional="true" >
+         <Defaults Class="arch/shared/power/TWL4030">
+             <PropertyValue Name="I2CDeviceName" Value="dev/i2c0" />
+         </Defaults>
+     </MemberRef>
+
+     <MemberRef Name="MMC" optional="true">
+         <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapMMC_SD_HC">
+             <!-- MMC1-->
+             <PropertyValue Name="Address" Value="0x4809C000" />
+             <PropertyValue Name="INTC_IRQ" Value="83" />
+             <PropertyValue Name="INTC_Priority" Value="10" />
+         </Defaults>
+     </MemberRef>
+   </Superclass>
+   </Superclasses>
+   <!-- ####################################################
+         Generic OMAP3530 Devices. May be also used by
+         other architectures as e.g. AM335x, DM355x etc.
+       #################################################### -->
+
+   <Device Name="Timer">
+       <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPTimer">
+         <Property Name="Address" Type="unsigned int" Optional="false" />
+         <Property Name="Length" Type="unsigned int" Optional="false" />
+         <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree." />
+         <Property Name="INTC_IRQ" Type="unsigned int" Optional="false" Description="Interrupt Line at the Interrupt Controller." />
+         <Property Name="INTC_Priority" Type="unsigned int" Optional="false" Description="IRQ Priority at the Interrupt Controller." />
+       </Class>
+   </Device>
+   <Device Name="InterruptController">
+     <Class Requires="CortexA8" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530InterruptController">
+         <Property Name="Address" Type="unsigned int" Optional="false" Description="The Interrupt Controller Base Address" />
+     </Class>
+  </Device>
+
+   <Device Name="Clock">
+        <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530Clock">
+          <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree." />
+        </Class>
+    </Device>
+
+    <Device Name="DSS">
+        <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530DSS">
+          <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree." />
+          <Property Name="Resolution" Type="char*" Optional="true" />
+          <Property Name="FramebufferName" Type="char*" Optional="false" Description="The name of the framebuffer device inside the '\dev\' subtree." />
+        </Class>
+    </Device>
+
+    <Device Name="UART,UART2" >
+        <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530UART">
+          <Property Name="Address" Type="unsigned int" Optional="false" Description="The Memory Mapped I/O (MMIO) Base Address of this device." />
+          <Property Name="Length" Type="unsigned int" Optional="true" Description="The Length (Bytes) of the Memory Mapped I/O Area of this device. This value is only needed if Virtual Memory is activated to create the corresponding memory maps." />
+          <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree." />
+          <Property Name="INTC_IRQ" Type="unsigned int" Optional="false" Description="Interrupt Line at the Interrupt Controller." />
+          <Property Name="INTC_Priority" Type="unsigned int" Optional="false" Description="IRQ Priority at the Interrupt Controller." />
+        </Class>
+        <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530i2c">
+          <Property Name="Address" Type="unsigned int" Optional="false" Description="The Memory Mapped I/O (MMIO) Base Address of this device." />
+          <Property Name="Length" Type="unsigned int" Optional="true" Description="The Length (Bytes) of the Memory Mapped I/O Area of this device. This value is only needed if Virtual Memory is activated to create the corresponding memory maps." />
+          <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree." />
+          <Property Name="INTC_IRQ" Type="unsigned int" Optional="false" Description="Interrupt Line at the Interrupt Controller." />
+          <Property Name="INTC_Priority" Type="unsigned int" Optional="false" Description="IRQ Priority at the Interrupt Controller." />
+        </Class>
+    </Device>
+
+    <Device Name="GPIO1,GPIO2,GPIO3,GPIO4,GPIO5,GPIO6">
+        <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO">
+          <Property Name="Address" Type="unsigned int" Optional="false" Description="The Memory Mapped I/O (MMIO) Base Address of this device." />
+          <Property Name="Length" Type="unsigned int" Optional="true" Description="The Length (Bytes) of the Memory Mapped I/O Area of this device. This value is only needed if Virtual Memory is activated to create the corresponding memory maps." />
+          <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree." />
+          <Property Name="DirectionBits" Type="unsigned int" Optional="true" Description="The initial direction of the GPIO pins. Bit Semantics: 0 = output, 1= input" />
+          <Property Name="ValueBits" Type="unsigned int" Optional="true" Description="The initial value of a output pin programmed per bit." />
+          <Property Name="Priority" Type="int" Optional="false" Description="The Priority parameter of this device. The priority is used for scheduled IRQ handling." />
+          <Property Name="INTC_IRQ" Type="unsigned int" Optional="false" Description="Interrupt Line at the Interrupt Controller." />
+          <Property Name="INTC_Priority" Type="unsigned int" Optional="false" Description="IRQ Priority at the Interrupt Controller." />
+        </Class>
+    </Device>
+
+     <Device Name="USB_HC">
+        <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/HighSpeedUSBHostController">
+          <Property Name="I2CDeviceName" Type="char*" Optional="false" Description="The I2C Device Name as found in 'dev\i2cdevice' the TWL power chip is connected to. Used to setup the USB HC Power. Must match the device name of the configured I2C Device. \nDefault: 'i2c0'" />
+          <Property Name="Priority" Type="int" Optional="false" Description="The Priority parameter of this device. The priority is used for scheduled IRQ handling." />
+        </Class>
+    </Device>
+
+     <Device Name="MMC">
+        <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapMMC_SD_HC">
+          <Property Name="Address" Type="unsigned int" Optional="false" Description="The MMC controller base address. MMC1-3 are available." />
+          <Property Name="INTC_IRQ" Type="unsigned int" Optional="false" Description="Interrupt Line at the Interrupt Controller." />
+          <Property Name="INTC_Priority" Type="unsigned int" Optional="false" Description="IRQ Priority at the Interrupt Controller." />
+        </Class>
+     </Device>
+
+    <Device Name="SPI">
+        <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530SPI">
+          <Property Name="Address" Type="unsigned int" Optional="false" Description="The SPI controller base address. SPI1-4 are available.\nUse MCSPI1,MCSPI2,MCSPI3,MCSPI3 as value or specify the address directly." />
+          <Property Name="Name" Type="char*" Optional="false" Description="The device name as it will be registered under /dev/" />
+        </Class>
+     </Device>
+</BoardDefinition>

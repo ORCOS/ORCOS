@@ -62,7 +62,7 @@
  *
  *  This class encapsulates the UART driver implementation.
  */
-ORCOS_MODULE(BeagleBoardUART, CharacterDevice) {
+ORCOS_MODULE(Omap3530UART, CharacterDevice) {
 private:
     int4 baseAddr;
 
@@ -117,10 +117,10 @@ private:
 
 public:
     //!  constructor
-    BeagleBoardUART(T_BeagleBoardUART_Init* init);
+    Omap3530UART(T_Omap3530UART_Init* init);
 
     //!  destructor
-    ~BeagleBoardUART();
+    ~Omap3530UART();
 
     /*****************************************************************************
      * Method: enableIRQ()

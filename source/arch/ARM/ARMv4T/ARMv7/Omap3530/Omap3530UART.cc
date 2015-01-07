@@ -16,20 +16,19 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "BeagleBoardUART.hh"
-//#include "comm/AddressProtocol.hh"
+#include <Omap3530UART.hh>
 #include "inc/memio.h"
 //#include "kernel/Kernel.hh"
 #include "OMAP3530.h"
 
 // Initialize the module.. only has an effect if the device is used in userspace
 // code is added for user space initialization, argument passing memory regions are initialized.
-ORCOS_MODULE_INIT(BeagleBoardUART, 256)
+ORCOS_MODULE_INIT(Omap3530UART, 256)
 
-BeagleBoardUART::~BeagleBoardUART() {
+Omap3530UART::~Omap3530UART() {
 }
 
-BeagleBoardUART::BeagleBoardUART(T_BeagleBoardUART_Init* init) :
+Omap3530UART::Omap3530UART(T_Omap3530UART_Init* init) :
         CharacterDevice(false, init->Name) {
     // be sure our clock generation is enabled!
 
@@ -102,36 +101,36 @@ BeagleBoardUART::BeagleBoardUART(T_BeagleBoardUART_Init* init) :
 }
 
 /*****************************************************************************
- * Method: BeagleBoardUART::enableIRQ()
+ * Method: Omap3530UART::enableIRQ()
  *
  * @description
  *  Enables IRQ generation from the UART
  *******************************************************************************/
-ErrorT BeagleBoardUART::enableIRQ() {
+ErrorT Omap3530UART::enableIRQ() {
     // enable all irqs within UART module
     OUTW(baseAddr + UART_IER_REG_OFFSET, (INW(baseAddr + UART_IER_REG_OFFSET) | UART_IER_MODEM | UART_IER_LINE | UART_IER_THR | UART_IER_RHR));
     return (cOk );
 }
 
 /*****************************************************************************
- * Method: BeagleBoardUART::disableIRQ()
+ * Method: Omap3530UART::disableIRQ()
  *
  * @description
  *  Disables IRQ generation from the UART
  *******************************************************************************/
-ErrorT BeagleBoardUART::disableIRQ() {
+ErrorT Omap3530UART::disableIRQ() {
     // disable all irqs
     OUTW(baseAddr + UART_IER_REG_OFFSET, (INW(baseAddr + UART_IER_REG_OFFSET) & ~(UART_IER_MODEM | UART_IER_LINE | UART_IER_THR | UART_IER_RHR)));
     return (cOk );
 }
 
 /*****************************************************************************
- * Method: BeagleBoardUART::readBytes(char* bytes, unint4 &length)
+ * Method: Omap3530UART::readBytes(char* bytes, unint4 &length)
  *
  * @description
  *  Read bytes from the UART FIFO
  *******************************************************************************/
-ErrorT BeagleBoardUART::readBytes(char* bytes, unint4 &length) {
+ErrorT Omap3530UART::readBytes(char* bytes, unint4 &length) {
     // This method polls (no waiting) for new data
     ErrorT err;
     unint4 count;
@@ -145,12 +144,12 @@ ErrorT BeagleBoardUART::readBytes(char* bytes, unint4 &length) {
 }
 
 /*****************************************************************************
- * Method: BeagleBoardUART::writeBytes(const char* bytes, unint4 length)
+ * Method: Omap3530UART::writeBytes(const char* bytes, unint4 length)
  *
  * @description
  *
  *******************************************************************************/
-ErrorT BeagleBoardUART::writeBytes(const char* bytes, unint4 length) {
+ErrorT Omap3530UART::writeBytes(const char* bytes, unint4 length) {
     // This method sends the bytes and waits whenever the queue is full.
     unint count;
     ErrorT err;
@@ -167,7 +166,7 @@ ErrorT BeagleBoardUART::writeBytes(const char* bytes, unint4 length) {
  * @description
  *
  *******************************************************************************/
-ErrorT BeagleBoardUART::handleIRQ() {
+ErrorT Omap3530UART::handleIRQ() {
     return (cError );
 }
 
@@ -177,7 +176,7 @@ ErrorT BeagleBoardUART::handleIRQ() {
  * @description
  *
  *******************************************************************************/
-byte BeagleBoardUART::recvByte() {
+byte Omap3530UART::recvByte() {
     return IN8(baseAddr + UART_RHR_REG_OFFSET);
 }
 
@@ -187,17 +186,17 @@ byte BeagleBoardUART::recvByte() {
  * @description
  *
  *******************************************************************************/
-void BeagleBoardUART::sendByte(byte Data) {
+void Omap3530UART::sendByte(byte Data) {
     OUT8(baseAddr + UART_THR_REG_OFFSET, Data);
 }
 
 /*****************************************************************************
- * Method: BeagleBoardUART::inputSCC(int4 Timeout, byte *c)
+ * Method: Omap3530UART::inputSCC(int4 Timeout, byte *c)
  *
  * @description
  *
  *******************************************************************************/
-ErrorT BeagleBoardUART::inputSCC(int4 Timeout, byte *c) {
+ErrorT Omap3530UART::inputSCC(int4 Timeout, byte *c) {
     int ret = cError;
 
     while (Timeout == -1 || Timeout--) {
@@ -213,12 +212,12 @@ ErrorT BeagleBoardUART::inputSCC(int4 Timeout, byte *c) {
 }
 
 /*****************************************************************************
- * Method: BeagleBoardUART::outputSCC(int4 Timeout, byte c)
+ * Method: Omap3530UART::outputSCC(int4 Timeout, byte c)
  *
  * @description
  *
  *******************************************************************************/
-ErrorT BeagleBoardUART::outputSCC(int4 Timeout, byte c) {
+ErrorT Omap3530UART::outputSCC(int4 Timeout, byte c) {
     int ret = cError;
 
     while (Timeout == -1 || Timeout--) {
@@ -234,33 +233,33 @@ ErrorT BeagleBoardUART::outputSCC(int4 Timeout, byte c) {
 }
 
 /*****************************************************************************
- * Method: BeagleBoardUART::isTransmitBufferFull()
+ * Method: Omap3530UART::isTransmitBufferFull()
  *
  * @description
  *
  *******************************************************************************/
-bool BeagleBoardUART::isTransmitBufferFull() {
+bool Omap3530UART::isTransmitBufferFull() {
     byte ret = ((IN8(baseAddr + UART_SSR_REG_OFFSET)) & 0x01);
     return (ret != 0);
 }
 
 /*****************************************************************************
- * Method: BeagleBoardUART::isReceiveBufferFull()
+ * Method: Omap3530UART::isReceiveBufferFull()
  *
  * @description
  *
  *******************************************************************************/
-bool BeagleBoardUART::isReceiveBufferFull() {
+bool Omap3530UART::isReceiveBufferFull() {
     return (0);
 }
 
 /*****************************************************************************
- * Method: BeagleBoardUART::hasPendingData()
+ * Method: Omap3530UART::hasPendingData()
  *
  * @description
  *
  *******************************************************************************/
-bool BeagleBoardUART::hasPendingData() {
+bool Omap3530UART::hasPendingData() {
     int ret = ((INW(baseAddr + UART_LSR_REG_OFFSET)) & 0x01);
     return (ret != 0);
 }

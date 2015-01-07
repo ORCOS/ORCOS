@@ -1,11 +1,11 @@
 /*
- * BeagleBoardDSS.cc
+ * Omap3530DSS.cc
  *
  *  Created on: 07.08.2012
  *      Author: danielb
  */
 
-#include "BeagleBoardDSS.hh"
+#include "Omap3530DSS.hh"
 #include "types.hh"
 #include "kernel/Kernel.hh"
 #include "inc/memtools.hh"
@@ -882,7 +882,7 @@ void drawRect(int x, int y, int width) {
     }
 }
 
-BeagleBoardDSS::BeagleBoardDSS(T_BeagleBoardDSS_Init *init) :
+Omap3530DSS::Omap3530DSS(T_Omap3530DSS_Init *init) :
         CharacterDevice(false, init->Name) {
     /* create a new framebuffer for rendering*/
     this->framebuffer = new SharedMemResource(FRAMEBUFFER_SIZE, "fb0");
@@ -898,7 +898,7 @@ BeagleBoardDSS::BeagleBoardDSS(T_BeagleBoardDSS_Init *init) :
     LOG(ARCH, INFO, "BeagleBoardDSS: Framebuffer cleared..");
 }
 
-BeagleBoardDSS::~BeagleBoardDSS() {
+Omap3530DSS::~Omap3530DSS() {
 }
 
 /*****************************************************************************
@@ -906,7 +906,7 @@ BeagleBoardDSS::~BeagleBoardDSS() {
  *
  * @description
  *******************************************************************************/
-ErrorT BeagleBoardDSS::writeByte(char byte) {
+ErrorT Omap3530DSS::writeByte(char byte) {
     if (byte == '\n')
         return (cOk);
 
@@ -957,7 +957,7 @@ ErrorT BeagleBoardDSS::writeByte(char byte) {
  *
  * @description
  *******************************************************************************/
-ErrorT BeagleBoardDSS::writeBytes(const char* bytes, unint4 length) {
+ErrorT Omap3530DSS::writeBytes(const char* bytes, unint4 length) {
     for (unint i = 0; i < length; i++)
         writeByte(bytes[i]);
 
@@ -995,7 +995,7 @@ ErrorT BeagleBoardDSS::writeBytes(const char* bytes, unint4 length) {
  *
  * @description
  *******************************************************************************/
-void BeagleBoardDSS::init() {
+void Omap3530DSS::init() {
     /* TODO: used structs for access to registers to make this portable! */
 
     // get system clock to calculate pixel and DSS1_ALWON clock

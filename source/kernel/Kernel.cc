@@ -132,7 +132,6 @@ void Kernel::initialize() {
     this->DispatcherCfd         = new NEW_Kernel_DispatcherCfd;
     /* create the file manager implementing the file system */
     this->fileManager           = new SimpleFileManager();
-    /* create the PartitionMananger which handles block device partitions */
 #ifdef HAS_FileSystems_PartitionManagerCfd
     /* create the partition manager implementing the partition support*/
     this->PartitionManagerCfd   = new NEW_FileSystems_PartitionManagerCfd;
@@ -154,7 +153,7 @@ void Kernel::initialize() {
     SYSFS_ADD_RO_UINT_NAMED(memDir, "last_allocated", theOS->getMemoryManager()->getSegment()->lastAllocated);
 #endif
 
-    /* create the Task Manager which holds the list of all tasks */
+    /* create the Task Manager which holds the list of all kernel image tasks */
     this->taskManager = new TaskManager();
 
     /* be sure the initial loaded set of tasks is registered at the ramManager */
@@ -162,7 +161,7 @@ void Kernel::initialize() {
 
 #if HAS_Kernel_InterruptManagerCfd
     /* create the interrupt manager instance to allow device drivers to register
-     * their irq numbers and handlers. */
+     * irqs and handlers. */
     this->InterruptManagerCfd = new NEW_Kernel_InterruptManagerCfd;
 #endif
 

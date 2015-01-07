@@ -9,14 +9,32 @@
 #include "inc/types.hh"
 #include "OMAP3530.h"
 #include "inc/memio.h"
+#include <SCLConfig.hh>
+
+#define INTCPS_REVISION     0x0
+#define INTCPS_SYSCONFIG    0x10
+#define INTCPS_SYSSTATUS    0x14
+#define INTCPS_SIR_IRQ      0x40
+#define INTCPS_SIR_FIQ      0x44
+#define INTCPS_CONTROL      0x48
+#define INTCPS_PROTECTION   0x4c
+#define INTCPS_IDLE         0x50
+
+#define INTCPS_THRESHOLD    0x68
+
+#define INTCPS_ILR(m)             0x100 + (0x4 * (m))
+#define INTCPS_MIR_SET(n)         0x08C + (0x20 * (n))
+#define INTCPS_MIR_CLEAR(n)       0x088 + (0x20 * (n))
 
 /*!
  * \brief Interrupt Controller Class for the OMAP 35x Interrupt Controller
  */
-class BeagleBoardInterruptController {
+class Omap3530InterruptController {
+private:
+    int4 baseAddr;
 public:
-    BeagleBoardInterruptController();
-    ~BeagleBoardInterruptController();
+    Omap3530InterruptController(T_Omap3530InterruptController_Init* init);
+    ~Omap3530InterruptController();
 
     /*****************************************************************************
      * Method: getIRQStatusVector()
@@ -28,7 +46,7 @@ public:
      * to determine which hardware device raised an interrupt
      *******************************************************************************/
     inline int getIRQStatusVector()  {
-        int irqSrc = INW(MPU_INTCPS_SIR_IRQ);
+        int irqSrc = INW(baseAddr + INTCPS_SIR_IRQ);
 
         /* spurious irq? */
         if (irqSrc >= 0x80)
@@ -44,7 +62,25 @@ public:
      *  Clears the current pending interrupt
      *******************************************************************************/
     inline void clearIRQ(int num) {
-        OUTW(MPU_INTCPS_CONTROL, 0x1);
+        OUTW(baseAddr + INTCPS_CONTROL, 0x1);
+    }
+
+    /*****************************************************************************
+     * Method: setPriorityThreshold(int priority)
+     *
+     * @description
+     *  Clears the current priority threshold. All interrupts with lower priorities
+     *  will be disabled. Valid range [0-63]. Setting the threshold to 0 will allow
+     *  all interrupts as no lower priority exists.
+     *******************************************************************************/
+    inline void setPriorityThreshold(int priority) {
+        /* range check */
+        if (priority > 63)
+            priority = 63;
+
+        /* invert as this is programmed into hardware */
+        int prioval = 63 - priority;
+        OUTW(baseAddr + INTCPS_THRESHOLD, prioval);
     }
 
 

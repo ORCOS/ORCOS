@@ -16,7 +16,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardUART.hh"
+#include <Omap3530UART.hh>
 #include "comm/AddressProtocol.hh"
 #include "inc/memio.h"
 #include "kernel/Kernel.hh"

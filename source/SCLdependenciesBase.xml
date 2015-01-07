@@ -246,145 +246,7 @@
       </Superclass>
 
 
-      <!-- ####################################################
-                          BeagleBoardxM Definition and Default Values
-              #################################################### -->
 
-      <Superclass Provides="ARMv4,ARMv7,CortexA8,OMAP3530,BeagleBoard,BeagleBoardxM" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardxM/BeagleBoardxM">
-        <MemberRef Name="Timer" optional="false">
-          <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPTimer">
-            <PropertyValue Name="Address" Value="0x48318000" />
-            <PropertyValue Name="Length" Value="4096" />
-            <PropertyValue Name="Name" Value="sched_timer" />
-            <PropertyValue Name="INTC_IRQ" Value="37" />
-            <PropertyValue Name="INTC_Priority" Value="50" />
-          </Defaults>
-        </MemberRef>
-        <MemberRef Name="HatLayer"/>
-        <MemberRef Name="Clock" optional="false">
-            <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530Clock">
-                <PropertyValue Name="Name" Value="sysclock0"/>
-            </Defaults>
-        </MemberRef>
-        <MemberRef Name="Cache"/>
-        <MemberRef Name="Processor" optional="false"/>
-        <!-- No Wachdog support -->
-        <MemberRef Name="DSS">
-          <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardDSS">
-            <PropertyValue Name="Name" Value="dss0"/>
-            <PropertyValue Name="Resolution" Value="1024x768" />
-          </Defaults>
-        </MemberRef>
-        <MemberRef Name="UART">
-          <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardUART">
-           <!--  First value of set is the default value, rest enum values -->
-            <PropertyValue Name="Address" Value="0x49020000" />
-            <PropertyValue Name="Length" Value="1024" />
-            <PropertyValue Name="Name" Value="serial0"/>
-          </Defaults>
-          <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530i2c">
-            <PropertyValue Name="Address" Value="0x48070000" />
-            <PropertyValue Name="Length" Value="1024" />
-            <PropertyValue Name="Name" Value="i2c0"/>
-          </Defaults>
-        </MemberRef>
-        <MemberRef Name="UART2">
-          <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardUART">
-            <PropertyValue Name="Address" Value="0x49020000" />
-            <PropertyValue Name="Length" Value="1024" />
-            <PropertyValue Name="Name" Value="serial0"/>
-          </Defaults>
-          <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530i2c">
-            <PropertyValue Name="Address" Value="0x48070000" />
-            <PropertyValue Name="Length" Value="1024" />
-            <PropertyValue Name="Name" Value="i2c0"/>
-          </Defaults>
-        </MemberRef>
-        <MemberRef Name="SPI">
-          <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530SPI">
-           <!--  First value of set is the default value, rest enum values -->
-            <PropertyValue Name="Address" Value="MCSPI3" />
-            <PropertyValue Name="Name" Value="spi"/>
-          </Defaults>
-          <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530i2c">
-            <PropertyValue Name="Address" Value="0x48070000" />
-            <PropertyValue Name="Length" Value="1024" />
-            <PropertyValue Name="Name" Value="i2c0"/>
-          </Defaults>
-        </MemberRef>
-        <MemberRef Name="GPIO1">
-          <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO">
-            <PropertyValue Name="Address" Value="0x48310000" />
-            <PropertyValue Name="Length" Value="4096" />
-            <PropertyValue Name="Name" Value="gpio1" />
-            <PropertyValue Name="DirectionBits" Value="0x0" />
-            <PropertyValue Name="ValueBits" Value="0x0"/>
-          </Defaults>
-        </MemberRef>
-        <MemberRef Name="GPIO2">
-          <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO">
-            <PropertyValue Name="Address" Value="0x49050000" />
-            <PropertyValue Name="Length" Value="4096" />
-            <PropertyValue Name="Name" Value="gpio2" />
-            <PropertyValue Name="DirectionBits" Value="0x0" />
-            <PropertyValue Name="ValueBits" Value="0x0"/>
-          </Defaults>
-        </MemberRef>
-        <MemberRef Name="GPIO3">
-          <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO">
-            <PropertyValue Name="Address" Value="0x49052000" />
-            <PropertyValue Name="Length" Value="4096" />
-            <PropertyValue Name="Name" Value="gpio3" />
-            <PropertyValue Name="DirectionBits" Value="0x0" />
-            <PropertyValue Name="ValueBits" Value="0x0"/>
-          </Defaults>
-        </MemberRef>
-        <MemberRef Name="GPIO4">
-          <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO">
-            <PropertyValue Name="Address" Value="0x49054000" />
-            <PropertyValue Name="Length" Value="4096" />
-            <PropertyValue Name="Name" Value="gpio4" />
-            <PropertyValue Name="DirectionBits" Value="0x0" />
-            <PropertyValue Name="ValueBits" Value="0x0"/>
-          </Defaults>
-        </MemberRef>
-        <MemberRef Name="GPIO5">
-          <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO">
-            <PropertyValue Name="Address" Value="0x49056000" />
-            <PropertyValue Name="Length" Value="4096" />
-            <PropertyValue Name="Name" Value="gpio5" />
-            <PropertyValue Name="DirectionBits" Value="(~(F060F000))" />
-            <PropertyValue Name="ValueBits" Value="F060F000"/>
-          </Defaults>
-        </MemberRef>
-        <MemberRef Name="GPIO6">
-          <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO">
-            <PropertyValue Name="Address" Value="0x49058000" />
-            <PropertyValue Name="Length" Value="4096" />
-            <PropertyValue Name="Name" Value="gpio6" />
-            <PropertyValue Name="DirectionBits" Value="(~(0x800506))" />
-            <PropertyValue Name="ValueBits" Value="0x800506"/>
-          </Defaults>
-        </MemberRef>
-        <MemberRef Name="USB_HC">
-         <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/HighSpeedUSBHostController">
-            <PropertyValue Name="I2CDeviceName" Value="dev/i2c0" />
-            <PropertyValue Name="Priority" Value="5000" />
-         </Defaults>
-        </MemberRef>
-        <MemberRef Name="InterruptHandler" optional="false"/>
-        <MemberRef Name="InterruptController" optional="false" />
-        <MemberRef Name="ExtPowerControl" optional="true" >
-            <Defaults Class="arch/shared/power/TWL4030">
-                <PropertyValue Name="I2CDeviceName" Value="dev/i2c0" />
-            </Defaults>
-        </MemberRef>
-        <MemberRef Name="MMC" optional="true">
-            <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapMMC_SD_HC">
-                <PropertyValue Name="Address" Value="0x4809C000" />
-            </Defaults>
-        </MemberRef>
-      </Superclass>
 
     </Superclasses>
 
@@ -401,13 +263,6 @@
         <Class Requires="Leon3" Name="arch/Leon3/Leon3IntervalTimer">
           <Property Name="Address" Type="unsigned int" Optional="false" />
           <Property Name="Length" Type="unsigned int" Optional="false" />
-        </Class>
-        <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPTimer">
-          <Property Name="Address" Type="unsigned int" Optional="false" />
-          <Property Name="Length" Type="unsigned int" Optional="false" />
-          <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree."/>
-          <Property Name="INTC_IRQ" Type="unsigned int" Optional="false"  Description="Interrupt Line at the Interrupt Controller." />
-          <Property Name="INTC_Priority" Type="unsigned int" Optional="false" Description="IRQ Priority at the Interrupt Controller." />
         </Class>
       </Classes>
     </Member>
@@ -433,9 +288,6 @@
           <Class Name="hal/EmulatedClock"/>
           <Class Requires="PPC405" Name="arch/PPC40x/PPC405Clock"/>
           <Class Requires="Leon3" Name="arch/Leon3/Leon3Clock"/>
-          <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530Clock">
-            <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree."/>
-          </Class>
         </Classes>
     </Member>
     <Member>
@@ -457,12 +309,6 @@
      <Member>
       <Name>DSS</Name>
       <Classes>
-        <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardDSS">
-          <Property Name="Address" Type="unsigned int" Optional="false" Description="The Memory Mapped I/O (MMIO) Base Address of this device." />
-          <Property Name="Length" Type="unsigned int" Optional="true" Description="The Length (Bytes) of the Memory Mapped I/O Area of this device. This value is only needed if Virtual Memory is activated to create the corresponding memory maps."/>
-          <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree."/>
-          <Property Name="Resolution" Type="char*" Optional="true" />
-        </Class>
         <Class Name="arch/none/DummyCharDriver"/>
       </Classes>
     </Member>
@@ -485,21 +331,6 @@
           <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree."/>
         </Class>
         <Class Requires="Leon3" Name="arch/Leon3/GR-CPCI-XC4V/LEON_UART">
-          <Property Name="Address" Type="unsigned int" Optional="false" Description="The Memory Mapped I/O (MMIO) Base Address of this device." />
-          <Property Name="Length" Type="unsigned int" Optional="true" Description="The Length (Bytes) of the Memory Mapped I/O Area of this device. This value is only needed if Virtual Memory is activated to create the corresponding memory maps."/>
-          <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree."/>
-        </Class>
-        <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardUART">
-          <Property Name="Address" Type="unsigned int" Optional="false" Description="The Memory Mapped I/O (MMIO) Base Address of this device." />
-          <Property Name="Length" Type="unsigned int" Optional="true" Description="The Length (Bytes) of the Memory Mapped I/O Area of this device. This value is only needed if Virtual Memory is activated to create the corresponding memory maps."/>
-          <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree."/>
-        </Class>
-        <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530i2c">
-          <Property Name="Address" Type="unsigned int" Optional="false" Description="The Memory Mapped I/O (MMIO) Base Address of this device." />
-          <Property Name="Length" Type="unsigned int" Optional="true" Description="The Length (Bytes) of the Memory Mapped I/O Area of this device. This value is only needed if Virtual Memory is activated to create the corresponding memory maps."/>
-          <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree."/>
-        </Class>
-        <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardUARTforHCI">
           <Property Name="Address" Type="unsigned int" Optional="false" Description="The Memory Mapped I/O (MMIO) Base Address of this device." />
           <Property Name="Length" Type="unsigned int" Optional="true" Description="The Length (Bytes) of the Memory Mapped I/O Area of this device. This value is only needed if Virtual Memory is activated to create the corresponding memory maps."/>
           <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree."/>
@@ -536,21 +367,6 @@
           <Property Name="Length" Type="unsigned int" Optional="true" Description="The Length (Bytes) of the Memory Mapped I/O Area of this device. This value is only needed if Virtual Memory is activated to create the corresponding memory maps."/>
           <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree."/>
         </Class>
-        <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardUART">
-          <Property Name="Address" Type="unsigned int" Optional="false" Description="The Memory Mapped I/O (MMIO) Base Address of this device." />
-          <Property Name="Length" Type="unsigned int" Optional="true" Description="The Length (Bytes) of the Memory Mapped I/O Area of this device. This value is only needed if Virtual Memory is activated to create the corresponding memory maps."/>
-          <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree."/>
-        </Class>
-        <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530i2c">
-          <Property Name="Address" Type="unsigned int" Optional="false" Description="The Memory Mapped I/O (MMIO) Base Address of this device." />
-          <Property Name="Length" Type="unsigned int" Optional="true" Description="The Length (Bytes) of the Memory Mapped I/O Area of this device. This value is only needed if Virtual Memory is activated to create the corresponding memory maps."/>
-          <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree."/>
-        </Class>
-        <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardUARTforHCI">
-          <Property Name="Address" Type="unsigned int" Optional="false" Description="The Memory Mapped I/O (MMIO) Base Address of this device." />
-          <Property Name="Length" Type="unsigned int" Optional="true" Description="The Length (Bytes) of the Memory Mapped I/O Area of this device. This value is only needed if Virtual Memory is activated to create the corresponding memory maps."/>
-          <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree."/>
-        </Class>
         <Class Requires="RAPTOR" Name="arch/PPC40x/RAPTOR/QEMU_UART">
           <Property Name="Address" Type="unsigned int" Optional="false" Description="The Memory Mapped I/O (MMIO) Base Address of this device." />
           <Property Name="Length" Type="unsigned int" Optional="true" Description="The Length (Bytes) of the Memory Mapped I/O Area of this device. This value is only needed if Virtual Memory is activated to create the corresponding memory maps."/>
@@ -562,93 +378,42 @@
      <Member>
       <Name>GPIO1</Name>
       <Classes>
-        <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO">
-          <Property Name="Address" Type="unsigned int" Optional="false" Description="The Memory Mapped I/O (MMIO) Base Address of this device." />
-          <Property Name="Length" Type="unsigned int" Optional="true" Description="The Length (Bytes) of the Memory Mapped I/O Area of this device. This value is only needed if Virtual Memory is activated to create the corresponding memory maps."/>
-          <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree."/>
-          <Property Name="DirectionBits" Type="unsigned int" Optional="true" Description="The initial direction of the GPIO pins. Bit Semantics: 0 = output, 1= input"/>
-          <Property Name="ValueBits" Type="unsigned int" Optional="true" Description="The initial value of a output pin programmed per bit."/>
-          <Property Name="Priority" Type="int" Optional="false" Description="The Priority parameter of this device. The priority is used for scheduled IRQ handling."/>
-        </Class>
         <Class Name="arch/none/DummyCharDriver"/>
       </Classes>
     </Member>
     <Member>
       <Name>GPIO2</Name>
       <Classes>
-        <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO">
-          <Property Name="Address" Type="unsigned int" Optional="false" Description="The Memory Mapped I/O (MMIO) Base Address of this device." />
-          <Property Name="Length" Type="unsigned int" Optional="true" Description="The Length (Bytes) of the Memory Mapped I/O Area of this device. This value is only needed if Virtual Memory is activated to create the corresponding memory maps."/>
-          <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree."/>
-          <Property Name="DirectionBits" Type="unsigned int" Optional="true" Description="The initial direction of the GPIO pins. Bit Semantics: 0 = output, 1= input"/>
-          <Property Name="ValueBits" Type="unsigned int" Optional="true" Description="The initial value of a output pin programmed per bit."/>                  <Property Name="Priority" Type="int" Optional="false" Description="The Priority parameter of this device. The priority is used for scheduled IRQ handling."/>
-        </Class>
         <Class Name="arch/none/DummyCharDriver"/>
       </Classes>
     </Member>
      <Member>
       <Name>GPIO3</Name>
       <Classes>
-        <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO">
-          <Property Name="Address" Type="unsigned int" Optional="false" Description="The Memory Mapped I/O (MMIO) Base Address of this device." />
-          <Property Name="Length" Type="unsigned int" Optional="true" Description="The Length (Bytes) of the Memory Mapped I/O Area of this device. This value is only needed if Virtual Memory is activated to create the corresponding memory maps."/>
-          <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree."/>
-          <Property Name="DirectionBits" Type="unsigned int" Optional="true" Description="The initial direction of the GPIO pins. Bit Semantics: 0 = output, 1= input"/>
-          <Property Name="ValueBits" Type="unsigned int" Optional="true" Description="The initial value of a output pin programmed per bit."/>
-          <Property Name="Priority" Type="int" Optional="false" Description="The Priority parameter of this device. The priority is used for scheduled IRQ handling."/>
-        </Class>
         <Class Name="arch/none/DummyCharDriver"/>
       </Classes>
     </Member>
      <Member>
       <Name>GPIO4</Name>
       <Classes>
-        <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO">
-          <Property Name="Address" Type="unsigned int" Optional="false" Description="The Memory Mapped I/O (MMIO) Base Address of this device." />
-          <Property Name="Length" Type="unsigned int" Optional="true" Description="The Length (Bytes) of the Memory Mapped I/O Area of this device. This value is only needed if Virtual Memory is activated to create the corresponding memory maps."/>
-          <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree."/>
-          <Property Name="DirectionBits" Type="unsigned int" Optional="true" Description="The initial direction of the GPIO pins. Bit Semantics: 0 = output, 1= input"/>
-          <Property Name="ValueBits" Type="unsigned int" Optional="true" Description="The initial value of a output pin programmed per bit."/>
-          <Property Name="Priority" Type="int" Optional="false" Description="The Priority parameter of this device. The priority is used for scheduled IRQ handling."/>
-        </Class>
         <Class Name="arch/none/DummyCharDriver"/>
       </Classes>
     </Member>
     <Member>
       <Name>GPIO5</Name>
       <Classes>
-        <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO">
-          <Property Name="Address" Type="unsigned int" Optional="false" Description="The Memory Mapped I/O (MMIO) Base Address of this device." />
-          <Property Name="Length" Type="unsigned int" Optional="true" Description="The Length (Bytes) of the Memory Mapped I/O Area of this device. This value is only needed if Virtual Memory is activated to create the corresponding memory maps."/>
-          <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree."/>
-          <Property Name="DirectionBits" Type="unsigned int" Optional="true" Description="The initial direction of the GPIO pins. Bit Semantics: 0 = output, 1= input"/>
-          <Property Name="ValueBits" Type="unsigned int" Optional="true" Description="The initial value of a output pin programmed per bit."/>
-          <Property Name="Priority" Type="int" Optional="false" Description="The Priority parameter of this device. The priority is used for scheduled IRQ handling."/>
-        </Class>
         <Class Name="arch/none/DummyCharDriver"/>
       </Classes>
     </Member>
      <Member>
       <Name>GPIO6</Name>
       <Classes>
-        <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO">
-          <Property Name="Address" Type="unsigned int" Optional="false" Description="The Memory Mapped I/O (MMIO) Base Address of this device." />
-          <Property Name="Length" Type="unsigned int" Optional="true" Description="The Length (Bytes) of the Memory Mapped I/O Area of this device. This value is only needed if Virtual Memory is activated to create the corresponding memory maps."/>
-          <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree."/>
-          <Property Name="DirectionBits" Type="unsigned int" Optional="true" Description="The initial direction of the GPIO pins. Bit Semantics: 0 = output, 1= input"/>
-          <Property Name="ValueBits" Type="unsigned int" Optional="true" Description="The initial value of a output pin programmed per bit."/>
-          <Property Name="Priority" Type="int" Optional="false" Description="The Priority parameter of this device. The priority is used for scheduled IRQ handling."/>
-        </Class>
         <Class Name="arch/none/DummyCharDriver"/>
       </Classes>
     </Member>
     <Member>
      <Name>USB_HC</Name>
       <Classes>
-        <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/HighSpeedUSBHostController">
-          <Property Name="I2CDeviceName" Type="char*" Optional="false" Description="The I2C Device Name as found in 'dev\i2cdevice' the TWL power chip is connected to. Used to setup the USB HC Power. Must match the device name of the configured I2C Device. \nDefault: 'i2c0'"/>
-          <Property Name="Priority" Type="int" Optional="false" Description="The Priority parameter of this device. The priority is used for scheduled IRQ handling."/>
-        </Class>
         <Class Name="arch/none/DummyClass"/>
       </Classes>
     </Member>
@@ -713,7 +478,7 @@
       <Classes>
         <Class Requires="PPC405" Name="arch/PPC40x/PPC405InterruptHandler"/>
         <Class Requires="Leon3" Name="arch/Leon3/GR-CPCI-XC4V/Leon3InterruptHandler"/>
-        <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv4TInterruptHandler"/>
+        <Class Requires="ARMv4" Name="arch/ARM/ARMv4T/ARMv4TInterruptHandler"/>
       </Classes>
     </Member>
     <Member>
@@ -722,13 +487,12 @@
         <Class Requires="RAPTOR" Name="arch/PPC40x/RAPTOR/OPB_Interrupt_Controller"/>
         <Class Requires="RAPTOR" Name="arch/PPC40x/RAPTOR/UIC_Interrupt_Controller"/>
         <Class Requires="Leon3" Name="arch/Leon3/GR-CPCI-XC4V/Leon3_IRQMP"/>
-        <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardInterruptController"/>
       </Classes>
     </Member>
     <Member>
     <Name>ExtPowerControl</Name>
       <Classes>
-        <Class Requires="OMAP3530" Name="arch/shared/power/TWL4030">
+        <Class Requires="TWL4030" Name="arch/shared/power/TWL4030">
             <Property Name="I2CDeviceName" Type="char*" Optional="false" Description="The I2C Device this Power Control can be access with.\nDefault: 'dev/i2c0'" />
          </Class>
       </Classes>
@@ -736,18 +500,11 @@
     <Member>
     <Name>MMC</Name>
       <Classes>
-        <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapMMC_SD_HC">
-            <Property Name="Address" Type="unsigned int" Optional="false" Description="The MMC controller base address. MMC1-3 are available." />
-         </Class>
       </Classes>
     </Member>
     <Member>
     <Name>SPI</Name>
       <Classes>
-        <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530SPI">
-            <Property Name="Address" Type="unsigned int" Optional="false" Description="The SPI controller base address. SPI1-4 are available.\nUse MCSPI1,MCSPI2,MCSPI3,MCSPI3 as value or specify the address directly." />
-            <Property Name="Name" Type="char*" Optional="false" Description="The device name as it will be registered under /dev/" />
-         </Class>
       </Classes>
     </Member>
   </Skeleton>

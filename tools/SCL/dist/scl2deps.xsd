@@ -9,7 +9,7 @@
                 </xs:sequence>
         </xs:complexType>
     </xs:element>
-        
+
     <xs:element name="Skeleton">
         <xs:complexType>
             <xs:sequence>
@@ -19,7 +19,7 @@
             </xs:sequence>
         </xs:complexType>
     </xs:element>
-    
+
     <xs:element name="Member">
         <xs:complexType>
             <xs:sequence>
@@ -30,10 +30,10 @@
     </xs:element>
 
 
-  <xs:element name="Class">   
-    <xs:complexType>                    
+  <xs:element name="Class">
+    <xs:complexType>
       <xs:sequence>
-        <xs:element ref="Property" maxOccurs="unbounded"  minOccurs="0" />    
+        <xs:element ref="Property" maxOccurs="unbounded"  minOccurs="0" />
       </xs:sequence>
       <xs:attribute name="Name" type="xs:string" use="required"/>
       <xs:attribute name="Requires" type="xs:string" use="optional"/>
@@ -43,7 +43,7 @@
   <xs:element name="Property">
     <xs:complexType>
        <xs:attribute name="Name" type="xs:string" use="required"/>
-	   <xs:attribute name="Type" type="xs:string" use="required"/>	   
+       <xs:attribute name="Type" type="xs:string" use="required"/>
        <xs:attribute name="Optional" type="xs:boolean" use="optional"/>
        <xs:attribute name="Description" type="xs:string" use="optional"/>
     </xs:complexType>
@@ -52,7 +52,7 @@
   <xs:element name="PropertyValue">
     <xs:complexType>
       <xs:attribute name="Name" type="xs:string" use="required"/>
-      <xs:attribute name="Value" type="xs:string" use="required"/>	 
+      <xs:attribute name="Value" type="xs:string" use="required"/>
     </xs:complexType>
   </xs:element>
 
@@ -65,14 +65,14 @@
       <xs:attribute name="Class" type="xs:string"/>
     </xs:complexType>
   </xs:element>
-   
+
   <xs:element name="MemberRef">
     <xs:complexType>
       <xs:sequence>
         <xs:element ref="Defaults" maxOccurs="unbounded"  minOccurs="0" />
       </xs:sequence>
       <xs:attribute name="Name" type="xs:string" use="required"/>
-	  <xs:attribute name="optional" type="xs:boolean"/>
+      <xs:attribute name="optional" type="xs:boolean"/>
     </xs:complexType>
   </xs:element>
 
@@ -86,15 +86,15 @@
     </xs:complexType>
   </xs:element>
 
-    
+
     <xs:element name="Classes">
         <xs:complexType>
             <xs:sequence>
-                <xs:element ref="Class" maxOccurs="unbounded" minOccurs="1"  />           
+                <xs:element ref="Class" maxOccurs="unbounded" minOccurs="1"  />
             </xs:sequence>
         </xs:complexType>
     </xs:element>
-    
+
     <xs:element name="Superclasses">
         <xs:complexType>
             <xs:sequence>
@@ -102,7 +102,7 @@
             </xs:sequence>
         </xs:complexType>
     </xs:element>
-    
+
     <xs:element name="Defines">
         <xs:complexType>
             <xs:sequence>
@@ -110,7 +110,7 @@
             </xs:sequence>
         </xs:complexType>
     </xs:element>
-    
+
     <xs:element name="Define">
         <xs:complexType>
             <xs:sequence>
@@ -119,5 +119,5 @@
             </xs:sequence>
         </xs:complexType>
     </xs:element>
-    
+
 </xs:schema>

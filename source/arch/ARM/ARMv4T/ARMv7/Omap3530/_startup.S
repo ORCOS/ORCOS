@@ -78,11 +78,20 @@ FUNC_START(startORCOS)
 #error 'ICACHE_ENABLE' define missing in configuration!
 #endif
 #if ICACHE_ENABLE
+
+    mov r1,#2
+    mcr p15,#2,r1,c0,c0,#0         // Enable Level2 unified cache.
+
     // enable instruction cache
     MRC    p15, 0, r0, c1, c0, 0   // read Control Register
     MOV    r1, #0x1000             // load instruction cache enable bit
     ORR    r1, r0, r1              // mask
     MCR p15, 0, r1, c1, c0, 0      // write Control Register
+
+    mrc p15, #0, r1, c1, c0, #1    // Read Auxiliary Control Register
+    mov r2, #2
+    orr r1, r1, r2                 // Set L2EN bit
+    mcr p15, #0, r1, c1, c0, #1    // Write Auxiliary Control Register
 #else
     // disable instruction cache
     MRC    p15, 0, r0, c1, c0, 0   // read Control Register

@@ -3,16 +3,23 @@
  *   Copyright &  Author: dbaldin
  */
 
-#include "BeagleBoardInterruptController.hh"
+#include "Omap3530InterruptController.hh"
 #include "assemblerFunctions.hh"
 #include "OMAP3530.h"
 #include "inc/memio.h"
+#include "kernel/Kernel.hh"
 
-BeagleBoardInterruptController::BeagleBoardInterruptController() {
-    OUTW(MPU_INTCPS_SYSCONFIG, 0x1);
+extern Kernel* theOS;
+
+Omap3530InterruptController::Omap3530InterruptController(T_Omap3530InterruptController_Init* init) {
+    baseAddr = init->Address;
+    OUTW(baseAddr + INTCPS_SYSCONFIG, 0x1);
+
+    int revision = INW(baseAddr + INTCPS_REVISION);
+    LOG(ARCH,INFO,"InterruptController Revision %u.%u", revision >> 4, revision & 0xf)
 }
 
-BeagleBoardInterruptController::~BeagleBoardInterruptController() {
+Omap3530InterruptController::~Omap3530InterruptController() {
 }
 
 /*****************************************************************************
@@ -21,12 +28,12 @@ BeagleBoardInterruptController::~BeagleBoardInterruptController() {
  * @description
  *  Unmask the spcific IRQ which allows the IRQ to be raised
  *******************************************************************************/
-ErrorT BeagleBoardInterruptController::unmaskIRQ(unint4 irq_number) {
+ErrorT Omap3530InterruptController::unmaskIRQ(unint4 irq_number) {
     if (irq_number < 96) {
         /* enable interrupt: (int no. irq_number: (irq_number mod 32)): position of bit */
         int reg = irq_number / 32;
         int bit = (irq_number - reg * 32);
-        OUTW(MPU_INTCPS_MIR_CLEAR(reg), (1 << bit));
+        OUTW(baseAddr + INTCPS_MIR_CLEAR(reg), (1 << bit));
         return (cOk);
     }
     return (cError );
@@ -38,12 +45,12 @@ ErrorT BeagleBoardInterruptController::unmaskIRQ(unint4 irq_number) {
  * @description
  *  Masks the spcific IRQ which prevents the IRQ from being raised
  *******************************************************************************/
-ErrorT BeagleBoardInterruptController::maskIRQ(unint4 irq_number) {
+ErrorT Omap3530InterruptController::maskIRQ(unint4 irq_number) {
     if (irq_number < 96) {
         /* enable interrupt: (int no. irq_number: (irq_number mod 32)): position of bit */
         int reg = irq_number / 32;
         int bit = (irq_number - reg * 32);
-        OUTW(MPU_INTCPS_MIR_SET(reg), (1 << bit));
+        OUTW(baseAddr + INTCPS_MIR_SET(reg), (1 << bit));
         return (cOk);
     }
     return (cError );
@@ -56,7 +63,7 @@ ErrorT BeagleBoardInterruptController::maskIRQ(unint4 irq_number) {
  * Sets the hardware priority of the IRQ source with priority 63 being the highest
  *  priority. 0 beeing the lowest priority.
  *******************************************************************************/
-ErrorT BeagleBoardInterruptController::setIRQPriority(unint4 irq_number, unint4 priority) {
+ErrorT Omap3530InterruptController::setIRQPriority(unint4 irq_number, unint4 priority) {
     if (irq_number < 96) {
         /* range check */
         if (priority > 63)
@@ -66,7 +73,7 @@ ErrorT BeagleBoardInterruptController::setIRQPriority(unint4 irq_number, unint4 
         int prioval = 63 - priority;
         prioval = (prioval << 2) & 0xFC;
 
-        OUTW(MPU_INTCPS_ILR(irq_number), ((INW(MPU_INTCPS_ILR(irq_number)) & ~0xFC) | prioval));   // priority 0 (highest)
+        OUTW(baseAddr + INTCPS_ILR(irq_number), ((INW(baseAddr + INTCPS_ILR(irq_number)) & ~0xFC) | prioval));   // priority 0 (highest)
         return (cOk );
     }
 
@@ -79,6 +86,6 @@ ErrorT BeagleBoardInterruptController::setIRQPriority(unint4 irq_number, unint4 
  * @description
  *
  *******************************************************************************/
-void BeagleBoardInterruptController::enableIRQs() {
+void Omap3530InterruptController::enableIRQs() {
    // _enableInterrupts();
 }
