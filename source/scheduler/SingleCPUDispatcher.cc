@@ -34,6 +34,7 @@ TimeT                   lastCycleStamp          = 0;
 bool                    processChanged          = true;
 unint4                  scheduleCount           = 0;
 unint4                  rescheduleCount         = 0;
+bool                    needReschedule          = false;
 
 #ifndef ARCH_DELAY
 #define ARCH_DELAY 0
@@ -72,7 +73,7 @@ SingleCPUDispatcher::~SingleCPUDispatcher() {
 void SingleCPUDispatcher::dispatch() {
     /* first be sure that interrupts are disabled */
     _disableInterrupts();
-
+    needReschedule = false;
     /* the time at dispatch point */
     TimeT currentTime = theClock->getClockCycles() + ARCH_DELAY;
     /* set the time stamp */
@@ -220,6 +221,7 @@ void SingleCPUDispatcher::unblock(Thread* thread) {
          * a higher priority!  */
         if (pCurrentRunningThread == 0 || pThread->effectivePriority > pCurrentRunningThread->effectivePriority) {
             /* issue rescheduling interrupt */
+            needReschedule = true;
             rescheduleCount++;
             theOS->getTimerDevice()->setTimer(1);
         }

@@ -27,6 +27,7 @@ extern Kernel* theOS;
 extern Board_TimerCfdCl* theTimer;
 extern Task* pCurrentRunningTask;
 extern Board_InterruptControllerCfdCl* theInterruptController;
+extern bool needReschedule;
 
 extern "C" void dumpContext(void* sp_context) {
     unint4* context = reinterpret_cast<unint4*>(sp_context);
@@ -218,7 +219,7 @@ extern "C" void dispatchIRQ(void* sp_int, int mode) {
      * if some higher priority thread got unblocked a rescheduling irq
      * will already be pending and ensure dispatch after context
      * return*/
-    if (pCurrentRunningThread != 0) {
+    if (pCurrentRunningThread != 0 && !needReschedule) {
         assembler::restoreContext(pCurrentRunningThread);
     } else {
         theOS->getDispatcher()->dispatch();

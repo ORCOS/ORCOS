@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BoardDefinition>
+    <!-- #################################################### BeagleBoard Definition
+        and Default Values #################################################### -->
+    <Superclasses>
+        <Superclass Provides="ARMv4,ARMv7,CortexA8,OMAP3530,TWL4030,BeagleBoard"
+            Name="arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoard/BeagleBoard">
+
+            <MemberRef Name="Timer" optional="false">
+                <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPTimer">
+                    <PropertyValue Name="Address" Value="0x48318000" />
+                    <PropertyValue Name="Length" Value="4096" />
+                    <PropertyValue Name="Name" Value="sched_timer" />
+                    <PropertyValue Name="INTC_IRQ" Value="37" />
+                    <PropertyValue Name="INTC_Priority" Value="50" />
+                </Defaults>
+            </MemberRef>
+            <MemberRef Name="HatLayer" />
+            <MemberRef Name="Cache" />
+            <MemberRef Name="Clock" optional="false">
+                <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530Clock">
+                    <PropertyValue Name="Name" Value="sysclock0" />
+                </Defaults>
+            </MemberRef>
+            <MemberRef Name="Processor" optional="false" />
+            <!-- No Wachdog support -->
+            <!-- No DSS support as different register mapping compared to xM -->
+            <MemberRef Name="UART">
+                <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530UART">
+                    <!-- First value of set is the default value, rest enum values -->
+                    <PropertyValue Name="Address" Value="0x49020000" />
+                    <PropertyValue Name="Length" Value="1024" />
+                    <PropertyValue Name="Name" Value="serial0" />
+                    <PropertyValue Name="INTC_IRQ" Value="74" />
+                    <PropertyValue Name="INTC_Priority" Value="10" />
+                </Defaults>
+                <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530i2c">
+                    <PropertyValue Name="Address" Value="0x48070000" />
+                    <PropertyValue Name="Length" Value="1024" />
+                    <PropertyValue Name="Name" Value="i2c0" />
+                    <PropertyValue Name="INTC_IRQ" Value="56" />
+                    <PropertyValue Name="INTC_Priority" Value="10" />
+                </Defaults>
+            </MemberRef>
+            <MemberRef Name="UART2">
+                <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530UART">
+                    <!-- First value of set is the default value, rest enum values -->
+                    <PropertyValue Name="Address" Value="0x49020000" />
+                    <PropertyValue Name="Length" Value="1024" />
+                    <PropertyValue Name="Name" Value="serial0" />
+                    <PropertyValue Name="INTC_IRQ" Value="74" />
+                    <PropertyValue Name="INTC_Priority" Value="10" />
+                </Defaults>
+                <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530i2c">
+                    <PropertyValue Name="Address" Value="0x48070000" />
+                    <PropertyValue Name="Length" Value="1024" />
+                    <PropertyValue Name="Name" Value="i2c0" />
+                    <PropertyValue Name="INTC_IRQ" Value="56" />
+                    <PropertyValue Name="INTC_Priority" Value="10" />
+                </Defaults>
+            </MemberRef>
+            <MemberRef Name="GPIO1">
+                <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO">
+                    <PropertyValue Name="Address" Value="0x48310000" />
+                    <PropertyValue Name="Length" Value="4096" />
+                    <PropertyValue Name="Name" Value="gpio1" />
+                    <PropertyValue Name="DirectionBits" Value="0x0" />
+                    <PropertyValue Name="ValueBits" Value="0x0" />
+                    <PropertyValue Name="Priority" Value="1000" />
+                    <PropertyValue Name="INTC_IRQ" Value="29" />
+                    <PropertyValue Name="INTC_Priority" Value="10" />
+                </Defaults>
+            </MemberRef>
+
+            <MemberRef Name="GPIO2">
+                <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO">
+                    <PropertyValue Name="Address" Value="0x49050000" />
+                    <PropertyValue Name="Length" Value="4096" />
+                    <PropertyValue Name="Name" Value="gpio2" />
+                    <PropertyValue Name="DirectionBits" Value="0x0" />
+                    <PropertyValue Name="ValueBits" Value="0x0" />
+                    <PropertyValue Name="Priority" Value="1000" />
+                    <PropertyValue Name="INTC_IRQ" Value="30" />
+                    <PropertyValue Name="INTC_Priority" Value="10" />
+                </Defaults>
+            </MemberRef>
+
+            <MemberRef Name="GPIO3">
+                <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO">
+                    <PropertyValue Name="Address" Value="0x49052000" />
+                    <PropertyValue Name="Length" Value="4096" />
+                    <PropertyValue Name="Name" Value="gpio3" />
+                    <PropertyValue Name="DirectionBits" Value="0x0" />
+                    <PropertyValue Name="ValueBits" Value="0x0" />
+                    <PropertyValue Name="Priority" Value="1000" />
+                    <PropertyValue Name="INTC_IRQ" Value="31" />
+                    <PropertyValue Name="INTC_Priority" Value="10" />
+                </Defaults>
+            </MemberRef>
+
+            <MemberRef Name="GPIO4">
+                <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO">
+                    <PropertyValue Name="Address" Value="0x49054000" />
+                    <PropertyValue Name="Length" Value="4096" />
+                    <PropertyValue Name="Name" Value="gpio4" />
+                    <PropertyValue Name="DirectionBits" Value="0x0" />
+                    <PropertyValue Name="ValueBits" Value="0x0" />
+                    <PropertyValue Name="Priority" Value="1000" />
+                    <PropertyValue Name="INTC_IRQ" Value="32" />
+                    <PropertyValue Name="INTC_Priority" Value="10" />
+                </Defaults>
+            </MemberRef>
+
+            <MemberRef Name="GPIO5">
+                <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO">
+                    <PropertyValue Name="Address" Value="0x49056000" />
+                    <PropertyValue Name="Length" Value="4096" />
+                    <PropertyValue Name="Name" Value="gpio5" />
+                    <PropertyValue Name="DirectionBits" Value="(~(F060F000))" />
+                    <PropertyValue Name="ValueBits" Value="F060F000" />
+                    <PropertyValue Name="Priority" Value="1000" />
+                    <PropertyValue Name="INTC_IRQ" Value="33" />
+                    <PropertyValue Name="INTC_Priority" Value="10" />
+                </Defaults>
+            </MemberRef>
+
+            <MemberRef Name="GPIO6">
+                <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO">
+                    <PropertyValue Name="Address" Value="0x49058000" />
+                    <PropertyValue Name="Length" Value="4096" />
+                    <PropertyValue Name="Name" Value="gpio6" />
+                    <PropertyValue Name="DirectionBits" Value="(~(0x800506))" />
+                    <PropertyValue Name="ValueBits" Value="0x800506" />
+                    <PropertyValue Name="Priority" Value="1000" />
+                    <PropertyValue Name="INTC_IRQ" Value="34" />
+                    <PropertyValue Name="INTC_Priority" Value="10" />
+                </Defaults>
+            </MemberRef>
+            <MemberRef Name="USB_HC">
+                <Defaults
+                    Class="arch/ARM/ARMv4T/ARMv7/Omap3530/HighSpeedUSBHostController">
+                    <PropertyValue Name="I2CDeviceName" Value="dev/i2c0" />
+                </Defaults>
+            </MemberRef>
+            <MemberRef Name="InterruptHandler" optional="false" />
+            <MemberRef Name="InterruptController" optional="false">
+                <Defaults
+                    Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530InterruptController">
+                    <PropertyValue Name="Address" Value="0x48200000" />
+                </Defaults>
+            </MemberRef>
+            <MemberRef Name="ExtPowerControl" optional="true">
+                <Defaults Class="arch/shared/power/TWL4030">
+                    <PropertyValue Name="I2CDeviceName" Value="dev/i2c0" />
+                </Defaults>
+            </MemberRef>
+            <MemberRef Name="MMC" optional="true">
+                <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapMMC_SD_HC">
+                    <PropertyValue Name="Address" Value="0x4809C000" />
+                    <PropertyValue Name="INTC_IRQ" Value="83" />
+                    <PropertyValue Name="INTC_Priority" Value="10" />
+                </Defaults>
+            </MemberRef>
+        </Superclass>
+    </Superclasses>
+</BoardDefinition>

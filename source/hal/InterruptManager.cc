@@ -21,7 +21,7 @@ typedef struct {
     unint4                  priority;
     unint4                  triggerCount;
     unint4                  flags;
-    WorkerThread*           pWThread;
+    Thread*                 pWThread; /* Thread to execute on IRQ */
 } irqHandler;
 
 irqHandler irqTable[IRQ_MAX];
@@ -43,8 +43,9 @@ InterruptManager::~InterruptManager() {
 ErrorT InterruptManager::handleIRQ(unint4 irq) {
     ErrorT ret = cError;
 
-    if (irq >= IRQ_MAX)
-        return (cError );
+    if (irq >= IRQ_MAX) {
+        return (cError);
+    }
 
     TRACE_IRQ_ENTRY(irq);
     irqTable[irq].triggerCount++;
@@ -59,35 +60,32 @@ ErrorT InterruptManager::handleIRQ(unint4 irq) {
 #if USE_WORKERTASK
     /* do we have an IRQ handler for this IRQ number? */
     if (irqTable[irq].driver == 0) {
-        LOG(HAL, ERROR, "InterruptManager::handleIRQ(): unknown IRQ %d.", irq);
+        LOG(HAL, DEBUG, "InterruptManager::handleIRQ(): unknown IRQ %d.", irq);
         ret = cError;
         goto out;
     }
 
+    /* disable further IRQs on this source and continue executing */
+    irqTable[irq].driver->disableIRQ();
     irqTable[irq].driver->clearIRQ();
-
-    /* IRQ handler still processing?? Would be a bug.*/
-    if (irqTable[irq].driver->hasAssignedWorkerThread) {
-        LOG(HAL, WARN, "InterruptManager::handleIRQ(): IRQ %d occurred again before workerthread finished.", irq);
-        ret = cError;
-        irqTable[irq].driver->disableIRQ();
-        goto out;
-    }
+    theOS->getBoard()->getInterruptController()->clearIRQ(irq);
 
     /* IRQ handler shall be directly executed? */
     if (irqTable[irq].flags & IRQ_NOTHREAD) {
-        theOS->getBoard()->getInterruptController()->clearIRQ(irq);
         irqTable[irq].driver->handleIRQ();
-        irqTable[irq].driver->hasAssignedWorkerThread   = false;
-        irqTable[irq].driver->interruptPending          = false;
-        TRACE_IRQ_EXIT(irq);
-        return (cOk);
+        ret = cOk;
+        goto out;
    } else {
+       /* IRQ handler still processing?? Would be a bug.*/
+        if (irqTable[irq].driver->hasAssignedWorkerThread) {
+          LOG(HAL, WARN, "InterruptManager::handleIRQ(): IRQ %d occurred again before workerthread finished.", irq);
+          ret = cError;
+          goto out;
+       }
+
        irqTable[irq].pWThread->unblock();
        irqTable[irq].driver->hasAssignedWorkerThread   = true;
        irqTable[irq].driver->interruptPending          = true;
-       /* disable further IRQs on this source and continue executing */
-       irqTable[irq].driver->disableIRQ();
        ret = cOk;
     }
 
@@ -104,7 +102,6 @@ ErrorT InterruptManager::handleIRQ(unint4 irq) {
 #endif
 
 out:
-    theOS->getBoard()->getInterruptController()->clearIRQ(irq);
     TRACE_IRQ_EXIT(irq);
     return (ret);
 }

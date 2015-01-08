@@ -20,6 +20,7 @@
 #include "kernel/Kernel.hh"
 #include <inc/sys/timer.h>
 #include <syscalls/syscalls.hh>
+#include <SCLConfig.hh>
 
 extern Kernel* theOS;
 
@@ -51,7 +52,10 @@ TimerDevice::~TimerDevice() {
  *  ultra low latency thread activations.
  *******************************************************************************/
 ErrorT TimerDevice::handleIRQ() {
-    this->clearIRQ();
+#if 0
+    Board_TimerCfdCl* timer = (Board_TimerCfdCl*) this;
+    LOG(ARCH,INFO,"llThread Latency: %u",timer->getTimerValue());
+#endif
 
     if (llThread != 0 && llThread->status.areSet(cSignalFlag)) {
         llThread->status.setBits(cReadyFlag);

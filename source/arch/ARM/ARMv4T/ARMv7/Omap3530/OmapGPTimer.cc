@@ -146,14 +146,14 @@ ErrorT OmapGPTimer::setTimer(TimeT t) {
  *******************************************************************************/
 void OmapGPTimer::setPeriod(unint4 microseconds) {
     unint4 value = 0xffffffff - (microseconds MICROSECONDS);
-     /* reset current value to max - dt */
-     hwregs->tcrr = value;
-     /* reload value is the same */
-     hwregs->tldr = value;
-     /* initial irq flag clear */
-     hwregs->tisr = 0xf;
-     /* start timer in auto reload mode */
-     hwregs->tclr = 0x1 | (1 << 1);
+    /* reset current value to max - dt */
+    hwregs->tcrr = value;
+    /* reload value is the same */
+    hwregs->tldr = value;
+    /* initial irq flag clear */
+    hwregs->tisr = 0xf;
+    /* start timer in auto reload mode */
+    hwregs->tclr = 0x1 | (1 << 1);
 }
 
 

@@ -144,6 +144,11 @@ void BeagleBoardxM::initialize() {
     //OUTW(0x48004a40,2 | 2 << 2 | 1 << 12);
     //OUTW(0x48004a40,0x1f0a);
 
+
+    OUTW(0x48004810,0x0);
+    // CM_AUTOIDLE1_CORE. disable auto idle mode
+    OUTW(0x48004a30,0x0);
+
     // CM_CLKSEL_CORE
     //OUTW(CM_CLKSEL_CORE, 0x0000130a);
     /* L3 CLK is  CORE_CLK / 2, L4 CLK is CORE_CLK / 2, GPTIMER10 + 11 use SYS_CLK*/

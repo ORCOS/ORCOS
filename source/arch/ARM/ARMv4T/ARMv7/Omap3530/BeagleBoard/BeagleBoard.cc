@@ -190,6 +190,7 @@ void BeagleBoard::initialize() {
 
     // OPB_Interrupt_Controller
 #ifdef HAS_Board_InterruptControllerCfd
+    INIT_Board_InterruptControllerCfd
     InterruptControllerCfd = new NEW_Board_InterruptControllerCfd;
     printf("[K][INFO ] Board Interrupt Controller: [" STRINGIZE(Board_InterruptControllerCfdCl) "]\r");
     InterruptControllerCfd->clearIRQ(1);

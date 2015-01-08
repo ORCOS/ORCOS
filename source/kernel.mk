@@ -142,8 +142,7 @@ checktools:
 
 all: check_dirs scl check_defines			
 # build all dependencies
-	@make -s checktools 
-	@make -s scl 
+	@make -s checktools 	
 	@echo "Please be sure to use relative path names for WINDOWS/CYGIN"
 	@echo "----------------------------------"
 	@echo "     Building Modules"
@@ -190,7 +189,7 @@ endif
 #---------------------------------------------------------------------------------------------------------------------------------------
 
 
-uImage: scl tasks $(OUTPUT_DIR)kernel.elf $(OUTPUT_DIR)kernel.bin
+uImage: SCLConfig.hh tasks $(OUTPUT_DIR)kernel.elf $(OUTPUT_DIR)kernel.bin
 	@echo "----------------------------------"
 	@echo "      Building the uImage"
 	@echo "----------------------------------"
@@ -207,7 +206,7 @@ $(OUTPUT_DIR)%.o : %.S SCLConfig.hh
 	@$(CC) $(ASFLAGS) $< --output $@
 		
 #rule for creating the configuration header file SCLConfig.hh and the tasktable by unsing the scl tool	
-SCLConfig.hh tasktable.S: SCLConfig.xml
+scl SCLConfig.hh tasktable.S: SCLConfig.xml
 	@echo ----------------- SCLTool -------------------
 	@echo kernel.mk: Reading config file $<
 	@ if $(SCL); then echo Configuration valid! Files created for compilation.; else exit 1; fi 
@@ -299,9 +298,6 @@ $(OUTPUT_DIR)kernel.elf: output/_startup.o output/tasktable.o $(OUTPUT_DIR)libor
 tasktable:
 	$(SIGN) stringtable $(OUTPUT_DIR)kernel.map
 
-#rule for creation of the configuration header file	
-scl: SCLConfig.hh
-	
 size: $(OUTPUT_DIR)kernel.elf
 	@$(SIZE) $(OUTPUT_DIR)kernel.elf
 	

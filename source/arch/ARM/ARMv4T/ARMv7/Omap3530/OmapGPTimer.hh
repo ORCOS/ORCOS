@@ -97,6 +97,16 @@ public:
 
 
     /*****************************************************************************
+    * Method: getTimerValue()
+    *
+    * @description
+    *  Returns the current timer value.
+    *******************************************************************************/
+    unint getTimerValue() {
+        return (hwregs->tcrr - hwregs->tldr);
+    }
+
+    /*****************************************************************************
      * Method: setPeriod(unint4 microseconds)
      *
      * @description

@@ -42,7 +42,7 @@
       <Name>Board</Name>
       <Superclass>arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoard/BeagleBoard</Superclass>
       <Member Name="Timer" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPTimer" None="false" UserSpace="false" PhyLoadAddress="0x0">
-        <PropertyValue Name="Address" Value="0x49032000" Type="unsigned int" />
+        <PropertyValue Name="Address" Value="0x48318000" Type="unsigned int" />
         <PropertyValue Name="Length" Value="4096" Type="unsigned int" />
         <PropertyValue Name="Name" Value="sched_timer" Type="char*" />
         <PropertyValue Name="INTC_IRQ" Value="37" Type="unsigned int" />
@@ -53,24 +53,21 @@
         <PropertyValue Name="Name" Value="sysclock0" Type="char*" />
       </Member>
       <Member Name="Processor" Class="arch/ARM/ARMv4T/ARMv4TProcessor" None="false" UserSpace="false" PhyLoadAddress="0x0" />
-      <Member Name="UART" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardUART" None="false" UserSpace="false" PhyLoadAddress="0x0">
+      <Member Name="UART" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530UART" None="false" UserSpace="false" PhyLoadAddress="0x0">
         <PropertyValue Name="Address" Value="0x49020000" Type="unsigned int" />
         <PropertyValue Name="Length" Value="1024" Type="unsigned int" />
         <PropertyValue Name="Name" Value="serial0" Type="char*" />
+        <PropertyValue Name="INTC_IRQ" Value="74" Type="unsigned int" />
+        <PropertyValue Name="INTC_Priority" Value="10" Type="unsigned int" />
       </Member>
       <Member Name="UART2" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530i2c" None="false" UserSpace="false" PhyLoadAddress="0x0">
-        <PropertyValue Name="Address" Value="0x48060000" Type="unsigned int" />
+        <PropertyValue Name="Address" Value="0x48070000" Type="unsigned int" />
         <PropertyValue Name="Length" Value="1024" Type="unsigned int" />
         <PropertyValue Name="Name" Value="i2c0" Type="char*" />
+        <PropertyValue Name="INTC_IRQ" Value="56" Type="unsigned int" />
+        <PropertyValue Name="INTC_Priority" Value="10" Type="unsigned int" />
       </Member>
-      <Member Name="GPIO1" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO" None="true" UserSpace="false" PhyLoadAddress="0x0">
-        <PropertyValue Name="Address" Value="0x48310000" Type="unsigned int" />
-        <PropertyValue Name="Length" Value="4096" Type="unsigned int" />
-        <PropertyValue Name="Name" Value="gpio1" Type="char*" />
-        <PropertyValue Name="DirectionBits" Value="0x0" Type="unsigned int" />
-        <PropertyValue Name="ValueBits" Value="0x0" Type="unsigned int" />
-        <PropertyValue Name="Priority" Value="Unknown" Type="int" />
-      </Member>
+      <Member Name="GPIO1" Class="arch/none/DummyCharDriver" None="true" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="GPIO2" Class="arch/none/DummyCharDriver" None="true" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="GPIO3" Class="arch/none/DummyCharDriver" None="true" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="GPIO4" Class="arch/none/DummyCharDriver" None="true" UserSpace="false" PhyLoadAddress="0x0" />
@@ -78,15 +75,19 @@
       <Member Name="GPIO6" Class="arch/none/DummyCharDriver" None="true" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="USB_HC" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/HighSpeedUSBHostController" None="true" UserSpace="false" PhyLoadAddress="0x0">
         <PropertyValue Name="I2CDeviceName" Value="dev/i2c0" Type="char*" />
-        <PropertyValue Name="Priority" Value="Unknown" Type="int" />
+        <PropertyValue Name="Priority" Value="5000" Type="int" />
       </Member>
       <Member Name="InterruptHandler" Class="arch/ARM/ARMv4T/ARMv4TInterruptHandler" None="false" UserSpace="false" PhyLoadAddress="0x0" />
-      <Member Name="InterruptController" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardInterruptController" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="InterruptController" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530InterruptController" None="false" UserSpace="false" PhyLoadAddress="0x0">
+        <PropertyValue Name="Address" Value="0x48200000" Type="unsigned int" />
+      </Member>
       <Member Name="ExtPowerControl" Class="arch/shared/power/TWL4030" None="false" UserSpace="false" PhyLoadAddress="0x0">
         <PropertyValue Name="I2CDeviceName" Value="dev/i2c0" Type="char*" />
       </Member>
       <Member Name="MMC" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapMMC_SD_HC" None="true" UserSpace="false" PhyLoadAddress="0x0">
         <PropertyValue Name="Address" Value="0x4809C000" Type="unsigned int" />
+        <PropertyValue Name="INTC_IRQ" Value="83" Type="unsigned int" />
+        <PropertyValue Name="INTC_Priority" Value="10" Type="unsigned int" />
       </Member>
       <Member Name="Cache" Class="hal/Cache" None="true" UserSpace="false" PhyLoadAddress="0x0" />
     </Skeleton>

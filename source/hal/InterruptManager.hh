@@ -71,7 +71,6 @@ public:
      *******************************************************************************/
     ErrorT registerIRQ(unint4 irq, GenericDeviceDriver* driver, unint4 priority, unint4 flags = 0);
 
-
     /*****************************************************************************
      * Method: unregisterIRQ(unint4 irq)
      *
