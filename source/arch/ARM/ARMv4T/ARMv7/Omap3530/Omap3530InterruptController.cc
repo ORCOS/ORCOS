@@ -13,7 +13,7 @@ extern Kernel* theOS;
 
 Omap3530InterruptController::Omap3530InterruptController(T_Omap3530InterruptController_Init* init) {
     baseAddr = init->Address;
-    OUTW(baseAddr + INTCPS_SYSCONFIG, 0x1);
+    OUTW(baseAddr + INTCPS_SYSCONFIG, 0x0);
 
     int revision = INW(baseAddr + INTCPS_REVISION);
     LOG(ARCH,INFO,"InterruptController Revision %u.%u", revision >> 4, revision & 0xf)

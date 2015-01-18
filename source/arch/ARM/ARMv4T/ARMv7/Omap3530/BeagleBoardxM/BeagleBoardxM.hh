@@ -38,7 +38,7 @@
 #include Board_GPIO5_hh
 #include Board_GPIO6_hh
 #include Board_DSS_hh
-#include Board_MMC_hh
+#include Board_MMC0_hh
 #include Board_ExtPowerControl_hh
 #include Board_SPI_hh
 #include <OmapGPTimer.hh>
@@ -47,7 +47,8 @@
 #define RAM_SIZE     512 MB
 #endif
 
-#define PLATFORM    PLATFORM_ARM
+#define PLATFORM        PLATFORM_ARM
+#define SCHED_TIMER_IRQ 37
 
 /*
  * IEN  - Input Enable
@@ -939,7 +940,7 @@ class BeagleBoardxM {
     DEF_Board_ClockCfd
     DEF_Board_USB_HCCfd
     DEF_Board_DSSCfd
-    DEF_Board_MMCCfd
+    DEF_Board_MMC0Cfd
     DEF_Board_ExtPowerControlCfd
     DEF_Board_SPICfd
 

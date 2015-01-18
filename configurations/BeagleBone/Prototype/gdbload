@@ -1,0 +1,10 @@
+set verbose on
+set backtrace limit 0
+
+target extended-remote localhost:3333
+# Load Tasks
+restore tasks/task0.image binary 0x81200000
+restore tasks/task1.image binary 0x81300000
+# Load Kernel
+load output/kernel.elf
+disconnect

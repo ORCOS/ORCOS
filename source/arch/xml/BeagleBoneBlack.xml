@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BoardDefinition>
+    <!-- #################################################### BeagleBoardxM
+        Board Definition and Default Values #################################################### -->
+    <Superclasses>
+        <Superclass Provides="ARMv4,ARMv7,CortexA8,AM335x,OMAP3530,BeagleBone"
+            Name="arch/ARM/ARMv4T/ARMv7/AM335x/BeagleBone/BeagleBone">
+
+            <MemberRef Name="Timer" optional="false">
+                <Defaults Class="arch/ARM/ARMv4T/ARMv7/AM335x/AM335xTimer">
+                    <PropertyValue Name="Address" Value="0x48040000" />
+                    <PropertyValue Name="Length" Value="4096" />
+                    <PropertyValue Name="Name" Value="sched_timer" />
+                    <PropertyValue Name="INTC_IRQ" Value="68" />
+                    <PropertyValue Name="INTC_Priority" Value="50" />
+                </Defaults>
+            </MemberRef>
+
+            <MemberRef Name="HatLayer" />
+
+            <MemberRef Name="Clock" optional="false">
+                <Defaults Class="arch/ARM/ARMv4T/ARMv7/AM335x/AM335xClock">
+                    <PropertyValue Name="Name" Value="sysclock0" />
+                </Defaults>
+            </MemberRef>
+
+            <MemberRef Name="Cache">
+                <Defaults Class="arch/ARM/ARMv4T/ARMv7/ARMv7Cache" />
+            </MemberRef>
+
+            <MemberRef Name="Processor" optional="false" />
+
+            <!-- No Watchdog support yet -->
+
+            <MemberRef Name="UART">
+                <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530UART">
+                    <!-- UART0 -->
+                    <!-- First value of set is the default value, rest enum values -->
+                    <PropertyValue Name="Address" Value="0x44E09000" />
+                    <PropertyValue Name="Length" Value="1024" />
+                    <PropertyValue Name="Name" Value="serial0" />
+                    <PropertyValue Name="INTC_IRQ" Value="72" />
+                    <PropertyValue Name="INTC_Priority" Value="10" />
+                </Defaults>
+                <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530i2c">
+                    <!-- I2C0 -->
+                    <PropertyValue Name="Address" Value="0x44E0B000" />
+                    <PropertyValue Name="Length" Value="1024" />
+                    <PropertyValue Name="Name" Value="i2c0" />
+                    <PropertyValue Name="INTC_IRQ" Value="70" />
+                    <PropertyValue Name="INTC_Priority" Value="10" />
+                </Defaults>
+            </MemberRef>
+
+            <MemberRef Name="UART2">
+                <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530UART">
+                    <!-- UART0 -->
+                    <!-- First value of set is the default value, rest enum values -->
+                    <PropertyValue Name="Address" Value="0x44E09000" />
+                    <PropertyValue Name="Length" Value="1024" />
+                    <PropertyValue Name="Name" Value="serial0" />
+                    <PropertyValue Name="INTC_IRQ" Value="72" />
+                    <PropertyValue Name="INTC_Priority" Value="10" />
+                </Defaults>
+                <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530i2c">
+                    <!-- I2C0 -->
+                    <PropertyValue Name="Address" Value="0x44E0B000" />
+                    <PropertyValue Name="Length" Value="1024" />
+                    <PropertyValue Name="Name" Value="i2c0" />
+                    <PropertyValue Name="INTC_IRQ" Value="70" />
+                    <PropertyValue Name="INTC_Priority" Value="10" />
+                </Defaults>
+            </MemberRef>
+
+            <MemberRef Name="SPI">
+                <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530SPI">
+                    <!-- SPI0 -->
+                    <!-- First value of set is the default value, rest enum values -->
+                    <PropertyValue Name="Address" Value="0x48030000" />
+                    <PropertyValue Name="Name" Value="spi" />
+                </Defaults>
+            </MemberRef>
+
+            <MemberRef Name="InterruptHandler" optional="false" />
+
+            <MemberRef Name="InterruptController" optional="false">
+                <Defaults
+                    Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530InterruptController">
+                    <PropertyValue Name="Address" Value="0x48200000" />
+                </Defaults>
+            </MemberRef>
+
+            <MemberRef Name="Ethernet" optional="true">
+                <Defaults Class="arch/ARM/ARMv4T/ARMv7/AM335x/AM335xEthernet">
+                    <PropertyValue Name="cpsw_ss" Value="0x4A100000" />
+                    <PropertyValue Name="cpsw_port" Value="0x4A100100" />
+                    <PropertyValue Name="cpsw_cpdma" Value="0x4A100800" />
+                    <PropertyValue Name="cpsw_stats" Value="0x4A100900" />
+                    <PropertyValue Name="cpsw_stateram" Value="0x4A100A00" />
+                    <PropertyValue Name="cpsw_cpts" Value="0x4A100C00" />
+                    <PropertyValue Name="cpsw_ale" Value="0x4A100D00" />
+                    <PropertyValue Name="cpsw_sl1" Value="0x4A100D80" />
+                    <PropertyValue Name="cpsw_sl2" Value="0x4A100DC0" />
+                    <PropertyValue Name="mdio" Value="0x4A101000" />
+                    <PropertyValue Name="cpsw_wr" Value="0x4A101200" />
+                    <PropertyValue Name="cppi_ram" Value="0x4A102000" />
+                    <PropertyValue Name="Name" Value="eth0" />
+                    <PropertyValue Name="INTC_IRQ" Value="41" />
+                    <PropertyValue Name="INTC_Priority" Value="40" />
+                </Defaults>
+            </MemberRef>
+
+            <MemberRef Name="GPIO0">
+                <Defaults Class="arch/ARM/ARMv4T/ARMv7/AM335x/AM335xGPIO">
+                    <PropertyValue Name="Address" Value="0x44E07000" />
+                    <PropertyValue Name="Length" Value="4096" />
+                    <PropertyValue Name="Name" Value="gpio0" />
+                    <PropertyValue Name="DirectionBits" Value="0x0" />
+                    <PropertyValue Name="ValueBits" Value="0x0" />
+                    <PropertyValue Name="Priority" Value="1000" />
+                    <PropertyValue Name="INTC_IRQ" Value="96" />
+                    <PropertyValue Name="INTC_Priority" Value="10" />
+                </Defaults>
+            </MemberRef>
+
+
+            <MemberRef Name="GPIO1">
+                <Defaults Class="arch/ARM/ARMv4T/ARMv7/AM335x/AM335xGPIO">
+                    <PropertyValue Name="Address" Value="0x4804C000" />
+                    <PropertyValue Name="Length" Value="4096" />
+                    <PropertyValue Name="Name" Value="gpio1" />
+                    <PropertyValue Name="DirectionBits" Value="0x0" />
+                    <PropertyValue Name="ValueBits" Value="0x0" />
+                    <PropertyValue Name="Priority" Value="1000" />
+                    <PropertyValue Name="INTC_IRQ" Value="98" />
+                    <PropertyValue Name="INTC_Priority" Value="10" />
+                </Defaults>
+            </MemberRef>
+
+            <MemberRef Name="GPIO2">
+                <Defaults Class="arch/ARM/ARMv4T/ARMv7/AM335x/AM335xGPIO">
+                    <PropertyValue Name="Address" Value="0x481AC000" />
+                    <PropertyValue Name="Length" Value="4096" />
+                    <PropertyValue Name="Name" Value="gpio2" />
+                    <PropertyValue Name="DirectionBits" Value="0x0" />
+                    <PropertyValue Name="ValueBits" Value="0x0" />
+                    <PropertyValue Name="Priority" Value="1000" />
+                    <PropertyValue Name="INTC_IRQ" Value="32" />
+                    <PropertyValue Name="INTC_Priority" Value="10" />
+                </Defaults>
+            </MemberRef>
+
+            <MemberRef Name="GPIO3">
+                <Defaults Class="arch/ARM/ARMv4T/ARMv7/AM335x/AM335xGPIO">
+                    <PropertyValue Name="Address" Value="0x481AE000" />
+                    <PropertyValue Name="Length" Value="4096" />
+                    <PropertyValue Name="Name" Value="gpio3" />
+                    <PropertyValue Name="DirectionBits" Value="0x0" />
+                    <PropertyValue Name="ValueBits" Value="0x0" />
+                    <PropertyValue Name="Priority" Value="1000" />
+                    <PropertyValue Name="INTC_IRQ" Value="62" />
+                    <PropertyValue Name="INTC_Priority" Value="10" />
+                </Defaults>
+            </MemberRef>
+
+            <MemberRef Name="MMC0" optional="true">
+                <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapMMC_SD_HC">
+                    <!-- MMC0 alias MMCHS0-->
+                    <PropertyValue Name="Address" Value="0x48060100" />
+                    <PropertyValue Name="INTC_IRQ" Value="64" />
+                    <PropertyValue Name="INTC_Priority" Value="10" />
+                </Defaults>
+            </MemberRef>
+
+            <MemberRef Name="MMC1" optional="true">
+                <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapMMC_SD_HC">
+                    <!-- MMC0 alias MMCHS0-->
+                    <PropertyValue Name="Address" Value="0x481D8100" />
+                    <PropertyValue Name="INTC_IRQ" Value="28" />
+                    <PropertyValue Name="INTC_Priority" Value="10" />
+                </Defaults>
+            </MemberRef>
+        </Superclass>
+    </Superclasses>
+
+    <Device Name="Ethernet">
+        <Class Requires="AM335x" Name="arch/ARM/ARMv4T/ARMv7/AM335x/AM335xEthernet">
+            <Property Name="cpsw_ss" Type="unsigned int" Optional="false" />
+            <Property Name="cpsw_port" Type="unsigned int" Optional="false" />
+            <Property Name="cpsw_cpdma" Type="unsigned int" Optional="false" />
+            <Property Name="cpsw_stats" Type="unsigned int" Optional="false" />
+            <Property Name="cpsw_stateram" Type="unsigned int" Optional="false" />
+            <Property Name="cpsw_cpts" Type="unsigned int" Optional="false" />
+            <Property Name="cpsw_ale" Type="unsigned int" Optional="false" />
+            <Property Name="cpsw_sl1" Type="unsigned int" Optional="false" />
+            <Property Name="cpsw_sl2" Type="unsigned int" Optional="false" />
+            <Property Name="mdio" Type="unsigned int" Optional="false" />
+            <Property Name="cpsw_wr" Type="unsigned int" Optional="false" />
+            <Property Name="cppi_ram" Type="unsigned int" Optional="false" />
+            <Property Name="Name" Type="char*" Optional="false"
+                Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree." />
+            <Property Name="INTC_IRQ" Type="unsigned int" Optional="false"
+                Description="Interrupt Line at the Interrupt Controller." />
+            <Property Name="INTC_Priority" Type="unsigned int" Optional="false"
+                Description="IRQ Priority at the Interrupt Controller." />
+        </Class>
+    </Device>
+
+    <Device Name="Timer">
+        <Class Requires="AM335x" Name="arch/ARM/ARMv4T/ARMv7/AM335x/AM335xTimer">
+            <Property Name="Address" Type="unsigned int" Optional="false" />
+            <Property Name="Length" Type="unsigned int" Optional="false" />
+            <Property Name="Name" Type="char*" Optional="false"
+                Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree." />
+            <Property Name="INTC_IRQ" Type="unsigned int" Optional="false"
+                Description="Interrupt Line at the Interrupt Controller." />
+            <Property Name="INTC_Priority" Type="unsigned int" Optional="false"
+                Description="IRQ Priority at the Interrupt Controller." />
+        </Class>
+    </Device>
+
+    <Device Name="Clock">
+        <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv7/AM335x/AM335xClock">
+            <Property Name="Name" Type="char*" Optional="false"
+                Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree." />
+        </Class>
+    </Device>
+
+    <Device Name="GPIO0,GPIO1,GPIO2,GPIO3">
+        <Class Requires="AM335x" Name="arch/ARM/ARMv4T/ARMv7/AM335x/AM335xGPIO">
+            <Property Name="Address" Type="unsigned int" Optional="false"
+                Description="The Memory Mapped I/O (MMIO) Base Address of this device." />
+            <Property Name="Length" Type="unsigned int" Optional="true"
+                Description="The Length (Bytes) of the Memory Mapped I/O Area of this device. This value is only needed if Virtual Memory is activated to create the corresponding memory maps." />
+            <Property Name="Name" Type="char*" Optional="false"
+                Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree." />
+            <Property Name="DirectionBits" Type="unsigned int" Optional="true"
+                Description="The initial direction of the GPIO pins. Bit Semantics: 0 = output, 1= input" />
+            <Property Name="ValueBits" Type="unsigned int" Optional="true"
+                Description="The initial value of a output pin programmed per bit." />
+            <Property Name="Priority" Type="int" Optional="false"
+                Description="The Priority parameter of this device. The priority is used for scheduled IRQ handling." />
+            <Property Name="INTC_IRQ" Type="unsigned int" Optional="false"
+                Description="Interrupt Line at the Interrupt Controller." />
+            <Property Name="INTC_Priority" Type="unsigned int" Optional="false"
+                Description="IRQ Priority at the Interrupt Controller." />
+        </Class>
+    </Device>
+
+</BoardDefinition>

@@ -8,6 +8,7 @@
 #include <kernel/Kernel.hh>
 #include "SCLConfig.hh"
 #include "assemblerFunctions.hh"
+#include "dwarf.hh"
 
 #if DWARF_DEBUG
 
@@ -41,15 +42,10 @@ typedef struct {
     unint4 addr_range;
 } FDE_Header;
 
-typedef struct {
-    unint4 address;
-    unint4 length;
-    char* signature;
-} DebugStrTableT;
 
 /* str table is auto generated and will overload this symbol at link time!*/
-DebugStrTableT __attribute__((weak)) debug_strtable[1] = { { 0, 0xffffffff, "Unknown" } };
-unsigned int __attribute__((weak)) debug_strtable_entries = 0;
+extern "C" DebugStrTableT debug_strtable[];  //= { { 0, 0xffffffff, "Unknown" } };
+extern "C" unsigned int debug_strtable_entries; //= 0;
 static CIE cie;
 
 /*****************************************************************************

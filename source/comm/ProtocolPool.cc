@@ -32,8 +32,6 @@ extern Kernel* theOS;
  *
  * This, however, leads to higher latencies for communication operations.
  */
-Mutex* comStackMutex;
-void*  sysArchMutex;
 
 ProtocolPool::ProtocolPool() {
     this->addressprotocols   = new ArrayList(2);
@@ -51,9 +49,6 @@ ProtocolPool::ProtocolPool() {
     if (isError(this->transportprotocols->addTail(reinterpret_cast<ListItem*>(new UDPTransportProtocol()))))
         LOG(COMM, ERROR, "Error adding UDP Protocol to protocol pool");
 #endif
-
-    comStackMutex = new Mutex();
-    sysArchMutex = reinterpret_cast<void*>(new Mutex());
 }
 
 ProtocolPool::~ProtocolPool() {

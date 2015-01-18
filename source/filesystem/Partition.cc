@@ -56,14 +56,21 @@ ErrorT Partition::accessSector(unint4 sector_num, char* buffer, int operation) {
         blockCache = reinterpret_cast<tPartitionBlockCache*>(litem->getData());
 
         /* write back block */
-        if (blockCache->pPartition != 0 && blockCache->modified)
-            blockCache->pPartition->myBlockDevice->writeBlock(blockCache->pPartition->lba_start + blockCache->block_start, blockCache->buffer, sectorsPerBlock);
+        if (blockCache->pPartition != 0 && blockCache->modified) {
+            ErrorT error = blockCache->pPartition->myBlockDevice->writeBlock(blockCache->pPartition->lba_start + blockCache->block_start, blockCache->buffer, sectorsPerBlock);
+            if (isError(error)) {
+               return (error);
+            }
+        }
 
         /* now cache new block */
         blockCache->pPartition  = this;
         blockCache->block_start = block_num;
         blockCache->modified    = 0;
-        myBlockDevice->readBlock(this->lba_start + blockCache->block_start, blockCache->buffer, sectorsPerBlock);
+        ErrorT error = myBlockDevice->readBlock(this->lba_start + blockCache->block_start, blockCache->buffer, sectorsPerBlock);
+        if (isError(error)) {
+            return (error);
+        }
     }
 
     /* found in cache */

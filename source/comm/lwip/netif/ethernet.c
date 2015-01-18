@@ -32,6 +32,10 @@ err_t ethernet_input(struct pbuf *p, struct netif *netif) {
     ethhdr = p->payload;
     LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE, ("ethernet_input: dest:%02x:%02x:%02x:%02x:%02x:%02x, src:%02x:%02x:%02x:%02x:%02x:%02x, type:%2x"NEWLINE, (unsigned )ethhdr->dest.addr[0], (unsigned )ethhdr->dest.addr[1], (unsigned )ethhdr->dest.addr[2], (unsigned )ethhdr->dest.addr[3], (unsigned )ethhdr->dest.addr[4], (unsigned )ethhdr->dest.addr[5], (unsigned )ethhdr->src.addr[0], (unsigned )ethhdr->src.addr[1], (unsigned )ethhdr->src.addr[2], (unsigned )ethhdr->src.addr[3], (unsigned )ethhdr->src.addr[4], (unsigned )ethhdr->src.addr[5], (unsigned )htons(ethhdr->type)));
 
+
+    netif->rxpackets++;
+    netif->rxbytes += p->tot_len;
+
     type = htons(ethhdr->type);
 #if ETHARP_SUPPORT_VLAN
     if (type == ETHTYPE_VLAN) {

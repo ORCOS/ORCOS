@@ -187,7 +187,7 @@
          </Defaults>
      </MemberRef>
 
-     <MemberRef Name="MMC" optional="true">
+     <MemberRef Name="MMC0" optional="true">
          <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapMMC_SD_HC">
              <!-- MMC1-->
              <PropertyValue Name="Address" Value="0x4809C000" />
@@ -268,7 +268,7 @@
         </Class>
     </Device>
 
-     <Device Name="MMC">
+     <Device Name="MMC0,MMC1,MMC2">
         <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapMMC_SD_HC">
           <Property Name="Address" Type="unsigned int" Optional="false" Description="The MMC controller base address. MMC1-3 are available." />
           <Property Name="INTC_IRQ" Type="unsigned int" Optional="false" Description="Interrupt Line at the Interrupt Controller." />

@@ -370,7 +370,7 @@ void* thread_entry_latency(void* arg) {
     }
 
 
-    nextTime += 1000 * 13;
+    nextTime += 1000 * 24;
 }
 
 int test_llThreadLatency(char* &str) {
@@ -412,18 +412,18 @@ int test_latency(char* &str) {
     unint4 count = rdtsc();
     thread_self();
     count = rdtsc() - count;
-    printf("thread_self:   %u cycles, %u ns"LINEFEED,count, (count * 1000) / 600);
+    printf("thread_self:   %u cycles, %u ns"LINEFEED,count, (count * 1000) / 500);
     count = rdtsc();
     getCycles();
     count = rdtsc() - count;
-    printf("getCycles  :   %u cycles, %u ns"LINEFEED,count, (count * 1000) / 600);
+    printf("getCycles  :   %u cycles, %u ns"LINEFEED,count, (count * 1000) / 500);
 
 
     unint8 time = getCycles();
     unint4 overhead = ((getCycles() - time)) >> 1;
     printf("getCycles overhead: %u cycles"LINEFEED,overhead);
 
-    nextTime = getCycles() + 1000000 * 13;
+    nextTime = getCycles() + 1000000 * 24;
     minLatency = 999999;
     iterations = 0;
     maxLatency = 0;
@@ -451,9 +451,9 @@ int test_latency(char* &str) {
     avgLatency -= overhead;
 
     printf("minLatency    : %u cycles [%u ns] (it. %d)"LINEFEED"avgLatency    : %u cycles [%u ns]"LINEFEED"maxLatency    : %u cycles [%u ns] (it. %d)"LINEFEED,
-           minLatency,(minLatency * 77), minIteration,
-           avgLatency, (avgLatency * 77),
-           maxLatency,(maxLatency * 77), maxIteration);
+           minLatency,(minLatency * 41), minIteration,
+           avgLatency, (avgLatency * 41),
+           maxLatency,(maxLatency * 41), maxIteration);
 
     return (cOk);
 }
@@ -474,7 +474,7 @@ extern "C" int task_main()
     TEST(test_shmmem,       "SC_SHMMEM          (Shared memory tests)        ");
    // TEST(test_rt,           "SC_PRIORITY        (Thread Priority tests)      ");
 
-    test_llThreadLatency(str);
+   // test_llThreadLatency(str);
     test_latency(str);
 
 }

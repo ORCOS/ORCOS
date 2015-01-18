@@ -18,11 +18,6 @@ Omap3530SPI::Omap3530SPI(T_Omap3530SPI_Init *init) :
         CharacterDevice(true, init->Name) {
     this->base = init->Address;
 
-    unint4 coreen = INW(CM_ICLKEN1_CORE);
-    // enable all spi interface clocks
-    coreen |= 0x3C0000;
-    OUTW(CM_ICLKEN1_CORE, coreen);
-
     // set base settings and soft reset
     OUTW(base+ MCSPI_SYSCONFIG, 0x303);
     // wait for soft reset

@@ -19,7 +19,7 @@ typedef union {
  *
  * @description
  *******************************************************************************/
-extern "C" unint8 __udivmoddi4(unint8 num, unint8 den, unint8 *rem_p) {
+extern "C"  __attribute__((used))  unint8 __udivmoddi4(unint8 num, unint8 den, unint8 *rem_p) {
     unint8 quot = 0, qbit = 1;
 
     if (den == 0) {
@@ -61,11 +61,11 @@ extern "C" unint8 __udivmoddi4(unint8 num, unint8 den, unint8 *rem_p) {
  * with the glic. this makes the need of linking against glibc obsolute
  * which in turn saves some space in .text section of the resulting binary
  *******************************************************************************/
-extern "C" unint8 __udivdi3(unint8 num, unint8 den) {
+extern "C"  __attribute__((used))  unint8 __udivdi3(unint8 num, unint8 den) {
     return __udivmoddi4(num, den, 0);
 }
 
-extern "C" int8 __divdi3(int8 u, int8 v) {
+extern "C"  __attribute__((used))  int8 __divdi3(int8 u, int8 v) {
     int8 c = 0;
     DWunion uu;
     uu.ll = u;
@@ -85,7 +85,7 @@ extern "C" int8 __divdi3(int8 u, int8 v) {
     return w;
 }
 
-extern "C" unint8 __moddi3(unint8 u, unint8 v) {
+extern "C"  __attribute__((used))  unint8 __moddi3(unint8 u, unint8 v) {
     int c = 0;
     DWunion uu;
     uu.ll = u;

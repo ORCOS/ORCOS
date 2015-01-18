@@ -16,7 +16,7 @@
     </Logging>
   </Options>
   <!-- ************************************
-    					Tasks
+                        Tasks
          ************************************ -->
   <Tasks>
     <Task>
@@ -36,7 +36,7 @@
   </Tasks>
   <SCL>
     <!-- ************************************
-    			Skeleton Board
+                Skeleton Board
          ************************************ -->
     <Skeleton>
       <Name>Board</Name>
@@ -84,15 +84,15 @@
       <Member Name="ExtPowerControl" Class="arch/shared/power/TWL4030" None="false" UserSpace="false" PhyLoadAddress="0x0">
         <PropertyValue Name="I2CDeviceName" Value="dev/i2c0" Type="char*" />
       </Member>
-      <Member Name="MMC" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapMMC_SD_HC" None="true" UserSpace="false" PhyLoadAddress="0x0">
+      <Member Name="Cache" Class="hal/Cache" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="MMC0" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapMMC_SD_HC" None="true" UserSpace="false" PhyLoadAddress="0x0">
         <PropertyValue Name="Address" Value="0x4809C000" Type="unsigned int" />
         <PropertyValue Name="INTC_IRQ" Value="83" Type="unsigned int" />
         <PropertyValue Name="INTC_Priority" Value="10" Type="unsigned int" />
       </Member>
-      <Member Name="Cache" Class="hal/Cache" None="true" UserSpace="false" PhyLoadAddress="0x0" />
     </Skeleton>
     <!-- ************************************
-    			Skeleton Kernel
+                Skeleton Kernel
          ************************************ -->
     <Skeleton>
       <Name>Kernel</Name>
@@ -130,7 +130,7 @@
       <Member Name="MassStorage" Class="usb/MassStorageSCSIUSBDeviceDriver" None="true" UserSpace="false" PhyLoadAddress="0x0" />
     </Skeleton>
     <!-- ************************************
-    			Skeleton SyscallManager
+                Skeleton SyscallManager
          ************************************ -->
     <Skeleton>
       <Name>SyscallManager</Name>

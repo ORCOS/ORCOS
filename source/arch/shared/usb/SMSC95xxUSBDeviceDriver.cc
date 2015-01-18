@@ -903,8 +903,6 @@ ErrorT SMSC95xxUSBDeviceDriver::recv(unint4 recv_len) {
                 cur_len = 0;
 
                 acquireMutex(comStackMutex);
-                st_netif.rxpackets++;
-                st_netif.rxbytes += last_pbuf->tot_len;
                 ethernet_input(last_pbuf, &st_netif);
                 pbuf_free(last_pbuf);
                 releaseMutex(comStackMutex);
@@ -946,8 +944,6 @@ ErrorT SMSC95xxUSBDeviceDriver::recv(unint4 recv_len) {
                 /* check if packet is complete */
                 if (packet_len <= r_len) {
                     memcpy(ptBuf->payload, &rxbuffer[recvd_bytes + 4], packet_len);
-                    st_netif.rxpackets++;
-                    st_netif.rxbytes += ptBuf->tot_len;
                     ethernet_input(ptBuf, &st_netif);
                     pbuf_free(ptBuf);
                 } else {
@@ -1083,12 +1079,6 @@ static err_t smsc95xx_low_level_output(struct netif *netif, struct pbuf *p) {
          * without this the smsc stalls with too much data send .. ? */
         int error = driver->dev->controller->USBBulkMsg(driver->dev, driver->bulkout_ep, USB_DIR_OUT, 8, reinterpret_cast<char*>(dummyFrame));
         error |= driver->dev->controller->USBBulkMsg(driver->dev, driver->bulkout_ep, USB_DIR_OUT, (unint2) (len + 8), data);
-        if (error < 0) {
-            netif->txerrors++;
-        } else {
-            netif->txpackets++;
-            netif->txbytes += len;
-        }
     }
 
     driver->mutex->release();

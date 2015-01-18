@@ -25,6 +25,8 @@
 extern Kernel* theOS;
 extern Kernel_ThreadCfdCl* pCurrentRunningThread;
 
+#define LOG_PRINT_TIME 1
+
 /* FATAL=0,ERROR=1,WARN=2,INFO=3,DEBUG=4,TRACE=5 */
 static const char* levelStrings[6] = { "FATAL", "ERROR", "WARN ", "INFO ", "DEBUG", "TRACE" };
 
@@ -68,9 +70,11 @@ void Logger::log(Prefix prefix, Level level, const char* msg, ...) {
 #if LOG_PRINT_TIME
     unint4 time = 0;
     if (theOS != 0 && theOS->getClock() != 0)
-    time =(unint4) (theOS->getClock()->getTimeSinceStartup() MICROSECONDS);
+    time = (unint4) (theOS->getClock()->getClockCycles() / (1 MICROSECONDS));
 
-    printf("[%08u]", time);
+    int seconds = time / (1000000);
+    time = time - (seconds * 1000000);
+    printf("[%05u.%08u]", seconds, time);
 #endif
 
     if (pCurrentRunningThread != 0) {

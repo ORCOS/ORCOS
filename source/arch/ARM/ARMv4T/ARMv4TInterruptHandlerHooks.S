@@ -89,9 +89,7 @@ jumpToIrqHandler:
     // save register context on stack. Layout:
     // offset: 0   4   8   12  16  20  24  28  32  36  40  44  48  52  56  60  64 68
     //         |psr|r0 |r1 |r2 |r3 |r4 |r5 |r6 |r7 |r8 |r9 |r10|r11|r12|pc |sp |lr |
-    STMFD   sp!, {sp,lr}   // save lr and sp .. leave one register space for PC  .. deprecated
-    //STR     lr,  [sp,#-4]       // save lr
-    //STR     sp,  [sp,#-8]       // store stack pointer
+    STMFD   sp!, {sp,lr}       // save lr and sp .. leave one register space for PC  .. deprecated
     SUB     sp,  sp, #4        // make room for pc
     STMFD   sp!, {r0-r12}      // store r0-r12 context
     MOV     r0, sp
@@ -291,21 +289,47 @@ fiqIRQHandler:
 EXPORT_FCN(void, prefetchIRQHandler,    (void))
 FUNC_START(prefetchIRQHandler)
 prefetchIRQHandler:
-    // prefetch abort is not serious.. just return and let the processor
-    // fetch the instruction again..
-    // usually caused by a wrong branch prediction!
-    MSR CPSR_c, #system_mode|CPSR_DISINT        // switch to supervisor mode
+    MRS     sp, SPSR            // load saved status register
+    AND     sp, sp, #0x1F       // extract mode bits
 
-    LDR     sp, =__stack - 0x200
-    STMFD   sp!, {r0-r12}
-    MOV     r1, sp
+    CMP     sp, #user_mode                      // compare with user mode bit setting
+    MOVEQ   sp, #(system_mode) | CPSR_DISINT    // use system mode to save registers
+    ORRNE   sp, sp, #CPSR_DISINT                // use interrupted mode to save registers
+    BICNE   sp, sp, #0x220                      // Clear Bits: Thumb and Big Endian
 
-    MSR     CPSR_c, #abort_mode|CPSR_DISINT     // switch to supervisor mode
-    SUB     r0,lr, #4
-    MOV     r2, sp
+    // sp now contains the context save/restore mode
+    MSR     CPSR_c, sp          // switch to context save mode (access to interrupted mode register bank)
+
+    // save register context on stack. Layout:
+    // offset: 0   4   8   12  16  20  24  28  32  36  40  44  48  52  56  60  64 68
+    //         |psr|r0 |r1 |r2 |r3 |r4 |r5 |r6 |r7 |r8 |r9 |r10|r11|r12|pc |sp |lr |
+    //STMFD   sp!, {r0,sp,lr}   // save lr and sp .. leave one register space for PC  .. deprecated
+    // TODO: check sp for valid range
+    STR     lr,  [sp,#-4]       // save lr
+    STR     sp,  [sp,#-8]       // store stack pointer
+    SUB     sp,  sp,#12         // make room for pc
+    STMFD   sp!, {r0-r12}       // store r0-r12 context
+    MOV     r0, sp
+
+    // we can now safely use r0-r11
+    // switch to uninterrupable svc mode for interrupt handling (OS mode)
+    // and store away return PC and PSR
+    MSR     CPSR_c, #(abort_mode)|CPSR_DISINT
+
+    MRS     r2, SPSR           // get the return PSR to store away
+    SUB     r1, lr, #4         // get the aborted instruction address
+    STR     r1 , [r0,#52]      // store return PC
+
+    STMFD   r0!, {r2}          // store PSR
+
+    ADD     r2, r0, #68
 
     MSR     CPSR_c, #svc_mode|CPSR_DISINT       // switch to supervisor mode
     LDR     sp, =__stack
+
+    // r0 = context
+    // r1 = instr
+    // r2 = sp at aborted location
 
     B       FUNC_NAME(handlePrefetchAbort)
 

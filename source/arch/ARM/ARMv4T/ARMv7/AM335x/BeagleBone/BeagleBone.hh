@@ -16,10 +16,9 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef BEAGLEBOARD_HH_
-#define BEAGLEBOARD_HH_
+#ifndef BEAGLEBONE_HH_
+#define BEAGLEBONE_HH_
 
-#include "OMAP3530.h"
 #include "SCLConfig.hh"
 #include "hal/CommDeviceDriver.hh"
 
@@ -29,47 +28,63 @@
 #include Board_UART2_hh
 #include Board_InterruptController_hh
 #include Board_Clock_hh
-#include Board_USB_HC_hh
-#include <OmapGPTimer.hh>
+#include Board_Cache_hh
+#include Board_SPI_hh
+#include Board_Timer_hh
+#include Board_Ethernet_hh
+#include Board_GPIO0_hh
+#include Board_GPIO1_hh
+#include Board_GPIO2_hh
+#include Board_GPIO3_hh
+#include Board_MMC0_hh
+#include Board_MMC1_hh
 
 #ifndef RAM_SIZE
-#define RAM_SIZE     128 MB
+#define RAM_SIZE     512 MB
 #endif
 
-#define PLATFORM        PLATFORM_ARM
-#define SCHED_TIMER_IRQ 37
+#define PLATFORM    PLATFORM_ARM
+
+#define SCHED_TIMER_IRQ 68
+
 /*!
  * \brief Implementation of the HAL board for the BeagleBoard architecture
  */
-class BeagleBoard {
-DEF_Board_ProcessorCfd
-DEF_Board_InterruptHandlerCfd
-DEF_Board_UARTCfd
-DEF_Board_UART2Cfd
-DEF_Board_InterruptControllerCfd
-DEF_Board_TimerCfd
-DEF_Board_ClockCfd
-DEF_Board_USB_HCCfd
-
-    /*****************************************************************************
-     * Method: getETH()
-     *
-     * @description
-     *
-     *******************************************************************************/
-    CommDeviceDriver* getETH() {
-        return 0;
-    }
+class BeagleBone {
+    /*
+     *  Standard configurable board components definition.
+     *  Depending on SCL Config members will be initialized
+     *  with a corresponding class.
+     */
+    DEF_Board_ProcessorCfd
+    DEF_Board_InterruptHandlerCfd
+    DEF_Board_UARTCfd
+    DEF_Board_UART2Cfd
+    DEF_Board_InterruptControllerCfd
+    DEF_Board_TimerCfd
+    DEF_Board_CacheCfd
+    DEF_Board_ClockCfd
+    DEF_Board_SPICfd
+    DEF_Board_EthernetCfd
+    DEF_Board_GPIO0Cfd
+    DEF_Board_GPIO1Cfd
+    DEF_Board_GPIO2Cfd
+    DEF_Board_GPIO3Cfd
+    DEF_Board_MMC0Cfd
+    DEF_Board_MMC1Cfd
 
 public:
-    BeagleBoard();
-    ~BeagleBoard();
+    unint4 sys_clock;
+
+    BeagleBone();
+
+    ~BeagleBone();
 
     /*****************************************************************************
      * Method: initialize()
      *
      * @description
-     *  Initializes the beagleboard device drivers.
+     *  Board intitialization. Boots up the hardware devices.
      *******************************************************************************/
     void initialize();
 
@@ -77,11 +92,11 @@ public:
      * Method: getBoardInfo()
      *
      * @description
-     *  Returns the board information string.
+     *  Returns a board informations string
      *******************************************************************************/
-    char* getBoardInfo() {
-        return (char*) "         BeagleBoard revision B5. SOC: OMAP3530\n\n";
+    const char* getBoardInfo() {
+        return (" BeagleBone. SOC: AM335x\r\n");
     }
 };
 
-#endif /*BEAGLEBOARD_HH_*/
+#endif /*BEAGLEBONE_HH_*/

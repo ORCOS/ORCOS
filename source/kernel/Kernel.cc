@@ -27,6 +27,9 @@ Board_ClockCfdCl* theClock = 0;
 Board_TimerCfdCl* theTimer = 0;
 Board_InterruptControllerCfdCl* theInterruptController = 0;
 
+Mutex* comStackMutex;
+void*  sysArchMutex;
+
 extern void* _text_start;
 extern void* _heap_start;
 extern void* _heap_end;
@@ -193,6 +196,9 @@ void Kernel::initialize() {
 #if HAS_Kernel_LoggerCfd
     LoggerCfd = new NEW_Kernel_LoggerCfd;
 #endif
+
+    comStackMutex = new Mutex();
+    sysArchMutex = reinterpret_cast<void*>(new Mutex());
 
     /* Initialize the Internet Protocol Stack */
 #if ENABLE_NETWORKING

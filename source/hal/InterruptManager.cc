@@ -10,7 +10,7 @@
 #include "inc/memtools.hh"
 #include "kernel/Kernel.hh"
 
-#define IRQ_MAX 95
+#define IRQ_MAX 256
 
 extern Kernel* theOS;
 extern unint4 scheduleCount;
@@ -138,6 +138,7 @@ ErrorT InterruptManager::registerIRQ(unint4 irq, GenericDeviceDriver* driver, un
     }
 #endif
 
+    driver->enableIRQ();
     TRACE_ADD_SOURCE(0, irq, driver->getName());
     return (cOk);
 }

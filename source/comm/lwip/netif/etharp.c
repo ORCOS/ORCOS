@@ -339,12 +339,13 @@ void etharp_arp_input(struct netif *netif, struct eth_addr *ethaddr, struct pbuf
  */
 err_t etharp_output(struct netif *netif, struct pbuf *q, struct ip4_addr *ipaddr) {
     struct eth_addr *dest, mcastaddr;
+    int err;
 
     /* make room for Ethernet header - should not fail */
     if (pbuf_header(q, sizeof(struct eth_hdr)) != 0) {
         /* bail out */
         LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_LEVEL_SERIOUS, ("etharp_output: could not allocate room for header."NEWLINE));LINK_STATS_INC(link.lenerr);
-        return ERR_BUF;
+        return (ERR_BUF);
     }
 
     /* assume unresolved Ethernet address */
@@ -370,17 +371,15 @@ err_t etharp_output(struct netif *netif, struct pbuf *q, struct ip4_addr *ipaddr
         /* unicast destination IP address? */
     } else {
         /* outside local network? */
-        // if (!ip4_addr_netcmp(ipaddr,(struct ip4_addr*) &(netif->ip4_addr.addr[0]),(struct ip4_addr*) &(netif->ip4_netmask.addr[0]))) {
         if (!ip4_addr_netcmp(ipaddr, &(netif->ip4_addr), &(netif->ip4_netmask))) {
             /* interface has default gateway? */
             if (netif->ip4_gw.addr != 0) {
                 /* send to hardware address of default gateway IP address */
-                // ipaddr = (struct ip4_addr*) &(netif->ip4_gw.addr[0]);
                 ipaddr = &(netif->ip4_gw);
                 LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_LEVEL_SERIOUS, ("etharp_output: sending to gateway %x."NEWLINE,netif->ip4_gw.addr));
             } else {
                 /* no route to destination error (default gateway missing) */
-                return ERR_RTE;
+                return (ERR_RTE);
             }
         }
 
@@ -388,13 +387,27 @@ err_t etharp_output(struct netif *netif, struct pbuf *q, struct ip4_addr *ipaddr
         ip4addr.version = IPV4;
         ip4addr.addr.ip4addr.addr = ipaddr->addr;
         /* queue on destination Ethernet address belonging to ipaddr */
-        return ethar_query(netif, &ip4addr, q);
+        err = ethar_query(netif, &ip4addr, q);
+        goto out;
     }
 
     /* continuation for multicast/broadcast destinations */
     /* obtain source Ethernet address of the given interface */
     /* send packet directly on the link */
-    return ethar_send_ip(netif, q, (struct eth_addr*) (netif->hwaddr), dest, IPV4);
+     err = ethar_send_ip(netif, q, (struct eth_addr*) (netif->hwaddr), dest, IPV4);
+out:
+    if (err == ERR_OK){
+        netif->txpackets++;
+        netif->txbytes += q->tot_len;
+    } else {
+        netif->txerrors++;
+    }
+    return (err);
+}
+
+
+err_t etharp_output_ipv6(struct netif *netif, struct pbuf *q, struct ip6_addr *ipaddr) {
+    return (ERR_RTE);
 }
 
 /**

@@ -1,0 +1,10 @@
+set verbose on
+set backtrace limit 7
+#set breakpoint auto-hw on
+
+#target extended-remote localhost:3333
+
+symbol-file D:/git/orcos_github/configurations/BeagleBone/Prototype/output/kernel.elf
+
+#symbol-file configurations/BeagleBone/Prototype/tasks/telnet_server/task.elf
+#detach

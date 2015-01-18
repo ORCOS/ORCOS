@@ -563,7 +563,11 @@ err_t ip_output_if_opt(struct pbuf *p, struct ip_addr *src, struct ip4_addr *des
 #endif
 
     LWIP_DEBUGF(IP_DEBUG, ("netif->output()"));
-    return netif->ip4_output(netif, p, dest);
+    if (netif->ip4_output != 0) {
+        return netif->ip4_output(netif, p, dest);
+    } else {
+        return (ERR_RTE);
+    }
 }
 
 /**

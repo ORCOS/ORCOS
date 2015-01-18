@@ -12,42 +12,51 @@
 
 // offsets to registers
 
-#define MMCHS_SYSCONFIG 0x10
-#define MMCHS_SYSSTATUS 0x14
-#define MMCHS_CSRE 0x24
-#define MMCHS_CON 0x2c
-#define MMCHS_BLK 0x104
-#define MMCHS_ARG 0x108
-#define MMCHS_CMD 0x10c
+#define MMCHS_SYSCONFIG     0x10
+#define MMCHS_SYSSTATUS     0x14
+#define MMCHS_CSRE          0x24
+#define MMCHS_CON           0x2c
+#define MMCHS_BLK           0x104
+#define MMCHS_ARG           0x108
+#define MMCHS_CMD           0x10c
 
-#define MMCHS_RSP10 0x110
-#define MMCHS_RSP32 0x114
-#define MMCHS_RSP54 0x118
-#define MMCHS_RSP76 0x11c
-#define MMCHS_DATA 0x120
+#define MMCHS_RSP10         0x110
+#define MMCHS_RSP32         0x114
+#define MMCHS_RSP54         0x118
+#define MMCHS_RSP76         0x11c
+#define MMCHS_DATA          0x120
 
-#define MMCHS_PSTATE 0x124
-#define MMCHS_HCTL 0x128
+#define MMCHS_PSTATE        0x124
+#define MMCHS_HCTL          0x128
 
-#define MMCHS_SYSCTL 0x12c
-#define MMCHS_STAT 0x130
-#define MMCHS_IE 0x134
-#define MMCHS_ISE 0x138
+#define MMCHS_SYSCTL        0x12c
+#define MMCHS_STAT          0x130
+#define MMCHS_IE            0x134
+#define MMCHS_ISE           0x138
 
-#define MMCHS_AC12 0x13c
-#define MMCHS_CAPA 0x140
-#define MMCHS_CUR_CAPA 0x148
-#define MMCHS_REV 0x1fc
+#define MMCHS_AC12          0x13c
+#define MMCHS_CAPA          0x140
+#define MMCHS_CUR_CAPA      0x148
+#define MMCHS_REV           0x1fc
 
-#define STAT_CC (1 << 0)
-#define STAT_TC (1 << 1)
-#define STAT_BGE (1 << 2)
-#define STAT_BWR (1 << 4)
-#define STAT_BRR (1 << 5)
-#define STAT_CIRQ (1 << 8)
-#define STAT_OBI (1 << 9)
-#define STAT_ERRI (1 << 15)
-#define STAT_CTO (1 << 16)
+#define STAT_CC     (1 << 0)
+#define STAT_TC     (1 << 1)
+#define STAT_BGE    (1 << 2)
+#define STAT_BWR    (1 << 4)
+#define STAT_BRR    (1 << 5)
+#define STAT_CIRQ   (1 << 8)
+#define STAT_OBI    (1 << 9)
+#define STAT_ERRI   (1 << 15)
+#define STAT_CTO    (1 << 16)
+
+typedef enum {
+    Unknown,
+    SD1_0,
+    SD2_0,
+    MMC,
+    SDIO
+} T_CardType;
+
 
 class OmapMMC_SD_HC: public BlockDeviceDriver {
 private:
@@ -57,6 +66,8 @@ private:
     unint2 rca;
 
     unint1 isHighCapacity;
+
+    T_CardType card_type;
 
 public:
     /*****************************************************************************

@@ -7,7 +7,6 @@
 #define BEAGLEBOARDINTERRUPTCONTROLLER_HH_
 
 #include "inc/types.hh"
-#include "OMAP3530.h"
 #include "inc/memio.h"
 #include <SCLConfig.hh>
 

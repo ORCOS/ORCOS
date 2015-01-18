@@ -298,7 +298,11 @@ err_t ip6_output_if(struct pbuf *p, struct ip6_addr *src, struct ip6_addr *dest,
 #endif /* IP_DEBUG */
 
     PERF_STOP("ip_output_if");
-    return netif->ip6_output(netif, p, dest);
+    if (netif->ip6_output != 0) {
+        return (netif->ip6_output(netif, p, dest));
+    } else {
+        return (ERR_RTE);
+    }
 }
 
 /* ip_output:

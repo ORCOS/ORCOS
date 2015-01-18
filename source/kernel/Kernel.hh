@@ -106,7 +106,7 @@ void kwait_us(int microseconds);
 void kwait_us_nonmem(int microseconds);
 
 #define TIMEOUT_WAIT(condition, timeout_us) ({  \
-    static int __timeout = timeout_us; \
+    int __timeout = timeout_us; \
     while ((condition) && (__timeout)) \
     { \
         __timeout--; \

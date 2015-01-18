@@ -55,7 +55,8 @@ void lwipTMR::callbackFunc(void* param) {
 
     comStackMutex->release();
 
-    theOS->getMemoryManager()->service();
+    LOG(COMM, TRACE, "MemoryManager service!");
+   // theOS->getMemoryManager()->service();
 
     /* iterate over all tasks and threads to check for the blocked state */
     LinkedList* llt = theOS->getTaskDatabase();
@@ -78,6 +79,8 @@ void lwipTMR::callbackFunc(void* param) {
         }
     }
 
+    LOG(COMM, TRACE, "Flushing Kernel Log!");
     /* Perform logger flush */
     theOS->getLogger()->flush();
+    LOG(COMM, TRACE, "Services Thread done!");
 }

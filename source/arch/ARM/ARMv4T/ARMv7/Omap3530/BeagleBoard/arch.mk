@@ -3,19 +3,14 @@
 #
 
 #ARCH_OBJ contains all architecture dependent object files to be compiled and linked into the kernel.
-ARCH_OBJ += _startup.o
+ARCH_OBJ += Omap3530_startup.o
 ARCH_OBJ += Omap3530Clock.o  
 ARCH_OBJ += ARMv4TInterruptHandler.o 
 ARCH_OBJ += BeagleBoard.o 
 ARCH_OBJ += handleInterrupt.o
-#ARCH_OBJ += BeagleBoardUARTforHCI.o
-ARCH_OBJ += assemblerFunctions.o handleInterrupt.o ARMv4TInterruptHandlerHooks.o
+ARCH_OBJ += assemblerFunctions.o ARMv4TInterruptHandlerHooks.o
 ARCH_OBJ += startThread.o
 ARCH_OBJ += ARMv7HatLayer.o
-#ARCH_OBJ += BeagleBoardDSS.o
-#ARCH_OBJ += Omap3530i2c.o
-#ARCH_OBJ += Omap3530_BebotLED.o
-#ARCH_OBJ += BeagleBoardUART.o
 
 
 #ARCH_VPATH defines architecture dependent VPATH-entries (see VPATH below).

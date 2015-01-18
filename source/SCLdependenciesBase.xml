@@ -379,16 +379,6 @@
          </Class>
       </Classes>
     </Member>
-    <Member>
-    <Name>MMC</Name>
-      <Classes>
-      </Classes>
-    </Member>
-    <Member>
-    <Name>SPI</Name>
-      <Classes>
-      </Classes>
-    </Member>
   </Skeleton>
 
   <!-- ####################################################

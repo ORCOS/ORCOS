@@ -19,7 +19,6 @@
 #include <kernel/Kernel.hh>
 #include "syscalls/syscalls.hh"
 #include "inc/error.hh"
-#include "OMAP3530.h"
 
 extern "C" void handleTimerInterrupt(void* sp_int);
 
@@ -29,15 +28,24 @@ extern Task* pCurrentRunningTask;
 extern Board_InterruptControllerCfdCl* theInterruptController;
 extern bool needReschedule;
 
+extern "C" __attribute__((used)) void dispatchIRQ(void* sp_int, int mode);
+
+/*
+ *   saved register context on stack. Layout:
+     offset: 0   4   8   12  16  20  24  28  32  36  40  44  48  52  56  60  64 68
+             |psr|r0 |r1 |r2 |r3 |r4 |r5 |r6 |r7 |r8 |r9 |r10|r11|r12|pc |sp |lr |
+ *
+ */
+
 extern "C" void dumpContext(void* sp_context) {
     unint4* context = reinterpret_cast<unint4*>(sp_context);
     LOG(ARCH, ERROR, "Context at 0x%08x:", (unint4) sp_context);
-    LOG(ARCH, ERROR, "PSR: 0x%08x  PC : 0x%08x", context[0], context[13]);
+    LOG(ARCH, ERROR, "PSR: 0x%08x  PC : 0x%08x", context[0], context[14]);
     LOG(ARCH, ERROR, "r0 : 0x%08x  r1 : 0x%08x  r2 : 0x%08x", context[1] , context[2] , context[3]);
     LOG(ARCH, ERROR, "r3 : 0x%08x  r4 : 0x%08x  r5 : 0x%08x", context[4] , context[5] , context[6]);
     LOG(ARCH, ERROR, "r6 : 0x%08x  r7 : 0x%08x  r8 : 0x%08x", context[7] , context[8] , context[9]);
     LOG(ARCH, ERROR, "r9 : 0x%08x  r10: 0x%08x  r11: 0x%08x", context[10], context[11], context[12]);
-    LOG(ARCH, ERROR, "r12: 0x%08x  SP : 0x%08x  LR : 0x%08x", context[13], context[14], context[15]);
+    LOG(ARCH, ERROR, "r12: 0x%08x  SP : 0x%08x  LR : 0x%08x", context[13], context[15], context[16]);
 
     //LOG(ARCH, ERROR,"LR: 0x%08x", ((unint4*) sp_context)[15]);
 }
@@ -134,7 +142,7 @@ extern "C" void handleFIQ() {
     while (true) { }
 }
 
-extern "C" void handlePrefetchAbort(int instr, int context, int sp) {
+extern "C" void handlePrefetchAbort(int context, int instr, int sp) {
     LOG(ARCH, ERROR, "Prefetch Abort IRQ. instr: 0x%x", instr);
 
     dumpContext(reinterpret_cast<void*>(context));
@@ -185,7 +193,7 @@ extern "C" void handlePrefetchAbort(int instr, int context, int sp) {
  * - dedicated interrupt dispatching for timer interrupts
  * - forwarding of all other irqs to the generic interrupt manager
  */
-extern "C" void dispatchIRQ(void* sp_int, int mode) {
+extern "C" __attribute__((used)) void dispatchIRQ(void* sp_int, int mode) {
     if (pCurrentRunningThread != 0) {
         ASSERT(isOk(pCurrentRunningThread->pushStackPointer(sp_int)));
         ASSERT(isOk(pCurrentRunningThread->pushStackPointer(reinterpret_cast<void*>(mode))));
@@ -199,7 +207,7 @@ extern "C" void dispatchIRQ(void* sp_int, int mode) {
     /* jump to interrupt handler according to active interrupt */
     switch (irqSrc) {
         /* General Purpose Timer interrupt used for scheduling */
-        case GPT1_IRQ: {
+        case SCHED_TIMER_IRQ: {
             /* non returning irq ..*/
             theTimer->clearIRQ();
             /* allow new interrupts to occur */

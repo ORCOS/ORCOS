@@ -154,7 +154,7 @@
                     <PropertyValue Name="I2CDeviceName" Value="dev/i2c0" />
                 </Defaults>
             </MemberRef>
-            <MemberRef Name="MMC" optional="true">
+            <MemberRef Name="MMC0" optional="true">
                 <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapMMC_SD_HC">
                     <PropertyValue Name="Address" Value="0x4809C000" />
                     <PropertyValue Name="INTC_IRQ" Value="83" />

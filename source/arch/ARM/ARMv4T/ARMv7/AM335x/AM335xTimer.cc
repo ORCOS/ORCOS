@@ -1,0 +1,165 @@
+/*
+ ORCOS - an Organic Reconfigurable Operating System
+ Copyright (C) 2010 University of Paderborn
+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#include "AM335xTimer.hh"
+#include "inc/memio.h"
+#include <kernel/Kernel.hh>
+#include <assemblerFunctions.hh>
+
+extern Kernel* theOS;
+
+AM335xTimer::AM335xTimer(T_AM335xTimer_Init * init) : TimerDevice(init->Name) {
+    hwregs = reinterpret_cast<am335xgp_regs*>(init->Address);
+
+    /* functional and interface clocks must be enabled */
+
+#if 0
+    /* only for 1 ms tick generation */
+    // GPT1_TPIR POSITIVE_INC_VALUE = 232000 = 0x38A40
+    hwregs->tpir = 0;
+
+    // GPT1_TNIR NEGATIVE_INC_VALUE = 768000 = 0xBB800
+    hwregs->tnir = 0;
+#endif
+
+    /* GPT1_TLDR LOAD_VALUE = 0xFFFFFFE0 */
+    hwregs->tldr = 0;
+
+    /* configure for autoreload, compare mode and disable timer */
+    //hwregs->tclr = 0x2 | (0x1 << 6);
+    hwregs->tclr = 0x0;
+
+    /* set counter to start value */
+    hwregs->tcrr = 0;
+
+    /* clear pending interrupts */
+    hwregs->tisr = 0x7;
+
+    theOS->getBoard()->getInterruptController()->setIRQPriority(init->INTC_IRQ, init->INTC_Priority);
+    theOS->getBoard()->getInterruptController()->unmaskIRQ(init->INTC_IRQ);
+    theOS->getInterruptManager()->registerIRQ(init->INTC_IRQ, this, 0, IRQ_NOTHREAD);
+
+    /* match value */
+    hwregs->tmar = -1;
+
+    /* enable interrupt on timer match (compare mode) */
+    /* enable interrupt on timer overflow */
+    hwregs->tier = 2;
+
+    /* reset timer interrupt pending bit */
+    hwregs->tisr = 0xf;
+
+    hwregs->tldr = 0;
+    hwregs->ttgr = 1;
+
+    /* initialize timer */
+    isEnabled       = false;
+    time            = 0;
+    elapsedCycles   = 0;
+    tickRate        = 0;
+}
+
+AM335xTimer::~AM335xTimer() {
+    disable();
+}
+
+/*****************************************************************************
+ * Method: AM335xTimer::enable()
+ *
+ * @description
+ *  Enables the hardware timer using the current configuration.
+ *******************************************************************************/
+ErrorT AM335xTimer::enable() {
+    this->setTimer(time);
+
+    /* start timer */
+    hwregs->tclr = 0x1;
+    isEnabled = true;
+    return (cOk );
+}
+
+/*****************************************************************************
+ * Method: AM335xTimer::disable()
+ *
+ * @description
+ *  Disables the hardware timer and clears all interrupt flags.
+ *******************************************************************************/
+ErrorT AM335xTimer::disable() {
+    isEnabled = false;
+    /* stop timer */
+    hwregs->tclr = 0;
+    /* reset timer interrupt pending bit */
+    hwregs->tisr = 0xf;
+    return (cOk );
+}
+
+/*****************************************************************************
+ * Method: AM335xTimer::setTimer(TimeT t)
+ *
+ * @description
+ *  Programs the hardware timer to generate an interrupt at time t. Also starts the
+ *  timer. If t - currenTime does not fit into an int32 the hw interrupt
+ *  will be programmed to the maximum time possible.
+ *******************************************************************************/
+ErrorT AM335xTimer::setTimer(TimeT t) {
+    TimeT currentTime = theOS->getClock()->getClockCycles() + 3 MICROSECONDS;
+    /* set to 5 ticks if currentTime > t*/
+    unint4 dt = 5;
+
+    /* otherwise generate the next irq in (t- currentTime) ticks */
+    if (currentTime < t) {
+        TimeT diff = t - currentTime;
+        dt = 0xfffffff0;
+        if (diff < dt)
+            dt = diff;
+    }
+
+    hwregs->tldr = 0xffffffff - dt;
+    hwregs->ttgr = 1;
+    /* reset current value to max - dt */
+    //hwregs->tcrr = 0xffffffff - dt;
+    /* start timer again */
+    hwregs->tclr = 0x1;
+
+    tickRate = t;  // tickRate = cycles/tick
+    TimerDevice::setTimer(t);
+    return (cOk );
+}
+
+/*****************************************************************************
+ * Method: AM335xTimer::setPeriod(unint4 microseconds)
+ *
+ * @description
+ *  Configures the Timer to periodic mode issuing timer ticks (IRQS) at the given
+ *  period.
+ *******************************************************************************/
+void AM335xTimer::setPeriod(unint4 microseconds) {
+    unint4 value = 0xffffffff - (microseconds MICROSECONDS);
+    /* reset current value to max - dt */
+    hwregs->tcrr = value;
+    /* reload value is the same */
+    hwregs->tldr = value;
+    hwregs->ttgr = 1;
+    /* initial irq flag clear */
+    hwregs->tisr = 0xf;
+    /* start timer in auto reload mode */
+    hwregs->tclr = 0x1 | (1 << 1);
+}
+
+
+

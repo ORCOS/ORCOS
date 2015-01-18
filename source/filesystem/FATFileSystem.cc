@@ -547,13 +547,13 @@ ErrorT FATFileSystem::initialize() {
 
             FAT_SHORTNAME_STRIP(name, 10);
 
-            LOG(FILESYSTEM, INFO, "FATFileSystem: Volume: '%s' ID: %x", name, myFATxx_BPB.myFAT16_BPB.BS_VolID);
+            LOG(ARCH, INFO, "FATFileSystem: Volume: '%s' ID: %x", name, myFATxx_BPB.myFAT16_BPB.BS_VolID);
 
             unint4 FirstRootDirSecNum = myFAT_BPB.BPB_RsvdSecCnt + (myFAT_BPB.BPB_NumFATs * myFAT_BPB.BPB_FATSz16);
             rootDir = new FATDirectory(this, 0, name, FirstRootDirSecNum);
             mntdir->add(rootDir);
 
-            LOG(FILESYSTEM, INFO, "FATFileSystem: FAT Filesystem mounted to '/mnt/%s/'.", name);
+            LOG(ARCH, INFO, "FATFileSystem: FAT Filesystem mounted to '/mnt/%s/'.", name);
 
             // go on and mount this fs
             return (cOk);
@@ -1130,7 +1130,7 @@ FAT32_DirEntry* FATDirectory::getNextEntry(bool writeBack, bool allocate) {
 
         /* allocate a new entry*/
         /* end of sector reached? */
-        if (it_currentSectorEntry +1 >= entries_per_sector) {
+        if ((unint4)(it_currentSectorEntry +1) >= entries_per_sector) {
             /* first write back the current sector */
             if (writeBack) {
                 if (isError(myFS->myPartition->writeSectors(it_currentSector, buffer, 1))) {
@@ -1624,8 +1624,15 @@ ErrorT FATFile::seek(int4 seek_value) {
 
     FATAccess->acquire();
 
-    int4 new_position = this->position + seek_value;
-    if (new_position < 0) new_position = 0;
+    unint4 new_position = this->position + seek_value;
+    if (seek_value < 0 && new_position > this->position) {
+        /* underflow */
+        new_position = 0;
+    }
+    if (seek_value > 0 && new_position < this->position) {
+        /* overflow */
+        new_position = -1;
+    }
     unint4 sector_size  = this->myFS->myPartition->getSectorSize();
 
     if (new_position < this->position) {
@@ -1655,6 +1662,7 @@ ErrorT FATFile::seek(int4 seek_value) {
             return (cOk);
         }
     }
+    /* seek_value is now always positive */
 
     bool sector_changed = false;
     /* start from current position and seek to position < filesize */
@@ -1662,7 +1670,7 @@ ErrorT FATFile::seek(int4 seek_value) {
         unint4 sector_pos       = this->position & (sector_size - 1);  // position inside the sector
         unint4 sector_seek_len  = sector_size - sector_pos;       // the length we will seek inside this sector
 
-        if (seek_value < sector_seek_len) {
+        if ((unint4)seek_value < sector_seek_len) {
             sector_seek_len = seek_value;
         } else {
             sector_changed = true;

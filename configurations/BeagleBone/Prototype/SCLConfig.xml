@@ -11,7 +11,7 @@
       <Log Prefix="DB" Level="WARN" />
       <Log Prefix="HAL" Level="WARN" />
       <Log Prefix="ARCH" Level="INFO" />
-      <Log Prefix="FILESYSTEM" Level="INFO" />
+      <Log Prefix="FILESYSTEM" Level="WARN" />
       <Log Prefix="COMM" Level="WARN" />
     </Logging>
   </Options>
@@ -54,117 +54,107 @@
          ************************************ -->
     <Skeleton>
       <Name>Board</Name>
-      <Superclass>arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardxM/BeagleBoardxM</Superclass>
+      <Superclass>arch/ARM/ARMv4T/ARMv7/AM335x/BeagleBone/BeagleBone</Superclass>
       <Member Name="Processor" Class="arch/ARM/ARMv4T/ARMv4TProcessor" None="false" UserSpace="false" />
       <Member Name="InterruptHandler" Class="arch/ARM/ARMv4T/ARMv4TInterruptHandler" None="false" UserSpace="false" PhyLoadAddress="0x0" />
-      <Member Name="Timer" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPTimer" None="false" UserSpace="false" PhyLoadAddress="0x0">
-        <PropertyValue Name="Address" Value="0x48318000" Type="unsigned int" />
+      <Member Name="Timer" Class="arch/ARM/ARMv4T/ARMv7/AM335x/AM335xTimer" None="false" UserSpace="false" PhyLoadAddress="0x0">
+        <PropertyValue Name="Address" Value="0x48040000" Type="unsigned int" />
         <PropertyValue Name="Length" Value="4096" Type="unsigned int" />
         <PropertyValue Name="Name" Value="sched_timer" Type="char*" />
-        <PropertyValue Name="INTC_IRQ" Value="37" Type="unsigned int" />
+        <PropertyValue Name="INTC_IRQ" Value="68" Type="unsigned int" />
         <PropertyValue Name="INTC_Priority" Value="50" Type="unsigned int" />
       </Member>
       <Member Name="HatLayer" Class="arch/ARM/ARMv4T/ARMv7/ARMv7HatLayer" None="false" UserSpace="false" PhyLoadAddress="0x0" />
-      <Member Name="Clock" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530Clock" None="false" UserSpace="false" PhyLoadAddress="0x0">
+      <Member Name="Clock" Class="arch/ARM/ARMv4T/ARMv7/AM335x/AM335xClock" None="false" UserSpace="false" PhyLoadAddress="0x0">
         <PropertyValue Name="Name" Value="sysclock0" Type="char*" />
       </Member>
-      <Member Name="DSS" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530DSS" None="true" UserSpace="false" PhyLoadAddress="0x0">
-        <PropertyValue Name="Name" Value="dss0" Type="char*" />
-        <PropertyValue Name="Resolution" Value="1024x768" Type="char*" />
-        <PropertyValue Name="FramebufferName" Value="fb0" Type="char*" />
-      </Member>
       <Member Name="UART" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530UART" None="false" UserSpace="false" PhyLoadAddress="0x0">
-        <PropertyValue Name="Address" Value="0x49020000" Type="unsigned int" />
+        <PropertyValue Name="Address" Value="0x44E09000" Type="unsigned int" />
         <PropertyValue Name="Length" Value="1024" Type="unsigned int" />
         <PropertyValue Name="Name" Value="serial0" Type="char*" />
-        <PropertyValue Name="INTC_IRQ" Value="74" Type="unsigned int" />
+        <PropertyValue Name="INTC_IRQ" Value="72" Type="unsigned int" />
         <PropertyValue Name="INTC_Priority" Value="10" Type="unsigned int" />
       </Member>
       <Member Name="UART2" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530i2c" None="false" UserSpace="false" PhyLoadAddress="0x0">
-        <PropertyValue Name="Address" Value="0x48070000" Type="unsigned int" />
+        <PropertyValue Name="Address" Value="0x44E0B000" Type="unsigned int" />
         <PropertyValue Name="Length" Value="1024" Type="unsigned int" />
         <PropertyValue Name="Name" Value="i2c0" Type="char*" />
-        <PropertyValue Name="INTC_IRQ" Value="56" Type="unsigned int" />
+        <PropertyValue Name="INTC_IRQ" Value="70" Type="unsigned int" />
         <PropertyValue Name="INTC_Priority" Value="10" Type="unsigned int" />
       </Member>
-      <Member Name="GPIO1" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO" None="false" UserSpace="false" PhyLoadAddress="0x0">
-        <PropertyValue Name="Address" Value="0x48310000" Type="unsigned int" />
+      <Member Name="InterruptController" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530InterruptController" None="false" UserSpace="false" PhyLoadAddress="0x0">
+        <PropertyValue Name="Address" Value="0x48200000" Type="unsigned int" />
+      </Member>
+      <Member Name="Cache" Class="arch/ARM/ARMv4T/ARMv7/ARMv7Cache" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="Ethernet" Class="arch/ARM/ARMv4T/ARMv7/AM335x/AM335xEthernet" None="false" UserSpace="false" PhyLoadAddress="0x0">
+        <PropertyValue Name="cpsw_ss" Value="0x4A100000" Type="unsigned int" />
+        <PropertyValue Name="cpsw_port" Value="0x4A100100" Type="unsigned int" />
+        <PropertyValue Name="cpsw_cpdma" Value="0x4A100800" Type="unsigned int" />
+        <PropertyValue Name="cpsw_stats" Value="0x4A100900" Type="unsigned int" />
+        <PropertyValue Name="cpsw_stateram" Value="0x4A100A00" Type="unsigned int" />
+        <PropertyValue Name="cpsw_cpts" Value="0x4A100C00" Type="unsigned int" />
+        <PropertyValue Name="cpsw_ale" Value="0x4A100D00" Type="unsigned int" />
+        <PropertyValue Name="cpsw_sl1" Value="0x4A100D80" Type="unsigned int" />
+        <PropertyValue Name="cpsw_sl2" Value="0x4A100DC0" Type="unsigned int" />
+        <PropertyValue Name="mdio" Value="0x4A101000" Type="unsigned int" />
+        <PropertyValue Name="cpsw_wr" Value="0x4A101200" Type="unsigned int" />
+        <PropertyValue Name="cppi_ram" Value="0x4A102000" Type="unsigned int" />
+        <PropertyValue Name="Name" Value="eth0" Type="char*" />
+        <PropertyValue Name="INTC_IRQ" Value="41" Type="unsigned int" />
+        <PropertyValue Name="INTC_Priority" Value="40" Type="unsigned int" />
+      </Member>
+      <Member Name="SPI" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530SPI" None="false" UserSpace="false" PhyLoadAddress="0x0">
+        <PropertyValue Name="Address" Value="0x48030000" Type="unsigned int" />
+        <PropertyValue Name="Name" Value="spi" Type="char*" />
+      </Member>
+      <Member Name="GPIO1" Class="arch/ARM/ARMv4T/ARMv7/AM335x/AM335xGPIO" None="false" UserSpace="false" PhyLoadAddress="0x0">
+        <PropertyValue Name="Address" Value="0x4804C000" Type="unsigned int" />
         <PropertyValue Name="Length" Value="4096" Type="unsigned int" />
         <PropertyValue Name="Name" Value="gpio1" Type="char*" />
         <PropertyValue Name="DirectionBits" Value="0x0" Type="unsigned int" />
         <PropertyValue Name="ValueBits" Value="0x0" Type="unsigned int" />
         <PropertyValue Name="Priority" Value="1000" Type="int" />
-        <PropertyValue Name="INTC_IRQ" Value="29" Type="unsigned int" />
+        <PropertyValue Name="INTC_IRQ" Value="98" Type="unsigned int" />
         <PropertyValue Name="INTC_Priority" Value="10" Type="unsigned int" />
       </Member>
-      <Member Name="GPIO2" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO" None="false" UserSpace="false" PhyLoadAddress="0x0">
-        <PropertyValue Name="Address" Value="0x49050000" Type="unsigned int" />
+      <Member Name="GPIO2" Class="arch/ARM/ARMv4T/ARMv7/AM335x/AM335xGPIO" None="false" UserSpace="false" PhyLoadAddress="0x0">
+        <PropertyValue Name="Address" Value="0x481AC000" Type="unsigned int" />
         <PropertyValue Name="Length" Value="4096" Type="unsigned int" />
         <PropertyValue Name="Name" Value="gpio2" Type="char*" />
         <PropertyValue Name="DirectionBits" Value="0x0" Type="unsigned int" />
-        <PropertyValue Name="ValueBits" Value="0x0" Type="unsigned int" />
+        <PropertyValue Name="ValueBits" Value="0x1" Type="unsigned int" />
         <PropertyValue Name="Priority" Value="1000" Type="int" />
-        <PropertyValue Name="INTC_IRQ" Value="30" Type="unsigned int" />
+        <PropertyValue Name="INTC_IRQ" Value="32" Type="unsigned int" />
         <PropertyValue Name="INTC_Priority" Value="10" Type="unsigned int" />
       </Member>
-      <Member Name="GPIO3" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO" None="false" UserSpace="false" PhyLoadAddress="0x0">
-        <PropertyValue Name="Address" Value="0x49052000" Type="unsigned int" />
+      <Member Name="GPIO3" Class="arch/ARM/ARMv4T/ARMv7/AM335x/AM335xGPIO" None="false" UserSpace="false" PhyLoadAddress="0x0">
+        <PropertyValue Name="Address" Value="0x481AE000" Type="unsigned int" />
         <PropertyValue Name="Length" Value="4096" Type="unsigned int" />
         <PropertyValue Name="Name" Value="gpio3" Type="char*" />
         <PropertyValue Name="DirectionBits" Value="0x0" Type="unsigned int" />
         <PropertyValue Name="ValueBits" Value="0x0" Type="unsigned int" />
         <PropertyValue Name="Priority" Value="1000" Type="int" />
-        <PropertyValue Name="INTC_IRQ" Value="31" Type="unsigned int" />
+        <PropertyValue Name="INTC_IRQ" Value="62" Type="unsigned int" />
         <PropertyValue Name="INTC_Priority" Value="10" Type="unsigned int" />
       </Member>
-      <Member Name="GPIO4" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO" None="false" UserSpace="false" PhyLoadAddress="0x0">
-        <PropertyValue Name="Address" Value="0x49054000" Type="unsigned int" />
+      <Member Name="GPIO0" Class="arch/ARM/ARMv4T/ARMv7/AM335x/AM335xGPIO" None="false" UserSpace="false" PhyLoadAddress="0x0">
+        <PropertyValue Name="Address" Value="0x44E07000" Type="unsigned int" />
         <PropertyValue Name="Length" Value="4096" Type="unsigned int" />
-        <PropertyValue Name="Name" Value="gpio4" Type="char*" />
+        <PropertyValue Name="Name" Value="gpio0" Type="char*" />
         <PropertyValue Name="DirectionBits" Value="0x0" Type="unsigned int" />
         <PropertyValue Name="ValueBits" Value="0x0" Type="unsigned int" />
         <PropertyValue Name="Priority" Value="1000" Type="int" />
-        <PropertyValue Name="INTC_IRQ" Value="32" Type="unsigned int" />
+        <PropertyValue Name="INTC_IRQ" Value="96" Type="unsigned int" />
         <PropertyValue Name="INTC_Priority" Value="10" Type="unsigned int" />
       </Member>
-      <Member Name="GPIO5" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO" None="true" UserSpace="false" PhyLoadAddress="0x0">
-        <PropertyValue Name="Address" Value="0x49056000" Type="unsigned int" />
-        <PropertyValue Name="Length" Value="4096" Type="unsigned int" />
-        <PropertyValue Name="Name" Value="gpio5" Type="char*" />
-        <PropertyValue Name="DirectionBits" Value="(~(F060F000))" Type="unsigned int" />
-        <PropertyValue Name="ValueBits" Value="F060F000" Type="unsigned int" />
-        <PropertyValue Name="Priority" Value="1000" Type="int" />
-        <PropertyValue Name="INTC_IRQ" Value="33" Type="unsigned int" />
-        <PropertyValue Name="INTC_Priority" Value="10" Type="unsigned int" />
-      </Member>
-      <Member Name="GPIO6" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPIO" None="true" UserSpace="false" PhyLoadAddress="0x0">
-        <PropertyValue Name="Address" Value="0x49058000" Type="unsigned int" />
-        <PropertyValue Name="Length" Value="4096" Type="unsigned int" />
-        <PropertyValue Name="Name" Value="gpio6" Type="char*" />
-        <PropertyValue Name="DirectionBits" Value="(~(0x800506))" Type="unsigned int" />
-        <PropertyValue Name="ValueBits" Value="0x800506" Type="unsigned int" />
-        <PropertyValue Name="Priority" Value="1000" Type="int" />
-        <PropertyValue Name="INTC_IRQ" Value="34" Type="unsigned int" />
-        <PropertyValue Name="INTC_Priority" Value="10" Type="unsigned int" />
-      </Member>
-      <Member Name="USB_HC" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/HighSpeedUSBHostController" None="false" UserSpace="false" PhyLoadAddress="0x0">
-        <PropertyValue Name="I2CDeviceName" Value="dev/i2c0" Type="char*" />
-        <PropertyValue Name="Priority" Value="5000" Type="int" />
-      </Member>
-      <Member Name="InterruptController" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530InterruptController" None="false" UserSpace="false" PhyLoadAddress="0x0">
-        <PropertyValue Name="Address" Value="0x48200000" Type="unsigned int" />
-      </Member>
-      <Member Name="ExtPowerControl" Class="arch/shared/power/TWL4030" None="false" UserSpace="false" PhyLoadAddress="0x0">
-        <PropertyValue Name="I2CDeviceName" Value="dev/i2c0" Type="char*" />
-      </Member>
-      <Member Name="Cache" Class="arch/ARM/ARMv4T/ARMv7/ARMv7Cache" None="false" UserSpace="false" PhyLoadAddress="0x0" />
-      <Member Name="SPI" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530SPI" None="false" UserSpace="false" PhyLoadAddress="0x0">
-        <PropertyValue Name="Address" Value="MCSPI3" Type="unsigned int" />
-        <PropertyValue Name="Name" Value="spi" Type="char*" />
-      </Member>
-      <Member Name="MMC0" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapMMC_SD_HC" None="true" UserSpace="false" PhyLoadAddress="0x0">
-        <PropertyValue Name="Address" Value="0x4809C000" Type="unsigned int" />
+      <Member Name="MMC0" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapMMC_SD_HC" None="false" UserSpace="false" PhyLoadAddress="0x0">
+        <PropertyValue Name="Address" Value="0x48060100" Type="unsigned int" />
         <PropertyValue Name="INTC_IRQ" Value="83" Type="unsigned int" />
+        <PropertyValue Name="INTC_Priority" Value="10" Type="unsigned int" />
+      </Member>
+      <Member Name="MMC1" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapMMC_SD_HC" None="false" UserSpace="false" PhyLoadAddress="0x0">
+        <PropertyValue Name="Address" Value="0x481D8100" Type="unsigned int" />
+        <PropertyValue Name="INTC_IRQ" Value="28" Type="unsigned int" />
         <PropertyValue Name="INTC_Priority" Value="10" Type="unsigned int" />
       </Member>
     </Skeleton>
@@ -355,7 +345,7 @@
     </Define>
     <Define>
       <Name>ARM_SUPPORT_NEON</Name>
-      <Value>1</Value>
+      <Value>0</Value>
     </Define>
   </SCL>
 </Configuration>

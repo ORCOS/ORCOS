@@ -64,7 +64,7 @@ void abort() {
  * @description
  *  The main "C" entry point for the OS after the assembler startup code has been executed.
  *******************************************************************************/
-extern "C" void kernelmain() {
+extern "C" __attribute__((used)) void kernelmain() {
     /* first of all clear the OS heap so we get a clean working system */
     size_t* addr = reinterpret_cast<size_t*>(&_heap_start);
 

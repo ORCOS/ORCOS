@@ -10,6 +10,7 @@
 #include "inc/memio.h"
 #include "inc/types.hh"
 #include "inc/error.hh"
+#include "OMAP3530.h"
 
 extern Kernel* theOS;
 
@@ -93,10 +94,6 @@ void Omap3530i2c::flush_fifo() {
  *******************************************************************************/
 void Omap3530i2c::i2c_init(unint4 speed) {
     unint2 scl;
-
-    unint4 clocks = INW(0x48004A00);
-    //printf("Clocks set: %x\r",clocks);
-    OUTW(0x48004A00, clocks | 1 << 15 | 1 << 16 | 1 << 17);
 
     OUTH(I2C_SYSC, 0x2);  // issue reset, for ES2 after soft reset
     kwait(1);

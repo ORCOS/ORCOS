@@ -416,6 +416,16 @@ void BeagleBoardxM::initialize() {
     // GPIO5
     OUTW(0x49056000 + 0x34, ~(GPIO31 | GPIO30 | GPIO29 | GPIO11 | GPIO28 | GPIO22 | GPIO21 | GPIO15 | GPIO14 | GPIO13 | GPIO12));
 
+    // Enable I2C clocks
+    unint4 clocks = INW(0x48004A00);
+    OUTW(0x48004A00, clocks | 1 << 15 | 1 << 16 | 1 << 17);
+
+    unint4 coreen = INW(CM_ICLKEN1_CORE);
+    // enable all spi interface clocks
+    coreen |= 0x3C0000;
+    OUTW(CM_ICLKEN1_CORE, coreen);
+
+
 #ifdef HAS_Board_InterruptControllerCfd
     INIT_Board_InterruptControllerCfd
     InterruptControllerCfd = new NEW_Board_InterruptControllerCfd;
@@ -519,10 +529,25 @@ void BeagleBoardxM::initialize() {
     LEDCfd = new NEW_Board_LEDCfd;
 #endif
 
-#ifdef HAS_Board_MMCCfd
-    LOG(ARCH, INFO, "BeagleBoardxM: MMC-Controller: [" STRINGIZE(Board_MMCCfdCl) "]");
-    INIT_Board_MMCCfd
-    MMCCfd = new NEW_Board_MMCCfd;
+#ifdef HAS_Board_MMC0Cfd
+    /* enable MMC1-3 interface clocks */
+    unint4 CM_ICLKEN1_CORE_val = INW(0x48004a10);
+    CM_ICLKEN1_CORE_val |= (1 << 24) | (1 << 29) | (1 << 30);
+    OUTW(0x48004a10, CM_ICLKEN1_CORE_val);
+
+    // enable MMC1-3 functional clocks
+    unint4 CM_FCLKEN1_CORE_val = INW(0x48004a00);
+    CM_FCLKEN1_CORE_val |= (1 << 24) | (1 << 29) | (1 << 30);
+    OUTW(0x48004a00, CM_FCLKEN1_CORE_val);
+
+    getExtPowerControl()->power_mmc_init();
+
+    /* set CONTROL PAD value to closed loop for mmc */
+    OUTW(0x48002144, 0x100);
+
+    LOG(ARCH, INFO, "BeagleBoardxM: MMC0-Controller: [" STRINGIZE(Board_MMC0CfdCl) "]");
+    INIT_Board_MMC0Cfd
+    MMC0Cfd = new NEW_Board_MMC0Cfd;
 #endif
 
 #ifdef HAS_Board_USB_HCCfd
