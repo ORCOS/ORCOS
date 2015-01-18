@@ -58,7 +58,7 @@ extern "C" void restoreContext(Thread* t)  {
 #if HAS_Board_HatLayerCfd
     ptStartAddr =  (((unint) &__PageTableSec_start) + pid * 0x4000);
 
-#if ENABLE_BRANCH_PREDICTION
+
     /*
      * On context restore we must invalidate the branch prediction array as
      * otherwise we will get prefetch aborts due to address space change
@@ -66,13 +66,6 @@ extern "C" void restoreContext(Thread* t)  {
      * "In some implementations, to ensure correct operation it might be necessary to invalidate branch prediction
      *  entries on a change of instruction or instruction address mapping"
      */
-    asm volatile(
-            "MCR p15, 0, r0, c7 , c5, 6;" /* invalidate whole branch predictor array */
-            :
-            :
-            : "r0"
-    );
-#endif
 
 #endif
 
@@ -104,10 +97,13 @@ extern "C" void restoreContext(Thread* t)  {
             "MCR    p15, 0, %1, c2 , c0, 0;"    /* set TBBR0 */
             //"MCR    p15, 0, r2, c7 , c5, 4;"  /* Ensure completion of the CP15 write (ISB not working) */
 #endif
-            //"LDR    sp, =__stack - 0x20;"       /* temporary accessible stack position for context restore */
+#if  ENABLE_BRANCH_PREDICTION
+            "MCR p15, 0, r0, c7 , c5, 6;" /* invalidate whole branch predictor array */
+#endif
+            //"LDR    sp, =__stack - 0x20;"     /* temporary accessible stack position for context restore */
             "MOV    r0, %0;"                    /* load context address*/
             "MOV    r1, %3;"                    /* set restore context mode */
-            "CMP    %4, #1;"                      /* check if we need to return the signal value */
+            "CMP    %4, #1;"                    /* check if we need to return the signal value */
             "STREQ  %5, [%0, #4];"              /* if so put into return register r0*/
 
             /*"push {r0-r3};"

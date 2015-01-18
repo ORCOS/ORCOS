@@ -321,7 +321,7 @@
     </Define>
     <Define>
       <Name>ENABLE_BRANCH_PREDICTION</Name>
-      <Value>0</Value>
+      <Value>1</Value>
     </Define>
     <Define>
       <Name>ORCOS_SUPPORT_SIGNALS</Name>
@@ -345,7 +345,7 @@
     </Define>
     <Define>
       <Name>ARM_SUPPORT_NEON</Name>
-      <Value>0</Value>
+      <Value>1</Value>
     </Define>
   </SCL>
 </Configuration>
