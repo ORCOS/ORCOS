@@ -17,9 +17,7 @@
  */
 
 #include "pthread.hh"
-
 #include "Mutex.hh"
-
 #include "orcos.hh"
 
 
@@ -32,7 +30,11 @@ int pthread_create( pthread_t* thread, const pthread_attr_t* attr, void* (*start
         ret = thread_run( *thread );
     }
 
-    return ret;
+    return (ret);
+}
+
+int   pthread_join(pthread_t thread, void ** arg) {
+    return (waittid(thread));
 }
 
 void pthread_exit( void *value_ptr ) {
@@ -40,7 +42,7 @@ void pthread_exit( void *value_ptr ) {
 }
 
 int pthread_cancel( pthread_t thread ) {
-    thread_terminate(thread,TERM_SOFT);
+    thread_terminate(thread, TERM_SOFT);
     return 0;
 }
 
@@ -70,13 +72,11 @@ int pthread_attr_init( pthread_attr_t* attr ) {
 
 int pthread_attr_getstacksize( const pthread_attr_t* attr, size_t* stacksize ) {
     *stacksize = (size_t) attr->stack_size;
-
     return 0;
 }
 
 int pthread_attr_setstacksize( pthread_attr_t *attr, size_t stacksize ) {
     attr->stack_size = (int) stacksize;
-
     return 0;
 }
 
@@ -145,13 +145,9 @@ int pthread_cond_broadcast( pthread_cond_t * __cond ) {
 //int pthread_cond_timedwait( pthread_cond_t *restrict, pthread_mutex_t *restrict, const struct timespec *restrict );
 
 int pthread_cond_wait( pthread_cond_t * __cond, pthread_mutex_t * __mutex ) {
-
     pthread_mutex_unlock( __mutex );
-
     signal_wait( (void*) __cond, true );
-
     pthread_mutex_lock( __mutex );
-
     return 0;
 }
 

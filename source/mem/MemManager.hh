@@ -48,6 +48,8 @@ protected:
     MemResource Segment_Cache_Inhibit;
 #endif
 
+
+
 public:
      /*****************************************************************************
      * Constructor

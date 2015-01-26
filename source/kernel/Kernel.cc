@@ -264,17 +264,17 @@ void Kernel::initialize() {
      */
 #if USE_WORKERTASK
 
-#if (LWIP_TCP | LWIP_ARP) && ENABLE_NETWORKING
     PeriodicFunctionCall* jobparam      = new PeriodicFunctionCall;
-    jobparam->functioncall.objectptr    = new lwipTMR; /* call this object */
-    jobparam->functioncall.parameterptr = 0; /* no parameter */
-    jobparam->functioncall.time         = 0; /* call directly!! */
-    jobparam->period                    = 250 ms;  /* set to 250 ms */
+    jobparam->functioncall.objectptr    = new KernelServiceThread; /* call this object */
+    jobparam->functioncall.parameterptr = 0;        /* no parameter */
+    jobparam->functioncall.time         = 0;        /* call directly!! */
+    jobparam->period                    = 250 ms;   /* set to 250 ms */
     WorkerThread* wt = theWorkerTask->addJob(PeriodicFunctionCallJob, 0, jobparam, 250000);
     if (wt) {
         wt->setName("kservice");
     }
 
+#if ENABLE_NETWORKING
     LOG(KERNEL, INFO, "Querying NTP Server for Time");
     TimedFunctionCall* ntpupdate        = new TimedFunctionCall;
     ntpupdate->objectptr                = theOS->getClock();

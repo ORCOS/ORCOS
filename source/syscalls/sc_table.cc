@@ -9,6 +9,7 @@
 #include "syscalls.hh"
 #include "SCLConfig.hh"
 
+#define MAX_SYSCALL_NUM 46
 /*****************************************************************************
  * Method: sc_default_handler(intptr_t sp_int)
  *
@@ -25,7 +26,7 @@ int sc_default_handler(intptr_t sp_int) {
     return (cNotImplemented);
 }
 
-p_syscall_handler_t syscall_handler[46] = {
+p_syscall_handler_t syscall_handler[MAX_SYSCALL_NUM+1] = {
         sc_fopen,           /* cFOpenSysCallId          = 0 */
         sc_fclose,          /* cFCloseSysCallId         = 1 */
         sc_fread,           /* cFReadSysCallId          = 2 */
@@ -71,7 +72,8 @@ p_syscall_handler_t syscall_handler[46] = {
         sc_fseek,           /* cFSeekSyscallId          = 42 */
         sc_thread_terminate,/* cThreadTerminateSyscallId= 43 */
         sc_thread_name,     /* cThreadNameSyscallId     = 44 */
-        sc_mount            /* cMountSyscallId          = 45 */
+        sc_mount,           /* cMountSyscallId          = 45 */
+        sc_waitirq          /* cThreadWaitIRQSyscallId  = 46 */
 };
 
 
@@ -92,7 +94,7 @@ extern "C" void handleSyscall(intptr_t sp_int) {
     syscallnum &= 0xff;
 
     /* check for valid range*/
-    if (syscallnum < 0 || syscallnum > 45) {
+    if (syscallnum > MAX_SYSCALL_NUM) {
         retval = cError;
     } else {
         /* execute and get result from handler */
@@ -109,6 +111,7 @@ extern "C" void handleSyscall(intptr_t sp_int) {
     _disableInterrupts();
     SET_RETURN_VALUE(sp_int, retval);
     assembler::restoreContext(pCurrentRunningThread);
+    __builtin_unreachable();
 }
 
 

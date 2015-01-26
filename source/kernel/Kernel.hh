@@ -69,7 +69,7 @@
 #endif
 #endif
 
-#include "comm/lwipTMR.hh"
+#include "KernelServiceThread.hh"
 
 /*------------------------------------------------------
  *               Main Kernel Methods

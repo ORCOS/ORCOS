@@ -20,17 +20,10 @@
 #define PTHREAD_H_
 
 #include "types.h"
+#include "sys/types.h"
 
 extern "C" {
 
-typedef int pthread_t;
-typedef thread_attr_t pthread_attr_t;
-
-typedef void* pthread_mutex_t;
-typedef void* pthread_mutexattr_t;
-
-typedef void* pthread_cond_t;
-typedef void* pthread_condattr_t;
 
 int pthread_create( pthread_t*, const pthread_attr_t*, void *(*start_routine)( void* ), void* );
 void pthread_exit( void *value_ptr );

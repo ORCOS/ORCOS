@@ -50,6 +50,22 @@ Directory::~Directory() {
 }
 
 /*****************************************************************************
+ * Method: Directory::invalidate()
+ *
+ * @description
+ *  Marks this Directory and all of its sub directories as invalid.
+ *******************************************************************************/
+void Directory::invalidate() {
+    LinkedListItem* litem = dir_content.getHead();
+    while (litem != 0) {
+        Resource* res = static_cast<Resource*>(litem->getData());
+        /* invalidate resource */
+        res->invalidate();
+        litem = litem->getSucc();
+    }
+}
+
+/*****************************************************************************
  * Method: Directory::add(Resource* res)
  *
  * @description

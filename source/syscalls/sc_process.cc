@@ -22,6 +22,7 @@
 #include Kernel_Thread_hh
 #include "assemblerFunctions.hh"
 #include "inc/stringtools.hh"
+#include "inc/signals.hh"
 
 /*******************************************************************
  *                RUNTASK Syscall
@@ -91,7 +92,8 @@ int sc_task_run(intptr_t sp_int) {
     if (flags & cWait) {
 #ifdef ORCOS_SUPPORT_SIGNALS
         /* lets wait for this task to finish */
-        pCurrentRunningThread->sigwait(t);
+        int signal = SIGNAL_SPACE_TASK(t->getId()) | SIG_TASK_TERMINATED;
+        pCurrentRunningThread->sigwait(SIGNAL_GENERIC, reinterpret_cast<void*>(signal));
         __builtin_unreachable();
 #endif
     } else {
@@ -127,32 +129,73 @@ int sc_task_run(intptr_t sp_int) {
  *---------------------------------------------------------------------------*/
 int sc_thread_wait(intptr_t sp_int) {
     int pid;
-    SYSCALLGETPARAMS1(sp_int, pid);
-    LOG(SYSCALLS, DEBUG, "Syscall: task_wait: pid %d", pid);
+    int threadid;
+    SYSCALLGETPARAMS2(sp_int, pid, threadid);
+    LOG(SYSCALLS, DEBUG, "Syscall: thread_wait: pid %d", pid);
 
     if (pid == 0) {
         /* wait for any child to terminate on our current process
          * this will block the current thread. we will not return here
          * as the syscall context will be restored with return code
          * upon signal reception. */
-        unint4 signal = (pCurrentRunningTask->getId() << 16) | (SIG_CHILD_TERMINATED);
-        pCurrentRunningThread->sigwait(reinterpret_cast<void*>(signal));
+        int signal;
+        if (threadid == 0) {
+            /* just wait for any thread to finish */
+            signal = SIGNAL_SPACE_TASK(pCurrentRunningTask->getId()) | SIG_CHILD_TERMINATED;
+        } else {
+            /* wait for this specific thread to finish */
+            signal = SIGNAL_SPACE_TASK(pCurrentRunningTask->getId()) | SIG_CHILD_TERMINATED | (threadid << 8);
+        }
+        pCurrentRunningThread->sigwait(SIGNAL_GENERIC, reinterpret_cast<void*>(signal));
         __builtin_unreachable();
     } else {
+        /* if we are waiting for another task, we may only wait for the task
+         * not for a thread of that specific task! */
         Task* t = theOS->getTaskManager()->getTask(pid);
         if (t == 0) {
-            return (cError );
+            return (cInvalidArgument );
         }
         /* wait for task to finish
          * this will block the current thread. we will not return here
          * as the syscall context will be restored with return code
          * upon signal reception. */
-        pCurrentRunningThread->sigwait(reinterpret_cast<void*>(t->getId() << 16));
+        int signal = SIGNAL_SPACE_TASK(pCurrentRunningTask->getId()) | SIG_TASK_TERMINATED;
+        pCurrentRunningThread->sigwait(SIGNAL_GENERIC, reinterpret_cast<void*>(signal));
         __builtin_unreachable();
     }
 
     return (cError );
 }
+#endif
+
+#ifdef HAS_SyscallManager_waitirqCfd
+/*****************************************************************************
+ * Method: sc_waitirq(intptr_t sp_int)
+ *
+ * @description
+ *  Waits for a given IRQ number
+ *
+ * @params
+ *  sp_int:     The stack pointer at time of system call instruction execution
+ *
+ * @returns
+ *  int         Error Code
+ *---------------------------------------------------------------------------*/
+int sc_waitirq(intptr_t sp_int) {
+    int irq;
+    SYSCALLGETPARAMS1(sp_int, irq);
+    LOG(SYSCALLS, DEBUG, "Syscall: sc_waitirq: irq %d", irq);
+
+    if (irq > 256) {
+        return (cInvalidArgument);
+    }
+
+    theOS->getInterruptManager()->waitIRQ(irq, pCurrentRunningThread);
+    pCurrentRunningThread->block();
+    __builtin_unreachable();
+}
+
+
 #endif
 
 /*******************************************************************

@@ -74,7 +74,7 @@ void Logger::log(Prefix prefix, Level level, const char* msg, ...) {
 
     int seconds = time / (1000000);
     time = time - (seconds * 1000000);
-    printf("[%05u.%08u]", seconds, time);
+    printf("[%05u.%08u]", seconds, time * 100);
 #endif
 
     if (pCurrentRunningThread != 0) {

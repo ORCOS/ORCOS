@@ -21,6 +21,7 @@
 #include "kernel/Kernel.hh"
 #include "assemblerFunctions.hh"
 #include "inc/error.hh"
+#include "inc/signals.hh"
 
 /* This is the hardware dependent method to start the thread the very first time
  * needs to be resolved by the linker */
@@ -214,13 +215,13 @@ void Thread::sleep(TimeT timePoint) {
  * @params
  *  sig:     The signal to wait for
  *******************************************************************************/
-void Thread::sigwait(void* sig) {
+void Thread::sigwait(SignalType signaltype, void* sig) {
     signal = sig;
 
     status.clearBits(cReadyFlag);
     status.setBits(cSignalFlag);
 
-    theOS->getDispatcher()->sigwait(this);
+    theOS->getDispatcher()->sigwait(signaltype, this);
 }
 #endif
 
@@ -357,7 +358,7 @@ void Thread::terminate() {
 
 #ifdef ORCOS_SUPPORT_SIGNALS
     /* be sure only threads inside our tasks are signaled as signaling is global */
-    unint4 signalnum = (this->owner->getId() << 16) | (SIG_CHILD_TERMINATED);
+    unint4 signalnum = SIGNAL_SPACE_TASK(this->owner->getId()) | SIG_CHILD_TERMINATED;
     theOS->getDispatcher()->signal(reinterpret_cast<void*>(signalnum), cOk);
 #endif
 

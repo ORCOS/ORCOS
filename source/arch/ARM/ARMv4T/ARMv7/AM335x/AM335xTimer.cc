@@ -50,6 +50,7 @@ AM335xTimer::AM335xTimer(T_AM335xTimer_Init * init) : TimerDevice(init->Name) {
     /* clear pending interrupts */
     hwregs->tisr = 0x7;
 
+    irq = init->INTC_IRQ;
     theOS->getBoard()->getInterruptController()->setIRQPriority(init->INTC_IRQ, init->INTC_Priority);
     theOS->getBoard()->getInterruptController()->unmaskIRQ(init->INTC_IRQ);
     theOS->getInterruptManager()->registerIRQ(init->INTC_IRQ, this, 0, IRQ_NOTHREAD);
@@ -117,27 +118,34 @@ ErrorT AM335xTimer::disable() {
  *  will be programmed to the maximum time possible.
  *******************************************************************************/
 ErrorT AM335xTimer::setTimer(TimeT t) {
-    TimeT currentTime = theOS->getClock()->getClockCycles() + 3 MICROSECONDS;
-    /* set to 5 ticks if currentTime > t*/
-    unint4 dt = 5;
+    TimeT currentTime = theOS->getClock()->getClockCycles() + 2 MICROSECONDS;
+    unint4 dt = 30;
 
     /* otherwise generate the next irq in (t- currentTime) ticks */
     if (currentTime < t) {
         TimeT diff = t - currentTime;
-        dt = 0xfffffff0;
-        if (diff < dt)
-            dt = diff;
+        if (diff >= 0xffffffff) {
+            dt = 0xffffffff;
+        } else {
+            dt = (unint4) diff;
+        }
     }
 
-    hwregs->tldr = 0xffffffff - dt;
-    hwregs->ttgr = 1;
-    /* reset current value to max - dt */
-    //hwregs->tcrr = 0xffffffff - dt;
-    /* start timer again */
-    hwregs->tclr = 0x1;
-
-    tickRate = t;  // tickRate = cycles/tick
-    TimerDevice::setTimer(t);
+    /* minimum 30 ticks to avoid buggy situations*/
+    if (dt <= 30) {
+        dt = 30;
+        hwregs->tclr = 0x0;
+        /* directly raise irq by software*/
+        theOS->getBoard()->getInterruptController()->raiseIRQ(irq);
+    } else {
+        hwregs->tcrr = 0xffffffff - dt;
+        /* initial irq flag clear */
+        hwregs->tisr = 0xf;
+        /* be sure no spurious irq exists */
+        theOS->getBoard()->getInterruptController()->clearIRQ(irq);
+        /* start timer again */
+        hwregs->tclr = 0x1;
+    }
     return (cOk );
 }
 

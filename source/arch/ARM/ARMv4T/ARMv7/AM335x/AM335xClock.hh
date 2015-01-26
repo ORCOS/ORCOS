@@ -29,7 +29,7 @@
 #define MICROSECONDS * 24
 
 /* upon dispatching we will get at least 3 microseconds delay on this architecture  */
-#define ARCH_DELAY 2 MICROSECONDS
+#define ARCH_DELAY 3 MICROSECONDS
 
 #define AM335x_GPT1_BASE_ADDR     0x44E31000
 

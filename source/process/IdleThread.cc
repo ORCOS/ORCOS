@@ -42,6 +42,8 @@ void IdleThread::run() {
     SETSTACKPTR(&__stack);
     SETPID(0);
 
+    theOS->getMemoryManager()->idleEnter();
+
     _enableInterrupts();
 
     /* loop forever */

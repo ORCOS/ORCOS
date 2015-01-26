@@ -7,6 +7,9 @@
 
 #include <filesystem/SysFs.hh>
 #include "FileSystemBase.hh"
+#include <kernel/Kernel.hh>
+
+extern Kernel* theOS;
 
 FileSystemBase::FileSystemBase(Partition* p_myPartition) {
     this->myPartition = p_myPartition;
@@ -35,5 +38,13 @@ FileSystemBase::FileSystemBase(Partition* p_myPartition) {
 }
 
 FileSystemBase::~FileSystemBase() {
+#if SYSFS_SUPPORT
+    Directory* dir = KernelVariable::getEntry("fs", true);
+    if (dir) {
+        dir->remove(sysFsDir);
+        sysFsDir->invalidate();
+        theOS->getMemoryManager()->scheduleDeletion(sysFsDir);
+    }
+#endif
 }
 

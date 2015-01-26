@@ -351,26 +351,61 @@ unint4 maxIteration = 0;
 
 int    iterations = 0;
 
-#define MAX_ITERATIONS 5000
+#define MAX_ITERATIONS 10000
+
+bool readKernelVarUInt4(char* filepath, unint4* result) {
+    result[0] = 0;
+    int file = fopen(filepath,0);
+    if (file < 0)
+        return (false);
+
+    int num = fread(result,4,1,file);
+    fclose(file);
+    return (true);
+}
+
+
+unint4 clockfreqns = 1;
+unint4 tscoverhead = 100;
+
+unint8 times[100];
+
+static inline unint4 rdtsc(void) {
+    unint4 r = 0;
+    asm volatile("mrc p15, 0, %0, c9, c13, 0" : "=r"(r) );
+    return r;
+}
+
 
 void* thread_entry_latency(void* arg) {
-    unint4 latency = (unint4) (getCycles() - nextTime);
+    unint4 tsc1 = rdtsc();
+    unint8 now = getCycles();
+    int latency = (int) (now - nextTime);
+    unint4 tsc2 = rdtsc();
 
-    iterations++;
-    if (iterations < MAX_ITERATIONS && iterations > 1) {
-        avgLatency += latency;
-        if (latency < minLatency) {
-            minLatency      = latency;
-            minIteration    = iterations;
-        }
-        if (latency > maxLatency) {
-            maxLatency      = latency;
-            maxIteration    = iterations;
+
+    //if (iterations < 100)
+        //times[iterations] = now;
+
+
+    if ((tsc2 - tsc1) < tscoverhead && latency > 0) {
+        iterations++;
+        if (iterations < MAX_ITERATIONS && iterations > 1) {
+            avgLatency += latency;
+
+            if (latency < minLatency) {
+                minLatency      = latency;
+                minIteration    = iterations;
+            }
+            if (latency > maxLatency) {
+                maxLatency      = latency;
+                maxIteration    = iterations;
+            }
         }
     }
 
 
-    nextTime += 1000 * 24;
+    nextTime += 1000 * clockfreqns;
 }
 
 int test_llThreadLatency(char* &str) {
@@ -396,34 +431,40 @@ int test_llThreadLatency(char* &str) {
 
 }
 
-static inline unint4 rdtsc(void) {
-    unint4 r = 0;
-    asm volatile("mrc p15, 0, %0, c9, c13, 0" : "=r"(r) );
-    return r;
-}
-
-
 int test_latency(char* &str) {
+    printf("-----------------------"LINEFEED);
+    printf("   Latency Test"LINEFEED);
+    printf("-----------------------"LINEFEED);
 
     int result;
     thread_attr_t attr;
     memset(&attr,0,sizeof(thread_attr_t));
 
+
+    readKernelVarUInt4("/sys/clockfreq", &clockfreqns);
+    clockfreqns /= 1000000;
+    printf("%d ns clock frequency"LINEFEED, clockfreqns);
+    printf("%d ns per cycle"LINEFEED, 1000 / clockfreqns);
+
+
     unint4 count = rdtsc();
     thread_self();
     count = rdtsc() - count;
-    printf("thread_self:   %u cycles, %u ns"LINEFEED,count, (count * 1000) / 500);
+    printf("thread_self:   %u cycles, %u ns"LINEFEED, count, (count * 1000) / 1000);
     count = rdtsc();
     getCycles();
     count = rdtsc() - count;
-    printf("getCycles  :   %u cycles, %u ns"LINEFEED,count, (count * 1000) / 500);
+    printf("getCycles  :   %u cycles, %u ns"LINEFEED, count, (count * 1000) / 1000);
+    tscoverhead = ((count * 1200) / 1000);
+    printf("getCycles  :   allowed overhead: %u cycles, %u ns"LINEFEED, tscoverhead, (tscoverhead * 1000) / 1000);
 
 
     unint8 time = getCycles();
     unint4 overhead = ((getCycles() - time)) >> 1;
     printf("getCycles overhead: %u cycles"LINEFEED,overhead);
 
-    nextTime = getCycles() + 1000000 * 24;
+    nextTime = getCycles() + 1000000 * clockfreqns;
+    unint8 startTime = nextTime;
     minLatency = 999999;
     iterations = 0;
     maxLatency = 0;
@@ -450,6 +491,19 @@ int test_latency(char* &str) {
     avgLatency /= MAX_ITERATIONS;
     avgLatency -= overhead;
 
+    /*
+    for (int i = 0; i < 100; i++) {
+        unint8 expected = startTime + (1000 * clockfreqns * i);
+        printf(" it %d: %u%8u expected: %u%8u"LINEFEED,
+               i,
+               (unint4)(times[i] >> 32) ,
+               (unint4)(times[i] & 0xffffffff),
+               (unint4)(expected >> 32),
+               (unint4)(expected & 0xffffffff));
+        sleep(10);
+
+    }
+*/
     printf("minLatency    : %u cycles [%u ns] (it. %d)"LINEFEED"avgLatency    : %u cycles [%u ns]"LINEFEED"maxLatency    : %u cycles [%u ns] (it. %d)"LINEFEED,
            minLatency,(minLatency * 41), minIteration,
            avgLatency, (avgLatency * 41),

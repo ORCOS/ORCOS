@@ -23,7 +23,7 @@
 #include "assemblerFunctions.hh"
 
 /*******************************************************************
- *				SIGNAL_WAIT Syscall
+ *                SIGNAL_WAIT Syscall
  *******************************************************************/
 
 /*****************************************************************************
@@ -48,15 +48,17 @@ int sc_signal_wait(intptr_t int_sp) {
     if (sig == 0)
         return (cInvalidArgument );
 
+#ifdef ORCOS_SUPPORT_SIGNALS
 #ifdef HAS_Board_HatLayerCfd
     // if we want to use a Memory Address as the signal, we have to get the physical Address
     if (memAddrAsSig) {
         sig = static_cast<void*> (theOS->getHatLayer()->getPhysicalAddress(sig));
-    }
+        pCurrentRunningThread->sigwait(SIGNAL_COND, sig);
+    } else
 #endif //HAS_Board_HatLayerCfd
-
-#ifdef ORCOS_SUPPORT_SIGNALS
-    pCurrentRunningThread->sigwait(sig);
+    {
+        pCurrentRunningThread->sigwait(SIGNAL_GENERIC, sig);
+    }
     __builtin_unreachable();
     return (cOk );
 #else
@@ -66,7 +68,7 @@ int sc_signal_wait(intptr_t int_sp) {
 #endif
 
 /*******************************************************************
- *				SIGNAL_SIGNAL Syscall
+ *                SIGNAL_SIGNAL Syscall
  *******************************************************************/
 
 /*****************************************************************************
@@ -92,15 +94,21 @@ int sc_signal_signal(intptr_t int_sp) {
     if (sig == 0)
         return (cInvalidArgument );
 
+#ifdef ORCOS_SUPPORT_SIGNALS
+
 #ifdef HAS_Board_HatLayerCfd
     // if we want to use a Memory Address as the signal, we have to get the physical Address
     if (memAddrAsSig) {
         sig = static_cast<void*> (theOS->getHatLayer()->getPhysicalAddress(sig));
-    }
+        theOS->getDispatcher()->signalCond(sig, value);
+    } else
 #endif //HAS_Board_HatLayerCfd
-
-#ifdef ORCOS_SUPPORT_SIGNALS
+    {
+    /* TODO: we might restrict sig to sig & 0xffff.. however for
+     * now we let user space generate any kind of signals.. also maybe
+     * SIG_TASK_TERMINATED..*/
     theOS->getDispatcher()->signal(sig, value);
+    }
 
     /* If we have priorities we may need to dispatch .. check this now! */
 #ifdef HAS_PRIORITY

@@ -189,5 +189,6 @@
 #define cThreadTerminateSyscallId           43
 #define cThreadNameSyscallId                44
 #define cMountSyscallId                     45
+#define cThreadWaitIRQSyscallId             46
 
 #endif /* TASKLIB_HH_ */

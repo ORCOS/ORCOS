@@ -51,10 +51,6 @@ extern "C" void     backtrace(void** buffer, int length);
 
 extern "C" char*    getMethodSignature(unint4 address);
 
-/*
- *  SIGNAL DEFINITIONS
- */
-#define SIG_CHILD_TERMINATED     1
 
 /* All of the following codes 'x' indicate either an error code or a warning.
  This fact is distinguished by the value of x:
@@ -105,6 +101,7 @@ extern "C" char*    getMethodSignature(unint4 address);
 
 #define cResourceAlreadyExists  (int)-1010
 
+#define cResourceRemoved        (int)-1011
 
 
 // The following values with |C(s)| < 1000 are used inside the specific

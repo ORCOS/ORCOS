@@ -375,10 +375,6 @@ ErrorT TaskManager::removeTask(Task* task) {
     theOS->getRamManager()->freeAll(task->getId());
 #endif
 
-#ifdef ORCOS_SUPPORT_SIGNALS
-    theOS->getDispatcher()->signal(reinterpret_cast<void*>(task->getId() << 16), task->exitValue);
-#endif
-
     task->terminate();
     this->taskDatabase->remove(task);
     delete task;

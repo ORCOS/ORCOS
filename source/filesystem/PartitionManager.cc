@@ -238,13 +238,16 @@ void PartitionManager::registerBlockDevice(BlockDeviceDriver* bdev) {
 void PartitionManager::unregisterBlockDevice(BlockDeviceDriver* bdev) {
     LinkedListItem* litem = this->dir_content.getHead();
 
-    // search all partitions for this device
-    // as the device may have multiple partitions we cant stop on the first found one
+    /* search all partitions for this device
+     * as the device may have multiple partitions we cant stop on the first found one */
     while (litem != 0) {
         Partition* p = reinterpret_cast<Partition*>(litem->getData());
         if (p->myBlockDevice == bdev) {
-            // trigger filesystem deletion
+            /* trigger filesystem deletion.
+             * Do this by invalidating the filesystem first as threads may
+             * be executing on resources inside it currently!*/
             delete p->mountedFileSystem;
+
 
             litem = litem->getSucc();
             dir_content.remove(p);

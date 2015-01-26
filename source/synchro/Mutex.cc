@@ -46,7 +46,8 @@ extern unint4 rescheduleCount;
 Mutex::Mutex() :
         m_locked(false),
         m_pThread(0),
-        m_pRes(0) {
+        m_pRes(0),
+        waitingThreads(0) {
     acquirePriority = 1;
 }
 
@@ -79,13 +80,16 @@ ErrorT Mutex::acquire(Resource* pRes, bool blocking) {
     Kernel_ThreadCfdCl* pCallingThread = pCurrentRunningThread;
 
     DISABLE_IRQS(irqstatus);
+    waitingThreads++;
     do  {
         _disableInterrupts();
-        /* spinningly try to get this lock!
-         * if not dispatch and give the running thread the higher priority!
+        /* spinning lock acquisition!
+         * if we can not get the lock dispatch and give the running thread the higher priority!
          * The OS scheduler then will take care of the order the threads spinning
          * here will get the lock */
         if (m_locked == 0) {
+            waitingThreads--;
+
             /* successfully acquired mutex */
             if (pCallingThread != 0)
                 acquirePriority = pCallingThread->effectivePriority;
@@ -121,6 +125,7 @@ ErrorT Mutex::acquire(Resource* pRes, bool blocking) {
         }
 
         _enableInterrupts();
+        /* at this point we will be interrupted. */
 
         NOP;
     } while (blocking);

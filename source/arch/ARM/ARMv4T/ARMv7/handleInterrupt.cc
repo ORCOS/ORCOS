@@ -199,8 +199,7 @@ extern "C" __attribute__((used)) void dispatchIRQ(void* sp_int, int mode) {
         ASSERT(isOk(pCurrentRunningThread->pushStackPointer(reinterpret_cast<void*>(mode))));
     }
 
-    int irqSrc;
-    irqSrc = theInterruptController->getIRQStatusVector();
+    int irqSrc = theInterruptController->getIRQStatusVector();
 
     LOG(HAL, TRACE, "IRQ number: %d, sp_int %x, mode: %d", irqSrc, sp_int, mode);
 
@@ -209,9 +208,9 @@ extern "C" __attribute__((used)) void dispatchIRQ(void* sp_int, int mode) {
         /* General Purpose Timer interrupt used for scheduling */
         case SCHED_TIMER_IRQ: {
             /* non returning irq ..*/
-            theTimer->clearIRQ();
+            //theTimer->clearIRQ();
             /* allow new interrupts to occur */
-            theInterruptController->clearIRQ(irqSrc);
+            //theInterruptController->clearIRQ(irqSrc);
             theTimer->tick();
                __builtin_unreachable();
             break;

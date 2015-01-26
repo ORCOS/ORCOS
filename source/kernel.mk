@@ -55,7 +55,7 @@ KOBJ += PowerManager.o CharacterDevice.o BlockDeviceDriver.o TimerDevice.o CommD
 #inc
 KOBJ += stringtools.o memtools.o sprintf.o putc.o libgccmath.o endian.o crc32.o
 #kernel
-KOBJ += kwait.o kernelmain.o Kernel.o 
+KOBJ += kwait.o kernelmain.o Kernel.o KernelServiceThread.o
 #mem
 KOBJ +=  new.o 
 # scheduler

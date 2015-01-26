@@ -599,6 +599,7 @@
         <MemberRef Name="mapMemory"/>
         <MemberRef Name="mkdev"/>
         <MemberRef Name="mount"/>
+        <MemberRef Name="waitirq"/>
       </Superclass>
     </Superclasses>
     <Member><Name>sleep</Name></Member>
@@ -640,6 +641,7 @@
     <Member><Name>shm_map</Name> </Member>
     <Member><Name>mkdev</Name> </Member>
     <Member><Name>mount</Name> </Member>
+    <Member><Name>waitirq</Name> </Member>
     </Skeleton>
 
     <Defines>

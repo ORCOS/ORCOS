@@ -22,8 +22,10 @@
 #define INTCPS_THRESHOLD    0x68
 
 #define INTCPS_ILR(m)             0x100 + (0x4 * (m))
-#define INTCPS_MIR_SET(n)         0x08C + (0x20 * (n))
 #define INTCPS_MIR_CLEAR(n)       0x088 + (0x20 * (n))
+#define INTCPS_MIR_SET(n)         0x08C + (0x20 * (n))
+#define INTCPS_ISR_SET(n)         0x090 + (0x20 * (n))
+#define INTCPS_ISR_CLEAR(n)       0x094 + (0x20 * (n))
 
 /*!
  * \brief Interrupt Controller Class for the OMAP 35x Interrupt Controller
@@ -58,10 +60,10 @@ public:
      * Method: clearIRQ(int num)
      *
      * @description
-     *  Clears the current pending interrupt
+     *  Clears the current pending interrupt and allows new interrupt generation
      *******************************************************************************/
     inline void clearIRQ(int num) {
-        OUTW(baseAddr + INTCPS_CONTROL, 0x1);
+            OUTW(baseAddr + INTCPS_CONTROL, 0x1);
     }
 
     /*****************************************************************************
@@ -100,6 +102,8 @@ public:
      *******************************************************************************/
     ErrorT maskIRQ(unint4 irq_number);
 
+
+    ErrorT raiseIRQ(unint4 irq_number);
 
     /*****************************************************************************
      * Method: setIRQPriority(int irq_number, int priority)

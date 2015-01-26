@@ -37,7 +37,7 @@ unint4                  rescheduleCount         = 0;
 bool                    needReschedule          = false;
 
 #ifndef ARCH_DELAY
-#define ARCH_DELAY 0
+#define ARCH_DELAY 3 MICROSECONDS
 #endif
 
 
@@ -45,8 +45,10 @@ SingleCPUDispatcher::SingleCPUDispatcher() :
         blockedList(new LinkedList),
         sleepList(new LinkedList)
 #ifdef ORCOS_SUPPORT_SIGNALS
-                  ,
-        waitList(new LinkedList)
+        ,
+        waitList(new LinkedList),
+        irqwaitList(new LinkedList),
+        condwaitList(new LinkedList)
 #endif
 {
     /* Initialize the scheduler */
@@ -93,11 +95,7 @@ void SingleCPUDispatcher::dispatch() {
     /* get the next timer event the scheduler wants to be called */
     TimeT nextevent = this->SchedulerCfd->getNextTimerEvent(sleepList, currentTime);
     LOG(SCHEDULER, DEBUG, "SingleCPUDispatcher: next Timer %x %x", (unint4) ((nextevent >> 32) & 0xffffffff), (unint4) ((nextevent) & 0xffffffff));
-    /* set hw timer only if we must be interrupted due to scheduling decision
-     * as e.g. round robin time slice ends, higher priority thread activates etc.*/
-    if (nextevent < MAX_UINT8) {
-        theTimer->setTimer(nextevent);
-    }
+    theTimer->setTimer(nextevent);
 
     /*
      * Get the next ready thread to be executed.
@@ -152,9 +150,21 @@ void SingleCPUDispatcher::sleep(Thread* thread) {
     /* be sure that this critical area cant be interrupted */
     DISABLE_IRQS(irqstatus);
 
-    /* place into sleeplist */
-    this->sleepList->addTail(thread->getLinkedListItem());
+    /* place into sleeplist at correct location. sorted on sleeptime. */
+    LinkedListItem* sItem = sleepList->getTail();
+    while (sItem != 0) {
+         if (static_cast<PriorityThread*>(sItem->getData())->getSleepTime() <= thread->getSleepTime()) {
+             sleepList->insertAfter(thread->getLinkedListItem(), sItem);
+             goto out;
+         }
+         sItem = sItem->getPred();
+    }
 
+    /* if this statement is reached, no thread with a bigger priority then the pRTThread was found,
+     so we add it at the very front of the queue. */
+    sleepList->addHead(thread->getLinkedListItem());
+
+out:
     if (thread == pCurrentRunningThread) {
         pCurrentRunningThread = 0;
         dispatch();
@@ -241,11 +251,21 @@ void SingleCPUDispatcher::unblock(Thread* thread) {
  * @params
  *  thread:     The thread that waits for a signal
  *---------------------------------------------------------------------------*/
-void SingleCPUDispatcher::sigwait(Thread* thread) {
+void SingleCPUDispatcher::sigwait(SignalType signaltype, Thread* thread) {
     DISABLE_IRQS(irqstatus);
 
-    LOG(SCHEDULER, TRACE, "SingleCPUDispatcher::sigwait() adding Thread to waitlist");
-    waitList->addTail(thread->getLinkedListItem());
+    LOG(SCHEDULER, TRACE, "SingleCPUDispatcher::sigwait() adding Thread");
+
+    switch (signaltype) {
+    case (SIGNAL_GENERIC) : {
+       waitList->addTail(thread->getLinkedListItem());
+       break;
+       }
+    case (SIGNAL_COND) : {
+       condwaitList->addTail(thread->getLinkedListItem());
+       break;
+       }
+    }
 
     if (thread == pCurrentRunningThread) {
         pCurrentRunningThread = 0;
@@ -257,7 +277,7 @@ void SingleCPUDispatcher::sigwait(Thread* thread) {
 }
 
 /*****************************************************************************
- * Method: SingleCPUDispatcher::signal(void* sig, int sigvalue)
+ * Method: SingleCPUDispatcher::signal(LinkedList* list, void* sig, int signalvalue = cOk)
  *
  * @description
  *  Indicates that the given signal was raised. Wakes all threads currently
@@ -267,47 +287,77 @@ void SingleCPUDispatcher::sigwait(Thread* thread) {
  *  sig:      The signal raised.
  *  sigvalue: The value of the signal passed as return code to the thread.
  *---------------------------------------------------------------------------*/
-void SingleCPUDispatcher::signal(void* sig, int sigvalue) {
+void SingleCPUDispatcher::signal(LinkedList* list, void* sig, int sigvalue) {
     /* be sure that this critical area cannot be interrupted */
     DISABLE_IRQS(irqstatus);
     LOG(SCHEDULER, TRACE, "SingleCPUDispatcher::signal() signal: %d", sig);
 
-    LinkedListItem* litem = this->waitList->getHead();
+    LinkedListItem* litem = list->getHead();
 
-    /* TODO: better scalable test should be used here
-     * for system with high waitList size this scales pretty bad linearly ...
-     * for multi core we should have one per core as well */
     while (litem != 0) {
         LinkedListItem* tmpLitem = litem->getSucc();
         Thread* pThread = static_cast<Thread*>(litem->getData());
 
-        if (litem != 0) {
-            if (pThread->signal == sig) {
-                LOG(SCHEDULER, TRACE, "SingleCPUDispatcher::signal() signal to thread %d", pThread->getId());
+        if (pThread->signal == sig) {
+            LOG(SCHEDULER, TRACE, "SingleCPUDispatcher::signal() signal to thread %d", pThread->getId());
 
-                pThread->status.clearBits(cSignalFlag);
-                /* Set the signal return value. The restore Context must handle passing this value
-                 * to the return register. It should reset the signal to 0 to indicate that the thread is not
-                 * waiting for a signal any more and ignore the signalvalue field afterwards.
-                 *  */
-                pThread->signalvalue = sigvalue;
+            pThread->status.clearBits(cSignalFlag);
+            /* Set the signal return value. The restore Context must handle passing this value
+             * to the return register. It should reset the signal to 0 to indicate that the thread is not
+             * waiting for a signal any more and ignore the signalvalue field afterwards.
+             *  */
+            pThread->signalvalue = sigvalue;
 
-                if (!pThread->status.areSet(cStopped)) {
-                    if (pThread->isBlocked()) {
-                        this->blockedList->addTail(litem);
-                    } else if (pThread->sleepTime > 0) {
-                        this->sleepList->addTail(litem);
-                    } else {
-                        this->SchedulerCfd->enter(litem);
-                    }
+            /* stopped threads are ignored */
+            if (!pThread->status.areSet(cStopped)) {
+                if (pThread->isBlocked()) {
+                    /* woke up blocked thread.. put on blocked list*/
+                    this->blockedList->addTail(litem);
+                } else if (pThread->sleepTime > 0) {
+                    /* some sleep time left.. put on sleeplist*/
+                    this->sleepList->addTail(litem);
+                } else {
+                    /* put on run queue */
+                    this->SchedulerCfd->enter(litem);
                 }
-            } /* if pThread->signal == sig*/
-        }
+            }
+        } /* if pThread->signal == sig*/
 
         litem = tmpLitem;
     }
 
     RESTORE_IRQS(irqstatus);
+}
+
+
+/*****************************************************************************
+  * Method: SingleCPUDispatcher::signalCond(void* phyAddr, int signalvalue = cOk)
+  *
+  * @description
+  *  Indicates that the given condition variable (phy address) was raised.
+  *  Wakes all threads currently waiting for that condition and reschedules them.
+  *
+  * @params
+  *  sig:      The physical address of the condition raised.
+  *  sigvalue: The value of the signal passed as return code to the thread.
+  *---------------------------------------------------------------------------*/
+void SingleCPUDispatcher::signalCond(void* phyAddr, int signalvalue) {
+    this->signal(condwaitList, phyAddr, signalvalue);
+}
+
+/*****************************************************************************
+  * Method: SingleCPUDispatcher::signal(void* sig, int signalvalue = cOk)
+  *
+  * @description
+  *  Indicates that the given generic signal was raised.
+  *  Wakes all threads currently waiting for that condition and reschedules them.
+  *
+  * @params
+  *  sig:      The global signal raised.
+  *  sigvalue: The value of the signal passed as return code to the thread.
+  *---------------------------------------------------------------------------*/
+void SingleCPUDispatcher::signal(void* sig, int signalvalue) {
+    this->signal(waitList, sig, signalvalue);
 }
 
 #endif

@@ -24,6 +24,8 @@
 #include "inc/error.hh"
 #include "Alignment.hh"
 
+class Resource;
+
 typedef struct Chunk_Header {
     Chunk_Header *prev_chunk;
     Chunk_Header *next_chunk;
@@ -78,6 +80,7 @@ typedef struct ChunkTrace {
 #define MEM_LAST_FIT 0
 #endif
 
+
 /*!
  * \ingroup memmanager
  *
@@ -116,6 +119,19 @@ typedef struct ChunkTrace {
  *
  */
 class SequentialFitMemManager: public MemManager {
+    /* list of scheduled deletions. Resources will
+     * be freed if the idle thread is executed once. */
+    Resource*  scheduledDeletion[40];
+
+    /* current start entry */
+    int  schedDeletionStartPos;
+
+    /* number of elements inside the scheduledDeletion array*/
+    int  schedDeletionCount;
+
+    /* number of elements safe to delete starting at schedDeletionNum */
+    int  schedDeletionSafeNum;
+
 private:
     /*****************************************************************************
      * Method: split(Chunk_Header* chunk, size_t &size, MemResource* segment)
@@ -274,6 +290,31 @@ public:
      *  int         Error Code
      *******************************************************************************/
     void debug(MemResource* segment);
+
+    /*****************************************************************************
+     * Method: scheduleDelete(Resource* addr)
+     *
+     * @description
+     *  Schedule the deletion of thos resource.
+     * @params
+     *
+     * @returns
+     *  int         Error Code
+     *******************************************************************************/
+    void scheduleDeletion(Resource* addr);
+
+    /*****************************************************************************
+     * Method: idleEnter
+     *
+     * @description
+     *  Method should be called upon idle thread entry.
+     * @params
+     *
+     * @returns
+     *  int         Error Code
+     *******************************************************************************/
+    void idleEnter();
+
 };
 
 #endif /*SEQUENTIALFITMEMMANAGER_HH_*/

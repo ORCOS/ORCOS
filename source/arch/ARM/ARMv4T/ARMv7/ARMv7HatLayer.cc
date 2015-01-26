@@ -337,6 +337,7 @@ void* ARMv7HatLayer::createPT(void* logBaseAddr,
             pte.setTex(0x0);
             pte.setCBit(0);
             pte.setBBit(1);
+            //pte.setSBit(1);
             break;
         }
         case hatCacheInhibit:

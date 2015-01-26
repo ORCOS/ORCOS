@@ -56,6 +56,18 @@ ErrorT Omap3530InterruptController::maskIRQ(unint4 irq_number) {
     return (cError );
 }
 
+ErrorT Omap3530InterruptController::raiseIRQ(unint4 irq_number) {
+    if (irq_number < 96) {
+        /* enable interrupt: (int no. irq_number: (irq_number mod 32)): position of bit */
+        int reg = irq_number / 32;
+        int bit = (irq_number - reg * 32);
+        OUTW(baseAddr + INTCPS_ISR_SET(reg), (1 << bit));
+        OUTW(baseAddr + INTCPS_ISR_CLEAR(reg), (1 << bit));
+        return (cOk);
+    }
+    return (cError );
+}
+
 /*****************************************************************************
  * Method: BeagleBoardInterruptController::setIRQPriority(unint4 irq_number, unint4 priority)
  *

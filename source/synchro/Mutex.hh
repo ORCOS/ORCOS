@@ -48,15 +48,21 @@ private:
      * This should ALWAYS be the first variable of the Mutex class so it is guaranteed to be word
      * aligned.
      */
-    int4 m_locked;
+    int2        m_locked;
+
+    /*
+     * Number of waiting threads
+     */
+    int2        waitingThreads;
 
     /*! Stores a pointer to the thread currently locking this mutex. */
     Kernel_ThreadCfdCl* m_pThread;
 
     //! Stores a pointer to the Resource guarded by this mutex.
-    Resource* m_pRes;
+    Resource*   m_pRes;
 
-    TimeT   acquirePriority;
+    //! The priority at acquisition time
+    TimeT       acquirePriority;
 
 public:
     //! Constructor, initializes m_locked to false, so the Mutex can be aquired, and initializes the scheduler.
@@ -82,6 +88,16 @@ public:
      *  Releases the current Mutex
      *---------------------------------------------------------------------------*/
     ErrorT release(Thread* pThread = pCurrentRunningThread);
+
+
+
+    /*****************************************************************************
+     * Method: getWaitingThreadCount()
+     *
+     * @description
+     *  Returns the current numnber of threads waiting on this mutex.
+     *---------------------------------------------------------------------------*/
+    unint2 getWaitingThreadCount() { return (waitingThreads); }
 };
 
 #endif  // MUTEX_HH

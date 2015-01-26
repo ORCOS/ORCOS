@@ -1285,6 +1285,7 @@
         <MemberRef Name="mapMemory" />
         <MemberRef Name="mkdev" />
         <MemberRef Name="mount" />
+        <MemberRef Name="waitirq" />
       </Superclass>
     </Superclasses>
     <Member>
@@ -1403,6 +1404,9 @@
     </Member>
     <Member>
       <Name>mount</Name>
+    </Member>
+    <Member>
+      <Name>waitirq</Name>
     </Member>
   </Skeleton>
   <Defines>

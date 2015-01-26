@@ -20,6 +20,7 @@
 #include "inc/memtools.hh"
 #include "kernel/Kernel.hh"
 #include "assemblerFunctions.hh"
+#include "filesystem/Resource.hh"
 
 extern Kernel* theOS;
 
@@ -578,6 +579,9 @@ void SequentialFitMemManager::debug(MemResource* segment) {
     }
 }
 
+// if we are sure a -b is never > b we can use this!
+#define MODULO(a, b)  a >= b ? a-b : a
+
 /*****************************************************************************
  * Method: SequentialFitMemManager::service()
  *
@@ -589,8 +593,89 @@ void SequentialFitMemManager::debug(MemResource* segment) {
  *  int         Error Code
  *******************************************************************************/
 void SequentialFitMemManager::service() {
+#if MEM_TRACE
     debug(&Segment);
-#if MEM_CACHE_INHIBIT
-    debug(&Segment_Cache_Inhibit);
 #endif
+
+    DISABLE_IRQS(status);
+    int startpos  = schedDeletionStartPos;
+    int freeCount = schedDeletionSafeNum;
+    RESTORE_IRQS(status);
+
+    for (int i = 0; i < freeCount; i++) {
+        int pos = MODULO(startpos + i, 40);
+
+        if (scheduledDeletion[pos] != 0) {
+            DISABLE_IRQS(status);
+            Resource* res = scheduledDeletion[pos];
+            scheduledDeletion[pos] = 0;
+            RESTORE_IRQS(status);
+
+            if (scheduledDeletion[pos]->isDeletionSafe()) {
+                LOG(MEM, WARN, "SequentialFitMemManager::service() scheduled deletion of %x",res);
+                delete res;
+            } else {
+                /* insert at back of list again */
+                scheduleDeletion(res);
+            }
+        }
+    }
+    /* update new start position */
+    DISABLE_IRQS(status2);
+    schedDeletionStartPos = MODULO(schedDeletionStartPos + freeCount, 40);
+    schedDeletionCount   -= freeCount;
+    schedDeletionSafeNum = 0;
+    RESTORE_IRQS(status2);
+}
+
+
+/*****************************************************************************
+ * Method: SequentialFitMemManager::scheduleDeletion(Resource* res)
+ *
+ * @description
+ *  Adds the Resource to the delayed resource deletion list.
+ * @params
+ *
+ * @returns
+ *  int         Error Code
+ *******************************************************************************/
+void SequentialFitMemManager::scheduleDeletion(Resource* res) {
+    /* be sure resource is invalid! */
+    if (res->getId() != 0) {
+        res->invalidate();
+    }
+
+    if (res->isDeletionSafe()) {
+        delete res;
+        return;
+    }
+
+    /* not safe to directly remove the resource. schedule for later */
+    DISABLE_IRQS(status);
+    if (schedDeletionCount < 40) {
+        int pos = MODULO(schedDeletionStartPos + schedDeletionCount, 40);
+        scheduledDeletion[pos] = res;
+        schedDeletionCount++;
+    }
+    RESTORE_IRQS(status);
+
+    LOG(MEM, ERROR, "SequentialFitMemManager::scheduleDelete() no more space in scheduled deletion list");
+    /* this is risky as it is unclear if the resource is still accessed! */
+    delete res;
+}
+
+/*****************************************************************************
+ * Method: SequentialFitMemManager::idleEnter()
+ *
+ * @description
+ *   Method should be called upon idle thread entry. Marks the current
+ *   number of scheduled resources for deletion as safe to delete as
+ *   all threads are currently asleep.
+ * @params
+ *
+ * @returns
+ *  int         Error Code
+ *******************************************************************************/
+void SequentialFitMemManager::idleEnter() {
+    schedDeletionSafeNum = schedDeletionCount;
 }

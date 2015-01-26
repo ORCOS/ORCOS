@@ -1,11 +1,11 @@
 /*
- * lwipTMR.cc
+ * KernelServiceThread.cc
  *
- *  Created on: 14.07.2011
+ *  Created on: 22.01.2015
  *    Copyright &  Author: dbaldin
  */
 
-#include "lwipTMR.hh"
+#include <kernel/KernelServiceThread.hh>
 #include "kernel/Kernel.hh"
 #include "lwipopts.h"
 
@@ -14,30 +14,35 @@ extern "C" Mutex* comStackMutex;
 
 extern "C" void tcp_tmr();
 extern "C" void ethar_tmr();
+
 #if (LWIP_NETIF_LOOPBACK || LWIP_HAVE_LOOPIF)
 extern "C" void netif_poll_all(void);
 #endif
 
-static int count;
 
-lwipTMR::lwipTMR() {
+KernelServiceThread::KernelServiceThread() {
     count = 0;
 }
 
-lwipTMR::~lwipTMR() {
+KernelServiceThread::~KernelServiceThread() {
 }
 
 /*****************************************************************************
- * Method: lwipTMR::callbackFunc(void* param)
+ * Method: KernelServiceThread::callbackFunc(void* param)
  *
  * @description
- *  TODO: Rename this to a generic service routine
+ *  Performs generic service operations that need to be done
+ *  periodically. However, it is not necessary that this is done
+ *  deterministically. To ensure correct operation this method
+ *  must just be called sometimes.
+ *
  * @params
  *
  *******************************************************************************/
-void lwipTMR::callbackFunc(void* param) {
-    LOG(COMM, TRACE, "Kernel: lwipTMR called!");
+void KernelServiceThread::callbackFunc(void* param) {
+    LOG(KERNEL, TRACE, "KernelServiceThread called!");
 
+#if ENABLE_NETWORKING
     comStackMutex->acquire();
 
     count++;
@@ -54,9 +59,11 @@ void lwipTMR::callbackFunc(void* param) {
     }
 
     comStackMutex->release();
+#endif
 
-    LOG(COMM, TRACE, "MemoryManager service!");
-   // theOS->getMemoryManager()->service();
+
+    LOG(KERNEL, TRACE, "MemoryManager service!");
+    theOS->getMemoryManager()->service();
 
     /* iterate over all tasks and threads to check for the blocked state */
     LinkedList* llt = theOS->getTaskDatabase();
@@ -79,8 +86,8 @@ void lwipTMR::callbackFunc(void* param) {
         }
     }
 
-    LOG(COMM, TRACE, "Flushing Kernel Log!");
+    LOG(KERNEL, TRACE, "Flushing Kernel Log!");
     /* Perform logger flush */
     theOS->getLogger()->flush();
-    LOG(COMM, TRACE, "Services Thread done!");
+    LOG(KERNEL, TRACE, "Services Thread done!");
 }

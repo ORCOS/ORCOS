@@ -470,9 +470,12 @@ FATFileSystem::~FATFileSystem() {
     Directory* mntdir = theOS->getFileManager()->getDirectory("/mnt/");
 
     if (mntdir != 0 && rootDir != 0) {
-        // remove root directory to system
+        /* remove root directory to system */
         mntdir->remove(rootDir);
-        delete rootDir;
+        /* schedule deletion instead of directly freeing the memory
+         * as some threads may be accessing the directory contents
+         * right now!*/
+        theOS->getMemoryManager()->scheduleDeletion(rootDir);
     }
 }
 
@@ -1300,7 +1303,7 @@ ErrorT FATDirectory::remove(Resource *res) {
 
     /* finally remove internal dir object */
     ErrorT ret = Directory::remove(res);
-    delete file;
+    theOS->getMemoryManager()->scheduleDeletion(file);
     return (ret);
 }
 

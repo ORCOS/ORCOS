@@ -42,7 +42,7 @@ extern "C" int      testandset(void* address, int testvalue, int setvalue);
 /*!
  * \brief The new operator for user level
  */
-void* operator         new( size_t s );
+void* operator      new( size_t s );
 
 /*!
  * \brief Memory allocation method.
@@ -117,12 +117,12 @@ extern "C" int         task_resume(int taskid);
  *  e.g.: signal_signal(ProcessID_To_Unblock << 16) | (SIG_CHILD_TERMINATED).
  *  This is possible as orcos uses signals for the wait operation.
  *
- * \return            The exit value of the terminated thread.
+ * \return          The exit value of the terminated thread.
  */
-extern "C" int         wait();
+extern "C" int      wait();
 
 /*!
- * \brief wait method.  Blocks the current calling thread until the process terminates.
+ * \brief wait for process method.  Blocks the current calling thread until the process terminates.
  *
  *  The method blocks the current thread until the specified process terminates.  If no such process exists
  *  this can lead to a endlessly blocked thread. However, another thread from a different process
@@ -130,9 +130,37 @@ extern "C" int         wait();
  *  e.g.: signal_signal(pid << 16).
  *  This is possible as orcos uses signals for the wait operation.
  *
- * \return            The exit value of the terminated process.
+ * \return          The exit value of the terminated process.
  */
-extern "C" int        waitpid(unint1 pid);
+extern "C" int      waitpid(TaskIdT pid);
+
+
+/*!
+ * \brief wait for thread method.  Blocks the current calling thread until the thread terminates.
+ *
+ *  The method blocks the current thread until the specified thread terminates.
+ *  The thread specified by 'tid' must be inside the current process. It is not
+ *  supported/allowed to wait for a thread of a different process.
+ *  If no such thread exists this can lead to a endlessly blocked thread.
+ *  However, another thread may unblock the stuck thread if it
+ *  issues the correct signal_signal syscall.
+ *
+ *  This is possible as orcos uses signals for the wait operation.
+ *
+ * \return          The exit value of the terminated process.
+ */
+extern "C" int      waittid(ThreadIdT tid);
+
+/*!
+ * \brief wait for irq method.  Blocks the current calling thread until the irq is raised.
+ *
+ *  The method blocks the current thread until the specified irq is raised.
+ *  The thread will be unblock after the irq handler executed and scheduled as normal.
+ *
+ * \return          The exit value of the terminated process.
+ */
+extern "C" int      waitirq(unint1 tid);
+
 
 /*!
  *  \brief Sleep method. The calling thread will be blocked for at least 'ms' milliseconds.
@@ -152,7 +180,7 @@ extern "C" void     sleep(int ms);
  *
  * \param us    The amount of microseconds to sleep
  */
-extern "C"void         usleep(int us);
+extern "C"void      usleep(int us);
 
 /*!
  * \brief Returns the process ID of the current running process.
@@ -165,7 +193,7 @@ extern "C" int      getpid();
  * \param threadid         Return value which will hold the thread id on success
  * \param attr             Pointer to the thread attributes structure holding information for thread creation
  * \param start_routine    Pointer to the executeable code of the thread
- * \param arg            Argument passed to the thread on execution
+ * \param arg              Argument passed to the thread on execution
  *
  * \return                Error Number
  */
@@ -174,8 +202,10 @@ extern "C" int         thread_create(int* threadid,thread_attr_t* attr, void *(*
 /*!
  * \brief Start the execution of the thread with id 'threadid'.
  *
- * \param threadid the id of the thread to run. If the threadid is <= 0 all newly created threads of the current task will be started simultaneously!
- *        This is important if you want multiple realtime threads to arrive at the same time so that the schedule is not phase shifted!
+ * \param              threadid the id of the thread to run.
+ *                     If the threadid is <= 0 all newly created threads of the current task will be started simultaneously!
+ *                     This is important if you want multiple realtime threads to arrive at the same time
+ *                     so that the schedule is not phase shifted!
  *
  * \return             Error Number
  */
@@ -185,12 +215,12 @@ extern "C" int         thread_run(int threadid);
 /*!
  * \brief Name the Thread given by threadId or current thread
  *
- * \param threadid The id of the thread to be name. If the threadid is == 0 the current thread is named.
- * \param name     The new name of the thread. Maximum 30 characters will be used.
+ * \param threadid     The id of the thread to be name. If the threadid is == 0 the current thread is named.
+ * \param name         The new name of the thread. Maximum 30 characters will be used.
  *
- * \return          Error Number
+ * \return             Error Number
  */
-extern "C" int      thread_name(int threadid,char* name);
+extern "C" int         thread_name(int threadid,char* name);
 
 /*!
  * \brief Returns the id of the currently running thread

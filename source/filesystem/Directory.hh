@@ -66,6 +66,15 @@ public:
 
     virtual             ~Directory();
 
+
+    /*****************************************************************************
+     * Method: invalidate()
+     *
+     * @description
+     *  Marks this Directory and all of its sub directories as invalid.
+     *******************************************************************************/
+    void invalidate();
+
     /*****************************************************************************
      * Method: add(Resource* res)
      *

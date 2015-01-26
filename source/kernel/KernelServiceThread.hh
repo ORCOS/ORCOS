@@ -10,17 +10,20 @@
 
 #include "hal/CallableObject.hh"
 
-class lwipTMR: public CallableObject {
-public:
-    lwipTMR();
+class KernelServiceThread: public CallableObject {
+    /* call counter. */
+    int count;
 
-    ~lwipTMR();
+public:
+    KernelServiceThread();
+
+    ~KernelServiceThread();
 
     /*****************************************************************************
      * Method: callbackFunc(void* param)
      *
      * @description
-     *  TODO: Rename this to a generic service routine
+     *
      * @params
      *
      *******************************************************************************/

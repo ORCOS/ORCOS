@@ -9,6 +9,7 @@
 #include "inc/error.hh"
 #include "inc/memtools.hh"
 #include "kernel/Kernel.hh"
+#include "db/LinkedList.hh"
 
 #define IRQ_MAX 256
 
@@ -21,10 +22,11 @@ typedef struct {
     unint4                  priority;
     unint4                  triggerCount;
     unint4                  flags;
-    Thread*                 pWThread; /* Thread to execute on IRQ */
+    Thread*                 pWThread;       /* Thread to execute on IRQ */
+    LinkedList              waitingThreads;
 } irqHandler;
 
-irqHandler irqTable[IRQ_MAX];
+static irqHandler irqTable[IRQ_MAX];
 
 InterruptManager::InterruptManager() :
         CharacterDevice(false, "irq") {
@@ -51,16 +53,17 @@ ErrorT InterruptManager::handleIRQ(unint4 irq) {
     irqTable[irq].triggerCount++;
 
     LOG(HAL, TRACE, "InterruptManager::handleIRQ(): IRQ %d.", irq);
-#ifdef ORCOS_SUPPORT_SIGNALS
-    /* signal waiting threads */
-    theOS->getDispatcher()->signal(reinterpret_cast<void*>(irq << 24), cOk);
-#endif
 
+    for (LinkedListItem* litem = irqTable[irq].waitingThreads.getHead(); litem != 0; litem = litem->getSucc()) {
+        Thread* t = static_cast<Thread*>(litem->getData());
+        t->unblock();
+    }
 
 #if USE_WORKERTASK
     /* do we have an IRQ handler for this IRQ number? */
     if (irqTable[irq].driver == 0) {
         LOG(HAL, DEBUG, "InterruptManager::handleIRQ(): unknown IRQ %d.", irq);
+        theOS->getBoard()->getInterruptController()->clearIRQ(irq);
         ret = cError;
         goto out;
     }
@@ -114,7 +117,7 @@ out:
  *******************************************************************************/
 ErrorT InterruptManager::registerIRQ(unint4 irq, GenericDeviceDriver* driver, unint4 priority, unint4 flags) {
     if (irq > IRQ_MAX)
-        return (cError );
+        return (cError);
 
     /* allow overwriting of handlers for irq */
     irqTable[irq].driver        = driver;
@@ -141,6 +144,19 @@ ErrorT InterruptManager::registerIRQ(unint4 irq, GenericDeviceDriver* driver, un
     driver->enableIRQ();
     TRACE_ADD_SOURCE(0, irq, driver->getName());
     return (cOk);
+}
+
+/*****************************************************************************
+ * Method: InterruptManager::waitIRQ(unint4 irq, Thread* t)
+ *
+ * @description
+ *
+ *******************************************************************************/
+ErrorT InterruptManager::waitIRQ(unint4 irq, Thread* t) {
+    if (irq > IRQ_MAX)
+          return (cError);
+
+    return (irqTable[irq].waitingThreads.addTail(t->getLinkedListItem()));
 }
 
 

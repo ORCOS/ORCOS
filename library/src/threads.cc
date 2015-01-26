@@ -18,9 +18,10 @@
 
 
 
-#include "./types.h"
-#include "./defines.h"
-#include "./orcos.hh"
+#include "types.h"
+#include "defines.h"
+#include "orcos.hh"
+
 
 /*!
  * The sleep system call.
@@ -35,42 +36,42 @@ extern "C"void sleep(int ms)
 /*!
  * The sleep system call.
  */
-extern "C"void usleep(int us)
+extern "C"void usleep(int ustime)
 {
-    syscall(cSleepSysCallId, us);
+    syscall(cSleepSysCallId, ustime);
 }
 
 
 extern "C"int task_stop(int taskid)
 {
-    return syscall(cTask_StopSysCallId,taskid);
+    return syscall(cTask_StopSysCallId, taskid);
 }
 
 extern "C" int task_run(char* path, char* arguments) {
-    return syscall(cRunTaskId,path,arguments);
+    return syscall(cRunTaskId, path, arguments);
 }
 
 extern "C" int thread_name(int threadid,char* name) {
-    return syscall(cThreadNameSyscallId,threadid,name);
+    return syscall(cThreadNameSyscallId, threadid, name);
 }
 
-extern "C" int 	task_kill(int taskid) {
-	return syscall(cTask_KillSysCallId,taskid);
+extern "C" int task_kill(int taskid) {
+    return syscall(cTask_KillSysCallId, taskid);
 }
 
 extern "C" int task_resume(int taskid)
 {
-    return syscall(cTask_ResumeSysCallId,taskid);
+    return syscall(cTask_ResumeSysCallId, taskid);
 }
 
 extern "C" int thread_create(int* threadid,thread_attr_t* attr, void *(*start_routine)(void*), void* arg)
 {
-    return syscall(cThread_CreateSysCallId,threadid,attr,start_routine,arg);
+    return syscall(cThread_CreateSysCallId, threadid, attr, start_routine, arg);
 }
 
 extern "C" int thread_run(int threadid)
 {
-    return syscall(cThread_RunSysCallId,threadid);
+    return syscall(cThread_RunSysCallId, threadid);
 }
 
 extern "C" int thread_self()
@@ -83,18 +84,30 @@ extern "C" void thread_yield()
     syscall(cThread_YieldSysCallId);
 }
 
-extern "C" int     thread_terminate(ThreadIdT threadId, int flag) {
-    return (syscall(cThreadTerminateSyscallId,threadId,flag));
+extern "C" int thread_terminate(ThreadIdT threadId, int flag) {
+    return (syscall(cThreadTerminateSyscallId, threadId, flag));
 }
 
-extern "C" int	waitpid(unint1 pid)
+extern "C" int waitpid(TaskIdT pid)
 {
-    return (syscall(cThread_WaitPID,pid << 16));
+    return (syscall(cThread_WaitPID, pid, 0));
 }
 
-extern "C" int 	wait()
+extern "C" int wait()
 {
+   /* wait for any thread child to finish*/
    return (waitpid(0));
+}
+
+extern "C" int waittid(ThreadIdT tid)
+{
+    /* wait for a thread inside our task to finish */
+    return (syscall(cThread_WaitPID, 0, tid));
+}
+
+
+extern "C" int waitirq(unint1 irq) {
+    return (syscall(cThreadWaitIRQSyscallId, irq));
 }
 
 extern "C" int   getpid() {
@@ -102,5 +115,5 @@ extern "C" int   getpid() {
 }
 
 extern "C" int   taskioctl(int cmd, int taskid, char* dev) {
-    return (syscall(cTaskioctlscallId,cmd,taskid,dev));
+    return (syscall(cTaskioctlscallId, cmd, taskid, dev));
 }

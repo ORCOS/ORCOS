@@ -30,9 +30,12 @@ extern Kernel* theOS;
 ResourceIdT Resource::globalResourceIdCounter;
 
 Resource::Resource(ResourceType rt, bool sync_res, const char* p_name) {
-    this->restype   = rt;
-    this->name      = p_name;
-    /* TODO: take care of integer overflows here.. need to guarantee the id is not used*/
+    this->restype    = rt;
+    this->name       = p_name;
+    this->refCounter = 0;
+
+    /* TODO: take care of integer overflows here..
+     * need to guarantee the same id is not reused*/
     this->myResourceId = globalResourceIdCounter++;
     if (globalResourceIdCounter == 0) {
         ERROR("Out of Resource IDs!");
@@ -65,7 +68,11 @@ int Resource::acquire(Thread* pThread, bool blocking) {
        pThread = pCurrentRunningThread;
    }
 
-    int retval = this->myResourceId;
+    int retval = myResourceId;
+
+    DISABLE_IRQS(status);
+    refCounter++;
+    RESTORE_IRQS(status);
 
     if (this->accessControl != 0) {
         /* blocking call */
@@ -74,39 +81,59 @@ int Resource::acquire(Thread* pThread, bool blocking) {
         }
     }
 
-    if (pThread != 0) {
-        /* Add resource to the set of acquired resources */
-        int result = pThread->getOwner()->aquiredResources.addTail(this);
-        /* forward status back to user */
-        if (result < 0)
-            retval = result;
+    /* myResourceId may be 0 if it has been deleted
+     * during acquisition */
+    DISABLE_IRQS(status2);
+    if (myResourceId != 0) {
+        if (pThread != 0 ) {
+            /* Add resource to the set of acquired resources */
+            int result = pThread->getOwner()->aquiredResources.addTail(this);
+            /* forward status back to user */
+            if (result < 0)
+                retval = result;
 
-        /* for files we also reset the position */
-        if (this->getType() & (cFile | cDirectory)) {
-            CharacterDevice* cdev = static_cast<CharacterDevice*>(this);
-            cdev->resetPosition();
+            /* for files we also reset the position */
+            if (this->getType() & (cFile | cDirectory)) {
+                CharacterDevice* cdev = static_cast<CharacterDevice*>(this);
+                cdev->resetPosition();
+            }
         }
+    } else {
+        refCounter--;
+        retval = cResourceRemoved;
     }
+    RESTORE_IRQS(status2);
 
     return (retval);
 }
 
 Resource::~Resource() {
+    DISABLE_IRQS(status);
+    this->myResourceId  = 0;
+    RESTORE_IRQS(status);
+
     LOG(FILESYSTEM, TRACE, "Deleting Resource %s.", this->name);
-    /* TODO: remove the resource from the thread acquired resources
-     check for these threads..
-     before deleting this resource check if some threads are blocked waiting for this resource
-     if true delay deletion */
+
+    /* Remove the resource from all tasks that might hold a reference
+     * to this resource so that they will not access the resource again.
+     * Do this only for resources that are held by some task..  */
+    if (refCounter > 0) {
+        LinkedList* tasks = theOS->getTaskManager()->getTaskDatabase();
+        for (LinkedListItem* litem = tasks->getHead(); litem != 0; litem = litem->getSucc()) {
+            Task* t = (Task*) (litem->getData());
+            DISABLE_IRQS(status);
+            t->aquiredResources.removeItem(this);
+            RESTORE_IRQS(status);
+        }
+    }
 
     /* name might be coming from the text or data area and can not be freed
      try to free it any way. The mem manager will recognize this. */
     if (this->name != 0)
         delete this->name;
-    if (this->accessControl != 0)
-        delete this->accessControl;
 
     /* for access to this member after delete */
-    this->name = "$Removed";
+    this->name          = "$Removed";
     this->accessControl = 0;
 }
 
@@ -135,10 +162,41 @@ ErrorT Resource::release(Thread* pThread) {
         /* remove resource from the database */
         DISABLE_IRQS(status);
         ListItem* removedItem = pThread->getOwner()->aquiredResources.removeItem(this);
-        RESTORE_IRQS(status);
         if (removedItem == 0) {
-            return (cElementNotInDatabase );
+            RESTORE_IRQS(status);
+            return (cElementNotInDatabase);
+        } else {
+            refCounter--;
         }
+        RESTORE_IRQS(status);
     }
     return (cOk );
 }
+
+#if 0
+/*****************************************************************************
+  * Method: void Resource::operator delete(void* addr)
+  *
+  * @description
+  *  Special delete operator for Resources taking care
+  *  of delayed resource deletion of this resource
+  *  if it is still accessed by threads trying to acquire it.
+  *******************************************************************************/
+void Resource::operator delete(void* addr) {
+    Kernel_MemoryManagerCfdCl* mm;
+    mm = theOS->getMemoryManager();
+    Resource* res = (Resource*)(addr);
+    /* Check if some thread is still waiting for it. If the reference counter is <= 0
+     * then this resource is not used or waited for any where..
+     * its safe to free it directly. */
+    if (res->refCounter <= 0) {
+        mm->free(addr);
+        mm->free(res->accessControl);
+    }
+
+    /* We need to delay resource memory location freeing until all threads
+     * returned. Add to memory manager delayed resource deletion list. */
+    mm->scheduleDeletion(res);
+}
+
+#endif

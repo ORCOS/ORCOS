@@ -71,14 +71,14 @@ TimeT RateMonotonicThreadScheduler::getNextTimerEvent(LinkedList* sleepList, Tim
             if (pSleepThread->sleepTime <= currentTime) {
                 pSleepThread->status.setBits(cReadyFlag);
                 LinkedListItem* litem2  = pDBSleepItem;
-
                 pDBSleepItem            = pDBSleepItem->getSucc(); /* get the next item here is the next line will change the succ */
                 litem2->remove();
-
                 pSleepThread->sleepTime = 0;
                 this->enter(litem2);
+                /* get new head.. and use its priority */
+                pDBNextItem = database.getHead();
+                nextPriority = (static_cast<RealTimeThread*>(pDBNextItem->getData()))->effectivePriority;
             } else {
-                /* TODO: nextPriority might change due to new ready threads. this may lead to too many irqs */
                 if ((pSleepThread->getSleepTime() <= sleeptime) && (pSleepThread->effectivePriority >= nextPriority)) {
                     sleeptime = pSleepThread->getSleepTime();
                 }

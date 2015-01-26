@@ -26,6 +26,8 @@
 /* global reference to the kernel object */
 Kernel* theOS = 0;
 
+void *__dso_handle;
+
 /* heap_start and heap_end address used to clear the memory */
 extern void* _heap_start;
 extern void* _heap_end;

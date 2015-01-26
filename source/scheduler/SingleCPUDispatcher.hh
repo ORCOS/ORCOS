@@ -24,6 +24,8 @@
 #include "process/Task.hh"
 #include Kernel_Scheduler_hh
 #include "process/WorkerThread.hh"
+#include "inc/signals.hh"
+
 
 /*!
  * \brief Class managing the execution of threads on a single cpu.
@@ -57,12 +59,38 @@ private    :
     LinkedList* sleepList;
 
 #ifdef ORCOS_SUPPORT_SIGNALS
-    //! List containing the threads currently waiting for a signal
+    /*
+     *  List containing the threads currently waiting for a generic (global) signal
+     */
     LinkedList* waitList;
+
+    /*
+     * List of threads waiting for specific IRQ numbers
+     */
+    LinkedList* irqwaitList;
+
+    /*
+     * List of threads waiting for specific condition variables
+     * (given as physical address on signal_wait/signal).
+     */
+    LinkedList* condwaitList;
 #endif
 
 
     IdleThread* idleThread;
+
+
+
+    /*****************************************************************************
+     * Method: signal(LinkedList* list, void* sig, int signalvalue = cOk)
+     *
+     * @description
+     *  Wakes all threads on the given list waiting for the signal
+     *
+     * @returns
+     *
+     *---------------------------------------------------------------------------*/
+    void signal(LinkedList* list, void* sig, int signalvalue = cOk);
 
 public:
     SingleCPUDispatcher();
@@ -162,21 +190,34 @@ public:
      * @params
      *  thread:     The thread that waits for a signal
      *---------------------------------------------------------------------------*/
-    void sigwait(Thread* thread);
+    void sigwait(SignalType signaltype, Thread* thread);
 
 
     /*****************************************************************************
      * Method: signal(void* sig, int sigvalue)
      *
      * @description
-     *  Indicates that the given signal was raised. Wakes all threads currently
-     *  waiting for that signal and rescheudles them.
+     *  Indicates that the given generic (global) signal was raised.
+     *  Wakes all threads currently waiting for that signal and reschedules them.
      *
      * @params
      *  sig:      The signal raised.
      *  sigvalue: The value of the signal passed as return code to the thread.
      *---------------------------------------------------------------------------*/
     void signal(void* sig, int signalvalue = cOk);
+
+    /*****************************************************************************
+      * Method: signalCond(void* phyAddr, int signalvalue = cOk)
+      *
+      * @description
+      *  Indicates that the given condition variable (phy address) was raised.
+      *  Wakes all threads currently waiting for that condition and reschedules them.
+      *
+      * @params
+      *  sig:      The physical address of the condition raised.
+      *  sigvalue: The value of the signal passed as return code to the thread.
+      *---------------------------------------------------------------------------*/
+    void signalCond(void* phyAddr, int signalvalue = cOk);
 #endif
 
     /*****************************************************************************

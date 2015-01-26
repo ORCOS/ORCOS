@@ -386,7 +386,7 @@ ErrorT OmapMMC_SD_HC::sendCommand(unint4 cmd, unint4 arg) {
         return (cOk );
 
 error:
-    LOG(ARCH, WARN, "MMC/SD HC() Error on CMD %x, ARG %x STAT: %x", cmd, arg, INW(baseAddress + MMCHS_STAT));
+    LOG(ARCH, DEBUG, "MMC/SD HC() Error on CMD %x, ARG %x STAT: %x", cmd, arg, INW(baseAddress + MMCHS_STAT));
 
     if (((INW(baseAddress + MMCHS_STAT) & (STAT_CTO)) != 0x0)) {
         /* reset command line if timed out */

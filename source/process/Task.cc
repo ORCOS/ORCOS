@@ -23,6 +23,7 @@
 #include "inc/memtools.hh"
 #include "filesystem/SharedMemResource.hh"
 #include "assemblerFunctions.hh"
+#include "inc/signals.hh"
 
 /* the kernel object */
 extern Kernel* theOS;
@@ -122,7 +123,10 @@ Task::~Task() {
     Directory* dir = KernelVariable::getEntry("tasks", true);
     if (dir) {
         dir->remove(sysFsDir);
-        delete sysFsDir;
+        /* schedule deletion instead of directly freeing the memory
+         * as some other threads may be accessing the directory contents
+         * right now!*/
+        theOS->getMemoryManager()->scheduleDeletion(sysFsDir);
     }
 #endif
 }
@@ -138,6 +142,11 @@ Resource* Task::getOwnedResourceById(ResourceIdT id) {
     /* parse database for a resource with id 'id' */
     Resource* ret = 0;
     DISABLE_IRQS(status);
+
+    /* ID 0 is invalid */
+    if (id == 0) {
+        goto out;
+    }
 
     for (int i = 0; i < this->aquiredResources.size(); i++) {
         Resource* res = static_cast<Resource*>(aquiredResources.getItemAt(i));
@@ -252,6 +261,12 @@ void Task::run() {
  *******************************************************************************/
 void Task::terminate() {
     LOG(KERNEL, DEBUG, "Task::terminate()");
+
+
+#ifdef ORCOS_SUPPORT_SIGNALS
+    int signal =  SIGNAL_SPACE_TASK(this->getId()) | SIG_TASK_TERMINATED;
+    theOS->getDispatcher()->signal(reinterpret_cast<void*>(signal), this->exitValue);
+#endif
 
     LinkedListItem* litem = this->threadDb.getHead();
     while (litem != 0) {

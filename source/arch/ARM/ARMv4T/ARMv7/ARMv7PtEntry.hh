@@ -128,7 +128,9 @@ public:
      * @description
      *  Sets the S Bit
      *******************************************************************************/
-    void setSBit() {
+    void setSBit(int value) {
+        ptL1Descriptor.clearBits(1 << 10);
+        ptL1Descriptor.setBits((value & 0x1) << 10);
     }
 
     /*****************************************************************************

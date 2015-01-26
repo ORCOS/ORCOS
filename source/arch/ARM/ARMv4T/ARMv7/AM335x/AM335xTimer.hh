@@ -64,6 +64,7 @@ typedef struct {
 class AM335xTimer: public TimerDevice {
 private:
     volatile am335xgp_regs* hwregs;
+    int irq;
 
 public:
     /*****************************************************************************

@@ -132,7 +132,7 @@ ErrorT RamdiskDirectory::remove(Resource* res) {
         myRamDisk->freeBlock(f->myBlockNumber);
     }
 
-    delete res;
+    theOS->getMemoryManager()->scheduleDeletion(res);
 
     return (cOk );
 }

@@ -31,6 +31,7 @@
 #include "inc/stringtools.hh"
 #include "inc/memtools.hh"
 #include "scheduler/ScheduleableItem.hh"
+#include "inc/signals.hh"
 #include Kernel_MemoryManager_hh
 
 ///////////////////////////////////////////////////////////////////////
@@ -429,7 +430,7 @@ public:
      * Caller will NOT return from this method. Instead the context will directly
      * be restored on signal reception!
      *******************************************************************************/
-    void sigwait(void* sig);
+    void sigwait(SignalType signaltype, void* sig);
 #endif
 
     /*****************************************************************************
