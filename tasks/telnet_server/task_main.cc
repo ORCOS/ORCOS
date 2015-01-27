@@ -394,17 +394,17 @@ void makeHexCharCompatible(char* msg, int len) {
 
 int taskids[100];
 
-void printMemUsage(int socket) {
+void printMemUsage(int socket, int showBlockCount) {
 
     unint4 UsedMem;
     unint4 TotalMem;
     readKernelVarUInt4("/sys/mem/used",&UsedMem);
     readKernelVarUInt4("/sys/mem/total",&TotalMem);
 
-    sprintf(dir_content,"Mem                 \t   Total\t    Used\t    Free\tUsage"LINEFEED);
+    sprintf(dir_content,"Tasks [Heap]         \t    Total\t     Used\t     Free\tUsage"LINEFEED);
     sendStr(socket,dir_content);
 
-    sprintf(dir_content, "%-20s\t%8u\t%8u\t%8u\t%4u%%"LINEFEED
+    sprintf(dir_content, ESC_CYAN" %-20s"ESC_WHITE"\t %8u\t %8u\t %8u\t%4u%%"LINEFEED
                      , "[kernel]",TotalMem,UsedMem,TotalMem-UsedMem,(UsedMem*100)/TotalMem);
     sendStr(socket,dir_content);
 
@@ -434,7 +434,7 @@ void printMemUsage(int socket) {
                  readKernelVarUInt4(path,&TotalMem);
                  sprintf(path,"/sys/tasks/%u/name",taskids[i]);
                  readKernelVarStr(path,name,32);
-                 sprintf(dir_content, "%-20s\t%8u\t%8u\t%8u\t%4u%%"LINEFEED
+                 sprintf(dir_content, ESC_CYAN" %-20s"ESC_WHITE"\t %8u\t %8u\t %8u\t%4u%%"LINEFEED
                                     , name,TotalMem,UsedMem,TotalMem-UsedMem,(UsedMem*100)/TotalMem);
                  sendStr(socket,dir_content);
              }
@@ -443,6 +443,9 @@ void printMemUsage(int socket) {
 
          }
     } // sys/tasks
+
+    sprintf(dir_content,"\nDisks                \t    Total\t     Used\t     Free\tUsage"LINEFEED);
+    sendStr(socket,dir_content);
 
     handle = fopen("/sys/fs",0);
     if (handle) {
@@ -463,11 +466,21 @@ void printMemUsage(int socket) {
                  readKernelVarUInt4(path,&numBlocks);
                  sprintf(path,"/sys/fs/%s/freeBlocks",diskname);
                  readKernelVarUInt4(path,&freeBlocks);
-                 //sprintf(path,"/sys/tasks/%s/blockSize",diskname);
-                 //readKernelVarUInt4(path,&blockSize);
+                 sprintf(path,"/sys/fs/%s/blockSize",diskname);
+                 readKernelVarUInt4(path,&blockSize);
 
-                 sprintf(dir_content, "%-20s\t%8u\t%8u\t%8u\t%4u%%"LINEFEED
+                 if (showBlockCount) {
+                     sprintf(dir_content, ESC_CYAN" %-20s"ESC_WHITE"\t%8u\t%8u\t%8u\t%4u%%"LINEFEED
                                     , diskname,numBlocks,numBlocks-freeBlocks,freeBlocks,((numBlocks-freeBlocks)*100)/numBlocks);
+                 } else {
+                     sprintf(dir_content, ESC_CYAN" %-20s"ESC_WHITE"\t%8uK\t%8uK\t%8uK\t%4u%%"LINEFEED
+                                        , diskname,
+                                        (numBlocks * blockSize) / 1024,
+                                        ((numBlocks-freeBlocks) * blockSize) / 1024,
+                                        (freeBlocks * blockSize) / 1024,
+                                        ((numBlocks-freeBlocks)*100)/numBlocks);
+
+                 }
                  sendStr(socket,dir_content);
 
                  if (taskdir != mydirhandle)
@@ -1015,7 +1028,14 @@ void handleCommand(int socket, int command_length) {
     }
 
     if (strpos("df",command) == 0) {
-        printMemUsage(socket);
+        int blocks = 0;
+
+        /* display blocks instead of Bytes*/
+        if (strpos("-b",command) > 0) {
+            blocks = 1;
+        }
+
+        printMemUsage(socket, blocks);
         return;
     }
 
@@ -1071,7 +1091,7 @@ void handleCommand(int socket, int command_length) {
                   netif_stat_t netifstats;
                   ioctl(devicehandle,cNETIF_GET_STATS,&netifstats);
 
-                  int len = sprintf(dir_content, "%s\tHWaddr: %2x:%2x:%2x:%2x:%2x:%2x\n",
+                  int len = sprintf(dir_content, "%s\tHWaddr: %02x:%02x:%02x:%02x:%02x:%02x\n",
                                     direntry->name,netifstats.hwaddr[0],netifstats.hwaddr[2],
                                     netifstats.hwaddr[2],netifstats.hwaddr[3],netifstats.hwaddr[4],
                                     netifstats.hwaddr[5]);
