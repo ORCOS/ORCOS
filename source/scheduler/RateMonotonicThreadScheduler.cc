@@ -81,6 +81,8 @@ TimeT RateMonotonicThreadScheduler::getNextTimerEvent(LinkedList* sleepList, Tim
             } else {
                 if ((pSleepThread->getSleepTime() <= sleeptime) && (pSleepThread->effectivePriority >= nextPriority)) {
                     sleeptime = pSleepThread->getSleepTime();
+                    /* we may stop here as this is the earliest time point we need to be interrupted */
+                    return (sleeptime);
                 }
 
                 pDBSleepItem            = pDBSleepItem->getSucc();
