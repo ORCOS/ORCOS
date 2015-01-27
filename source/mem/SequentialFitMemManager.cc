@@ -645,17 +645,14 @@ void SequentialFitMemManager::scheduleDeletion(Resource* res) {
         res->invalidate();
     }
 
-    if (res->isDeletionSafe()) {
-        delete res;
-        return;
-    }
-
     /* not safe to directly remove the resource. schedule for later */
     DISABLE_IRQS(status);
     if (schedDeletionCount < 40) {
         int pos = MODULO(schedDeletionStartPos + schedDeletionCount, 40);
         scheduledDeletion[pos] = res;
         schedDeletionCount++;
+        RESTORE_IRQS(status);
+        return;
     }
     RESTORE_IRQS(status);
 
