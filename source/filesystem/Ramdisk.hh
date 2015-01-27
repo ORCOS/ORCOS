@@ -10,17 +10,18 @@
 
 #include "filesystem/Directory.hh"
 #include "filesystem/File.hh"
+#include "FileSystemBase.hh"
 
-class Ramdisk {
+class Ramdisk : public FileSystemBase {
 private:
     /* The global block chain */
     unint4* blockChain;
 
     /* Number of entries inside the blockchain */
-    unint4 blockChainEntries;
+    unint4  blockChainEntries;
 
     /* Address of the first block allocatable */
-    unint4 firstBlock;
+    unint4  firstBlock;
 
 public:
     /*****************************************************************************
@@ -32,6 +33,14 @@ public:
     explicit Ramdisk(T_Ramdisk_Init* init);
 
     virtual ~Ramdisk();
+
+    /*****************************************************************************
+     * Method: initialize()
+     *
+     * @description
+     *
+     *******************************************************************************/
+    ErrorT initialize() { return (cOk); }
 
     /*****************************************************************************
      * Method: allocateBlock(unint4 prev)
@@ -117,6 +126,7 @@ public:
 
 class RamdiskFile: public File {
     friend class RamdiskDirectory;
+
 private:
     Ramdisk* myRamDisk;
 
@@ -128,6 +138,8 @@ private:
 
 public:
     RamdiskFile(Ramdisk* myRamdisk, unint4 blockNum, char* name, int flags);
+
+    ~RamdiskFile();
 
     /*****************************************************************************
      * Method: readBytes(char *bytes, unint4 &length)

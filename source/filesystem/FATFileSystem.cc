@@ -973,6 +973,9 @@ File* FATDirectory::createFile(char* p_name, unint4 flags) {
     FATFile *file = new FATFile(namepcpy, fsrootdir_entry, myFS, fileEntrySector, fileSectorEntry, longNameEntrySector, longNameSectorEntry);
     this->add(file);
 
+    /* be sure data is written to device */
+    this->myFS->myPartition->flushCache();
+
     return (file);
 }
 
@@ -1005,6 +1008,9 @@ Directory* FATDirectory::createDirectory(char* p_name, unint4 flags) {
     dir->initialize(this->mycluster_num);
 
     this->add(dir);
+
+    /* be sure data is written to device */
+    this->myFS->myPartition->flushCache();
 
     return (dir);
 }

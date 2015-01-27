@@ -19,17 +19,26 @@ class Partition;
  */
 class FileSystemBase {
 protected:
-    Partition* myPartition;
+    /* Reference to the partition this filesystem is contained in.
+     * Maybe 0 if no such physical partition exists as e.g. inside ramdisk.*/
+    Partition*   myPartition;
 
-    bool isValid;
+    /* Valid flag of this filesystem. */
+    bool        isValid;
 
-    unint4 numBlocks;
+    /* Number of blocks inside this filesystem */
+    unint4      numBlocks;
 
-    unint4 blockSize;
+    /* Blocksize of this filesystem */
+    unint4      blockSize;
 
-    unint4 freeBlocks;
+    /* Free blocks inside this filesystem */
+    unint4      freeBlocks;
 
-    Directory* sysFsDir;
+#if SYSFS_SUPPORT
+    /* The sysfs directory */
+    Directory*  sysFsDir;
+#endif
 
 public:
     /*****************************************************************************
@@ -38,6 +47,14 @@ public:
      * @description
      *******************************************************************************/
     explicit FileSystemBase(Partition* myPartition);
+
+    /*****************************************************************************
+     * Method: FileSystemBase(const char* name)
+     *
+      * @description
+      * Constructor for anonymous partitions as e.g. ramdisks.
+    *******************************************************************************/
+    explicit FileSystemBase(const char* name);
 
     virtual ~FileSystemBase();
 

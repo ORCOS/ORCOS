@@ -37,6 +37,28 @@ FileSystemBase::FileSystemBase(Partition* p_myPartition) {
 #endif
 }
 
+
+FileSystemBase::FileSystemBase(const char* name) {
+    this->myPartition = 0;
+    this->isValid = true;
+    numBlocks = 0;
+    blockSize = 512;
+    freeBlocks = 0;
+
+    /* create sys fs entries */
+#if SYSFS_SUPPORT
+    Directory* dir = KernelVariable::getEntry("fs", true);
+    if (dir) {
+        sysFsDir = new Directory(name);
+        dir->add(sysFsDir);
+
+        SYSFS_ADD_RO_UINT(sysFsDir, numBlocks);
+        SYSFS_ADD_RO_UINT(sysFsDir, blockSize);
+        SYSFS_ADD_RO_UINT(sysFsDir, freeBlocks);
+    }
+#endif
+}
+
 FileSystemBase::~FileSystemBase() {
 #if SYSFS_SUPPORT
     Directory* dir = KernelVariable::getEntry("fs", true);

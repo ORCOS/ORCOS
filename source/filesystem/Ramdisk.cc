@@ -14,7 +14,7 @@ extern Kernel* theOS;
 
 #define RAMDISK_BLOCK_SIZE 4096
 
-Ramdisk::Ramdisk(T_Ramdisk_Init* init) {
+Ramdisk::Ramdisk(T_Ramdisk_Init* init) : FileSystemBase("ramdisk") {
     /* get Ramdisk location and size from SCL configuration */
     unint4 start    = init->StartAddress;
     unint4 end      = init->StartAddress + init->Size - 1;
@@ -39,6 +39,11 @@ Ramdisk::Ramdisk(T_Ramdisk_Init* init) {
     for (unint4 i = 0; i < blockChainEntries; i++)
         blockChain[i] = (unint4) -1;  // mark as free
 
+    /* set filesystem base variables */
+    numBlocks  = blockChainEntries;
+    freeBlocks = numBlocks;
+    blockSize  = RAMDISK_BLOCK_SIZE;
+
     // create the ramdisk mount directory
     /* TODO: use SCL to get path and name */
     RamdiskDirectory* dir = new RamdiskDirectory(this, "ramdisk");
@@ -49,7 +54,7 @@ Ramdisk::Ramdisk(T_Ramdisk_Init* init) {
  * Method: Ramdisk::allocateBlock(unint4 prev)
  *
  * @description
- *   Allocates a ramdisk block using the block number not
+ *   Allocates a Ramdisk block using the block number not
  *   the physical address
  *******************************************************************************/
 unint4 Ramdisk::allocateBlock(unint4 prev) {
@@ -59,6 +64,7 @@ unint4 Ramdisk::allocateBlock(unint4 prev) {
             if (prev != (unint4) -1)
                 blockChain[prev] = i;
 
+            freeBlocks--;
             return (i);
         }
     return (-1);
@@ -74,10 +80,12 @@ int Ramdisk::freeBlock(unint4 blockNum) {
     if (blockNum != (unint4) -1) {
         unint4 nextBlock = blockChain[blockNum];
         blockChain[blockNum] = -1;
+        freeBlocks++;
 
         while (nextBlock != 0 && nextBlock != (unint4) -1) {
             blockNum = blockChain[nextBlock];
             blockChain[nextBlock] = (unint4) -1;
+            freeBlocks++;
             nextBlock = blockNum;
         }
     }
@@ -125,11 +133,6 @@ ErrorT RamdiskDirectory::remove(Resource* res) {
     if (isError(error)) {
         LOG(FILESYSTEM, ERROR, "RamdiskDirectory::remove(): Error removing resource %s", res->getName());
         return (error);
-    }
-
-    if (res->getType() & cFile) {
-        RamdiskFile* f = static_cast<RamdiskFile*>(res);
-        myRamDisk->freeBlock(f->myBlockNumber);
     }
 
     theOS->getMemoryManager()->scheduleDeletion(res);
@@ -321,6 +324,12 @@ RamdiskFile::RamdiskFile(Ramdisk* myRamdisk, unint4 blockNum, char* name, int fl
     this->myBlockNumber = blockNum;
     currentBlock        = myBlockNumber;
     readPos = 0;
+}
+
+
+RamdiskFile::~RamdiskFile() {
+    /* we are deleted.. free the blocks this file occupied */
+    myRamDisk->freeBlock(this->myBlockNumber);
 }
 
 /*****************************************************************************
