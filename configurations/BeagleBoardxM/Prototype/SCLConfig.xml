@@ -253,6 +253,7 @@
       <Member Name="mkdev" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="thread_name" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="mount" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="waitirq" Class="" None="true" UserSpace="false" PhyLoadAddress="0x0" />
     </Skeleton>
     <!--  DEFINES -->
     <Define>
