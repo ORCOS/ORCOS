@@ -611,8 +611,8 @@ void SequentialFitMemManager::service() {
             scheduledDeletion[pos] = 0;
             RESTORE_IRQS(status);
 
-            if (scheduledDeletion[pos]->isDeletionSafe()) {
-                LOG(MEM, WARN, "SequentialFitMemManager::service() scheduled deletion of %x",res);
+            if (res->isDeletionSafe()) {
+                LOG(MEM, DEBUG, "SequentialFitMemManager::service() scheduled deletion of %x",res);
                 delete res;
             } else {
                 /* insert at back of list again */
