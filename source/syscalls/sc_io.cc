@@ -531,14 +531,21 @@ int sc_fremove(intptr_t int_sp) {
     Resource* res_file = dir->get(filename, strlen(filename));
     /* resource found? */
     if (res_file == 0)
-        return (cInvalidPath );
+        return (cInvalidPath);
+
+    /* For internal files we must first check the type of resource */
+    if (res_file->getType() & (cNonRemovableResource))
+        return (cResourceNotRemovable);
 
     /* if this resource is owned by the current task remove it from the task */
     /* only acquired resources may be removed to avoid references to already deleted resources! */
     res = pCurrentRunningTask->getOwnedResourceById(res_file->getId());
     if (res != 0) {
-        pCurrentRunningTask->releaseResource(res, pCurrentRunningThread);
-        return (dir->remove(res_file));
+        ErrorT ret = dir->remove(res_file);
+        if (isOk(ret)) {
+            pCurrentRunningTask->releaseResource(res, pCurrentRunningThread);
+        }
+        return (ret);
     } else {
         return (cError );
     }

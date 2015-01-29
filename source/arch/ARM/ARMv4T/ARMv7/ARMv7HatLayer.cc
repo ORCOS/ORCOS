@@ -252,14 +252,14 @@ void ARMv7HatLayer::mapKernel(int pid) {
  * @returns
  *  int         Error Code
  *******************************************************************************/
-void* ARMv7HatLayer::createPT(void* logBaseAddr,
-                              void* physBaseAddr,
-                              size_t size,
-                              BitmapT protection,
-                              byte zsel,
-                              int pid,
-                              int cacheMode,
-                              bool nonGlobal) {
+void* ARMv7HatLayer::createPT(void*     logBaseAddr,
+                              void*     physBaseAddr,
+                              size_t    size,
+                              BitmapT   protection,
+                              byte      zsel,
+                              int       pid,
+                              int       cacheMode,
+                              bool      nonGlobal) {
     ARMv7PtEntry pte;
     pte.Clear();
     unint ptStartAddr = 0;

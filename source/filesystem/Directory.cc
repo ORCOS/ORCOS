@@ -86,7 +86,7 @@ ErrorT Directory::add(Resource* res) {
 ErrorT Directory::remove(Resource *res) {
     /* For internal files we must first check the type of resource */
     if (res->getType() & (cNonRemovableResource))
-        return (cResourceNotRemovable );
+        return (cResourceNotRemovable);
 
     if (dir_content.remove(res) == cOk) {
         num_entries--;

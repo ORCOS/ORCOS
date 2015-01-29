@@ -59,6 +59,7 @@ typedef struct {
 class OmapGPTimer: public TimerDevice {
 private:
     volatile omapgp_regs* hwregs;
+    int irq;
 
 public:
     /*****************************************************************************

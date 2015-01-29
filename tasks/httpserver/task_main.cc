@@ -66,34 +66,6 @@ char* extractFilePath(char* &str) {
 }
 
 
-// reduces the path by "." and ".." statements
-void compactPath(char* path) {
-
-    char newpath[100];
-    newpath[0] = '/';
-    newpath[1] = '\0';
-
-
-    char* token = strtok(path,"/");
-    char* next_token;
-
-    while (token != 0) {
-
-        next_token = strtok(0,"/");
-
-        bool nextisparent = false;
-        if ((next_token != 0) && ((strcmp(next_token,"..") == 0))) nextisparent = true;
-
-        if ((strcmp(token,".") != 0) && !nextisparent && (strcmp(token,"..") != 0 )) {
-            strcat(newpath,token);
-            strcat(newpath,"/");
-        }
-
-        token = next_token;
-    }
-
-    memcpy(path,newpath,strlen(newpath)+1);
-}
 
 
 char* ErrorMsg = "HTTP/1.1 500 Server Error\r\nContent-Length: 23\r\n\r\nNot supported by Server";
@@ -234,7 +206,7 @@ void* thread_entry(void* arg) {
      }
 
      //puts("Closing connection\r");
-     sleep(10);
+     sleep(1000);
      fclose(newsock);
      connected = 0;
 

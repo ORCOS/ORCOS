@@ -19,17 +19,16 @@ Ramdisk::Ramdisk(T_Ramdisk_Init* init) : FileSystemBase("ramdisk") {
     unint4 start    = init->StartAddress;
     unint4 end      = init->StartAddress + init->Size - 1;
 
-    blockChain = reinterpret_cast<unint4*>(start);
+    blockChain              = reinterpret_cast<unint4*>(start);
 
     unint4 numblocks        = ((end - start) / RAMDISK_BLOCK_SIZE);
     unint4 blockChainSize   = (sizeof(unint4*)) * numblocks;
-    numblocks              -= (blockChainSize / RAMDISK_BLOCK_SIZE);
+    numblocks              -= ((blockChainSize / RAMDISK_BLOCK_SIZE) + 1);
     blockChainSize          = (sizeof(unint4*)) * numblocks;
+    blockChainEntries       = numblocks;
 
-    blockChainEntries = numblocks;
-
-    firstBlock = start + (numblocks * sizeof(unint4*));
-    firstBlock = (unint4) alignCeil(reinterpret_cast<char*>(firstBlock), RAMDISK_BLOCK_SIZE);
+    firstBlock              = start + (numblocks * sizeof(unint4*));
+    firstBlock              = (unint4) alignCeil(reinterpret_cast<char*>(firstBlock), RAMDISK_BLOCK_SIZE);
 
     if (theOS->getRamManager() != 0) {
         /* Mark the ram disk area as used so it can not be used to allocate tasks a.s.o*/
@@ -164,7 +163,7 @@ File* RamdiskDirectory::createFile(char* name, unint4 flags) {
         return (0);
     }
 
-    char* fileName = reinterpret_cast<char*>(theOS->getMemoryManager()->alloc(strlen(name) + 1));
+    char* fileName = new char[strlen(name)+1];
     strcpy(fileName, name);
 
     RamdiskFile* f = new RamdiskFile(this->myRamDisk, block, fileName, flags);
@@ -188,7 +187,7 @@ Directory* RamdiskDirectory::createDirectory(char* name, unint4 flags) {
        return (0);
     }
 
-    char* dirName = reinterpret_cast<char*>(theOS->getMemoryManager()->alloc(strlen(name) + 1));
+    char* dirName = new char[strlen(name)+1];
     strcpy(dirName, name);
 
     RamdiskDirectory* f = new RamdiskDirectory(this->myRamDisk, dirName);
@@ -340,7 +339,7 @@ RamdiskFile::~RamdiskFile() {
  *******************************************************************************/
 ErrorT RamdiskFile::resetPosition() {
     //File::resetPosition();
-    readPos = 0;
+    readPos      = 0;
     currentBlock = myBlockNumber;
     return (cOk );
 }

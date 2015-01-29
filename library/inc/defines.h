@@ -74,24 +74,7 @@
 // Error Messages
 //-----------------------------------------------------
 
-#define cOk                     (int)0
-#define cError                  (int)-1000
 
-#define cTransactionFailed      (int)-1152
-
-#define cThreadNotFound         (int)-100
-#define cResourceNotOwned       (int)-101
-#define cResourceNotWriteable   (int)-102
-#define cResourceNotReadable    (int)-103
-#define cInvalidResource        (int)-104
-#define cCanNotAquireResource   (int)-105
-
-#define cArrayLengthOutOfBounds (int)-800
-#define cWrongArrayLengthByte   (int)-801
-#define cEOF                    (int)-8
-
-/* Error constant to string conversion */
-#define errstr(s)                 #s
 
 
 //-----------------------------------------------------

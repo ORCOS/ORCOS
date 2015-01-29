@@ -19,7 +19,8 @@
 #ifndef ORCOS_HH_
 #define ORCOS_HH_
 
-#include "./types.h"
+#include "error.h"
+#include "types.h"
 #include "defines.h"
 
 extern "C" int         syscall (int syscallnumber, ...);

@@ -464,16 +464,8 @@ size_t Socket::recvfrom(Kernel_ThreadCfdCl* thread,
                 /* block the current thread */
                 this->blockedThread = thread;
 
-                /*
-                int returnMode;
-                GET_CPSR(returnMode);
-                LOG(PROCESS, WARN, "Socket::recvfrom blocking CPSR=%x ", returnMode);*/
-
                 /* block here! this will also save the context. after we get unblocked we will exit block(). */
                 thread->block(timeout ms);
-
-               /* GET_CPSR(returnMode);
-                LOG(PROCESS, WARN, "Socket::recvfrom unblocked CPSR=%x ", returnMode );*/
 
                 this->blockedThread = 0;
 

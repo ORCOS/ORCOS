@@ -22,16 +22,16 @@
 #include "./orcos.hh"
 #include "./string.hh"
 
-#define PAD_RIGHT 1
-#define PAD_ZERO 2
-#define PRINT_BUF_LEN 12
-#define ZEROPAD 1       /* pad with zero */
-#define SIGN    2       /* unsigned/signed long */
-#define PLUS    4       /* show plus */
-#define SPACE   8       /* space if plus */
-#define LEFT    16      /* left justified */
-#define SPECIAL 32      /* 0x */
-#define LARGE   64      /* use 'ABCDEF' instead of 'abcdef' */
+#define PAD_RIGHT       1
+#define PAD_ZERO        2
+#define PRINT_BUF_LEN   12
+#define ZEROPAD         1       /* pad with zero */
+#define SIGN            2       /* unsigned/signed long */
+#define PLUS            4       /* show plus */
+#define SPACE           8       /* space if plus */
+#define LEFT            16      /* left justified */
+#define SPECIAL         32      /* 0x */
+#define LARGE           64      /* use 'ABCDEF' instead of 'abcdef' */
 
 void* __stack_chk_guard = (void*) 0xdeadbeaf;
 
@@ -451,5 +451,69 @@ char* strdup (const char *s)
 extern "C" int puts(const char *s) {
     return (printToStdOut(s,strlen(s)));
 }
+
+typedef struct {
+    int   num;
+    char* errorstring;
+} errorstrtable_t;
+
+
+errorstrtable_t errorstrings[] = {
+  {cOk,                     "No Error occurred."},
+  {cError,                  "Unspecified error occurred (-1000)"},
+  {cNotImplemented,         "Function not implemented (-1001)"},
+  {cNullPointerProvided,    "Null pointer provided (-1002)"},
+  {cStackOverflow,          "Stack overflow (-1003)"},
+  {cStackUnderflow,         "Stack underflow (-1004)"},
+  {cWrongAlignment,         "Wrong alignment (-1005)"},
+  {cResourceNotRemovable,   "Resource not removable (-1006)"},
+  {cWrongResourceType,      "Wrong Resource Type (-1007)"},
+  {cNoData,                 "No data (-1008)"},
+  {cResourceAlreadyExists,  "Resource already exists (-1009)"},
+  {cResourceRemoved,        "Resource has been removed (-1010)"},
+  {cInvalidResourceType,    "Invalid Resource Type (-1011)"},
+  {cTransactionFailed,      "Transaction failed (-1012)"},
+  {cResourceNotOwned,       "Resource not owned (-1013)"},
+  {cResourceNotWriteable,   "Resource not writeable (-1014)"},
+  {cResourceNotReadable,    "Resource not readable (-1015)"},
+  {cInvalidResource,        "Invalid Resource (-1016)"},
+  {cCanNotAquireResource,   "Resource can not be acquired (-1017)"},
+  {cArrayLengthOutOfBounds, "Array out of bounds (-800)"},
+  {cWrongArrayLengthByte,   "Wrong array length (-801)"},
+  {cEOF,                    "End of File (-5)"},
+  {cInvalidPath,            "Invalid Path (-6)"},
+  {cHeapMemoryExhausted,    "Heap Memory exhausted (-100)"},
+  {cDeviceMemoryExhausted,  "Device Memory exhausted (-103)"},
+  {cInvalidCBHeader,        "Invalid Task Control Block Header (-300)"},
+  {cTaskCRCFailed,          "Task CRC check failed (-301)"},
+  {cThreadNotFound,         "Thread not found (-302)"},
+  {cNotConnected,           "Not connected (-400)"},
+  {cTransportProtocolNotAvailable,   "Transport Protocol not available (-401)"},
+  {cAddressProtocolNotAvailable,     "Address Protocol not available (-402)"},
+  {cSocketAlreadyBoundError,"Socket already bound (-403)"},
+  {cTCPEnqueueFailed,       "TCP enqueue failed. Buffer full. (-404)"},
+  {cPBufNoMoreMemory,       "No more pbufs available (-405)"},
+  {cDatabaseOverflow,       "Database overflow (-500)"},
+  {cElementNotInDatabase,   "Element not in database (-501)"},
+  {cIndexOutOfBounds,       "Index out of bounds (-502)"},
+  {cInvalidArgument,        "Invalid argument (-600)"},
+  {cBlockDeviceReadError,   "Block device read error (-700)"},
+  {cBlockDeviceWriteError,  "Block device write error (-701)"},
+  {cBlockDeviceTooManyBlocks,  "Block device: Too many blocks given (-702)"},
+};
+
+char* strerror(int errornum) {
+
+    int i = 0;
+    int errors = sizeof(errorstrings) / sizeof(errorstrtable_t);
+    for (i = 0; i < errors; i++) {
+        if (errorstrings[i].num == errornum) {
+            return (errorstrings[i].errorstring);
+        }
+    }
+
+    return ("Unknown error number");
+}
+
 
 
