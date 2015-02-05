@@ -27,6 +27,7 @@
 
 /* the kernel object */
 extern Kernel* theOS;
+extern int ResourceSpinlock; /* spinlock for access to resources */
 
 /* static non-const member variable initialization
  will be executed in ctor */
@@ -141,7 +142,9 @@ Task::~Task() {
 Resource* Task::getOwnedResourceById(ResourceIdT id) {
     /* parse database for a resource with id 'id' */
     Resource* ret = 0;
-    DISABLE_IRQS(status);
+    /* resource list of task may be modified by some other thread
+     * AND processor.. protect against this using the resource spinlock*/
+    SMP_SPINLOCK_GET(ResourceSpinlock);
 
     /* ID 0 is invalid */
     if (id == 0) {
@@ -161,7 +164,7 @@ Resource* Task::getOwnedResourceById(ResourceIdT id) {
     }
 
 out:
-    RESTORE_IRQS(status);
+    SMP_SPINLOCK_FREE(ResourceSpinlock);
     return (ret);
 }
 

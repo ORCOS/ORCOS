@@ -236,7 +236,6 @@ Chunk_Header* SequentialFitMemManager::getFittingChunk(size_t size,
      * By enabling / disabling IRQS again all the time we allow low latencies
      */
     while (current_chunk != 0) {
-        DISABLE_IRQS(status);
         /* check if we can reuse this chunk
           size must be able to handle the rearrangement of the chunk to fit its new alignment */
         if ((current_chunk->state == FREE) && (current_chunk->size >= size)) {
@@ -244,7 +243,10 @@ Chunk_Header* SequentialFitMemManager::getFittingChunk(size_t size,
             /* found a free slot which is big enough */
             return (current_chunk);
         }  /* chunk fits */
-        RESTORE_IRQS(status);
+        _enableInterrupts();
+        /* interrupts chance for low irq latency !*/
+        NOP;
+        _disableInterrupts();
         current_chunk = current_chunk->next_chunk;
     }
 
@@ -293,8 +295,7 @@ void* SequentialFitMemManager::alloc(size_t size, bool aligned, unint4 align_val
     /* put some buffer between to avoid erroneous program access */
     size = size + SAFETY_BUFFER;
 
-    int irqstatus;
-    GET_INTERRUPT_ENABLE_BIT(irqstatus);
+    SMP_SPINLOCK_GET(m_lock);
 
 #if MEM_LAST_FIT == 1
 
@@ -319,7 +320,7 @@ void* SequentialFitMemManager::alloc(size_t size, bool aligned, unint4 align_val
     if (chunk != 0) {
         split(chunk, size, segment);
         segment->lastAllocated = chunk;
-        RESTORE_IRQS(irqstatus);
+        SMP_SPINLOCK_FREE(m_lock);
         /* fill allocated memory with zeros */
         memset(reinterpret_cast<void*>(addr), 0, size);
 
@@ -347,7 +348,7 @@ void* SequentialFitMemManager::alloc(size_t size, bool aligned, unint4 align_val
 #endif
         return (reinterpret_cast<void*>(addr));
     } else {
-        RESTORE_IRQS(irqstatus);
+        SMP_SPINLOCK_FREE(m_lock);
         LOG(MEM, ERROR, "SequentialFitMemManager::alloc(%d) No more free memory...", size);
         LOG(MEM, ERROR, "UsedMem: %d", segment->usedBytes);
         LOG(MEM, ERROR, "Overhead: %d", segment->overheadBytes);
@@ -597,19 +598,20 @@ void SequentialFitMemManager::service() {
     debug(&Segment);
 #endif
 
-    DISABLE_IRQS(status);
+
+    SMP_SPINLOCK_GET(m_lock);
     int startpos  = schedDeletionStartPos;
     int freeCount = schedDeletionSafeNum;
-    RESTORE_IRQS(status);
+    SMP_SPINLOCK_FREE(m_lock);
 
     for (int i = 0; i < freeCount; i++) {
         int pos = MODULO(startpos + i, 40);
 
+        SMP_SPINLOCK_GET(m_lock);
         if (scheduledDeletion[pos] != 0) {
-            DISABLE_IRQS(status);
             Resource* res = scheduledDeletion[pos];
             scheduledDeletion[pos] = 0;
-            RESTORE_IRQS(status);
+            SMP_SPINLOCK_FREE(m_lock);
 
             if (res->isDeletionSafe()) {
                 LOG(MEM, DEBUG, "SequentialFitMemManager::service() scheduled deletion of %x",res);
@@ -618,14 +620,18 @@ void SequentialFitMemManager::service() {
                 /* insert at back of list again */
                 scheduleDeletion(res);
             }
+        } else {
+            SMP_SPINLOCK_FREE(m_lock);
         }
     }
     /* update new start position */
-    DISABLE_IRQS(status2);
-    schedDeletionStartPos = MODULO(schedDeletionStartPos + freeCount, 40);
-    schedDeletionCount   -= freeCount;
-    schedDeletionSafeNum = 0;
-    RESTORE_IRQS(status2);
+    {
+        SMP_SPINLOCK_GET(m_lock);
+        schedDeletionStartPos = MODULO(schedDeletionStartPos + freeCount, 40);
+        schedDeletionCount   -= freeCount;
+        schedDeletionSafeNum = 0;
+        SMP_SPINLOCK_FREE(m_lock);
+    }
 }
 
 
@@ -646,15 +652,14 @@ void SequentialFitMemManager::scheduleDeletion(Resource* res) {
     }
 
     /* not safe to directly remove the resource. schedule for later */
-    DISABLE_IRQS(status);
+    SMP_SPINLOCK_GET(m_lock);
     if (schedDeletionCount < 40) {
         int pos = MODULO(schedDeletionStartPos + schedDeletionCount, 40);
         scheduledDeletion[pos] = res;
         schedDeletionCount++;
-        RESTORE_IRQS(status);
         return;
     }
-    RESTORE_IRQS(status);
+    SMP_SPINLOCK_FREE(m_lock);
 
     LOG(MEM, ERROR, "SequentialFitMemManager::scheduleDelete() no more space in scheduled deletion list");
     /* this is risky as it is unclear if the resource is still accessed! */

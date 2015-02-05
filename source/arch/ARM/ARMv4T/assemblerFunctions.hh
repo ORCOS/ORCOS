@@ -328,20 +328,20 @@ extern void* __PageTableSec_start;
 // supervisor mode: 19, system mode: 31, disable interrupts: 0xC0
 #define SAVE_CONTEXT_AT(mem_loc, mode) asm volatile \
    ( \
-       ".align 4;" \
-        "mov    r0,pc;" \
-        "bx     r0;" \
-        ".code  32;" \
-       "mov     r0,%0;"\
-       "add     r0,r0,#68;" \
-       "str     lr,[r0,#-4];" \
-       "str     sp,[r0,#-8];" \
-       "sub     r0,r0,#12;" \
-       "stmfd   r0!,{r0-r12};" \
+       ".align  4;" \
+       "mov     r0, pc;" \
+       "bx      r0;" \
+       ".code   32;" \
+       "mov     r0, %0;"\
+       "add     r0, r0,#68;" \
+       "str     lr, [r0,#-4];" \
+       "str     sp, [r0,#-8];" \
+       "sub     r0, r0,#12;" \
+       "stmfd   r0!, {r0-r12};" \
        "ldr     r1, =returnof;" \
-       "str     r1,[r0,#52];" \
-       "mov     r1,%1;" \
-       "orr     r1,r1,#0x20;" \
+       "str     r1, [r0,#52];" \
+       "mov     r1, %1;" \
+       "orr     r1, r1,#0x20;" \
        "stmfd   r0!,{r1};" \
        "add     r0, pc,#1;" \
         "bx     r0;" \
@@ -356,6 +356,101 @@ extern void* __PageTableSec_start;
           statements; \
           RESTORE_IRQS(irqstatus); }
 
+
+/*
+ *
+ * Tries to set 'setvalue' at address 'address'. Before setting the value
+ * it tests the address on testvalue. If the address contains testvalue
+ * or setting setvalue fails (due to concurrent access) the function returns 0.
+ * On exclusively and successfully setting setvalue the function returns 1.
+ * This function is SMP safe.
+ */
+static int inline testandset(void* address, int testvalue, int setvalue) {
+    int result;
+    /* smp test and set for ARM >= v6 */
+    asm (
+            "LDREX     r0, [%1];"       // load the address value
+            "CMP       r0, %2;"         // compare with test value
+            "ITT       EQ;"             // if then then (2 conditional instr following)
+            "STREXEQ   r0, %3, [%1];"   // try to store the set value and get success to r0
+            "CMPEQ     r0, #0;"         // did it succeed?
+            "ITE       EQ;"             // if then else
+            "MOVEQ     %0, #1;"         // return value == 1 on success
+            "MOVNE     %0, #0;"         // return value == 0 on failure
+            : "=&r" (result)
+            : "r" (address) , "r" (testvalue) , "r" (setvalue)
+            : "r0"
+    );
+    return (result);
+}
+
+
+/*
+ * SMP Capable atomic addition operation.
+ */
+static void inline ATOMIC_ADD(void* addr, int value) {
+        asm volatile ( \
+          "1: " \
+          "LDREX r1, [%0];" \
+          "ADD   r1, %1;"  \
+          "STREX r2, r1, [%0];" \
+          "CMP   r2, #0;" \
+          "BNE   1b;" \
+          "DMB;" \
+           : \
+           : "r" (addr), "r" (value) \
+           : "r1", "r2");
+}
+
+#if NUM_CPUS > 1
+
+/*
+ * SMP capable spinlock. Enforces disable interrupts to ensure
+ * the local thread does not get preempted. Uses
+ * an smp spinlock to check if another processor is currently using this
+ * spinlock.
+ *
+ * This SMP_SPINLOCK is best used for SHORT exclusive access areas!
+ * If interrupts would stay enabled other processors might spin for a very long time
+ * or another process might preempt us leading to a deadlock if it is using the same
+ * spinlock.
+ */
+#define SMP_SPINLOCK_GET(spinlock) \
+    asm volatile ( \
+         "MRS    r1,   cpsr;"      \
+         "ORR    r1,   r1, #0x80;" \
+         "MSR    cpsr, r1;"      \
+         "1:     " \
+         "LDREX   r2,  [%0];"     /* get spinlock value. try to get exclusive access */ \
+         "CMP     r2,  #0;"       /* test if locked.. */  \
+         "BNE     1b;"            /* locked .. spin until unlocked */ \
+         "STREX   r2,  r1, [%0];" /* not locked .. try to lock it..*/ \
+         "CMP     r2,  #1;"       /* check if STREX failed.. */ \
+         "BEQ     1b;"            /* if failed restart from 1 */ \
+         "DMB;" \
+          : \
+          : "r" (&spinlock) \
+          : "r1", "r2");
+
+
+#define SMP_SPINLOCK_FREE(spinlock) \
+        asm volatile ( \
+          "LDREX  r1,  [%0];"     /* get spinlock value. contains irq status */ \
+          "MRS    r2,   cpsr;"      \
+          "AND    r1, r1, #0x80;"   \
+          "ORR    r2, r1;"          \
+          "MSR    cpsr, r2;"        \
+          "MOV    r1, #0;"          \
+          "STR    r1, [%0];" /* set spinlock value to 0 */\
+           : \
+           : "r" (&spinlock) \
+           : "r1", "r2");
+
+#else
+
+#define SMP_SPINLOCK_GET(spinlock) DISABLE_IRQS(__##spinlock)
+#define SMP_SPINLOCK_FREE(spinlock) RESTORE_IRQS(__##spinlock)
+#endif
 
 #ifdef __cplusplus
 

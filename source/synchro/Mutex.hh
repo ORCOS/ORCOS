@@ -48,7 +48,7 @@ private:
      * This should ALWAYS be the first variable of the Mutex class so it is guaranteed to be word
      * aligned.
      */
-    int2        m_locked;
+    int4        m_locked;
 
     /*
      * Number of waiting threads
@@ -88,8 +88,6 @@ public:
      *  Releases the current Mutex
      *---------------------------------------------------------------------------*/
     ErrorT release(Thread* pThread = pCurrentRunningThread);
-
-
 
     /*****************************************************************************
      * Method: getWaitingThreadCount()

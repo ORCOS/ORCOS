@@ -558,6 +558,7 @@ ErrorT TaskManager::loadTaskFromFile(File* file, TaskIdT& tid, char* arguments, 
  *  int          Error Code
  *---------------------------------------------------------------------------*/
 ErrorT TaskManager::terminateThread(Kernel_ThreadCfdCl* pThread) {
+    // TODO: SMP
     DISABLE_IRQS(irqstatus);
     Task* ownerTask = pThread->owner;
 

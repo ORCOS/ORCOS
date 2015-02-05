@@ -132,6 +132,8 @@ class SequentialFitMemManager: public MemManager {
     /* number of elements safe to delete starting at schedDeletionNum */
     int  schedDeletionSafeNum;
 
+    int  m_lock;
+
 private:
     /*****************************************************************************
      * Method: split(Chunk_Header* chunk, size_t &size, MemResource* segment)

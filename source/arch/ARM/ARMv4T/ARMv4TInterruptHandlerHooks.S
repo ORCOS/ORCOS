@@ -44,6 +44,7 @@ restoreThreadContext:
     MSR     CPSR_c, r1
 
     LDR     lr,[r0,#64] // restore lr
+    CLREX               // be sure exclusive locks are removed
     LDR     sp,[r0,#60] // restore sp
 
     MSR     CPSR_c, #(undef_mode)|CPSR_DISINT

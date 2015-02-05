@@ -45,9 +45,9 @@ extern unint4 rescheduleCount;
  *---------------------------------------------------------------------------*/
 Mutex::Mutex() :
         m_locked(false),
+        waitingThreads(0),
         m_pThread(0),
-        m_pRes(0),
-        waitingThreads(0) {
+        m_pRes(0) {
     acquirePriority = 1;
 }
 
@@ -62,7 +62,9 @@ Mutex::Mutex() :
  * @returns
  *---------------------------------------------------------------------------*/
 Mutex::~Mutex() {
-    // TODO: waiting threads?? should not happen
+    if (waitingThreads > 0 || m_locked) {
+        LOG(SYNCHRO, ERROR, "Mutex::~Mutex() Mutex still in use on destruction: %x", this);
+    }
 }
 
 /*****************************************************************************
@@ -79,22 +81,15 @@ Mutex::~Mutex() {
 ErrorT Mutex::acquire(Resource* pRes, bool blocking) {
     Kernel_ThreadCfdCl* pCallingThread = pCurrentRunningThread;
 
-    DISABLE_IRQS(irqstatus);
-    waitingThreads++;
+    ATOMIC_ADD(&waitingThreads, 1);
     do  {
-        _disableInterrupts();
         /* spinning lock acquisition!
          * if we can not get the lock dispatch and give the running thread the higher priority!
          * The OS scheduler then will take care of the order the threads spinning
          * here will get the lock */
-        if (m_locked == 0) {
+        if (testandset(&m_locked, 0, 1)) {
             waitingThreads--;
 
-            /* successfully acquired mutex */
-            if (pCallingThread != 0)
-                acquirePriority = pCallingThread->effectivePriority;
-
-            m_locked        = 1;
             m_pThread       = pCallingThread;
             m_pRes          = pRes;
 
@@ -104,16 +99,12 @@ ErrorT Mutex::acquire(Resource* pRes, bool blocking) {
                 LOG(SYNCHRO, DEBUG, "Mutex::acquire() Thread acquired Mutex %x", this);
             }
 
-            RESTORE_IRQS(irqstatus);
-            return (cOk );
+            return (cOk);
         }
 
-        if (pCallingThread != 0 && m_pThread != 0 &&
-           m_pThread->effectivePriority <= pCallingThread->effectivePriority) {
-           /* boost priority */
-           m_pThread->effectivePriority = pCallingThread->effectivePriority + 1;
-           m_pThread->getLinkedListItem()->remove();
-           theOS->getCPUScheduler()->enter(m_pThread->getLinkedListItem());
+        /* PIP is implemented here */
+        if (pCallingThread != 0 && m_pThread != 0) {
+            m_pThread->pushPriority(pCallingThread->effectivePriority + 1, this);
         }
 
         /* in blocking mode we must dispatch here!
@@ -121,16 +112,15 @@ ErrorT Mutex::acquire(Resource* pRes, bool blocking) {
         if (blocking) {
             LOG(SYNCHRO, DEBUG, "Mutex::acquire() Thread %d blocked on Mutex %x", pCallingThread->getId(), this);
             rescheduleCount++;
+            /* program hardware timer to dispatch now.. may internally use a soft irq */
             theOS->getTimerDevice()->setTimer(1);
         }
 
-        _enableInterrupts();
         /* at this point we will be interrupted. */
 
         NOP;
     } while (blocking);
 
-    RESTORE_IRQS(irqstatus);
     return (cError);
 }
 
@@ -145,23 +135,20 @@ ErrorT Mutex::acquire(Resource* pRes, bool blocking) {
  * @returns
  *---------------------------------------------------------------------------*/
 ErrorT Mutex::release(Thread* pThread) {
-    DISABLE_IRQS(irqstatus);
-
-    /* no available thread to acquire the mutex */
-      m_locked    = 0;
-      m_pThread   = 0;
-      m_pRes      = 0;
-
     LOG(SYNCHRO, DEBUG, "Mutex 0x%x released", this);
+
+    m_pThread   = 0;
+    m_pRes      = 0;
 
     Kernel_ThreadCfdCl* pCallingThread = static_cast<Kernel_ThreadCfdCl*>(pThread);
     /* reset the priority of the currentRunning thread as it might have been boosted by
      * higher priority waiting threads  */
-    if (pCallingThread != 0) {
-        pCallingThread->effectivePriority = acquirePriority;
+    if (pCallingThread != 0 && waitingThreads > 0) {
+        pCallingThread->popPriority(this);
     }
 
-    RESTORE_IRQS(irqstatus);
+    /* reset lock last as some threads on other cores may be spinning on it..*/
+    m_locked    = 0;
 
     return (cOk );
 }

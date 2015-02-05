@@ -25,6 +25,8 @@
 
 extern Kernel* theOS;
 
+int ResourceSpinlock = 0;
+
 /* static non-const member variable initialization
  will be executed in ctor*/
 ResourceIdT Resource::globalResourceIdCounter;
@@ -70,9 +72,7 @@ int Resource::acquire(Thread* pThread, bool blocking) {
 
     int retval = myResourceId;
 
-    DISABLE_IRQS(status);
-    refCounter++;
-    RESTORE_IRQS(status);
+    ATOMIC_ADD(&refCounter, 1);
 
     if (this->accessControl != 0) {
         /* blocking call */
@@ -81,9 +81,14 @@ int Resource::acquire(Thread* pThread, bool blocking) {
         }
     }
 
+
+    /* Try to access exclusive access area.
+     * Use a spinlock here as the area is too small to use a mutex.
+     * interrupts will be disabled and access is guaranteed to be protected
+     * from other cores. */
+    SMP_SPINLOCK_GET(ResourceSpinlock);
     /* myResourceId may be 0 if it has been deleted
      * during acquisition */
-    DISABLE_IRQS(status2);
     if (myResourceId != 0) {
         if (pThread != 0 ) {
             /* Add resource to the set of acquired resources */
@@ -102,15 +107,13 @@ int Resource::acquire(Thread* pThread, bool blocking) {
         refCounter--;
         retval = cResourceRemoved;
     }
-    RESTORE_IRQS(status2);
+    SMP_SPINLOCK_FREE(ResourceSpinlock);
 
     return (retval);
 }
 
 Resource::~Resource() {
-    DISABLE_IRQS(status);
     this->myResourceId  = 0;
-    RESTORE_IRQS(status);
 
     LOG(FILESYSTEM, TRACE, "Deleting Resource %s.", this->name);
 
@@ -121,9 +124,9 @@ Resource::~Resource() {
         LinkedList* tasks = theOS->getTaskManager()->getTaskDatabase();
         for (LinkedListItem* litem = tasks->getHead(); litem != 0; litem = litem->getSucc()) {
             Task* t = (Task*) (litem->getData());
-            DISABLE_IRQS(status);
+            SMP_SPINLOCK_GET(ResourceSpinlock);
             t->aquiredResources.removeItem(this);
-            RESTORE_IRQS(status);
+            SMP_SPINLOCK_FREE(ResourceSpinlock);
         }
     }
 
@@ -150,6 +153,7 @@ Resource::~Resource() {
  *  int         Error Code
  *******************************************************************************/
 ErrorT Resource::release(Thread* pThread) {
+    ErrorT ret = cOk;
     if (pThread == 0) {
           pThread = pCurrentRunningThread;
     }
@@ -160,17 +164,16 @@ ErrorT Resource::release(Thread* pThread) {
 
     if (pThread != 0) {
         /* remove resource from the database */
-        DISABLE_IRQS(status);
+        SMP_SPINLOCK_GET(ResourceSpinlock);
         ListItem* removedItem = pThread->getOwner()->aquiredResources.removeItem(this);
         if (removedItem == 0) {
-            RESTORE_IRQS(status);
-            return (cElementNotInDatabase);
+            ret = cElementNotInDatabase;
         } else {
             refCounter--;
         }
-        RESTORE_IRQS(status);
+        SMP_SPINLOCK_FREE(ResourceSpinlock);
     }
-    return (cOk );
+    return (ret);
 }
 
 #if 0

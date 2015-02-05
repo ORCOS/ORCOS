@@ -23,6 +23,14 @@
 #include "process/Thread.hh"
 #include "inc/const.hh"
 
+#define MAX_PIP_PRIORITIES 5
+
+typedef struct {
+    TimeT  priorities[MAX_PIP_PRIORITIES];
+    void*  ref[MAX_PIP_PRIORITIES];
+} InheritedPriorities_t;
+
+
 /*!
  * \brief A thread class for multithreaded environments with priorities
  * \ingroup process
@@ -33,6 +41,11 @@
  */
 class PriorityThread: public Thread {
     friend class Task;
+
+    /* internal lock to get exclusive access on modification */
+    unint4          m_priolock;
+
+    InheritedPriorities_t priorities;
 public:
     /*!
      *  The initial priority.
@@ -47,9 +60,30 @@ public:
     /*!
      *  The Constructor of the PriorityThread, the prioThreadAttributes pointer has to point to a prioThreadAttrs structure.
      */
-    PriorityThread(void* startRoutinePointer, void* exitRoutinePointer, Task* owner, Kernel_MemoryManagerCfdCl* memManager, unint4 stack_size =
-                           DEFAULT_USER_STACK_SIZE, void* prioThreadAttributes =
-                           0, bool newThread = true);
+    PriorityThread(void* startRoutinePointer,
+                   void* exitRoutinePointer,
+                   Task* owner,
+                   Kernel_MemoryManagerCfdCl* memManager,
+                   unint4 stack_size = DEFAULT_USER_STACK_SIZE,
+                   void* prioThreadAttributes = 0,
+                   bool newThread = true);
+
+    /*****************************************************************************
+      * Method: pushPriority(TimeT newPriority, void* m)
+      *
+      * @description
+      * Tries to increase the priority of the thread to the new priority. Only succeeds
+      * if the current effective priority is lower. Used for e.g. PIP.
+      *---------------------------------------------------------------------------*/
+    void pushPriority(TimeT newPriority, void* m);
+
+    /*****************************************************************************
+      * Method: popPriority(void* m)
+      *
+      * @description
+      * Reduces the priority if the priority associated with m is currently the highest.
+      *---------------------------------------------------------------------------*/
+    void popPriority(void* m);
 };
 
 #endif /*PRIORITYTHREAD_HH*/
