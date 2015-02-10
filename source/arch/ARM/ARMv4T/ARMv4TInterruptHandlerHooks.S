@@ -56,8 +56,8 @@ restoreThreadContext:
     #endif
 
     // get the PSR
-    LDMFD   sp!, {r0}
-    MSR     SPSR, r0
+    LDMFD   sp!, {r2}
+    MSR     SPSR_cxsf, r2
 
     // load all other registers + restore PSR + jump to pc
     LDMFD   sp, {r0-r12,pc}^
