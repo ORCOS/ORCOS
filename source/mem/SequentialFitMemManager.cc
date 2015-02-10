@@ -243,10 +243,6 @@ Chunk_Header* SequentialFitMemManager::getFittingChunk(size_t size,
             /* found a free slot which is big enough */
             return (current_chunk);
         }  /* chunk fits */
-        _enableInterrupts();
-        /* interrupts chance for low irq latency !*/
-        NOP;
-        _disableInterrupts();
         current_chunk = current_chunk->next_chunk;
     }
 
@@ -661,7 +657,7 @@ void SequentialFitMemManager::scheduleDeletion(Resource* res) {
     }
     SMP_SPINLOCK_FREE(m_lock);
 
-    LOG(MEM, ERROR, "SequentialFitMemManager::scheduleDelete() no more space in scheduled deletion list");
+    LOG(MEM, DEBUG, "SequentialFitMemManager::scheduleDelete() no more space in scheduled deletion list");
     /* this is risky as it is unclear if the resource is still accessed! */
     delete res;
 }

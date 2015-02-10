@@ -58,6 +58,15 @@ void KernelServiceThread::callbackFunc(void* param) {
         count = 0;
     }
 
+    if (count & 1) {
+        /* heartbeat led */
+        int value;
+        unint4 length = 4;
+        theOS->getBoard()->getGPIO1()->readBytes((char*) &value, length);
+        value = value ^ (1 << 21);
+        theOS->getBoard()->getGPIO1()->writeBytes((char*) &value, 4);
+    }
+
     comStackMutex->release();
 #endif
 
@@ -68,6 +77,7 @@ void KernelServiceThread::callbackFunc(void* param) {
     /* iterate over all tasks and threads to check for the blocked state */
     LinkedList* llt = theOS->getTaskDatabase();
 
+    // TODO this is not safe against concurrent modification!
     for (LinkedListItem* lldi = llt->getHead(); lldi != 0; lldi = lldi->getSucc()) {
         Task* task = static_cast<Task*>(lldi->getData());
 

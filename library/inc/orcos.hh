@@ -327,7 +327,7 @@ extern "C" int         fclose(int fd);
  *
  * \return             The amount of bytes read
  */
-extern "C" size_t     fread(void *ptr, size_t size, size_t nitems, int stream);
+extern "C" size_t     fread(int fd, char *buf, size_t size);
 
 /*!
  * \brief The fputc() function shall write the byte specified by c (converted to an unsigned char) to the output stream pointed to by stream, at the position indicated by the associated file-position indicator for the stream (if defined), and shall advance the indicator appropriately. If the file cannot support positioning requests, or if the stream was opened with append mode, the byte shall be appended to the output stream.
@@ -337,7 +337,7 @@ extern "C" size_t     fread(void *ptr, size_t size, size_t nitems, int stream);
  *
  * \return            Error Number
  */
-extern "C" int         fputc(short c, int fd);
+extern "C" int        fputc(short c, int fd);
 
 /*!
  * \brief Get a byte from a stream
@@ -346,7 +346,7 @@ extern "C" int         fputc(short c, int fd);
  *
  * \return            The byte read
  */
-extern "C" int         fgetc(int fd);
+extern "C" int        fgetc(int fd);
 
 /*!
  * \brief The fwrite() function shall write, from the array pointed to by ptr, up to nitems elements whose size is specified by size, to the stream pointed to by stream.
@@ -358,7 +358,7 @@ extern "C" int         fgetc(int fd);
  *
  * \return            Amount of data written on success
  */
-extern "C" size_t     fwrite(const void *ptr, size_t size, size_t nitems, int fd);
+extern "C" size_t     fwrite(int fd, const void *buf, size_t count);
 
 /*!
  * \brief The fstat method returns the file statistics of a resource given by its handle fd.

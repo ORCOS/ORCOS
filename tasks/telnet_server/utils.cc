@@ -126,14 +126,14 @@ bool readKernelVarStr(char* filepath, char* result, int size) {
     if (file < 0)
         return (false);
 
-    int num = fread(result, size - 1, 1, file);
+    int num = fread(file, result, size - 1);
     result[num] = 0;
     fclose(file);
     return (true);
 }
 
 bool readKernelVarInt(int filehandle, void* result, int size) {
-    int num = fread(result, 4, 1, filehandle);
+    int num = fread(filehandle, (char*) result, 4);
     return (true);
 }
 
@@ -143,7 +143,7 @@ bool readKernelVarUInt4(char* filepath, unint4* result) {
     if (file < 0)
         return (false);
 
-    int num = fread(result, 4, 1, file);
+    int num = fread(file, (char*) result, 4);
     fclose(file);
     return (true);
 }
@@ -154,7 +154,7 @@ bool readKernelVarUInt8(char* filepath, unint8* result) {
     if (file < 0)
         return (false);
 
-    int num = fread(result, 8, 1, file);
+    int num = fread(file, (char*) result, 8);
     fclose(file);
     return (true);
 }

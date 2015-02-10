@@ -102,14 +102,7 @@ void itoa( int value, char* str, int base ) {
     strreverse( str, wstr - 1 );
 }
 
-int atoi(char *p) {
- int k = 0;
- while (*p) {
- k = (k<<3)+(k<<1)+(*p)-'0';
- p++;
- }
- return k;
-}
+
 
 
 static void printchar( char **str, char c ) {
@@ -457,7 +450,6 @@ typedef struct {
     char* errorstring;
 } errorstrtable_t;
 
-
 errorstrtable_t errorstrings[] = {
   {cOk,                     "No Error occurred."},
   {cError,                  "Unspecified error occurred (-1000)"},
@@ -502,6 +494,7 @@ errorstrtable_t errorstrings[] = {
   {cBlockDeviceTooManyBlocks,  "Block device: Too many blocks given (-702)"},
 };
 
+
 char* strerror(int errornum) {
 
     int i = 0;
@@ -516,4 +509,19 @@ char* strerror(int errornum) {
 }
 
 
+void bzero(void *b,size_t length) {
+  char *ptr = (char *)b;
+  while (length--)
+    *ptr++ = 0;
+}
 
+
+extern "C" char*    strchr(const char* s, int c) {
+  while (*s && *s != c)
+    s++;
+
+  if (*s == c)
+    return (char *)s;
+
+  return NULL;
+}

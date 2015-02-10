@@ -19,6 +19,7 @@
 #include <orcos.hh>
 #include "string.hh"
 #include <sys/timer.h>
+#include <stdlib.h>
 
 #define OK   0
 #define FAIL 1
@@ -28,10 +29,10 @@
 
 #define TEST( x , name ) { puts("Testing " name); if (x(str) == OK) { puts("[OK]"LINEFEED);} else { puts("[FAILED]"LINEFEED); puts(str); puts(""LINEFEED);}  sleep(10); }
 
-#define ASSERT(value,msg) if( value == 0) { str = temp; sprintf(str,msg ". value was: %x",value); return (FAIL);}
-#define ASSERT_GREATER(value,comp,msg) if( !(value > comp)) {str = temp; sprintf(str,msg ". value was: %x",value);return (FAIL);}
-#define ASSERT_EQUAL(value,comp,msg) if( ! (value == comp)) {str = temp; sprintf(str,msg ". value was: %x",value); return (FAIL);}
-#define ASSERT_SMALLER(value,comp,msg) if( ! (value < comp)) {str = temp; sprintf(str,msg ". value was: %x",value); return (FAIL);}
+#define ASSERT(value,msg) if( value == 0) { str = temp; sprintf(str,msg ". value was: %d (%x)", value, value); return (FAIL);}
+#define ASSERT_GREATER(value,comp,msg) if( !(value > comp)) {str = temp; sprintf(str,msg ". value was: %d (%x)", value, value);return (FAIL);}
+#define ASSERT_EQUAL(value,comp,msg) if( ! (value == comp)) {str = temp; sprintf(str,msg ". value was: %d (%x)", value, value); return (FAIL);}
+#define ASSERT_SMALLER(value,comp,msg) if( ! (value < comp)) {str = temp; sprintf(str,msg ". value was: %d (%x)", value, value); return (FAIL);}
 
 char temp[200];
 
@@ -157,6 +158,9 @@ int test_files(char* &str) {
     result = fopen("",0);
     ASSERT_GREATER(result,0,"fopen(\"\") failed");
 
+    result = fclose(result);
+    ASSERT_EQUAL(result,cOk,"fclose(\"\") failed");
+
     result = fopen("/",0);
     ASSERT_GREATER(result,0,"fopen(/) failed");
 
@@ -172,6 +176,19 @@ int test_files(char* &str) {
     result = fclose(-1123141);
     ASSERT_SMALLER(result,0,"fclose(-1123141) succeeded");
 
+  /*  srand(getCycles());
+    for (int i = 0; i < 1000; i++) {
+        int num  = rand();
+        int num2 = rand();
+        int num3 = rand();
+        result = fwrite(num, (char*) num2, num3);
+        ASSERT_SMALLER(result,0,"fwrite() succeeded:");
+        if (result >= 0) {
+            printf("fwrite(%d,%d,%d)\n",num,num2,num3);
+        }
+    }*/
+
+
     /*
      * This tests file creation/removal on bugs as well
      * as the kernel memory allocator as we will be allocating
@@ -179,35 +196,42 @@ int test_files(char* &str) {
      */
     for (int i = 0; i < 2000; i++) {
         result = fcreate("/mnt/ramdisk/testfile1");
-        ASSERT_EQUAL(result,cOk,"fcreate() failed");
-        fwrite("test",4,1,result);
+        ASSERT_GREATER(result,0,"fcreate(/mnt/ramdisk/testfile1) failed");
+        fwrite(result, "test1", 4);
+
         result = fcreate("/mnt/ramdisk/testfile2");
-        ASSERT_EQUAL(result,cOk,"fcreate() failed");
-        fwrite("test",4,1,result);
+        ASSERT_GREATER(result,0,"fcreate(/mnt/ramdisk/testfile2) failed");
+        fwrite(result, "test2", 4);
+
         result = fcreate("/mnt/ramdisk/testfile3");
-        ASSERT_EQUAL(result,cOk,"fcreate() failed");
-        fwrite("test",4,1,result);
+        ASSERT_GREATER(result,0,"fcreate(/mnt/ramdisk/testfile3) failed");
+        fwrite(result, "test3", 4);
+
         result = fremove("/mnt/ramdisk/testfile1");
-        ASSERT_EQUAL(result,cOk,"fcreate() failed");
+        ASSERT_EQUAL(result,cOk,"fremove(/mnt/ramdisk/testfile1) failed");
         result = fremove("/mnt/ramdisk/testfile2");
-        ASSERT_EQUAL(result,cOk,"fremove() failed");
+        ASSERT_EQUAL(result,cOk,"fremove(/mnt/ramdisk/testfile2) failed");
         result = fremove("/mnt/ramdisk/testfile3");
-        ASSERT_EQUAL(result,cOk,"fremove() failed");
+        ASSERT_EQUAL(result,cOk,"fremove(/mnt/ramdisk/testfile3) failed");
     }
 
 
     for (int i = 0; i < 100; i++) {
         result = fcreate("/mnt/ramdisk/testfile4");
-        fwrite("test",4,1,result);
+        fwrite(result, "test",4);
         result = fcreate("/mnt/ramdisk/testfile5");
-        fwrite("test",4,1,result);
+        fwrite(result, "test",4);
         result = fcreate("/mnt/ramdisk/testfile6");
         result = fcreate("/mnt/ramdisk/testfile7");
-        fwrite("test",4,1,result);
-        fremove("/mnt/ramdisk/testfile4");
-        fremove("/mnt/ramdisk/testfile7");
-        fremove("/mnt/ramdisk/testfile6");
-        fremove("/mnt/ramdisk/testfile5");
+        fwrite(result, "test",4);
+        result = fremove("/mnt/ramdisk/testfile4");
+        ASSERT_EQUAL(result,cOk,"fremove() failed");
+        result = fremove("/mnt/ramdisk/testfile7");
+        ASSERT_EQUAL(result,cOk,"fremove() failed");
+        result = fremove("/mnt/ramdisk/testfile6");
+        ASSERT_EQUAL(result,cOk,"fremove() failed");
+        result = fremove("/mnt/ramdisk/testfile5");
+        ASSERT_EQUAL(result,cOk,"fremove() failed");
     }
 
     return (OK);
@@ -233,17 +257,16 @@ void* thread_entry_synchro(void* arg) {
     signal_value = signal_wait((void*) 200);
     // hopefully no overrun
     time = (unint4) getCycles() - time;
-    //printf(LINEFEED"signal took: %d Cycles = %d ns"LINEFEED, time, time * 13);
+    //printf(LINEFEED"signal took: %d Cycles = %d ns"LINEFEED, time, time * 41);
 }
 
 
 int test_synchro(char* &str) {
     int result;
-
-
     thread_attr_t attr;
     memset(&attr,0,sizeof(thread_attr_t));
 
+    // higher priority thread .. will directly preempt us on run
     attr.priority = 2000;
 
     result = thread_create(0,&attr,thread_entry_synchro,0);
@@ -251,10 +274,9 @@ int test_synchro(char* &str) {
 
     result = thread_run(result);
 
-    sleep(10);
+    signal_value = -1;
     time = (unint4) getCycles();
     signal_signal((void*) 200,723100);
-    sleep(100);
     ASSERT_EQUAL(signal_value,723100,"signal_signal test failed..");
 
     return (OK);
@@ -283,7 +305,6 @@ int test_shmmem(char* &str) {
     result = fclose(handle);
     ASSERT_EQUAL(result,cOk,"fclose() on shared mem failed");
 
-
     return (OK);
 }
 
@@ -295,7 +316,6 @@ static int num ;
 void* thread_entry_rt(void* arg) {
     signal_value = 0xff;
     signal_value = signal_wait((void*) 70);
-
     values[num] = (int) arg;
     num++;
 }
@@ -317,6 +337,7 @@ int test_rt(char* &str) {
 
     result = thread_run(0);
 
+    //puts("Signaling. Expected Order: 9-0\n");
     signal_signal((void*) 70,5);
     // now check values
 
@@ -334,12 +355,15 @@ int test_rt(char* &str) {
 
     result = thread_run(0);
 
+    //puts("Signaling. Expected Order: 0-9\n");
     signal_signal((void*) 70,5);
     // now check values
 
     for (int i = 0; i < 10; i++) {
         ASSERT_EQUAL(values[i],i,"signal_wait unblocking order test2 failed!");
     }
+
+    return (OK);
 }
 
 unint8 nextTime = 0;
@@ -359,7 +383,7 @@ bool readKernelVarUInt4(char* filepath, unint4* result) {
     if (file < 0)
         return (false);
 
-    int num = fread(result,4,1,file);
+    int num = fread(file, (char*) result, 4);
     fclose(file);
     return (true);
 }
@@ -426,8 +450,10 @@ int test_llThreadLatency(char* &str) {
         puts("llThread wokeup!\n");
         iterations++;
     }
-    timer_reset(fd);
-    fclose(fd);
+    ret = timer_reset(fd);
+    ASSERT_EQUAL(ret,0,"timer_reset failed!");
+    ret = fclose(fd);
+    ASSERT_EQUAL(ret,0,"fclose(timer_fd) failed");
 
 }
 
@@ -522,13 +548,13 @@ extern "C" int task_main()
     TEST(test_task_kill,    "SC_TASK_KILL       (Task kill syscall tests)    ");
     TEST(test_task_stop,    "SC_TASK_STOP       (Task stopping tests)        ");
     TEST(test_thread_create,"SC_THREAD_CREATE   (Thread creation tests)      ");
-    //TEST(test_files,      "SC_FILES           (I/O and files syscall tests)");
+    TEST(test_files,        "SC_FILES           (I/O and files syscall tests)");
     TEST(test_net,          "SC_NET             (Networking tests)           ");
     TEST(test_synchro,      "SC_SYNCHRO         (Synchronization test)       ");
     TEST(test_shmmem,       "SC_SHMMEM          (Shared memory tests)        ");
-   // TEST(test_rt,           "SC_PRIORITY        (Thread Priority tests)      ");
+    TEST(test_rt,           "SC_PRIORITY        (Thread Priority tests)      ");
 
-   // test_llThreadLatency(str);
+    test_llThreadLatency(str);
     test_latency(str);
 
 }

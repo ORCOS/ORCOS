@@ -25,9 +25,8 @@ ASFLAGS = -c -g -Iinc/ -fno-exceptions -fno-rtti -msoft-float -fno-stack-protect
 #                                                      Rules
 #---------------------------------------------------------------------------------------------------------------------------------------
 
+KOBJ += io.o mem.o signal.o net.o static.o threads.o Mutex.o pthread.o syscall.o testandset.o string.o time.o stdlib.o random.o
 OBJ = $(addprefix $(OUTPUT_DIR),$(KOBJ))
-
-KOBJ += io.o mem.o signal.o net.o static.o threads.o Mutex.o pthread.o syscall.o testandset.o string.o time.o
 
 VPATH = ../source/arch/ARM/ARMv4T ../source/arch/ARM/ARMv4T/ARMv7 src
 

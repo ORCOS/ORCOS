@@ -18,7 +18,7 @@
 
 #include <orcos.hh>
 #include <string.hh>
-
+#include <stdlib.h>
 
 #define IPV4 0x800
 #define TCP 0x6
@@ -234,7 +234,7 @@ int ReceiveFile(int controlsock, int datasock, sockaddr *dataremote, char* file)
             }
         } else {
             // write to file
-            fwrite(dataptr,msglen,1,res);
+            fwrite(res,dataptr,msglen);
             timeout = 5;
         }
 
@@ -260,7 +260,7 @@ int sendFile(int controlsock, int datasock, sockaddr *dataremote, int handle) {
     puts("Data Connection established..\r\n");
 
     // now read file and send over data connection
-    int num = fread(return_msg,512,1,handle);
+    int num = fread(handle, return_msg, 512);
     if (num < 0) {
         printf("Error reading file: %d\r\n",num);
         num = 0; // check error
@@ -285,7 +285,7 @@ int sendFile(int controlsock, int datasock, sockaddr *dataremote, int handle) {
             }
         }
 
-        num = fread(return_msg,512,1,handle);
+        num = fread(handle, return_msg, 512);
         if (num < 0) {
               printf("Error reading file: %d\r\n",num);
               num = 0; // check error

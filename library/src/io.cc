@@ -41,17 +41,17 @@ extern "C" int fclose(int fileid)
 /*!
  * The fread() function shall read into the array pointed to by ptr up to nitems elements whose size is specified by size in bytes, from the stream pointed to by stream.
  */
-extern "C"size_t fread(void *ptr, size_t size, size_t nitems, int stream)
+extern "C"size_t fread(int fd, char *ptr, size_t size)
 {
-    return syscall(cFReadSysCallId, ptr, size, nitems, stream);
+    return syscall(cFReadSysCallId, fd, ptr, size);
 }
 
 /*!
  * The fwrite() function shall write, from the array pointed to by ptr, up to nitems elements whose size is specified by size, to the stream pointed to by stream.
  */
-extern "C"size_t fwrite(const void *ptr, size_t size, size_t nitems, int stream)
+extern "C"size_t fwrite(int fd, const void *buf, size_t count)
 {
-    return syscall(cFWriteSysCallId, ptr, size, nitems, stream);
+    return syscall(cFWriteSysCallId, fd, buf, count);
 }
 
 /*!
@@ -124,7 +124,7 @@ extern "C" Directory_Entry_t* readdir(int fd) {
         /* unbuffered reading entry by entry
          * could be speed up by reading multiple entries at once
          * */
-        int read = fread(buffer,300,1,fd);
+        int read = fread(fd,buffer,300);
         /* error occurred reading */
         if (read < 0)
             return (0);
@@ -142,7 +142,7 @@ extern "C" Directory_Entry_t* readdir(int fd) {
     }
 
     Directory_Entry_t* ret = (Directory_Entry_t*) (buffer + pos);
-    remainingBytes -= sizeof(Directory_Entry_t) +ret->namelen;
+    remainingBytes -= sizeof(Directory_Entry_t) + ret->namelen;
     pos += sizeof(Directory_Entry_t) + ret->namelen;
     if (remainingBytes < sizeof(Directory_Entry_t))
         remainingBytes = 0;
@@ -153,14 +153,12 @@ extern "C" Directory_Entry_t* readdir(int fd) {
 
 
 char* fgets (char *s, int count, int fd) {
-
     char* str = s;
-    int read = 0;
+    int   read = 0;
     while(read < count) {
-        int result = fread(s,1,1,fd);
+        int result = fread(fd,s,1);
         if (result == 0)
             return (0);
-
 
         if (*s == '\n')
         {

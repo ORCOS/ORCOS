@@ -106,8 +106,10 @@ void PriorityThread::popPriority(void* m) {
             goto out;
         }
     }
-    /* if we get here no more slots are left */
-    LOG(PROCESS, ERROR, "PriorityThread::pop() m=%x not found..", m);
+
+    SMP_SPINLOCK_FREE(m_priolock);
+    /* if we get here no higher priority thread pushed out priority on m */
+    LOG(PROCESS, DEBUG, "PriorityThread::pop() m=%x not found..", m);
     return;
 
 out:

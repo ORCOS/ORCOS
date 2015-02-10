@@ -281,13 +281,13 @@ extern void* __PageTableSec_start;
 
 // get interrupt enable bit (IRQ only)
 #define GET_INTERRUPT_ENABLE_BIT(var) \
-    asm volatile( \
-            "MRS    %0, cpsr;" \
-            "AND    %0, %0, #0x80;" \
-            : "=&r" (var)\
-            : \
-            : \
-            )
+                            asm volatile( \
+                                    "MRS    %0, cpsr;" \
+                                    "AND    %0, %0, #0x80;" \
+                                    : "=&r" (var)\
+                                    : \
+                                    : \
+                                    )
 //-----------------------------------------------------------------------------
 // Enabling/Disabling Interrupts
 //-----------------------------------------------------------------------------
@@ -365,10 +365,10 @@ extern void* __PageTableSec_start;
  * On exclusively and successfully setting setvalue the function returns 1.
  * This function is SMP safe.
  */
-static int inline testandset(void* address, int testvalue, int setvalue) {
+int inline testandset(void* address, int testvalue, int setvalue) {
     int result;
     /* smp test and set for ARM >= v6 */
-    asm (
+    asm volatile (
             "LDREX     r0, [%1];"       // load the address value
             "CMP       r0, %2;"         // compare with test value
             "ITT       EQ;"             // if then then (2 conditional instr following)
@@ -417,9 +417,9 @@ static void inline ATOMIC_ADD(void* addr, int value) {
  */
 #define SMP_SPINLOCK_GET(spinlock) \
     asm volatile ( \
-         "MRS    r1,   cpsr;"      \
+         "MRS    r1,   cpsr_c;"    \
          "ORR    r1,   r1, #0x80;" \
-         "MSR    cpsr, r1;"      \
+         "MSR    cpsr_c, r1;"      \
          "1:     " \
          "LDREX   r2,  [%0];"     /* get spinlock value. try to get exclusive access */ \
          "CMP     r2,  #0;"       /* test if locked.. */  \
@@ -435,11 +435,11 @@ static void inline ATOMIC_ADD(void* addr, int value) {
 
 #define SMP_SPINLOCK_FREE(spinlock) \
         asm volatile ( \
-          "LDREX  r1,  [%0];"     /* get spinlock value. contains irq status */ \
-          "MRS    r2,   cpsr;"      \
+          "LDREX  r1, [%0];"     /* get spinlock value. contains irq status */ \
+          "MRS    r2, cpsr_c;"      \
           "AND    r1, r1, #0x80;"   \
           "ORR    r2, r1;"          \
-          "MSR    cpsr, r2;"        \
+          "MSR    cpsr_c, r2;"        \
           "MOV    r1, #0;"          \
           "STR    r1, [%0];" /* set spinlock value to 0 */\
            : \

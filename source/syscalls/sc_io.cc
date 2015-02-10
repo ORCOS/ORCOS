@@ -264,7 +264,11 @@ int sc_fopen(intptr_t int_sp) {
         res = theOS->getFileManager()->getResource(filename);
     } else {
         Directory* dir = theOS->getFileManager()->getDirectory(pCurrentRunningTask->getWorkingDirectory());
-        res = dir->get(filename, strlen(filename));
+        if (strlen(filename) > 0) {
+            res = dir->get(filename, strlen(filename));
+        } else {
+            res = dir;
+        }
     }
 
     if (res != 0) {
@@ -335,43 +339,36 @@ int sc_fclose(intptr_t int_sp) {
  *  int         Error Code
  *---------------------------------------------------------------------------*/
 int sc_fwrite(intptr_t int_sp) {
-    char *write_ptr;
-    unint4 write_size;
-    unint4 write_nitems;
-    ResourceIdT write_stream;
+    char *buf;
+    unint4 count;
+    ResourceIdT fd;
     int retval = 0;
 
-    SYSCALLGETPARAMS4(int_sp, write_ptr, write_size, write_nitems, write_stream);
+    SYSCALLGETPARAMS3(int_sp, fd, buf, count);
 
     /* for performance reasons we just check the write ptr..
      range is not checked.. may thus lead to a data abort -> terminating the thread */
-    VALIDATE_IN_PROCESS(write_ptr);
+    VALIDATE_IN_PROCESS(buf);
     //VALIDATE_IN_PROCESS((unint4)write_ptr + (write_size * write_nitems ));
 
-    LOG(SYSCALLS, DEBUG, "Syscall: fwrite(...,%d,%d,%d)", write_size, write_nitems, write_stream);
+    LOG(SYSCALLS, DEBUG, "Syscall: fwrite(...,%d,%x,%d)", fd, buf, count);
 
     Resource* res;
-    res = pCurrentRunningTask->getOwnedResourceById(write_stream);
+    res = pCurrentRunningTask->getOwnedResourceById(fd);
     if (res != 0) {
         LOG(SYSCALLS, TRACE, "Syscall: fwrite valid");
 
         if (res->getType() & (cStreamDevice | cCommDevice | cFile)) {
-            char* pointer = write_ptr;
-            for (unint4 i = 0; i < write_nitems; i++) {
-                CharacterDevice* cdev = static_cast<CharacterDevice*>(res);
-                ErrorT result = cdev->writeBytes(pointer, write_size);
-                /* check if writing failed */
-                if (isError(result))
-                    return (result);
-                pointer += result;
-            }
-            retval = write_nitems;
+            char* pointer = buf;
+            CharacterDevice* cdev = static_cast<CharacterDevice*>(res);
+            ErrorT result         = cdev->writeBytes(pointer, count);
+            return (result);
         } else {
             retval = cResourceNotWriteable;
         }
     } else {
         retval = cResourceNotOwned;
-        LOG(SYSCALLS, ERROR, "Syscall: fwrite on device with id %d failed", write_stream);
+        LOG(SYSCALLS, ERROR, "Syscall: fwrite on device with id %d failed", fd);
     }
 
     return (retval);
@@ -395,34 +392,30 @@ int sc_fwrite(intptr_t int_sp) {
  *  int         Error Code
  *---------------------------------------------------------------------------*/
 int sc_fread(intptr_t int_sp) {
-    char *read_ptr;
-    unint4 read_size;
-    unint4 read_nitems;
-    ResourceIdT read_stream;
+    char *buf;
+    unint4 count;
+    ResourceIdT fd;
     int retval = 0;
 
-    SYSCALLGETPARAMS4(int_sp, read_ptr, read_size, read_nitems, read_stream);
-    VALIDATE_IN_PROCESS(read_ptr);
-    LOG(SYSCALLS, TRACE, "Syscall: fread(...,%d,%d,%d)", read_size, read_nitems, read_stream);
+    SYSCALLGETPARAMS3(int_sp, fd, buf, count);
+    VALIDATE_IN_PROCESS(buf);
+    LOG(SYSCALLS, TRACE, "Syscall: fread(...,%d,%x,%d)", fd, buf, count);
 
     Resource* res;
-    res = pCurrentRunningTask->getOwnedResourceById(read_stream);
+    res = pCurrentRunningTask->getOwnedResourceById(fd);
     if (res != 0) {
-        LOG(SYSCALLS, TRACE, "Syscall: fread valid. Resource: %s", res->getName());
+        LOG(SYSCALLS, DEBUG, "Syscall: fread valid. Resource: %s", res->getName());
 
         if (res->getType() & (cStreamDevice | cCommDevice | cFile | cDirectory)) {
-            char* pointer = read_ptr;
-            for (unint4 i = 0; i < read_nitems; i++) {
-                CharacterDevice* cdev = static_cast<CharacterDevice*>(res);
-                ErrorT result = cdev->readBytes(pointer, read_size);
-                /* check if reading failed */
-                if (isError(result))
-                    return (result);
-
-                pointer += read_size;
+            char* pointer = buf;
+            CharacterDevice* cdev = static_cast<CharacterDevice*>(res);
+            ErrorT result = cdev->readBytes(pointer, count);
+            /* check if reading failed */
+            if (isError(result)){
+                return (result);
             }
-            /* set the return value (bytes read) */
-            retval = pointer - read_ptr;
+            /* success: return bytes read */
+            return (count);
         } else {
             retval = cResourceNotReadable;
             LOG(SYSCALLS, ERROR, "Syscall: fread failed. Not a readable device.");
@@ -430,7 +423,7 @@ int sc_fread(intptr_t int_sp) {
 
     } else {
         retval = cResourceNotOwned;
-        LOG(SYSCALLS, ERROR, "Syscall: fread on device with id %d failed", read_stream);
+        LOG(SYSCALLS, ERROR, "Syscall: fread on device with id %d failed", fd);
     }
     return (retval);
 }
@@ -541,10 +534,12 @@ int sc_fremove(intptr_t int_sp) {
     /* only acquired resources may be removed to avoid references to already deleted resources! */
     res = pCurrentRunningTask->getOwnedResourceById(res_file->getId());
     if (res != 0) {
-        ErrorT ret = dir->remove(res_file);
+        ErrorT ret = pCurrentRunningTask->releaseResource(res, pCurrentRunningThread);
         if (isOk(ret)) {
-            pCurrentRunningTask->releaseResource(res, pCurrentRunningThread);
+            /* remove also will / must delete/schedule deletion res_file */
+            ret = dir->remove(res_file);
         }
+
         return (ret);
     } else {
         return (cError );

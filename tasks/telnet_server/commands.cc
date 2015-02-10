@@ -10,6 +10,7 @@
 #include <args.h>
 #include <time.h>
 #include "telnet.h"
+#include <stdlib.h>
 
 static char dir_content[4096];
 

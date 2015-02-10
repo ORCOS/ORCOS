@@ -305,15 +305,16 @@ void Task::removeThread(Thread* t) {
             LOG(KERNEL, WARN, "Task::removeThread(): being destroyed! aq_size = %d", this->aquiredResources.size());
             Resource* res = static_cast<Resource*>(this->aquiredResources.getHead());
             while (res != 0) {
-                LOG(KERNEL, DEBUG, "Task::removeThread(): releasing resource %s, Id: %d", res->getName(), res->getId());
+                this->releaseResource(res,t);
+                //LOG(KERNEL, DEBUG, "Task::removeThread(): releasing resource %s, Id: %d", res->getName(), res->getId());
                 /* the last thread forces all resources to be released */
-                res->release(t);
+                //res->release(t);
 
-                if (res->getType() == cSocket) {
+               /* if (res->getType() == cSocket) {
                     Socket* s = static_cast<Socket*>(res);
                     LOG(KERNEL, DEBUG, "Task::removeThread(): destroying socket!");
                     delete s;
-                }
+                }*/
 
                 res = static_cast<Resource*>(this->aquiredResources.getHead());
             }

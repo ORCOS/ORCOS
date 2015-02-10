@@ -162,7 +162,7 @@ Directory*  Directory::createDirectory(char* p_name, unint4 flags) {
  *******************************************************************************/
 ErrorT Directory::readBytes(char *bytes, unint4 &length) {
     if (length < 1)
-        return (cOk );
+        return (cOk);
 
     unint4 pos = 0;
     unint4 entry_num = 0;
@@ -214,7 +214,7 @@ ErrorT Directory::readBytes(char *bytes, unint4 &length) {
     }
 
     length = pos;
-    return (cOk );
+    return (cOk);
 }
 
 OverlayDirectory::OverlayDirectory(const char* name, Directory* baseDir, Directory* overlay) :

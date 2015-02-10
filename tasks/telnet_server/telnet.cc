@@ -30,6 +30,7 @@
 #include <args.h>
 #include <time.h>
 #include "telnet.h"
+#include <stdlib.h>
 
 #define orcos_string "         __           __          __             __           __ "LINEFEED"\
         /\\ \\         /\\ \\        /\\ \\           /\\ \\         / /\\ "LINEFEED"\
@@ -372,7 +373,7 @@ void handleCommand(int socket, int command_length) {
 
         int filehandle = fopen(path, 0);
         if (filehandle > 0) {
-            int num = fread(temp_msg, 200, 1, filehandle);
+            int num = fread(filehandle, temp_msg, 200);
             int end = num;
             int pos = 0;
 
@@ -486,7 +487,7 @@ void handleCommand(int socket, int command_length) {
 
             } else {
                 /* normal file.. just print content */
-                int num = fread(return_msg, 512, 1, filehandle);
+                int num = fread(filehandle, return_msg, 512);
                 if (num < 0) {
                     sendMsg(socket, "Error reading file contents", num);
                     num = 0;  // check error
@@ -499,7 +500,7 @@ void handleCommand(int socket, int command_length) {
                     //printf(return_msg);
                     sendData(socket, return_msg, num);
 
-                    num = fread(return_msg, 512, 1, filehandle);
+                    num = fread(filehandle, return_msg, 512);
                     if (num < 0) {
                         sendMsg(socket, "Error reading file contents", num);
                         num = 0;  // check error
@@ -708,7 +709,7 @@ static int newsock;
 void* tty0_thread(void* arg) {
     int devid = (int) arg;
     while (1) {
-        int read = fread(tty0buf, 256, 1, devid);
+        int read = fread(devid, tty0buf, 256);
         if (read > 0 && newsock != 0) {
             sendData(newsock, tty0buf, read);
         }
