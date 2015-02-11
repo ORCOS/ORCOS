@@ -208,7 +208,7 @@ void Socket::disconnected(int error) {
  * @returns
  *  int         Error Code
  *******************************************************************************/
-int Socket::connect(Kernel_ThreadCfdCl* thread, sockaddr* toaddr) {
+int Socket::connect(Kernel_ThreadCfdCl* thread, sockaddr* toaddr, int timeout_ms) {
     /* listening sockets are listening mode only!*/
     if (state & SOCKET_LISTENING)
         return (cError );
@@ -228,8 +228,7 @@ int Socket::connect(Kernel_ThreadCfdCl* thread, sockaddr* toaddr) {
         this->blockedThread = thread;
 
         /* block here! this will also save the context. after we get unblocked we will exit block(). */
-        /* TODO: pass timeout to connect method*/
-        thread->block(2000 ms);
+        thread->block(timeout_ms ms);
         this->blockedThread = 0;
 
         /* connection success?? */

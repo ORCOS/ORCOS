@@ -492,20 +492,20 @@ extern "C" int         map_logmemory( const char* log_start, const char* phy_sta
  *  fclose(handle);
  *
  */
-extern "C" int         shm_map(const char* file,unint4* mapped_address, unint4* mapped_size, unint4 flags);
+extern "C" int          shm_map(const char* file,unint4* mapped_address, unint4* mapped_size, unint4 flags);
 
 
 /*!
  * \brief Returns the current time since startup in platform clock ticks.
  */
-extern "C" unint8     getCycles();
+extern "C" unint8       getCycles();
 
 /*
  * \brief Returns the current DateTime in seconds since 1. Jan. 1970.
  *
  * Use the library method time2date to convert the datetime to a time_t struct.
  */
-extern "C" unint4   getTime();
+extern "C" unint4       getTime();
 
 /**************************************
  * Socket related system calls (IPC)
@@ -514,8 +514,8 @@ extern "C" unint4   getTime();
  * \brief Create a new socket with adress family of type domain, socket type, and using the specified protocol.
  *
  * \param domain         The Domain of the socket to be created. Domains can be e.g IPV4,IPV6 or any other kind of implemented address family
- * \param type            The type of a socket may be connectionless or connection oriented
- * \param protocol        The protocol used for communication e.g TCP or any other protocol implemented in the os
+ * \param type           The type of a socket may be connectionless or connection oriented
+ * \param protocol       The protocol used for communication e.g TCP or any other protocol implemented in the os
  *
  * Successfully created sockets can be destroyed using the flose() syscall. For connection oriented sockets (SOCK_STREAM)
  * this will also close the connection. After calling fclose() on a socket file descriptor the socket can not be used
@@ -530,7 +530,8 @@ extern "C" int         socket(int domain, int type, int protocol);
  * \brief Connect to a given destination on the provided socket.
  *
  * \param socket         The connection oriented socket to connect on
- * \param toaddress        The connection sock address
+ * \param toaddress      The connection sock address
+ * \param timeout        Connection establishment timeout in milliseconds. Must be > 0.
  *
  *  This call tries to connect to the given destination address using the socket specified. This call is only
  *  valid for connection oriented sockets (SOCK_STREAM) and will block the calling thread until a timeout occurs
@@ -538,7 +539,7 @@ extern "C" int         socket(int domain, int type, int protocol);
  *
  * \return                cOk on success. Error Code otherwise.
  */
-extern "C" int         connect(int socket, const sockaddr *toaddress);
+extern "C" int         connect(int socket, const sockaddr *toaddress, int timeout = 2000);
 
 /*!
  * \brief Listen for connection on a socket.

@@ -221,7 +221,6 @@ int ReceiveFile(int controlsock, int datasock, sockaddr *dataremote, char* file)
     // while not disconnected try reading data
     while (msglen != -1) {
         if (msglen <= 0) {
-            usleep(1000);
             // nothing received
             timeout--;
             if (timeout == 0) {

@@ -743,7 +743,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * (2 * TCP_MSS) for things to work well
  */
 #ifndef TCP_WND
-#define TCP_WND  4*TCP_MSS
+#define TCP_WND  8*TCP_MSS
 #endif
 
 /**
@@ -801,7 +801,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  */
 #ifndef TCP_SND_BUF
 //#define TCP_SND_BUF                     TCP_MSS*4//768
-#define TCP_SND_BUF  8*TCP_MSS//768
+#define TCP_SND_BUF  8*TCP_MSS
 #endif
 
 /**

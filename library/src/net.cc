@@ -25,8 +25,8 @@ extern "C" int socket(int domain, int type, int protocol) {
     return (syscall(cSocketSyscallId, domain, type, protocol));
 }
 
-extern "C" int connect(int socket, const sockaddr *toaddress) {
-    return (syscall(cConnectSyscallId, socket, toaddress));
+extern "C" int connect(int socket, const sockaddr *toaddress, int timeout) {
+    return (syscall(cConnectSyscallId, socket, toaddress, timeout));
 }
 
 extern "C" int listen(int socket) {

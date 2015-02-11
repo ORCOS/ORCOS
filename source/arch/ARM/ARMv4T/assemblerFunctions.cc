@@ -42,17 +42,15 @@ extern "C" void restoreContext(Thread* t)  {
 
     /* IRQS disabled is assumed! */
 
-   // ASSERT(t != 0);
-    t->popStackPointer(mode);
-    t->popStackPointer(sp);
-   /* if (!isOk(t->popStackPointer(mode)))
-        ERROR("Restore Context failed while popping the stack for context restore Mode!");*/
-/*
-    if (!isOk(t->popStackPointer(sp)))
-        ERROR("Restore Context failed while popping the stack for stack pointer!");*/
+    ASSERT(t != 0);
+    if (!isOk(t->popStackPointer(mode)))
+        ERROR("Restore Context failed while popping the stack for context restore Mode!");
 
-    /* ASSERT(sp != 0); */
-    /* ASSERT(t->getOwner() != 0); */
+    if (!isOk(t->popStackPointer(sp)))
+        ERROR("Restore Context failed while popping the stack for stack pointer!");
+
+    ASSERT(sp != 0);
+    ASSERT(t->getOwner() != 0);
     TaskIdT pid = t->getOwner()->getId();
 
 #if HAS_Board_HatLayerCfd

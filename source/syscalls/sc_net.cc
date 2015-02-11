@@ -80,11 +80,15 @@ int sc_socket(intptr_t int_sp) {
 int sc_connect(intptr_t int_sp) {
     ResourceIdT socketid;
     sockaddr* addr;
+    int timeout_ms;
     int retval;
 
-    SYSCALLGETPARAMS2(int_sp, socketid, addr);
-
+    SYSCALLGETPARAMS3(int_sp, socketid, addr, timeout_ms);
     VALIDATE_IN_PROCESS(addr);
+
+    if (timeout_ms <= 0) {
+        return (cInvalidArgument);
+    }
 
     Resource* res;
     res = pCurrentRunningTask->getOwnedResourceById(socketid);
@@ -93,7 +97,7 @@ int sc_connect(intptr_t int_sp) {
 
         if (res->getType() == cSocket) {
             Socket* sock = static_cast<Socket*>(res);
-            retval = sock->connect(pCurrentRunningThread, addr);
+            retval = sock->connect(pCurrentRunningThread, addr, timeout_ms);
         } else {
             retval = cWrongResourceType;
         }

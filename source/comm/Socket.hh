@@ -123,7 +123,7 @@ public:
      * @description
      *  try to connect to a given socket address! always blocking!
      *******************************************************************************/
-    int connect(Kernel_ThreadCfdCl* thread, sockaddr* toaddr);
+    int connect(Kernel_ThreadCfdCl* thread, sockaddr* toaddr, int timeout_ms = 2000);
 
     /*****************************************************************************
      * Method: listen(Kernel_ThreadCfdCl* thread)
