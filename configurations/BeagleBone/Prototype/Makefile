@@ -56,20 +56,21 @@ LINKERSCRIPT = $(ARCH_DIR)/kernel.ld
 # it seams like they are not correctly executed after context restore ...
 # although the PSR is correct .. (ITSTATE)
 
-OPT_FLAGS = -O2 -mthumb -mcpu=cortex-a8  -DARM_THUMB=1 -fno-builtin -flto -mno-unaligned-access -fno-section-anchors -fno-if-conversion2
+OPT_FLAGS = -O2 -mthumb -mcpu=cortex-a8  -DARM_THUMB=1 -fno-builtin -flto -mno-unaligned-access -fno-section-anchors 
+#-fno-if-conversion2
 OPT_FLAGS += -mfpu=neon
 # -mthumb-interwork
 
 # -ffunction-sections 
 #Command line arguments to compile .c files.
 CFLAGS  = -Wall -g -I$(KERNEL_DIR)inc/ -I./make/ -I$(KERNEL_DIR)comm/lwip/include/ -I$(KERNEL_DIR)comm/lwip/ -I. -I$(KERNEL_DIR) -I$(KERNEL_LIB_DIR)/../../ $(ARCH_INCLUDES) 
-CFLAGS += -fno-exceptions -fno-unwind-tables -msoft-float -fno-stack-protector -Wno-write-strings -c $(CPU_FLAGS)
+CFLAGS += -fno-exceptions -fno-unwind-tables -fno-stack-protector -Wno-write-strings -c $(CPU_FLAGS)
 #CFLAGS +=  -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wstrict-prototypes -Wmissing-prototypes -Wconversion
 
 #Command line arguments to compile .cc files.
 CPFLAGS  = -Wall -g -I$(KERNEL_DIR)inc/ -I./make/ -I$(KERNEL_DIR)comm/lwip/include/ -I$(KERNEL_DIR)comm/lwip/ -I. -I$(KERNEL_DIR) -I$(KERNEL_LIB_DIR)/../../ $(ARCH_INCLUDES) 
-CPFLAGS += -fno-exceptions -fno-unwind-tables -fno-rtti -msoft-float -fno-stack-protector -c -Wno-write-strings -Wuninitialized -Woverloaded-virtual $(CPU_FLAGS)
-#CPFLAGS +=  -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wconversion
+CPFLAGS += -fno-exceptions -fno-unwind-tables -fno-rtti -fno-stack-protector -c -Wno-write-strings -Wuninitialized -Woverloaded-virtual $(CPU_FLAGS)
+#CPFLAGS +=  -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wconversion -msoft-float 
 
 #Command line arguments to the linker.
 LDFLAGS = -o output/kernel.elf -L$(LIBC_DIR) -L$(GCC_LIB_DIR) -Wl,-Map=output/kernel.map  -lgcc -Wl,--script=$(LINKERSCRIPT) -nostartfiles $(OPT_FLAGS)
