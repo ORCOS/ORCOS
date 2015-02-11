@@ -87,6 +87,10 @@ ErrorT TimerDevice::ioctl(int request, void* args) {
             VALIDATE_IN_PROCESS(args);
             timer_t* timer_conf = reinterpret_cast<timer_t*>(args);
 
+            if (llThread != 0) {
+                return (cError);
+            }
+
             if (timer_conf->threadId == 0) {
                 llThread = pCurrentRunningThread;
             } else {
