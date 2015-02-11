@@ -365,7 +365,7 @@ extern void* __PageTableSec_start;
  * On exclusively and successfully setting setvalue the function returns 1.
  * This function is SMP safe.
  */
-int inline testandset(void* address, int testvalue, int setvalue) {
+static int inline testandset(void* address, int testvalue, int setvalue) {
     int result;
     /* smp test and set for ARM >= v6 */
     asm volatile (
