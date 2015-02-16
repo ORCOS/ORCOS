@@ -56,7 +56,7 @@ extern Kernel* theOS;
  *  FUNCTION IMPLEMENTATION
  ********************************************/
 
-ARMv7HatLayer::ARMv7HatLayer() {
+ARMv7HatLayer::ARMv7HatLayer() : myMutex("ARMv7HatLayer") {
     LOG(HAL, INFO, "ARMv7HatLayer: ARMv7 Page Table Base: 0x%08x", ((unint4)(&__PageTableSec_start)));
     LOG(HAL, INFO, "ARMv7HatLayer: %d Page Tables (%d Kb)", ((unint4) &__MaxNumPts), ((unint4) &__MaxNumPts) * 16);
 

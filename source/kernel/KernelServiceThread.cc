@@ -8,6 +8,8 @@
 #include <kernel/KernelServiceThread.hh>
 #include "kernel/Kernel.hh"
 #include "lwipopts.h"
+#include "assemblerFunctions.hh"
+#include "process/RealTimeThread.hh"
 
 extern Kernel* theOS;
 extern "C" Mutex* comStackMutex;
@@ -26,6 +28,27 @@ KernelServiceThread::KernelServiceThread() {
 
 KernelServiceThread::~KernelServiceThread() {
 }
+
+const char* states[8] = {
+        "NEW", // new
+        "READY", // ready
+        "BLOCKED", // blocked
+        "TERM", // terminated
+        "RES", // resource waiting
+        "STOPPED", //stopped
+        "SIGNAL", // signal waiting
+        "DOTERM", // goint to terminate
+};
+
+const char* getStatusStr(unint4 status) {
+    char* ret = "SLEEPING";
+    for (int i = 0; i < 8; i++) {
+        if (status & (1 << i))
+            return (states[i]);
+    }
+    return ret;
+}
+
 
 /*****************************************************************************
  * Method: KernelServiceThread::callbackFunc(void* param)
@@ -58,16 +81,23 @@ void KernelServiceThread::callbackFunc(void* param) {
         count = 0;
     }
 
+    comStackMutex->release();
+
+#ifdef HEARTBEAT
     if (count & 1) {
         /* heartbeat led */
         int value;
         unint4 length = 4;
-        theOS->getBoard()->getGPIO1()->readBytes((char*) &value, length);
-        value = value ^ (1 << 21);
-        theOS->getBoard()->getGPIO1()->writeBytes((char*) &value, 4);
-    }
 
-    comStackMutex->release();
+        CharacterDevice* hbdev = (CharacterDevice*) theOS->getFileManager()->getResourceByNameandType(HEARTBEAT_DEV, cStreamDevice);
+        if (hbdev) {
+            hbdev->readBytes((char*) &value, length);
+            value = value ^ (HEARTBEAT_VALUE);
+            hbdev->writeBytes((char*) &value, 4);
+        }
+    }
+#endif
+
 #endif
 
 
@@ -77,13 +107,21 @@ void KernelServiceThread::callbackFunc(void* param) {
     /* iterate over all tasks and threads to check for the blocked state */
     LinkedList* llt = theOS->getTaskDatabase();
 
+    DISABLE_IRQS(irqstatus);
+
     // TODO this is not safe against concurrent modification!
     for (LinkedListItem* lldi = llt->getHead(); lldi != 0; lldi = lldi->getSucc()) {
         Task* task = static_cast<Task*>(lldi->getData());
 
         LinkedList* lltask = task->getThreadDB();
         for (LinkedListItem* lldthread = lltask->getHead(); lldthread != 0; lldthread = lldthread->getSucc()) {
-            Thread* thread = static_cast<Thread*>(lldthread->getData());
+            RealTimeThread* thread = static_cast<RealTimeThread*>(lldthread->getData());
+
+/*            const char* statusStr = getStatusStr(thread->getStatus());
+
+            printf("%2u %5u %8s\t%10u\t {%s}"LINEFEED
+                   , task->getId(),thread->getId(),statusStr,(unint4)thread->effectivePriority,thread->getName());*/
+
             if (thread->isBlocked() && thread->blockTimeout > 0) {
                 if (thread->blockTimeout <= 250 ms) {
                     // unblock the thread
@@ -95,6 +133,7 @@ void KernelServiceThread::callbackFunc(void* param) {
             }
         }
     }
+    RESTORE_IRQS(irqstatus);
 
     LOG(KERNEL, TRACE, "Flushing Kernel Log!");
     /* Perform logger flush */

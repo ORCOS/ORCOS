@@ -43,12 +43,18 @@ extern unint4 rescheduleCount;
  *
  * @returns
  *---------------------------------------------------------------------------*/
-Mutex::Mutex() :
+Mutex::Mutex(const char* name) :
         m_locked(false),
         waitingThreads(0),
         m_pThread(0),
         m_pRes(0) {
     acquirePriority = 1;
+    if (name != 0) {
+        this->name = name;
+    } else {
+        name = "Unknown";
+    }
+
 }
 
 /*****************************************************************************
@@ -81,6 +87,10 @@ Mutex::~Mutex() {
 ErrorT Mutex::acquire(Resource* pRes, bool blocking) {
     Kernel_ThreadCfdCl* pCallingThread = pCurrentRunningThread;
 
+    if (pCallingThread != 0 && m_pThread == pCallingThread) {
+        return (cOk);
+    }
+
     DISABLE_IRQS(irqstatus);
     ATOMIC_ADD(&waitingThreads, 1);
     do  {
@@ -96,7 +106,7 @@ ErrorT Mutex::acquire(Resource* pRes, bool blocking) {
             m_pRes          = pRes;
 
             if (pCallingThread) {
-                LOG(SYNCHRO, DEBUG, "Mutex::acquire() Thread %d acquired Mutex %x", pCallingThread->getId(), this);
+                LOG(SYNCHRO, DEBUG, "Mutex::acquire() Thread %d acquired Mutex '%s' (%x)", pCallingThread->getId(),this->name, this);
             } else {
                 LOG(SYNCHRO, DEBUG, "Mutex::acquire() Thread acquired Mutex %x", this);
             }
@@ -114,7 +124,7 @@ ErrorT Mutex::acquire(Resource* pRes, bool blocking) {
         /* in blocking mode we must dispatch here!
          * Do this by raising a timer IRQ to reschedule */
         if (blocking) {
-            LOG(SYNCHRO, DEBUG, "Mutex::acquire() Thread %d blocked on Mutex %x, m_locked: %d", pCallingThread->getId(), this, m_locked);
+            LOG(SYNCHRO, DEBUG, "Mutex::acquire() Thread %d blocked on Mutex '%s' (%x), held by: %d", pCallingThread->getId(), this->name, this, m_pThread->getId());
             rescheduleCount++;
             /* program hardware timer to dispatch now.. may internally use a soft irq */
             theOS->getTimerDevice()->setTimer(1);
@@ -139,12 +149,14 @@ ErrorT Mutex::acquire(Resource* pRes, bool blocking) {
  * @returns
  *---------------------------------------------------------------------------*/
 ErrorT Mutex::release(Thread* pThread) {
-    LOG(SYNCHRO, DEBUG, "Mutex 0x%x released", this);
 
     DISABLE_IRQS(irqstatus);
+    LOG(SYNCHRO, DEBUG, "Mutex '%s' (%x) released", this->name, this);
     m_pThread   = 0;
     m_pRes      = 0;
     /* reset lock last as some threads on other cores may be spinning on it..*/
+    m_locked    = 0;
+    RESTORE_IRQS(irqstatus);
 
     Kernel_ThreadCfdCl* pCallingThread = static_cast<Kernel_ThreadCfdCl*>(pThread);
     /* reset the priority of the currentRunning thread as it might have been boosted by
@@ -152,9 +164,6 @@ ErrorT Mutex::release(Thread* pThread) {
     if (pCallingThread != 0 && waitingThreads > 0) {
         pCallingThread->popPriority(this);
     }
-
-    m_locked    = 0;
-    RESTORE_IRQS(irqstatus);
 
     return (cOk );
 }
@@ -165,8 +174,8 @@ ErrorT Mutex::release(Thread* pThread) {
  *
  */
 
-extern "C" void* createMutex() {
-    return (new Mutex());
+extern "C" void* createMutex(char* name) {
+    return (new Mutex(name));
 }
 
 extern "C" void acquireMutex(void* mutex) {

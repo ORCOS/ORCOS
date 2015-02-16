@@ -22,6 +22,7 @@
 #include "assemblerFunctions.hh"
 
 extern Kernel* theOS;
+extern unint4 rescheduleCount;
 
 PriorityThread::PriorityThread(void* p_startRoutinePointer,
                                void* p_exitRoutinePointer,
@@ -99,43 +100,42 @@ void PriorityThread::popPriority(void* m) {
     }
     SMP_SPINLOCK_GET(m_priolock);
 
+    TimeT highestPrio = this->initialPriority;
+    int found = 0;
     for (int i = 0; i < MAX_PIP_PRIORITIES; i++) {
         if (priorities.ref[i] == m) {
             priorities.ref[i] = 0;
             priorities.priorities[i] = 0;
-            goto out;
+            found = 1;
+        } else {
+            if (priorities.ref[i] != 0) {
+              if (priorities.priorities[i] > highestPrio) {
+                  highestPrio = priorities.priorities[i];
+              }
+          }
         }
     }
 
     SMP_SPINLOCK_FREE(m_priolock);
-    /* if we get here no higher priority thread pushed out priority on m */
-    LOG(PROCESS, DEBUG, "PriorityThread::pop() m=%x not found..", m);
-    return;
 
-out:
-    SMP_SPINLOCK_FREE(m_priolock);
+    if (!found) {
+        /* if we get here no higher priority thread pushed out priority on m */
+        LOG(PROCESS, DEBUG, "PriorityThread::pop() m=%x not found..", m);
+        return;
+    }
+
     /* chance for interrupts to reduce latency */
     NOP;
     {
         SMP_SPINLOCK_GET(m_priolock);
-        TimeT highestPrio = 0;
-        for (int i = 0; i < MAX_PIP_PRIORITIES; i++) {
-           if (priorities.ref[i] != 0) {
-               if (priorities.priorities[i] > highestPrio) {
-                   highestPrio = priorities.priorities[i];
-               }
-           }
-        }
         if (highestPrio != 0) {
             /* update ourself at the scheduler! */
              this->effectivePriority = highestPrio;
-             this->getLinkedListItem()->remove();
-             theOS->getCPUScheduler()->enter(this->getLinkedListItem());
-             // TODO: may need to preempt here!... maybe enter should return 1 of the
-             // inserted is the head of the queue.. 0 otherwise to be detect
-             // situations that need rescheduling!
+             rescheduleCount++;
+             /* program hardware timer to dispatch now.. may internally use a soft irq */
+             theOS->getTimerDevice()->setTimer(1);
         }
-
+        LOG(PROCESS, DEBUG, "PriorityThread::pop() Thread %d reverted Priority", this->getId());
         SMP_SPINLOCK_FREE(m_priolock);
     }
 }

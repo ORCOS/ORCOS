@@ -197,8 +197,8 @@ void Kernel::initialize() {
     LoggerCfd = new NEW_Kernel_LoggerCfd;
 #endif
 
-    comStackMutex = new Mutex();
-    sysArchMutex = reinterpret_cast<void*>(new Mutex());
+    comStackMutex = new Mutex("ComStack");
+    sysArchMutex = reinterpret_cast<void*>(new Mutex("sysArch"));
 
     /* Initialize the Internet Protocol Stack */
 #if ENABLE_NETWORKING

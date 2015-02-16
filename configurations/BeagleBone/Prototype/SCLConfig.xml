@@ -348,6 +348,18 @@
       <Name>ARM_SUPPORT_NEON</Name>
       <Value>1</Value>
     </Define>
+    <Define>
+      <Name>HEARTBEAT</Name>
+      <Value>1</Value>
+    </Define>
+    <Define>
+      <Name>HEARTBEAT_DEV</Name>
+      <Value>"/dev/gpio1"</Value>
+    </Define>
+    <Define>
+      <Name>HEARTBEAT_VALUE</Name>
+      <Value>(1 &lt;&lt; 21)</Value>
+    </Define>
   </SCL>
 </Configuration>
 

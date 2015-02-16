@@ -361,9 +361,11 @@ extern "C" void backtrace_addr(void* currentAddress, size_t stackPtr) {
         else
             return;
 
-        //printf("SP: %x\r",stackPtr);
         LOG(KERNEL, ERROR, "  0x%08x   %s", currentAddress, getMethodSignature((unint4) currentAddress));
-        cf_entry = dwarf_getCFEntry(currentAddress);
+        cf_table_entry* next_cf_entry = dwarf_getCFEntry(currentAddress);
+        if (next_cf_entry == cf_entry)
+            return;
+        cf_entry = next_cf_entry;
     }
 }
 
@@ -395,7 +397,10 @@ extern "C" void backtrace_current() {
             return;
 
         LOG(KERNEL, ERROR, "  0x%08x   %s", currentAddress, getMethodSignature((unint4) currentAddress));
-        cf_entry = dwarf_getCFEntry(currentAddress);
+        cf_table_entry* next_cf_entry = dwarf_getCFEntry(currentAddress);
+        if (next_cf_entry == cf_entry)
+            return;
+        cf_entry = next_cf_entry;
     }
 }
 
@@ -431,7 +436,10 @@ extern "C" void backtrace(void** buffer, int length) {
         if (num >= length)
             return;
 
-        cf_entry = dwarf_getCFEntry(currentAddress);
+        cf_table_entry* next_cf_entry = dwarf_getCFEntry(currentAddress);
+        if (next_cf_entry == cf_entry)
+            return;
+        cf_entry = next_cf_entry;
     }
 }
 

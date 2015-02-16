@@ -1214,7 +1214,7 @@ ErrorT SMSC95xxUSBDeviceDriver::initialize() {
         return (cError );
     }
 
-    mutex = new Mutex();
+    mutex = new Mutex("SMSC95xx");
 
     /* setup periodic interrupt transfer that
      * will get e.g. port status changes  */

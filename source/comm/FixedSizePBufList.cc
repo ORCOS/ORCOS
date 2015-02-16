@@ -15,7 +15,7 @@
 #include "lwip/pbuf.h"
 
 extern Kernel* theOS;
-extern "C" Mutex* comStackMutex;
+extern Mutex* comStackMutex;
 
 FixedSizePBufList::FixedSizePBufList(size_t arg_size) {
     pbuf_list = new pbuf*[arg_size]; //(pbuf**) theOS->getMemoryManager()->alloc(arg_size * sizeof(pbuf*));

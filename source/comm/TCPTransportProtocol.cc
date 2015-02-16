@@ -32,7 +32,7 @@
 
 extern Kernel* theOS;
 
-extern "C" Mutex* comStackMutex;
+extern Mutex* comStackMutex;
 
 TCPTransportProtocol::TCPTransportProtocol() :
         TransportProtocol(6) {
@@ -76,6 +76,8 @@ ErrorT TCPTransportProtocol::send(packet_layer* payload, AddressProtocol* NextLa
     LOG(COMM, INFO, "TCP:send(): size: %d", payload->size);
     comStackMutex->acquire();
 
+    int ret;
+
     // allocate a pbuf
     struct pbuf *p = pbuf_alloc(PBUF_TRANSPORT, payload->size, PBUF_RAM);
     if (p != 0) {
@@ -85,27 +87,31 @@ ErrorT TCPTransportProtocol::send(packet_layer* payload, AddressProtocol* NextLa
 
         // try to write it to the tcp stack
         // will try to enqueue the packet and maybe merge it with previous ones still on queue
-        int ret = tcp_write(pcb, p, p->len, 0);
+        ret = tcp_write(pcb, p, p->len, 0);
 
         // free anyway
         pbuf_free(p);
 
         // check if enqueue operation was successfull
         if (ret != ERR_OK) {
-            comStackMutex->release();
-            return (cTCPEnqueueFailed );
+            ret = cTCPEnqueueFailed;
+            goto outret;
         }
 
         // try to send directly
         tcp_output(pcb);
 
-        comStackMutex->release();
-        return (cOk );
+        ret = cOk;
+        goto outret;
     } else {
-        comStackMutex->release();
+        ret = cPBufNoMoreMemory;
         LOG(COMM, WARN, "TCP:send(): packet dropped.. no more memory..!");
-        return (cPBufNoMoreMemory );
+        goto outret;
     }
+
+outret:
+    comStackMutex->release();
+    return (ret);
 }
 
 /*****************************************************************************
@@ -365,8 +371,10 @@ ErrorT TCPTransportProtocol::register_socket(unint2 port, Socket* socket) {
  *******************************************************************************/
 ErrorT TCPTransportProtocol::unregister_socket(Socket* socket) {
     if (socket->arg != 0) {
-        comStackMutex->acquire();
         struct tcp_pcb *pcb = (struct tcp_pcb*) socket->arg;
+        tcp_arg((struct tcp_pcb*) socket->arg, 0);
+
+        comStackMutex->acquire();
         err_t err = ERR_OK;
 
         /* check if we are too late and pcb has been closed remotely ... */
@@ -376,7 +384,6 @@ ErrorT TCPTransportProtocol::unregister_socket(Socket* socket) {
         if (err != ERR_OK)
             LOG(COMM, WARN, "Error closing tcp_pcb : %d", err);
 
-        tcp_arg((struct tcp_pcb*) socket->arg, 0);
         comStackMutex->release();
 
         return (cOk );

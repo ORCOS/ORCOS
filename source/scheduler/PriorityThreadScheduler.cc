@@ -110,16 +110,27 @@ LinkedListItem* PriorityThreadScheduler::getNext() {
     LOG(SCHEDULER, INFO, "PriorityThreadScheduler: Queue Size: %d", database.getSize());
 
 #if 0
+    printQueue();
+#endif
+    return (this->database.removeHead());
+}
+
+#if 0
+void PriorityThreadScheduler::printQueue() {
+
     printf("Queue: ");
     LinkedListItem* litem = this->database.getHead();
     for (; litem; litem = litem->getSucc()) {
         Thread* thread = static_cast<Thread*>(litem->getData());
         printf(" %d", thread->getId());
     }
+    if (this->database.getTail()) {
+        Thread* thread = static_cast<Thread*>(this->database.getTail()->getData());
+        printf(" Tail: %d", thread->getId());
+    }
     printf("\n");
-#endif
-    return (this->database.removeHead());
 }
+#endif
 
 /*****************************************************************************
  * Method: PriorityThreadScheduler::enter(LinkedListItem* item)

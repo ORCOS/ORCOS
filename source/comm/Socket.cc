@@ -145,7 +145,7 @@ ErrorT Socket::bind(sockaddr* address) {
  * Method: Socket::connected(int error)
  *
  * @description
- *  Callbacl from transport protocl layer when the a connection
+ *  Callback from transport protocol layer when the a connection
  *  belonging to this socket has been connected or the connection
  *  establishment failed. Error is provided inside the argument and
  *  must be either cOk (Connection successfull) or any other error code
@@ -187,7 +187,7 @@ void Socket::connected(int error) {
  *  int         Error Code
  *******************************************************************************/
 void Socket::disconnected(int error) {
-    LOG(COMM, DEBUG, "Socket::disconnected(): status %d", error);
+    LOG(COMM, WARN, "Socket::disconnected(): status %d", error);
     this->state = SOCKET_DISCONNECTED;
 
     /* TODO: propagate error code to user if remotely closed. */
@@ -326,6 +326,10 @@ int Socket::listen(Kernel_ThreadCfdCl* thread) {
  *******************************************************************************/
 ErrorT Socket::addMessage(pbuf* p, sockaddr *fromaddr) {
     ErrorT res;
+
+    if (!messageBuffer) {
+        return (cError);
+    }
 
     if (fromaddr != 0) {
         // be sure service name is unset!

@@ -44,7 +44,7 @@ Resource::Resource(ResourceType rt, bool sync_res, const char* p_name) {
     }
     /* if this is a resource that needs to be synchronized create Mutex */
     if (sync_res) {
-        this->accessControl = new Mutex();
+        this->accessControl = new Mutex(p_name);
     } else {
         this->accessControl = 0;
     }

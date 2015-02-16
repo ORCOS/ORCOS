@@ -29,7 +29,7 @@
 
 extern Kernel* theOS;
 
-extern "C" Mutex* comStackMutex;
+extern Mutex* comStackMutex;
 
 UDPTransportProtocol::UDPTransportProtocol() :
         TransportProtocol(17) {

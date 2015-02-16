@@ -137,5 +137,6 @@ void Clock::callbackFunc(void* param) {
     }
 
     delete ntpSocket;
+
 #endif
 }

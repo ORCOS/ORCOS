@@ -34,7 +34,7 @@ FATFileSystem::FATFileSystem(Partition* p_myPartition) :
         FileSystemBase(p_myPartition) {
     /* Create the mutex if not created before */
     if (FATAccess == 0)
-        FATAccess = new Mutex();
+        FATAccess = new Mutex("FATFs");
 
     rootDir = 0;
     myPartition->setMountedFileSystem(this);
@@ -151,7 +151,7 @@ FATFileSystem::FATFileSystem(Partition* p_myPartition) :
 bool FATFileSystem::isFATFileSystem(Partition* part) {
     /* Create the mutex if not created before */
     if (FATAccess == 0)
-       FATAccess = new Mutex();
+       FATAccess = new Mutex("FATFs");
 
     FATAccess->acquire();
 

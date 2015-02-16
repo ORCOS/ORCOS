@@ -253,7 +253,10 @@ void memp_init(void) {
     u16_t i, j;
 
     for (i = 0; i < MEMP_MAX; ++i) {
-        MEMP_STATS_AVAIL(used, i, 0);MEMP_STATS_AVAIL(max, i, 0);MEMP_STATS_AVAIL(err, i, 0);MEMP_STATS_AVAIL(avail, i, memp_num[i]);
+        MEMP_STATS_AVAIL(used, i, 0);
+        MEMP_STATS_AVAIL(max, i, 0);
+        MEMP_STATS_AVAIL(err, i, 0);
+        MEMP_STATS_AVAIL(avail, i, memp_num[i]);
     }
 
     memp = LWIP_MEM_ALIGN(memp_memory);

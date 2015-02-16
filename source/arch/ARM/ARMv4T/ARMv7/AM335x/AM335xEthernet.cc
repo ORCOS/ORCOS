@@ -10,6 +10,7 @@
 #include "netif/etharp.h"
 #include "kernel/Kernel.hh"
 #include "synchro/Mutex.hh"
+#include "assemblerFunctions.hh"
 
 extern Kernel* theOS;
 extern Mutex* comStackMutex;
@@ -46,11 +47,12 @@ typedef struct cppi_tx_descriptor_t {
 } cppi_tx_descriptor_t;
 
 typedef struct cppi_rx_descriptor_t {
-    volatile cppi_rx_descriptor_t* next_descr;
-    volatile char* buffer_pointer;
-    volatile unint4 buffer_opt;
-    volatile unint4 control;
+    volatile cppi_rx_descriptor_t*  next_descr;
+    volatile char*                  buffer_pointer;
+    volatile unint4                 buffer_opt;
+    volatile unint4                 control;
 } cppi_rx_descriptor_t;
+
 
 /* some receive area to be used by the dma to store new packets*/
 static char rx_buffers[10][1520] ATTR_CACHE_INHIBIT;
@@ -59,6 +61,9 @@ static char tx_buffers[10][1520] ATTR_CACHE_INHIBIT;
 /* descriptors to be used by dma for all ports */
 static cppi_tx_descriptor_t* txqueue;
 static cppi_rx_descriptor_t* rxqueue;
+
+static cppi_rx_descriptor_t* rxqueue_head;
+static cppi_rx_descriptor_t* rxqueue_tail;
 
 /* the mac address used for this device */
 char mac[6] = { 0x00, 0x01, 0x01, 0x01, 0x01, 0x01 };
@@ -69,17 +74,18 @@ extern "C" err_t ethernet_input(struct pbuf *p, struct netif *netif);
 static err_t low_level_output(struct netif *netif, struct pbuf *p) {
     LOG(COMM, TRACE, "AM335xEthernet::sendPacket(). Send packet %x len: %u", p, p->tot_len);
     AM335xEthernet* ethdev = (AM335xEthernet*) netif->state;
-    ethdev->mutex->acquire();
+
+    SMP_SPINLOCK_GET(lock);
 
     bool send = false;
 
     while (!send) {
         /* get a free descriptor and send the packet */
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 1; i++) {
             if (!(txqueue[i].control & OWNER_MAC)) {
                 /* this one is free */
 
-                memset(tx_buffers[i], 0, 64);
+                //memset(tx_buffers[i], 0, 64);
                 struct pbuf *curp = p;
                 int pos = 0;
                 while (curp != 0) {
@@ -106,7 +112,7 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p) {
 
     /* restart queue processing */
     ethdev->cpsw_stateram_regs->tx_hdp[0] = (unint4) &txqueue[0];
-    ethdev->mutex->release();
+    SMP_SPINLOCK_FREE(lock);
 
     return (ERR_OK);
 }
@@ -171,7 +177,7 @@ AM335xEthernet::AM335xEthernet(T_AM335xEthernet_Init * init) :
      *
      */
 
-    mutex = new Mutex();
+    mutex = new Mutex("AM335Ethernet");
 
     /* set pointers to hw regs using the init struct */
     cpsw_wr_regs        = (cpsw_wr_regs_t*) init->cpsw_wr;
@@ -232,7 +238,6 @@ AM335xEthernet::AM335xEthernet(T_AM335xEthernet_Init * init) :
         cpsw_stateram_regs->rx_cp[i] = 0;
     }
     memset(txqueue, 0, sizeof(txqueue));
-    memset(rxqueue, 0, sizeof(rxqueue));
 
     /* initialize rx queue */
     for (int i = 0; i < 10; i++) {
@@ -245,9 +250,11 @@ AM335xEthernet::AM335xEthernet(T_AM335xEthernet_Init * init) :
 
     /* last descriptor points to first one again */
     rxqueue[9].next_descr = 0;
+    rxqueue_head = rxqueue;
+    rxqueue_tail = &rxqueue[9];
 
     /* initialize tx queue */
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 1; i++) {
         txqueue[i].next_descr = &txqueue[i + 1];
         txqueue[i].next_descr = 0;
         txqueue[i].buffer_pointer = 0;
@@ -266,7 +273,7 @@ AM335xEthernet::AM335xEthernet(T_AM335xEthernet_Init * init) :
     /* route all interrupts to core 0 */
     cpsw_wr_regs->c0_rx_en = 0xf;
     //cpsw_wr_regs->c0_tx_en = 0xf;
-    cpsw_wr_regs->c0_rx_thresh_en = 0xf;
+    cpsw_wr_regs->c0_rx_thresh_en = 0x0;
 
     /* register at interrupt manager */
     intc_irq = init->INTC_IRQ;
@@ -298,7 +305,7 @@ AM335xEthernet::AM335xEthernet(T_AM335xEthernet_Init * init) :
 
     /* set mac address of port 1*/
     OUTW(((unint4 )cpsw_p0_regs) + 0x120, 0x01010101);
-    OUTW(((unint4 )cpsw_p0_regs) + 0x124, 0x0101);
+    OUTW(((unint4 )cpsw_p0_regs) + 0x124, 0x0001);
 
     //ale_addAddress((cpsw_ale_regs_t*) cpsw_ale_regs, ALE_UNICAST, mac, 0);
     //ale_addAddress((cpsw_ale_regs_t*) cpsw_ale_regs, 0, broadcastmac, 1 << 0);
@@ -322,13 +329,14 @@ AM335xEthernet::AM335xEthernet(T_AM335xEthernet_Init * init) :
     LOG(ARCH, INFO, "AM335xEthernet: RX descriptor queue at %x", (unint4 ) &rxqueue[0]);
     LOG(ARCH, INFO, "AM335xEthernet: TX descriptor queue at %x", (unint4 ) &txqueue[0]);
 
+    rxpos = 0;
     cpsw_dma_regs->rx0_freebuffer = 10;
     /* enable tx and rx dma */
     cpsw_dma_regs->tx_control = 1;
     cpsw_dma_regs->rx_control = 1;
 
     /* set rx descriptor in hw register to the first one */
-    cpsw_stateram_regs->rx_hdp[0] = (unint4) &rxqueue[0];
+    cpsw_stateram_regs->rx_hdp[0] = (unint4) rxqueue_head;
 
     netif_set_up(&st_netif);
 }
@@ -338,11 +346,13 @@ AM335xEthernet::~AM335xEthernet() {
 
 ErrorT AM335xEthernet::disableIRQ() {
     theOS->getBoard()->getInterruptController()->maskIRQ(intc_irq);
+    cpsw_wr_regs->c0_rx_en = 0x0;
     return (cOk );
 }
 
 ErrorT AM335xEthernet::enableIRQ() {
     theOS->getBoard()->getInterruptController()->unmaskIRQ(intc_irq);
+    cpsw_wr_regs->c0_rx_en = 0xff;
     return (cOk );
 }
 
@@ -352,44 +362,72 @@ ErrorT AM335xEthernet::clearIRQ() {
     return (cOk );
 }
 
+// if we are sure a -b is never > b we can use this!
+#define MODULO(a, b)  a >= b ? a-b : a
+
 ErrorT AM335xEthernet::handleIRQ() {
 
     /* scan rx queue and process the data by passing it to the
      * network stack. afterwards ack packet*/
 
+    lastIRQ = theOS->getClock()->getDateTime();
     unint4 cpvalue = cpsw_stateram_regs->rx_cp[0];
-    LOG(COMM, TRACE, "AM335xEthernet::handleIRQ(). Handling RX packet IRQ, cp at %x", cpvalue);
+    LOG(COMM, DEBUG, "AM335xEthernet::handleIRQ(). Handling RX packet IRQ, cp at %x", cpvalue);
+    int eoq = 0;
 
-    for (int i = 0; i < 10; i++) {
-        if (!(rxqueue[i].control & OWNER_MAC)) {
-            /* queue is owned by host.. must be some data in it */
-            int packet_len = rxqueue[i].control & 0x7ff;
-            LOG(COMM, DEBUG, "AM335xEthernet::handleIRQ(). Handling RX len: %u", packet_len);
-            /* copy data from dma buffer to internal packet buffer.
-             * Takes time but allows HW to receive new packets inside this buffer. */
-            comStackMutex->acquire();
-            struct pbuf* ptBuf = pbuf_alloc(PBUF_RAW, (unint2) (packet_len + 10), PBUF_RAM);
-            if (ptBuf != 0) {
-                memcpy(ptBuf->payload, (void*) (rxqueue[i].buffer_pointer), packet_len);
-                ethernet_input(ptBuf, &st_netif);
-                pbuf_free(ptBuf);
-            }
-            comStackMutex->release();
+    int status = 0;
+    cppi_rx_descriptor_t* descr = rxqueue_head;
+    if (!descr)
+        goto out;
 
-            rxqueue[i].buffer_opt = 1520;
-            rxqueue[i].control = OWNER_MAC;
-            cpsw_dma_regs->rx0_freebuffer = 1;
-            LOG(COMM, TRACE, "AM335xEthernet::handleIRQ(). ACK cp at %x", &rxqueue[i]);
-            cpsw_stateram_regs->rx_cp[0] = (unint4) &rxqueue[i];
+    while (descr) {
+        status = descr->control;
+        if (status & OWNER_MAC) {
+            // end here
+            goto out;
         }
+
+        int packet_len = status & 0x7ff;
+        if (status & CRC_PASS)
+            packet_len -= 4;
+
+        rxqueue_head = (cppi_rx_descriptor_t*) descr->next_descr;
+        if (status & EOQ) {
+            cpsw_stateram_regs->rx_hdp[0] = (unint4) rxqueue_head;
+        }
+
+        LOG(COMM, DEBUG, "AM335xEthernet::handleIRQ(). Handling RX len: %u", packet_len);
+         /* copy data from dma buffer to internal packet buffer.
+          * Takes time but allows HW to receive new packets inside this buffer. */
+         comStackMutex->acquire();
+         struct pbuf* ptBuf = pbuf_alloc(PBUF_RAW, (unint2) (packet_len + 10), PBUF_RAM);
+         if (ptBuf != 0) {
+             memcpy(ptBuf->payload, (void*) (descr->buffer_pointer), packet_len);
+             ethernet_input(ptBuf, &st_netif);
+             pbuf_free(ptBuf);
+         }
+         comStackMutex->release();
+
+        cpsw_stateram_regs->rx_cp[0] = (unint4) descr;
+
+        /* requeue descriptor */
+
+        descr->next_descr = 0;
+        descr->control    = OWNER_MAC | 1520 | SOP | EOP;
+        descr->buffer_opt = 1520;
+        rxqueue_tail->next_descr = descr;
+        rxqueue_tail = descr;
+        cpsw_dma_regs->rx0_freebuffer = 1;
+        descr = rxqueue_head;
     }
-    /* ACK IRQ. */
-    cpsw_stateram_regs->rx_cp[0] = cpvalue;
+
+out:
 
     OUTW(((unint4 )cpsw_dma_regs) + 0x94, 0x1);
-    cpsw_stateram_regs->rx_hdp[0] = (unint4) &rxqueue[0];
 
+    LOG(COMM, TRACE, "AM335xEthernet::handleIRQ(). exited");
     this->interruptPending = false;
     return (cOk );
 }
+
 

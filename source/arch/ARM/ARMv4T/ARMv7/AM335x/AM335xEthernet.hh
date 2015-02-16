@@ -187,6 +187,12 @@ public:
     volatile cpsw_stats_regs_t*      cpsw_stats_regs;
 
     int intc_irq;
+
+    int rxpos;
+
+    int lock;
+
+    int lastIRQ;
 public:
     Mutex* mutex;
 

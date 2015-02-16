@@ -288,7 +288,7 @@ $(OUTPUT_DIR)kernel.elf: output/tasktable.o $(OUTPUT_DIR)liborcoskernel.a
 	@echo "#include <debug/dwarf.hh>" > $(OUTPUT_DIR)kernel_strtable.c
 	@echo "DebugStrTableT __attribute__((used)) debug_strtable[] = { { 0, 0xffffffff, 0 } }; unsigned int debug_strtable_entries = 0;" >> $(OUTPUT_DIR)kernel_strtable.c
 	@$(CC) -c $(CFLAGS) $(OPT_FLAGS)   $(OUTPUT_DIR)kernel_strtable.c --output ./output/kernel_strtable.o
-	$(CC) -L$(OUTPUT_DIR) output/tasktable.o $(OUTPUT_DIR)liborcoskernel.a $(OUTPUT_DIR)kernel_strtable.o $(LDFLAGS)
+	$(CC) -L$(OUTPUT_DIR) output/tasktable.o $(OUTPUT_DIR)liborcoskernel.a $(OUTPUT_DIR)kernel_strtable.o $(LDFLAGS) -g
 	
 	#@$(CC) -c $(CFLAGS) $(OPT_FLAGS) -fno-lto $(RELATIVE_SOURCE_PATH)/source/debug/dwarf.cc --output ./output/dwarf.o
 	#$(CC) -L$(OUTPUT_DIR) output/tasktable.o $(OUTPUT_DIR)liborcoskernel.a ./output/dwarf.o $(OUTPUT_DIR)kernel_strtable.o $(LDFLAGS)
@@ -296,12 +296,12 @@ $(OUTPUT_DIR)kernel.elf: output/tasktable.o $(OUTPUT_DIR)liborcoskernel.a
 	$(SIGN) stringtable $(OUTPUT_DIR)kernel.map
 	#@cp $(OUTPUT_DIR)kernel.map $(OUTPUT_DIR)kernel.map_before
 	@$(CC) -c $(CFLAGS) $(OPT_FLAGS)   $(OUTPUT_DIR)kernel_strtable.c --output ./output/kernel_strtable.o
-	$(CC) -L$(OUTPUT_DIR) output/tasktable.o $(OUTPUT_DIR)liborcoskernel.a $(OUTPUT_DIR)kernel_strtable.o $(LDFLAGS)
+	$(CC) -L$(OUTPUT_DIR) output/tasktable.o $(OUTPUT_DIR)liborcoskernel.a $(OUTPUT_DIR)kernel_strtable.o $(LDFLAGS) -g
 	#$(CC) -L$(OUTPUT_DIR) output/tasktable.o $(OUTPUT_DIR)liborcoskernel.a  ./output/dwarf.o $(OUTPUT_DIR)kernel_strtable.o $(LDFLAGS)
 	$(SIGN) stringtable $(OUTPUT_DIR)kernel.map
 	#@cp $(OUTPUT_DIR)kernel.map $(OUTPUT_DIR)kernel.map_before2
 	@$(CC) -c $(CFLAGS) $(OPT_FLAGS)   $(OUTPUT_DIR)kernel_strtable.c --output ./output/kernel_strtable.o
-	$(CC) -L$(OUTPUT_DIR) output/tasktable.o $(OUTPUT_DIR)liborcoskernel.a  $(OUTPUT_DIR)kernel_strtable.o $(LDFLAGS)	
+	$(CC) -L$(OUTPUT_DIR) output/tasktable.o $(OUTPUT_DIR)liborcoskernel.a  $(OUTPUT_DIR)kernel_strtable.o $(LDFLAGS)	 -g
 	$(SIZE) $(OUTPUT_DIR)liborcoskernel.a  > $(OUTPUT_DIR)sizes.txt
 		
 
