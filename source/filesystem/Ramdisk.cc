@@ -27,7 +27,7 @@ Ramdisk::Ramdisk(T_Ramdisk_Init* init) : FileSystemBase("ramdisk") {
     blockChainSize          = (sizeof(unint4*)) * numblocks;
     blockChainEntries       = numblocks;
 
-    firstBlock              = start + (numblocks * sizeof(unint4*));
+    firstBlock              = start + blockChainSize;
     firstBlock              = (unint4) alignCeil(reinterpret_cast<char*>(firstBlock), RAMDISK_BLOCK_SIZE);
 
     if (theOS->getRamManager() != 0) {
@@ -43,6 +43,11 @@ Ramdisk::Ramdisk(T_Ramdisk_Init* init) : FileSystemBase("ramdisk") {
     freeBlocks = numBlocks;
     blockSize  = RAMDISK_BLOCK_SIZE;
 
+    LOG(FILESYSTEM, WARN, "Ramdisk: firstBlock %x", firstBlock);
+    LOG(FILESYSTEM, WARN, "Ramdisk: blockChain %x", blockChain);
+    LOG(FILESYSTEM, WARN, "Ramdisk: numBlocks %x", numBlocks);
+    LOG(FILESYSTEM, WARN, "Ramdisk: lastBlock %x", firstBlock + (numBlocks * RAMDISK_BLOCK_SIZE));
+
     // create the ramdisk mount directory
     /* TODO: use SCL to get path and name */
     RamdiskDirectory* dir = new RamdiskDirectory(this, "ramdisk");
@@ -57,7 +62,7 @@ Ramdisk::Ramdisk(T_Ramdisk_Init* init) : FileSystemBase("ramdisk") {
  *   the physical address
  *******************************************************************************/
 unint4 Ramdisk::allocateBlock(unint4 prev) {
-    for (unint4 i = 0; i < blockChainEntries; i++)
+    for (unint4 i = 0; i < blockChainEntries; i++) {
         if (blockChain[i] == (unint4) -1) {  // -1 == free
             blockChain[i] = 0;               //  0 == End of Chain
             if (prev != (unint4) -1)
@@ -66,6 +71,7 @@ unint4 Ramdisk::allocateBlock(unint4 prev) {
             freeBlocks--;
             return (i);
         }
+    }
     return (-1);
 }
 
@@ -77,15 +83,15 @@ unint4 Ramdisk::allocateBlock(unint4 prev) {
  *******************************************************************************/
 int Ramdisk::freeBlock(unint4 blockNum) {
     if (blockNum != (unint4) -1) {
-        unint4 nextBlock = blockChain[blockNum];
+        unint4 nextBlock     = blockChain[blockNum];
         blockChain[blockNum] = -1;
         freeBlocks++;
 
         while (nextBlock != 0 && nextBlock != (unint4) -1) {
-            blockNum = blockChain[nextBlock];
+            blockNum              = blockChain[nextBlock];
             blockChain[nextBlock] = (unint4) -1;
+            nextBlock             = blockNum;
             freeBlocks++;
-            nextBlock = blockNum;
         }
     }
 
@@ -241,12 +247,13 @@ ErrorT RamdiskFile::readBytes(char* bytes, unint4& length) {
 
         // check if we reached the sector boundary
         if (sector_changed) {
-            currentBlock = myRamDisk->getNextBlock(currentBlock, false);
-            if (currentBlock == (unint4) -1) {
+            unint4 nextBlock = myRamDisk->getNextBlock(currentBlock, false);
+            if (nextBlock == (unint4) -1) {
                 // end of file reached
                 length = pos;
                 return (cOk );
             }
+            currentBlock = nextBlock;
         }
 
         sector_changed = false;
@@ -298,11 +305,12 @@ ErrorT RamdiskFile::writeBytes(const char* bytes, unint4 length) {
         // check if we reached the sector boundary
         if (sector_changed) {
             // append if neccessary
-            currentBlock = myRamDisk->getNextBlock(currentBlock, true);
-            if (currentBlock == (unint4) -1) {
+            unint4 nextBlock = myRamDisk->getNextBlock(currentBlock, true);
+            if (nextBlock == (unint4) -1) {
                 // no more memory..
                 return (cDeviceMemoryExhausted );
             }
+            currentBlock = nextBlock;
         }
 
         sector_changed = false;

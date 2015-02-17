@@ -188,11 +188,6 @@ void Kernel::initialize() {
     #endif
 #endif
 
-#ifdef HAS_Kernel_RamdiskCfd
-    INIT_Kernel_RamdiskCfd;
-    this->RamdiskCfd = new NEW_Kernel_RamdiskCfd;
-#endif
-
 #if HAS_Kernel_LoggerCfd
     LoggerCfd = new NEW_Kernel_LoggerCfd;
 #endif
@@ -219,6 +214,11 @@ void Kernel::initialize() {
     /* now initialize the device drivers
      since some thread classes rely on classes like the timer or the clock */
     this->initDeviceDrivers();
+
+#ifdef HAS_Kernel_RamdiskCfd
+    INIT_Kernel_RamdiskCfd;
+    this->RamdiskCfd = new NEW_Kernel_RamdiskCfd;
+#endif
 
     /* initialize protocol pool here since it depends on the device drivers
      all commdevices need to be created before the protocol pool is created */
