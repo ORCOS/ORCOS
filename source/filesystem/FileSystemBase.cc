@@ -11,14 +11,14 @@
 
 extern Kernel* theOS;
 
-FileSystemBase::FileSystemBase(Partition* p_myPartition) {
+FileSystemBase::FileSystemBase(Partition* p_myPartition) : Resource(cPartition, true, myPartition->getName()) {
     this->myPartition = p_myPartition;
     /* we are invalid by default
        only if superclass knows for sure this is a valid file system
        this may be set to true */
     this->isValid = false;
-    numBlocks = 0;
-    blockSize = 512;
+    numBlocks  = 0;
+    blockSize  = 512;
     freeBlocks = 0;
 
     /* create sys fs entries */
@@ -38,7 +38,7 @@ FileSystemBase::FileSystemBase(Partition* p_myPartition) {
 }
 
 
-FileSystemBase::FileSystemBase(const char* name) {
+FileSystemBase::FileSystemBase(const char* name) : Resource(cPartition, true, name)  {
     this->myPartition = 0;
     this->isValid = true;
     numBlocks = 0;

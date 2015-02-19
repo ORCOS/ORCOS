@@ -9,6 +9,7 @@
 #define FILESYSTEMBASE_HH_
 
 #include "filesystem/Partition.hh"
+#include "filesystem/Directory.hh"
 
 class Partition;
 
@@ -17,7 +18,7 @@ class Partition;
  * ORCOS filesystem and defines methods to be implemented by the superclass to
  * ensure filesystem traversal works.
  */
-class FileSystemBase {
+class FileSystemBase : Resource {
 protected:
     /* Reference to the partition this filesystem is contained in.
      * Maybe 0 if no such physical partition exists as e.g. inside ramdisk.*/
@@ -34,6 +35,8 @@ protected:
 
     /* Free blocks inside this filesystem */
     unint4      freeBlocks;
+
+    Directory*  rootDir;
 
 #if SYSFS_SUPPORT
     /* The sysfs directory */
@@ -57,6 +60,19 @@ public:
     explicit FileSystemBase(const char* name);
 
     virtual ~FileSystemBase();
+
+    /*****************************************************************************
+     * Method: invalidate()
+     *
+     * @description
+     *  Invalidate the whole directory tree starting the the mounted
+     *  root dir.
+     *******************************************************************************/
+    void invalidate() {
+        if (this->rootDir) {
+            rootDir->invalidate();
+        }
+    }
 
     /*****************************************************************************
      * Method: initialize()

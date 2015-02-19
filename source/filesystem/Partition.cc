@@ -8,6 +8,7 @@
 #include "Partition.hh"
 #include "inc/memtools.hh"
 #include "kernel/Kernel.hh"
+#include "filesystem/FileSystemBase.hh"
 
 extern Kernel* theOS;
 
@@ -25,6 +26,32 @@ tPartitionBlockCache CachedBlocks[5] __attribute__((aligned(4))) ATTR_CACHE_INHI
 
 LinkedList* BlockCacheList;
 
+Partition::~Partition() {
+    if (this->mountedFileSystem != 0) {
+       delete this->mountedFileSystem;
+    }
+}
+
+/*****************************************************************************
+* Method: Partition::invalidate()
+*
+* @description
+*   Invalidation of the partition. Done when scheduled for deletion.
+*   Also invalidates the filesystem mounted contained inside this partition
+*   if any.
+*******************************************************************************/
+void Partition::invalidate() {
+    if (this->mountedFileSystem) {
+        this->mountedFileSystem->invalidate();
+    }
+}
+
+/*****************************************************************************
+* Method: Partition::initialize()
+*
+* @description
+*
+*******************************************************************************/
 void Partition::initialize() {
     BlockCacheList = new LinkedList();
     for (int i = 0; i < 5; i++) {

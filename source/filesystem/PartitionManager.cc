@@ -212,17 +212,20 @@ void PartitionManager::registerBlockDevice(BlockDeviceDriver* bdev) {
 
     Partition* partition = new Partition(bdev, "PT", 0, -1, 0);
     if (FATFileSystem::isFATFileSystem(partition)) {
-        this->add(partition);
         /* FAT FS found.. probably windows created FS.
          * Windows does not create a MBR. It just plain initializes the FAT FS
          * on the first sector of the device..*/
         FileSystemBase* fs = new FATFileSystem(partition);
-        if (fs->isValidFileSystem())
+        if (fs->isValidFileSystem()) {
+            this->add(partition);
             fs->initialize();
+        }
         return;
     }
 
-    /* No Filesystem found.. well just drop partition..*/
+    /* No Filesystem found.. well just drop partition..
+     * we may directly delete here as no thread may have
+     * accessed the partition yet*/
     delete partition;
 
     // TODO: try to mount directly as filesystem as no MBR might be present
@@ -243,16 +246,10 @@ void PartitionManager::unregisterBlockDevice(BlockDeviceDriver* bdev) {
     while (litem != 0) {
         Partition* p = reinterpret_cast<Partition*>(litem->getData());
         if (p->myBlockDevice == bdev) {
-            /* trigger filesystem deletion.
-             * Do this by invalidating the filesystem first as threads may
-             * be executing on resources inside it currently!*/
-            delete p->mountedFileSystem;
-
-
             litem = litem->getSucc();
             dir_content.remove(p);
-            delete p;
-
+            /* schedule deletion. will also delete the mounted filesystem */
+            theOS->getMemoryManager()->scheduleDeletion(p);
         } else {
             litem = litem->getSucc();
         }

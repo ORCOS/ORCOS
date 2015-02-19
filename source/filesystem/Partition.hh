@@ -94,8 +94,17 @@ public:
     }
 
 
-    virtual ~Partition() {
-    }
+    virtual ~Partition();
+
+    /*****************************************************************************
+    * Method: invalidate()
+    *
+    * @description
+    *   Invalidation of the partition. Done when scheduled for deletion.
+    *   Also invalidates the filesystem mounted contained inside this partition
+    *   if any.
+    *******************************************************************************/
+    void invalidate();
 
     /*****************************************************************************
      * Method: setMountedFileSystem(FileSystemBase* fs)

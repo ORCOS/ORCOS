@@ -117,26 +117,24 @@ class FATFileSystem: public FileSystemBase {
     friend class FATDirectory;
     friend class FATFile;
 private:
-    FAT_Type myFatType;
+    FAT_Type    myFatType;
 
     /* copy of the FAT BS BPB */
-    FAT_BS_BPB myFAT_BPB;
+    FAT_BS_BPB  myFAT_BPB;
 
     /* copy of the FAT16/32 PBP */
-    FATxx_BPB myFATxx_BPB;
+    FATxx_BPB   myFATxx_BPB;
 
-    unint4 RootDirSectors;
+    unint4      RootDirSectors;
 
-    unint4 FirstDataSector;
+    unint4      FirstDataSector;
 
-    unint4 CountOfClusters;
+    unint4      CountOfClusters;
 
-    unint4 DataSec;
+    unint4      DataSec;
 
     // performance enhancement for division by BPB_SecPerClus
-    unint1 sector_shift_value;
-
-    FATDirectory *rootDir;
+    unint1      sector_shift_value;
 
     /*
      * Returns the next sector following 'currentSector'.
