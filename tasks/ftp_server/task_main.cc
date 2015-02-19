@@ -233,7 +233,11 @@ int ReceiveFile(int controlsock, int datasock, sockaddr *dataremote, char* file)
             }
         } else {
             // write to file
-            fwrite(res,dataptr,msglen);
+            int error = fwrite(res,dataptr,msglen);
+            if (error < 0) {
+                fclose(res);
+                return (error);
+            }
             timeout = 5;
         }
 
@@ -338,7 +342,7 @@ void sendDirectoryContents(int controlsock, int datasock, sockaddr *dataremote) 
     memset(retmsg,0,10);
 
     while (direntry) {
-
+        // TODO use correct file date
         if (direntry->resType == 1) {
             sprintf(line, "%s   1 %-10s %-10s %10u Jan  1  1980 %s\r\n",
                           "d-rw-rw-rw-", "User", "User",0, direntry->name);
@@ -462,6 +466,8 @@ extern "C" int task_main()
            //int line = strpos(msgptr,"\n\r");
            //puts(msgptr);
 
+            // TODO: add mkdir
+
          if (strpos("USER",msgptr) == 0) {
              /***********************************************
               *     USER LOGIN
@@ -584,6 +590,9 @@ extern "C" int task_main()
                 // tell control connection that data has been received
                 s = "226 Transfer complete.\r\n";
                 sendto(newsock,s,strlen(s),0);
+             } else {
+                 s = "552 Error storing file.\r\n";
+                 sendto(newsock,s,strlen(s),0);
              }
 
          } else if (strpos("RETR ",msgptr) == 0) {
