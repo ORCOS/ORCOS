@@ -11,7 +11,7 @@
 
 extern Kernel* theOS;
 
-FileSystemBase::FileSystemBase(Partition* p_myPartition) : Resource(cPartition, true, myPartition->getName()) {
+FileSystemBase::FileSystemBase(Partition* p_myPartition) : Resource(cPartition, true, p_myPartition->getName()) {
     this->myPartition = p_myPartition;
     /* we are invalid by default
        only if superclass knows for sure this is a valid file system
@@ -20,6 +20,7 @@ FileSystemBase::FileSystemBase(Partition* p_myPartition) : Resource(cPartition, 
     numBlocks  = 0;
     blockSize  = 512;
     freeBlocks = 0;
+    rootDir    = 0; /* to be initialized by superclass */
 
     /* create sys fs entries */
 #if SYSFS_SUPPORT
