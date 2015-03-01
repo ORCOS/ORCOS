@@ -353,7 +353,8 @@ extern "C" void backtrace_addr(void* currentAddress, size_t stackPtr) {
     if (cf_entry == 0)
         return;
 
-    while (cf_entry) {
+    int num = 0;
+    while (cf_entry && num < 10) {
         stackPtr = stackPtr + cf_entry->cfa_offset;
 
         if (cf_entry->stored_regs[14] != 0xffffffff)
@@ -363,9 +364,8 @@ extern "C" void backtrace_addr(void* currentAddress, size_t stackPtr) {
 
         LOG(KERNEL, ERROR, "  0x%08x   %s", currentAddress, getMethodSignature((unint4) currentAddress));
         cf_table_entry* next_cf_entry = dwarf_getCFEntry(currentAddress);
-        if (next_cf_entry == cf_entry)
-            return;
         cf_entry = next_cf_entry;
+        num++;
     }
 }
 
@@ -388,7 +388,8 @@ extern "C" void backtrace_current() {
     if (cf_entry == 0)
         return;
 
-    while (cf_entry) {
+    int num = 0;
+    while (cf_entry && num < 10) {
         stackPtr = stackPtr + cf_entry->cfa_offset;
 
         if (cf_entry->stored_regs[14] != 0xffffffff)
@@ -398,9 +399,8 @@ extern "C" void backtrace_current() {
 
         LOG(KERNEL, ERROR, "  0x%08x   %s", currentAddress, getMethodSignature((unint4) currentAddress));
         cf_table_entry* next_cf_entry = dwarf_getCFEntry(currentAddress);
-        if (next_cf_entry == cf_entry)
-            return;
         cf_entry = next_cf_entry;
+        num++;
     }
 }
 
@@ -424,7 +424,8 @@ extern "C" void backtrace(void** buffer, int length) {
     if (cf_entry == 0)
         return;
 
-    while (cf_entry) {
+    int numSteps = 0;
+    while (cf_entry && numSteps < 10) {
         stackPtr = stackPtr + cf_entry->cfa_offset;
 
         if (cf_entry->stored_regs[14] != 0xffffffff)
@@ -437,9 +438,8 @@ extern "C" void backtrace(void** buffer, int length) {
             return;
 
         cf_table_entry* next_cf_entry = dwarf_getCFEntry(currentAddress);
-        if (next_cf_entry == cf_entry)
-            return;
         cf_entry = next_cf_entry;
+        numSteps++;
     }
 }
 

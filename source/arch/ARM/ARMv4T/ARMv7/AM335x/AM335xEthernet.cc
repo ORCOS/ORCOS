@@ -311,16 +311,9 @@ AM335xEthernet::AM335xEthernet(T_AM335xEthernet_Init * init) :
     //ale_addAddress((cpsw_ale_regs_t*) cpsw_ale_regs, 0, broadcastmac, 1 << 0);
 
     //PORT 1 + 2 are external. PORT 0 is the cpsw_dma
-    struct ip4_addr tgwAddr;
-    struct ip4_addr eth_nm;
-    struct ip4_addr tIpAddr;
-
-    int addr[4] = { ETH_IP4NETMASK };
-    IP4_ADDR(&eth_nm, addr[0], addr[1], addr[2], addr[3]);
-    int addr2[4] = { ETH_IP4ADDR };
-    IP4_ADDR(&tIpAddr, addr2[0], addr2[1], addr2[2], addr2[3]);
-    int addr3[4] = { ETH_IP4ADDR_GW };
-    IP4_ADDR(&tgwAddr, addr3[0], addr3[1], addr3[2], addr3[3]);
+    struct ip_addr eth_nm   = IP_ADDR_INIT_IPV4(255,255,255,0);
+    struct ip_addr tIpAddr  = IP_ADDR_INIT_IPV4(192,168,1,100);
+    struct ip_addr tgwAddr  = IP_ADDR_INIT_IPV4(192,168,1,1);
 
     /* save driver in netif as state */
     netif_add(&st_netif, &tIpAddr, &eth_nm, &tgwAddr, (void*) this, &ethernetif_init, 0);
@@ -404,7 +397,6 @@ ErrorT AM335xEthernet::handleIRQ() {
          if (ptBuf != 0) {
              memcpy(ptBuf->payload, (void*) (descr->buffer_pointer), packet_len);
              ethernet_input(ptBuf, &st_netif);
-             pbuf_free(ptBuf);
          }
          comStackMutex->release();
 

@@ -59,7 +59,7 @@
 #define cResourceNotReadable    (int)-1015
 #define cInvalidResource        (int)-1016
 #define cCanNotAquireResource   (int)-1017
-
+#define cFileNotFound           (int)-1018
 
 #define cArrayLengthOutOfBounds (int)-800
 #define cWrongArrayLengthByte   (int)-801
@@ -88,6 +88,7 @@
 #define cGivenTLBEntryNotFound  (int)-101
 #define cNoValidChunkAddress    (int)-102
 #define cDeviceMemoryExhausted  (int)-103
+#define cMemMappingError           (int)-104
 
 //-----------------------------------------------------
 // Synchronization          200 <= |C(s)| < 300

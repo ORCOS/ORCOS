@@ -16,6 +16,8 @@ extern "C" Mutex* comStackMutex;
 
 extern "C" void tcp_tmr();
 extern "C" void ethar_tmr();
+extern "C" void dhcp_fine_tmr();
+extern "C" void dns_tmr();
 
 #if (LWIP_NETIF_LOOPBACK || LWIP_HAVE_LOOPIF)
 extern "C" void netif_poll_all(void);
@@ -46,7 +48,7 @@ const char* getStatusStr(unint4 status) {
         if (status & (1 << i))
             return (states[i]);
     }
-    return ret;
+    return (ret);
 }
 
 
@@ -68,20 +70,38 @@ void KernelServiceThread::callbackFunc(void* param) {
 #if ENABLE_NETWORKING
     comStackMutex->acquire();
 
+    /* count increases every 250 ms */
     count++;
 #if LWIP_TCP
+    /* call every 250 ms*/
     tcp_tmr();
 #endif
 #if (LWIP_NETIF_LOOPBACK || LWIP_HAVE_LOOPIF)
     netif_poll_all();
 #endif
 
-    if (count > 20) {
+    if (count >= 16) {
+        /* call every 4 s*/
         ethar_tmr();
         count = 0;
     }
 
+#if LWIP_DHCP
+    if (count & 1) {
+        /* call every 500 ms*/
+        dhcp_fine_tmr();
+    }
+#endif
+
+#if LWIP_DNS
+    /* call every 1 s*/
+    if (count & 4)
+        dns_tmr();
+#endif
+
     comStackMutex->release();
+#endif // ENABLE_NETWORKING
+
 
 #ifdef HEARTBEAT
     if (count & 1) {
@@ -97,9 +117,6 @@ void KernelServiceThread::callbackFunc(void* param) {
         }
     }
 #endif
-
-#endif
-
 
     LOG(KERNEL, TRACE, "MemoryManager service!");
     theOS->getMemoryManager()->service();

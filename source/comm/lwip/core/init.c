@@ -231,7 +231,10 @@ void lwip_init(void) {
     lwip_sanity_check();
 
     /* Modules initialization */
-    stats_init(); sys_init();
+    stats_init();
+#if !NO_SYS
+  sys_init();
+#endif /* !NO_SYS */
     mem_init();
     memp_init();
     pbuf_init(); netif_init();

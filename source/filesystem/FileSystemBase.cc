@@ -45,6 +45,7 @@ FileSystemBase::FileSystemBase(const char* name) : Resource(cPartition, true, na
     numBlocks = 0;
     blockSize = 512;
     freeBlocks = 0;
+    rootDir    = 0; /* to be initialized by superclass */
 
     /* create sys fs entries */
 #if SYSFS_SUPPORT
@@ -69,5 +70,11 @@ FileSystemBase::~FileSystemBase() {
         theOS->getMemoryManager()->scheduleDeletion(sysFsDir);
     }
 #endif
+    this->isValid = false;
+    numBlocks  = 0;
+    blockSize  = 512;
+    freeBlocks = 0;
+    rootDir    = 0;
+    this->myPartition = 0;
 }
 

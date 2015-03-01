@@ -56,19 +56,32 @@
 
 
 #define NETIF_FLAG_UP           0x01U
-    /** if set, the netif has broadcast capability */
+/** If set, the netif has broadcast capability.
+ * Set by the netif driver in its init function. */
 #define NETIF_FLAG_BROADCAST    0x02U
-    /** if set, the netif is one end of a point-to-point connection */
+/** If set, the netif is one end of a point-to-point connection.
+ * Set by the netif driver in its init function. */
 #define NETIF_FLAG_POINTTOPOINT 0x04U
-    /** if set, the interface is configured using DHCP */
+/** If set, the interface is configured using DHCP.
+ * Set by the DHCP code when starting or stopping DHCP. */
 #define NETIF_FLAG_DHCP         0x08U
-    /** if set, the interface has an active link
-     *  (set by the network interface driver) */
+/** If set, the interface has an active link
+ *  (set by the network interface driver).
+ * Either set by the netif driver in its init function (if the link
+ * is up at that time) or at a later point once the link comes up
+ * (if link detection is supported by the hardware). */
 #define NETIF_FLAG_LINK_UP      0x10U
-    /** if set, the netif is an device using ARP */
+/** If set, the netif is an ethernet device using ARP.
+ * Set by the netif driver in its init function.
+ * Used to check input packet types and use of DHCP. */
 #define NETIF_FLAG_ETHARP       0x20U
-    /** if set, the netif has IGMP capability */
-#define NETIF_FLAG_IGMP         0x40U
+/** If set, the netif is an ethernet device. It might not use
+ * ARP or TCP/IP if it is used for PPPoE only.
+ */
+#define NETIF_FLAG_ETHERNET     0x40U
+/** If set, the netif has IGMP capability.
+ * Set by the netif driver in its init function. */
+#define NETIF_FLAG_IGMP         0x80U
 
 //-----------------------------------------------------
 // Error Messages

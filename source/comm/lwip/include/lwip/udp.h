@@ -44,8 +44,7 @@
 //#include "ipv4/ip4.h"
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 #define UDP_HLEN 8
@@ -55,8 +54,7 @@ extern "C"
 #  include "arch/bpstruct.h"
 #endif
     PACK_STRUCT_BEGIN
-    struct udp_hdr
-    {
+struct udp_hdr {
         PACK_STRUCT_FIELD(u16_t src);
         PACK_STRUCT_FIELD(u16_t dest); /* src/dest UDP ports */
         PACK_STRUCT_FIELD(u16_t len);
@@ -70,9 +68,29 @@ extern "C"
 #define UDP_FLAGS_NOCHKSUM 0x01U
 #define UDP_FLAGS_UDPLITE  0x02U
 #define UDP_FLAGS_CONNECTED  0x04U
+#define UDP_FLAGS_MULTICAST_LOOP 0x08U
 
-    struct udp_pcb
-    {
+struct udp_pcb;
+
+/** Function prototype for udp pcb receive callback functions
+ * addr and port are in same byte order as in the pcb
+ * The callback is responsible for freeing the pbuf
+ * if it's not used any more.
+ *
+ * ATTENTION: Be aware that 'addr' points into the pbuf 'p' so freeing this pbuf
+ *            makes 'addr' invalid, too.
+ *
+ * @param arg user supplied argument (udp_pcb.recv_arg)
+ * @param pcb the udp_pcb which received data
+ * @param p the packet buffer that was received
+ * @param addr the remote IP address from which the packet was received
+ * @param port the remote port from which the packet was received
+ */
+typedef void (*udp_recv_fn)(void *arg, struct udp_pcb *pcb, struct pbuf *p,
+    ip_addr_t *addr, u16_t port);
+
+
+struct udp_pcb {
         /* Common members of all PCB types */
         IP_PCB;
 
@@ -81,36 +99,22 @@ extern "C"
         struct udp_pcb *next;
 
         u8_t flags;
-        /* ports are in host byte order */
+  /** ports are in host byte order */
         u16_t local_port, remote_port;
 
 #if LWIP_IGMP
-        /* outgoing network interface for multicast packets */
-        struct ip_addr multicast_ip;
+  /** outgoing network interface for multicast packets */
+  ip_addr_t multicast_ip;
 #endif /* LWIP_IGMP */
 
 #if LWIP_UDPLITE
-        /* used for UDP_LITE only */
+  /** used for UDP_LITE only */
         u16_t chksum_len_rx, chksum_len_tx;
 #endif /* LWIP_UDPLITE */
 
-        /* receive callback function
-         * addr and port are in same byte order as in the pcb
-         * The callback is responsible for freeing the pbuf
-         * if it's not used any more.
-         *
-         * ATTENTION: Be aware that 'addr' points into the pbuf 'p' so freeing this pbuf
-         *            makes 'addr' invalid, too.
-         *
-         * @param arg user supplied argument (udp_pcb.recv_arg)
-         * @param pcb the udp_pcb which received data
-         * @param p the packet buffer that was received
-         * @param addr the remote IP address from which the packet was received
-         * @param port the remote port from which the packet was received
-         */
-        void (* recv)(void *arg, struct udp_pcb *pcb, struct pbuf *p,
-                struct ip_addr *addr, u16_t port);
-        /* user-supplied argument for the recv callback */
+  /** receive callback function */
+  udp_recv_fn recv;
+  /** user-supplied argument for the recv callback */
         void *recv_arg;
     };
     /* udp_pcbs export for exernal reference (e.g. SNMP agent) */
@@ -120,20 +124,31 @@ extern "C"
      UDP code. */
     struct udp_pcb * udp_new (void);
     void udp_remove (struct udp_pcb *pcb);
-    err_t udp_bind (struct udp_pcb *pcb, struct ip_addr *ipaddr,
+err_t            udp_bind       (struct udp_pcb *pcb, ip_addr_t *ipaddr,
             u16_t port);
-    err_t udp_connect (struct udp_pcb *pcb, struct ip_addr *ipaddr,
+err_t            udp_connect    (struct udp_pcb *pcb, ip_addr_t *ipaddr,
             u16_t port);
     void udp_disconnect (struct udp_pcb *pcb);
-    void udp_recv (struct udp_pcb *pcb,
-            void (* recv)(void *arg, struct udp_pcb *upcb,
-                    struct pbuf *p,
-                    struct ip_addr *addr,
-                    u16_t port),
+void             udp_recv       (struct udp_pcb *pcb, udp_recv_fn recv,
             void *recv_arg);
-    err_t udp_sendto_if (struct udp_pcb *pcb, struct pbuf *p, struct ip_addr *dst_ip, u16_t dst_port, struct netif *netif);
-    err_t udp_sendto (struct udp_pcb *pcb, struct pbuf *p, struct ip_addr *dst_ip, u16_t dst_port);
+err_t            udp_sendto_if  (struct udp_pcb *pcb, struct pbuf *p,
+                                 ip_addr_t *dst_ip, u16_t dst_port,
+                                 struct netif *netif);
+err_t            udp_sendto     (struct udp_pcb *pcb, struct pbuf *p,
+                                 ip_addr_t *dst_ip, u16_t dst_port);
     err_t udp_send (struct udp_pcb *pcb, struct pbuf *p);
+
+#if LWIP_CHECKSUM_ON_COPY
+err_t            udp_sendto_if_chksum(struct udp_pcb *pcb, struct pbuf *p,
+                                 ip_addr_t *dst_ip, u16_t dst_port,
+                                 struct netif *netif, u8_t have_chksum,
+                                 u16_t chksum);
+err_t            udp_sendto_chksum(struct udp_pcb *pcb, struct pbuf *p,
+                                 ip_addr_t *dst_ip, u16_t dst_port,
+                                 u8_t have_chksum, u16_t chksum);
+err_t            udp_send_chksum(struct udp_pcb *pcb, struct pbuf *p,
+                                 u8_t have_chksum, u16_t chksum);
+#endif /* LWIP_CHECKSUM_ON_COPY */
 
 #define          udp_flags(pcb)  ((pcb)->flags)
 #define          udp_setflags(pcb, f)  ((pcb)->flags = (f))
@@ -141,7 +156,7 @@ extern "C"
     /* The following functions are the lower layer interface to UDP. */
     void udp_input (struct pbuf *p, struct netif *inp);
 
-#define udp_init() /* Compatibility define, not init needed. */
+void             udp_init       (void);
 
 #if UDP_DEBUG
     void udp_debug_print(struct udp_hdr *udphdr);

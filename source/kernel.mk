@@ -53,11 +53,11 @@ KOBJ += File.o Directory.o Resource.o SimpleFileManager.o SharedMemResource.o Fi
 KOBJ += PowerManager.o CharacterDevice.o BlockDeviceDriver.o TimerDevice.o CommDeviceDriver.o  Clock.o BufferDevice.o
 # KOBJ += USCommDeviceDriver.o
 #inc
-KOBJ += stringtools.o memtools.o sprintf.o putc.o libgccmath.o endian.o crc32.o
+KOBJ += stringtools.o memtools.o sprintf.o putc.o libgccmath.o endian.o crc32.o random.o
 #kernel
 KOBJ += kwait.o kernelmain.o Kernel.o KernelServiceThread.o
 #mem
-KOBJ +=  new.o 
+KOBJ += new.o timers.o
 # scheduler
 KOBJ += RoundRobinThreadScheduler.o PriorityThreadScheduler.o RateMonotonicThreadScheduler.o EarliestDeadlineFirstThreadScheduler.o
 #process

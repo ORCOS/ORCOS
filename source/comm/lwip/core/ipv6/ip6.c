@@ -46,9 +46,7 @@
 #include "ipv6/icmp6.h"
 #include "lwip/udp.h"
 #include "lwip/tcp.h"
-
 #include "lwip/stats.h"
-
 #include "arch/perf.h"
 
 /* ip_init:

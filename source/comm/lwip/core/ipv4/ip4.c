@@ -68,6 +68,9 @@ struct netif *current_netif;
  */
 const struct ip4_hdr *current_header;
 
+const ip_addr_t ip4_addr_any       = IP_ADDR_INIT_IPV4(255,255,255,255);
+const ip_addr_t ip4_addr_broadcast = IP_ADDR_INIT_IPV4(255,255,255,255);;
+
 /**
  * Finds the appropriate network interface for a given IP address. It
  * searches the list of network interfaces linearly. A match is found
@@ -152,7 +155,9 @@ ip4_forward(struct pbuf *p, struct ip_hdr *iphdr, struct netif *inp) {
 
     LWIP_DEBUGF(IP_DEBUG, ("ip_forward: forwarding packet to 0x%"X32_F""NEWLINE, iphdr->dest.addr));
 
-    IP_STATS_INC(ip.fw);IP_STATS_INC(ip.xmit);snmp_inc_ipforwdatagrams();
+    IP_STATS_INC(ip.fw);
+    IP_STATS_INC(ip.xmit);
+    snmp_inc_ipforwdatagrams();
 
     PERF_STOP("ip_forward");
     /* transmit pbuf on chosen interface */
@@ -184,14 +189,18 @@ err_t ip4_input(struct pbuf *p, struct netif *inp) {
     int check_ip_src=1;
 #endif /* LWIP_DHCP */
 
-    IP_STATS_INC(ip.recv);snmp_inc_ipinreceives();
+    IP_STATS_INC(ip.recv);
+    snmp_inc_ipinreceives();
 
     /* identify the IP header */
-    iphdr = p->payload;
+    iphdr = (struct ip4_hdr *)p->payload;
     if (IP4H_V(iphdr) != 4) {
-        LWIP_DEBUGF(IP_DEBUG | LWIP_DBG_LEVEL_WARNING, ("IP packet dropped due to bad version number %"U16_F""NEWLINE, IP4H_V(iphdr)));ip4_debug_print(p);
+        LWIP_DEBUGF(IP_DEBUG | LWIP_DBG_LEVEL_WARNING, ("IP packet dropped due to bad version number %"U16_F""NEWLINE, IP4H_V(iphdr)));
+        ip4_debug_print(p);
         pbuf_free(p);
-        IP_STATS_INC(ip.err);IP_STATS_INC(ip.drop);snmp_inc_ipinhdrerrors();
+        IP_STATS_INC(ip.err);
+        IP_STATS_INC(ip.drop);
+        snmp_inc_ipinhdrerrors();
         return ERR_OK;
     }
 
@@ -212,7 +221,9 @@ err_t ip4_input(struct pbuf *p, struct netif *inp) {
         }
         /* free (drop) packet pbufs */
         pbuf_free(p);
-        IP_STATS_INC(ip.lenerr);IP_STATS_INC(ip.drop);snmp_inc_ipindiscards();
+        IP_STATS_INC(ip.lenerr);
+        IP_STATS_INC(ip.drop);
+        snmp_inc_ipindiscards();
         return ERR_OK;
     }
 
@@ -221,9 +232,12 @@ err_t ip4_input(struct pbuf *p, struct netif *inp) {
 #if CHECKSUM_CHECK_IP
     if (inet_chksum(iphdr, iphdr_hlen) != 0) {
 
-        LWIP_DEBUGF(IP_DEBUG | LWIP_DBG_LEVEL_SERIOUS, ("Checksum (0x%"X16_F") failed, IP packet dropped."NEWLINE, inet_chksum(iphdr, iphdr_hlen)));ip4_debug_print(p);
+        LWIP_DEBUGF(IP_DEBUG | LWIP_DBG_LEVEL_SERIOUS, ("Checksum (0x%"X16_F") failed, IP packet dropped."NEWLINE, inet_chksum(iphdr, iphdr_hlen)));
+        ip4_debug_print(p);
         pbuf_free(p);
-        IP_STATS_INC(ip.chkerr);IP_STATS_INC(ip.drop);snmp_inc_ipinhdrerrors();
+        IP_STATS_INC(ip.chkerr);
+        IP_STATS_INC(ip.drop);
+        snmp_inc_ipinhdrerrors();
         return ERR_OK;
     }
 #endif
@@ -305,7 +319,9 @@ err_t ip4_input(struct pbuf *p, struct netif *inp) {
             LWIP_DEBUGF(IP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_LEVEL_WARNING, ("ip_input: packet source is not valid."NEWLINE));
             /* free (drop) packet pbufs */
             pbuf_free(p);
-            IP_STATS_INC(ip.drop);snmp_inc_ipinaddrerrors();snmp_inc_ipindiscards();
+            IP_STATS_INC(ip.drop);
+            snmp_inc_ipinaddrerrors();
+            snmp_inc_ipindiscards();
             return ERR_OK;
         }
     }
@@ -323,7 +339,8 @@ err_t ip4_input(struct pbuf *p, struct netif *inp) {
         else
 #endif /* IP_FORWARD */
         {
-            snmp_inc_ipinaddrerrors();snmp_inc_ipindiscards();
+            snmp_inc_ipinaddrerrors();
+            snmp_inc_ipindiscards();
         }
         pbuf_free(p);
         return ERR_OK;
@@ -339,10 +356,12 @@ err_t ip4_input(struct pbuf *p, struct netif *inp) {
         if (p == NULL) {
             return ERR_OK;
         }
-        iphdr = p->payload;
+        iphdr = (struct ip4_hdr *)p->payload;
 #else /* IP_REASSEMBLY == 0, no packet fragment reassembly code present */
         pbuf_free(p);
-        LWIP_DEBUGF(IP_DEBUG | LWIP_DBG_LEVEL_SERIOUS, ("IP packet dropped since it was fragmented (0x%"X16_F") (while IP_REASSEMBLY == 0)."NEWLINE, ntohs(IP4H_OFFSET(iphdr))));IP_STATS_INC(ip.opterr);IP_STATS_INC(ip.drop);
+        LWIP_DEBUGF(IP_DEBUG | LWIP_DBG_LEVEL_SERIOUS, ("IP packet dropped since it was fragmented (0x%"X16_F") (while IP_REASSEMBLY == 0)."NEWLINE, ntohs(IP4H_OFFSET(iphdr))));
+        IP_STATS_INC(ip.opterr);
+        IP_STATS_INC(ip.drop);
         /* unsupported protocol feature */
         snmp_inc_ipinunknownprotos();
         return ERR_OK;
@@ -353,13 +372,14 @@ err_t ip4_input(struct pbuf *p, struct netif *inp) {
 
 #if LWIP_IGMP
     /* there is an extra "router alert" option in IGMP messages which we allow for but do not police */
-    if (iphdr_hlen > IP_HLEN && (IPH_PROTO(iphdr) != IP_PROTO_IGMP)) {
+    if (iphdr_hlen > IP4_HLEN && (IP4H_PROTO(iphdr) != IP4_PROTO_IGMP)) {
 #else
         if (iphdr_hlen > IP_HLEN) {
 #endif /* LWIP_IGMP */
             LWIP_DEBUGF(IP_DEBUG | LWIP_DBG_LEVEL_SERIOUS, ("IP packet dropped since there were IP options (while IP_OPTIONS_ALLOWED == 0)."NEWLINE));
             pbuf_free(p);
-            IP_STATS_INC(ip.opterr); IP_STATS_INC(ip.drop);
+            IP_STATS_INC(ip.opterr);
+            IP_STATS_INC(ip.drop);
             /* unsupported protocol feature */
             snmp_inc_ipinunknownprotos();
             return ERR_OK;
@@ -409,7 +429,8 @@ err_t ip4_input(struct pbuf *p, struct netif *inp) {
         default:
 #if LWIP_ICMP
             /* send ICMP destination protocol unreachable unless is was a broadcast */
-            if (!ip4_addr_isbroadcast(&(iphdr->dest), inp) && !ip4_addr_ismulticast(&(iphdr->dest))) {
+            if (!ip4_addr_isbroadcast(&(iphdr->dest), inp) &&
+                !ip4_addr_ismulticast(&(iphdr->dest))) {
                 p->payload = iphdr;
                 icmp_dest_unreach(p, ICMP_DUR_PROTO);
             }
@@ -504,11 +525,12 @@ err_t ip_output_if_opt(struct pbuf *p, struct ip_addr *src, struct ip4_addr *des
         if (pbuf_header(p, IP4_HLEN)) {
             LWIP_DEBUGF(IP_DEBUG | LWIP_DBG_LEVEL_SERIOUS, ("ip_output: not enough room for IP header in pbuf"NEWLINE));
 
-            IP_STATS_INC(ip.err);snmp_inc_ipoutdiscards();
+            IP_STATS_INC(ip.err);
+            snmp_inc_ipoutdiscards();
             return ERR_BUF;
         }
 
-        iphdr = p->payload;
+        iphdr = (struct ip4_hdr *)p->payload;
         LWIP_ASSERT("check that first pbuf can hold struct ip_hdr", (p->len >= sizeof(struct ip4_hdr)));
 
         IP4H_TTL_SET(iphdr, ttl);

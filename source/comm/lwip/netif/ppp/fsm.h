@@ -1,35 +1,35 @@
 /*****************************************************************************
- * fsm.h - Network Control Protocol Finite State Machine header file.
- *
- * Copyright (c) 2003 by Marc Boucher, Services Informatiques (MBSI) inc.
- * Copyright (c) 1997 Global Election Systems Inc.
- *
- * The authors hereby grant permission to use, copy, modify, distribute,
- * and license this software and its documentation for any purpose, provided
- * that existing copyright notices are retained in all copies and that this
- * notice and the following disclaimer are included verbatim in any
- * distributions. No written agreement, license, or royalty fee is required
- * for any of the authorized uses.
- *
- * THIS SOFTWARE IS PROVIDED BY THE CONTRIBUTORS *AS IS* AND ANY EXPRESS OR
- * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- ******************************************************************************
- * REVISION HISTORY
- *
- * 03-01-01 Marc Boucher <marc@mbsi.ca>
- *   Ported to lwIP.
- * 97-11-05 Guy Lancaster <glanca@gesn.com>, Global Election Systems Inc.
- *   Original based on BSD code.
- *****************************************************************************/
+* fsm.h - Network Control Protocol Finite State Machine header file.
+*
+* Copyright (c) 2003 by Marc Boucher, Services Informatiques (MBSI) inc.
+* Copyright (c) 1997 Global Election Systems Inc.
+*
+* The authors hereby grant permission to use, copy, modify, distribute,
+* and license this software and its documentation for any purpose, provided
+* that existing copyright notices are retained in all copies and that this
+* notice and the following disclaimer are included verbatim in any 
+* distributions. No written agreement, license, or royalty fee is required
+* for any of the authorized uses.
+*
+* THIS SOFTWARE IS PROVIDED BY THE CONTRIBUTORS *AS IS* AND ANY EXPRESS OR
+* IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+* OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+* IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+* INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+* NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+* DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+* THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+* THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*
+******************************************************************************
+* REVISION HISTORY
+*
+* 03-01-01 Marc Boucher <marc@mbsi.ca>
+*   Ported to lwIP.
+* 97-11-05 Guy Lancaster <glanca@gesn.com>, Global Election Systems Inc.
+*   Original based on BSD code.
+*****************************************************************************/
 /*
  * fsm.h - {Link, IP} Control Protocol Finite State Machine definitions.
  *
@@ -48,19 +48,17 @@
  * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
- * $Id: fsm.h,v 1.4 2007/12/19 20:47:23 fbernon Exp $
+ * $Id: fsm.h,v 1.5 2009/12/31 17:08:08 goldsimon Exp $
  */
 
 #ifndef FSM_H
 #define FSM_H
 
-/*****************************************************************************
- ************************* PUBLIC DEFINITIONS *********************************
- *****************************************************************************/
 /*
  * LCP Packet header = Code, id, length.
  */
 #define HEADERLEN (sizeof (u_char) + sizeof (u_char) + sizeof (u_short))
+
 
 /*
  *  CP (LCP, IPCP, etc.) codes.
@@ -72,6 +70,49 @@
 #define TERMREQ     5 /* Termination Request */
 #define TERMACK     6 /* Termination Ack */
 #define CODEREJ     7 /* Code Reject */
+
+
+/*
+ * Each FSM is described by an fsm structure and fsm callbacks.
+ */
+typedef struct fsm {
+  int unit;                        /* Interface unit number */
+  u_short protocol;                /* Data Link Layer Protocol field value */
+  int state;                       /* State */
+  int flags;                       /* Contains option bits */
+  u_char id;                       /* Current id */
+  u_char reqid;                    /* Current request id */
+  u_char seen_ack;                 /* Have received valid Ack/Nak/Rej to Req */
+  int timeouttime;                 /* Timeout time in milliseconds */
+  int maxconfreqtransmits;         /* Maximum Configure-Request transmissions */
+  int retransmits;                 /* Number of retransmissions left */
+  int maxtermtransmits;            /* Maximum Terminate-Request transmissions */
+  int nakloops;                    /* Number of nak loops since last ack */
+  int maxnakloops;                 /* Maximum number of nak loops tolerated */
+  struct fsm_callbacks* callbacks; /* Callback routines */
+  char* term_reason;               /* Reason for closing protocol */
+  int term_reason_len;             /* Length of term_reason */
+} fsm;
+
+
+typedef struct fsm_callbacks {
+  void (*resetci)(fsm*);                            /* Reset our Configuration Information */
+  int  (*cilen)(fsm*);                              /* Length of our Configuration Information */
+  void (*addci)(fsm*, u_char*, int*);               /* Add our Configuration Information */
+  int  (*ackci)(fsm*, u_char*, int);                /* ACK our Configuration Information */
+  int  (*nakci)(fsm*, u_char*, int);                /* NAK our Configuration Information */
+  int  (*rejci)(fsm*, u_char*, int);                /* Reject our Configuration Information */
+  int  (*reqci)(fsm*, u_char*, int*, int);          /* Request peer's Configuration Information */
+  void (*up)(fsm*);                                 /* Called when fsm reaches LS_OPENED state */
+  void (*down)(fsm*);                               /* Called when fsm leaves LS_OPENED state */
+  void (*starting)(fsm*);                           /* Called when we want the lower layer */
+  void (*finished)(fsm*);                           /* Called when we don't want the lower layer */
+  void (*protreject)(int);                          /* Called when Protocol-Reject received */
+  void (*retransmit)(fsm*);                         /* Retransmission is necessary */
+  int  (*extcode)(fsm*, int, u_char, u_char*, int); /* Called when unknown code received */
+  char *proto_name;                                 /* String name for protocol (for messages) */
+} fsm_callbacks;
+
 
 /*
  * Link states.
@@ -94,71 +135,23 @@
 #define OPT_RESTART 2 /* Treat 2nd OPEN as DOWN, UP */
 #define OPT_SILENT  4 /* Wait for peer to speak first */
 
-/*****************************************************************************
- ************************* PUBLIC DATA TYPES **********************************
- *****************************************************************************/
-/*
- * Each FSM is described by an fsm structure and fsm callbacks.
- */
-typedef struct fsm {
-    int unit; /* Interface unit number */
-    u_short protocol; /* Data Link Layer Protocol field value */
-    int state; /* State */
-    int flags; /* Contains option bits */
-    u_char id; /* Current id */
-    u_char reqid; /* Current request id */
-    u_char seen_ack; /* Have received valid Ack/Nak/Rej to Req */
-    int timeouttime; /* Timeout time in milliseconds */
-    int maxconfreqtransmits; /* Maximum Configure-Request transmissions */
-    int retransmits; /* Number of retransmissions left */
-    int maxtermtransmits; /* Maximum Terminate-Request transmissions */
-    int nakloops; /* Number of nak loops since last ack */
-    int maxnakloops; /* Maximum number of nak loops tolerated */
-    struct fsm_callbacks* callbacks; /* Callback routines */
-    char* term_reason; /* Reason for closing protocol */
-    int term_reason_len; /* Length of term_reason */
-} fsm;
-
-typedef struct fsm_callbacks {
-    void (*resetci)(fsm*); /* Reset our Configuration Information */
-    int (*cilen)(fsm*); /* Length of our Configuration Information */
-    void (*addci)(fsm*, u_char*, int*); /* Add our Configuration Information */
-    int (*ackci)(fsm*, u_char*, int); /* ACK our Configuration Information */
-    int (*nakci)(fsm*, u_char*, int); /* NAK our Configuration Information */
-    int (*rejci)(fsm*, u_char*, int); /* Reject our Configuration Information */
-    int (*reqci)(fsm*, u_char*, int*, int); /* Request peer's Configuration Information */
-    void (*up)(fsm*); /* Called when fsm reaches LS_OPENED state */
-    void (*down)(fsm*); /* Called when fsm leaves LS_OPENED state */
-    void (*starting)(fsm*); /* Called when we want the lower layer */
-    void (*finished)(fsm*); /* Called when we don't want the lower layer */
-    void (*protreject)(int); /* Called when Protocol-Reject received */
-    void (*retransmit)(fsm*); /* Retransmission is necessary */
-    int (*extcode)(fsm*, int, u_char, u_char*, int); /* Called when unknown code received */
-    char *proto_name; /* String name for protocol (for messages) */
-} fsm_callbacks;
-
-/*****************************************************************************
- *********************** PUBLIC DATA STRUCTURES *******************************
- *****************************************************************************/
-/*
- * Variables
- */
-extern int peer_mru[]; /* currently negotiated peer MRU (per unit) */
-
-/*****************************************************************************
- ************************** PUBLIC FUNCTIONS **********************************
- *****************************************************************************/
 
 /*
  * Prototypes
  */
-void fsm_init(fsm*);
-void fsm_lowerup(fsm*);
-void fsm_lowerdown(fsm*);
-void fsm_open(fsm*);
-void fsm_close(fsm*, char*);
-void fsm_input(fsm*, u_char*, int);
-void fsm_protreject(fsm*);
-void fsm_sdata(fsm*, u_char, u_char, u_char*, int);
+void fsm_init (fsm*);
+void fsm_lowerup (fsm*);
+void fsm_lowerdown (fsm*);
+void fsm_open (fsm*);
+void fsm_close (fsm*, char*);
+void fsm_input (fsm*, u_char*, int);
+void fsm_protreject (fsm*);
+void fsm_sdata (fsm*, u_char, u_char, u_char*, int);
+
+
+/*
+ * Variables
+ */
+extern int peer_mru[]; /* currently negotiated peer MRU (per unit) */
 
 #endif /* FSM_H */

@@ -1220,25 +1220,9 @@ ErrorT SMSC95xxUSBDeviceDriver::initialize() {
      * will get e.g. port status changes  */
     dev->activateEndpoint(int_ep);
 
-    /* set netmask for this device */
-    struct ip4_addr eth_nm;
-
-#ifndef Board_ETH_IP4NETMASK
-#define Board_ETH_IP4NETMASK 255, 255, 255, 0
-#endif
-
-    int netmask[4] = { Board_ETH_IP4NETMASK };
-    IP4_ADDR(&eth_nm, netmask[0], netmask[1], netmask[2], netmask[3]);
-
-#ifndef Board_ETH_IP4ADDR
-#define Board_ETH_IP4ADDR 192, 168, 1, 100
-#endif
-
-    int ipaddr[4] = { Board_ETH_IP4ADDR };
-
-    struct ip4_addr tgwAddr;
-    IP4_ADDR(&tgwAddr, 192, 168, 1, 1);
-    IP4_ADDR(&tIpAddr, ipaddr[0], ipaddr[1], ipaddr[2], ipaddr[3]);
+    struct ip_addr eth_nm   = IP_ADDR_INIT_IPV4(255,255,255,0);
+    struct ip_addr tIpAddr  = IP_ADDR_INIT_IPV4(192,168,1,100);
+    struct ip_addr tgwAddr  = IP_ADDR_INIT_IPV4(192,168,1,1);
 
     /* save driver in netif as state
      * use ethernet interface init method in lwip_ethernetif.c */

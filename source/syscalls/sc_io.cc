@@ -457,18 +457,18 @@ int sc_fstat(intptr_t int_sp) {
         stat->st_type = res->getType();
 
         if (res->getType() & cFile) {
-            File* file = static_cast<File*>(res);
-            stat->st_size = file->getFileSize();
+            File* file     = static_cast<File*>(res);
+            stat->st_size  = file->getFileSize();
             stat->st_flags = file->getFlags();
         } else if (res->getType() & cDirectory) {
             Directory* dir = static_cast<Directory*>(res);
-            stat->st_size = dir->getNumEntries();
+            stat->st_size  = dir->getNumEntries();
         }
 
-        return (cOk );
+        return (cOk);
     }
 
-    return (cResourceNotOwned );
+    return (cResourceNotOwned);
 }
 #endif
 
@@ -517,7 +517,7 @@ int sc_fremove(intptr_t int_sp) {
 
     /* directory found? */
     if (res == 0) {
-        return (cInvalidPath );
+        return (cInvalidPath);
     }
 
     Directory* dir = static_cast<Directory*>(res);
@@ -542,7 +542,7 @@ int sc_fremove(intptr_t int_sp) {
 
         return (ret);
     } else {
-        return (cError );
+        return (cResourceNotOwned);
     }
 }
 #endif
@@ -570,7 +570,7 @@ int sc_fseek(intptr_t int_sp) {
     res = pCurrentRunningTask->getOwnedResourceById(fd);
 
     if (whence < 0 || whence > 2)
-        return (cInvalidArgument );
+        return (cInvalidArgument);
 
     if (res != 0) {
         if (res->getType() & (cDirectory | cFile)) {
@@ -599,14 +599,14 @@ int sc_fseek(intptr_t int_sp) {
                 return (cres->seek(offset));
             }
 
-            return (cInvalidArgument );
+            return (cInvalidArgument);
 
         } else {
-            return (cWrongResourceType );
+            return (cWrongResourceType);
         }
     }
 
-    return (cError );
+    return (cError);
 }
 #endif
 
@@ -632,18 +632,18 @@ int sc_mkdev(intptr_t int_sp) {
     VALIDATE_IN_PROCESS(devname);
 
     if (strlen(devname) == 0) {
-        return (cInvalidArgument );
+        return (cInvalidArgument);
     }
 
     Directory* dir = theOS->getFileManager()->getDirectory("/dev/");
     if (dir->get(devname, strlen(devname)) != 0)
-        return (cResourceAlreadyExists );
+        return (cResourceAlreadyExists);
 
     LOG(SYSCALLS, DEBUG, "Syscall: mkdev(%s, %u)", devname, bufferSize);
     res = new BufferDevice(devname, bufferSize);
     if (!res->isValid()) {
         delete res;
-        return (cError );
+        return (cError);
     }
 
     retval = pCurrentRunningTask->acquireResource(res, pCurrentRunningThread, false);

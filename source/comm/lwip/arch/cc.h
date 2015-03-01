@@ -12,6 +12,7 @@
 #include "types.hh"
 #include "sprintf.hh"
 #include "lwipopts.h"
+#include "inc/random.h"
 
 /* Define platform endianness */
 #ifndef BYTE_ORDER

@@ -6,6 +6,7 @@
  */
 
 #include "ip.h"
+#include "inet.h"
 #include "ipv4/ip4.h"
 #include "ipv6/ip6.h"
 #include "lwip/def.h"
@@ -18,6 +19,17 @@ void ip_addr_set(struct ip_addr *dest, struct ip_addr *src) {
         ip6_addr_set(&dest->addr.ip6addr, &src->addr.ip6addr);
     }
 }
+
+void ip_addr_set4(struct ip_addr *dest, struct ip4_addr *src) {
+    dest->version = IPV4;
+    ip4_addr_set(&dest->addr.ip4addr, src);
+}
+
+void ip_addr_set6(struct ip_addr *dest, struct ip6_addr *src) {
+    dest->version = IPV6;
+    ip6_addr_set(&dest->addr.ip6addr, src);
+}
+
 
 u8_t ip_addr_netcmp(struct ip_addr *addr1, struct ip_addr *addr2, struct ip_addr *mask) {
     if (addr1 == 0 || addr2 == 0)
@@ -60,6 +72,15 @@ u8_t ip_addr_isany(struct ip_addr *addr) {
         return (ip6_addr_isany(&addr->addr.ip6addr));
     }
 }
+
+void ip_addr_set_any(struct ip_addr *addr) {
+    if (addr == 0)
+        return;
+
+    addr->version = IPV4;
+    addr->addr.ip4addr.addr = 0;
+}
+
 
 u8_t ip_addr_isbroadcast(struct ip_addr* addr, struct netif* nif) {
     if (addr == 0)

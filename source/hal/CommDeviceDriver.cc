@@ -48,20 +48,23 @@ CommDeviceDriver::~CommDeviceDriver() {
 ErrorT CommDeviceDriver::ioctl(int request, void* args) {
     switch (request) {
     case cNETIF_SETIPV4: {
-        struct ip4_addr ipAddr;
-        ipAddr.addr = (u32_t) args;
+        struct ip_addr ipAddr;
+        ipAddr.addr.ip4addr.addr = (u32_t) args;
+        ipAddr.version = IPV4;
         netif_set_ipaddr(&st_netif, &ipAddr);
         break;
     }
     case cNETIF_SETGWIPV4: {
-        struct ip4_addr ipAddr;
-        ipAddr.addr = (u32_t) args;
+        struct ip_addr ipAddr;
+        ipAddr.addr.ip4addr.addr = (u32_t) args;
+        ipAddr.version = IPV4;
         netif_set_gw(&st_netif, &ipAddr);
         break;
     }
     case cNETIF_SETNETMASK: {
-        struct ip4_addr ipAddr;
-        ipAddr.addr = (u32_t) args;
+        struct ip_addr ipAddr;
+        ipAddr.addr.ip4addr.addr = (u32_t) args;
+        ipAddr.version = IPV4;
         netif_set_netmask(&st_netif, &ipAddr);
         break;
     }

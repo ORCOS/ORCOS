@@ -78,36 +78,24 @@ ErrorT TCPTransportProtocol::send(packet_layer* payload, AddressProtocol* NextLa
 
     int ret;
 
-    // allocate a pbuf
-    struct pbuf *p = pbuf_alloc(PBUF_TRANSPORT, payload->size, PBUF_RAM);
-    if (p != 0) {
-        // unfortunately we need to copy here
-        memcpy(p->payload, payload->bytes, payload->size);
-        struct tcp_pcb *pcb = (struct tcp_pcb*) fromsock->arg;
+    struct tcp_pcb *pcb = (struct tcp_pcb*) fromsock->arg;
+    if (pcb == 0) {
+        return (cInvalidArgument);
+    }
 
-        // try to write it to the tcp stack
-        // will try to enqueue the packet and maybe merge it with previous ones still on queue
-        ret = tcp_write(pcb, p, p->len, 0);
+    ret = tcp_write(pcb, payload->bytes, payload->size, TCP_WRITE_FLAG_COPY);
 
-        // free anyway
-        pbuf_free(p);
-
-        // check if enqueue operation was successfull
-        if (ret != ERR_OK) {
-            ret = cTCPEnqueueFailed;
-            goto outret;
-        }
-
-        // try to send directly
-        tcp_output(pcb);
-
-        ret = cOk;
-        goto outret;
-    } else {
-        ret = cPBufNoMoreMemory;
-        LOG(COMM, WARN, "TCP:send(): packet dropped.. no more memory..!");
+    /* check if enqueue operation was successfull */
+    if (ret != ERR_OK) {
+        ret = cTCPEnqueueFailed;
         goto outret;
     }
+
+    /* try to send directly */
+    tcp_output(pcb);
+
+    ret = cOk;
+    goto outret;
 
 outret:
     comStackMutex->release();
@@ -163,7 +151,7 @@ void TCPTransportProtocol::received(Socket* socket, pbuf* p) {
     struct tcp_pcb* pcb = (struct tcp_pcb*) socket->arg;
     comStackMutex->acquire();
     if (pcb != 0) {
-        // indicate that we received this packet
+        /* indicate that we received this packet */
         tcp_recved(pcb, p->tot_len);
     }
     pbuf_free(p);
@@ -216,7 +204,7 @@ static err_t tcp_accept_wrapper(void *arg, struct tcp_pcb *newpcb, err_t err) {
     LOG(COMM, DEBUG, "TCP: accept wrapper: newpcb: %x", newpcb);
 
     /* decrease accepts pending counter anyway*/
-    tcp_accepted(oldsock->arg);
+    tcp_accepted((struct tcp_pcb*)oldsock->arg);
 
     /* Create a new socket for the connection */
     LOG(COMM, DEBUG, "TCP: accepted...");

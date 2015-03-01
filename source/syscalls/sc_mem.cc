@@ -61,12 +61,12 @@ int sc_shm_map(intptr_t sp_int) {
     Resource* res = theOS->getFileManager()->getResourceByNameandType(file, cSharedMem);
     if (res == 0) {
         if (!(flags & cCreate))
-            return (cInvalidArgument );
+            return (cFileNotFound);
 
         /* strip the path prefix for new shared memory creation*/
         int filenamelen = strlen(file);
         if (filenamelen > 256)
-            return (cInvalidArgument );
+            return (cInvalidArgument);
 
         /* identify index with filename start*/
         int i;
@@ -79,13 +79,13 @@ int sc_shm_map(intptr_t sp_int) {
         memset(name, 0, filenamelen - i);
         memcpy(name, &file[i + 1], filenamelen - i - 1);
 
-        // create the shared mem resource
+        /* create the shared mem resource */
         SharedMemResource* sres = new SharedMemResource(*mapped_size, name, pCurrentRunningTask);
         /* check on creation failure */
         if (sres->getPhysicalStartAddress() == 0) {
             /* delete resource again */
             delete sres;
-            return (cDeviceMemoryExhausted );
+            return (cMemMappingError);
         } else {
             res = sres;
         }
@@ -97,7 +97,7 @@ int sc_shm_map(intptr_t sp_int) {
 
     /* is this shared mem resource valid? */
     if (shm_res->getPhysicalStartAddress() == 0)
-        return (cInvalidResource );
+        return (cInvalidResource);
 
     /* map it into the address space of the calling task */
     int retval = shm_res->mapIntoTask(pCurrentRunningTask, virtual_address);

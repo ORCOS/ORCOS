@@ -26,6 +26,8 @@
  * Author: Simon Goldschmidt
  *
  */
+#ifndef __LWIP_NETDB_H__
+#define __LWIP_NETDB_H__
 
 #include "lwip/opt.h"
 
@@ -33,7 +35,12 @@
 
 #include <stddef.h> /* for size_t */
 
+#include "lwip/inet.h"
 #include "lwip/sockets.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* some rarely used options */
 #ifndef LWIP_DNS_API_DECLARE_H_ERRNO
@@ -62,28 +69,26 @@
 #endif /* LWIP_DNS_API_DEFINE_ERRORS */
 
 #if LWIP_DNS_API_DECLARE_STRUCTS
-struct hostent
-{
-    char *h_name; /* Official name of the host. */
-    char **h_aliases; /* A pointer to an array of pointers to alternative host names,
-     terminated by a null pointer. */
-    int h_addrtype; /* Address type. */
-    int h_length; /* The length, in bytes, of the address. */
+struct hostent {
+    char  *h_name;      /* Official name of the host. */
+    char **h_aliases;   /* A pointer to an array of pointers to alternative host names,
+                           terminated by a null pointer. */
+    int    h_addrtype;  /* Address type. */
+    int    h_length;    /* The length, in bytes, of the address. */
     char **h_addr_list; /* A pointer to an array of pointers to network addresses (in
-     network byte order) for the host, terminated by a null pointer. */
+                           network byte order) for the host, terminated by a null pointer. */
 #define h_addr h_addr_list[0] /* for backward compatibility */
 };
 
-struct addrinfo
-{
-    int ai_flags; /* Input flags. */
-    int ai_family; /* Address family of socket. */
-    int ai_socktype; /* Socket type. */
-    int ai_protocol; /* Protocol of socket. */
-    socklen_t ai_addrlen; /* Length of socket address. */
-    struct sockaddr *ai_addr; /* Socket address of socket. */
-    char *ai_canonname; /* Canonical name of service location. */
-    struct addrinfo *ai_next; /* Pointer to next in list. */
+struct addrinfo {
+    int               ai_flags;      /* Input flags. */
+    int               ai_family;     /* Address family of socket. */
+    int               ai_socktype;   /* Socket type. */
+    int               ai_protocol;   /* Protocol of socket. */
+    socklen_t         ai_addrlen;    /* Length of socket address. */
+    struct sockaddr  *ai_addr;       /* Socket address of socket. */
+    char             *ai_canonname;  /* Canonical name of service location. */
+    struct addrinfo  *ai_next;       /* Pointer to next in list. */
 };
 #endif /* LWIP_DNS_API_DECLARE_STRUCTS */
 
@@ -94,12 +99,12 @@ extern int h_errno;
 
 struct hostent *lwip_gethostbyname(const char *name);
 int lwip_gethostbyname_r(const char *name, struct hostent *ret, char *buf,
-        size_t buflen, struct hostent **result, int *h_errnop);
+                size_t buflen, struct hostent **result, int *h_errnop);
 void lwip_freeaddrinfo(struct addrinfo *ai);
 int lwip_getaddrinfo(const char *nodename,
-        const char *servname,
-        const struct addrinfo *hints,
-        struct addrinfo **res);
+       const char *servname,
+       const struct addrinfo *hints,
+       struct addrinfo **res);
 
 #if LWIP_COMPAT_SOCKETS
 #define gethostbyname(name) lwip_gethostbyname(name)
@@ -110,4 +115,10 @@ int lwip_getaddrinfo(const char *nodename,
        lwip_getaddrinfo(nodname, servname, hints, res)
 #endif /* LWIP_COMPAT_SOCKETS */
 
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* LWIP_DNS && LWIP_SOCKET */
+
+#endif /* __LWIP_NETDB_H__ */
