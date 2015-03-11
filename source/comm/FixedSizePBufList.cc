@@ -70,7 +70,6 @@ int FixedSizePBufList::addPbuf(pbuf* p, sockaddr* from) {
 
     LOG(COMM, TRACE, "FixedSizePBufList::addPbuf():last_id: %d, pbuf_list : %x, fromaddr: %x", last_id, pbuf_list, from);
 
-    pbuf_ref(p);
     pbuf_list[last_id] = p;
 
     if (from != 0)
