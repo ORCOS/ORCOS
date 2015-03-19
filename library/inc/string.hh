@@ -30,6 +30,10 @@ extern "C" char*    strtok( char *s, const char *delim );
 
 extern "C" char*    strdup (const char *s);
 
+extern "C" void     strnlower(char* pstr, int len);
+
+extern "C" int      strmatch(const char *wildcard, const char *string);
+
 extern "C" void     itoa( int value, char* str, int base );
 
 extern "C" void     uitoa( unsigned int value, char* str, int base );
@@ -43,6 +47,10 @@ extern "C" void*    memset( void* ptr, int c, size_t n);
 extern "C" char*    inet_ntop(int af, const char *src, char *dst, size_t size);
 
 extern "C" void     bzero(void *b,size_t length);
+
+extern "C" char*    dirname(const char *path);
+
+extern "C" char*    basename(const char *path);
 
 
 char* fgets (char *s, int count, int fd);

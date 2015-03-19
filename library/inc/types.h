@@ -43,6 +43,13 @@ typedef struct {
     unint4 len;
 } buffer_t;
 
+struct hostent {
+   char  *h_name;            /* official name of host */
+   char **h_aliases;         /* alias list */
+   int    h_addrtype;        /* host address type */
+   int    h_length;          /* length of address */
+   char **h_addr_list;       /* list of addresses */
+};
 
 #define STAT_TYPE_FILE      0
 #define STAT_TYPE_DIRECTORY 1

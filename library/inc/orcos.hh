@@ -23,7 +23,7 @@
 #include "types.h"
 #include "defines.h"
 
-extern "C" int         syscall (int syscallnumber, ...);
+extern "C" int      syscall (int syscallnumber, ...);
 
 /*!
  * \brief Atomic test and set operation.
@@ -31,8 +31,9 @@ extern "C" int         syscall (int syscallnumber, ...);
  * Tests the value at @address on @testvalue. If the value is @testvalue the value
  * at address is set to @setvalue. The complete operation is ensured to be atomic.
  *
- * Multicore-safe on ARM.
- * returns 1 on success. 0 otherwise.
+ * Multicore-safe.
+ *
+ * \return          1 on success. 0 otherwise.
  */
 extern "C" int      testandset(void* address, int testvalue, int setvalue);
 
@@ -43,7 +44,7 @@ extern "C" int      testandset(void* address, int testvalue, int setvalue);
 /*!
  * \brief The new operator for user level
  */
-void* operator      new( size_t s );
+void* operator      new(size_t s);
 
 /*!
  * \brief Memory allocation method.
@@ -58,7 +59,7 @@ extern "C" void     free(void *s);
 /*!
  * \brief The delete operator for user level
  */
-void operator         delete( void* ptr );
+void operator       delete( void* ptr );
 
 
 
@@ -69,40 +70,39 @@ void operator         delete( void* ptr );
 /*!
  * \brief Start a new task given by its file path.
  *
- * \param path         The path to the task file to be executed
- * \param arguments A null terminated string of arguments
+ * \param path              The path to the task file to be executed
+ * \param arguments         A null terminated string of arguments
  *
- * \return             Error Number < 0 or task id > 0
+ * \return                  Error Number < 0 or task id > 0
  */
-extern "C" int         task_run(char* path, char* arguments);
+extern "C" int              task_run(char* path, char* arguments);
 
 /*!
  * \brief Stops and removes a task from the system.
  *
- * \param taskid     The ID of the task to be removed
+ * \param taskid            The ID of the task to be removed
  *
- * \return             Error Number < 0 or 0 (on success)
+ * \return                  Error Number < 0 or 0 (on success)
  */
-extern "C" int         task_kill(int taskid);
+extern "C" int              task_kill(int taskid);
 
 /*!
  * \brief Stop the specified task. It could be resumed later on.
  *
- * \param taskid the id of the task that should be stopped.
+ * \param taskid            The ID of the task that should be stopped.
  *
- * \return             Error Number
+ * \return                  Error Number
  */
-extern "C" int         task_stop(int taskid);
+extern "C" int              task_stop(int taskid);
 
 /*!
  * \brief resumes the specified task. Resumes execution of a task that is currently not running.
  *
+ * \param taskid            The ID of the task that should be resumed.
  *
- * \param taskid the id of the task that should be resumed.
- *
- * \return             Error Number
+ * \return                  Error Number
  */
-extern "C" int         task_resume(int taskid);
+extern "C" int              task_resume(int taskid);
 
 /**************************************
  *  Thread related system calls
@@ -118,9 +118,9 @@ extern "C" int         task_resume(int taskid);
  *  e.g.: signal_signal(ProcessID_To_Unblock << 16) | (SIG_CHILD_TERMINATED).
  *  This is possible as orcos uses signals for the wait operation.
  *
- * \return          The exit value of the terminated thread.
+ * \return                  The exit value of the terminated thread.
  */
-extern "C" int      wait();
+extern "C" int              wait();
 
 /*!
  * \brief wait for process method.  Blocks the current calling thread until the process terminates.
@@ -131,9 +131,9 @@ extern "C" int      wait();
  *  e.g.: signal_signal(pid << 16).
  *  This is possible as orcos uses signals for the wait operation.
  *
- * \return          The exit value of the terminated process.
+ * \return                 The exit value of the terminated process.
  */
-extern "C" int      waitpid(TaskIdT pid);
+extern "C" int              waitpid(TaskIdT pid);
 
 
 /*!
@@ -146,32 +146,32 @@ extern "C" int      waitpid(TaskIdT pid);
  *  However, another thread may unblock the stuck thread if it
  *  issues the correct signal_signal syscall.
  *
- *  This is possible as orcos uses signals for the wait operation.
+ *  This is possible as ORCOS uses signals for the wait operation.
  *
- * \return          The exit value of the terminated process.
+ * \return                  The exit value of the terminated process.
  */
-extern "C" int      waittid(ThreadIdT tid);
+extern "C" int              waittid(ThreadIdT tid);
 
 /*!
  * \brief wait for irq method.  Blocks the current calling thread until the irq is raised.
  *
  *  The method blocks the current thread until the specified irq is raised.
- *  The thread will be unblock after the irq handler executed and scheduled as normal.
+ *  The thread will be unblock after the irq handler executed (if any) and scheduled as normal.
  *
- * \return          The exit value of the terminated process.
+ * \return                  The exit value of the terminated process.
  */
-extern "C" int      waitirq(unint1 tid);
+extern "C" int              waitirq(unint4 irq);
 
 
 /*!
- *  \brief Sleep method. The calling thread will be blocked for at least 'ms' milliseconds.
+ *  \brief Sleep method. The calling thread will be blocked for at least 's' seconds.
  *
- * Real-Time threads are guaranteed to wake up after the exact (except latency) number of milli-
+ * Real-Time threads are guaranteed to wake up after the exact (except latency) number of
  * seconds. If they have the highest priority they will be executed directly.
  *
- * \param ms    The amount of milliseconds to sleep
+ * \param s                The number of seconds to sleep
  */
-extern "C" void     sleep(int ms);
+extern "C" void            sleep(int s);
 
 /*!
  *  \brief The calling thread will be blocked for at least 'us' micro-seconds.
@@ -179,14 +179,14 @@ extern "C" void     sleep(int ms);
  * Real-Time threads are guaranteed to wake up after the exact (except latency) number of micro-
  * seconds. If they have the highest priority they will be executed directly.
  *
- * \param us    The amount of microseconds to sleep
+ * \param us               The number of microseconds to sleep
  */
-extern "C"void      usleep(int us);
+extern "C"void             usleep(int us);
 
 /*!
  * \brief Returns the process ID of the current running process.
  */
-extern "C" int      getpid();
+extern "C" int             getpid();
 
 /*!
  * \brief Create a new thread.
@@ -196,42 +196,42 @@ extern "C" int      getpid();
  * \param start_routine    Pointer to the executeable code of the thread
  * \param arg              Argument passed to the thread on execution
  *
- * \return                Error Number
+ * \return                 Error Number
  */
-extern "C" int         thread_create(int* threadid,thread_attr_t* attr, void *(*start_routine)(void*), void* arg);
+extern "C" int             thread_create(ThreadIdT* threadid, thread_attr_t* attr, void *(*start_routine)(void*), void* arg);
 
 /*!
  * \brief Start the execution of the thread with id 'threadid'.
  *
- * \param              threadid the id of the thread to run.
- *                     If the threadid is <= 0 all newly created threads of the current task will be started simultaneously!
- *                     This is important if you want multiple realtime threads to arrive at the same time
- *                     so that the schedule is not phase shifted!
+ * \param threadid         The id of the thread to run.
+ *                         If the threadid is <= 0 all newly created threads of the current task will be started simultaneously!
+ *                         This is important if you want multiple realtime threads to arrive at the same time
+ *                         so that the schedule is not phase shifted!
  *
- * \return             Error Number
+ * \return                 Error Number
  */
-extern "C" int         thread_run(int threadid);
+extern "C" int             thread_run(int threadid);
 
 
 /*!
  * \brief Name the Thread given by threadId or current thread
  *
- * \param threadid     The id of the thread to be name. If the threadid is == 0 the current thread is named.
- * \param name         The new name of the thread. Maximum 30 characters will be used.
+ * \param threadid         The id of the thread to be name. If the threadid is == 0 the current thread is named.
+ * \param name             The new name of the thread. Maximum 30 characters will be used.
  *
- * \return             Error Number
+ * \return                 Error Number
  */
-extern "C" int         thread_name(int threadid,char* name);
+extern "C" int             thread_name(int threadid,char* name);
 
 /*!
  * \brief Returns the id of the currently running thread
  */
-extern "C" int         thread_self();
+extern "C" int             thread_self();
 
 /*!
  * \brief Voluntarily yield the cpu to some other thread (if any)
  */
-extern "C" void     thread_yield();
+extern "C" void            thread_yield();
 
 /*!
  * \brief Returns from the the currently executing thread instance
@@ -239,17 +239,17 @@ extern "C" void     thread_yield();
  * Periodic Threads end their currently exeucting thread instance.
  * Aperiod Threads also terminate.
  */
-extern "C" void     thread_exit(int exitCode = cOk);
+extern "C" void            thread_exit(int exitCode = cOk);
 
 /*
  * \brief Terminates the given thread.
  *
- * flag:  TERM_SOFT    Soft terminate the thread after next instance
- *        TERM_HARD    Hard terminate the thread directly
+ * flag:  TERM_SOFT        Soft terminate the thread after next instance
+ *        TERM_HARD        Hard terminate the thread directly
  *
  *returns ErrorCode
  */
-extern "C" int     thread_terminate(ThreadIdT threadId, int flag);
+extern "C" int             thread_terminate(ThreadIdT threadId, int flag = TERM_SOFT);
 
 
 /**************************************
@@ -264,8 +264,10 @@ extern "C" int     thread_terminate(ThreadIdT threadId, int flag);
  *
  *  The calling thread will be blocked until the signal sig is raised by any other thread inside the system.
  *
- *    \param memAddrAsSig     Treat the signal sig as a memory address inside the calling address space.
- *  \returns                The signal value passed by the raising thread.
+ * \param sig              The signal to wait for
+ * \param memAddrAsSig     Treat the signal sig as a memory address inside the calling address space
+ *
+ * \returns                The signal value passed by the raising thread
  */
 extern "C" int             signal_wait( void* sig, bool memAddrAsSig = false );
 
@@ -273,15 +275,16 @@ extern "C" int             signal_wait( void* sig, bool memAddrAsSig = false );
 /*!
  * \brief Raises the system wide signal given by param sig and passes param value as signal value to all waiting threads.
  *
- *  The signal_signal system call raises a system wide signal waiking up all threads waiting for that signal.
+ *  The signal_signal system call raises a system wide signal waking up all threads waiting for that signal.
  *
- *  \param     sig                The signal to be raised. Must be > 0. if memAddrAsSig is true sig will be interpreted as a memory location.
- *  \param  value            The value passed to all waiting threads. Effectively allows 32 bit of message passing.
- *  \param  memAddrAsSig    Treat sig as a memory address in calling threads address space.
+ * \param  sig             The signal to be raised. Must be > 0. if memAddrAsSig is true sig will be interpreted as a memory location.
+ * \param  value           The value passed to all waiting threads. Effectively allows sizeof(int) bytes of message passing.
+ * \param  memAddrAsSig    Treat sig as a memory address in calling threads address space.
  *
+ * \comment
  *  0 is invalid for the signal number.
  */
-extern "C" void         signal_signal( void* sig, int value, bool memAddrAsSig = false );
+extern "C" void            signal_signal( void* sig, int value, bool memAddrAsSig = false );
 
 
 
@@ -292,83 +295,75 @@ extern "C" void         signal_signal( void* sig, int value, bool memAddrAsSig =
 /*
  * COMMENT:
  * Handling character device syscalls is handled quite similiar to the posix
- * standard http://www.opengroup.org/onlinepubs/009695399/ although the implemenation
+ * standard http://www.opengroup.org/onlinepubs/009695399/ although the implementation
  * is not 100% posix standard.
  */
 
-extern "C" int         fcreate(const char* filepath, int flags = cTYPE_FILE);
+extern "C" int             create(const char* filepath, int flags = cTYPE_FILE);
 
 /*!
  * \brief  The fopen() function shall open the resource whose pathname is the string pointed to by filename, and associates a stream with it.
  *
- * \param filename The resource to be opened given by its path (e.g "/dev/testdev")
- * \param blocking If the resource is owned by another task and this is set to 1 the OS will block the current thread until the resource is available
+ * \param filename         The resource to be opened given by its path (e.g "/dev/testdev")
+ * \param blocking         If the resource is owned by another task and this is set to 1 the OS will block
+ *                         the current thread until the resource is available
  *
- * \return             The file descriptor on success. Error Code otherwise.
+ * \return                 The file descriptor on success. Error Code otherwise.
  */
-extern "C" int         fopen(const char* filename, int blocking = 1);
+extern "C" int             open(const char* filename, int blocking = 1);
 
 /*!
- * \brief Close the stream associated with this file handle. May fail if this resource was not aquired
+ * \brief Close the stream associated with this file handle. May fail if this resource was not acquired
  *
- * \param fileid The file descriptor as returned by fopen() of the resource/file to be closed.
+ * \param fd               The file descriptor as returned by open() of the resource/file to be closed.
  *
- * \return            cOk on success. Error Code  otherwise.
+ * \return                 cOk on success. Error Code  otherwise.
  */
-extern "C" int         fclose(int fd);
+extern "C" int             close(int fd);
 
 /*!
- * \brief The fread() function shall read into the array pointed to by ptr up to nitems elements whose size is specified by size in bytes, from the stream pointed to by stream.
+ * \brief The read() function shall read into the array pointed to by ptr up to size bytes, from the stream pointed to by stream.
  *
- * \param  ptr         The array into which the data shall be written
- * \param  size     The amount of data to be read
- * \param  nitems     The amount of items that shall be read (each item has the size 'size')
- * \param  stream     The id of the stream which shall be read
+ * \param  fd              The id of the stream which shall be read
+ * \param  buf             The array into which the data shall be written
+ * \param  size            The amount of data to be read
  *
- * \return             The amount of bytes read
+ * \return                 The amount of bytes read
  */
-extern "C" size_t     fread(int fd, char *buf, size_t size);
+extern "C" size_t          read(int fd, char *buf, size_t size);
 
 /*!
- * \brief The fputc() function shall write the byte specified by c (converted to an unsigned char) to the output stream pointed to by stream, at the position indicated by the associated file-position indicator for the stream (if defined), and shall advance the indicator appropriately. If the file cannot support positioning requests, or if the stream was opened with append mode, the byte shall be appended to the output stream.
+ * \brief The fwrite() function shall write, from the array pointed to by ptr count bytes, to the stream pointed to by stream.
  *
- * \param c         The byte/character to be written
- * \param fd         The file descriptor to be written to
+ * \param fd               The file descriptor of the stream
+ * \param buf              Pointer to the data that shall be written
+ * \param count            The number of bytes to be written.
  *
- * \return            Error Number
+ * \return                 Amount of data written on success
  */
-extern "C" int        fputc(short c, int fd);
-
-/*!
- * \brief Get a byte from a stream
- *
- * \param fd        The file descriptor to be read from
- *
- * \return            The byte read
- */
-extern "C" int        fgetc(int fd);
-
-/*!
- * \brief The fwrite() function shall write, from the array pointed to by ptr, up to nitems elements whose size is specified by size, to the stream pointed to by stream.
- *
- * \param ptr        Pointer to the data that shall be written
- * \param size        The size of each data element to be written
- * \param nitems    The amount of data elements to be written
- * \param fd        The file descriptor of the stream
- *
- * \return            Amount of data written on success
- */
-extern "C" size_t     fwrite(int fd, const void *buf, size_t count);
+extern "C" size_t          write(int fd, const void *buf, size_t count);
 
 /*!
  * \brief The fstat method returns the file statistics of a resource given by its handle fd.
  *
- * \param fd        The file descriptor as returned by fopen()
- * \param stat      Pointer to a stat_t structure that will be filled with the file statistics.
- * \return          cOk on success. Error Code otherwise
+ * \param fd               The file descriptor as returned by open()
+ * \param stat             Pointer to a stat_t structure that will be filled with the file statistics.
+ *
+ * \return                 cOk on success. Error Code otherwise
  */
-extern "C" int       fstat(int fd, stat_t* stat);
+extern "C" int             fstat(int fd, stat_t* stat);
 
+
+/*!
+ * \brief Reads a line from a given file descriptor.
+ *
+ * \param fd               The file descriptor to read from.
+ * \param s                Pointer to a buffer the line will be read to
+ * \param count            Number of bytes to be read at maximum.
+ *
+ * \return                 cOk on success. Error Code otherwise
+ */
+extern "C" char*           fgets (int fd, char *s, int count);
 
 /*!
  * \brief Tries to remove a resource given by its absolute path.
@@ -377,27 +372,53 @@ extern "C" int       fstat(int fd, stat_t* stat);
  * the resource is not removable or it can not be removed due to other reasons.
  * If the resource is locked by any other thread the operation will fail.
  *
- * \param filepath    The file path of the file to be removed
- * \return            cOk on success. Error Code otherwise
+ * \param filepath         The file path of the file to be removed
+ *
+ * \return                 cOk on success. Error Code otherwise
  *
  */
-extern "C" int      fremove(const char* filepath);
+extern "C" int             remove(const char* filepath);
 
 
 /*
+ * \brief Tries to seek inside the file descriptor.
  *
+ * \param fd               The file descriptor to seek in
+ * \param offset           The offset to seek. < 0 seeks backwards > 0 seeks forward
+ * \param whence           The seek behavior:
+ *                          SEEK_SET: seeks to the absolute position given by offset.
+ *                          SEEK_CUR: seeks from the current position.
+ *                          SEEK_END: seeks from the end of the file.
  */
-extern "C" int      fseek(int fd, int offset, int whence);
+extern "C" int             seek(int fd, int offset, int whence);
 
 /*
+ * \brief Creates a virtual device inside the /dev subsystem
+ *
  * Creates a virtual buffer device inside the /dev subsystem
  * with the given name. The device can be used to pipe
- * e.g. stdout of a task to this device.
+ * e.g. stdout of a task to this device, create virtual devices
+ * for user space drivers etc.
+ *
+ * \param devname          Name of the device
+ * \param bufferSize       Internal buffer size of the device
+ *
+ * \return                 cOk on success. Error code otherwise.
  */
-extern "C" int      mkdev(char* devname, int bufferSize);
+extern "C" int             mkdev(char* devname, int bufferSize);
 
-
-extern "C" int      mount(char* src_path, char* dst_path, int type);
+/*
+ * \brief Tries to mount a device/directory etc to the location given by dst_path.
+ *
+ * Tries to mount a device/directory etc to the location given by dst_path.
+ *
+ * \param src_path         The source to mount from. Maybe a directory, device etc.
+ * \param dst_path         The destination to mount to.
+ * \param type             The mount type.
+ *
+ * \return                 cOk on success. Error code otherwise.
+ */
+extern "C" int             mount(char* src_path, char* dst_path, int type);
 
 /*
  * Sequentially reads the entries of a directory given by its file descriptor.
@@ -414,11 +435,11 @@ extern "C" Directory_Entry_t* readdir(int fd);
 /*!
  * \brief Request an I/O Control operation on the device opened with handle 'fd'.
  *
- * \param fd        The opened devices handle.
- * \param request    The I/O Control request operation.
+ * \param fd          The opened devices handle.
+ * \param request     The I/O Control request operation.
  * \param args        Argument to the I/O control operation.
- *                     Depends on operation. may be just an integer
- *                     or a pointer to a structure
+ *                    Depends on operation. may be just an integer
+ *                    or a pointer to a structure
  *
  */
 extern "C" int        ioctl(int fd, int request, void* args);
@@ -427,38 +448,26 @@ extern "C" int        ioctl(int fd, int request, void* args);
  * Allows IO control of tasks input output streams.
  * CMD 0 = Set STDOUT
  */
-extern "C" int      taskioctl(int cmd, int taskid, char* dev);
-
-/*!
- * \brief The fwriteString() function writes the zero terminted string pointed to by prt to the stream referenced by stream. A maximum of max characters are written, which default
- * is 256
- *
- * \param ptr         Pointer to the string that shall be written
- * \param stream    The id of the stream
- * \param max        Maximum length of the string to be written (optional)
- *
- * \return             Amount of bytes written
- */
-extern "C" size_t     fwriteString(const void *ptr, int stream, size_t max = 256);
+extern "C" int        taskioctl(int cmd, int taskid, char* dev);
 
 
 /*!
  * \brief Prints the string (without formatting) to standard out.
  */
-extern "C" size_t     printToStdOut(const void* ptr,size_t max = 256);
+extern "C" size_t     printToStdOut(const void* ptr, size_t max = 256);
 
 
 /*!
  * \brief The map_memory() function asks the kernel to map the desired physical address space to the logical address space specified
  *
- * \param log_start     Logical address space
- * \param phy_start        Physical address space
- * \param size             Size of the address space
- * \param protection    Protection mode of the address space
+ * \param log_start   Logical address space
+ * \param phy_start   Physical address space
+ * \param size        Size of the address space
+ * \param protection  Protection mode of the address space
  *
- * \return                 cOk on success, Error Code  otherwise
+ * \return            cOk on success, Error Code  otherwise
  */
-extern "C" int         map_logmemory( const char* log_start, const char* phy_start, size_t size, int protection);
+extern "C" int        map_logmemory( const char* log_start, const char* phy_start, size_t size, int protection);
 
 
 /*!
@@ -468,8 +477,8 @@ extern "C" int         map_logmemory( const char* log_start, const char* phy_sta
  * Returns an error code: 0 (cOk) on success.
  *
  * \param file              File path of the shared memory area
- * \param mapped_address     return param: contains the virtual address the shared memory area is mapped to
- * \param mapped_size        return param: contains the size of the shared memory area
+ * \param mapped_address    return param: contains the virtual address the shared memory area is mapped to
+ * \param mapped_size       return param: contains the size of the shared memory area
  * \param flags             Mapping flags:
  *                              cCreate             Create shared memory area if it does not exists
  *                                                  Will take the value of *mapped_size as the creation size
@@ -492,7 +501,7 @@ extern "C" int         map_logmemory( const char* log_start, const char* phy_sta
  *  fclose(handle);
  *
  */
-extern "C" int          shm_map(const char* file,unint4* mapped_address, unint4* mapped_size, unint4 flags);
+extern "C" int          shm_map(const char* file, unint4* mapped_address, unint4* mapped_size, unint4 flags);
 
 
 /*!
@@ -501,11 +510,17 @@ extern "C" int          shm_map(const char* file,unint4* mapped_address, unint4*
 extern "C" unint8       getCycles();
 
 /*
+ * \brief Returns the current time since startup in nanoseconds (ns)
+ *
+ */
+extern "C" unint8       getTime();
+
+/*
  * \brief Returns the current DateTime in seconds since 1. Jan. 1970.
  *
  * Use the library method time2date to convert the datetime to a time_t struct.
  */
-extern "C" unint4       getTime();
+extern "C" unint4       getDateTime();
 
 /**************************************
  * Socket related system calls (IPC)
@@ -513,15 +528,15 @@ extern "C" unint4       getTime();
 /*!
  * \brief Create a new socket with adress family of type domain, socket type, and using the specified protocol.
  *
- * \param domain         The Domain of the socket to be created. Domains can be e.g IPV4,IPV6 or any other kind of implemented address family
- * \param type           The type of a socket may be connectionless or connection oriented
- * \param protocol       The protocol used for communication e.g TCP or any other protocol implemented in the os
+ * \param domain       The Domain of the socket to be created. Domains can be e.g IPV4,IPV6 or any other kind of implemented address family
+ * \param type         The type of a socket may be connectionless or connection oriented
+ * \param protocol     The protocol used for communication e.g TCP or any other protocol implemented in the os
  *
  * Successfully created sockets can be destroyed using the flose() syscall. For connection oriented sockets (SOCK_STREAM)
  * this will also close the connection. After calling fclose() on a socket file descriptor the socket can not be used
  * afterwards anymore. Thus, closing a connection implicitly destroys the socket.
  *
- * \return                Id of the created socket on success. Error Code otherwise
+ * \return             Id of the created socket on success. Error Code otherwise
  */
 extern "C" int         socket(int domain, int type, int protocol);
 
@@ -529,27 +544,27 @@ extern "C" int         socket(int domain, int type, int protocol);
 /*!
  * \brief Connect to a given destination on the provided socket.
  *
- * \param socket         The connection oriented socket to connect on
- * \param toaddress      The connection sock address
- * \param timeout        Connection establishment timeout in milliseconds. Must be > 0.
+ * \param socket        The connection oriented socket to connect on
+ * \param toaddress     The connection sock address
+ * \param timeout       Connection establishment timeout in milliseconds. Must be > 0.
  *
  *  This call tries to connect to the given destination address using the socket specified. This call is only
  *  valid for connection oriented sockets (SOCK_STREAM) and will block the calling thread until a timeout occurs
  *  or the connection has been established. The timeout is not configurable and depends on the IP stack configuration.
  *
- * \return                cOk on success. Error Code otherwise.
+ * \return             cOk on success. Error Code otherwise.
  */
 extern "C" int         connect(int socket, const sockaddr *toaddress, int timeout = 2000);
 
 /*!
  * \brief Listen for connection on a socket.
  *
- * \param socket     The connection oriented socket to listen on
+ * \param socket       The connection oriented socket to listen on
  *
  *  Listen to the specified socket. This call is only valid for connection oriented sockets (SOCK_STREAM).
  *  This call is a blocking call and returns upon successful connection establishment.
  *
- * \return            The file descriptor of the socket on success. Error Code otherwise.
+ * \return             The file descriptor of the socket on success. Error Code otherwise.
  */
 extern "C" int         listen(int socket);
 
@@ -560,12 +575,12 @@ extern "C" int         listen(int socket);
  * socket for packet reception on the used transportprotocol and on the other hand set listening parameters in the
  * addressprotocol.
  *
- * \param socket    The file descriptor of the socket that shall be bound
- * \param sockaddr    Pointer to the sockaddr structure containing the address the socket shall be bound to
+ * \param socket_fd    The file descriptor of the socket that shall be bound
+ * \param sockaddr     Pointer to the sockaddr structure containing the address the socket shall be bound to
  *
- * \return            cOk on success. Error Code otherwise.
+ * \return             cOk on success. Error Code otherwise.
  */
-extern "C" int         bind(int socket, const sockaddr* address);
+extern "C" int         bind(int socket_fd, const sockaddr* address);
 
 /*!
  * \brief Blocking send method for unconnected sockets.
@@ -574,14 +589,14 @@ extern "C" int         bind(int socket, const sockaddr* address);
  * If the dest_addr is unknown the thread will be blocked until the destination is found using some ARP or a timeout occured.
  * If this method is used in a connection oriented socket the message will be send to the connected socket.
  *
- * \param socket    The id of the socket the data shall be used for sending
- * \param data        Pointer to the data to be send
- * \param length    The amount of data the be send in the buffer
- * \param dest_addr Pointer to the sockaddr structure containing the destination socket address or null if the connection is type STREAM
+ * \param socket_fd    The file descriptor of the socket the data shall be used for sending
+ * \param data         Pointer to the data to be send
+ * \param length       The amount of data the be send in the buffer
+ * \param dest_addr    Pointer to the sockaddr structure containing the destination socket address or null if the connection is type STREAM
  *
- * \return            Length of sent data on success. Error Code otherwise: -1 on timeout
+ * \return             Length of sent data on success. Error Code otherwise: -1 on timeout
  */
-extern "C" int4     sendto(int socket, const void* data, size_t length, const sockaddr* dest_addr);
+extern "C" int4        sendto(int socket_fd, const void* data, size_t length, const sockaddr* dest_addr);
 
 /*!
  * \brief Receive method on socket.
@@ -590,14 +605,14 @@ extern "C" int4     sendto(int socket, const void* data, size_t length, const so
  * other threads will return directly without returning a message. The blocked thread will be unblocked if a message is received by the socket and the pointer
  * to the message is returned by the parameter 'msgptr'.
  *
- * \param socket    The socket we want to receive data from
- * \param msgptr    The Address of the pointer to the message as return value
- * \param flags     flags: MSG_PEEK, MSG_WAIT
- * \param timeout   Timeout in us, if 0 no timeout is used. Values valid >= 200. Everything below 200 ms will be treated as 200 ms.
+ * \param socket       The file descriptor of the socket we want to receive data from
+ * \param msgptr       The Address of the pointer to the message as return value
+ * \param flags        flags: MSG_PEEK, MSG_WAIT
+ * \param timeout      Timeout in us, if 0 no timeout is used. Values valid >= 200. Everything below 200 ms will be treated as 200 ms.
  *
- * \return          The size/length of the received message in bytes. -1 on connection disconnect
+ * \return             The size/length of the received message in bytes. -1 on connection disconnect
  */
-extern "C" size_t     recv(int socket,char* data,int len, int flags, unint4 timeout = 0);
+extern "C" size_t      recv(int socket_fd, char* data,int len, int flags, unint4 timeout = 0);
 
 
 /*!
@@ -607,25 +622,34 @@ extern "C" size_t     recv(int socket,char* data,int len, int flags, unint4 time
  * other threads will return directly without returning a message. The blocked thread will be unblocked if a message is received by the socket and the pointer
  * to the message is returned by the parameter 'msgptr'.
  *
- * \param socket    The socket we want to receive data from
- * \param msgptr    The Address of the pointer to the message as return value
- * \param flags     flags: MSG_PEEK, MSG_WAIT
- * \param sender    The sock_addr structure in memory that will be filled with the senders address
+ * \param socket       The socket we want to receive data from
+ * \param msgptr       The Address of the pointer to the message as return value
+ * \param flags        flags: MSG_PEEK, MSG_WAIT
+ * \param sender       The sock_addr structure in memory that will be filled with the senders address
  *
- * \return          The size/length of the received message in bytes. -1 on connection disconnect
+ * \return             The size/length of the received message in bytes. -1 on connection disconnect
  */
-extern "C" size_t     recvfrom(int socket,char* data, int len,int flags, sockaddr* sender, unint4 timeout = 0);
+extern "C" size_t      recvfrom(int socket_fd, char* data, int len,int flags, sockaddr* sender, unint4 timeout = 0);
 
 /*!
  * \brief Trys to find the service specified by a name in the network. Calling thread will be blocked.
  *
- * \param name        The name of the service to be found
+ * \param name         The name of the service to be found
  * \param descr        Pointer to service_descriptor structure that can be filled on success
  * \param n            The amount of services to find (maximum)
  *
- * \return            The amount of services found
+ * \return             The amount of services found
  */
 extern "C" int         getservicebyname(char* name, const servicedescriptor* descr, unint1 n);
+
+/*!
+ * \brief Tries to do an IPv4 host name lookup for the host given by name
+ *
+ * \param name         The name of the host to be found
+ *
+ * \return             Pointer to the resulting statically allocated hostent structure.
+ */
+extern "C" struct hostent* gethostbyname(char* name);
 
 
 

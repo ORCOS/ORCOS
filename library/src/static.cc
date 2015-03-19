@@ -23,24 +23,25 @@
 #include "string.hh"
 
 // must always be linked into the user application
-extern "C" void thread_exit(int exitCode)
-{
+extern "C" void thread_exit(int exitCode) {
     syscall(cThread_ExitSysCallId, exitCode);
 }
 
-
-extern "C" unint8 getCycles()
-{
-    unint8 time;
-    syscall(cGetTimeSyscallId,&time);
+extern "C" unint8 getCycles() {
+    unint8 time __attribute__((aligned(8)));
+    syscall(cGetCyclesSyscallId, &time);
     return (time);
 }
 
-extern "C" unint4 getTime()
-{
-    return (syscall(cGetDateTimeSyscallId));
+extern "C" unint8 getTime() {
+    unint8 time __attribute__((aligned(8)));
+    syscall(cGetTimeSyscallId, &time);
+    return (time);
 }
 
+extern "C" unint4 getDateTime() {
+    return (syscall(cGetDateTimeSyscallId));
+}
 
 extern "C" char* extractNextArg(char* &str) {
 

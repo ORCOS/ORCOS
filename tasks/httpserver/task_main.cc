@@ -101,13 +101,13 @@ void* thread_entry(void* arg) {
 
         if (msglen == -1) {
             // disconnected
-            puts("HTTP Client disconnected..\r\n");
-            fclose(newsock);
+            puts("HTTP Client disconnected..\n");
+            close(newsock);
             return 0;
         } else if (msglen < 0) {
             // error close connection
-            puts("Connection Error .. closing..\r\n");
-            fclose(newsock);
+            puts("Connection Error .. closing..\n");
+            close(newsock);
             return 0;
         }
 
@@ -129,27 +129,27 @@ void* thread_entry(void* arg) {
              if (pos == 0)
                  msgptr = "index.html";
 
-             printf("GET for file: %s\r\n",msgptr);
+             printf("GET for file: %s\n",msgptr);
              sprintf(filename,"/mnt/ramdisk/%s",msgptr);
 
-             int file = fopen(filename,false);
+             int file = open(filename, false);
              if (file < 0) {
                  // not found
-                 puts("File not found.\r\n");
+                 puts("File not found.\n");
                  sendto(newsock,NotFoundMsg,strlen(NotFoundMsg),0);
 
              } else {
                  stat_t stat;
                  fstat(file,&stat);
 
-                 printf("File Size: %d\r\n",stat.st_size);
+                 printf("File Size: %d\n",stat.st_size);
 
                  // send file
                  sprintf(return_msg,"%s%d\r\n\r\n",fileRetMsg,stat.st_size);
                  sendto(newsock,return_msg,strlen(return_msg),0);
 
                  // no read file and send over data connection
-                  int num = fread(return_msg,1024,1,file);
+                  int num = read(file, return_msg, 1024);
                   if (num < 0) num = 0; // check error
 
                   bool abort = false;
@@ -159,16 +159,16 @@ void* thread_entry(void* arg) {
                       // try sending. if failed sleep
                       // failing may happen if no more free memory is available
                       // inside the TCP/IP stack to hold the packet until acked
-                      while (sendto(newsock,return_msg,num,0) != 0 && timeout) {
+                      while (sendto(newsock, return_msg, num, 0) != 0 && timeout) {
                           /* sleep 2 ms*/
-                          sleep(2);
+                          usleep(2000);
                           timeout--;
                           if (timeout == 0) {
                               abort = true;
                           }
                       }
 
-                      num = fread(return_msg,1024,1,file);
+                      num = read(file, return_msg, 1024);
                   }
 
                   // send last bytes if any
@@ -176,7 +176,7 @@ void* thread_entry(void* arg) {
                       int timeout = 20;
                       while (sendto(newsock,return_msg,num,0) != 0 && timeout) {
                            /* sleep 2 ms*/
-                           sleep(2);
+                           usleep(2000);
                            timeout--;
                            if (timeout == 0) {
                                abort = true;
@@ -185,29 +185,29 @@ void* thread_entry(void* arg) {
                   }
 
                   if (!abort)
-                      puts("File send\r\n");
+                      puts("File send\n");
                   else
-                      puts("File sending aborted\r\n");
+                      puts("File sending aborted\n");
 
-                  fclose(file);
+                  close(file);
              }
 
 
          }  else {
 
-             puts("Invalid GET pos\r\n");
+             puts("Invalid GET pos\n");
              sendto(newsock,NotFoundMsg,strlen(NotFoundMsg),0);
          }
 
      } else {
          // send error
-        puts("Unknown request\r\n");
+        puts("Unknown request\n");
         sendto(newsock,ErrorMsg,strlen(ErrorMsg),0);
      }
 
      //puts("Closing connection\r");
-     sleep(1000);
-     fclose(newsock);
+     usleep(1000000);
+     close(newsock);
      connected = 0;
 
     } // while connected
@@ -217,10 +217,7 @@ void* thread_entry(void* arg) {
 
 extern "C" int task_main()
 {
-    int i = 0;
-
-
-    int mysock = socket(IPV4,SOCK_STREAM,TCP);
+    int mysock = socket(IPV4, SOCK_STREAM, TCP);
 
     // bind our socket to some address
     sockaddr* addr = (sockaddr*) malloc(sizeof(sockaddr));
@@ -231,7 +228,7 @@ extern "C" int task_main()
 
     int error = bind(mysock,addr);
     if (error < 0) {
-        puts("Could not bind to port 80. Exiting.\r\n");
+        puts("Could not bind to port 80. Exiting.\n");
         return (1);
     }
 
@@ -240,12 +237,8 @@ extern "C" int task_main()
     dataaddr->port_data =     0;                           //< let tcp stack choose a port for us
     dataaddr->sa_data   =     0;
 
-    // our handle to the data socket which is created on demand
-    int datasock;
-    // the current msg received
-    char* msgptr;
     thread_name(0,"httpd");
-    puts("HTTP-Server bound and waiting for clients.\r\n");
+    puts("HTTP-Server bound and waiting for clients.\n");
 
     while(1)
     {
@@ -253,7 +246,7 @@ extern "C" int task_main()
         int newsock = listen(mysock);
 
         if (newsock > 0) {
-            puts("New HTTP connection!\r\n");
+            puts("New HTTP connection!\n");
 
             thread_attr_t attr;
             memset(&attr,0,sizeof(thread_attr_t));
@@ -261,13 +254,13 @@ extern "C" int task_main()
             attr.stack_size = 4096;
             attr.priority = 1 + newsock;
 
-            int threadid;
-            if (thread_create(&threadid,&attr,thread_entry,(void*) newsock) == 0) {
+            ThreadIdT threadid;
+            if (thread_create(&threadid, &attr, thread_entry, (void*) newsock) == 0) {
                 thread_name(threadid,"httpd thread");
                 thread_run(threadid);
             }
             else {
-                fclose(newsock);
+                close(newsock);
             }
         }
 

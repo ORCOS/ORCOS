@@ -1286,6 +1286,7 @@
         <MemberRef Name="mkdev" />
         <MemberRef Name="mount" />
         <MemberRef Name="waitirq" />
+        <MemberRef Name="gethostbyname" />
       </Superclass>
     </Superclasses>
     <Member>
@@ -1407,6 +1408,9 @@
     </Member>
     <Member>
       <Name>waitirq</Name>
+    </Member>
+    <Member>
+      <Name>gethostbyname</Name>
     </Member>
   </Skeleton>
   <Defines>

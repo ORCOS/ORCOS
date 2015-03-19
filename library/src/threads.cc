@@ -26,24 +26,19 @@
 /*!
  * The sleep system call.
  */
-extern "C"void sleep(int ms)
-{
-    // rise the sc software interrupt
-    // arguments will be passed onto the stack by the gcc compiler
-    syscall(cSleepSysCallId, ms * 1000);
+extern "C"void sleep(int s) {
+    syscall(cSleepSysCallId, s * 1000000);
 }
 
 /*!
  * The sleep system call.
  */
-extern "C"void usleep(int ustime)
-{
+extern "C"void usleep(int ustime) {
     syscall(cSleepSysCallId, ustime);
 }
 
 
-extern "C"int task_stop(int taskid)
-{
+extern "C"int task_stop(int taskid) {
     return syscall(cTask_StopSysCallId, taskid);
 }
 
@@ -59,13 +54,11 @@ extern "C" int task_kill(int taskid) {
     return syscall(cTask_KillSysCallId, taskid);
 }
 
-extern "C" int task_resume(int taskid)
-{
+extern "C" int task_resume(int taskid) {
     return syscall(cTask_ResumeSysCallId, taskid);
 }
 
-extern "C" int thread_create(int* threadid,thread_attr_t* attr, void *(*start_routine)(void*), void* arg)
-{
+extern "C" int thread_create(ThreadIdT* threadid,thread_attr_t* attr, void *(*start_routine)(void*), void* arg) {
     return syscall(cThread_CreateSysCallId, threadid, attr, start_routine, arg);
 }
 
@@ -106,7 +99,7 @@ extern "C" int waittid(ThreadIdT tid)
 }
 
 
-extern "C" int waitirq(unint1 irq) {
+extern "C" int waitirq(unint4 irq) {
     return (syscall(cThreadWaitIRQSyscallId, irq));
 }
 

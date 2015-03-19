@@ -23,12 +23,14 @@
 
 int pthread_create( pthread_t* thread, const pthread_attr_t* attr, void* (*start_routine)( void* ), void* arg ) {
     int ret;
-
-    ret = thread_create( thread, (thread_attr_t*) attr, start_routine, arg );
+    ThreadIdT tid;
+    ret = thread_create( &tid, (thread_attr_t*) attr, start_routine, arg );
+    *thread = tid;
 
     if ( ret == 0 ) {
-        ret = thread_run( *thread );
+        ret = thread_run(tid);
     }
+
 
     return (ret);
 }

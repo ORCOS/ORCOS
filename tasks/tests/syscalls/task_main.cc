@@ -27,7 +27,7 @@
 
 #define LINEFEED "\r\n"
 
-#define TEST( x , name ) { puts("Testing " name); if (x(str) == OK) { puts("[OK]"LINEFEED);} else { puts("[FAILED]"LINEFEED); puts(str); puts(""LINEFEED);}  sleep(10); }
+#define TEST( x , name ) { puts("Testing " name); if (x(str) == OK) { puts("[OK]"LINEFEED);} else { puts("[FAILED]"LINEFEED); puts(str); puts(""LINEFEED);}  usleep(10000); }
 
 #define ASSERT(value,msg) if( value == 0) { str = temp; sprintf(str,msg ". value was: %d (%x)", value, value); return (FAIL);}
 #define ASSERT_GREATER(value,comp,msg) if( !(value > comp)) {str = temp; sprintf(str,msg ". value was: %d (%x)", value, value);return (FAIL);}
@@ -143,38 +143,38 @@ int test_thread_create(char* &str) {
 int test_files(char* &str) {
     int result;
 
-    result = fcreate(0,0);
-    ASSERT_SMALLER(result,0,"fcreate(0,0) succeeded");
+    result = create(0,0);
+    ASSERT_SMALLER(result,0,"create(0,0) succeeded");
 
-    result = fcreate("//NOSUCHDIR//");
-    ASSERT_SMALLER(result,0,"fcreate(//NOSUCHDIR//) succeeded");
+    result = create("//NOSUCHDIR//");
+    ASSERT_SMALLER(result,0,"create(//NOSUCHDIR//) succeeded");
 
-    result = fopen("//NOSUCHDIR//",0);
-    ASSERT_SMALLER(result,0,"fopen(//NOSUCHDIR//) succeeded");
+    result = open("//NOSUCHDIR//",0);
+    ASSERT_SMALLER(result,0,"open(//NOSUCHDIR//) succeeded");
 
-    result = fopen(0,0);
-    ASSERT_SMALLER(result,0,"fopen(0) succeeded");
+    result = open(0,0);
+    ASSERT_SMALLER(result,0,"open(0) succeeded");
 
-    result = fopen("",0);
-    ASSERT_GREATER(result,0,"fopen(\"\") failed");
+    result = open("",0);
+    ASSERT_GREATER(result,0,"open(\"\") failed");
 
-    result = fclose(result);
-    ASSERT_EQUAL(result,cOk,"fclose(\"\") failed");
+    result = close(result);
+    ASSERT_EQUAL(result,cOk,"close(\"\") failed");
 
-    result = fopen("/",0);
-    ASSERT_GREATER(result,0,"fopen(/) failed");
+    result = open("/",0);
+    ASSERT_GREATER(result,0,"open(/) failed");
 
-    result = fclose(result);
-    ASSERT_EQUAL(result,cOk,"fclose(/) failed");
+    result = close(result);
+    ASSERT_EQUAL(result,cOk,"close(/) failed");
 
-    result = fclose(0);
-    ASSERT_SMALLER(result,0,"fclose(0) succeeded");
+    result = close(0);
+    ASSERT_SMALLER(result,0,"close(0) succeeded");
 
-    result = fclose(-1);
-    ASSERT_SMALLER(result,0,"fclose(-1) succeeded");
+    result = close(-1);
+    ASSERT_SMALLER(result,0,"close(-1) succeeded");
 
-    result = fclose(-1123141);
-    ASSERT_SMALLER(result,0,"fclose(-1123141) succeeded");
+    result = close(-1123141);
+    ASSERT_SMALLER(result,0,"close(-1123141) succeeded");
 
   /*  srand(getCycles());
     for (int i = 0; i < 1000; i++) {
@@ -195,43 +195,43 @@ int test_files(char* &str) {
      * and deallocating lots of small file pointers.
      */
     for (int i = 0; i < 2000; i++) {
-        result = fcreate("/mnt/ramdisk/testfile1");
-        ASSERT_GREATER(result,0,"fcreate(/mnt/ramdisk/testfile1) failed");
-        fwrite(result, "test1", 4);
+        result = create("/mnt/ramdisk/testfile1");
+        ASSERT_GREATER(result,0,"create(/mnt/ramdisk/testfile1) failed");
+        write(result, "test1", 4);
 
-        result = fcreate("/mnt/ramdisk/testfile2");
-        ASSERT_GREATER(result,0,"fcreate(/mnt/ramdisk/testfile2) failed");
-        fwrite(result, "test2", 4);
+        result = create("/mnt/ramdisk/testfile2");
+        ASSERT_GREATER(result,0,"create(/mnt/ramdisk/testfile2) failed");
+        write(result, "test2", 4);
 
-        result = fcreate("/mnt/ramdisk/testfile3");
-        ASSERT_GREATER(result,0,"fcreate(/mnt/ramdisk/testfile3) failed");
-        fwrite(result, "test3", 4);
+        result = create("/mnt/ramdisk/testfile3");
+        ASSERT_GREATER(result,0,"create(/mnt/ramdisk/testfile3) failed");
+        write(result, "test3", 4);
 
-        result = fremove("/mnt/ramdisk/testfile1");
-        ASSERT_EQUAL(result,cOk,"fremove(/mnt/ramdisk/testfile1) failed");
-        result = fremove("/mnt/ramdisk/testfile2");
-        ASSERT_EQUAL(result,cOk,"fremove(/mnt/ramdisk/testfile2) failed");
-        result = fremove("/mnt/ramdisk/testfile3");
-        ASSERT_EQUAL(result,cOk,"fremove(/mnt/ramdisk/testfile3) failed");
+        result = remove("/mnt/ramdisk/testfile1");
+        ASSERT_EQUAL(result,cOk,"remove(/mnt/ramdisk/testfile1) failed");
+        result = remove("/mnt/ramdisk/testfile2");
+        ASSERT_EQUAL(result,cOk,"remove(/mnt/ramdisk/testfile2) failed");
+        result = remove("/mnt/ramdisk/testfile3");
+        ASSERT_EQUAL(result,cOk,"remove(/mnt/ramdisk/testfile3) failed");
     }
 
 
     for (int i = 0; i < 100; i++) {
-        result = fcreate("/mnt/ramdisk/testfile4");
-        fwrite(result, "test",4);
-        result = fcreate("/mnt/ramdisk/testfile5");
-        fwrite(result, "test",4);
-        result = fcreate("/mnt/ramdisk/testfile6");
-        result = fcreate("/mnt/ramdisk/testfile7");
-        fwrite(result, "test",4);
-        result = fremove("/mnt/ramdisk/testfile4");
-        ASSERT_EQUAL(result,cOk,"fremove() failed");
-        result = fremove("/mnt/ramdisk/testfile7");
-        ASSERT_EQUAL(result,cOk,"fremove() failed");
-        result = fremove("/mnt/ramdisk/testfile6");
-        ASSERT_EQUAL(result,cOk,"fremove() failed");
-        result = fremove("/mnt/ramdisk/testfile5");
-        ASSERT_EQUAL(result,cOk,"fremove() failed");
+        result = create("/mnt/ramdisk/testfile4");
+        write(result, "test",4);
+        result = create("/mnt/ramdisk/testfile5");
+        write(result, "test",4);
+        result = create("/mnt/ramdisk/testfile6");
+        result = create("/mnt/ramdisk/testfile7");
+        write(result, "test",4);
+        result = remove("/mnt/ramdisk/testfile4");
+        ASSERT_EQUAL(result,cOk,"remove() failed");
+        result = remove("/mnt/ramdisk/testfile7");
+        ASSERT_EQUAL(result,cOk,"remove() failed");
+        result = remove("/mnt/ramdisk/testfile6");
+        ASSERT_EQUAL(result,cOk,"remove() failed");
+        result = remove("/mnt/ramdisk/testfile5");
+        ASSERT_EQUAL(result,cOk,"remove() failed");
     }
 
     return (OK);
@@ -244,6 +244,7 @@ int test_net(char* &str) {
     result = socket(0,0,0);
     ASSERT_SMALLER(result,0,"socket(0,0,0) succeeded");
 
+    // TODO some more tests here
 
     return (OK);
 }
@@ -272,7 +273,7 @@ int test_synchro(char* &str) {
     result = thread_create(0,&attr,thread_entry_synchro,0);
     ASSERT_EQUAL(result,cOk,"thread_create(0,&attr,thread_entry,0) failed");
 
-    result = thread_run(result);
+    result = thread_run(0);
 
     signal_value = -1;
     time = (unint4) getCycles();
@@ -302,7 +303,7 @@ int test_shmmem(char* &str) {
     int cmp = strcmp(test,"Hello");
     ASSERT_EQUAL(cmp,cOk,"strcmp() on shared mem failed");
 
-    result = fclose(handle);
+    result = close(handle);
     ASSERT_EQUAL(result,cOk,"fclose() on shared mem failed");
 
     return (OK);
@@ -379,12 +380,12 @@ int    iterations = 0;
 
 bool readKernelVarUInt4(char* filepath, unint4* result) {
     result[0] = 0;
-    int file = fopen(filepath,0);
+    int file = open(filepath,0);
     if (file < 0)
         return (false);
 
-    int num = fread(file, (char*) result, 4);
-    fclose(file);
+    int num = read(file, (char*) result, 4);
+    close(file);
     return (true);
 }
 
@@ -440,8 +441,8 @@ int test_llThreadLatency(char* &str) {
     timer_conf.priority = 0;
     timer_conf.threadId = 0;
 
-    int fd = fopen("/dev/timer1");
-    ASSERT_GREATER(fd,0," fopen(/dev/timer1) failed!");
+    int fd = open("/dev/timer1");
+    ASSERT_GREATER(fd,0," open(/dev/timer1) failed!");
     int ret = timer_configure(fd,&timer_conf);
     ASSERT_EQUAL(ret,0,"Configure Timer1 failed!");
 
@@ -452,8 +453,8 @@ int test_llThreadLatency(char* &str) {
     }
     ret = timer_reset(fd);
     ASSERT_EQUAL(ret,0,"timer_reset failed!");
-    ret = fclose(fd);
-    ASSERT_EQUAL(ret,0,"fclose(timer_fd) failed");
+    ret = close(fd);
+    ASSERT_EQUAL(ret,0,"close(timer_fd) failed");
 
 }
 
@@ -499,7 +500,7 @@ int test_latency(char* &str) {
     attr.arrivaltime = nextTime;
     attr.priority    = 10000;
     attr.period      = 1000; /* 1 ms */
-    int id;
+    ThreadIdT id;
     result = thread_create(&id,&attr,thread_entry_latency,0);
     ASSERT_EQUAL(result,cOk,"thread_create(&id,&attr,thread_entry_latency,0) failed");
 
@@ -507,10 +508,10 @@ int test_latency(char* &str) {
     ASSERT_EQUAL(result,cOk,"thread_run(id) failed");
 
     while (iterations < MAX_ITERATIONS) {
-        sleep(10);
+        usleep(10000);
     }
 
-    thread_terminate(id,TERM_SOFT);
+    thread_terminate(id, TERM_SOFT);
 
     minLatency -= overhead;
     maxLatency -= overhead;

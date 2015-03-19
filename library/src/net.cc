@@ -57,6 +57,37 @@ extern "C" size_t recvfrom(int socket, char* data, int len, int flags, sockaddr*
 static char *inet_ntop4(const char *src, char *dst, size_t size);
 static char *inet_ntop6(const char *src, char *dst, size_t size);
 
+static char   host_name[40];
+static char   host_address[20];
+static char*  host_addresses[2];
+static struct hostent lookup_host;
+static int    host_ip4addr;
+
+extern "C" struct hostent* gethostbyname(char* name) {
+    /* todo we might actually port the lwip dns.c file to user space as it only uses
+     * udp transfers! we can than safely use the userspace implementation.. */
+    strncpy(host_name, name, 40);
+    lookup_host.h_name      = host_name;
+    lookup_host.h_length    = 1;
+    lookup_host.h_addrtype  = AF_INET;
+    lookup_host.h_aliases   = 0;
+    lookup_host.h_addr_list = (char**) host_addresses;
+    host_addresses[0] = host_address;
+    host_addresses[1] = 0;
+
+    int error = syscall(cGetHostByNameSyscallId, name, &host_ip4addr);
+    if (error == cOk) {
+        inet_ntop4((char*)&host_ip4addr, lookup_host.h_addr_list[0], 20);
+    } else {
+        lookup_host.h_length = 0;
+    }
+
+    return (&lookup_host);
+}
+
+
+
+
 /* char *
  * inet_ntop(af, src, dst, size)
  * convert a network format address to presentation format.
@@ -77,11 +108,12 @@ extern "C" char* inet_ntop(int af, const char *src, char *dst, size_t size) {
     /* NOTREACHED */
 }
 
-/* const char *
- * inet_ntop4(src, dst, size)
+/* const char *inet_ntop4(src, dst, size)
+ *
  * format an IPv4 address
  * return:
- * `dst' (as a const)
+ *    `dst' (as a const)
+ *
  * notes:
  * (1) uses no statics
  * (2) takes a u_char* not an in_addr as input
@@ -102,9 +134,10 @@ inet_ntop4(const char *src, char *dst, size_t size) {
     return (dst);
 }
 
-/* const char *
- * inet_ntop6(src, dst, size)
+/* const char *inet_ntop6(src, dst, size)
+ *
  * convert IPv6 binary address into presentation (printable) format
+ *
  * author:
  * Paul Vixie, 1996.
  */
@@ -121,8 +154,8 @@ inet_ntop6(const char *src, char *dst, size_t size) {
     struct {
         int base, len;
     } best, cur;
-#define NS_IN6ADDRSZ 16
-#define NS_INT16SZ 2
+    #define NS_IN6ADDRSZ 16
+    #define NS_INT16SZ 2
     unsigned int words[NS_IN6ADDRSZ / NS_INT16SZ];
     int i;
 

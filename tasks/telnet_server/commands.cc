@@ -33,7 +33,7 @@ void command_df(int socket, int showBlockCount) {
                      , "[kernel]",TotalMem,UsedMem,TotalMem-UsedMem,(UsedMem*100)/TotalMem);
     sendStr(socket, dir_content);
 
-    int handle = fopen("/sys/tasks",0);
+    int handle = open("/sys/tasks",0);
     if (handle) {
          Directory_Entry_t* direntry = readdir(handle);
          int numTasks = 0;
@@ -43,13 +43,13 @@ void command_df(int socket, int showBlockCount) {
              direntry = readdir(handle);
          }
          if (handle != mydirhandle)
-             fclose(handle);
+             close(handle);
 
          for (int i = 0; i < numTasks; i++) {
              if (taskids[i] == 0) continue;
              char path[120];
              sprintf(path,"/sys/tasks/%u",taskids[i]);
-             int taskdir = fopen(path,0);
+             int taskdir = open(path,0);
 
              if (taskdir > 0) {
                  char name[32];
@@ -64,7 +64,7 @@ void command_df(int socket, int showBlockCount) {
                  sendStr(socket,dir_content);
              }
              if (taskdir != mydirhandle)
-                fclose(taskdir);
+                close(taskdir);
 
          }
     } // sys/tasks
@@ -72,7 +72,7 @@ void command_df(int socket, int showBlockCount) {
     sprintf(dir_content,"\nDisks                \t    Total\t     Used\t     Free\tUsage"LINEFEED);
     sendStr(socket,dir_content);
 
-    handle = fopen("/sys/fs",0);
+    handle = open("/sys/fs",0);
     if (handle) {
          Directory_Entry_t* direntry = readdir(handle);
          int numTasks = 0;
@@ -81,7 +81,7 @@ void command_df(int socket, int showBlockCount) {
              strcpy(diskname,direntry->name);
              char path[120];
              sprintf(path,"/sys/fs/%s",diskname);
-             int taskdir = fopen(path,0);
+             int taskdir = open(path,0);
              if (taskdir > 0) {
                  unint4 numBlocks;
                  unint4 blockSize;
@@ -109,13 +109,13 @@ void command_df(int socket, int showBlockCount) {
                  sendStr(socket,dir_content);
 
                  if (taskdir != mydirhandle)
-                               fclose(taskdir);
+                               close(taskdir);
              }
 
              direntry = readdir(handle);
          }
          if (handle != mydirhandle)
-             fclose(handle);
+             close(handle);
 
     } // sys/fs
 }
@@ -124,7 +124,7 @@ void command_df(int socket, int showBlockCount) {
 
 void command_ps(int socket, int showThreads) {
 
-    int handle = fopen("/sys/tasks",0);
+    int handle = open("/sys/tasks",0);
     if (handle < 0)
         return;
 
@@ -137,12 +137,12 @@ void command_ps(int socket, int showThreads) {
     }
 
     if (handle != mydirhandle)
-        fclose(handle);
+        close(handle);
 
     for (int i = 0; i < numTasks; i++) {
         char path[120];
         sprintf(path,"/sys/tasks/%u",taskids[i]);
-        int taskdir = fopen(path,0);
+        int taskdir = open(path, 0);
 
         unint4 taskId;
         char name[32];
@@ -200,7 +200,7 @@ void command_ps(int socket, int showThreads) {
             }
 
             if (taskdir != mydirhandle)
-                fclose(taskdir);
+                close(taskdir);
 
         } // if taskdir
     } // for all tasks

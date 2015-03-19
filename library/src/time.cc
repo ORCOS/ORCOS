@@ -6,9 +6,6 @@
 #include "defines.h"
 #include "orcos.hh"
 
-extern "C" unint4   getDateTime() {
-    return (syscall(cGetDateTimeSyscallId));
-}
 
 void time2date(time_t* pTm, unint4 seconds) {
     unint8 sec;

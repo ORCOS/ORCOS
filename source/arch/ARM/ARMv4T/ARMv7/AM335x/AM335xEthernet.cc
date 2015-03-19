@@ -359,14 +359,11 @@ ErrorT AM335xEthernet::clearIRQ() {
 #define MODULO(a, b)  a >= b ? a-b : a
 
 ErrorT AM335xEthernet::handleIRQ() {
-
     /* scan rx queue and process the data by passing it to the
      * network stack. afterwards ack packet*/
-
     lastIRQ = theOS->getClock()->getDateTime();
     unint4 cpvalue = cpsw_stateram_regs->rx_cp[0];
     LOG(COMM, DEBUG, "AM335xEthernet::handleIRQ(). Handling RX packet IRQ, cp at %x", cpvalue);
-    int eoq = 0;
 
     int status = 0;
     cppi_rx_descriptor_t* descr = rxqueue_head;
@@ -392,13 +389,15 @@ ErrorT AM335xEthernet::handleIRQ() {
         LOG(COMM, DEBUG, "AM335xEthernet::handleIRQ(). Handling RX len: %u", packet_len);
          /* copy data from dma buffer to internal packet buffer.
           * Takes time but allows HW to receive new packets inside this buffer. */
-         comStackMutex->acquire();
-         struct pbuf* ptBuf = pbuf_alloc(PBUF_RAW, (unint2) (packet_len + 10), PBUF_RAM);
-         if (ptBuf != 0) {
+        comStackMutex->acquire();
+        struct pbuf* ptBuf = pbuf_alloc(PBUF_RAW, (unint2) (packet_len + 10), PBUF_RAM);
+        if (ptBuf != 0) {
              memcpy(ptBuf->payload, (void*) (descr->buffer_pointer), packet_len);
              ethernet_input(ptBuf, &st_netif);
-         }
-         comStackMutex->release();
+        } else {
+             LOG(COMM, ERROR, "AM335xEthernet::handleIRQ(). pbuf alloc failed.. no more memory..");
+        }
+        comStackMutex->release();
 
         cpsw_stateram_regs->rx_cp[0] = (unint4) descr;
 

@@ -9,7 +9,7 @@
 #include "syscalls.hh"
 #include "SCLConfig.hh"
 
-#define MAX_SYSCALL_NUM 46
+#define MAX_SYSCALL_NUM 48
 /*****************************************************************************
  * Method: sc_default_handler(intptr_t sp_int)
  *
@@ -31,8 +31,8 @@ p_syscall_handler_t syscall_handler[MAX_SYSCALL_NUM+1] = {
         sc_fclose,          /* cFCloseSysCallId         = 1 */
         sc_fread,           /* cFReadSysCallId          = 2 */
         sc_fwrite,          /* cFWriteSysCallId         = 3 */
-        sc_fputc,           /* cFPutcSysCallId          = 4 */
-        sc_fgetc,           /* cFGetcSysCallId          = 5 */
+        0,                  /* cFPutcSysCallId          = 4 */
+        0,                  /* cFGetcSysCallId          = 5 */
         sc_fcreate,         /* cFCreateSysCallId        = 6 */
         sc_new,             /* cNewSysCallId            = 7 */
         sc_delete,          /* cDeleteSysCallId         = 8 */
@@ -55,7 +55,7 @@ p_syscall_handler_t syscall_handler[MAX_SYSCALL_NUM+1] = {
         sc_ioctl,           /* cIOControl               = 25 */
         sc_printToStdOut,   /* cPrintToStdOut           = 26 */
         0,                  /* cNewProtSysCallId        = 27 */
-        sc_getCycles,       /* cGetTimeSyscallId        = 28 */
+        sc_getTime,         /* cGetTimeSyscallId        = 28 */
         sc_mapMemory,       /* cMapMemorySyscallId      = 29 */
         0,                  /* cModuleReturnId          = 30 */
         sc_task_run,        /* cRunTaskId               = 31 */
@@ -73,9 +73,10 @@ p_syscall_handler_t syscall_handler[MAX_SYSCALL_NUM+1] = {
         sc_thread_terminate,/* cThreadTerminateSyscallId= 43 */
         sc_thread_name,     /* cThreadNameSyscallId     = 44 */
         sc_mount,           /* cMountSyscallId          = 45 */
-        sc_waitirq          /* cThreadWaitIRQSyscallId  = 46 */
+        sc_waitirq,         /* cThreadWaitIRQSyscallId  = 46 */
+        sc_gethostbyname,   /* cGetHostByNameSyscallId  = 47 */
+        sc_getCycles        /* cGetCyclesSyscallId      = 48 */
 };
-
 
 extern "C" void handleSyscall(intptr_t sp_int) {
     int syscallnum;

@@ -23,17 +23,17 @@
 #include "string.hh"
 #include "sys/timer.h"
 
-extern "C" int fcreate(const char* filepath, int flags)
+extern "C" int create(const char* filepath, int flags)
 {
     return syscall(cFCreateSysCallId, filepath, flags);
 }
 
-extern "C" int fopen(const char* filename, int blocking)
+extern "C" int open(const char* filename, int blocking)
 {
     return syscall(cFOpenSysCallId, filename, blocking);
 }
 
-extern "C" int fclose(int fileid)
+extern "C" int close(int fileid)
 {
     return syscall(cFCloseSysCallId, fileid);
 }
@@ -41,7 +41,7 @@ extern "C" int fclose(int fileid)
 /*!
  * The fread() function shall read into the array pointed to by ptr up to nitems elements whose size is specified by size in bytes, from the stream pointed to by stream.
  */
-extern "C"size_t fread(int fd, char *ptr, size_t size)
+extern "C" size_t read(int fd, char *ptr, size_t size)
 {
     return syscall(cFReadSysCallId, fd, ptr, size);
 }
@@ -49,54 +49,28 @@ extern "C"size_t fread(int fd, char *ptr, size_t size)
 /*!
  * The fwrite() function shall write, from the array pointed to by ptr, up to nitems elements whose size is specified by size, to the stream pointed to by stream.
  */
-extern "C"size_t fwrite(int fd, const void *buf, size_t count)
+extern "C" size_t write(int fd, const void *buf, size_t count)
 {
     return syscall(cFWriteSysCallId, fd, buf, count);
 }
 
-/*!
- * The fwrite() function writes the zero terminted string pointed to by prt to the stream referenced by stream. A maximum of max characters are written, which default
- * is 256
- */
-extern "C"size_t fwriteString(const void *ptr, int stream, size_t max)
-{
-    size_t nitems = 1;
-    size_t size;
-
-    for (size = 0; size<max; size++) {
-        if (*((char*)ptr+size) == 0x00) {
-            break;
-        }
-    }
-
-    return syscall(cFWriteSysCallId, ptr, size, nitems, stream);
-}
-
 extern "C" int    ioctl(int fd, int request, void* args) {
 
-    return syscall(cIOControl,fd,request,args);
+    return syscall(cIOControl, fd, request, args);
 }
 
 extern "C" size_t printToStdOut(const void* ptr,size_t max)
 {
-    return syscall(cPrintToStdOut,ptr,max);
-}
-
-extern "C"int fputc(short c, int stream) {
-    return syscall(cFPutcSysCallId, c, stream);
-}
-
-extern "C"int fgetc(int stream) {
-    return syscall(cFGetcSysCallId,stream);
+    return syscall(cPrintToStdOut, ptr, max);
 }
 
 extern "C" int fstat(int fd, stat_t* stat) {
-    return syscall(cFStatId,fd,stat);
+    return syscall(cFStatId, fd, stat);
 }
 
-extern "C" int     fremove(const char* filepath) {
+extern "C" int remove(const char* filepath) {
     // ensure the resource has been acquired
-    int error = fopen(filepath,true);
+    int error = open(filepath, true);
     if (error < 0) return (error);
 
     return (syscall(cFRemoveID,filepath));
@@ -111,7 +85,7 @@ extern "C" int  mount(char* src_path, char* dst_path, int type) {
 }
 
 
-extern "C" int  fseek(int fd, int offset, int whence) {
+extern "C" int  seek(int fd, int offset, int whence) {
     return (syscall(cFSeekSyscallId,fd,offset,whence));
 }
 
@@ -124,17 +98,17 @@ extern "C" Directory_Entry_t* readdir(int fd) {
         /* unbuffered reading entry by entry
          * could be speed up by reading multiple entries at once
          * */
-        int read = fread(fd,buffer,300);
+        int readb = read(fd,buffer,300);
         /* error occurred reading */
-        if (read < 0)
+        if (readb < 0)
             return (0);
-        if (read > sizeof(Directory_Entry_t)) {
+        if (readb > (int) sizeof(Directory_Entry_t)) {
             pos = 0;
-            remainingBytes = read;
+            remainingBytes = readb;
         }
         else {
             /* reset directory position*/
-            fseek(fd,0,SEEK_SET);
+            seek(fd, 0, SEEK_SET);
             pos = 0;
             remainingBytes = 0;
             return (0);
@@ -144,7 +118,7 @@ extern "C" Directory_Entry_t* readdir(int fd) {
     Directory_Entry_t* ret = (Directory_Entry_t*) (buffer + pos);
     remainingBytes -= sizeof(Directory_Entry_t) + ret->namelen;
     pos += sizeof(Directory_Entry_t) + ret->namelen;
-    if (remainingBytes < sizeof(Directory_Entry_t))
+    if (remainingBytes < (int) sizeof(Directory_Entry_t))
         remainingBytes = 0;
 
     return (ret);
@@ -152,11 +126,11 @@ extern "C" Directory_Entry_t* readdir(int fd) {
 }
 
 
-char* fgets (char *s, int count, int fd) {
+char* fgets (int fd, char *s, int count) {
     char* str = s;
-    int   read = 0;
-    while(read < count) {
-        int result = fread(fd,s,1);
+    int   readb = 0;
+    while(readb < count) {
+        int result = read(fd, s, 1);
         if (result == 0)
             return (0);
 
@@ -167,7 +141,7 @@ char* fgets (char *s, int count, int fd) {
             return str;
         }
         s++;
-        read++;
+        readb++;
     }
 
     return str;

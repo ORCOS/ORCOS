@@ -129,7 +129,7 @@ int sc_task_run(intptr_t sp_int) {
  *---------------------------------------------------------------------------*/
 int sc_thread_wait(intptr_t sp_int) {
     int pid;
-    int threadid;
+    ThreadIdT threadid;
     SYSCALLGETPARAMS2(sp_int, pid, threadid);
     LOG(SYSCALLS, DEBUG, "Syscall: thread_wait: pid %d", pid);
 
@@ -370,7 +370,7 @@ int sc_sleep(intptr_t int_sp) {
  *  int         Error Code
  *---------------------------------------------------------------------------*/
 int sc_thread_create(intptr_t int_sp) {
-    int* threadid;
+    ThreadIdT* threadid;
     thread_attr_t* attr;
     void* start_routine;
     void* arg;

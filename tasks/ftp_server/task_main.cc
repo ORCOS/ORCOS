@@ -201,7 +201,7 @@ int ReceiveFile(int controlsock, int datasock, sockaddr *dataremote, char* file)
 
     printf("File: '%s'\r\n",file);
 
-    int res = fcreate(file);
+    int res = create(file);
     if (res < 0) {
         sprintf(return_msg,"451 Error creating file\r\n");
         sendto(controlsock,return_msg,strlen(return_msg),0);
@@ -214,7 +214,7 @@ int ReceiveFile(int controlsock, int datasock, sockaddr *dataremote, char* file)
     char* dataptr = dataBuffer;
     msglen = recv(datasock,dataptr,2048,MSG_WAIT,200);
     if (msglen < 0) {
-        fclose(res);
+        close(res);
         puts("Timeout receiving file..\r\n");
         return (-1);
     }
@@ -227,15 +227,15 @@ int ReceiveFile(int controlsock, int datasock, sockaddr *dataremote, char* file)
                 // error in connection
                 sprintf(return_msg,"426 Timeout receiving data\r\n");
                 sendto(controlsock,return_msg,strlen(return_msg),0);
-                fclose(res);
+                close(res);
                 puts("Timeout receiving file..\r\n");
                 return (-1);
             }
         } else {
             // write to file
-            int error = fwrite(res,dataptr,msglen);
+            int error = write(res,dataptr,msglen);
             if (error < 0) {
-                fclose(res);
+                close(res);
                 return (error);
             }
             timeout = 5;
@@ -246,7 +246,7 @@ int ReceiveFile(int controlsock, int datasock, sockaddr *dataremote, char* file)
 
     puts("File completely received..\r\n");
 
-    fclose(res);
+    close(res);
     return (0);
 }
 
@@ -263,7 +263,7 @@ int sendFile(int controlsock, int datasock, sockaddr *dataremote, int handle) {
     puts("Data Connection established..\r\n");
 
     // now read file and send over data connection
-    int num = fread(handle, return_msg, 512);
+    int num = read(handle, return_msg, 512);
     if (num < 0) {
         printf("Error reading file: %d\r\n",num);
         num = 0; // check error
@@ -288,7 +288,7 @@ int sendFile(int controlsock, int datasock, sockaddr *dataremote, int handle) {
             }
         }
 
-        num = fread(handle, return_msg, 512);
+        num = read(handle, return_msg, 512);
         if (num < 0) {
               printf("Error reading file: %d\r\n",num);
               num = 0; // check error
@@ -313,7 +313,7 @@ int sendFile(int controlsock, int datasock, sockaddr *dataremote, int handle) {
        }
     }
 
-    sleep(5);
+    usleep(5000);
     puts("File completely send..\r\n");
     return 0;
 
@@ -381,19 +381,19 @@ int htonl(int n)
 
 char recvCommand[100];
 
+char renameFromFile[256];
+char renameToFile[256];
+
 extern "C" int task_main()
 {
-    int i = 0;
-
-
+    int i;
     int mysock = socket(IPV4,SOCK_STREAM,TCP);
 
     // bind our socket to some address
     sockaddr* addr = (sockaddr*) malloc(sizeof(sockaddr));
 
     addr->port_data     =     21;                         //< the ftp port
-    addr->sa_data         =     IP4ADDR(192,168,1,100);
-    //memcpy(addr->name_data,"FTPServer\0",13);      //< register using this service name
+    addr->sa_data       =     IP4ADDR(192,168,1,100);
 
     bind(mysock,addr);
 
@@ -407,7 +407,7 @@ extern "C" int task_main()
     // the current msg received
     char* msgptr;
 
-    thread_name(0,"ftpd");
+    thread_name(0, "ftpd");
     puts("FTP-Server bound and waiting for clients.\r");
 
     while(1)
@@ -425,8 +425,8 @@ extern "C" int task_main()
         current_dir[0] = '/';
         current_dir[1] = '\0';
 
-        if (mydirhandle != 0) fclose(mydirhandle);
-        mydirhandle = fopen(current_dir,0);
+        if (mydirhandle != 0) close(mydirhandle);
+        mydirhandle = open(current_dir,0);
         int disconnectCounter = 0;
 
 
@@ -438,10 +438,10 @@ extern "C" int task_main()
 
             if (msglen == -1) {
                 // disconnected
-                if (mydirhandle != 0) fclose(mydirhandle);
+                if (mydirhandle != 0) close(mydirhandle);
                 mydirhandle = 0;
                 puts("FTP Client disconnected..");
-                fclose(newsock);
+                close(newsock);
                 break;
             }
             if (msglen <= 0) {
@@ -449,11 +449,11 @@ extern "C" int task_main()
                 /* if we did not receive anything for 20 seconds.. we disconnect*/
                 if (disconnectCounter > 100) {
                     if (mydirhandle != 0) {
-                        fclose(mydirhandle);
+                        close(mydirhandle);
                     }
                     mydirhandle = 0;
                     puts("Disconnecting..");
-                    fclose(newsock);
+                    close(newsock);
                     break;
                 }
                 continue;
@@ -489,6 +489,90 @@ extern "C" int task_main()
              strcpy(&return_msg[4],current_dir);
              strcat(return_msg,"\r\n");
              sendto(newsock,return_msg,strlen(return_msg),0);
+
+         } else if (strpos("MKD",msgptr) == 0) {
+            /***********************************************
+             *     GET CURRENT WORKING DIRECTORY
+             ***********************************************/
+             int len = strpos("\r\n",msgptr);
+             memcpy(temp_msg,msgptr,len);
+             temp_msg[len] = 0;
+
+             char* file = &temp_msg[4];
+             if (file[0] != '/') {
+                 // relative path
+                 strcpy(temp_msg, current_dir);
+                 strcat(temp_msg, &msgptr[4]);
+                 len = strpos("\r\n",temp_msg);
+                 temp_msg[len] = 0;
+                 file  = temp_msg;
+             }
+
+             printf("Create Directory '%s'\r\n", file);
+
+             int err = create(file, cTYPE_DIR);
+             if (err >= 0) {
+                 sendto(newsock,"200 \r\n",6,0);
+             } else {
+                 printf("Could not create '%s'. Error: %s\r\n", file, strerror(err));
+                 char* s = "450 Error creating directory.\r\n";
+                 sendto(newsock,s,strlen(s),0);
+             }
+         } else if (strpos("RNFR",msgptr) == 0) {
+             /***********************************************
+              *     RENAME FROM
+              ***********************************************/
+             int len = strpos("\r\n",msgptr);
+             memcpy(temp_msg, msgptr, len);
+             temp_msg[len] = 0;
+
+             char* file = &temp_msg[5];
+             if (file[0] != '/') {
+                 // relative path
+                 strcpy(temp_msg, current_dir);
+                 strcat(temp_msg, &msgptr[5]);
+                 len = strpos("\r\n",temp_msg);
+                 temp_msg[len] = 0;
+                 file  = temp_msg;
+             }
+             strcpy(renameFromFile, file);
+
+             // going to transfer directory content a.s.o
+             sendto(newsock,"200 \r\n",6,0);
+
+         } else if (strpos("RNTO", msgptr) == 0) {
+             /***********************************************
+              *    RENAME TO
+              ***********************************************/
+             int len = strpos("\r\n",msgptr);
+             memcpy(temp_msg, msgptr, len);
+             temp_msg[len] = 0;
+
+             char* file = &temp_msg[5];
+             if (file[0] != '/') {
+                 // relative path
+                 strcpy(temp_msg, current_dir);
+                 strcat(temp_msg, &msgptr[5]);
+                 len = strpos("\r\n",temp_msg);
+                 temp_msg[len] = 0;
+                 file  = temp_msg;
+             }
+             strcpy(renameToFile, file);
+
+             if (strcmp(dirname(renameToFile), dirname(renameFromFile)) ==  0) {
+                 // going to transfer directory content a.s.o
+                 sendto(newsock,"200 \r\n",6,0);
+                 int fd = open(renameFromFile);
+                 if (fd < 0) {
+                     char* s = "450 Error renaming. Error opening fromFile .\r\n";
+                     sendto(newsock,s,strlen(s),0);
+                 }
+
+             } else {
+                 printf("Cannot rename files. Dirname is not equal.. %s != %s\n", dirname(renameToFile), dirname(renameFromFile));
+                 char* s = "450 Error renaming. Directories do not match.\r\n";
+                 sendto(newsock,s,strlen(s),0);
+             }
 
          } else if (strpos("TYPE A",msgptr) == 0) {
              /***********************************************
@@ -531,8 +615,8 @@ extern "C" int task_main()
               char* file = &temp_msg[5];
               if (file[0] != '/') {
                  // relative path
-                 strcpy(temp_msg,current_dir);
-                 strcat(temp_msg,&msgptr[5]);
+                 strcpy(temp_msg, current_dir);
+                 strcat(temp_msg, &msgptr[5]);
                  len = strpos("\r\n",temp_msg);
                  temp_msg[len] = 0;
                  file  = temp_msg;
@@ -540,7 +624,7 @@ extern "C" int task_main()
 
               printf("Delete file '%s'\r\n",file);
 
-              int status = fremove(file);
+              int status = remove(file);
 
               if (status == 0) {
                 // tell control connection that data has been received
@@ -584,7 +668,7 @@ extern "C" int task_main()
              int status = ReceiveFile(newsock,datasock,&dataremote,file);
 
              // stream mode must close the socket again..
-             fclose(datasock);
+             close(datasock);
 
              if (status == 0) {
                 // tell control connection that data has been received
@@ -618,7 +702,7 @@ extern "C" int task_main()
              printf("Retrieve for file '%s'\r\n",file);
 
              // try opening
-             int handle = fopen(file,0);
+             int handle = open(file,0);
 
              if (handle >= 0) {
                 // file opened .. send
@@ -633,7 +717,7 @@ extern "C" int task_main()
                 int status = sendFile(newsock,datasock,&dataremote,handle);
 
                 // stream mode must close the socket again..
-                fclose(datasock);
+                close(datasock);
 
                 if (status == 0) {
                     // tell control connection that data has been send
@@ -641,7 +725,7 @@ extern "C" int task_main()
                     sendto(newsock,s,strlen(s),0);
                 }
 
-                fclose(handle);
+                close(handle);
              } else {
                 printf("Could not open '%s'. Error: %d\r\n",file,handle);
                 sendto(newsock,"450 \r\n",6,0);
@@ -665,7 +749,7 @@ extern "C" int task_main()
                     sendDirectoryContents(newsock,datasock,&dataremote);
 
                     // stream mode must close the socket again..
-                    fclose(datasock);
+                    close(datasock);
 
                     // tell control connection that data has been send
                     s = "226 Transfer complete.\r\n";
@@ -752,12 +836,12 @@ extern "C" int task_main()
             compactPath(current_dir);
 
             // try opening the new directory
-            int handle = fopen(dir,0);
+            int handle = open(dir,0);
 
             if (handle >= 0) {
                 // success
                 //printf("opening '%s' successfull\r\n",current_dir);
-                if ((mydirhandle != 0) && (mydirhandle != handle )) fclose(mydirhandle);
+                if ((mydirhandle != 0) && (mydirhandle != handle )) close(mydirhandle);
                 mydirhandle = handle;
                 sendto(newsock,"250 \r\n",6,0);
             } else {

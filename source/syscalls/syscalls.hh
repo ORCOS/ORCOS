@@ -98,10 +98,18 @@ int sc_thread_exit(intptr_t sp_int);
 int sc_printToStdOut(intptr_t sp_int);
 
 /*****************************************************************************
+ * Method: sc_getTime(intptr_t sp_int)
+ *
+ * @description
+ *  Syscall handler to return the current time since startup in ns
+ *******************************************************************************/
+int sc_getTime(intptr_t sp_int);
+
+/*****************************************************************************
  * Method: sc_getCycles(intptr_t sp_int)
  *
  * @description
- *  Syscall handler to return the current processor cycles
+ *  Syscall handler to return the current processor cycles since startup
  *******************************************************************************/
 int sc_getCycles(intptr_t sp_int);
 

@@ -208,21 +208,21 @@ void handleCommand(int socket, int command_length) {
         memcpy(current_dir, path, 100);
         strcat(current_dir, "/");
 
-        int handle = fopen(current_dir, 0);
+        int handle = open(current_dir, 0);
         if (handle >= 0) {
 
             /* check type */
             stat_t filetype;
             filetype.st_type = 10;
             if (fstat(handle, &filetype) != cOk || (filetype.st_type & STAT_TYPE_DIRECTORY) == 0) {
-                fclose(handle);
+                close(handle);
                 memcpy(current_dir, last_dir, 100);
                 return (sendMsg(socket, "Could not open directory. Not a directory."));
             }
 
             // success
             if ((mydirhandle != 0) && (mydirhandle != handle))
-                fclose(mydirhandle);
+                close(mydirhandle);
             mydirhandle = handle;
         } else {
             memcpy(current_dir, last_dir, 100);
@@ -259,8 +259,8 @@ void handleCommand(int socket, int command_length) {
             sendMsg(socket, "Error mounting", error);
         }
         /* reopen current dir as it might be overlayed */
-        fclose(mydirhandle);
-        mydirhandle = fopen(current_dir);
+        close(mydirhandle);
+        mydirhandle = open(current_dir);
         delete argv;
         return;
     }
@@ -285,7 +285,7 @@ void handleCommand(int socket, int command_length) {
                 char* path = argv[1];
                 compactPath(path);
                 /* try opening the target dir */
-                handle = fopen(path, 0);
+                handle = open(path, 0);
                 if (handle < 0) {
                     delete argv;
                     sendMsg(socket, "Could not open directory", handle);
@@ -298,7 +298,7 @@ void handleCommand(int socket, int command_length) {
         command_ls(socket, handle, details, humanReadable);
 
         if (args == 2 && handle != mydirhandle) {
-            fclose(handle);
+            close(handle);
         }
 
         return;
@@ -371,9 +371,9 @@ void handleCommand(int socket, int command_length) {
 
         compactPath(path);
 
-        int filehandle = fopen(path, 0);
+        int filehandle = open(path, 0);
         if (filehandle > 0) {
-            int num = fread(filehandle, temp_msg, 200);
+            int num = read(filehandle, temp_msg, 200);
             int end = num;
             int pos = 0;
 
@@ -418,7 +418,7 @@ void handleCommand(int socket, int command_length) {
             sendto(socket, return_msg, pos + 3, 0);
 
             if (filehandle != mydirhandle)
-                fclose(filehandle);
+                close(filehandle);
             return;
         } else {
             // can not open file
@@ -448,7 +448,7 @@ void handleCommand(int socket, int command_length) {
 
         compactPath(path);
 
-        int filehandle = fopen(path, 0);
+        int filehandle = open(path, 0);
         if (filehandle > 0) {
             stat_t filetype;
             filetype.st_type = 10;
@@ -487,7 +487,7 @@ void handleCommand(int socket, int command_length) {
 
             } else {
                 /* normal file.. just print content */
-                int num = fread(filehandle, return_msg, 512);
+                int num = read(filehandle, return_msg, 512);
                 if (num < 0) {
                     sendMsg(socket, "Error reading file contents", num);
                     num = 0;  // check error
@@ -500,7 +500,7 @@ void handleCommand(int socket, int command_length) {
                     //printf(return_msg);
                     sendData(socket, return_msg, num);
 
-                    num = fread(filehandle, return_msg, 512);
+                    num = read(filehandle, return_msg, 512);
                     if (num < 0) {
                         sendMsg(socket, "Error reading file contents", num);
                         num = 0;  // check error
@@ -517,7 +517,7 @@ void handleCommand(int socket, int command_length) {
                 sendData(socket, return_msg, num + 3);
 
                 if (filehandle != mydirhandle)
-                    fclose(filehandle);
+                    close(filehandle);
                 return;
             }
         } else {
@@ -570,7 +570,7 @@ void handleCommand(int socket, int command_length) {
 
         //printf("path: %s\r\n", path);
 
-        int res = fcreate(path, cTYPE_DIR);
+        int res = create(path, cTYPE_DIR);
         if (res < 0)
             sendMsg(socket, "Error creating directory", res);
 
@@ -586,13 +586,13 @@ void handleCommand(int socket, int command_length) {
 
         } else {
             /* display stats */
-            int handle = fopen("/dev/comm", 0);
+            int handle = open("/dev/comm", 0);
             if (handle) {
                 Directory_Entry_t* direntry = readdir(handle);
 
                 char devpath[60];
                 sprintf(devpath, "/dev/comm/%s", direntry->name);
-                int devicehandle = fopen(devpath);
+                int devicehandle = open(devpath);
                 netif_stat_t netifstats;
                 ioctl(devicehandle, cNETIF_GET_STATS, &netifstats);
 
@@ -630,11 +630,11 @@ void handleCommand(int socket, int command_length) {
 
                 sendStr(socket, dir_content);
 
-                fclose(devicehandle);
+                close(devicehandle);
             }
 
             if (handle != mydirhandle) {
-                fclose(handle);
+                close(handle);
             }
 
         }
@@ -664,7 +664,7 @@ void handleCommand(int socket, int command_length) {
 
         compactPath(path);
 
-        int res = fcreate(path);
+        int res = create(path);
         if (res < 0)
             sendMsg(socket, "Error creating file", res);
 
@@ -693,7 +693,7 @@ void handleCommand(int socket, int command_length) {
 
         compactPath(path);
 
-        int res = fremove(path);
+        int res = remove(path);
         if (res < 0)
             sendMsg(socket, "Error removing file", res);
         return;
@@ -709,11 +709,11 @@ static int newsock;
 void* tty0_thread(void* arg) {
     int devid = (int) arg;
     while (1) {
-        int read = fread(devid, tty0buf, 256);
-        if (read > 0 && newsock != 0) {
-            sendData(newsock, tty0buf, read);
+        int readb = read(devid, tty0buf, 256);
+        if (readb > 0 && newsock != 0) {
+            sendData(newsock, tty0buf, readb);
         }
-        sleep(10);
+        usleep(10000);
     }
 }
 
@@ -749,7 +749,7 @@ extern "C" int task_main() {
     thread_attr_t attr;
     memset(&attr, 0, sizeof(thread_attr_t));
     attr.priority = 1;
-    int threadid = -1;
+    ThreadIdT threadid = -1;
     thread_create(&threadid, &attr, tty0_thread, (void*) devid);
     thread_run(threadid);
     thread_name(threadid, "tty0");
@@ -793,7 +793,7 @@ extern "C" int task_main() {
 
         current_dir[0] = '/';
         current_dir[1] = '\0';
-        mydirhandle = fopen(current_dir, 0);
+        mydirhandle = open(current_dir, 0);
 
         while (1) {
             msgptr = recvMsg;
@@ -801,7 +801,7 @@ extern "C" int task_main() {
             if (msglen < 0) {
                 // disconnected
                 printf("Terminal disconnected..");
-                fclose(newsock);
+                close(newsock);
                 newsock = 0;
                 break;
             }

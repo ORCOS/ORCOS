@@ -122,40 +122,40 @@ const char* getStatusStr(unint4 status) {
 
 bool readKernelVarStr(char* filepath, char* result, int size) {
     result[0] = 0;
-    int file = fopen(filepath, 0);
+    int file = open(filepath, 0);
     if (file < 0)
         return (false);
 
-    int num = fread(file, result, size - 1);
+    int num = read(file, result, size - 1);
     result[num] = 0;
-    fclose(file);
+    close(file);
     return (true);
 }
 
 bool readKernelVarInt(int filehandle, void* result, int size) {
-    int num = fread(filehandle, (char*) result, 4);
+    int num = read(filehandle, (char*) result, 4);
     return (true);
 }
 
 bool readKernelVarUInt4(char* filepath, unint4* result) {
     result[0] = 0;
-    int file = fopen(filepath, 0);
+    int file = open(filepath, 0);
     if (file < 0)
         return (false);
 
-    int num = fread(file, (char*) result, 4);
-    fclose(file);
+    int num = read(file, (char*) result, 4);
+    close(file);
     return (true);
 }
 
 bool readKernelVarUInt8(char* filepath, unint8* result) {
     result[0] = 0;
-    int file = fopen(filepath, 0);
+    int file = open(filepath, 0);
     if (file < 0)
         return (false);
 
-    int num = fread(file, (char*) result, 8);
-    fclose(file);
+    int num = read(file, (char*) result, 8);
+    close(file);
     return (true);
 }
 

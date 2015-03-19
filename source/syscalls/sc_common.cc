@@ -24,6 +24,7 @@
  * Method: sc_getCycles(intptr_t sp_int)
  *
  * @description
+ *  SYSCALL: Returns the current clock cycles passed since startup.
  *
  * @params
  *  sp_int:     The stack pointer at time of system call instruction execution
@@ -35,14 +36,40 @@ int sc_getCycles(intptr_t sp_int) {
     TimeT* time;
     SYSCALLGETPARAMS1(sp_int, time);
     VALIDATE_IN_PROCESS(time);
-    *time = theOS->getBoard()->getClock()->getClockCycles();
+    *time = theOS->getClock()->getClockCycles();
     return (cOk );
+}
+
+/*****************************************************************************
+ * Method: sc_getCycles(intptr_t sp_int)
+ *
+ * @description
+ *  SYSCALL: Returns the current time since startup in ns.
+ *
+ * @params
+ *  sp_int:     The stack pointer at time of system call instruction execution
+ *
+ * @returns
+ *  int         Error Code
+ *---------------------------------------------------------------------------*/
+int sc_getTime(intptr_t sp_int) {
+    TimeT* time;
+    SYSCALLGETPARAMS1(sp_int, time);
+    VALIDATE_IN_PROCESS(time);
+    unint8 current = theOS->getClock()->getClockCycles();
+#if CLOCK_RATE < 1000000000
+    *time = current * (unint8)(1000000000 / CLOCK_RATE);
+#else
+    *time = (current * 1000) / (CLOCK_RATE / 1000000);
+#endif
+    return (cOk);
 }
 
 /*****************************************************************************
  * Method: sc_getDateTime(intptr_t sp_int)
  *
  * @description
+ *  SYSCALL: Returns the current date time.
  *
  * @params
  *  sp_int:     The stack pointer at time of system call instruction execution
@@ -51,7 +78,7 @@ int sc_getCycles(intptr_t sp_int) {
  *  int         Error Code
  *---------------------------------------------------------------------------*/
 int sc_getDateTime(intptr_t sp_int) {
-    return (theOS->getBoard()->getClock()->getDateTime());
+    return (theOS->getClock()->getDateTime());
 }
 
 /*****************************************************************************

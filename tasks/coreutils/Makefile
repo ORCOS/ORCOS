@@ -1,5 +1,5 @@
 TARGET=armv7
-UTILS=cp crc32
+UTILS=cp crc32 
 
 all:	
 	@mkdir -p $(TARGET)

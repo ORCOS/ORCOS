@@ -24,7 +24,7 @@
 
 #define PAD_RIGHT       1
 #define PAD_ZERO        2
-#define PRINT_BUF_LEN   12
+#define PRINT_BUF_LEN   26
 #define ZEROPAD         1       /* pad with zero */
 #define SIGN            2       /* unsigned/signed long */
 #define PLUS            4       /* show plus */
@@ -68,6 +68,60 @@ void uitoa( unsigned int value, char* str, int base ) {
     // Reverse string
     strreverse( str, wstr - 1 );
 }
+
+
+void ulltoa( unsigned long long value, char* str, int base ) {
+    static char num[] = "0123456789abcdefghijklmnopqrstuvwxyz";
+    char* wstr = str;
+
+    // Validate base
+    if ( base < 2 || base > 35 ) {
+        *wstr = '\0';
+        return;
+    }
+
+    // Conversion. Number is reversed.
+    do
+        *wstr++ = num[ value % base ];
+    while ( value /= base );
+
+      *wstr = '\0';
+
+    // Reverse string
+    strreverse( str, wstr - 1 );
+}
+
+void lltoa( long long value, char* str, int base ) {
+    static char num[] = "0123456789abcdefghijklmnopqrstuvwxyz";
+    char* wstr = str;
+    int sign = 0;
+    // for all other bases we interpret value as unsigned!
+    if (base != 10) return (uitoa((unsigned int) value,str,base));
+
+    // Validate base
+    if ( base < 2 || base > 35 ) {
+        *wstr = '\0';
+        return;
+    }
+
+
+    if ( ( sign = value ) < 0 )
+        value = -value;
+
+    // Conversion. Number is reversed.
+    do
+        *wstr++ = num[ value % base ];
+    while ( value /= base );
+
+    if ( sign < 0 )
+        *wstr++ = '-';
+
+    *wstr = '\0';
+
+    // Reverse string
+    strreverse( str, wstr - 1 );
+}
+
 
 
 void itoa( int value, char* str, int base ) {
@@ -190,6 +244,35 @@ extern "C" int print( char **out, const char *format, va_list args ) {
                 prints( out,  &print_buf[0], width, pad );
                 continue;
             }
+            if ( *format == 'l' ) {
+                format++;
+                if ( *format == 'u' ) {
+                    uitoa( va_arg( args, unsigned int ), print_buf, 10 );
+                    prints( out,  &print_buf[0], width, pad );
+                    continue;
+                }
+                if ( *format == 'd' ) {
+                    itoa( va_arg( args, int ), print_buf, 10 );
+                    prints( out,  &print_buf[0], width, pad );
+                    continue;
+                }
+                if (*format == 'l') {
+                    /* long long printing */
+                    format++;
+                    if (*format == 'u') {
+                        ulltoa( va_arg( args, long long unsigned), print_buf, 10 );
+                        prints( out,  &print_buf[0], width, pad );
+                        continue;
+                    }
+                    if (*format == 'd') {
+                        lltoa( va_arg( args, long long ), print_buf, 10 );
+                        prints( out,  &print_buf[0], width, pad );
+                        continue;
+                    }
+                }
+
+            }
+
             if( *format == 'x' ) {
                 uitoa( va_arg( args, unsigned int ), print_buf, 16 );
                 prints( out, &print_buf[0], width, pad );
@@ -249,7 +332,7 @@ int printf( const char *format, ... )
     va_start( args, format );
     int ret = print( &out, format, args );
     va_end(args);
-    printToStdOut(tmp,ret);
+    printToStdOut(tmp, ret);
     return (ret);
 }
 
@@ -441,8 +524,85 @@ char* strdup (const char *s)
     return (char *) memcpy (newstr, s, len);
 }
 
+void strnlower(char* pstr, int count) {
+    for ( char *p = pstr; *p && count; ++p ) {
+        *p= *p >= 'A' && *p <= 'Z' ? *p |0x60 : *p;
+        count--;
+    }
+}
+
+
+int strmatch(const char *wild, const char *string) {
+  const char *cp = NULL, *mp = NULL;
+
+  while ((*string) && (*wild != '*')) {
+    if ((*wild != *string) && (*wild != '?')) {
+      return (0);
+    }
+    wild++;
+    string++;
+  }
+
+  while (*string) {
+    if (*wild == '*') {
+      if (!*++wild) {
+        return (1);
+      }
+      mp = wild;
+      cp = string+1;
+    } else if ((*wild == *string) || (*wild == '?')) {
+      wild++;
+      string++;
+    } else {
+      wild = mp;
+      string = cp++;
+    }
+  }
+
+  while (*wild == '*') {
+    wild++;
+  }
+  return (!*wild);
+}
+
 extern "C" int puts(const char *s) {
     return (printToStdOut(s,strlen(s)));
+}
+
+
+static char ret_dirname[200];
+
+char* dirname(const char *path) {
+    strncpy(ret_dirname, path, 200);
+    char *ret = ret_dirname;
+
+    char *name = ret;
+    char* last_slash = 0;
+    while (*name) {
+        if (*name == '/')  {
+            last_slash = name;
+        }
+        name++;
+    }
+    if (last_slash && last_slash != ret) {
+        last_slash[0] = 0;
+    }
+    if (last_slash == 0) {
+        ret[0] = '.';
+        ret[1] = 0;
+    }
+    return (ret);
+}
+
+char* basename(const char *name) {
+  const char *base = name;
+
+  while (*name) {
+      if (*name++ == '/')  {
+          base = name;
+      }
+  }
+  return (const_cast<char*>(base));
 }
 
 typedef struct {

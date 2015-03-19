@@ -186,5 +186,7 @@
 #define cThreadNameSyscallId                44
 #define cMountSyscallId                     45
 #define cThreadWaitIRQSyscallId             46
+#define cGetHostByNameSyscallId             47
+#define cGetCyclesSyscallId                 48
 
 #endif /* TASKLIB_HH_ */

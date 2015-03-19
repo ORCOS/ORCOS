@@ -600,6 +600,7 @@
         <MemberRef Name="mkdev"/>
         <MemberRef Name="mount"/>
         <MemberRef Name="waitirq"/>
+        <MemberRef Name="gethostbyname"/>
       </Superclass>
     </Superclasses>
     <Member><Name>sleep</Name></Member>
@@ -642,6 +643,7 @@
     <Member><Name>mkdev</Name> </Member>
     <Member><Name>mount</Name> </Member>
     <Member><Name>waitirq</Name> </Member>
+    <Member><Name>gethostbyname</Name></Member>
     </Skeleton>
 
     <Defines>

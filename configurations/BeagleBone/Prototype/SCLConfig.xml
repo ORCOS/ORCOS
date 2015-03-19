@@ -244,6 +244,7 @@
       <Member Name="thread_name" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="mount" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="waitirq" None="false" />
+      <Member Name="gethostbyname" None="false" />
     </Skeleton>
     <!--  DEFINES -->
     <Define>

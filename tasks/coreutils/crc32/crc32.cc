@@ -1,106 +1,24 @@
 /*
-	ORCOS - an Organic Reconfigurable Operating System
-	Copyright (C) 2008 University of Paderborn
+    ORCOS - an Organic Reconfigurable Operating System
+    Copyright (C) 2008 University of Paderborn
 
-	This program is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <orcos.hh>
 #include <string.hh>
-
-char* extractNextArg(char* &str) {
-
-	while (*str == ' ') {
-		*str = 0;
-		str++;
-	}
-
-	if (*str == '"') {
-		*str = 0;
-		str++;
-		int len = strpos("\"",str);
-		if (len < 0) return (0);
-		str[len] = 0;
-		return (&str[len+1]);
-	}
-
-	// first char != 0 & != '"'
-	int len = strpos(" ",str);
-	if (len < 0) {
-		return (0);
-	}
-
-	// something is following
-	str[len] = 0;
-	return (&str[len+1]);
-}
-
-
-int parseArgs(char* str, char** &argv) {
-	int arg_count = 0;
-
-	char* curstr = str;
-
-	curstr = extractNextArg(curstr);
-	while (curstr != 0) {
-		arg_count++;
-		curstr = extractNextArg(curstr);
-	}
-
-	argv = (char**) malloc(sizeof(char*) * (arg_count+2));
-	for (int i = 0; i < arg_count+2; i++)
-		argv[i] = 0;
-
-	char* pos = str;
-	for (int i = 0; i <= arg_count; i++) {
-		while (*pos == 0) pos++;
-		argv[i] = pos;
-		while (*pos != 0) pos++;
-	}
-
-	return (arg_count+1);
-}
-
-
-// reduces the path by "." and ".." statements
-void compactPath(char* path) {
-
-	char newpath[100];
-	newpath[0] = '/';
-	newpath[1] = '\0';
-
-
-	char* token = strtok(path,"/");
-	char* next_token;
-
-	while (token != 0) {
-
-		next_token = strtok(0,"/");
-
-		bool nextisparent = false;
-		if ((next_token != 0) && ((strcmp(next_token,"..") == 0))) nextisparent = true;
-
-		if ((strcmp(token,".") != 0) && !nextisparent && (strcmp(token,"..") != 0 )) {
-			strcat(newpath,token);
-			strcat(newpath,"/");
-		}
-
-		token = next_token;
-	}
-
-	memcpy(path,newpath,strlen(newpath)+1);
-}
+#include <args.h>
 
 
 static unint4 crc_32_tab[] = { /* CRC polynomial 0xedb88320 */
@@ -159,54 +77,55 @@ char buf[1024];
 // entry point
 extern "C" int task_main(char* args)
 {
-	volatile int val = 0;
+    volatile int val = 0;
 
-	if (args == 0) {
-		puts("Usage: crc32 FILE\r");
-		thread_exit(-1);
-	}
-	// in place argument detection
-	char** argv;
-	int argc = parseArgs(args,argv);
+    if (args == 0) {
+        puts("Usage: crc32 FILE\n");
+        thread_exit(-1);
+    }
+    // in place argument detection
+    char** argv;
+    int argc = parseArgs(args,argv);
 
-	int fd = fopen(argv[0]);
+    int fd = open(argv[0]);
 
-	// bail out if file not found
-	if (fd < 0) {
-		puts("File not found.\r");
-		thread_exit(-1);
-	}
+    // bail out if file not found
+    if (fd < 0) {
+        printf("File open error: %s\n", strerror(fd));
+        thread_exit(fd);
+    }
 
-	// calculate crc
+    // calculate crc
    stat_t stat;
-   fstat(fd,&stat);
+   fstat(fd, &stat);
 
    register unint4 oldcrc32;
 
    oldcrc32 = 0xFFFFFFFF;
 
-   int read = 0;
-   while (read < stat.st_size) {
-	  int num_bytes = 1024;
-	  if (read + 1024 > stat.st_size)
-		  num_bytes = stat.st_size - read;
+   int readb = 0;
+   while (readb < stat.st_size) {
+      int num_bytes = 1024;
+      if (readb + 1024 > stat.st_size)
+          num_bytes = stat.st_size - readb;
 
-	  fread(buf,num_bytes,1,fd);
-	  read += num_bytes;
+      int err = read(fd, buf, num_bytes);
+      if (err < 0) {
+          printf("Error reading file: %s\n",strerror(err));
+          thread_exit(err);
+      }
+      readb += num_bytes;
 
-	  for (int i = 0; i < num_bytes; i++)
-	  {
-	 	oldcrc32 = UPDC32(buf[i], oldcrc32);
-	  }
+      for (int i = 0; i < num_bytes; i++) {
+         oldcrc32 = UPDC32(buf[i], oldcrc32);
+      }
+  }
 
-   }
-
-  fclose(fd);
+  close(fd);
   oldcrc32 = ~oldcrc32;
 
   // print output
-  printf("0x%x\r",oldcrc32);
+  printf("0x%x\n", oldcrc32);
 
   thread_exit(cOk);
-
 }

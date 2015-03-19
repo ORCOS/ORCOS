@@ -246,8 +246,7 @@ dns_init()
     if (dns_pcb != NULL) {
       /* initialize DNS table not needed (initialized to zero since it is a
        * global variable) */
-      LWIP_ASSERT("For implicit initialization to work, DNS_STATE_UNUSED needs to be 0",
-        DNS_STATE_UNUSED == 0);
+      LWIP_ASSERT("For implicit initialization to work, DNS_STATE_UNUSED needs to be 0", DNS_STATE_UNUSED == 0);
 
       /* initialize DNS client */
       udp_bind(dns_pcb, IP4_ADDR_ANY, 0);
@@ -468,13 +467,13 @@ dns_lookup(const char *name)
     if ((dns_table[i].state == DNS_STATE_DONE) &&
         (strcmp(name, dns_table[i].name) == 0)) {
       LWIP_DEBUGF(DNS_DEBUG, ("dns_lookup: \"%s\": found = ", name));
-      ip_addr_debug_print(DNS_DEBUG, &(dns_table[i].ipaddr));
+      ip4_addr_debug_print(DNS_DEBUG, &(dns_table[i].ipaddr));
       LWIP_DEBUGF(DNS_DEBUG, ("\n"));
       return ip4_addr_get_u32(&dns_table[i].ipaddr);
     }
   }
 
-  return IP4ADDR_NONE;
+  return (IP4ADDR_NONE);
 }
 
 #if DNS_DOES_NAME_CHECK
@@ -651,7 +650,7 @@ dns_check_entry(u8_t i)
       err = dns_send(pEntry->numdns, pEntry->name, i);
       if (err != ERR_OK) {
         LWIP_DEBUGF(DNS_DEBUG | LWIP_DBG_LEVEL_WARNING,
-                    ("dns_send returned error: %s\n", lwip_strerr(err)));
+                    ("dns_send returned error: %d\n", err));
       }
       break;
     }
@@ -684,7 +683,7 @@ dns_check_entry(u8_t i)
         err = dns_send(pEntry->numdns, pEntry->name, i);
         if (err != ERR_OK) {
           LWIP_DEBUGF(DNS_DEBUG | LWIP_DBG_LEVEL_WARNING,
-                      ("dns_send returned error: %s\n", lwip_strerr(err)));
+                      ("dns_send returned error: %d\n", err));
         }
       }
       break;
@@ -807,7 +806,7 @@ dns_recv(void *arg, struct udp_pcb *pcb, struct pbuf *p, ip_addr_t *addr, u16_t 
             }
             /* read the IP address after answer resource record's header */
             SMEMCPY(&(pEntry->ipaddr), (pHostname+SIZEOF_DNS_ANSWER), sizeof(ip4_addr_t));
-            LWIP_DEBUGF(DNS_DEBUG, ("dns_recv: \"%s\": response = ", pEntry->name));
+            LWIP_DEBUGF(DNS_DEBUG, ("dns_recv: \"%s\": response = %x", pEntry->name, pEntry->ipaddr));
             //ip_addr_debug_print(DNS_DEBUG, (&(pEntry->ipaddr)));
             LWIP_DEBUGF(DNS_DEBUG, ("\n"));
             /* call specified callback function if provided */

@@ -21,6 +21,7 @@
 #include "syscalls.hh"
 #include Kernel_Thread_hh
 #include "assemblerFunctions.hh"
+#include "lwip/dns.h"
 
 #if ENABLE_NETWORKING
 
@@ -308,6 +309,53 @@ int sc_recv(intptr_t int_sp) {
 }
 #endif
 
+#ifdef HAS_SyscallManager_gethostbynameCfd
+void dns_lookup_found_callback(const char *name, ip_addr_t *ipaddr, void *callback_arg) {
+    if (callback_arg != 0) {
+        Thread* p = (Thread*) callback_arg;
+        p->unblock();
+    }
+};
+
+/*****************************************************************************
+ * Method: sc_gethostbyname(intptr_t int_sp)
+ *
+ * @description
+ * Performs a host name lookup if DNS is supported.
+ *******************************************************************************/
+int sc_gethostbyname(intptr_t int_sp) {
+#ifndef LWIP_DNS
+    return (cNotImplemented);
+#else
+   char*  host_name;
+   int*   host_ip4addr;
+   SYSCALLGETPARAMS2(int_sp, host_name, host_ip4addr);
+   VALIDATE_IN_PROCESS(host_name);
+   VALIDATE_IN_PROCESS(host_ip4addr);
+
+   ip_addr_t res_addr;
+   err_t result = dns_gethostbyname(host_name, &res_addr, dns_lookup_found_callback, pCurrentRunningThread);
+   if (result == ERR_ARG) {
+       LOG(SYSCALLS, WARN, "Syscall: dns_gethostbyname returned error %d", result);
+       *host_ip4addr = 0;
+       return (cError);
+   }
+   if (result == ERR_INPROGRESS) {
+       /* lookup was not found in cache. wait for
+        * lookup for at most 5 seconds */
+       pCurrentRunningThread->block(5000 ms);
+       if (pCurrentRunningThread->blockTimeout == 0) {
+           LOG(SYSCALLS, ERROR, "Syscall: gethostbyname lookup for %s timed out.", host_name);
+           return (cError);
+       }
+   }
+   *host_ip4addr = res_addr.addr.ip4addr.addr;
+   return (cOk);
+#endif
+}
+#endif
+
+
 #else
 /*****************************************************************************
  * Method: sc_recv(intptr_t sp_int)
@@ -366,6 +414,16 @@ int sc_connect(intptr_t int_sp) {
  *  Dummy if networking is disabled.
  *******************************************************************************/
 int sc_listen(intptr_t int_sp) {
+ return (cNotImplemented);
+}
+
+/*****************************************************************************
+ * Method: sc_gethostbyname(intptr_t int_sp)
+ *
+ * @description
+ *  Dummy if networking is disabled.
+ *******************************************************************************/
+int sc_gethostbyname(intptr_t int_sp) {
  return (cNotImplemented);
 }
 
