@@ -95,7 +95,7 @@ void KernelServiceThread::callbackFunc(void* param) {
 
 #if LWIP_DNS
     /* call every 1 s*/
-    if (count & 4)
+    if ((count & 7) == 0)
         dns_tmr();
 #endif
 
