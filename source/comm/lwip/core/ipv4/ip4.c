@@ -68,7 +68,7 @@ struct netif *current_netif;
  */
 const struct ip4_hdr *current_header;
 
-const ip_addr_t ip4_addr_any       = IP_ADDR_INIT_IPV4(255,255,255,255);
+const ip_addr_t ip4_addr_any       = IP_ADDR_INIT_IPV4(0,0,0,0);
 const ip_addr_t ip4_addr_broadcast = IP_ADDR_INIT_IPV4(255,255,255,255);;
 
 /**
