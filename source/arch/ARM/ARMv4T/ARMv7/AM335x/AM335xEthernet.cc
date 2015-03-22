@@ -385,14 +385,14 @@ ErrorT AM335xEthernet::handleIRQ() {
 
         rxqueue_head = (cppi_rx_descriptor_t*) descr->next_descr;
         if (status & EOQ) {
-            cpsw_stateram_regs->rx_hdp[0] = (unint4) rxqueue_head;
+            cpsw_stateram_regs->rx_hdp[0] = reinterpret_cast<unint4>(rxqueue_head);
         }
 
         LOG(COMM, DEBUG, "AM335xEthernet::handleIRQ(). Handling RX len: %u", packet_len);
          /* copy data from dma buffer to internal packet buffer.
           * Takes time but allows HW to receive new packets inside this buffer. */
         comStackMutex->acquire();
-        struct pbuf* ptBuf = pbuf_alloc(PBUF_RAW, (unint2) (packet_len + 10), PBUF_RAM);
+        struct pbuf* ptBuf = pbuf_alloc(PBUF_RAW, packet_len + 10, PBUF_RAM);
         if (ptBuf != 0) {
              memcpy(ptBuf->payload, (void*) (descr->buffer_pointer), packet_len);
              ethernet_input(ptBuf, &st_netif);
@@ -401,14 +401,14 @@ ErrorT AM335xEthernet::handleIRQ() {
         }
         comStackMutex->release();
 
-        cpsw_stateram_regs->rx_cp[0] = (unint4) descr;
+        cpsw_stateram_regs->rx_cp[0] = reinterpret_cast<unint4>(descr);
 
         /* requeue descriptor */
         descr->next_descr = 0;
         descr->control    = OWNER_MAC | 1520 | SOP | EOP;
         descr->buffer_opt = 1520;
         rxqueue_tail->next_descr = descr;
-        rxqueue_tail = descr;
+        rxqueue_tail      = descr;
         cpsw_dma_regs->rx0_freebuffer = 1;
         descr = rxqueue_head;
     }
