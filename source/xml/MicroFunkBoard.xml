@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BoardDefinition>
+    <!-- #################################################### BeagleBoard Definition
+        and Default Values #################################################### -->
+    <Superclasses>
+      <Superclass Provides="ATMEGA,ATMEGA328" Name="arch/Atmel/ATMEGA328/RN-MicroFunk/MicroFunkBoard">
+        <MemberRef Name="Timer"/>
+        <MemberRef Name="Clock"/>
+        <MemberRef Name="Processor"/>
+        <MemberRef Name="UART"/>
+      </Superclass>
+    </Superclasses>
+    <Device Name="UART">
+      <Class Requires="ATMEGA328" Name="arch/Atmel/ATMEGA328/USART0"/>
+    </Device>
+</BoardDefinition>

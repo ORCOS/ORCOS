@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BoardDefinition>
+    <!-- ####################################################
+              BeBot Configuration and Default Values
+              (University of Paderborn)
+         #################################################### -->
+    <Superclasses>
+      <Superclass Provides="ARMv4,ARMv7,CortexA8,OMAP3530,BeBot" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/BeBot/BeBot">
+         <MemberRef Name="Timer" optional="false">
+          <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapGPTimer">
+            <PropertyValue Name="Address" Value="0x49032000" />
+            <PropertyValue Name="Length" Value="4096" />
+          </Defaults>
+        </MemberRef>
+        <MemberRef Name="Cache"/>
+         <MemberRef Name="UART">
+          <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardUART">
+           <!--  First value of set is the default value, rest enum values -->
+            <PropertyValue Name="Address" Value="0x49020000" />
+            <PropertyValue Name="Length" Value="1024" />
+            <PropertyValue Name="Name" Value="serial0"/>
+          </Defaults>
+          <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530i2c">
+            <PropertyValue Name="Address" Value="0x48060000" />
+            <PropertyValue Name="Length" Value="1024" />
+            <PropertyValue Name="Name" Value="i2c0"/>
+          </Defaults>
+        </MemberRef>
+        <MemberRef Name="UART2">
+          <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/BeagleBoardUART">
+            <PropertyValue Name="Address" Value="0x49020000" />
+            <PropertyValue Name="Length" Value="1024" />
+            <PropertyValue Name="Name" Value="serial0"/>
+          </Defaults>
+          <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530i2c">
+            <PropertyValue Name="Address" Value="0x48060000" />
+            <PropertyValue Name="Length" Value="1024" />
+            <PropertyValue Name="Name" Value="i2c0"/>
+          </Defaults>
+        </MemberRef>
+        <MemberRef Name="HatLayer"/>
+        <MemberRef Name="Clock"/>
+        <MemberRef Name="Processor"/>
+        <MemberRef Name="Watchdog"/>
+        <MemberRef Name="HCI"/>
+        <MemberRef Name="LED">
+          <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/BeBot/Omap3530_BebotLED">
+            <PropertyValue Name="Address" Value="0x90220000" />
+            <PropertyValue Name="Length" Value="1024" />
+            <PropertyValue Name="Name" Value="led0" />
+          </Defaults>
+        </MemberRef>
+        <MemberRef Name="USB_HC">
+         <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/HighSpeedUSBHostController">
+            <PropertyValue Name="I2CDeviceName" Value="dev/i2c0" />
+         </Defaults>
+        </MemberRef>
+        <MemberRef Name="InterruptHandler"/>
+        <MemberRef Name="InterruptController"/>
+      </Superclass>
+    </Superclasses>
+
+    <Device Name="LED">
+        <Class Requires="BeBot" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/BeBot/Omap3530_BebotLED">
+          <Property Name="Address" Type="unsigned int" Optional="false" Description="The Memory Mapped I/O (MMIO) Base Address of this device." />
+          <Property Name="Length" Type="unsigned int" Optional="true" Description="The Length (Bytes) of the Memory Mapped I/O Area of this device. This value is only needed if Virtual Memory is activated to create the corresponding memory maps."/>
+          <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree."/>
+        </Class>
+    </Device>
+
+</BoardDefinition>

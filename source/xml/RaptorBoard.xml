@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BoardDefinition>
+    <!-- ####################################################
+              RAPTOR BOARD (University of Paderborn)
+         #################################################### -->
+    <Superclasses>
+       <Superclass Provides="PPC405,RAPTOR,FPGA" Name="arch/PPC40x/RAPTOR/RaptorBoard">
+        <MemberRef Name="Timer"/>
+        <MemberRef Name="UART">
+          <Defaults Class="arch/PPC40x/RAPTOR/OPB_UART_Lite">
+            <PropertyValue Name="Address" Value="0x90210000" />
+            <PropertyValue Name="Length" Value="16" />
+            <PropertyValue Name="Name" Value="serial0" />
+          </Defaults>
+        </MemberRef>
+        <MemberRef Name="UART2"/>
+        <MemberRef Name="HatLayer"/>
+        <MemberRef Name="Clock"/>
+        <MemberRef Name="Processor"/>
+        <MemberRef Name="Watchdog"/>
+        <MemberRef Name="LED">
+          <Defaults Class="arch/PPC40x/RAPTOR/LED">
+            <PropertyValue Name="Address" Value="0x90220000" />
+            <PropertyValue Name="Length" Value="16" />
+            <PropertyValue Name="Name" Value="led0" />
+          </Defaults>
+        </MemberRef>
+        <MemberRef Name="Ethernet">
+          <Defaults Class="arch/PPC40x/RAPTOR/PLB_EMAC0">
+            <PropertyValue Name="Address" Value="0x90000000" />
+            <PropertyValue Name="Length" Value="4096" />
+            <PropertyValue Name="Name" Value="eth0" />
+          </Defaults>
+        </MemberRef>
+        <MemberRef Name="InterruptHandler"/>
+        <MemberRef Name="InterruptController"/>
+      </Superclass>
+    </Superclasses>
+
+    <Device Name="Ethernet">
+       <Class Requires="RAPTOR" Name="arch/PPC40x/RAPTOR/PLB_EMAC0">
+          <Property Name="Address" Type="unsigned int" Optional="false" Description="The Memory Mapped I/O (MMIO) Base Address of this device." />
+          <Property Name="Length" Type="unsigned int" Optional="true" Description="The Length (Bytes) of the Memory Mapped I/O Area of this device. This value is only needed if Virtual Memory is activated to create the corresponding memory maps."/>
+          <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree."/>
+        </Class>
+    </Device>
+
+    <Device Name="LED">
+       <Class Requires="RAPTOR" Name="arch/PPC40x/RAPTOR/LED">
+          <Property Name="Address" Type="unsigned int" Optional="false" Description="The Memory Mapped I/O (MMIO) Base Address of this device." />
+          <Property Name="Length" Type="unsigned int" Optional="true" Description="The Length (Bytes) of the Memory Mapped I/O Area of this device. This value is only needed if Virtual Memory is activated to create the corresponding memory maps."/>
+          <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree."/>
+        </Class>
+    </Device>
+
+    <Device Name="InterruptController">
+        <Class Requires="RAPTOR" Name="arch/PPC40x/RAPTOR/OPB_Interrupt_Controller"/>
+        <Class Requires="RAPTOR" Name="arch/PPC40x/RAPTOR/UIC_Interrupt_Controller"/>
+    </Device>
+
+    <Device Name="UART,UART2">
+        <Class Requires="RAPTOR" Name="arch/PPC40x/RAPTOR/OPB_UART_Lite">
+          <Property Name="Address" Type="unsigned int" Optional="false" Description="The Memory Mapped I/O (MMIO) Base Address of this device." />
+          <Property Name="Length" Type="unsigned int" Optional="true" Description="The Length (Bytes) of the Memory Mapped I/O Area of this device. This value is only needed if Virtual Memory is activated to create the corresponding memory maps."/>
+          <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree."/>
+        </Class>
+        <Class Requires="RAPTOR" Name="arch/PPC40x/RAPTOR/UART16550">
+          <Property Name="Address" Type="unsigned int" Optional="false" Description="The Memory Mapped I/O (MMIO) Base Address of this device." />
+          <Property Name="Length" Type="unsigned int" Optional="true" Description="The Length (Bytes) of the Memory Mapped I/O Area of this device. This value is only needed if Virtual Memory is activated to create the corresponding memory maps."/>
+          <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree."/>
+        </Class>
+        <Class Requires="RAPTOR" Name="arch/PPC40x/RAPTOR/QEMU_UART">
+          <Property Name="Address" Type="unsigned int" Optional="false" Description="The Memory Mapped I/O (MMIO) Base Address of this device." />
+          <Property Name="Length" Type="unsigned int" Optional="true" Description="The Length (Bytes) of the Memory Mapped I/O Area of this device. This value is only needed if Virtual Memory is activated to create the corresponding memory maps."/>
+          <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree."/>
+        </Class>
+    </Device>
+
+</BoardDefinition>

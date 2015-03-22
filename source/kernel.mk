@@ -16,12 +16,16 @@ KOBJ 	= $(notdir $(KASRC:.S=.o)) $(ARCH_OBJ)
 OBJ 	= $(addprefix $(OUTPUT_DIR),$(KOBJ))
 MODULES = $(addprefix $(MODULES_DIR),$(MODULE_OBJ))
 
+SCLFILTER =  $(RELATIVE_SOURCE_PATH)/source/xml/SCLdependencies.xml
+SCLDEPSF  = $(wildcard $(RELATIVE_SOURCE_PATH)/source/xml/*.xml)
+SCLDEPS   = $(filter-out $(SCLFILTER),$(SCLDEPSF))
+
 # Overridden by configuration makefile
 RELATIVE_SOURCE_PATH=..
 
 #SCL SETTINGS
-SCL 	= java -jar $(RELATIVE_SOURCE_PATH)/tools/SCL/dist/scl2.jar SCLConfig.xml  $(RELATIVE_SOURCE_PATH)/tools/SCL/dist/scl2.xsd --check-deps $(RELATIVE_SOURCE_PATH)/source/SCLdependencies.xml  $(RELATIVE_SOURCE_PATH)/tools/SCL/dist/scl2deps.xsd --verbose=3 
-SCL_GEN = java -jar $(RELATIVE_SOURCE_PATH)/tools/SCL/dist/scl2.jar --generate-deps $(RELATIVE_SOURCE_PATH)/source/SCLdependencies.xml  $(RELATIVE_SOURCE_PATH)/tools/SCL/dist/scl2deps.xsd --verbose=3 
+SCL 	= java -jar $(RELATIVE_SOURCE_PATH)/tools/SCL/dist/scl2.jar SCLConfig.xml  $(RELATIVE_SOURCE_PATH)/tools/SCL/dist/scl2.xsd --check-deps $(RELATIVE_SOURCE_PATH)/source/xml/SCLdependencies.xml  $(RELATIVE_SOURCE_PATH)/tools/SCL/dist/scl2deps.xsd --verbose=3 
+SCL_GEN = java -jar $(RELATIVE_SOURCE_PATH)/tools/SCL/dist/scl2.jar --generate-deps $(RELATIVE_SOURCE_PATH)/source/xml/SCLdependencies.xml  $(RELATIVE_SOURCE_PATH)/tools/SCL/dist/scl2deps.xsd --verbose=3 
 
 CPPLINT_FILTER=-readability/multiline_string,-whitespace/line_length,-whitespace/indent,-whitespace/comments,-readability/todo,-runtime/references,-runtime/printf,-build/include,-runtime/threadsafe_fn
 
@@ -206,19 +210,20 @@ $(OUTPUT_DIR)%.o : %.S SCLConfig.hh
 	@echo "kernel.mk[ASM]: Assembling $@"
 	@$(CC) $(ASFLAGS) $< --output $@
 		
+		
+$(RELATIVE_SOURCE_PATH)/source/xml/SCLdependencies.xml: $(SCLDEPS)
+	@echo Updating SCLdependcies.xml	
+	@make -s scl_gen
+		
 #rule for creating the configuration header file SCLConfig.hh and the tasktable by unsing the scl tool	
-SCLConfig.hh tasktable.S: SCLConfig.xml $(RELATIVE_SOURCE_PATH)/source/SCLdependencies.xml
-	@echo ----------------- SCLTool -------------------
+SCLConfig.hh tasktable.S: SCLConfig.xml $(RELATIVE_SOURCE_PATH)/source/xml/SCLdependencies.xml	
 	@echo kernel.mk: Reading config file $<
-	@ if $(SCL); then echo Configuration valid! Files created for compilation.; else exit 1; fi 
-	@echo ---------------------------------------------
+	@ if $(SCL); then echo Configuration valid! Files created for compilation.; else exit 1; fi 	
 	@echo
 
 scl_gen:
-	@echo ----------------- SCLTool -------------------
 	@echo kernel.mk: Generating SCL Dependency file $<	
 	@ if $(SCL_GEN); then echo SCL Dependency file created!; else exit 1; fi 
-	@echo ---------------------------------------------
 	@echo
 
 scl: SCLConfig.hh 
