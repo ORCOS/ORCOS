@@ -76,7 +76,7 @@ void BeBot::initialize() {
     printf("CM_CLKSEL1_PLL=%x\r", INW(0x48004D40));
 
     unint sys_clk = INW(REG_PRM_CLKSEL);
-    printf("PRM_CLKSEL : %d\r", sys_clk);
+    printf("PRM_CLKSEL : %u\r", sys_clk);
 
     unint sys_clock = 26000;
 
@@ -91,29 +91,29 @@ void BeBot::initialize() {
     else if (sys_clk == 0)
         sys_clock = 12000;
 
-    printf("System Clock       = %d kHz\r", sys_clock);
+    printf("System Clock       = %u kHz\r", sys_clock);
 
     unint m = (INW(CM_CLKSEL1_PLL) >> 16) & 0x7ff;
     unint n = (INW(CM_CLKSEL1_PLL) >> 8) & 0x7f;
     unint f_clkout = (sys_clock * m) / (n + 1);
-    printf("f_CLKOUT           = %d kHz ", f_clkout);
-    printf("[m = %d, n = %d]\r", m, n);
+    printf("f_CLKOUT           = %u kHz ", f_clkout);
+    printf("[m = %u, n = %u]\r", m, n);
 
     unint m2 = INW(0x48004D40) >> 27;
     unint core_clock = f_clkout / m2;
-    printf("CORE_CLOCK         = %d kHz ", core_clock);
-    printf("[m2 = %d]\r", m2);
+    printf("CORE_CLOCK         = %u kHz ", core_clock);
+    printf("[m2 = %u]\r", m2);
 
     m = (INW(CM_CLKSEL2_PLL) >> 8) & 0x7ff;
     n = INW(CM_CLKSEL2_PLL) & 0x7f;
     unint dpll4_clock = (sys_clock * m) / (n + 1);
-    printf("DPLL4_CLOCK        = %d kHz ", dpll4_clock);
-    printf("[m = %d, n = %d]\r", m, n);
-    printf("DPLL4_AWON_FCLKOUT = %d kHz \r", dpll4_clock * 2);
+    printf("DPLL4_CLOCK        = %u kHz ", dpll4_clock);
+    printf("[m = %u, n = %u]\r", m, n);
+    printf("DPLL4_AWON_FCLKOUT = %u kHz \r", dpll4_clock * 2);
 
     unint mhz96clock = dpll4_clock / (INW(CM_CLKSEL3_PLL) & 0x1f);
-    printf("96Mhz Clock        = %d kHz \r", mhz96clock);
-    printf("DIV_96M            = %d\r", (INW(CM_CLKSEL3_PLL) & 0x1f));
+    printf("96Mhz Clock        = %u kHz \r", mhz96clock);
+    printf("DIV_96M            = %u\r", (INW(CM_CLKSEL3_PLL) & 0x1f));
 
 #ifdef HAS_Board_UART2Cfd
     INIT_Board_UART2Cfd

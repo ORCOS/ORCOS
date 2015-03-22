@@ -51,15 +51,6 @@ DEF_Board_TimerCfd
 DEF_Board_ClockCfd
 DEF_Board_USB_HCCfd
 
-    /*****************************************************************************
-     * Method: getETH()
-     *
-     * @description
-     *
-     *******************************************************************************/
-    CommDeviceDriver* getETH() {
-        return 0;
-    }
 
 public:
     BeagleBoard();

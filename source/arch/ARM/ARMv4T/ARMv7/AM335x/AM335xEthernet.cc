@@ -73,12 +73,14 @@ extern "C" err_t ethernet_input(struct pbuf *p, struct netif *netif);
 
 static err_t low_level_output(struct netif *netif, struct pbuf *p) {
     LOG(COMM, TRACE, "AM335xEthernet::sendPacket(). Send packet %x len: %u", p, p->tot_len);
-    AM335xEthernet* ethdev = (AM335xEthernet*) netif->state;
+    AM335xEthernet* ethdev = reinterpret_cast<AM335xEthernet*>(netif->state);
 
     SMP_SPINLOCK_GET(lock);
 
     bool send = false;
 
+    // TODO: use complete send queue not only first slot
+    // implement a real queue as it is done for rx
     while (!send) {
         /* get a free descriptor and send the packet */
         for (int i = 0; i < 1; i++) {
@@ -99,9 +101,9 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p) {
                     len = 60;
                 }
 
-                txqueue[i].buffer_pointer = (char*) tx_buffers[i];
-                txqueue[i].buffer_opt = len;
-                txqueue[i].control = SOP | EOP | OWNER_MAC | len;
+                txqueue[i].buffer_pointer = reinterpret_cast<char*>(tx_buffers[i]);
+                txqueue[i].buffer_opt     = len;
+                txqueue[i].control        = SOP | EOP | OWNER_MAC | len;
                 send = true;
 
                 LOG(COMM, TRACE, "AM335xEthernet::sendPacket(). Sending %x at queue pos %u", p, i);
@@ -111,7 +113,7 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p) {
     }
 
     /* restart queue processing */
-    ethdev->cpsw_stateram_regs->tx_hdp[0] = (unint4) &txqueue[0];
+    ethdev->cpsw_stateram_regs->tx_hdp[0] = reinterpret_cast<unint4>(&txqueue[0]);
     SMP_SPINLOCK_FREE(lock);
 
     return (ERR_OK);
@@ -180,17 +182,17 @@ AM335xEthernet::AM335xEthernet(T_AM335xEthernet_Init * init) :
     mutex = new Mutex("AM335Ethernet");
 
     /* set pointers to hw regs using the init struct */
-    cpsw_wr_regs        = (cpsw_wr_regs_t*) init->cpsw_wr;
-    cpsw_ss_regs        = (cpsw_ss_regs_t*) init->cpsw_ss;
-    cpsw_sl_regs        = (cpsw_sl_regs_t*) init->cpsw_sl1;
-    cpsw_p0_regs        = (cpsw_port_regs_t*) init->cpsw_port;
-    cpsw_stateram_regs  = (cpsw_stateram_regs_t*) init->cpsw_stateram;
-    cpsw_ale_regs       = (cpsw_ale_regs_t*) init->cpsw_ale;
-    cpsw_dma_regs       = (cpsw_cpdma_regs_t*) init->cpsw_cpdma;
-    cpsw_stats_regs     = (cpsw_stats_regs_t*) init->cpsw_stats;
+    cpsw_wr_regs        = reinterpret_cast<cpsw_wr_regs_t*>(init->cpsw_wr);
+    cpsw_ss_regs        = reinterpret_cast<cpsw_ss_regs_t*>(init->cpsw_ss);
+    cpsw_sl_regs        = reinterpret_cast<cpsw_sl_regs_t*>(init->cpsw_sl1);
+    cpsw_p0_regs        = reinterpret_cast<cpsw_port_regs_t*>(init->cpsw_port);
+    cpsw_stateram_regs  = reinterpret_cast<cpsw_stateram_regs_t*>(init->cpsw_stateram);
+    cpsw_ale_regs       = reinterpret_cast<cpsw_ale_regs_t*>(init->cpsw_ale);
+    cpsw_dma_regs       = reinterpret_cast<cpsw_cpdma_regs_t*>(init->cpsw_cpdma);
+    cpsw_stats_regs     = reinterpret_cast<cpsw_stats_regs_t*>(init->cpsw_stats);
 
-    txqueue = (cppi_tx_descriptor_t*) (((unint4) init->cppi_ram));
-    rxqueue = (cppi_rx_descriptor_t*) (&txqueue[11]);
+    txqueue = reinterpret_cast<cppi_tx_descriptor_t*>(((unint4) init->cppi_ram));
+    rxqueue = reinterpret_cast<cppi_rx_descriptor_t*>(&txqueue[11]);
 
     // Step4: Apply soft reset.
     cpsw_dma_regs->cpdma_soft_reset = 1;
@@ -237,15 +239,15 @@ AM335xEthernet::AM335xEthernet(T_AM335xEthernet_Init * init) :
         cpsw_stateram_regs->tx_cp[i] = 0;
         cpsw_stateram_regs->rx_cp[i] = 0;
     }
-    memset(txqueue, 0, sizeof(txqueue));
+    memset(txqueue, 0, sizeof(cppi_tx_descriptor_t));
 
     /* initialize rx queue */
     for (int i = 0; i < 10; i++) {
-        rxqueue[i].next_descr = &rxqueue[i + 1];
+        rxqueue[i].next_descr     = &rxqueue[i + 1];
         rxqueue[i].buffer_pointer = rx_buffers[i];
-        rxqueue[i].buffer_opt = 1520;
+        rxqueue[i].buffer_opt     = 1520;
         /* give ownership of this buffer to the hw */
-        rxqueue[i].control = OWNER_MAC;
+        rxqueue[i].control        = OWNER_MAC;
     }
 
     /* last descriptor points to first one again */
@@ -255,12 +257,12 @@ AM335xEthernet::AM335xEthernet(T_AM335xEthernet_Init * init) :
 
     /* initialize tx queue */
     for (int i = 0; i < 1; i++) {
-        txqueue[i].next_descr = &txqueue[i + 1];
-        txqueue[i].next_descr = 0;
+        txqueue[i].next_descr     = &txqueue[i + 1];
+        txqueue[i].next_descr     = 0;
         txqueue[i].buffer_pointer = 0;
-        txqueue[i].buffer_opt = 0;
-        /*nothin to transmit yet so do not let the hw own this descriptor */
-        txqueue[i].control = 0;
+        txqueue[i].buffer_opt     = 0;
+        /*nothing to transmit yet so do not let the hw own this descriptor */
+        txqueue[i].control        = 0;
     }
     /* last descriptor ends here */
     txqueue[0].next_descr = 0;
@@ -319,8 +321,8 @@ AM335xEthernet::AM335xEthernet(T_AM335xEthernet_Init * init) :
     netif_add(&st_netif, &tIpAddr, &eth_nm, &tgwAddr, (void*) this, &ethernetif_init, 0);
     netif_set_default(&st_netif);
 
-    LOG(ARCH, INFO, "AM335xEthernet: RX descriptor queue at %x", (unint4 ) &rxqueue[0]);
-    LOG(ARCH, INFO, "AM335xEthernet: TX descriptor queue at %x", (unint4 ) &txqueue[0]);
+    LOG(ARCH, INFO, "AM335xEthernet: RX descriptor queue at %x", reinterpret_cast<unint4>(&rxqueue[0]));
+    LOG(ARCH, INFO, "AM335xEthernet: TX descriptor queue at %x", reinterpret_cast<unint4>(&txqueue[0]));
 
     rxpos = 0;
     cpsw_dma_regs->rx0_freebuffer = 10;
@@ -329,7 +331,7 @@ AM335xEthernet::AM335xEthernet(T_AM335xEthernet_Init * init) :
     cpsw_dma_regs->rx_control = 1;
 
     /* set rx descriptor in hw register to the first one */
-    cpsw_stateram_regs->rx_hdp[0] = (unint4) rxqueue_head;
+    cpsw_stateram_regs->rx_hdp[0] = reinterpret_cast<unint4>(rxqueue_head);
 
     netif_set_up(&st_netif);
 }
@@ -402,7 +404,6 @@ ErrorT AM335xEthernet::handleIRQ() {
         cpsw_stateram_regs->rx_cp[0] = (unint4) descr;
 
         /* requeue descriptor */
-
         descr->next_descr = 0;
         descr->control    = OWNER_MAC | 1520 | SOP | EOP;
         descr->buffer_opt = 1520;
