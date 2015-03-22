@@ -9,7 +9,7 @@
 #---------------------------------------------------------------------------------------------------------------------------------------
 OUTPUT_DIR = bin/armv7/
 
-OPT_FLAGS = -O2   -mcpu=cortex-a8  -mthumb-interwork -mno-unaligned-access -DARM_THUMB=1  -fno-builtin -flto -fno-section-anchors -fno-if-conversion2 
+OPT_FLAGS = -O2   -mcpu=cortex-a8  -mthumb-interwork -mno-unaligned-access -DARM_THUMB=1  -fno-builtin -fno-section-anchors -fno-if-conversion2 
 USER_LIB_OPT_FLAGS = -O2 -mcpu=cortex-a8 -mno-unaligned-access 
 
 #Command line arguments to compile .c files.
