@@ -363,9 +363,11 @@ int sc_gethostbyname(intptr_t int_sp) {
  * @description
  *  Dummy if networking is disabled.
  *******************************************************************************/
+#ifdef HAS_SyscallManager_recvCfd
 int sc_recv(intptr_t int_sp) {
  return (cNotImplemented);
 }
+#endif
 
 /*****************************************************************************
  * Method: sc_sendto(intptr_t int_sp)
@@ -373,9 +375,11 @@ int sc_recv(intptr_t int_sp) {
  * @description
  *  Dummy if networking is disabled.
  *******************************************************************************/
+#ifdef HAS_SyscallManager_sendtoCfd
 int sc_sendto(intptr_t int_sp) {
  return (cNotImplemented);
 }
+#endif
 
 /*****************************************************************************
  * Method: sc_bind(intptr_t int_sp)
@@ -383,9 +387,11 @@ int sc_sendto(intptr_t int_sp) {
  * @description
  *  Dummy if networking is disabled.
  *******************************************************************************/
+#ifdef HAS_SyscallManager_bindCfd
 int sc_bind(intptr_t int_sp) {
  return (cNotImplemented);
 }
+#endif
 
 /*****************************************************************************
  * Method: sc_socket(intptr_t int_sp)
@@ -393,9 +399,11 @@ int sc_bind(intptr_t int_sp) {
  * @description
  *  Dummy if networking is disabled.
  *******************************************************************************/
+#ifdef HAS_SyscallManager_socketCfd
 int sc_socket(intptr_t int_sp) {
  return (cNotImplemented);
 }
+#endif
 
 /*****************************************************************************
  * Method: sc_connect(intptr_t int_sp)
@@ -403,9 +411,11 @@ int sc_socket(intptr_t int_sp) {
  * @description
  *  Dummy if networking is disabled.
  *******************************************************************************/
+#ifdef HAS_SyscallManager_connectCfd
 int sc_connect(intptr_t int_sp) {
  return (cNotImplemented);
 }
+#endif
 
 /*****************************************************************************
  * Method: sc_listen(intptr_t int_sp)
@@ -413,9 +423,11 @@ int sc_connect(intptr_t int_sp) {
  * @description
  *  Dummy if networking is disabled.
  *******************************************************************************/
+#ifdef HAS_SyscallManager_listenCfd
 int sc_listen(intptr_t int_sp) {
  return (cNotImplemented);
 }
+#endif
 
 /*****************************************************************************
  * Method: sc_gethostbyname(intptr_t int_sp)
@@ -423,9 +435,11 @@ int sc_listen(intptr_t int_sp) {
  * @description
  *  Dummy if networking is disabled.
  *******************************************************************************/
+#ifdef HAS_SyscallManager_gethostbynameCfd
 int sc_gethostbyname(intptr_t int_sp) {
  return (cNotImplemented);
 }
+#endif
 
 #endif // networking enabled
 
