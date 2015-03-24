@@ -26,13 +26,13 @@ extern Mutex* comStackMutex;
 #define PACKET_LEN          (1 << 0)
 
 #ifndef ETH_IP4NETMASK
-#define ETH_IP4NETMASK  255,255,255,0
+#define ETH_IP4NETMASK  255, 255, 255, 0
 #endif
 #ifndef ETH_IP4ADDR
-#define ETH_IP4ADDR     192,168,1,100
+#define ETH_IP4ADDR     192, 168, 1, 100
 #endif
 #ifndef ETH_IP4ADDR_GW
-#define ETH_IP4ADDR_GW  192,168,1,1
+#define ETH_IP4ADDR_GW  192, 168, 1, 1
 #endif
 
 #define ALE_UNICAST 0x0
@@ -71,6 +71,13 @@ char broadcastmac[6] ={ 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 
 extern "C" err_t ethernet_input(struct pbuf *p, struct netif *netif);
 
+/*****************************************************************************
+ * Method: low_level_output(struct netif *netif, struct pbuf *p)
+ *
+ * @description
+ *   Low level output of the AM35x Device driver. Enqueue a pbuf packet
+ *   at the hardware tx queue.
+ *******************************************************************************/
 static err_t low_level_output(struct netif *netif, struct pbuf *p) {
     LOG(COMM, TRACE, "AM335xEthernet::sendPacket(). Send packet %x len: %u", p, p->tot_len);
     AM335xEthernet* ethdev = reinterpret_cast<AM335xEthernet*>(netif->state);
@@ -119,6 +126,12 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p) {
     return (ERR_OK);
 }
 
+/*****************************************************************************
+ * Method: ethernetif_init(struct netif *netif)
+ *
+ * @description
+ *   Netif initialization of the AM335x netif.
+ *******************************************************************************/
 static err_t ethernetif_init(struct netif *netif) {
 
 #if LWIP_NETIF_HOSTNAME
@@ -152,6 +165,12 @@ static err_t ethernetif_init(struct netif *netif) {
     return (cOk );
 }
 
+/*****************************************************************************
+ * Method: AM335xEthernet::ale_addAddress(int type, char* address, int port)
+ *
+ * @description
+ *   Add a new address lookup engine entry inside the AM335x ALE hardware.
+ *******************************************************************************/
 void AM335xEthernet::ale_addAddress(int type, char* address, int port) {
     // type 00 = unicast
     static int entry = 1;
@@ -160,15 +179,21 @@ void AM335xEthernet::ale_addAddress(int type, char* address, int port) {
     int word1 = (address[0] << 8) | (address[1]) | (1 << 28) | (type << 30);
     int word2 = (port << 2);
 
-    OUTW(((unint4 ) cpsw_ale_regs) + 0x34, word2);
-    OUTW(((unint4 ) cpsw_ale_regs) + 0x38, word1);
-    OUTW(((unint4 ) cpsw_ale_regs) + 0x3c, word0);
+    OUTW(((unint4) cpsw_ale_regs) + 0x34, word2);
+    OUTW(((unint4) cpsw_ale_regs) + 0x38, word1);
+    OUTW(((unint4) cpsw_ale_regs) + 0x3c, word0);
 
     /* write entry*/
     cpsw_ale_regs->tblctl = entry | (1 << 31);
     entry++;
 }
 
+/*****************************************************************************
+ * Method: AM335xEthernet::AM335xEthernet(T_AM335xEthernet_Init * init)
+ *
+ * @description
+ *   Constructor
+ *******************************************************************************/
 AM335xEthernet::AM335xEthernet(T_AM335xEthernet_Init * init) :
         CommDeviceDriver(init->Name) {
     /*
@@ -300,14 +325,14 @@ AM335xEthernet::AM335xEthernet(T_AM335xEthernet_Init * init) :
     cpsw_ale_regs->control |= (1 << 8);
 
     /* forward on port 0 */
-    OUTW(((unint4 ) cpsw_ale_regs) + 0x40, 0x3);
+    OUTW(((unint4) cpsw_ale_regs) + 0x40, 0x3);
 
     /* forward on port 1 */
-    OUTW(((unint4 ) cpsw_ale_regs) + 0x44, 0x3);
+    OUTW(((unint4) cpsw_ale_regs) + 0x44, 0x3);
 
     /* set mac address of port 1*/
-    OUTW(((unint4 )cpsw_p0_regs) + 0x120, 0x01010101);
-    OUTW(((unint4 )cpsw_p0_regs) + 0x124, 0x0001);
+    OUTW(((unint4)cpsw_p0_regs) + 0x120, 0x01010101);
+    OUTW(((unint4)cpsw_p0_regs) + 0x124, 0x0001);
 
     //ale_addAddress((cpsw_ale_regs_t*) cpsw_ale_regs, ALE_UNICAST, mac, 0);
     //ale_addAddress((cpsw_ale_regs_t*) cpsw_ale_regs, 0, broadcastmac, 1 << 0);
@@ -339,18 +364,39 @@ AM335xEthernet::AM335xEthernet(T_AM335xEthernet_Init * init) :
 AM335xEthernet::~AM335xEthernet() {
 }
 
+/*****************************************************************************
+ * Method: AM335xEthernet::disableIRQ()
+ *
+ * @description
+ *   Disables all irqs of the device. Masks the device a the interrupt
+ *   controller as well as disables the RX irqs at the cpsw.
+ *******************************************************************************/
 ErrorT AM335xEthernet::disableIRQ() {
     theOS->getBoard()->getInterruptController()->maskIRQ(intc_irq);
     cpsw_wr_regs->c0_rx_en = 0x0;
     return (cOk );
 }
 
+/*****************************************************************************
+ * Method: AM335xEthernet::enableIRQ()
+ *
+ * @description
+ *   Enables all irqs of the device. Unmasks the device a the interrupt
+ *   controller as well as enables the RX irqs at the cpsw.
+ *******************************************************************************/
 ErrorT AM335xEthernet::enableIRQ() {
     theOS->getBoard()->getInterruptController()->unmaskIRQ(intc_irq);
     cpsw_wr_regs->c0_rx_en = 0xff;
     return (cOk );
 }
 
+/*****************************************************************************
+ * Method: AM335xEthernet::clearIRQ()
+ *
+ * @description
+ *   Masks the irq at the interrupt controller as clearing them is handled
+ *   inside the rx handler.
+ *******************************************************************************/
 ErrorT AM335xEthernet::clearIRQ() {
     theOS->getBoard()->getInterruptController()->maskIRQ(intc_irq);
     /* no real clear here as handleIRQ must be called for that */
@@ -360,10 +406,15 @@ ErrorT AM335xEthernet::clearIRQ() {
 // if we are sure a -b is never > b we can use this!
 #define MODULO(a, b)  a >= b ? a-b : a
 
+/*****************************************************************************
+ * Method: AM335xEthernet::handleIRQ()
+ *
+ * @description
+ *  Handles RX irqs.
+ *******************************************************************************/
 ErrorT AM335xEthernet::handleIRQ() {
     /* scan rx queue and process the data by passing it to the
      * network stack. afterwards ack packet*/
-    lastIRQ = theOS->getClock()->getDateTime();
     unint4 cpvalue = cpsw_stateram_regs->rx_cp[0];
     LOG(COMM, DEBUG, "AM335xEthernet::handleIRQ(). Handling RX packet IRQ, cp at %x", cpvalue);
 
@@ -415,7 +466,7 @@ ErrorT AM335xEthernet::handleIRQ() {
 
 out:
 
-    OUTW(((unint4 )cpsw_dma_regs) + 0x94, 0x1);
+    OUTW(((unint4)cpsw_dma_regs) + 0x94, 0x1);
 
     LOG(COMM, TRACE, "AM335xEthernet::handleIRQ(). exited");
     this->interruptPending = false;

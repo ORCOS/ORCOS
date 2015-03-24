@@ -40,37 +40,28 @@ extern "C"
 {
 #endif
 
-#ifdef PACK_STRUCT_USE_INCLUDES
-#  include "arch/bpstruct.h"
-#endif
-    PACK_STRUCT_BEGIN
-    struct ip4_addr
-    {
-        PACK_STRUCT_FIELD(u32_t addr);
-    }PACK_STRUCT_STRUCT;
-    PACK_STRUCT_END
-#ifdef PACK_STRUCT_USE_INCLUDES
-#  include "arch/epstruct.h"
-#endif
 
-    /*
-     * struct ipaddr2 is used in the definition of the ARP packet format in
-     * order to support compilers that don't have structure packing.
-     */
-#ifdef PACK_STRUCT_USE_INCLUDES
-#  include "arch/bpstruct.h"
-#endif
-    PACK_STRUCT_BEGIN
-    struct ip4_addr2
-    {
-        PACK_STRUCT_FIELD(u16_t addrw[2]);
-    }PACK_STRUCT_STRUCT;
-    PACK_STRUCT_END
-#ifdef PACK_STRUCT_USE_INCLUDES
-#  include "arch/epstruct.h"
-#endif
+PACK_STRUCT_BEGIN
+struct ip4_addr
+{
+    PACK_STRUCT_FIELD(u32_t addr);
+}PACK_STRUCT_STRUCT;
+PACK_STRUCT_END
 
-    struct netif;
+
+/*
+ * struct ipaddr2 is used in the definition of the ARP packet format in
+ * order to support compilers that don't have structure packing.
+ */
+PACK_STRUCT_BEGIN
+struct ip4_addr2
+{
+    PACK_STRUCT_FIELD(u16_t addrw[2]);
+}PACK_STRUCT_STRUCT;
+PACK_STRUCT_END
+
+
+struct netif;
 
 #if 0
     extern const struct ip4_addr ip4_addr_any;

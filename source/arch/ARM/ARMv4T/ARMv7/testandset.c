@@ -2,9 +2,19 @@
  * testandset.c
  *
  *  Created on: 23.10.2013
- *      Author: dbaldin
+ *    Copyright & Author: dbaldin
  */
 
+/*****************************************************************************
+ * Method: testandset(void* address, int testvalue, int setvalue)
+ *
+ * @description
+ * Tries to set 'setvalue' at address 'address'. Before setting the value
+ * it tests the address on testvalue. If the address contains testvalue
+ * or setting setvalue fails (due to concurrent access) the function returns 0.
+ * On exclusively and successfully setting setvalue the function returns 1.
+ * This function is SMP safe.
+ *******************************************************************************/
 int testandset(void* address, int testvalue, int setvalue) {
     int result;
 

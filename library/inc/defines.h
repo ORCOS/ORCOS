@@ -53,6 +53,7 @@
 #define cNETIF_SET_DOWN     21
 
 #define cNETIF_GET_STATS    512
+#define cNETIF_REQUEST_DHCP 50
 
 
 #define NETIF_FLAG_UP           0x01U

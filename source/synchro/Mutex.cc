@@ -49,10 +49,11 @@ Mutex::Mutex(const char* name) :
         m_pThread(0),
         m_pRes(0) {
     acquirePriority = 1;
+
     if (name != 0) {
         this->name = name;
     } else {
-        name = "Unknown";
+        this->name = "Unknown";
     }
 
 }

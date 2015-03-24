@@ -39,7 +39,7 @@ private:
     //static int2 globalCommDeviceIdCounter;  //!< always needs to start at 0 and must increase by 1
 
 protected:
-    /*! The network interface for this commdevice driver inside lwip */
+    /*! The network interface for this communication device driver inside lwip network stack */
     struct netif st_netif;
 public:
     /*****************************************************************************
@@ -58,6 +58,16 @@ public:
     /*  static void initialize() {
      globalCommDeviceIdCounter = 0;
      }*/
+
+    /*****************************************************************************
+     * Method: getNetworkInterface()
+     *
+     * @description
+     *  Returns the network interface of this communication device
+     *******************************************************************************/
+    struct netif* getNetworkInterface() {
+        return (&st_netif);
+    }
 
     /*****************************************************************************
      * Method: getMacAddr()

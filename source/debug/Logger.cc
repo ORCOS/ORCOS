@@ -72,7 +72,7 @@ void Logger::log(Prefix prefix, Level level, const char* msg, ...) {
     if (theOS != 0 && theOS->getClock() != 0)
     time = (unint4) (theOS->getClock()->getClockCycles() / (1 MICROSECONDS));
 
-    int seconds = time / (1000000);
+    unint4 seconds = time / (1000000);
     time = time - (seconds * 1000000);
     printf("[%05u.%08u]", seconds, time * 100);
 #endif

@@ -22,6 +22,7 @@
 /* user library defines */
 #include "inc/defines.h"
 #include "syscalls/syscalls.hh"
+#include "lwip/dhcp.h"
 
 extern Kernel* theOS;
 
@@ -92,6 +93,14 @@ ErrorT CommDeviceDriver::ioctl(int request, void* args) {
         stats->txbytes      = st_netif.txbytes;
         memcpy(stats->hwaddr, st_netif.hwaddr, st_netif.hwaddr_len);
         memcpy(stats->ipv6addr, st_netif.ip6_addr.addr, 16);
+        break;
+    }
+    case cNETIF_REQUEST_DHCP: {
+        #if LWIP_DHCP
+            dhcp_start(&st_netif);
+        #else
+        return (cNotImplemented);
+        #endif
         break;
     }
     default:

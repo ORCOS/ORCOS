@@ -357,18 +357,20 @@ extern void* __PageTableSec_start;
           RESTORE_IRQS(irqstatus); }
 
 
-/*
+/*****************************************************************************
+ * Method: testandset(void* address, int testvalue, int setvalue)
  *
+ * @description
  * Tries to set 'setvalue' at address 'address'. Before setting the value
  * it tests the address on testvalue. If the address contains testvalue
  * or setting setvalue fails (due to concurrent access) the function returns 0.
  * On exclusively and successfully setting setvalue the function returns 1.
  * This function is SMP safe.
- */
+ *******************************************************************************/
 static int inline testandset(void* address, int testvalue, int setvalue) {
     int result;
     /* smp test and set for ARM >= v6 */
-    asm volatile (
+    asm volatile(
             "LDREX     r0, [%1];"       // load the address value
             "CMP       r0, %2;"         // compare with test value
             "ITT       EQ;"             // if then then (2 conditional instr following)
@@ -389,16 +391,16 @@ static int inline testandset(void* address, int testvalue, int setvalue) {
  * SMP Capable atomic addition operation.
  */
 static void inline ATOMIC_ADD(void* addr, int value) {
-        asm volatile ( \
-          "1: " \
-          "LDREX r1, [%0];" \
-          "ADD   r1, %1;"  \
-          "STREX r2, r1, [%0];" \
-          "CMP   r2, #0;" \
-          "BNE   1b;" \
-          "DMB;" \
-           : \
-           : "r" (addr), "r" (value) \
+        asm volatile(
+          "1: "
+          "LDREX r1, [%0];"
+          "ADD   r1, %1;"
+          "STREX r2, r1, [%0];"
+          "CMP   r2, #0;"
+          "BNE   1b;"
+          "DMB;"
+           :
+           : "r" (addr), "r" (value)
            : "r1", "r2");
 }
 

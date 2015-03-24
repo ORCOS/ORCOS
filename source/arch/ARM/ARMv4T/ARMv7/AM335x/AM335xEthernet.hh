@@ -186,28 +186,62 @@ public:
     volatile cpsw_cpdma_regs_t*      cpsw_dma_regs;
     volatile cpsw_stats_regs_t*      cpsw_stats_regs;
 
+    /* IRQ number at the interrupt controller */
     int intc_irq;
 
+    /* Current position inside the rx queue */
     int rxpos;
 
-    int lock;
-
-    int lastIRQ;
-public:
+    /* Internal mutex for concurrent access protecting */
     Mutex* mutex;
+public:
+
 
     AM335xEthernet(T_AM335xEthernet_Init * init);
 
     ~AM335xEthernet();
 
+    /*****************************************************************************
+     * Method: disableIRQ()
+     *
+     * @description
+     *   Disables all irqs of the device. Masks the device a the interrupt
+     *   controller as well as disables the RX irqs at the cpsw.
+     *******************************************************************************/
     ErrorT disableIRQ();
 
+    /*****************************************************************************
+     * Method: enableIRQ()
+     *
+     * @description
+     *   Enables all irqs of the device. Unmasks the device a the interrupt
+     *   controller as well as enables the RX irqs at the cpsw.
+     *******************************************************************************/
     ErrorT enableIRQ();
 
+    /*****************************************************************************
+     * Method: handleIRQ()
+     *
+     * @description
+     *  Handles RX irqs.
+     *******************************************************************************/
     ErrorT handleIRQ();
 
+    /*****************************************************************************
+     * Method: clearIRQ()
+     *
+     * @description
+     *   Masks the irq at the interrupt controller as clearing them is handled
+     *   inside the rx handler.
+     *******************************************************************************/
     ErrorT clearIRQ();
 
+    /*****************************************************************************
+     * Method: ale_addAddress(int type, char* address, int port)
+     *
+     * @description
+     *   Add a new address lookup engine entry inside the AM335x ALE hardware.
+     *******************************************************************************/
     void ale_addAddress(int type, char* address, int port);
 };
 

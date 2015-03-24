@@ -24,7 +24,6 @@ extern Kernel* theOS;
 
 AM335xClock::AM335xClock(T_AM335xClock_Init *init) :
         Clock(CLOCK_RATE) {
-
     /* The clock is emulated using Timer1 of the AM335x device running with 24 mhz
      * and using the overflow register to form a 52 bit clock register */
 
@@ -56,7 +55,6 @@ AM335xClock::AM335xClock(T_AM335xClock_Init *init) :
 
     // start timer
     OUTW(AM335x_GPT1_TCLR, INW(AM335x_GPT1_TCLR) | 0x1);
-
 }
 
 AM335xClock::~AM335xClock() {
