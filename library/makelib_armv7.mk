@@ -54,7 +54,7 @@ all: checktools
 
 
 clean:
-	cd $(OUTPUT_DIR) && rm $(KOBJ)
+	cd $(OUTPUT_DIR) && rm -f $(KOBJ)
 
 # Assemble: create object files from assembler source files. 
 $(OUTPUT_DIR)%.o : %.S 

@@ -73,6 +73,8 @@ public:
     char* getBoardInfo() {
         return (char*) "         BeagleBoard revision B5. SOC: OMAP3530\n\n";
     }
+
+    void early_init() {};
 };
 
 #endif /*BEAGLEBOARD_HH_*/

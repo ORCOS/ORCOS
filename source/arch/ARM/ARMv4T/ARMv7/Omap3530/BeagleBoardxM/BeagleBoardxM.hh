@@ -968,6 +968,8 @@ public:
     const char* getBoardInfo() {
         return (" BeagleBoardxM revision C. SOC: DM37xx (compatible OMAP3530)\r\n");
     }
+
+    void early_init() {};
 };
 
 #endif /*BEAGLEBOARD_HH_*/
