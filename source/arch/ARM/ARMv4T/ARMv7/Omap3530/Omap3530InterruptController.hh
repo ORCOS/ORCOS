@@ -47,7 +47,7 @@ public:
      * to determine which hardware device raised an interrupt
      *******************************************************************************/
     inline int getIRQStatusVector()  {
-        int irqSrc = INW(baseAddr + INTCPS_SIR_IRQ);
+        unsigned int irqSrc = INW(baseAddr + INTCPS_SIR_IRQ);
 
         /* spurious irq? */
         if (irqSrc >= 0x80)
@@ -63,7 +63,9 @@ public:
      *  Clears the current pending interrupt and allows new interrupt generation
      *******************************************************************************/
     inline void clearIRQ(int num) {
-            OUTW(baseAddr + INTCPS_CONTROL, 0x1);
+        // data synchronization barrier to ensure peripheral clear irq instructions finished
+        asm volatile ("MOV R7, #0; MCR P15, #0, R7, C7, C10, #4;" : : : "r7");
+        OUTW(baseAddr + INTCPS_CONTROL, 0x1);
     }
 
     /*****************************************************************************

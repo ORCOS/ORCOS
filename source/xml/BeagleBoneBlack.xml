@@ -168,6 +168,7 @@
                     <!-- MMC0 alias MMCHS0-->
                     <PropertyValue Name="Address" Value="0x48060100" />
                     <PropertyValue Name="INTC_IRQ" Value="64" />
+                    <PropertyValue Name="Name" Value="mmc0" />
                     <PropertyValue Name="INTC_Priority" Value="10" />
                 </Defaults>
             </MemberRef>
@@ -177,6 +178,7 @@
                     <!-- MMC0 alias MMCHS0-->
                     <PropertyValue Name="Address" Value="0x481D8100" />
                     <PropertyValue Name="INTC_IRQ" Value="28" />
+                    <PropertyValue Name="Name" Value="mmc1" />
                     <PropertyValue Name="INTC_Priority" Value="10" />
                 </Defaults>
             </MemberRef>

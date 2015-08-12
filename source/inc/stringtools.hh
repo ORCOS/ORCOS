@@ -186,6 +186,17 @@ int ascii2unicode(const char * szAscii, char* szUnicode, unint2 len);
 
 
 /*****************************************************************************
+ * Method: unicode2ascii(const char* szUnicode, char* szAscii, unint2 len)
+ *
+ * @description
+ *
+ * @params
+ *      len: length of the string (== length of the ascii string in bytes)
+ * @returns
+ *******************************************************************************/
+int unicode2ascii(const char* szUnicode, char* szAscii, unint2 len);
+
+/*****************************************************************************
  * Method: strnlower(char* pstr)
  *
  * @description

@@ -68,12 +68,17 @@ TimeT RateMonotonicThreadScheduler::getNextTimerEvent(LinkedList* sleepList, Tim
         do {
             RealTimeThread* pSleepThread = static_cast<RealTimeThread*>(pDBSleepItem->getData());
 
+            // first wakeup all threads whichs sleeptime is reached..
+            // afterwards iterate the remaining threads until the first thread is found
+            // that will preempt the next thread to run
             if (pSleepThread->sleepTime <= currentTime) {
                 pSleepThread->status.setBits(cReadyFlag);
                 LinkedListItem* litem2  = pDBSleepItem;
-                pDBSleepItem            = pDBSleepItem->getSucc(); /* get the next item here is the next line will change the succ */
+                pDBSleepItem            = pDBSleepItem->getSucc(); /* get the next item here as the next line will change the succ */
+                // remove sleeping thread from sleeplist
                 litem2->remove();
                 pSleepThread->sleepTime = 0;
+                // enter into ready queue again
                 this->enter(litem2);
                 /* get new head.. and use its priority */
                 pDBNextItem = database.getHead();
@@ -82,7 +87,7 @@ TimeT RateMonotonicThreadScheduler::getNextTimerEvent(LinkedList* sleepList, Tim
                 if ((pSleepThread->getSleepTime() <= sleeptime) && (pSleepThread->effectivePriority >= nextPriority)) {
                     sleeptime = pSleepThread->getSleepTime();
                     /* we may stop here as this is the earliest time point we need to be interrupted */
-                    //return (sleeptime);
+                    return (sleeptime);
                 }
 
                 pDBSleepItem            = pDBSleepItem->getSucc();

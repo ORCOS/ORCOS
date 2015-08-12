@@ -3,29 +3,29 @@
 
 -include armv7.mk
 
-
 #---------------------------------------------------------------------------------------------------------------------------------------
 #                                                      Compile/Link Settings
 #---------------------------------------------------------------------------------------------------------------------------------------
 OUTPUT_DIR = bin/armv7/
 
-OPT_FLAGS = -O2   -mcpu=cortex-a8  -mthumb-interwork -mno-unaligned-access -DARM_THUMB=1  -fno-builtin -fno-section-anchors -fno-if-conversion2 
-USER_LIB_OPT_FLAGS = -O2 -mcpu=cortex-a8 -mno-unaligned-access 
+
+OPT_FLAGS = -O2 -mcpu=cortex-a8  -mfpu=neon -mno-unaligned-access -fno-builtin -fno-section-anchors -fno-if-conversion2 
+USER_LIB_OPT_FLAGS = -O2 -mcpu=cortex-a8 -mno-unaligned-access -mfpu=neon 
 
 #Command line arguments to compile .c files.
-CFLAGS = -Wall -g -Iinc/ -Iinc/armv7/ -ffunction-sections -fdata-sections -fno-exceptions -fno-unwind-tables -msoft-float -fno-stack-protector -Wno-write-strings -c $(CPU_FLAGS) 
+CFLAGS = -Wall -g -Iinc/ -Ilibc/include/ -Ilibc/time/ -Iinc/armv7/ -std=c99 -ffunction-sections -flto -fdata-sections -fno-exceptions -fno-unwind-tables -fno-stack-protector -Wno-write-strings -c $(CPU_FLAGS) 
 
 #Command line arguments to compile .cc files.
-CPFLAGS = -Wall -g -Iinc/ -Iinc/armv7/ -ffunction-sections -fdata-sections -fno-exceptions -fno-unwind-tables -fno-rtti -msoft-float -fno-stack-protector -c -Wno-write-strings -Wuninitialized -Woverloaded-virtual $(CPU_FLAGS) 
+CPFLAGS = -Wall -g -Iinc/  -Ilibc/include/ -Ilibc/time/ -Iinc/armv7/ -ffunction-sections -flto -fdata-sections -fno-exceptions -fno-unwind-tables -fno-rtti -fno-stack-protector -c -Wno-write-strings -Wuninitialized -Woverloaded-virtual $(CPU_FLAGS) 
 
 #Command line arguments for the gcc to assemble .S files.
-ASFLAGS = -c -g -Iinc/ -fno-exceptions -fno-rtti -msoft-float -fno-stack-protector -mcpu=cortex-a8
+ASFLAGS = -c -g -Iinc/ -fno-exceptions -fno-rtti -fno-stack-protector -mcpu=cortex-a8 -mfpu=neon -flto
 
 #---------------------------------------------------------------------------------------------------------------------------------------
 #                                                      Rules
 #---------------------------------------------------------------------------------------------------------------------------------------
 
-KOBJ += io.o mem.o signal.o net.o static.o threads.o Mutex.o pthread.o syscall.o testandset.o string.o time.o stdlib.o random.o
+KOBJ += io.o mem.o signal.o net.o static.o threads.o Mutex.o pthread.o syscall.o testandset.o string.o time.o stdlib.o random.o strtod.o 
 OBJ = $(addprefix $(OUTPUT_DIR),$(KOBJ))
 
 VPATH = ../source/arch/ARM/ARMv4T ../source/arch/ARM/ARMv4T/ARMv7 src
@@ -54,7 +54,7 @@ all: checktools
 
 
 clean:
-	rm $(OUTPUT_DIR)/*.*
+	cd $(OUTPUT_DIR) && rm $(KOBJ)
 
 # Assemble: create object files from assembler source files. 
 $(OUTPUT_DIR)%.o : %.S 
@@ -89,7 +89,13 @@ $(OUTPUT_DIR)syscall.o : syscall.S
 #Make liborcos.a
 bin/armv7/liborcos.a: $(OBJ)
 	@echo Archiving the user library into liborcos.a
-	@$(AR) qc $@ $(USERLIB_OBJS)  $(OBJ)
+	@$(AR) rc $@ $(USERLIB_OBJS)  $(OBJ)
+	@echo 
+	
+#Make liborcos.a
+bin/armv7/libgloss.a: $(OUTPUT_DIR)libgloss.o
+	@echo Archiving the syscall warpper library into libgloss.a
+	@$(AR) rc $@ libgloss.o
 	@echo 
 
 lib/liborcos_newlib.a: $(USERNEWLIB_OBJS)

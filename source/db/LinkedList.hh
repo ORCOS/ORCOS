@@ -37,6 +37,7 @@ private:
     LinkedListItem* headItem;
     LinkedListItem* tailItem;
 
+    int             m_lock;
     /*!
      * Stores the number of elements in this database;
      */
@@ -93,6 +94,9 @@ public:
      *  Adds llItem to this linked list after existingItem
      *******************************************************************************/
     ErrorT insertAfter(LinkedListItem* llItem, LinkedListItem* existingItem);
+
+
+    ErrorT insertBefore( LinkedListItem* llItem, LinkedListItem* existingItem );
 
     /*****************************************************************************
      * Method: insertAt(ListItem* newItem, int at)

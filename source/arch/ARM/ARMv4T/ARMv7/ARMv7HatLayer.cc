@@ -50,6 +50,14 @@ extern t_archmappings arch_kernelmappings;
 extern Task* pCurrentRunningTask;
 extern Kernel* theOS;
 
+/* 1 MB of area useable for page tables to map pages of size < 1 MB*/
+typedef struct {
+    unint1 usage[1024];
+}subsectionPageTable;
+
+subsectionPageTable* pageTables;
+
+
 #define GETBITS(a, UP, LOW) ((a & (( (1 << (UP - LOW + 1)) -1) << LOW)) >> LOW)
 
 /********************************************
@@ -60,10 +68,22 @@ ARMv7HatLayer::ARMv7HatLayer() : myMutex("ARMv7HatLayer") {
     LOG(HAL, INFO, "ARMv7HatLayer: ARMv7 Page Table Base: 0x%08x", ((unint4)(&__PageTableSec_start)));
     LOG(HAL, INFO, "ARMv7HatLayer: %d Page Tables (%d Kb)", ((unint4) &__MaxNumPts), ((unint4) &__MaxNumPts) * 16);
 
+    pageTables = (subsectionPageTable*) theOS->getRamManager()->alloc_physical(0x100000, 0);
+    if (pageTables == 0) {
+        LOG(HAL, ERROR, "ARMv7HatLayer: Could not allocate memory for sub section size page tables");
+    } else {
+        memsetlong(pageTables, 0, 0x100000);
+        for (int i = 0; i < 1023; i++) {
+            pageTables->usage[i] = (unint1) -1;
+        }
+    }
+
     /* create initial kernel mappings for all page tables */
     for (unint4 i = 0; i < ((unint4) &__MaxNumPts); i++) {
         mapKernel(i);
     }
+
+
 }
 
 ARMv7HatLayer::~ARMv7HatLayer() {
@@ -92,12 +112,16 @@ ARMv7HatLayer::~ARMv7HatLayer() {
  * \param cache_inhibit If true inhibits caching inside this memory region. Usefully for MMIO areas.
  *
  * @returns
- * void*                The physical addreess.
+ * void*                The logical address.
  *
  **********************************************/
 void* ARMv7HatLayer::map(void* logBaseAddr, void* physBaseAddr, size_t size, BitmapT protection, byte zsel, int pid, int cacheMode) {
-    createPT(logBaseAddr, physBaseAddr, size, protection, zsel, pid, cacheMode, true);
-    return (physBaseAddr);
+    if (logBaseAddr != 0) {
+        return (createPT(logBaseAddr, physBaseAddr, size, protection, zsel, pid, cacheMode, true));
+    } else {
+        return (map(physBaseAddr, size, protection, zsel, pid, cacheMode));
+    }
+
 }
 
 /***********************************************
@@ -127,9 +151,6 @@ void* ARMv7HatLayer::map(void* logBaseAddr, void* physBaseAddr, size_t size, Bit
  *
  **********************************************/
 void* ARMv7HatLayer::map(void* phyBaseAddr, size_t size, BitmapT protection, byte zsel, int pid, int cacheMode) {
-    /* TODO: currently we search for a consecutive memory area.. however we should utilize the paging mechanism
-     * to avoid stupid fragmentation.*/
-
     myMutex.acquire();
 
     /* get a free virtual address area of length size */
@@ -138,46 +159,91 @@ void* ARMv7HatLayer::map(void* phyBaseAddr, size_t size, BitmapT protection, byt
 
     ptStartAddr = ((unint4) (&__PageTableSec_start)) + pid * 0x4000;
     /* do search */
-
-    unint4 area_size = 0;
     int area_start = -1;  // current consecutive free virtual memory area
+    unint4 area_size = 0;
 
-    /* TODO: enhance this by using a list if free pages etc.
-     * this area currently creates some unneeded latency */
-    for (t = 0; t < 4096; t++) {
-        unint4* addr = reinterpret_cast<unint4*>(ptStartAddr + 4 * t);
+    if (size >= 0x100000) {
+        /* TODO: enhance this by using a list of free pages etc.
+         * this area currently creates some unneeded latency */
+        for (t = 1024; t < 2048; t++) {
+            unint4* addr = reinterpret_cast<unint4*>(ptStartAddr + 4 * t);
 
-        // check if area used
-        if ((*addr) != 0) {
-            area_start = -1;
-            area_size = 0;
-        } else {
-            if (area_start == -1) {  // area free and no area started yet
-                area_start = t * SECTION_SIZE;
-                area_size = SECTION_SIZE;
+            // check if area used
+            if ((*addr) != 0) {
+                area_start = -1;
+                area_size  = 0;
             } else {
-                area_size += SECTION_SIZE;
-                if (area_size >= size)
-                    break;  // found a area to be mapped
+                if (area_start == -1) {  // area free and no area started yet
+                    area_start = t * SECTION_SIZE;
+                    area_size  = SECTION_SIZE;
+                } else {
+                    area_size += SECTION_SIZE;
+                }
+                if (area_size >= size) {
+                  goto done;
+                }
             }
         }
-    }
+    } else {
+        /* search for an area of unused 4 KB logical address pages*/
+        for (t = 1024; t < 2048; t++) {
+            area_size  = 0;
+            unint4* addr = reinterpret_cast<unint4*>(ptStartAddr + 4 * t);
+            if (*addr == 0) {
+                /* free logical address.. use this page for 4 KB subpage mappings */
+                area_start = t * SECTION_SIZE;
+                break;
+            } else {
+                /* used .. but maybe using 4 KB pages.. check entry */
+                ARMv7PtEntry_t    pte;
+                pte.raw_bytes = *addr;
+
+                 if ((pte.raw_bytes & 0x3) == 0x2) {
+                     /* section.. try next logical 1MB address */
+                 } else {
+                     /* page table entry! try allocate some 4 KB logical pages in this 1 MB area  */
+                     unint4 pageTable = (pte.raw_bytes & 0xFFFFFC00);
+                     if (pageTable == 0) {
+                         LOG(HAL, ERROR, "ARMv7HatLayer::map(): invalid page table for logical address %x", t * SECTION_SIZE);
+                         return (0);
+                     }
+
+                     for (int i = 0; i < 256; i++) {
+                         unint4 pageTableEntry = INW(pageTable + (i << 2));
+                         if (pageTableEntry != 0) {
+                             area_start = -1;
+                             area_size  = 0;
+                             if (size > SMALL_PAGE_SIZE && ((((intptr_t)phyBaseAddr) & ~(LARGE_PAGE_SIZE-1)) == 0)) {
+                                 /* jump to next 64 KB aligned page */
+                                 i = (i + 16) & (~15);
+                             }
+                         } else {
+                             if (area_start == -1) {
+                                 area_start =  (t * SECTION_SIZE) + i * 0x001000;
+                             }
+                             area_size += 0x001000;
+                         }
+                         if (area_size >= size) {
+                            goto done;
+                         }
+                     } /* for all 4 KB pages  */
+                 } /* section | pagetable? */
+            } /* free entry? */
+        } /* for all upper 2 GB 1 MB pages*/
+    } /* Section ? */
+
+    done:
 
     myMutex.release();
 
-    //RESTORE_IRQS(irqstatus);
     /* no free mapping area found? */
-    if (area_start == -1)
+    if (area_start == -1) {
+        LOG(HAL, ERROR, "ARMv7HatLayer::map(): Could not find a free logical address region to map %x", phyBaseAddr);
+        dumpPageTable(pid);
         return (0);
+    }
 
-    this->map(reinterpret_cast<void*>(area_start),
-              phyBaseAddr,
-              size,
-              protection,
-              zsel,
-              pid,
-              cacheMode);
-    return (reinterpret_cast<void*>(area_start));
+    return (createPT(reinterpret_cast<void*>(area_start), phyBaseAddr, size, protection, zsel, pid, cacheMode, true));
 }
 
 /***********************************************
@@ -198,7 +264,7 @@ void ARMv7HatLayer::mapKernel(int pid) {
     /* Map Kernel .text and .data (cachable part) */
     this->createPT(reinterpret_cast<void*>(&__LOADADDRESS),      /* 1:1 mapping for kernel */
                    reinterpret_cast<void*>(&__LOADADDRESS),
-                   (unint4) &__KERNELEND - (unint4) &__LOADADDRESS,
+                   SECTION_SIZE /*(unint4) &__KERNELEND - (unint4) &__LOADADDRESS,*/,
                    hatProtectionExecute | hatProtectionRead | hatProtectionWrite,
                    0,
                    pid,
@@ -210,13 +276,24 @@ void ARMv7HatLayer::mapKernel(int pid) {
      * Also 1:1 mapped as this belongs to the kernel  */
     this->createPT(reinterpret_cast<void*>(&__cache_inihibit_start),
                    reinterpret_cast<void*>(&__cache_inihibit_start),
-                   (unint4) &__cache_inihibit_end - (unint4) &__cache_inihibit_start,
+                   SECTION_SIZE, /*(unint4) &__cache_inihibit_end - (unint4) &__cache_inihibit_start,*/
                    hatProtectionRead | hatProtectionWrite,
                    0,
                    pid,
                    hatCacheInhibit,
                    false);
 #endif
+
+    if (pageTables != 0) {
+        this->createPT(reinterpret_cast<void*>(pageTables),
+                       reinterpret_cast<void*>(pageTables),
+                       0x100000,
+                       hatProtectionRead | hatProtectionWrite,
+                       0,
+                       pid,
+                       hatCacheInhibit,
+                       false);
+    }
 
     /* map all architecture specific areas */
     for (int i = 0; i < arch_kernelmappings.count; i++) {
@@ -232,6 +309,19 @@ void ARMv7HatLayer::mapKernel(int pid) {
 
     if (theOS->getRamManager() != 0)
         theOS->getRamManager()->mapKernelPages(pid);
+
+
+    /* remap pagetables .. to be sure cache inhibit is set! */
+    if (pageTables != 0) {
+        this->createPT(reinterpret_cast<void*>(pageTables),
+                       reinterpret_cast<void*>(pageTables),
+                       0x100000,
+                       hatProtectionRead | hatProtectionWrite,
+                       0,
+                       pid,
+                       hatCacheInhibit,
+                       false);
+    }
 }
 
 /*****************************************************************************
@@ -245,12 +335,18 @@ void ARMv7HatLayer::mapKernel(int pid) {
  *                                 bool nonGlobal) {
  *
  * @description
- *  Creates the page table entry for the mapping specified by the paramters.
+ *  Creates the page table entry for the mapping specified by the parameters.
+ *  Maps the area with the smallest page size enclosing the area.
+ *  Example: map size 68 Kb => creates an 1 MB mapping as this is the
+ *  smallest size enclosing the area.
+ *  A better mapping must be enforced by the algorithm calling this method.
+ *  In this example the map method should be calling using a 64 Kb siez and an
+ *  additional 4 Kb size directly following the area.
  *
  * @params
  *
  * @returns
- *  int         Error Code
+ *  void*         Logical address or 0 on error
  *******************************************************************************/
 void* ARMv7HatLayer::createPT(void*     logBaseAddr,
                               void*     physBaseAddr,
@@ -260,117 +356,319 @@ void* ARMv7HatLayer::createPT(void*     logBaseAddr,
                               int       pid,
                               int       cacheMode,
                               bool      nonGlobal) {
-    ARMv7PtEntry pte;
-    pte.Clear();
+    ARMv7PtEntry_t    pte;
+    pte.raw_bytes     = 0;
     unint ptStartAddr = 0;
 
-    // set up page tables
-    pte.setXNBit(0x1);  // mark as not executeable
-
-    // create descriptor
-    if (nonGlobal == false) {       // kernel entries are global
-        pte.setAP(0x1);             // only allow privileged access
-
-        if (protection & hatProtectionExecute) {
-            pte.setXNBit(0x0);
-        }
-    } else {
-        // set protection rights for user mode
-        if ((~(protection & hatProtectionRead)) && (~(protection & hatProtectionWrite))) {
-            // no access
-            pte.setAP(0x1);
-        }
-        if ((protection & hatProtectionRead) && (~(protection & hatProtectionWrite))) {
-            // read only
-            pte.setAP(0x2);
-        }
-        if ((protection & hatProtectionRead) && (protection & hatProtectionWrite)) {
-            // read and write
-            pte.setAP(0x3);
-        }
-        if (protection & hatProtectionExecute) {
-            pte.setXNBit(0x0);
-        }
-    }
-
-    pte.setnGBit(nonGlobal);
-    // everything is in domain 0.. domain is always active and uses tlb permissions
-    // to check if access is granted
-    // kernel is always mapped in every page table with supervisor permissions required
-    pte.setDomain(0);
-    pte.setType(ptTypeSection);
-    pte.setBaseAddr(ptTypeSection, physBaseAddr);
-
-    /* Cachable bit depends on global ICACHE_ENable define*/
-#if !DCACHE_ENABLE
-    cacheMode = hatCacheInhibit;
-#endif
-
-      /* TEX: 1CB
-       *
-       * C B
-       * 0 0 = non cachable
-       * 0 1 = write back, write allocate
-       * 1 0 = write through, no write allocate
-       * 1 1 = write back, no write allocate
-       * */
-    switch (cacheMode) {
-        case hatCacheWriteBack: {
-            /* caching is allowed */
-            /* set l2 cache to write-back, write allocate */
-            pte.setTex(0x5);
-            /* set l1 cache to write-back, write allocate */
-            pte.setCBit(0);
-            pte.setBBit(1);
-            break;
-        }
-        case hatCacheWriteThrough: {
-            /* set l2 cache to write-back, write allocate */
-            pte.setTex(0x6);
-            /* set l1 cache to write-back, write allocate */
-            pte.setCBit(1);
-            pte.setBBit(0);
-            break;
-        }
-        case hatCacheMMIO: {
-            /* set to shareable device */
-            pte.setTex(0x0);
-            pte.setCBit(0);
-            pte.setBBit(1);
-            //pte.setSBit(1);
-            break;
-        }
-        case hatCacheInhibit:
-        /* intentionally fall through*/
-        default: {
-            if (nonGlobal) {
-                /* non kernel page, we still use cache
-                 * however directly write through */
-                pte.setTex(0x6);
-                pte.setCBit(1);
-                pte.setBBit(0);
-            }
-        }
-    }
+    LOG(HAL, DEBUG, "ARMv7HatLayer::createPT(): Requested map %x -> %x, size: %u, pid: %d", physBaseAddr, logBaseAddr, size, pid);
 
     // write descriptor to page table in memory (index depending on logBaseAddr)
     // TODO make page table placement by the OS and get the address by task->getPageTable() method
     // also change this in startThread!
     ptStartAddr = ((unint) &__PageTableSec_start) + pid * 0x4000;
 
-    OUTW(ptStartAddr + (((unint)logBaseAddr >> 20) << 2), pte.getDesc());
+    /* Cachable bit depends on global ICACHE_ENable define*/
+#if !DCACHE_ENABLE
+    cacheMode = hatCacheInhibit;
+#endif
 
-    // size of entry bigger than section size 1 MB => create more entries
-    if (size > SECTION_SIZE) {
-        // calculate next logical starting address
-        void* nextLogAddr   = reinterpret_cast<void*>((unint) logBaseAddr + 0x100000);
-        // calculate next physical starting address
-        void* nextPhysAddr  = reinterpret_cast<void*>((unint) physBaseAddr + 0x100000);
-        // create new TLB entry
-        this->createPT(nextLogAddr, nextPhysAddr, size - SECTION_SIZE, protection, zsel, pid, cacheMode, nonGlobal);
+    if (size <= LARGE_PAGE_SIZE) {
+        if (pageTables == 0) {
+            LOG(HAL, ERROR, "ARMv7HatLayer::createPT(): Cannot map %x -> %x, size: %u: No page tables available.", physBaseAddr, logBaseAddr, size);
+            return (0);
+        }
+        /* map small page */
+        /* check if for this logical 1 MB page a page table exists */
+        unint4 l1entry   = INW(ptStartAddr + (((unint)logBaseAddr >> 20) << 2));
+        unint4 pageTable = (l1entry & 0xFFFFFC00);
+        if (pageTable == 0) {
+           /* no page assigned yet */
+            for (int i = 0; i < 1023; i++) {
+                if (pageTables->usage[i] == (unint1) -1) {
+                    pageTables->usage[i] = pid;
+                    pageTable = ((unint4) pageTables) + 1024 * (i+1);
+                    break;
+                }
+            }
+            if (pageTable == 0) {
+                LOG(HAL, ERROR, "ARMv7HatLayer::createPT(): No free page table available!");
+                return (0);
+            }
+            unint4 entry = (pageTable & 0xFFFFFC00) | 0x1;
+            LOG(HAL, TRACE, "ARMv7HatLayer::createPT(): Using pagetable %x, entry %x", pageTable, entry);
+            OUTW(ptStartAddr + (((unint)logBaseAddr >> 20) << 2), entry);
+        } else {
+            /* check if entry is not already used for some non pagetable mapping */
+            if ((l1entry & 0x3) == 0x2) {
+                LOG(HAL, ERROR, "ARMv7HatLayer::createPT(): Cannot map %x -> %x, size: %u: Logical Address already mapped by section.", physBaseAddr, logBaseAddr, size);
+                return (0);
+            }
+        }
+
+        LOG(HAL, TRACE, "ARMv7HatLayer::createPT(): Setting entry in pagetable %x", pageTable);
+
+        if (size <= SMALL_PAGE_SIZE) {
+            /* SMALL PAGE (4 KB) */
+            pte.small_page.type   = 0x1;
+            pte.small_page.XN_bit = 1;
+            if (nonGlobal == false) {       // kernel entries are global
+                 pte.small_page.AP1_bits = 0x1; // only allow privileged access
+
+                   if (protection & hatProtectionExecute) {
+                       pte.small_page.XN_bit = 0;
+                   }
+            } else {
+               // set protection rights for user mode
+               if ((~(protection & hatProtectionRead)) && (~(protection & hatProtectionWrite))) {
+                   // no access
+                   pte.small_page.AP1_bits = 1;
+               }
+               if ((protection & hatProtectionRead) && (~(protection & hatProtectionWrite))) {
+                   // read only
+                   pte.small_page.AP1_bits = 0x2;
+               }
+               if ((protection & hatProtectionRead) && (protection & hatProtectionWrite)) {
+                   // read and write
+                   pte.small_page.AP1_bits = 0x3;
+               }
+               if (protection & hatProtectionExecute) {
+                   pte.small_page.XN_bit = 0x0;
+               }
+            }
+
+            pte.small_page.nG_bit = nonGlobal;
+            pte.small_page.base_address = ((unint) physBaseAddr) >> 12;
+             /* TEX: 1CB
+                *
+                * C B
+                * 0 0 = non cachable
+                * 0 1 = write back, write allocate
+                * 1 0 = write through, no write allocate
+                * 1 1 = write back, no write allocate
+                * */
+             switch (cacheMode) {
+                 case hatCacheWriteBack: {
+                     /* caching is allowed */
+                     /* set l2 cache to write-back, write allocate */
+                     pte.small_page.TEX_bits = 0x5;
+                     /* set l1 cache to write-back, write allocate */
+                     pte.small_page.C_bit = 0;
+                     pte.small_page.B_bit = 1;
+                     break;
+                 }
+                 case hatCacheWriteThrough: {
+                     /* set l2 cache to write-back, write allocate */
+                     pte.small_page.TEX_bits = 0x6;
+                     /* set l1 cache to write-back, write allocate */
+                     pte.small_page.C_bit = 1;
+                     pte.small_page.B_bit = 0;
+
+                     break;
+                 }
+                 case hatCacheMMIO: {
+                     /* set to shareable device */
+                     pte.small_page.TEX_bits = 0x0;
+                     pte.small_page.C_bit = 0;
+                     pte.small_page.B_bit = 1;
+                     //pte.setSBit(1);
+                     break;
+                 }
+                 case hatCacheInhibit:
+                 /* intentionally fall through*/
+                 default: {
+                     if (nonGlobal) {
+                         /* non kernel page, we still use cache
+                          * however directly write through */
+                         pte.small_page.TEX_bits = 0x6;
+                         pte.small_page.C_bit = 1;
+                         pte.small_page.B_bit = 0;
+                     }
+                 }
+             }
+             /* write entry */
+             OUTW(pageTable + ((((unint)logBaseAddr >> 12) & 0xFF) << 2), pte.raw_bytes);
+        } else {
+            /* LARGE PAGE (64 KB) */
+             pte.large_page.type   = 0x1;
+             pte.large_page.XN_bit = 1;
+             if (nonGlobal == false) {       // kernel entries are global
+                  pte.large_page.AP1_bits = 0x1; // only allow privileged access
+
+                    if (protection & hatProtectionExecute) {
+                        pte.large_page.XN_bit = 0;
+                    }
+             } else {
+                // set protection rights for user mode
+                if ((~(protection & hatProtectionRead)) && (~(protection & hatProtectionWrite))) {
+                    // no access
+                    pte.large_page.AP1_bits = 1;
+                }
+                if ((protection & hatProtectionRead) && (~(protection & hatProtectionWrite))) {
+                    // read only
+                    pte.large_page.AP1_bits = 0x2;
+                }
+                if ((protection & hatProtectionRead) && (protection & hatProtectionWrite)) {
+                    // read and write
+                    pte.large_page.AP1_bits = 0x3;
+                }
+                if (protection & hatProtectionExecute) {
+                    pte.large_page.XN_bit = 0x0;
+                }
+             }
+
+             pte.large_page.nG_bit = nonGlobal;
+             pte.large_page.base_address = ((unint) physBaseAddr) >> 16;
+              /* TEX: 1CB
+                 *
+                 * C B
+                 * 0 0 = non cachable
+                 * 0 1 = write back, write allocate
+                 * 1 0 = write through, no write allocate
+                 * 1 1 = write back, no write allocate
+                 * */
+              switch (cacheMode) {
+                  case hatCacheWriteBack: {
+                      /* caching is allowed */
+                      /* set l2 cache to write-back, write allocate */
+                      pte.large_page.TEX_bits = 0x5;
+                      /* set l1 cache to write-back, write allocate */
+                      pte.large_page.C_bit = 0;
+                      pte.large_page.B_bit = 1;
+                      break;
+                  }
+                  case hatCacheWriteThrough: {
+                      /* set l2 cache to write-back, write allocate */
+                      pte.large_page.TEX_bits = 0x6;
+                      /* set l1 cache to write-back, write allocate */
+                      pte.large_page.C_bit = 1;
+                      pte.large_page.B_bit = 0;
+
+                      break;
+                  }
+                  case hatCacheMMIO: {
+                      /* set to shareable device */
+                      pte.large_page.TEX_bits = 0x0;
+                      pte.large_page.C_bit = 0;
+                      pte.large_page.B_bit = 1;
+                      //pte.setSBit(1);
+                      break;
+                  }
+                  case hatCacheInhibit:
+                  /* intentionally fall through*/
+                  default: {
+                      if (nonGlobal) {
+                          /* non kernel page, we still use cache
+                           * however directly write through */
+                          pte.large_page.TEX_bits = 0x6;
+                          pte.large_page.C_bit = 1;
+                          pte.large_page.B_bit = 0;
+                      }
+                  }
+              }
+              /* write the 16 identical entries */
+              int index = (((unint)logBaseAddr >> 12) & ~0xF) & 0xFF;
+              for (int i = 0; i < 16; i++) {
+                  OUTW(pageTable + ((index+i) << 2), pte.raw_bytes);
+              }
+        }
+    } else {
+        pte.section.type   = 0x2;
+        pte.section.XN_bit = 1;
+        // create descriptor
+        if (nonGlobal == false) {       // kernel entries are global
+            pte.section.AP1_bits = 0x1; // only allow privileged access
+
+              if (protection & hatProtectionExecute) {
+                  pte.section.XN_bit = 0;
+              }
+          } else {
+              // set protection rights for user mode
+              if ((~(protection & hatProtectionRead)) && (~(protection & hatProtectionWrite))) {
+                  // no access
+                  pte.section.AP1_bits = 1;
+              }
+              if ((protection & hatProtectionRead) && (~(protection & hatProtectionWrite))) {
+                  // read only
+                  pte.section.AP1_bits = 0x2;
+              }
+              if ((protection & hatProtectionRead) && (protection & hatProtectionWrite)) {
+                  // read and write
+                  pte.section.AP1_bits = 0x3;
+              }
+              if (protection & hatProtectionExecute) {
+                  pte.section.XN_bit = 0x0;
+              }
+          }
+
+          pte.section.nG_bit = nonGlobal;
+          // everything is in domain 0.. domain is always active and uses tlb permissions
+          // to check if access is granted
+          // kernel is always mapped in every page table with supervisor permissions required
+          pte.section.domain = 0;
+          pte.section.base_address = ((unint) physBaseAddr) >> 20;
+          /* TEX: 1CB
+             *
+             * C B
+             * 0 0 = non cachable
+             * 0 1 = write back, write allocate
+             * 1 0 = write through, no write allocate
+             * 1 1 = write back, no write allocate
+             * */
+          switch (cacheMode) {
+              case hatCacheWriteBack: {
+                  /* caching is allowed */
+                  /* set l2 cache to write-back, write allocate */
+                  pte.section.TEX_bits = 0x5;
+                  /* set l1 cache to write-back, write allocate */
+                  pte.section.C_bit = 0;
+                  pte.section.B_bit = 1;
+                  break;
+              }
+              case hatCacheWriteThrough: {
+                  /* set l2 cache to write-back, write allocate */
+                  pte.section.TEX_bits = 0x6;
+                  /* set l1 cache to write-back, write allocate */
+                  pte.section.C_bit = 1;
+                  pte.section.B_bit = 0;
+
+                  break;
+              }
+              case hatCacheMMIO: {
+                  /* set to shareable device */
+                  pte.section.TEX_bits = 0x0;
+                  pte.section.C_bit = 0;
+                  pte.section.B_bit = 1;
+                  //pte.setSBit(1);
+                  break;
+              }
+              case hatCacheInhibit:
+              /* intentionally fall through*/
+              default: {
+                  if (nonGlobal) {
+                      /* non kernel page, we still use cache
+                       * however directly write through */
+                      pte.section.TEX_bits = 0x6;
+                      pte.section.C_bit = 1;
+                      pte.section.B_bit = 0;
+                  }
+              }
+          }
+
+          OUTW(ptStartAddr + (((unint)logBaseAddr >> 20) << 2), pte.raw_bytes);
+
+          // size of entry bigger than section size 1 MB => create more entries
+          if (size > SECTION_SIZE) {
+              // calculate next logical starting address
+              void* nextLogAddr   = reinterpret_cast<void*>((unint) logBaseAddr + SECTION_SIZE);
+              // calculate next physical starting address
+              void* nextPhysAddr  = reinterpret_cast<void*>((unint) physBaseAddr + SECTION_SIZE);
+              // create new TLB entry
+              this->createPT(nextLogAddr, nextPhysAddr, size - SECTION_SIZE, protection, zsel, pid, cacheMode, nonGlobal);
+          }
     }
 
-    return (reinterpret_cast<void*>(physBaseAddr));
+
+    return (reinterpret_cast<void*>(logBaseAddr));
 }
 
 /*****************************************************************************
@@ -387,10 +685,8 @@ void* ARMv7HatLayer::createPT(void*     logBaseAddr,
  *******************************************************************************/
 ErrorT ARMv7HatLayer::unmap(void* logBaseAddr, unint1 tid) {
     // be sure we have the page address
-    unint4 logpageaddr = ((unint4) logBaseAddr) >> 20;
-
+    unint4 logpageaddr = 0;
     unint4 ptStartAddr = 0;
-
     unint4 pid;
 
     if (tid == 0) {
@@ -403,12 +699,47 @@ ErrorT ARMv7HatLayer::unmap(void* logBaseAddr, unint1 tid) {
     }
 
     ptStartAddr = ((unint4) (&__PageTableSec_start)) + pid * 0x4000;
+    ARMv7PtEntry_t    pte;
+    pte.raw_bytes = INW(ptStartAddr + (((unint)logBaseAddr >> 20) << 2));
 
-    OUTW(ptStartAddr + (((unint)logBaseAddr >> 20) << 2), 0);
+    if ((pte.raw_bytes & 0x3) == 0x2) {
+        /* section */
+        logpageaddr = ((unint4) logBaseAddr) >> 20;
+        logpageaddr = (logpageaddr << 20) | pid;
+        OUTW(ptStartAddr + (((unint)logBaseAddr >> 20) << 2), 0);
+    } else {
 
-    logpageaddr = (logpageaddr << 20) | pid;
+        // TODO: ensure the page table gets freed as well if no mapping exists
+        // inside it any more!
 
-    // invalidate tlb entry
+        /* page table entry! */
+        unint4 pageTable = (pte.raw_bytes & 0xFFFFFC00);
+        if (pageTable == 0) {
+            LOG(HAL, ERROR, "ARMv7HatLayer::unmap(): invalid page table for logical address %x", logBaseAddr);
+            return (0);
+        }
+
+        unint4 pageTableEntry = INW(pageTable + ((((unint)logBaseAddr >> 12) & 0xFF) << 2));
+        if ((pageTableEntry & 0x3) == 0x1) {
+            /* large page */
+            logpageaddr = ((unint4) logBaseAddr) >> 16;
+            logpageaddr = (logpageaddr << 16) | pid;
+
+            int index = (((unint)logBaseAddr >> 12) & ~0xF) & 0xFF;
+            for (int i = 0; i < 16; i++) {
+                OUTW(pageTable + ((index+i) << 2), 0);
+            }
+        } else {
+            /* small page */
+            logpageaddr = ((unint4) logBaseAddr) >> 12;
+            logpageaddr = (logpageaddr << 12) | pid;
+            OUTW(pageTable + ((((unint)logBaseAddr >> 12) & 0xFF) << 2), 0);
+        }
+    }
+
+
+    /* also directly invalidate TLB */
+    /* invalidate tlb entry by mva */
     asm volatile(
             "MCR p15, 0, %0, c8, c5, 1;"    // Invalidate Inst-TLB by MVA
             "MCR p15, 0, %0, c8, c6, 1;"    // Invalidate Data-TLB by MVA
@@ -440,6 +771,16 @@ ErrorT ARMv7HatLayer::unmapAll(int pid) {
     for (unint4 t = 0; t < 4096; t++) {
         *addr = 0;
         addr++;
+    }
+
+    if (pageTables) {
+        for (int i = 0; i < 1023; i++) {
+            if (pageTables->usage[i] == pid) {
+                /* clear page table */
+                memset((void*) (((intptr_t)pageTables) + 1024 * (i+1)), 0, 1024);
+                pageTables->usage[i] = -1;
+            }
+        }
     }
 
     /* be sure Kernel is mapped */
@@ -565,6 +906,9 @@ void* ARMv7HatLayer::getLogicalAddress(void* physAddr) {
 
     unint4* addr = reinterpret_cast<unint4*>(ptStartAddr);
 
+    // TODO: update this to work with page tables
+    // currently this method is not used
+
     for (t = 0; t < 4096; t++) {
         if (((unint4) physAddr >> 20) == (*addr >> 20)) {
             break;
@@ -670,20 +1014,78 @@ void ARMv7HatLayer::dumpPageTable(int pid) {
     /* iterate over page table an print used entries */
     for (t = 0; t < 4096; t++) {
         if ((*addr) != 0) {
-            /* print this one as error as this is the only reason (error) we might be dumping this! */
-            unint4 logAddr = t * 0x100000;
-            unint4 phyaddr = (((*addr) >> 20) << 20);
-            LOG(ARCH, ERROR, "0x%8x - 0x%8x : 0x%8x - 0x%8x dom :%d XN: %d AP2: %d AP10: %d TEX: %x CB: %x",
-                logAddr,
-                logAddr + 0x100000 - 1,
-                phyaddr,
-                phyaddr + 0x100000 - 1,
-                GETBITS(*addr, 8, 5),
-                GETBITS(*addr, 4, 4),
-                GETBITS(*addr, 15, 15),
-                GETBITS(*addr, 11, 10),
-                GETBITS(*addr, 14, 12),
-                GETBITS(*addr, 3, 2));
+
+            ARMv7PtEntry_t    pte;
+            pte.raw_bytes = (*addr);
+
+             if ((pte.raw_bytes & 0x3) == 0x2) {
+                 /* section */
+                 /* print this one as error as this is the only reason (error) we might be dumping this! */
+                 unint4 logAddr = t * 0x100000;
+                 unint4 phyaddr = (((*addr) >> 20) << 20);
+                 LOG(ARCH, ERROR, "0x%8x - 0x%8x : 0x%8x - 0x%8x dom :%d XN: %d AP2: %d AP10: %d TEX: %x CB: %x",
+                     logAddr,
+                     logAddr + 0x100000 - 1,
+                     phyaddr,
+                     phyaddr + 0x100000 - 1,
+                     GETBITS(*addr, 8, 5),
+                     GETBITS(*addr, 4, 4),
+                     GETBITS(*addr, 15, 15),
+                     GETBITS(*addr, 11, 10),
+                     GETBITS(*addr, 14, 12),
+                     GETBITS(*addr, 3, 2));
+             } else {
+                 /* page table entry! */
+                 unint4 pageTable = (pte.raw_bytes & 0xFFFFFC00);
+                 if (pageTable == 0) {
+                     LOG(HAL, ERROR, "ARMv7HatLayer::dumpPageTable(): invalid page table for logical address %x", t * 0x100000);
+                 } else {
+
+                     for (int i = 0; i < 256; i++) {
+                         unint4 pageTableEntry = INW(pageTable + (i << 2));
+                         pte.raw_bytes = pageTableEntry;
+                         if (pageTableEntry == 0) {
+                             continue;
+                         }
+                         if ((pageTableEntry & 0x3) == 0x1) {
+                             /* large page */
+                             unint4 logAddr = (t * 0x100000) + (i * LARGE_PAGE_SIZE);
+                             unint4 phyaddr = pte.large_page.base_address << 16;
+                             LOG(ARCH, ERROR, "0x%8x - 0x%8x : 0x%8x - 0x%8x dom :%d XN: %d AP2: %d AP10: %d TEX: %x C: %x B: %x",
+                                                logAddr,
+                                                logAddr + LARGE_PAGE_SIZE - 1,
+                                                phyaddr,
+                                                phyaddr + LARGE_PAGE_SIZE - 1,
+                                                0,
+                                                pte.large_page.XN_bit,
+                                                pte.large_page.AP2_bit,
+                                                pte.large_page.AP1_bits,
+                                                pte.large_page.TEX_bits,
+                                                pte.large_page.C_bit,
+                                                pte.large_page.B_bit);
+                             i += 16;
+                         } else {
+                             /* small page */
+                            unint4 logAddr = (t * 0x100000) + (i * SMALL_PAGE_SIZE);
+                            unint4 phyaddr = pte.small_page.base_address << 12;
+                            LOG(ARCH, ERROR, "0x%8x - 0x%8x : 0x%8x - 0x%8x dom :%d XN: %d AP2: %d AP10: %d TEX: %x C: %x B: %x",
+                                               logAddr,
+                                               logAddr + SMALL_PAGE_SIZE - 1,
+                                               phyaddr,
+                                               phyaddr + SMALL_PAGE_SIZE - 1,
+                                               0,
+                                               pte.small_page.XN_bit,
+                                               pte.small_page.AP2_bit,
+                                               pte.small_page.AP1_bits,
+                                               pte.small_page.TEX_bits,
+                                               pte.small_page.C_bit,
+                                               pte.small_page.B_bit);
+                         }
+                     }
+                 }
+             }
+
+
         }
         addr++;
     }

@@ -29,6 +29,8 @@ extern Kernel_ThreadCfdCl* pCurrentRunningThread;
 /* FATAL=0,ERROR=1,WARN=2,INFO=3,DEBUG=4,TRACE=5 */
 static const char* levelStrings[6] = { "FATAL", "ERROR", "WARN ", "INFO ", "DEBUG", "TRACE" };
 
+#define LOG_PRINT_TIME 1
+
 /*** Escape Sequenzen: **********/
 #define ESC_RED         "\033[31m"
 #define ESC_GREEN       "\033[32m"
@@ -57,34 +59,34 @@ FileLogger::FileLogger() :
  * @description
  *
  *******************************************************************************/
-void FileLogger::init() {
+int FileLogger::init() {
     if (initialized)
-        return;
+        return 1;
 
     initialized = true; /* set first to avoid endless recursion in init.*/
 
     /* try permanent root storage! */
-    Directory* rootDir = theOS->getFileManager()->getDirectory("mnt/TEST");
+    Directory* rootDir = theOS->getFileManager()->getDirectory("/mnt/ROOT");
     if (rootDir != 0) {
         File* logfile = static_cast<File*>(rootDir->get("Kernel.log", strlen("Kernel.log")));
         if (logfile) {
             rootDir->remove(logfile);
         }
         logFile = rootDir->createFile("Kernel.log", 0);
-        return;
+        return 1;
     }
 
-//#if 0
-    /* try ramdisk  */
-    Directory* ramdisk = theOS->getFileManager()->getDirectory("mnt/ramdisk");
+
+    /* try ramdisk as fallback.. */
+    Directory* ramdisk = theOS->getFileManager()->getDirectory("/mnt/ramdisk");
     if (ramdisk != 0) {
         logFile = ramdisk->createFile("Kernel.log", 0);
-        return;
+        return 1;
     }
-//#endif
 
     /* mount points not available .. try later*/
     initialized = false;
+    return 0;
 }
 
 /*****************************************************************************
@@ -165,15 +167,21 @@ void FileLogger::log(Prefix prefix, Level level, const char* msg, ...) {
         return;
     }
 
-    if (!initialized)
-        init();
+    if (!initialized) {
+        if (!init()) {
+            return;
+        }
+    }
 
 #if LOG_PRINT_TIME
     unint4 time = 0;
     if (theOS != 0 && theOS->getClock() != 0)
     time =(unint4) (theOS->getClock()->getTimeSinceStartup() MICROSECONDS);
 
-    fprintf(&fileout, reinterpret_cast<char**>(logFile), "[%08u]", time);
+    unint4 seconds = time / (1000000);
+    time = time - (seconds * 1000000);
+
+    fprintf(&fileout, reinterpret_cast<char**>(logFile), "[%05u.%08u]", seconds, time * 100);
 #endif
 
     if (pCurrentRunningThread != 0)

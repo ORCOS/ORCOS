@@ -16,10 +16,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <orcos.hh>
+#include <orcos.h>
 #include "string.hh"
 #include <sys/timer.h>
 #include <stdlib.h>
+#include "stdio.h"
+#include <string.h>
 
 #define OK   0
 #define FAIL 1
@@ -29,10 +31,10 @@
 
 #define TEST( x , name ) { puts("Testing " name); if (x(str) == OK) { puts("[OK]"LINEFEED);} else { puts("[FAILED]"LINEFEED); puts(str); puts(""LINEFEED);}  usleep(10000); }
 
-#define ASSERT(value,msg) if( value == 0) { str = temp; sprintf(str,msg ". value was: %d (%x)", value, value); return (FAIL);}
-#define ASSERT_GREATER(value,comp,msg) if( !(value > comp)) {str = temp; sprintf(str,msg ". value was: %d (%x)", value, value);return (FAIL);}
-#define ASSERT_EQUAL(value,comp,msg) if( ! (value == comp)) {str = temp; sprintf(str,msg ". value was: %d (%x)", value, value); return (FAIL);}
-#define ASSERT_SMALLER(value,comp,msg) if( ! (value < comp)) {str = temp; sprintf(str,msg ". value was: %d (%x)", value, value); return (FAIL);}
+#define ASSERT(value, msg, ...) if( value == 0) { str = temp; sprintf(str, msg ". value was: %d (%x)", ##__VA_ARGS__, value, value); return (FAIL);}
+#define ASSERT_GREATER(value,comp,msg) if( !(value > comp)) {str = temp; sprintf(str,"TEST ASSERTION %u: " msg ". value was: %d (%x)", __LINE__, value, value);return (FAIL);}
+#define ASSERT_EQUAL(value,comp,msg) if( ! (value == comp)) {str = temp; sprintf(str,"TEST ASSERTION IN %u: " msg ". value was: %d (%x)", __LINE__, value, value); return (FAIL);}
+#define ASSERT_SMALLER(value,comp,msg) if( ! (value < comp)) {str = temp; sprintf(str,"TEST ASSERTION IN %u: " msg ". value was: %d (%x)", __LINE__, value, value); return (FAIL);}
 
 char temp[200];
 
@@ -45,8 +47,34 @@ int test_new(char* &str) {
     ASSERT(address,"malloc(0) != 0");
     free(address);
 
-//    address = malloc(-1);
-//    ASSERT_EQUAL(address,0,"malloc(-1) == 0");
+    unint4 addr = 0;
+    unint4 size = 4096;
+    int result = shm_map("/mem/mem", &addr, &size, cAllocate, 0);
+    ASSERT_GREATER(result,0,"shm_map(/mem/mem, &addr, &size, cAllocate, 0) failed");
+    ASSERT(addr,"shm_map() mapped addr == 0!");
+    ASSERT_EQUAL(size, 4096, "shm_map() size != 4096");
+
+    // try mapping physical address 0x800000
+    result = shm_map("/mem/mem", &addr, &size, 0, 0x800000);
+    ASSERT_GREATER(result,0,"shm_map(/mem/mem, &addr, &size, 0, 0x800000) failed");
+    ASSERT(addr,"shm_map() mapped addr == 0!");
+    ASSERT_EQUAL(size, 4096, "shm_map() size != 4096");
+
+    while (1) {
+        unint4 addr = 0;
+        unint4 size = 0x100000;
+        int result = shm_map("/mem/mem", &addr, &size, cAllocate, 0);
+        if (result < 0) break;
+        ASSERT(addr,"shm_map() mapped addr == 0!");
+        ASSERT_EQUAL(size, 0x100000, "shm_map() size != 0x100000");
+    }
+
+    close(result);
+
+    for (int i = 0; i < 1024; i++) {
+        address = malloc(4096);
+        ASSERT(address,"malloc(4096) != 0. i : %u", i);
+    }
 
     return (OK);
 }
@@ -251,13 +279,13 @@ int test_net(char* &str) {
 
 
 static int signal_value;
-static unint4 time;
+static unint4 latency_time;
 
 void* thread_entry_synchro(void* arg) {
     signal_value = 0xff;
     signal_value = signal_wait((void*) 200);
     // hopefully no overrun
-    time = (unint4) getCycles() - time;
+    latency_time = (unint4) getCycles() - latency_time;
     //printf(LINEFEED"signal took: %d Cycles = %d ns"LINEFEED, time, time * 41);
 }
 
@@ -276,7 +304,7 @@ int test_synchro(char* &str) {
     result = thread_run(0);
 
     signal_value = -1;
-    time = (unint4) getCycles();
+    latency_time = (unint4) getCycles();
     signal_signal((void*) 200,723100);
     ASSERT_EQUAL(signal_value,723100,"signal_signal test failed..");
 
@@ -287,14 +315,14 @@ int test_synchro(char* &str) {
 int test_shmmem(char* &str) {
     int result;
 
-    unint4 mapped_address;
-    unint4 mapped_size = 1024;
+    unint4 mapped_address = 0;
+    unint4 mapped_size    = 1024;
 
-    int handle = shm_map("/mem/sharedArea",&mapped_address,&mapped_size,cCreate);
+    int handle = shm_map("/mem/sharedArea", &mapped_address, &mapped_size, cCreate);
     ASSERT_GREATER(handle,0,"shm_map failed with code.");
 
-    ASSERT_GREATER(mapped_address,0,"mapped address invalid");
-    ASSERT_GREATER(mapped_size,0,"mapped size invalid");
+    ASSERT_GREATER(mapped_address, 0, "mapped address invalid");
+    ASSERT_GREATER(mapped_size, 0, "mapped size invalid");
 
     // try writing to the shared memory area
     char* test = (char*) mapped_address;
@@ -368,9 +396,9 @@ int test_rt(char* &str) {
 }
 
 unint8 nextTime = 0;
-unint4 minLatency = 0;
-unint4 maxLatency = 0;
-unint4 avgLatency = 0;
+int4 minLatency = 0;
+int4 maxLatency = 0;
+int4 avgLatency = 0;
 unint4 minIteration = 0;
 unint4 maxIteration = 0;
 
@@ -397,7 +425,7 @@ unint8 times[100];
 
 static inline unint4 rdtsc(void) {
     unint4 r = 0;
-    asm volatile("mrc p15, 0, %0, c9, c13, 0" : "=r"(r) );
+    asm volatile("mrc p15, 0, %0, c9, c13, 0; ISB;" : "=r"(r) );
     return r;
 }
 
@@ -436,14 +464,14 @@ void* thread_entry_latency(void* arg) {
 int test_llThreadLatency(char* &str) {
 
     int iterations = 0;
-    timer_t timer_conf;
+    orcos_timer_t timer_conf;
     timer_conf.period_us = 100000;
-    timer_conf.priority = 0;
-    timer_conf.threadId = 0;
+    timer_conf.priority  = 0;
+    timer_conf.threadId  = 0; // == current thread
 
     int fd = open("/dev/timer1");
     ASSERT_GREATER(fd,0," open(/dev/timer1) failed!");
-    int ret = timer_configure(fd,&timer_conf);
+    int ret = timer_configure(fd, &timer_conf);
     ASSERT_EQUAL(ret,0,"Configure Timer1 failed!");
 
     while (iterations < 5) {
@@ -456,39 +484,52 @@ int test_llThreadLatency(char* &str) {
     ret = close(fd);
     ASSERT_EQUAL(ret,0,"close(timer_fd) failed");
 
+
+    timer_conf.period_us = 100;
+    timer_conf.priority  = 0;
+    timer_conf.threadId  = 0; // == current thread
+    fd = open("/dev/timer1");
+    ASSERT_GREATER(fd,0," open(/dev/timer1) failed!");
+    ret = timer_configure(fd, &timer_conf);
+    ASSERT_EQUAL(ret,0,"Configure Timer1 failed!");
+    iterations=0;
+    while (iterations < 10000) {
+         timer_wait();
+         iterations++;
+    }
+    ret = timer_reset(fd);
+    ASSERT_EQUAL(ret,0,"timer_reset failed!");
+    ret = close(fd);
+    ASSERT_EQUAL(ret,0,"close(timer_fd) failed");
 }
 
 int test_latency(char* &str) {
-    printf("-----------------------"LINEFEED);
-    printf("   Latency Test"LINEFEED);
-    printf("-----------------------"LINEFEED);
-
     int result;
     thread_attr_t attr;
-    memset(&attr,0,sizeof(thread_attr_t));
+    memset(&attr, 0, sizeof(thread_attr_t));
 
 
     readKernelVarUInt4("/sys/clockfreq", &clockfreqns);
     clockfreqns /= 1000000;
     printf("%d ns clock frequency"LINEFEED, clockfreqns);
-    printf("%d ns per cycle"LINEFEED, 1000 / clockfreqns);
+    printf("%d ns per clock-cycle"LINEFEED, 1000 / clockfreqns);
 
 
     unint4 count = rdtsc();
     thread_self();
     count = rdtsc() - count;
-    printf("thread_self:   %u cycles, %u ns"LINEFEED, count, (count * 1000) / 1000);
+    printf("thread_self  :   %u processor-cycles, %u ns"LINEFEED, count, (count * 1000) / 1000);
     count = rdtsc();
     getCycles();
     count = rdtsc() - count;
-    printf("getCycles  :   %u cycles, %u ns"LINEFEED, count, (count * 1000) / 1000);
+    printf("getCycles    :   %u processor-cycles, %u ns"LINEFEED, count, (count * 1000) / 1000);
     tscoverhead = ((count * 1200) / 1000);
-    printf("getCycles  :   allowed overhead: %u cycles, %u ns"LINEFEED, tscoverhead, (tscoverhead * 1000) / 1000);
+    printf("getCycles    :   allowed overhead: %u cycles, %u ns"LINEFEED, tscoverhead, (tscoverhead * 1000) / 1000);
 
 
     unint8 time = getCycles();
     unint4 overhead = ((getCycles() - time)) >> 1;
-    printf("getCycles overhead: %u cycles"LINEFEED,overhead);
+    printf("getCycles    :   overhead: %u clock-cycles"LINEFEED,overhead);
 
     nextTime = getCycles() + 1000000 * clockfreqns;
     unint8 startTime = nextTime;
@@ -518,20 +559,7 @@ int test_latency(char* &str) {
     avgLatency /= MAX_ITERATIONS;
     avgLatency -= overhead;
 
-    /*
-    for (int i = 0; i < 100; i++) {
-        unint8 expected = startTime + (1000 * clockfreqns * i);
-        printf(" it %d: %u%8u expected: %u%8u"LINEFEED,
-               i,
-               (unint4)(times[i] >> 32) ,
-               (unint4)(times[i] & 0xffffffff),
-               (unint4)(expected >> 32),
-               (unint4)(expected & 0xffffffff));
-        sleep(10);
-
-    }
-*/
-    printf("minLatency    : %u cycles [%u ns] (it. %d)"LINEFEED"avgLatency    : %u cycles [%u ns]"LINEFEED"maxLatency    : %u cycles [%u ns] (it. %d)"LINEFEED,
+    printf("minLatency    : %d clock-cycles [%d ns] (it. %d)"LINEFEED"avgLatency    : %d clock-cycles [%d ns]"LINEFEED"maxLatency    : %d clock-cycles [%d ns] (it. %d)"LINEFEED,
            minLatency,(minLatency * 41), minIteration,
            avgLatency, (avgLatency * 41),
            maxLatency,(maxLatency * 41), maxIteration);
@@ -539,7 +567,7 @@ int test_latency(char* &str) {
     return (cOk);
 }
 
-extern "C" int task_main()
+extern "C" int main(int argc, char** argv)
 {
     char* str;
     puts("Running ORCOS Syscall Tests"LINEFEED);
@@ -555,8 +583,16 @@ extern "C" int task_main()
     TEST(test_shmmem,       "SC_SHMMEM          (Shared memory tests)        ");
     TEST(test_rt,           "SC_PRIORITY        (Thread Priority tests)      ");
 
-    test_llThreadLatency(str);
-    test_latency(str);
+    printf(LINEFEED"---------------------------------------"LINEFEED);
+    printf("   Timer based low Latency Thread Test"LINEFEED);
+    printf("---------------------------------------"LINEFEED);
 
+    test_llThreadLatency(str);
+
+    printf(LINEFEED"-----------------------"LINEFEED);
+    printf("   Latency Test"LINEFEED);
+    printf("-----------------------"LINEFEED);
+
+    test_latency(str);
 }
 

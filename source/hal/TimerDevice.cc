@@ -31,6 +31,7 @@ TimerDevice::TimerDevice(const char* name) : GenericDeviceDriver((ResourceType) 
     llThread        = 0;
     isEnabled       = false;
     time            = 0;
+    llThreadOverrunCount = 0;
     ASSERT(dispatcher);
     /* register myself at the filesystem manager */
     SimpleFileManager* fm = theOS->getFileManager();
@@ -48,8 +49,8 @@ TimerDevice::~TimerDevice() {
  * Method: TimerDevice::handleIRQ()
  *
  * @description
- *  Handles Timer IRQS from this device. Provides the functionality for
- *  ultra low latency thread activations.
+ *  Handles timer IRQS from this device. Provides the functionality for
+ *  ultra low latency thread activations. Called with interrupts disabled!
  *******************************************************************************/
 ErrorT TimerDevice::handleIRQ() {
 #if 0
@@ -58,6 +59,7 @@ ErrorT TimerDevice::handleIRQ() {
 #endif
 
     if (llThread != 0 && llThread->status.areSet(cSignalFlag)) {
+        llThreadOverrunCount = 0;
         llThread->status.setBits(cReadyFlag);
         llThread->status.clearBits(cSignalFlag);
         /* TODO set new HW INTC priority threshold. Use a priority stack to restore the priority level
@@ -66,10 +68,25 @@ ErrorT TimerDevice::handleIRQ() {
         /* directly restore this thread ignoring all scheduling decisions.
          * This is absolutely wanted by the user to provide ultra low latencies
          * to threads. */
+        if (pCurrentRunningThread != 0) {
+            // place current preempted thread back ton ready list...
+            LinkedListItem* lItem = pCurrentRunningThread->getLinkedListItem();
+            theOS->getCPUScheduler()->enter(lItem);
+        }
+
         pCurrentRunningThread   = static_cast<Kernel_ThreadCfdCl*>(llThread);
         pCurrentRunningTask     = pCurrentRunningThread->getOwner();
         assembler::restoreContext(llThread);
         __builtin_unreachable();
+    } else {
+        llThreadOverrunCount++;
+    }
+
+    // be sure we terminate the timer if no thread is waiting for it any more...
+    if (llThreadOverrunCount > 5) {
+        llThreadOverrunCount = 0;
+        this->disable();
+        LOG(ARCH, WARN, "Timer %s on low latency mode overran to often.. Timer disabled.", this->getName());
     }
 
     return (cOk);
@@ -85,7 +102,7 @@ ErrorT TimerDevice::ioctl(int request, void* args) {
     switch (request) {
         case TIMER_IOCTL_CONFIG: {
             VALIDATE_IN_PROCESS(args);
-            timer_t* timer_conf = reinterpret_cast<timer_t*>(args);
+            orcos_timer_t* timer_conf = reinterpret_cast<orcos_timer_t*>(args);
 
             if (llThread != 0) {
                 return (cError);

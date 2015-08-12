@@ -4,9 +4,11 @@
  *  Created on: 29.01.2015
  *      Author: Daniel
  */
-#include <orcos.hh>
-#include <string.hh>
+#include <orcos.h>
+#include <string.h>
+#include <stdio.h>
 #include "telnet.h"
+
 
 const char* types[11] = {
         "d ", // directory
@@ -166,20 +168,16 @@ char* extractPath(char* &str) {
 
     if (str[0] == '"') {
         str = &str[1];
-        int len = strpos("\"", str);
-        if (len < 0)
-            return 0;
-        str[len] = 0;
-        return &str[len + 1];
+        char* nexttoken = strstr(str, "\"");
+        if (!nexttoken)
+            return (0);
+        nexttoken[0] = 0;
+        return (nexttoken+1);
     }
 
-    int len = strpos(" ", str);
-    if (len < 0) {
-        len = strlen(str);
-        return 0;
-    }
-
-    // something is following
-    str[len] = 0;
-    return &str[len + 1];
+   char* nexttoken = strstr(str, " ");
+   if (!nexttoken)
+       return (0);
+   nexttoken[0] = 0;
+   return (nexttoken+1);
 }

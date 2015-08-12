@@ -117,6 +117,7 @@
 #define cSocketAlreadyBoundError            (int)-403
 #define cTCPEnqueueFailed                   (int)-404
 #define cPBufNoMoreMemory                   (int)-405
+#define cSocketAlreadyListened              (int)-406
 // Error
 
 //-----------------------------------------------------
@@ -159,8 +160,17 @@
 // values.  The next macro checks if the error code is not an error.
 #define maybeOk(errcode)        ((errcode) >= cOk)
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 char* strerror(int errornum);
+
+
+#ifdef __cplusplus
+}
+#endif
+
 
 
 #endif /* LIBRARY_INC_ERROR_H_ */

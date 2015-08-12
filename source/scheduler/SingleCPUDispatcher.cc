@@ -64,6 +64,17 @@ SingleCPUDispatcher::SingleCPUDispatcher() :
 SingleCPUDispatcher::~SingleCPUDispatcher() {
 }
 
+
+static inline unint4 rdtsc(void) {
+    unint4 r = 0;
+    asm volatile("mrc p15, 0, %0, c9, c13, 0; ISB;" : "=r"(r) );
+    return r;
+}
+
+static int4 minCycles = 99999999;
+static int4 maxCycles = 0;
+static int numBenchmarks = 0;
+
 /*****************************************************************************
  * Method: SingleCPUDispatcher::dispatch()
  *
@@ -82,6 +93,7 @@ void SingleCPUDispatcher::dispatch() {
     lastCycleStamp = currentTime;
     scheduleCount++;
     LOG(SCHEDULER, DEBUG, "SingleCPUDispatcher: Dispatching!");
+
 
     /* check whether the idle thread was currently running or not
      the idle thread would have pCurrentRunningThread == 0 */
@@ -130,6 +142,28 @@ void SingleCPUDispatcher::dispatch() {
         pCurrentRunningTask     = 0;
 
         LOG(KERNEL, DEBUG, "SingleCPUDispatcher: Idle Thread running");
+
+#ifdef DEBUG_IDLE
+        if (nextevent == MAX_UINT8) {
+            LOG(KERNEL, WARN, "SingleCPUDispatcher: Idle without preemption programmed...");
+            LOG(KERNEL, WARN, "SingleCPUDispatcher: SleepList size     : %u", sleepList->getSize());
+            LOG(KERNEL, WARN, "SingleCPUDispatcher: BlockedList size   : %u", blockedList->getSize());
+            LOG(KERNEL, WARN, "SingleCPUDispatcher: WaitList size      : %u", waitList->getSize());
+            LOG(KERNEL, WARN, "SingleCPUDispatcher: IRQWaitList size   : %u", irqwaitList->getSize());
+            LOG(KERNEL, WARN, "SingleCPUDispatcher: CondwaitList size  : %u", condwaitList->getSize());
+            this->SchedulerCfd->printQueue();
+            LinkedList* ltasks = theOS->getTaskManager()->getTaskDatabase();
+            for (LinkedListItem* lldi = ltasks->getHead(); lldi != 0; lldi = lldi->getSucc()) {
+                  Task* task = static_cast<Task*>(lldi->getData());
+                  LOG(KERNEL, WARN, "SingleCPUDispatcher: Task : %u", task->getId());
+                  LinkedList* lthreads = task->getThreadDB();
+                  for (LinkedListItem* lldthread = lthreads->getHead(); lldthread != 0; lldthread = lldthread->getSucc()) {
+                      Thread* thread = (Thread*) lldthread->getData();
+                      LOG(KERNEL, WARN, "SingleCPUDispatcher:   Thread %u (%s): State %x", thread->getId(), thread->getName(), thread->getStatus().getBits());
+                  }
+              }
+        }
+#endif
         /* non returning run() */
         idleThread->run();
     }
@@ -148,12 +182,14 @@ void SingleCPUDispatcher::dispatch() {
  *---------------------------------------------------------------------------*/
 void SingleCPUDispatcher::sleep(Thread* thread) {
     /* be sure that this critical area cant be interrupted */
+    int irqstatus;
     DISABLE_IRQS(irqstatus);
 
     /* place into sleeplist at correct location. sorted on sleeptime. */
     LinkedListItem* sItem = sleepList->getTail();
+    TimeT sleepTime = thread->getSleepTime();
     while (sItem != 0) {
-         if (static_cast<PriorityThread*>(sItem->getData())->getSleepTime() <= thread->getSleepTime()) {
+         if (static_cast<PriorityThread*>(sItem->getData())->getSleepTime() <= sleepTime) {
              sleepList->insertAfter(thread->getLinkedListItem(), sItem);
              goto out;
          }
@@ -187,6 +223,7 @@ out:
  *---------------------------------------------------------------------------*/
 void SingleCPUDispatcher::block(Thread* thread) {
     /* be sure that this critical area can not be interrupted */
+    int irqstatus;
     DISABLE_IRQS(irqstatus);
     LOG(SCHEDULER, DEBUG, "SingleCPUDispatcher::block() blocking Thead %d", thread->getId());
 
@@ -215,6 +252,7 @@ void SingleCPUDispatcher::block(Thread* thread) {
  *  thread:     The thread to be removed from the blocked list
  *---------------------------------------------------------------------------*/
 void SingleCPUDispatcher::unblock(Thread* thread) {
+    int irqstatus;
     DISABLE_IRQS(irqstatus);
 
     LOG(SCHEDULER, DEBUG, "SingleCPUDispatcher::unblock() unblocking Thead %d", thread->getId());
@@ -252,6 +290,7 @@ void SingleCPUDispatcher::unblock(Thread* thread) {
  *  thread:     The thread that waits for a signal
  *---------------------------------------------------------------------------*/
 void SingleCPUDispatcher::sigwait(SignalType signaltype, Thread* thread) {
+    int irqstatus;
     DISABLE_IRQS(irqstatus);
 
     LOG(SCHEDULER, TRACE, "SingleCPUDispatcher::sigwait() adding Thread");
@@ -289,6 +328,7 @@ void SingleCPUDispatcher::sigwait(SignalType signaltype, Thread* thread) {
  *---------------------------------------------------------------------------*/
 void SingleCPUDispatcher::signal(LinkedList* list, void* sig, int sigvalue) {
     /* be sure that this critical area cannot be interrupted */
+    int irqstatus;
     DISABLE_IRQS(irqstatus);
     LOG(SCHEDULER, TRACE, "SingleCPUDispatcher::signal() signal: %d", sig);
 
@@ -373,6 +413,7 @@ void SingleCPUDispatcher::signal(void* sig, int signalvalue) {
  *  thread:     The thread that terminated
  *---------------------------------------------------------------------------*/
 void SingleCPUDispatcher::terminate_thread(Thread* thread) {
+    int irqstatus;
     DISABLE_IRQS(irqstatus);
     thread->getLinkedListItem()->remove();
 

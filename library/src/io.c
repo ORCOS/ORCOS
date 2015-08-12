@@ -17,23 +17,23 @@
  */
 
 
-#include "./types.h"
-#include "./defines.h"
-#include "./orcos.hh"
-#include "string.hh"
+#include "orcos_types.h"
+#include "defines.h"
+#include "orcos.h"
+#include "string.h"
 #include "sys/timer.h"
 
-extern "C" int create(const char* filepath, int flags)
+int create(const char* filepath, int flags)
 {
     return syscall(cFCreateSysCallId, filepath, flags);
 }
 
-extern "C" int open(const char* filename, int blocking)
+int open(const char* filename, int blocking)
 {
     return syscall(cFOpenSysCallId, filename, blocking);
 }
 
-extern "C" int close(int fileid)
+int close(int fileid)
 {
     return syscall(cFCloseSysCallId, fileid);
 }
@@ -41,7 +41,7 @@ extern "C" int close(int fileid)
 /*!
  * The fread() function shall read into the array pointed to by ptr up to nitems elements whose size is specified by size in bytes, from the stream pointed to by stream.
  */
-extern "C" size_t read(int fd, char *ptr, size_t size)
+size_t read(int fd, char *ptr, size_t size)
 {
     return syscall(cFReadSysCallId, fd, ptr, size);
 }
@@ -49,47 +49,53 @@ extern "C" size_t read(int fd, char *ptr, size_t size)
 /*!
  * The fwrite() function shall write, from the array pointed to by ptr, up to nitems elements whose size is specified by size, to the stream pointed to by stream.
  */
-extern "C" size_t write(int fd, const void *buf, size_t count)
+size_t write(int fd, const void *buf, size_t count)
 {
     return syscall(cFWriteSysCallId, fd, buf, count);
 }
 
-extern "C" int    ioctl(int fd, int request, void* args) {
+int    ioctl(int fd, int request, void* args) {
 
     return syscall(cIOControl, fd, request, args);
 }
 
-extern "C" size_t printToStdOut(const void* ptr,size_t max)
+size_t printToStdOut(const void* ptr,size_t max)
 {
     return syscall(cPrintToStdOut, ptr, max);
 }
 
-extern "C" int fstat(int fd, stat_t* stat) {
+int fstat(int fd, struct stat* stat) {
     return syscall(cFStatId, fd, stat);
 }
 
-extern "C" int remove(const char* filepath) {
+int remove(const char* filepath) {
     // ensure the resource has been acquired
-    int error = open(filepath, true);
+    int error = open(filepath, 1);
     if (error < 0) return (error);
 
     return (syscall(cFRemoveID,filepath));
 }
 
-extern "C" int  mkdev(char* devname, int bufferSize) {
+int unlink(const char* name) {
+    return (remove(name));
+}
+
+int  mkdev(char* devname, int bufferSize) {
     return (syscall(cMkDevSyscallId,devname,bufferSize));
 }
 
-extern "C" int  mount(char* src_path, char* dst_path, int type) {
+int  mount(char* src_path, char* dst_path, int type) {
     return (syscall(cMountSyscallId,src_path,dst_path,type));
 }
 
 
-extern "C" int  seek(int fd, int offset, int whence) {
-    return (syscall(cFSeekSyscallId,fd,offset,whence));
+int  lseek(int fd, int offset, int whence) {
+    return (syscall(cFSeekSyscallId, fd, offset, whence));
 }
 
-extern "C" Directory_Entry_t* readdir(int fd) {
+
+
+Directory_Entry_t* readdir(int fd) {
     static char buffer[300];
     static int pos = 0;
     static int remainingBytes = 0;
@@ -98,7 +104,7 @@ extern "C" Directory_Entry_t* readdir(int fd) {
         /* unbuffered reading entry by entry
          * could be speed up by reading multiple entries at once
          * */
-        int readb = read(fd,buffer,300);
+        int readb = read(fd, buffer, 300);
         /* error occurred reading */
         if (readb < 0)
             return (0);
@@ -108,7 +114,7 @@ extern "C" Directory_Entry_t* readdir(int fd) {
         }
         else {
             /* reset directory position*/
-            seek(fd, 0, SEEK_SET);
+            lseek(fd, 0, SEEK_SET);
             pos = 0;
             remainingBytes = 0;
             return (0);
@@ -125,6 +131,9 @@ extern "C" Directory_Entry_t* readdir(int fd) {
 
 }
 
+int isatty(int file) {
+    return 0;
+}
 
 char* fgets (int fd, char *s, int count) {
     char* str = s;
@@ -156,7 +165,7 @@ void timer_wait() {
 }
 
 /* Configures a timer. */
-int timer_configure(int fd, timer_t* timer_conf) {
+int timer_configure(int fd, orcos_timer_t* timer_conf) {
     return (ioctl(fd, TIMER_IOCTL_CONFIG, timer_conf));
 }
 

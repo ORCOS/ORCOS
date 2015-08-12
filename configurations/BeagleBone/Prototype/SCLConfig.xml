@@ -3,13 +3,13 @@
   <Options>
     <Logging>
       <Log Prefix="KERNEL" Level="INFO" />
-      <Log Prefix="MEM" Level="WARN" />
+      <Log Prefix="MEM" Level="INFO" />
       <Log Prefix="PROCESS" Level="WARN" />
       <Log Prefix="SCHEDULER" Level="WARN" />
       <Log Prefix="SYNCHRO" Level="WARN" />
       <Log Prefix="SYSCALLS" Level="WARN" />
       <Log Prefix="DB" Level="WARN" />
-      <Log Prefix="HAL" Level="WARN" />
+      <Log Prefix="HAL" Level="INFO" />
       <Log Prefix="ARCH" Level="INFO" />
       <Log Prefix="FILESYSTEM" Level="WARN" />
       <Log Prefix="COMM" Level="WARN" />
@@ -151,11 +151,13 @@
         <PropertyValue Name="Address" Value="0x48060100" Type="unsigned int" />
         <PropertyValue Name="INTC_IRQ" Value="83" Type="unsigned int" />
         <PropertyValue Name="INTC_Priority" Value="10" Type="unsigned int" />
+        <PropertyValue Name="Name" Value="mmc0" Type="char*" />
       </Member>
       <Member Name="MMC1" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapMMC_SD_HC" None="false" UserSpace="false" PhyLoadAddress="0x0">
         <PropertyValue Name="Address" Value="0x481D8100" Type="unsigned int" />
         <PropertyValue Name="INTC_IRQ" Value="28" Type="unsigned int" />
         <PropertyValue Name="INTC_Priority" Value="10" Type="unsigned int" />
+        <PropertyValue Name="Name" Value="mmc1" Type="char*" />
       </Member>
     </Skeleton>
     <!-- ************************************

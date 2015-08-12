@@ -31,6 +31,8 @@ Socket::Socket(unint2 domain, SOCK_TYPE e_type, unint2 protocol) :
     /* create the message buffer. hold up to 20 messages till overflow */
     this->messageBuffer         = new FixedSizePBufList(20);
     this->arg                   = 0;
+    this->mutex                 = new Mutex("Socket");
+    this->m_lock                = 0;
 
     ProtocolPool* protopool     = theOS->getProtocolPool();
     this->aproto                = protopool->getAddressProtocolbyId(domain);
@@ -42,6 +44,7 @@ Socket::Socket(unint2 domain, SOCK_TYPE e_type, unint2 protocol) :
     this->hasListeningThread    = false;
     this->myboundaddr.sa_data   = 0;
     this->acceptedConnections   = 0;
+    memset(&this->connected_socket, 0, sizeof(sockaddr));
 
 #ifdef HAS_Kernel_ServiceDiscoveryCfd
     this->sd.address.name_data[0] = '\0';  // <- mark as free
@@ -255,16 +258,24 @@ int Socket::connect(Kernel_ThreadCfdCl* thread, sockaddr* toaddr, int timeout_ms
  *******************************************************************************/
 int Socket::accepted(Socket* newConnection) {
     if (!(state & SOCKET_LISTENING))
-        return (cError );
+        return (cError);
 
     if (acceptedConnections != 0) {
+        SMP_SPINLOCK_GET(m_lock);
         int error = acceptedConnections->addTail(newConnection);
 
+        Thread* threadToUnblock = 0;
         /* wake up the waiting thread */
         if (this->blockedThread != 0) {
-            blockedThread->unblock();
+            threadToUnblock = blockedThread;
             this->blockedThread = 0;
         }
+        SMP_SPINLOCK_FREE(m_lock);
+
+        if (threadToUnblock != 0) {
+            threadToUnblock->unblock();
+        }
+
         return (error);
     }
     return (cError );
@@ -288,29 +299,41 @@ int Socket::listen(Kernel_ThreadCfdCl* thread) {
         if (acceptedConnections == 0)
             acceptedConnections = new ArrayList(10);
 
-        this->hasListeningThread = true;
-        this->tproto->listen(this);
-
-        this->blockedThread = thread;
+        SMP_SPINLOCK_GET(m_lock);
+        if (!this->hasListeningThread) {
+            this->hasListeningThread = true;
+            this->tproto->listen(this);
+            this->blockedThread = thread;
+            SMP_SPINLOCK_FREE(m_lock);
+        } else {
+            SMP_SPINLOCK_FREE(m_lock);
+            LOG(COMM, ERROR, "Socket::listen(): Thread %x already listening", blockedThread);
+            return (cSocketAlreadyListened);
+        }
 
         /* block if no new connection available */
         if (acceptedConnections->size() == 0)
             thread->block();
 
-        this->hasListeningThread = false;
-
+        /* got unblocked! maybe new connection? */
         Socket* newConn = static_cast<Socket*>(acceptedConnections->removeHead());
+
         if (newConn != 0) {
+            /* add new socket to task to allow access to it */
             pCurrentRunningThread->getOwner()->aquiredResources.addTail(newConn);
 
             LOG(COMM, DEBUG, "Socket::listen(): new Connection %d", newConn->getId());
             /* if we get here we got a new connection.
              * A new socket has been created. Return the resource id of it.*/
+            this->hasListeningThread = false;
             return (newConn->getId());
         }
-        return (cError );
+
+        /* probably socket destroyed? TODO: return error code on destruction? */
+        this->hasListeningThread = false;
+        return (cError);
     } else {
-        return (cError );
+        return (cError);
     }
 }
 
@@ -339,6 +362,7 @@ ErrorT Socket::addMessage(pbuf* p, sockaddr *fromaddr) {
 
     LOG(COMM, DEBUG, "Socket::addMessage(): new message for Socket %d with len: %d, fromaddr: %x", this->getId(), p->len, fromaddr);
 
+    SMP_SPINLOCK_GET(m_lock);
     if (this->type == SOCK_DGRAM) {
         LOG(COMM, TRACE, "Socket::addMessage() on SOCK_DGRAM ");
         res = messageBuffer->addPbuf(p, fromaddr);
@@ -351,10 +375,17 @@ ErrorT Socket::addMessage(pbuf* p, sockaddr *fromaddr) {
         LOG(COMM, DEBUG, "Socket::addMessage(): messageBuffer->add result: %d", res);
     }
 
+    Thread* threadToUnblock = 0;
     if (this->blockedThread != 0) {
         LOG(COMM, DEBUG, "Socket::addMessage(): unblocked thread %d", blockedThread->getId());
-        this->blockedThread->unblock();
+        threadToUnblock = this->blockedThread;
         this->blockedThread = 0;
+    }
+    SMP_SPINLOCK_FREE(m_lock);
+
+    /* unblock thread after releasing mutex to avoid mutex stalls */
+    if (threadToUnblock != 0) {
+        threadToUnblock->unblock();
     }
 
     return (cOk );
@@ -419,11 +450,11 @@ int Socket::sendto(const void* buffer, unint2 length, const sockaddr *dest_addr)
             return (this->tproto->send(&payload_layer, this->aproto, this));
         } else {
             LOG(COMM, ERROR, "Socket::sendto(): failed!");
-            return (cNotConnected );
+            return (cNotConnected);
         }
     }
 
-    return (cError );
+    return (cError);
 }
 
 /*****************************************************************************
@@ -449,14 +480,19 @@ size_t Socket::recvfrom(Kernel_ThreadCfdCl* thread,
                         sockaddr* addr,
                         unint4 timeout) {
     LOG(COMM, TRACE, "Socket::recvfrom()");
+    int ret    = 0;
+    size_t len = 0;
+    pbuf* pb   = 0;
 
-    /*TODO add mutex to protect from concurrent access inside the same task */
+    //mutex->acquire(this, true);
+    SMP_SPINLOCK_GET(m_lock);
 
     if (!messageBuffer->hasData()) {
         if ((this->type == SOCK_STREAM) && (this->state & SOCKET_DISCONNECTED)) {
             /* we were disconnected
              tell thread we are disconnected */
-            return (-1);
+            ret = -1;
+            goto out;
         }
 
         /* no data available. block thread if no other thread is already waiting for data on this socket */
@@ -466,10 +502,13 @@ size_t Socket::recvfrom(Kernel_ThreadCfdCl* thread,
 
                 /* block the current thread */
                 this->blockedThread = thread;
+                /* release mutex */
+                SMP_SPINLOCK_FREE(m_lock);
 
                 /* block here! this will also save the context. after we get unblocked we will exit block(). */
                 thread->block(timeout ms);
 
+                /* on return remove reference */
                 this->blockedThread = 0;
 
                 /* check if we got unblocked because of disconnect
@@ -479,7 +518,8 @@ size_t Socket::recvfrom(Kernel_ThreadCfdCl* thread,
                 if (!messageBuffer->hasData() && (this->type == SOCK_STREAM) && (this->state & SOCKET_DISCONNECTED)) {
                     /* we were disconnected
                      tell thread we are disconnected */
-                    return (-1);
+                    ret = -1;
+                    return (ret);
                 }
 
                 /* we got unblocked! now there might be some data! */
@@ -488,16 +528,18 @@ size_t Socket::recvfrom(Kernel_ThreadCfdCl* thread,
             } else {
                 /* some other thread is already waiting on this socket ..
                  signal an error */
-                return (cError );
+                ret = cError;
+                goto out;
             }
         } else {
-            return (0);
+            ret = 0;
+            goto out;
         }
+    } else {
+        SMP_SPINLOCK_FREE(m_lock);
     }
 
-    size_t len = 0;
-    pbuf* pb = 0;
-
+    mutex->acquire(this, true);
     len = messageBuffer->getFirst(data_addr, data_size, addr, pb);
     /* tell lower layer that this data has been received */
     if (len > 0 && pb != 0) {
@@ -508,6 +550,12 @@ size_t Socket::recvfrom(Kernel_ThreadCfdCl* thread,
         LOG(COMM, DEBUG, "Socket::recvfrom(): messageBuffer->getFirst() error: returned len %d", len);
     }
 
-    return (len);
+    ret = len;
+    mutex->release();
+    return (ret);
+
+out:
+    SMP_SPINLOCK_FREE(m_lock);
+    return (ret);
 }
 

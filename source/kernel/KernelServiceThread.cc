@@ -124,6 +124,7 @@ void KernelServiceThread::callbackFunc(void* param) {
     /* iterate over all tasks and threads to check for the blocked state */
     LinkedList* llt = theOS->getTaskDatabase();
 
+    int irqstatus;
     DISABLE_IRQS(irqstatus);
 
     // TODO this is not safe against concurrent modification!

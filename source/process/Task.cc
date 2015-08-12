@@ -39,10 +39,9 @@ ArrayList *Task::freeTaskIDs;
 /*--------------------------------------------------------------------------*
  ** Task::Task
  *---------------------------------------------------------------------------*/
-Task::Task(Kernel_MemoryManagerCfdCl* memoryManager, taskTable* tasktbl) :
+Task::Task(taskTable* tasktbl) :
         aquiredResources(20),
         exitValue(0),
-        memManager(memoryManager),
         stopped(false),
         sysFsDir(0),
         platform_flags(0) {
@@ -69,8 +68,9 @@ Task::Task(Kernel_MemoryManagerCfdCl* memoryManager, taskTable* tasktbl) :
         SYSFS_ADD_RO_UINT(sysFsDir, stopped);
         SYSFS_ADD_RO_UINT_NAMED(sysFsDir, "num_resources", aquiredResources.numEntries);
         SYSFS_ADD_RO_UINT_NAMED(sysFsDir, "num_threads"  , threadDb.size);
-        SYSFS_ADD_RO_UINT_NAMED(sysFsDir, "usedmem"      , memManager->getSegment()->usedBytes);
-        SYSFS_ADD_RO_UINT_NAMED(sysFsDir, "totalmem"     , memManager->getSegment()->memSegSize);
+        // TODO: update this using the information of mapped heap pages!
+       // SYSFS_ADD_RO_UINT_NAMED(sysFsDir, "usedmem"      , 0);
+       // SYSFS_ADD_RO_UINT_NAMED(sysFsDir, "totalmem"     , 0);
     }
 #endif
 
@@ -78,16 +78,13 @@ Task::Task(Kernel_MemoryManagerCfdCl* memoryManager, taskTable* tasktbl) :
     new Kernel_ThreadCfdCl(reinterpret_cast<void*>(tasktbl->task_entry_addr),
                            reinterpret_cast<void*>(tasktbl->task_thread_exit_addr),
                            this,
-                           memoryManager,
                            DEFAULT_USER_STACK_SIZE,
-                           reinterpret_cast<void*>(&tasktbl->initial_thread_attr),
-                           false);
+                           reinterpret_cast<void*>(&tasktbl->initial_thread_attr));
 }
 
 Task::Task() :
         aquiredResources(10),
         exitValue(0),
-        memManager(0),
         stopped(false),
         sysFsDir(0),
         platform_flags(0) {
@@ -118,8 +115,6 @@ Task::Task() :
 }
 
 Task::~Task() {
-    delete this->memManager;
-
 #if SYSFS_SUPPORT
     Directory* dir = KernelVariable::getEntry("tasks", true);
     if (dir) {
@@ -217,7 +212,7 @@ ErrorT Task::releaseResource(Resource* res, Thread* t) {
             shmres->unmapFromTask(t->getOwner());
             int retval = shmres->release(t);
             /* Cleanup unused areas */
-            if (shmres->getMappedCount() == 0)
+            if (shmres->getMappedCount() == 0 && shmres->getOwner() != 0)
                 delete shmres;
 
             return (retval);
@@ -276,6 +271,7 @@ void Task::terminate() {
         Thread* t = static_cast<Thread*>(litem->getData());
         t->terminate();
         litem = litem->getSucc();
+        this->removeThread(t);
     }
 
     /* add our id back to the database */
@@ -305,17 +301,7 @@ void Task::removeThread(Thread* t) {
             LOG(KERNEL, WARN, "Task::removeThread(): being destroyed! aq_size = %d", this->aquiredResources.size());
             Resource* res = static_cast<Resource*>(this->aquiredResources.getHead());
             while (res != 0) {
-                this->releaseResource(res,t);
-                //LOG(KERNEL, DEBUG, "Task::removeThread(): releasing resource %s, Id: %d", res->getName(), res->getId());
-                /* the last thread forces all resources to be released */
-                //res->release(t);
-
-               /* if (res->getType() == cSocket) {
-                    Socket* s = static_cast<Socket*>(res);
-                    LOG(KERNEL, DEBUG, "Task::removeThread(): destroying socket!");
-                    delete s;
-                }*/
-
+                this->releaseResource(res, t);
                 res = static_cast<Resource*>(this->aquiredResources.getHead());
             }
         }

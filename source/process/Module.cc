@@ -38,17 +38,11 @@ Module::Module(unint4 phy_start, unint4 phy_end, unint4 heap_start) {
     // works on the new virtual address space
     SETPID(this->getId());
 
-    Kernel_MemoryManagerCfdCl* module_memManager =
-            new (memaddr) Kernel_MemoryManagerCfdCl(reinterpret_cast<void*> (LOG_MODULE_SPACE_START + (heap_start - (unint4) phy_start)),
-                                                    reinterpret_cast<void*>(LOG_MODULE_SPACE_START + size));
-
-    this->memManager = module_memManager;
-
     // change back to the kernel address space
     SETPID(0);
 
     // create initial thread for this task
-    new Kernel_ThreadCfdCl( 0,  0, this, module_memManager, 256, 0, false);
+   // new Kernel_ThreadCfdCl( 0,  0, this, module_memManager, 256, 0, false);
 }
 
 Module::~Module() {

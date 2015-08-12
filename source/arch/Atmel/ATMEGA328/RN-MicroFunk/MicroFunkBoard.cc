@@ -43,6 +43,7 @@ extern Kernel* theOS;
  */
 #define STRINGIZE(A) STRINGIZE_NX(A)
 
+// cppcheck-suppress uninitMemberVar
 MicroFunkBoard::MicroFunkBoard() {
 }
 

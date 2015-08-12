@@ -81,7 +81,7 @@ ntppacket_t ntpquery;
  ***********************************/
 #if ENABLE_NETWORKING
 unint4 ntpserver[3] = {
-        IP4ADDR(128, 176, 0,   12),
+        IP4ADDR(5, 83, 190, 253),   /* pool.ntp.org */
         IP4ADDR(96 , 226, 242, 9),  /* nist.time.nosc.us  96.226.242.9    Carrollton, Texas  */
         IP4ADDR(206, 246, 122, 250) /* time.nist.gov   global address for all servers  Multiple locations  */
 };
@@ -131,12 +131,11 @@ void Clock::callbackFunc(void* param) {
         ntppacket_t* ntpp   = reinterpret_cast<ntppacket_t*>(rxbuf);
         unint4 seconds      = (unint4) be32tocpu(ntpp->transmit_ts_seconds);
 
-        LOG(KERNEL, INFO, "NTP SYNC successful. Seconds: %u", seconds);
+        LOG(KERNEL, INFO, "NTP SYNC successful (%u tries). Seconds: %u", tries, seconds);
         this->synchDateTime     = seconds;
         this->synchLocalCycles  = getClockCycles();
     }
 
     delete ntpSocket;
-
 #endif
 }

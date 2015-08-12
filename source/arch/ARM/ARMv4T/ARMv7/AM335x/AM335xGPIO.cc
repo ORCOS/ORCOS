@@ -35,7 +35,7 @@ AM335xGPIO::AM335xGPIO(T_AM335xGPIO_Init *init) :
         (revision >> 11) & 0x1f);
 
     OUTW(this->baseAddress + AM335X_GPIO_SYSCONFIG, 1 << 1);
-    if (TIMEOUT_WAIT(INW(this->baseAddress + AM335X_GPIO_SYSCONFIG) & (1 << 1),1000)) {
+    if (TIMEOUT_WAIT(INW(this->baseAddress + AM335X_GPIO_SYSCONFIG) & (1 << 1), 1000)) {
         LOG(ARCH, INFO, "Timeout resetting AM335xGPIO");
         return;
     }
@@ -202,8 +202,7 @@ ErrorT AM335xGPIO::ioctl(int request, void* args) {
 
         if (args != 0) {
             enableIRQ();
-        }
-        else {
+        } else {
             disableIRQ();
         }
         return (cOk );

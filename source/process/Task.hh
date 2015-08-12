@@ -72,11 +72,6 @@ protected:
    // LinkedList          suspendedThreadDb;
 
     /*!
-     *   \brief The memory manager that will be used by the threads belonging to this task
-     */
-    Kernel_MemoryManagerCfdCl* memManager;
-
-    /*!
      * \brief the tasktable of this task
      */
     taskTable*          tasktable;
@@ -133,7 +128,7 @@ public:
     /*!
      *  \brief Constructor of a task taking the memory manager and the pointer to the tasktable of this task.
      */
-    Task(Kernel_MemoryManagerCfdCl* memoryManager, taskTable* tasktbl);
+    Task(taskTable* tasktbl);
 
     /*!
      * \brief Constructor only used for derived classes e.g. WorkerTask
@@ -255,28 +250,6 @@ public:
      *******************************************************************************/
     inline const char* getName() const {
            return (this->name);
-    }
-
-
-    /*****************************************************************************
-     * Method: getMemManager()
-     *
-     * @description
-     *   Return the Memory Manager of the Task
-     *******************************************************************************/
-    inline Kernel_MemoryManagerCfdCl* getMemManager() const {
-        return (memManager);
-    }
-
-
-    /*****************************************************************************
-     * Method: setMemManager(Kernel_MemoryManagerCfdCl* mm)
-     *
-     * @description
-     *   Set the Memory Manager of the Task
-     *******************************************************************************/
-    void setMemManager(Kernel_MemoryManagerCfdCl* mm) {
-        memManager = mm;
     }
 
     /*****************************************************************************

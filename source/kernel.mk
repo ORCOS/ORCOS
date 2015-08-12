@@ -52,7 +52,7 @@ KOBJ += ArrayList.o LinkedList.o
 #debug
 KOBJ += Logger.o Trace.o dwarf.o
 #filesystem
-KOBJ += File.o Directory.o Resource.o SimpleFileManager.o SharedMemResource.o FileSystemBase.o Partition.o SysFs.o
+KOBJ += File.o Directory.o Resource.o SimpleFileManager.o SharedMemResource.o FileSystemBase.o Partition.o SysFs.o RamSharedMemoryDevice.o
 #hal
 KOBJ += PowerManager.o CharacterDevice.o BlockDeviceDriver.o TimerDevice.o CommDeviceDriver.o  Clock.o BufferDevice.o
 # KOBJ += USCommDeviceDriver.o
@@ -111,6 +111,9 @@ ifndef KERNEL_DIR
 	$(error KERNEL_DIR is undefined)
 endif
 
+check_java:
+	@if ! java -version > /dev/null 2> /dev/null; then { echo "Java not found! Stopping! Be sure the PATH variable contains a valid path to a java installation."; exit 1;} fi
+
 check_dirs:
 	@if ! [ -e $(OUTPUT_DIR) ]; then mkdir $(OUTPUT_DIR); fi
 	@if ! [ -e $(XMD_DIR) ]; then mkdir $(XMD_DIR); fi
@@ -122,15 +125,12 @@ checktools:
 	@if ! [ -e $(ARCH_DIR) ]; then echo "ERROR: ARCH_DIR does not exist!"; exit -1; fi
 	@if ! [ -e $(ARCH_DIR)/arch.mk ]; then echo "ERROR: no arch.mk found in $(ARCH_DIR)!"; exit -1; fi
 	@if ! [ -e $(KERNEL_LIB_DIR) ]; then echo "ERROR: KERNEL_LIB_DIR does not exist! $(KERNEL_LIB_DIR)"; exit -1; fi
-	@if ! [ -e $(KERNEL_DIR) ]; then echo "ERROR: KERNEL_DIR does not exist!"; exit -1; fi
-	@echo "----------------------------------"
-	@echo "     Checking for tools"
-	@echo "----------------------------------"
+	@if ! [ -e $(KERNEL_DIR) ]; then echo "ERROR: KERNEL_DIR does not exist!"; exit -1; fi	
+	@echo "Checking for tools "
 	@if ! [ -e $(CC) ]; then { echo "C-Compiler (CC) $(CC) not found! Stopping!"; exit 1;} fi
 	@if ! [ -e $(CXX) ]; then { echo "C++-Compiler (CXX) $(CXX) not found! Stopping!"; exit 1;} fi
 	@if ! [ -e $(AS) ]; then { echo "Assembler (AS) $(AS) not found! Stopping!"; exit 1;} fi
-	@if ! [ -e $(AR) ]; then { echo "Archiver (AR) $(AR) not found! Stopping!"; exit 1;} fi
-	@if ! java -version > /dev/null 2> /dev/null; then { echo "Java not found! Stopping!"; exit 1;} fi
+	@if ! [ -e $(AR) ]; then { echo "Archiver (AR) $(AR) not found! Stopping!"; exit 1;} fi	
 	@if ! [ -e $(OBJCOPY) ]; then { echo "Object-Copy (OBJCOPY) $(OBJCOPY) not found! Stopping!"; exit 1;} fi
 	@if ! [ -e $(GCC_LIB_DIR) ]; then { echo "GCC_LIB_DIR $(GCC_LIB_DIR) not found! Stopping!"; exit 1;} fi
 	@echo All tools installed...
@@ -140,29 +140,34 @@ checktools:
 #                                                     Target: all
 #---------------------------------------------------------------------------------------------------------------------------------------
 
-all: check_dirs	
-# First be sure the auto geneated files are up to date
+all: check_java check_dirs	
+# First be sure the auto geneated files are up to date	
 	@make -s scl
-# Check for all defines to be set and tools	
-	@make -s check_defines
-	@make -s checktools 	
+# Check for all defines to be set and tools
+	@make -s checktools
+	@make -s check_defines	 	
 	@echo "Please be sure to use relative path names for WINDOWS/CYGIN"
-	@# Now call this file again so all auto generated files are correctly included	
-	@make -s -k -f $(RELATIVE_SOURCE_PATH)/source/kernel.mk build
+	@# Now call this file again so all auto generated files are correctly included
+	@make -s -f $(RELATIVE_SOURCE_PATH)/source/kernel.mk build		
 	
 build:
-	@echo "----------------------------------"
-	@echo "     Building Modules"
-	@echo "----------------------------------"
-	@make -s modules
-	@echo "----------------------------------"
+	@echo "----------------------------------------------"
 	@echo "     Building the Kernel"
-	@echo "----------------------------------"
+	@echo "----------------------------------------------"
 	@make -s  $(OUTPUT_DIR)kernel.elf
-	@make -s binary 
+ifeq ($(ADD_DWARF), 1)
+	@echo "----------------------------------------------"
+	@echo "     Patching DEBUG info into Kernel Image"
+	@echo "----------------------------------------------"
+	@make -s dwarf 
+endif
+	@echo "----------------------------------------------"
+	@echo "     Generating Boot Binaries"
+	@echo "----------------------------------------------"
+	@make -s binary	 
 	@make -s size
-#	@make -s uImage
-#	@echo All done .. Images can be found inside the output directory..
+	@make -s uImage
+	@echo All done .. Images can be found inside the output directory..
 
 
 #---------------------------------------------------------------------------------------------------------------------------------------
@@ -275,7 +280,8 @@ $(OUTPUT_DIR)liborcoskernel.a : $(BUILD_OBJ)
 	@echo
 	@echo Creating static library liborcoskernel.a	
 	@$(RM) $(OUTPUT_DIR)liborcoskernel.a	
-	@$(AR) qc $(OUTPUT_DIR)liborcoskernel.a $(BUILD_OBJ) --plugin $(PLUGIN_DIR)
+	@$(AR) qc $(OUTPUT_DIR)liborcoskernel.a $(BUILD_OBJ) 
+	#--plugin $(PLUGIN_DIR)
 
 
 modules: $(MODULES)
@@ -286,30 +292,32 @@ modules: $(MODULES)
 #---------------------------------------------------------------------------------------------------------------------------------------
 SIGN 	= java -jar $(RELATIVE_SOURCE_PATH)/tools/SCL/dist/sn.jar
 
-#final linking rule		
+dwarf_test:
+	$(eval ADDR:= $(shell $(OBJDUMP) -h $(OUTPUT_DIR)kernel_unpatched.elf | grep .dwarf_str | sed -E "s/.*dwarf_str\s+[0-9abcdef]+\s+([0-9abcdef]+)\s+.*/0x\\1/"))
+	@echo $(ADDR)
+	
+
+# final linking rule		
 $(OUTPUT_DIR)kernel.elf: output/tasktable.o $(OUTPUT_DIR)liborcoskernel.a 
 	@echo
-	@echo kernel.mk[LD] : Linking $@	
-	@echo "#include <debug/dwarf.hh>" > $(OUTPUT_DIR)kernel_strtable.c
-	@echo "DebugStrTableT __attribute__((used)) debug_strtable[] = { { 0, 0xffffffff, 0 } }; unsigned int debug_strtable_entries = 0;" >> $(OUTPUT_DIR)kernel_strtable.c
-	@$(CC) -c $(CFLAGS) $(OPT_FLAGS)   $(OUTPUT_DIR)kernel_strtable.c --output ./output/kernel_strtable.o
-	$(CC) -L$(OUTPUT_DIR) output/tasktable.o $(OUTPUT_DIR)liborcoskernel.a $(OUTPUT_DIR)kernel_strtable.o $(LDFLAGS) -g
+	@echo kernel.mk[LD] : Linking $@
+	$(RM) $(OUTPUT_DIR)kernel.elf
+	$(RM) $(OUTPUT_DIR)kernel_unpatched.elf
+	$(CC) -L$(OUTPUT_DIR) output/tasktable.o $(OUTPUT_DIR)liborcoskernel.a  $(LDFLAGS) -g -o $(OUTPUT_DIR)kernel.elf
+	$(CP) $(OUTPUT_DIR)kernel.elf $(OUTPUT_DIR)kernel_unpatched.elf
 	
-	#@$(CC) -c $(CFLAGS) $(OPT_FLAGS) -fno-lto $(RELATIVE_SOURCE_PATH)/source/debug/dwarf.cc --output ./output/dwarf.o
-	#$(CC) -L$(OUTPUT_DIR) output/tasktable.o $(OUTPUT_DIR)liborcoskernel.a ./output/dwarf.o $(OUTPUT_DIR)kernel_strtable.o $(LDFLAGS)
+# Rule to patch in the Method signature table for dwarf debugging 
+# must be a seperate rule called seperatly as the mak processes does otherwise not see the correct files...
+# the resulting elf file is not a valid elf file anymore as the patched section is not in the
+# segment table.. however we may still use it to generate the binary image and debug using gdb! 
+dwarf:	
+	$(eval DWARF_STR_ADDR:=$(shell $(OBJDUMP) -h $(OUTPUT_DIR)kernel_unpatched.elf | grep .dwarf_str | sed -E "s/.*dwarf_str\s+[0-9abcdef]+\s+([0-9abcdef]+)\s+.*/0x\\1/"))
+	@echo "Patching Dwarf Debug Method Signature Table at $(DWARF_STR_ADDR)"
 	$(OBJDUMP) -h $(OUTPUT_DIR)kernel.elf > $(OUTPUT_DIR)kernel.sections
 	$(SIGN) stringtable $(OUTPUT_DIR)kernel.map
-	#@cp $(OUTPUT_DIR)kernel.map $(OUTPUT_DIR)kernel.map_before
-	@$(CC) -c $(CFLAGS) $(OPT_FLAGS)   $(OUTPUT_DIR)kernel_strtable.c --output ./output/kernel_strtable.o
-	$(CC) -L$(OUTPUT_DIR) output/tasktable.o $(OUTPUT_DIR)liborcoskernel.a $(OUTPUT_DIR)kernel_strtable.o $(LDFLAGS) -g
-	#$(CC) -L$(OUTPUT_DIR) output/tasktable.o $(OUTPUT_DIR)liborcoskernel.a  ./output/dwarf.o $(OUTPUT_DIR)kernel_strtable.o $(LDFLAGS)
-	$(SIGN) stringtable $(OUTPUT_DIR)kernel.map
-	#@cp $(OUTPUT_DIR)kernel.map $(OUTPUT_DIR)kernel.map_before2
-	@$(CC) -c $(CFLAGS) $(OPT_FLAGS)   $(OUTPUT_DIR)kernel_strtable.c --output ./output/kernel_strtable.o
-	$(CC) -L$(OUTPUT_DIR) output/tasktable.o $(OUTPUT_DIR)liborcoskernel.a  $(OUTPUT_DIR)kernel_strtable.o $(LDFLAGS)	 -g
-	$(SIZE) $(OUTPUT_DIR)liborcoskernel.a  > $(OUTPUT_DIR)sizes.txt
-		
-
+	@$(CC) -c $(CFLAGS) $(OPT_FLAGS)   $(OUTPUT_DIR)kernel_strtable.c --output $(OUTPUT_DIR)kernel_strtable.o
+	@$(OBJCOPY) -O binary $(OUTPUT_DIR)kernel_strtable.o $(OUTPUT_DIR)kernel_strtable.bin 2> /dev/null	
+	@$(OBJCOPY) -R .dwarf_str --add-section .dwarf_str=$(OUTPUT_DIR)kernel_strtable.bin --set-section-flags .dwarf_str=contents,alloc,load,data --change-section-vma .dwarf_str=$(DWARF_STR_ADDR) $(OUTPUT_DIR)kernel.elf $(OUTPUT_DIR)kernel.elf 2> /dev/null	
 	
 #no libc (-lc) linking since this increases the memory footprint by about 660 bytes
 # in order to use --gc-sections we need to be sure to always include interrupt vectors a.s.o
@@ -339,9 +347,7 @@ binary: $(OUTPUT_DIR)kernel.bin
 -include make/tasks.in
 
 tasks: scl 
-	@echo "----------------------------------"
-	@echo "     Building Tasks"
-	@echo "----------------------------------"
+	@echo "Building Tasks"
 	@n=0 ; \
 	starts=$(TASKS_START); \
 	sizes=$(TASKS_SIZE); \
@@ -351,7 +357,9 @@ tasks: scl
 	deadlines=$(TASKS_DEADLINE); \
 	exectime=$(TASKS_EXECTIME); \
 	for x in $(TASKS); do\
-		echo Creating $$x; \
+		echo -------------------------------------------; \
+		echo Building Task $$x; \
+		echo -------------------------------------------; \
 		make -s -C $$x OUTPUTFILE=task.image TARGET=$(TARGET) TASK_START=$${starts[$$n]} TASK_SIZE=$${sizes[$$n]} PHASE=$${phases[$$n]} INITIAL_PRIORITY=$${priorities[$$n]} PERIOD=$${periods[$$n]} DEADLINE=$${deadlines[$$n]} EXECUTIONTIME=$${exectime[$$n]} all; \
 		$(CP) $$x/$(TARGET)/task.image tasks/task$$n.image; \
 		$(CP) $$x/$(TARGET)/task.image.elf tasks/task$$n.image.elf; \

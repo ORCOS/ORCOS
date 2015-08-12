@@ -20,10 +20,20 @@
 #define ORCOS_HH_
 
 #include "error.h"
-#include "types.h"
+#include "orcos_types.h"
 #include "defines.h"
 
-extern "C" int      syscall (int syscallnumber, ...);
+
+#ifdef __cplusplus
+extern "C" {
+#define DEFAULT(x) =x
+
+#else
+#define DEFAULT(x)
+#define bool char
+#endif
+
+ int      syscall (int syscallnumber, ...);
 
 /*!
  * \brief Atomic test and set operation.
@@ -35,32 +45,11 @@ extern "C" int      syscall (int syscallnumber, ...);
  *
  * \return          1 on success. 0 otherwise.
  */
-extern "C" int      testandset(void* address, int testvalue, int setvalue);
+ int      testandset(void* address, int testvalue, int setvalue);
 
-/**************************************
- *  Memory related system calls
- **************************************/
 
-/*!
- * \brief The new operator for user level
- */
-void* operator      new(size_t s);
 
-/*!
- * \brief Memory allocation method.
- */
-extern "C" void*    malloc(size_t s);
-
-/*!
- * \brief Memory deallocation method
- */
-extern "C" void     free(void *s);
-
-/*!
- * \brief The delete operator for user level
- */
-void operator       delete( void* ptr );
-
+ char*    inet_ntop(int af, const char *src, char *dst, size_t size);
 
 
 /**************************************
@@ -75,7 +64,7 @@ void operator       delete( void* ptr );
  *
  * \return                  Error Number < 0 or task id > 0
  */
-extern "C" int              task_run(char* path, char* arguments);
+ int              task_run(char* path, char* arguments);
 
 /*!
  * \brief Stops and removes a task from the system.
@@ -84,7 +73,7 @@ extern "C" int              task_run(char* path, char* arguments);
  *
  * \return                  Error Number < 0 or 0 (on success)
  */
-extern "C" int              task_kill(int taskid);
+ int              task_kill(int taskid);
 
 /*!
  * \brief Stop the specified task. It could be resumed later on.
@@ -93,7 +82,7 @@ extern "C" int              task_kill(int taskid);
  *
  * \return                  Error Number
  */
-extern "C" int              task_stop(int taskid);
+ int              task_stop(int taskid);
 
 /*!
  * \brief resumes the specified task. Resumes execution of a task that is currently not running.
@@ -102,7 +91,7 @@ extern "C" int              task_stop(int taskid);
  *
  * \return                  Error Number
  */
-extern "C" int              task_resume(int taskid);
+ int              task_resume(int taskid);
 
 /**************************************
  *  Thread related system calls
@@ -120,7 +109,7 @@ extern "C" int              task_resume(int taskid);
  *
  * \return                  The exit value of the terminated thread.
  */
-extern "C" int              wait();
+ int              wait();
 
 /*!
  * \brief wait for process method.  Blocks the current calling thread until the process terminates.
@@ -133,7 +122,7 @@ extern "C" int              wait();
  *
  * \return                 The exit value of the terminated process.
  */
-extern "C" int              waitpid(TaskIdT pid);
+ int              waitpid(TaskIdT pid);
 
 
 /*!
@@ -150,7 +139,7 @@ extern "C" int              waitpid(TaskIdT pid);
  *
  * \return                  The exit value of the terminated process.
  */
-extern "C" int              waittid(ThreadIdT tid);
+ int              waittid(ThreadIdT tid);
 
 /*!
  * \brief wait for irq method.  Blocks the current calling thread until the irq is raised.
@@ -160,7 +149,7 @@ extern "C" int              waittid(ThreadIdT tid);
  *
  * \return                  The exit value of the terminated process.
  */
-extern "C" int              waitirq(unint4 irq);
+ int              waitirq(unint4 irq);
 
 
 /*!
@@ -171,7 +160,7 @@ extern "C" int              waitirq(unint4 irq);
  *
  * \param s                The number of seconds to sleep
  */
-extern "C" void            sleep(int s);
+ unsigned int    sleep(unsigned int s);
 
 /*!
  *  \brief The calling thread will be blocked for at least 'us' micro-seconds.
@@ -181,12 +170,12 @@ extern "C" void            sleep(int s);
  *
  * \param us               The number of microseconds to sleep
  */
-extern "C"void             usleep(int us);
+ int             usleep(unsigned long us);
 
 /*!
  * \brief Returns the process ID of the current running process.
  */
-extern "C" int             getpid();
+ int             getpid();
 
 /*!
  * \brief Create a new thread.
@@ -198,7 +187,7 @@ extern "C" int             getpid();
  *
  * \return                 Error Number
  */
-extern "C" int             thread_create(ThreadIdT* threadid, thread_attr_t* attr, void *(*start_routine)(void*), void* arg);
+ int             thread_create(ThreadIdT* threadid, thread_attr_t* attr, void *(*start_routine)(void*), void* arg);
 
 /*!
  * \brief Start the execution of the thread with id 'threadid'.
@@ -210,7 +199,7 @@ extern "C" int             thread_create(ThreadIdT* threadid, thread_attr_t* att
  *
  * \return                 Error Number
  */
-extern "C" int             thread_run(int threadid);
+ int             thread_run(int threadid);
 
 
 /*!
@@ -221,17 +210,17 @@ extern "C" int             thread_run(int threadid);
  *
  * \return                 Error Number
  */
-extern "C" int             thread_name(int threadid,char* name);
+ int             thread_name(int threadid, char* name);
 
 /*!
  * \brief Returns the id of the currently running thread
  */
-extern "C" int             thread_self();
+ int             thread_self();
 
 /*!
  * \brief Voluntarily yield the cpu to some other thread (if any)
  */
-extern "C" void            thread_yield();
+ void            thread_yield();
 
 /*!
  * \brief Returns from the the currently executing thread instance
@@ -239,7 +228,7 @@ extern "C" void            thread_yield();
  * Periodic Threads end their currently exeucting thread instance.
  * Aperiod Threads also terminate.
  */
-extern "C" void            thread_exit(int exitCode = cOk);
+ void            thread_exit(int exitCode DEFAULT(cOk)) __attribute__((noreturn));
 
 /*
  * \brief Terminates the given thread.
@@ -249,7 +238,7 @@ extern "C" void            thread_exit(int exitCode = cOk);
  *
  *returns ErrorCode
  */
-extern "C" int             thread_terminate(ThreadIdT threadId, int flag = TERM_SOFT);
+ int             thread_terminate(ThreadIdT threadId, int flag DEFAULT(TERM_SOFT));
 
 
 /**************************************
@@ -269,7 +258,7 @@ extern "C" int             thread_terminate(ThreadIdT threadId, int flag = TERM_
  *
  * \returns                The signal value passed by the raising thread
  */
-extern "C" int             signal_wait( void* sig, bool memAddrAsSig = false );
+ int             signal_wait( void* sig, bool memAddrAsSig DEFAULT(false) );
 
 
 /*!
@@ -284,7 +273,7 @@ extern "C" int             signal_wait( void* sig, bool memAddrAsSig = false );
  * \comment
  *  0 is invalid for the signal number.
  */
-extern "C" void            signal_signal( void* sig, int value, bool memAddrAsSig = false );
+ void            signal_signal( void* sig, int value, bool memAddrAsSig DEFAULT(false) );
 
 
 
@@ -299,7 +288,7 @@ extern "C" void            signal_signal( void* sig, int value, bool memAddrAsSi
  * is not 100% posix standard.
  */
 
-extern "C" int             create(const char* filepath, int flags = cTYPE_FILE);
+ int             create(const char* filepath, int flags DEFAULT(cTYPE_FILE));
 
 /*!
  * \brief  The fopen() function shall open the resource whose pathname is the string pointed to by filename, and associates a stream with it.
@@ -310,16 +299,20 @@ extern "C" int             create(const char* filepath, int flags = cTYPE_FILE);
  *
  * \return                 The file descriptor on success. Error Code otherwise.
  */
-extern "C" int             open(const char* filename, int blocking = 1);
+ int             open(const char* filename, int blocking DEFAULT(1) );
 
 /*!
- * \brief Close the stream associated with this file handle. May fail if this resource was not acquired
+ * \brief   Close the resource associated with this file handle. May fail if this resource was not acquired.
+ *          If the resource was a shared memory device all mappings created on this device are unmapped and removed!
+ *          Example: shm_map on /mem/mem can be done multiple times, each returing the /mem/mem file handle.
+ *          If this handle is closed ALL mappings are removed! If you want to remove only a specific mapping
+ *          use shm_unmap instead!
  *
  * \param fd               The file descriptor as returned by open() of the resource/file to be closed.
  *
  * \return                 cOk on success. Error Code  otherwise.
  */
-extern "C" int             close(int fd);
+ int             close(int fd);
 
 /*!
  * \brief The read() function shall read into the array pointed to by ptr up to size bytes, from the stream pointed to by stream.
@@ -330,7 +323,7 @@ extern "C" int             close(int fd);
  *
  * \return                 The amount of bytes read
  */
-extern "C" size_t          read(int fd, char *buf, size_t size);
+ size_t          read(int fd, char *buf, size_t size);
 
 /*!
  * \brief The fwrite() function shall write, from the array pointed to by ptr count bytes, to the stream pointed to by stream.
@@ -341,7 +334,7 @@ extern "C" size_t          read(int fd, char *buf, size_t size);
  *
  * \return                 Amount of data written on success
  */
-extern "C" size_t          write(int fd, const void *buf, size_t count);
+ size_t          write(int fd, const void *buf, size_t size);
 
 /*!
  * \brief The fstat method returns the file statistics of a resource given by its handle fd.
@@ -351,7 +344,7 @@ extern "C" size_t          write(int fd, const void *buf, size_t count);
  *
  * \return                 cOk on success. Error Code otherwise
  */
-extern "C" int             fstat(int fd, stat_t* stat);
+ int             fstat(int fd, struct stat* buf);
 
 
 /*!
@@ -363,7 +356,7 @@ extern "C" int             fstat(int fd, stat_t* stat);
  *
  * \return                 cOk on success. Error Code otherwise
  */
-extern "C" char*           fgets (int fd, char *s, int count);
+ char*           fdgets (int fd, char *s, int count);
 
 /*!
  * \brief Tries to remove a resource given by its absolute path.
@@ -377,7 +370,7 @@ extern "C" char*           fgets (int fd, char *s, int count);
  * \return                 cOk on success. Error Code otherwise
  *
  */
-extern "C" int             remove(const char* filepath);
+ int             remove(const char* filepath);
 
 
 /*
@@ -390,7 +383,7 @@ extern "C" int             remove(const char* filepath);
  *                          SEEK_CUR: seeks from the current position.
  *                          SEEK_END: seeks from the end of the file.
  */
-extern "C" int             seek(int fd, int offset, int whence);
+ int             lseek(int fd, int offset, int whence);
 
 /*
  * \brief Creates a virtual device inside the /dev subsystem
@@ -405,7 +398,7 @@ extern "C" int             seek(int fd, int offset, int whence);
  *
  * \return                 cOk on success. Error code otherwise.
  */
-extern "C" int             mkdev(char* devname, int bufferSize);
+ int             mkdev(char* devname, int bufferSize);
 
 /*
  * \brief Tries to mount a device/directory etc to the location given by dst_path.
@@ -418,7 +411,7 @@ extern "C" int             mkdev(char* devname, int bufferSize);
  *
  * \return                 cOk on success. Error code otherwise.
  */
-extern "C" int             mount(char* src_path, char* dst_path, int type);
+ int             mount(char* src_path, char* dst_path, int type);
 
 /*
  * Sequentially reads the entries of a directory given by its file descriptor.
@@ -430,7 +423,7 @@ extern "C" int             mount(char* src_path, char* dst_path, int type);
  * Repeatingly calling this method yiels the next directory entry until
  * all entries are read (returns 0).
  */
-extern "C" Directory_Entry_t* readdir(int fd);
+ Directory_Entry_t* readdir(int fd);
 
 /*!
  * \brief Request an I/O Control operation on the device opened with handle 'fd'.
@@ -442,32 +435,19 @@ extern "C" Directory_Entry_t* readdir(int fd);
  *                    or a pointer to a structure
  *
  */
-extern "C" int        ioctl(int fd, int request, void* args);
+ int        ioctl(int fd, int request, void* args);
 
 /*
  * Allows IO control of tasks input output streams.
  * CMD 0 = Set STDOUT
  */
-extern "C" int        taskioctl(int cmd, int taskid, char* dev);
+ int        taskioctl(int cmd, int taskid, char* dev);
 
 
 /*!
  * \brief Prints the string (without formatting) to standard out.
  */
-extern "C" size_t     printToStdOut(const void* ptr, size_t max = 256);
-
-
-/*!
- * \brief The map_memory() function asks the kernel to map the desired physical address space to the logical address space specified
- *
- * \param log_start   Logical address space
- * \param phy_start   Physical address space
- * \param size        Size of the address space
- * \param protection  Protection mode of the address space
- *
- * \return            cOk on success, Error Code  otherwise
- */
-extern "C" int        map_logmemory( const char* log_start, const char* phy_start, size_t size, int protection);
+ size_t     printToStdOut(const void* ptr, size_t max DEFAULT(256) );
 
 
 /*!
@@ -501,26 +481,29 @@ extern "C" int        map_logmemory( const char* log_start, const char* phy_star
  *  fclose(handle);
  *
  */
-extern "C" int          shm_map(const char* file, unint4* mapped_address, unint4* mapped_size, unint4 flags);
+ int          shm_map(const char* file, unint4* mapped_address, unint4* mapped_size, unint4 flags DEFAULT(0), unint4 offset DEFAULT(0));
 
+
+
+ int          shm_unmap(unint4* address);
 
 /*!
  * \brief Returns the current time since startup in platform clock ticks.
  */
-extern "C" unint8       getCycles();
+ unint8       getCycles();
 
 /*
  * \brief Returns the current time since startup in nanoseconds (ns)
  *
  */
-extern "C" unint8       getTime();
+ unint8       getTime();
 
 /*
  * \brief Returns the current DateTime in seconds since 1. Jan. 1970.
  *
  * Use the library method time2date to convert the datetime to a time_t struct.
  */
-extern "C" unint4       getDateTime();
+ unint4       getDateTime();
 
 /**************************************
  * Socket related system calls (IPC)
@@ -538,7 +521,7 @@ extern "C" unint4       getDateTime();
  *
  * \return             Id of the created socket on success. Error Code otherwise
  */
-extern "C" int         socket(int domain, int type, int protocol);
+ int         socket(int domain, int type, int protocol);
 
 
 /*!
@@ -554,7 +537,7 @@ extern "C" int         socket(int domain, int type, int protocol);
  *
  * \return             cOk on success. Error Code otherwise.
  */
-extern "C" int         connect(int socket, const sockaddr *toaddress, int timeout = 2000);
+ int         connect(int socket, const sockaddr *toaddress, int timeout DEFAULT(2000) );
 
 /*!
  * \brief Listen for connection on a socket.
@@ -566,7 +549,7 @@ extern "C" int         connect(int socket, const sockaddr *toaddress, int timeou
  *
  * \return             The file descriptor of the socket on success. Error Code otherwise.
  */
-extern "C" int         listen(int socket);
+ int         listen(int socket);
 
 /*!
  * \brief Bind a socket to the address given by the parameter address.
@@ -580,7 +563,7 @@ extern "C" int         listen(int socket);
  *
  * \return             cOk on success. Error Code otherwise.
  */
-extern "C" int         bind(int socket_fd, const sockaddr* address);
+ int         bind(int socket_fd, const sockaddr* address);
 
 /*!
  * \brief Blocking send method for unconnected sockets.
@@ -596,7 +579,7 @@ extern "C" int         bind(int socket_fd, const sockaddr* address);
  *
  * \return             Length of sent data on success. Error Code otherwise: -1 on timeout
  */
-extern "C" int4        sendto(int socket_fd, const void* data, size_t length, const sockaddr* dest_addr);
+ int4        sendto(int socket_fd, const void* data, size_t length, const sockaddr* dest_addr);
 
 /*!
  * \brief Receive method on socket.
@@ -612,7 +595,7 @@ extern "C" int4        sendto(int socket_fd, const void* data, size_t length, co
  *
  * \return             The size/length of the received message in bytes. -1 on connection disconnect
  */
-extern "C" size_t      recv(int socket_fd, char* data,int len, int flags, unint4 timeout = 0);
+ size_t      recv(int socket_fd, char* data,int len, int flags, unint4 timeout DEFAULT(0) );
 
 
 /*!
@@ -629,7 +612,7 @@ extern "C" size_t      recv(int socket_fd, char* data,int len, int flags, unint4
  *
  * \return             The size/length of the received message in bytes. -1 on connection disconnect
  */
-extern "C" size_t      recvfrom(int socket_fd, char* data, int len,int flags, sockaddr* sender, unint4 timeout = 0);
+size_t      recvfrom(int socket_fd, char* data, int len,int flags, sockaddr* sender, unint4 timeout DEFAULT(0) );
 
 /*!
  * \brief Trys to find the service specified by a name in the network. Calling thread will be blocked.
@@ -640,7 +623,7 @@ extern "C" size_t      recvfrom(int socket_fd, char* data, int len,int flags, so
  *
  * \return             The amount of services found
  */
-extern "C" int         getservicebyname(char* name, const servicedescriptor* descr, unint1 n);
+int         getservicebyname(char* name, const servicedescriptor* descr, unint1 n);
 
 /*!
  * \brief Tries to do an IPv4 host name lookup for the host given by name
@@ -649,8 +632,10 @@ extern "C" int         getservicebyname(char* name, const servicedescriptor* des
  *
  * \return             Pointer to the resulting statically allocated hostent structure.
  */
-extern "C" struct hostent* gethostbyname(char* name);
+struct hostent* gethostbyname(const char* name);
 
-
+#ifdef __cplusplus
+}
+#endif
 
 #endif /*ORCOS_HH_*/

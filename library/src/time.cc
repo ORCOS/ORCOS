@@ -2,12 +2,12 @@
  * time.cc
  *
  */
-#include "types.h"
+#include "time.h"
 #include "defines.h"
-#include "orcos.hh"
+#include "orcos.h"
 
 
-void time2date(time_t* pTm, unint4 seconds) {
+extern "C" void time2date(struct tm* pTm, time_t seconds) {
     unint8 sec;
 
     unint4 quadricentennials, centennials, quadrennials, annuals/*1-ennial?*/;
@@ -118,15 +118,15 @@ void time2date(time_t* pTm, unint4 seconds) {
         }
     }
 
-    pTm->second         = sec;   // [0,59]
-    pTm->minute         = min;   // [0,59]
-    pTm->hour           = hour;  // [0,23]
-    pTm->day            = mday;  // [1,31] (day of month)
-    pTm->month          = month; // [1,12] (month)
-    pTm->year           = year;  //year - 1900;  // 70+ (year since 1900)
-    pTm->week_day       = wday;  // [0,6] (day since Sunday AKA day of week)
-    pTm->day_of_year    = yday;  // [0,365] (day since January 1st AKA day of year)
-    pTm->isdaylightsaving = -1;  // daylight saving time flag
+    pTm->tm_sec         = sec;   // [0,59]
+    pTm->tm_min         = min;   // [0,59]
+    pTm->tm_hour        = hour;  // [0,23]
+    pTm->tm_mday        = mday;  // [1,31] (day of month)
+    pTm->tm_mon         = month; // [1,12] (month)
+    pTm->tm_year        = year;  //year - 1900;  // 70+ (year since 1900)
+    pTm->tm_wday        = wday;  // [0,6] (day since Sunday AKA day of week)
+    pTm->tm_yday        = yday;  // [0,365] (day since January 1st AKA day of year)
+    pTm->tm_isdst       = -1;  // daylight saving time flag
 
     return;
 }

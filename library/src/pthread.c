@@ -16,9 +16,12 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "pthread.hh"
-#include "Mutex.hh"
-#include "orcos.hh"
+
+#include <pthread.h>
+#include "mutex.h"
+#include "orcos.h"
+#include <string.h>
+#include <stdlib.h>
 
 
 int pthread_create( pthread_t* thread, const pthread_attr_t* attr, void* (*start_routine)( void* ), void* arg ) {
@@ -31,30 +34,41 @@ int pthread_create( pthread_t* thread, const pthread_attr_t* attr, void* (*start
         ret = thread_run(tid);
     }
 
-
     return (ret);
 }
 
-int   pthread_join(pthread_t thread, void ** arg) {
+int pthread_join(pthread_t thread, void ** arg) {
     return (waittid(thread));
 }
 
-void pthread_exit( void *value_ptr ) {
-    thread_exit();
+void pthread_exit(void *value_ptr ) {
+    int retval = 0;
+    if (value_ptr)
+        retval = *((int*)value_ptr);
+
+    thread_exit(retval);
+}
+
+int pthread_terminate(pthread_t thread) {
+    return (thread_terminate(thread, TERM_HARD));
+}
+
+
+void phtread_testcancel(void) {
+    // TOTO call kernel
 }
 
 int pthread_cancel( pthread_t thread ) {
-    thread_terminate(thread, TERM_SOFT);
-    return 0;
+    return (thread_terminate(thread, TERM_SOFT));
 }
 
 pthread_t pthread_self( void ) {
-    return thread_self();
+    return (thread_self());
 }
 
 int sched_yield( void ) {
     thread_yield();
-    return 0;
+    return (0);
 }
 
 
@@ -63,13 +77,9 @@ int pthread_attr_destroy( pthread_attr_t* attr ) {
 }
 
 int pthread_attr_init( pthread_attr_t* attr ) {
-    attr->arrivaltime   = 0;
-    attr->priority      = 0;
-    attr->period        = 0;
+    memset(attr, 0, sizeof(pthread_attr_t));
     attr->stack_size    = 2048;
-    attr->deadline      = 0;
-    attr->executionTime = 0;
-    return 0;
+    return (0);
 }
 
 int pthread_attr_getstacksize( const pthread_attr_t* attr, size_t* stacksize ) {
@@ -85,29 +95,25 @@ int pthread_attr_setstacksize( pthread_attr_t *attr, size_t stacksize ) {
 
 
 int pthread_mutex_init( pthread_mutex_t *__mutex, const pthread_mutexattr_t *__mutexattr ) {
-    Mutex** m = (Mutex**) __mutex;
-    *m = new Mutex();
-
-    return 0;
+    void** m = (void**) __mutex;
+    *m = mutex_create();
+    return (0);
 }
 
 int pthread_mutex_destroy( pthread_mutex_t *__mutex ) {
-    Mutex** m = (Mutex**) __mutex;
-    delete *m;
-
+    void** m = (void**) __mutex;
+    mutex_destroy(*m);
     return 0;
 }
 
 int pthread_mutex_lock( pthread_mutex_t *__mutex ) {
-    Mutex** m = (Mutex**) __mutex;
-
-    return ( *m )->acquire();
+    void** m = (void**) __mutex;
+    return ( mutex_acquire(*m, 1));
 }
 
 int pthread_mutex_unlock( pthread_mutex_t *__mutex ) {
-    Mutex** m = (Mutex**) __mutex;
-
-    return ( *m )->release();
+    void** m = (void**) __mutex;
+    return ( mutex_release(*m));
 }
 
 int pthread_mutexattr_init( pthread_mutexattr_t *__attr ) {
@@ -120,26 +126,26 @@ int pthread_mutexattr_destroy( pthread_mutexattr_t *__attr ) {
 
 int pthread_cond_init( pthread_cond_t * __cond, const pthread_condattr_t * __attr ) {
     bool** b = (bool**) __cond;
-    *b = new bool;
+    *b = (bool*) malloc(sizeof(bool));
 
     return 0;
 }
 
 int pthread_cond_destroy( pthread_cond_t * __cond ) {
     bool** b = (bool**) __cond;
-    delete *b;
+    free(*b);
 
     return 0;
 }
 
 int pthread_cond_signal( pthread_cond_t * __cond ) {
-    signal_signal( (void*) __cond, true );
+    signal_signal( (void*) __cond, 0, 1 );
 
     return 0;
 }
 
 int pthread_cond_broadcast( pthread_cond_t * __cond ) {
-    signal_signal( (void*) __cond, true );
+    signal_signal( (void*) __cond, 0, 1 );
 
     return 0;
 }
@@ -148,7 +154,7 @@ int pthread_cond_broadcast( pthread_cond_t * __cond ) {
 
 int pthread_cond_wait( pthread_cond_t * __cond, pthread_mutex_t * __mutex ) {
     pthread_mutex_unlock( __mutex );
-    signal_wait( (void*) __cond, true );
+    signal_wait( (void*) __cond,  1 );
     pthread_mutex_lock( __mutex );
     return 0;
 }

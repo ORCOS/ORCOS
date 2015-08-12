@@ -61,6 +61,7 @@ static t_mapping OMAP3530Mappings[4] = {
 t_archmappings arch_kernelmappings =
 {   .count = 4, .mappings = OMAP3530Mappings};
 
+// cppcheck-suppress uninitMemberVar
 BeagleBoard::BeagleBoard() {
 }
 

@@ -276,7 +276,7 @@ extern void* __PageTableSec_start;
                         "b _ZN12WorkerThread4workEv;" \
                         : \
                         : "r" (&__PageTableSec_start), "r" (pid) , "r" (stack_addr), "r" (objectptr)\
-                        : "r0", "r1")
+                        : "r0", "r1" , "memory")
 
 
 // get interrupt enable bit (IRQ only)
@@ -293,32 +293,35 @@ extern void* __PageTableSec_start;
 //-----------------------------------------------------------------------------
 
 // Enable interrupts (IRQ).
-#define _enableInterrupts() asm volatile( \
+#define _enableInterrupts() asm volatile("CPSIE i" : : : "memory");
+
+/*
                                 "MRS    r0, cpsr;" \
                                 "BIC    r0, r0, #0x80;" \
                                 "MSR    cpsr, r0;" \
                                 : \
                                 : \
                                 : "r0" \
-                            )
+                            )*/
 
 // Disable interrupts (IRQ).
-#define _disableInterrupts() asm volatile( \
+#define _disableInterrupts() asm volatile("CPSID i" : : : "memory");
+
+/*\
                                 "MRS    r0, cpsr;" \
                                 "ORR    r0, r0, #0x80;" \
                                 "MSR    cpsr, r0;" \
                                 : \
                                 : \
                                 : "r0" \
-                            )
+                            )*/
 
 
-#define GET_CPSR(var) asm volatile("mrs  %0,CPSR;" : "=&r" (var):  :)
+#define GET_CPSR(var) asm volatile("mrs  %0, CPSR;" : "=&r" (var):  :)
 
 
 // Disables irqs and saves the irq enable bit to the variable
 #define DISABLE_IRQS(irqstatus) \
-    int irqstatus; \
     GET_INTERRUPT_ENABLE_BIT(irqstatus); \
     _disableInterrupts();
 
@@ -419,9 +422,8 @@ static void inline ATOMIC_ADD(void* addr, int value) {
  */
 #define SMP_SPINLOCK_GET(spinlock) \
     asm volatile ( \
-         "MRS    r1,   cpsr_c;"    \
-         "ORR    r1,   r1, #0x80;" \
-         "MSR    cpsr_c, r1;"      \
+         "MRS     r1,   cpsr_c;"    \
+         "CPSID   i;" \
          "1:     " \
          "LDREX   r2,  [%0];"     /* get spinlock value. try to get exclusive access */ \
          "CMP     r2,  #0;"       /* test if locked.. */  \
@@ -432,16 +434,20 @@ static void inline ATOMIC_ADD(void* addr, int value) {
          "DMB;" \
           : \
           : "r" (&spinlock) \
-          : "r1", "r2");
+          : "r1", "r2" , "memory");
 
 
+/*
+ * Frees the spinlock giving other processors or threads the access to its. Also restores
+ * the interrupt enable/disable state at its corresponding SMP_SPINLOCK_GET call.
+ */
 #define SMP_SPINLOCK_FREE(spinlock) \
         asm volatile ( \
           "LDREX  r1, [%0];"     /* get spinlock value. contains irq status */ \
           "MRS    r2, cpsr_c;"      \
           "AND    r1, r1, #0x80;"   \
           "ORR    r2, r1;"          \
-          "MSR    cpsr_c, r2;"        \
+          "MSR    cpsr_c, r2;"      \
           "MOV    r1, #0;"          \
           "STR    r1, [%0];" /* set spinlock value to 0 */\
            : \
@@ -450,8 +456,8 @@ static void inline ATOMIC_ADD(void* addr, int value) {
 
 #else
 
-#define SMP_SPINLOCK_GET(spinlock) DISABLE_IRQS(__##spinlock)
-#define SMP_SPINLOCK_FREE(spinlock) RESTORE_IRQS(__##spinlock)
+#define SMP_SPINLOCK_GET(spinlock) DISABLE_IRQS(spinlock)
+#define SMP_SPINLOCK_FREE(spinlock) RESTORE_IRQS(spinlock)
 #endif
 
 #ifdef __cplusplus

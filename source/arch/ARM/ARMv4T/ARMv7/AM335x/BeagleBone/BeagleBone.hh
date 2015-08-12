@@ -89,6 +89,14 @@ public:
     void initialize();
 
     /*****************************************************************************
+     * Method: setCPUFrequency(unint4 frequency)
+     *
+     * @description
+     *  Sets the specific frequency in MHZ.
+     *******************************************************************************/
+    void setCPUFrequency(unint4 frequency);
+
+    /*****************************************************************************
      * Method: getBoardInfo()
      *
      * @description
@@ -97,6 +105,8 @@ public:
     const char* getBoardInfo() {
         return (" BeagleBone. SOC: AM335x\r\n");
     }
+
+    void early_init();
 };
 
 #endif /*BEAGLEBONE_HH_*/

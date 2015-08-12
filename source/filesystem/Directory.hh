@@ -178,6 +178,14 @@ public:
      *   Directory objects and update the filesystem if any.
      *******************************************************************************/
     virtual Directory*  createDirectory(char* p_name, unint4 flags);
+
+    /*****************************************************************************
+     * Method: rename(char* newName)
+     *
+     * @description
+     *  Renames the file.
+     *******************************************************************************/
+    virtual ErrorT rename(char* newName);
 };
 
 /*

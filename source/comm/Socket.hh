@@ -67,6 +67,10 @@ private:
     //! Array of accepted connections if this socket is in listening state
     ArrayList* acceptedConnections;
 
+    Mutex* mutex;
+
+    unint4 m_lock;
+
 public:
     //! Thread blocked by this socket due to recv call on empty message buffer
     Kernel_ThreadCfdCl* blockedThread;

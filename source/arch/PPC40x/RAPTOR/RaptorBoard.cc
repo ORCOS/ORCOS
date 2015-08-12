@@ -22,7 +22,7 @@
 
 extern Kernel* theOS;
 
-
+// cppcheck-suppress uninitMemberVar
 RaptorBoard::RaptorBoard() {
 }
 

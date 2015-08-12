@@ -14,7 +14,7 @@
 
 #include <filesystem/File.hh>
 #include <filesystem/Directory.hh>
-#include <inc/types.h>
+#include <inc/orcos_types.h>
 
 #define READ  1
 #define WRITE 2

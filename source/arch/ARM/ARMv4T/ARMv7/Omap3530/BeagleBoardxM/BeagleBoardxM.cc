@@ -80,7 +80,7 @@ t_archmappings arch_kernelmappings =
  *******************************************************************************/
 
 
-
+// cppcheck-suppress uninitMemberVar
 BeagleBoardxM::BeagleBoardxM() {
 }
 

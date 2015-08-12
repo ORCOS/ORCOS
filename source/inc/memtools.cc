@@ -61,11 +61,13 @@ void* memcpyl(void* dst0, const void* src0, size_t len0) {
 
    void* save = dst0;
 
-   while (len0 > 0) {
+   long len = len0;
+
+   while (len > 0) {
        *dst = *src;
        dst++;
        src++;
-       len0 -= sizeof(long);
+       len -= sizeof(long);
    }
 
    return (save);

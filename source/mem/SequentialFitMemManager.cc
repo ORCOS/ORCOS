@@ -199,11 +199,21 @@ bool SequentialFitMemManager::isValidChunkAddress(Chunk_Header* chunk, MemResour
 
 SequentialFitMemManager::SequentialFitMemManager(void* startAddr, void* endAddr) :
         MemManager(startAddr, endAddr) {
+    schedDeletionStartPos = 0;
+    schedDeletionCount    = 0;
+    schedDeletionSafeNum  = 0;
+    m_lock                = 0;
+    memset(&scheduledDeletion, 0, sizeof(scheduledDeletion));
 }
 
 #if MEM_CACHE_INHIBIT
 SequentialFitMemManager::SequentialFitMemManager(void* startAddr, void* endAddr, void* istartAddr, void* iendAddr) :
         MemManager(startAddr, endAddr, istartAddr, iendAddr) {
+    schedDeletionStartPos = 0;
+    schedDeletionCount    = 0;
+    schedDeletionSafeNum  = 0;
+    m_lock                = 0;
+    memset(&scheduledDeletion, 0, sizeof(scheduledDeletion));
 #if MEM_TRACE
     for (int i = 0; i < 1024; i++)
     allocations[i].used = 0;

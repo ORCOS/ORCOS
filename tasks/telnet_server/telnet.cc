@@ -25,12 +25,14 @@
  *
  */
 
-#include <orcos.hh>
-#include <string.hh>
+#include <orcos.h>
+#include <string.h>
 #include <args.h>
 #include <time.h>
 #include "telnet.h"
 #include <stdlib.h>
+#include <stdio.h>
+
 
 #define orcos_string "         __           __          __             __           __ "LINEFEED"\
         /\\ \\         /\\ \\        /\\ \\           /\\ \\         / /\\ "LINEFEED"\
@@ -181,10 +183,10 @@ void handleCommand(int socket, int command_length) {
         return;
     }
 
-    if (strpos("cd ", command) == 0) {
+    if (strstr(command, "cd ") == command) {
 
         char** argv;
-        int args = parseArgs(command, argv);
+        int args = parseArgs(command, &argv);
         if (args != 2) {
             sendMsg(socket, "Usage: cd <path>");
             return;
@@ -212,7 +214,7 @@ void handleCommand(int socket, int command_length) {
         if (handle >= 0) {
 
             /* check type */
-            stat_t filetype;
+            struct stat filetype;
             filetype.st_type = 10;
             if (fstat(handle, &filetype) != cOk || (filetype.st_type & STAT_TYPE_DIRECTORY) == 0) {
                 close(handle);
@@ -231,9 +233,9 @@ void handleCommand(int socket, int command_length) {
         return;
     }
 
-    if (strpos("mount", command) == 0) {
+    if (strstr(command, "mount ") == command) {
         char** argv;
-        int args = parseArgs(command, argv);
+        int args = parseArgs(command, &argv);
         if (args > 5 || args < 3) {
             sendMsg(socket, "Usage: mount (-t <type>) <src_path> <dst_path>");
             return;
@@ -265,9 +267,9 @@ void handleCommand(int socket, int command_length) {
         return;
     }
 
-    if (strpos("ls", command) == 0) {
+    if (strstr(command, "ls") == command) {
         char** argv; /* must be deleted */
-        int args            = parseArgs(command, argv);
+        int args            = parseArgs(command, &argv);
         int handle          = mydirhandle;
         int humanReadable   = 0;
         int details         = 0;
@@ -276,9 +278,9 @@ void handleCommand(int socket, int command_length) {
             char* arg = argv[i];
             if (arg[0] == '-') {
                 /* parameter */
-                if (strpos("h", arg) >= 0)
+                if (strstr(arg, "h") != 0)
                     humanReadable = 1;
-                if (strpos("l", arg) >= 0)
+                if (strstr(arg, "l") != 0)
                     details = 1;
             } else {
                 /* must be a path! */
@@ -304,7 +306,7 @@ void handleCommand(int socket, int command_length) {
         return;
     }
 
-    if (strpos("/", command) == 0 || strpos("./", command) == 0) {
+    if (strstr(command, "/") == command || strstr(command, "./") == command) {
         char* filename = command;
         char* arguments = extractPath(filename);
 
@@ -328,10 +330,10 @@ void handleCommand(int socket, int command_length) {
         return;
     }
 
-    if (strpos("kill", command) == 0) {
-        int arg = strpos(" ", command);
-        if (arg > 0) {
-            char* taskid = &command[arg + 1];
+    if (strstr(command, "kill ") == command) {
+        char* taskid = strstr(command, " ");
+        if (taskid != 0) {
+            taskid++;
             // todo test on errors
             int id = atoi(taskid);
             if (id != getpid()) {
@@ -349,10 +351,10 @@ void handleCommand(int socket, int command_length) {
 
     }
 
-    if (strpos("hexdump", command) == 0) {
+    if (strstr(command, "hexdump ") == command) {
 
         char** argv;
-        int args = parseArgs(command, argv);
+        int args = parseArgs(command, &argv);
         if (args != 2) {
             sendMsg(socket, "Usage: hexdump <filename>");
             return;
@@ -427,9 +429,9 @@ void handleCommand(int socket, int command_length) {
         }
     }
 
-    if (strpos("cat", command) == 0) {
+    if (strstr(command, "cat ") == command) {
         char** argv;
-        int args = parseArgs(command, argv);
+        int args = parseArgs(command, &argv);
         if (args != 2) {
             sendMsg(socket, "Usage: cat <filename>");
             return;
@@ -450,7 +452,7 @@ void handleCommand(int socket, int command_length) {
 
         int filehandle = open(path, 0);
         if (filehandle > 0) {
-            stat_t filetype;
+            struct stat filetype;
             filetype.st_type = 10;
             fstat(filehandle, &filetype);
             if (filetype.st_type & cTYPE_KVAR && filetype.st_type != 2) {
@@ -528,16 +530,16 @@ void handleCommand(int socket, int command_length) {
 
     }
 
-    if (strpos("ps", command) == 0) {
+    if (strstr(command, "ps") == command) {
         command_ps(socket, 1);
         return;
     }
 
-    if (strpos("df", command) == 0) {
+    if (strstr(command, "df") == command) {
         int blocks = 0;
 
         /* display blocks instead of Bytes*/
-        if (strpos("-b", command) > 0) {
+        if (strstr(command, "-b") != 0) {
             blocks = 1;
         }
 
@@ -545,9 +547,9 @@ void handleCommand(int socket, int command_length) {
         return;
     }
 
-    if (strpos("mkdir", command) == 0) {
-        char** argv;
-        int args = parseArgs(command, argv);
+    if (strstr(command, "mkdir ") == command) {
+        char** argv = 0;
+        int args = parseArgs(command, &argv);
         if (args != 2) {
             sendMsg(socket, "Usage: mkdir <name>");
             return;
@@ -578,9 +580,9 @@ void handleCommand(int socket, int command_length) {
 
     }
 
-    if (strpos("ifconfig", command) == 0) {
+    if (strstr(command, "ifconfig") == command) {
         char** argv;
-        int args = parseArgs(command, argv);
+        int args = parseArgs(command, &argv);
         if (args > 1) {
             char* interface = argv[1];
 
@@ -643,9 +645,9 @@ void handleCommand(int socket, int command_length) {
         return;
     }
 
-    if (strpos("touch", command) == 0) {
+    if (strstr(command, "touch ") == command) {
         char** argv;
-        int args = parseArgs(command, argv);
+        int args = parseArgs(command, &argv);
         if (args != 2) {
             sendMsg(socket, "Usage: touch <filename>");
             return;
@@ -672,9 +674,9 @@ void handleCommand(int socket, int command_length) {
 
     }
 
-    if (strpos("rm", command) == 0) {
+    if (strstr(command, "rm ") == command) {
         char** argv;
-        int args = parseArgs(command, argv);
+        int args = parseArgs(command, &argv);
         if (args != 2) {
             sendMsg(socket, "Usage: rm <filename>");
             return;
@@ -718,22 +720,23 @@ void* tty0_thread(void* arg) {
 }
 
 char recvMsg[1024];
+extern "C" int main(int argc, char** argv) __attribute__((used));
 
-extern "C" int task_main() {
+extern "C" int main(int argc, char** argv) {
     int i = 0;
     newsock = 0;
+
+    puts("Telnet-Server starting"LINEFEED);
     int mysock = socket(IPV4, SOCK_STREAM, TCP);
 
     // bind our socket to some address
     sockaddr* addr = (sockaddr*) malloc(sizeof(sockaddr));
 
     addr->port_data = 23;                      //< the port
-    addr->sa_data = 0;                       //< any address ...
+    addr->sa_data   = 0;                       //< any address ...
     memcpy(addr->name_data, "TelnetServer\0", 13);   //< register using this service name
 
     bind(mysock, addr);
-
-    puts("Telnet-Server bound and waiting for clients."LINEFEED);
 
     /* create the virtual tty device */
     int devid = mkdev("tty0", 2048);
@@ -754,8 +757,15 @@ extern "C" int task_main() {
     thread_run(threadid);
     thread_name(threadid, "tty0");
 
+    puts("Telnet-Server bound and waiting for clients."LINEFEED);
+
     while (1) {
         newsock = listen(mysock);
+        if (newsock < 0) {
+            printf("Listen error %d: %s\n", newsock, strerror(newsock));
+            continue;
+        }
+
         char* msgptr;
         cmd_pos = 0;
         doecho = DOECHO;
@@ -797,20 +807,17 @@ extern "C" int task_main() {
 
         while (1) {
             msgptr = recvMsg;
-            int msglen = recv(newsock, msgptr, 1024, MSG_WAIT);
-            if (msglen < 0) {
+            int msglen = recv(newsock, msgptr, 1024, MSG_WAIT, 100);
+            if (msglen == -1) {
                 // disconnected
                 printf("Terminal disconnected..");
                 close(newsock);
                 newsock = 0;
                 break;
             }
-
-            /*puts("rx:");
-             for (int i = 0; i< msglen; i++) {
-             printf("%x ",msgptr[i]);
-             }
-             puts("\r\n");*/
+            if (msglen <= 0) {
+                continue;
+            }
 
             if (cmd_pos + msglen < 100) {
 

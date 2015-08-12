@@ -192,6 +192,7 @@
              <!-- MMC1-->
              <PropertyValue Name="Address" Value="0x4809C000" />
              <PropertyValue Name="INTC_IRQ" Value="83" />
+             <PropertyValue Name="Name" Value="mmc0" />
              <PropertyValue Name="INTC_Priority" Value="10" />
          </Defaults>
      </MemberRef>
@@ -272,6 +273,7 @@
         <Class Requires="OMAP3530" Name="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapMMC_SD_HC">
           <Property Name="Address" Type="unsigned int" Optional="false" Description="The MMC controller base address. MMC1-3 are available." />
           <Property Name="INTC_IRQ" Type="unsigned int" Optional="false" Description="Interrupt Line at the Interrupt Controller." />
+          <Property Name="Name" Type="char*" Optional="false" Description="Device name inside under /dev/." />
           <Property Name="INTC_Priority" Type="unsigned int" Optional="false" Description="IRQ Priority at the Interrupt Controller." />
         </Class>
      </Device>

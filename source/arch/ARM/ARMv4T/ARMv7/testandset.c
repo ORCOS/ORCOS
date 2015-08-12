@@ -19,7 +19,7 @@ int testandset(void* address, int testvalue, int setvalue) {
     int result;
 
     // multi processor scaleable test and set for ARM >= v6
-    asm volatile (
+    __asm__ volatile (
             "LDREX     r0, [%1];"       // load the address value
             "CMP       r0, %2;"         // compare with test value
             "ITT       EQ;"             // if then then (2 conditional instr following)

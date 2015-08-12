@@ -5,12 +5,14 @@
  *      Author: Daniel
  */
 
-#include <orcos.hh>
-#include <string.hh>
+#include <orcos.h>
+//#include <string.hh>
 #include <args.h>
 #include <time.h>
 #include "telnet.h"
 #include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
 
 static char dir_content[4096];
 
@@ -162,7 +164,7 @@ void command_ps(int socket, int showThreads) {
             if (showThreads) {
                 direntry = readdir(taskdir);
                 while (direntry) {
-                    if (strpos("thread_",direntry->name) == 0) {
+                    if (strstr(direntry->name, "thread_") == direntry->name) {
 
                         char threadname[20];
                         unint8 priority = 0;
@@ -221,10 +223,11 @@ void command_ls(int socket, int handle, int details, int humanReadable) {
         }
 
         const char* typestr = getTypeStr(direntry->resType);
-        char datestr[20];
+        char datestr[30];
         time_t time;
-        time2date(&time,direntry->datetime);
-        sprintf(datestr,"%u-%02u-%02u %02u:%02u",time.year,time.month,time.day, time.hour, time.minute);
+        time_t filetime = (time_t) direntry->datetime;
+        sprintf(datestr,"%s", ctime(&filetime));
+        datestr[strlen(datestr)-1] = 0;
 
         char* prefix = "";
         char* suffix = "";
@@ -255,7 +258,7 @@ void command_ls(int socket, int handle, int details, int humanReadable) {
 
         if (details) {
             // print details
-            sprintf(dir_content, "%-5u %08x %-5s%7s %s %s%s%s"LINEFEED
+            sprintf(dir_content, "%-5u %08x %-5s %7s %s %s%s%s"LINEFEED
                                , direntry->resId, direntry->flags , typestr, fileSizeStr, datestr, prefix,direntry->name,suffix);
         } else {
             // no details

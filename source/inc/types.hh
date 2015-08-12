@@ -25,7 +25,7 @@
  */
 
 /* include syscall library types (cross kernel/userspace used types) */
-#include "inc/types.h"
+#include "inc/orcos_types.h"
 #include <archtypes.h>
 /* Inclusion from the user space library */
 #include "inc/defines.h"
@@ -55,10 +55,10 @@ typedef unint4 ResourceIdT;
 /*!
  * General type defines
  */
-typedef unsigned char unchar;
+typedef unsigned char  unchar;
 typedef unsigned short unshort;
-typedef unsigned int unint;
-typedef unsigned long unlong;
+typedef unsigned int   unint;
+typedef unsigned long  unlong;
 typedef unint4 BitmapT;
 typedef unint1 byte;
 typedef void* PhysAddrT;

@@ -84,19 +84,23 @@ extern "C" void restoreContext(Thread* t)  {
             ".code  32;"
             /* arm mode code */
 
-            "MOV    r0, %0;" /* set saved context address */
+            //"MOV    r0, %0;" /* set saved context address */
             "MOV    r1, %2;" /* set PID */
 
 #if HAS_Board_HatLayerCfd
-            "MOV    r2, #0x0;"
+            //"MOV    r2, #0x0;"
             "ORR    r1, r1, %2, lsl #8;"
-            "MCR    p15, 0, r1, c13, c0, 1;"    /* set ASID and PROCID field of CONTEXTIDR register */
+            "MOV    r0, #0;"
+            "MCR    p15, 0, r0, c13, c0, 1;"    /* set ASID and PROCID field of 0 for asid and ttbr change */
+            "ISB;"
             //"MCR    p15, 0, r2, c7 , c5, 4;"  /* Ensure completion of the CP15 write (ISB not working) */
-            "MCR    p15, 0, %1, c2 , c0, 0;"    /* set TBBR0 */
+            "MCR    p15, 0, %1, c2 , c0, 0;"    /* set TTBR0 */
+            "ISB;"
+            "MCR    p15, 0, r1, c13, c0, 1;"    /* set ASID and PROCID field of CONTEXTIDR register */
             //"MCR    p15, 0, r2, c7 , c5, 4;"  /* Ensure completion of the CP15 write (ISB not working) */
 #endif
 #if  ENABLE_BRANCH_PREDICTION
-            "MCR p15, 0, r0, c7 , c5, 6;" /* invalidate whole branch predictor array */
+           // "MCR p15, 0, r0, c7 , c5, 6;"       /* invalidate whole branch predictor array */
 #endif
             //"LDR    sp, =__stack - 0x20;"     /* temporary accessible stack position for context restore */
             "MOV    r0, %0;"                    /* load context address*/

@@ -267,15 +267,11 @@ void TaskManager::initialize() {
             continue;
         }
 
-        Kernel_MemoryManagerCfdCl* task_memManager =
-                new(memaddr) Kernel_MemoryManagerCfdCl(reinterpret_cast<void*>(task_info->task_heap_start),
-                                                       reinterpret_cast<void*>(task_info->task_end));
-
         /*
          * create a new Task CB in Kernel Space!! only holds information about the task.
          * The task code itself remains at task_info->task_start_addr
          */
-        Task* task = new Task( task_memManager, task_info );
+        Task* task = new Task(task_info );
 
         LOG(KERNEL, INFO, "TaskID %d:", task->getId());
         LOG(KERNEL, INFO, " start at 0x%x, end  at 0x%x" , task->getTaskTable()->task_start, task->getTaskTable()->task_end);
@@ -327,15 +323,11 @@ void TaskManager::initialize() {
         register taskTable* tt = reinterpret_cast<taskTable*>(LOG_TASK_SPACE_START);
         LOG(KERNEL, INFO, "heap at 0x%x, size %d", tt->task_heap_start, tt->task_end - tt->task_heap_start);
 
-        Kernel_MemoryManagerCfdCl* task_memManager = new (memaddr) Kernel_MemoryManagerCfdCl(
-                                                                reinterpret_cast<void*>(tt->task_heap_start),
-                                                                reinterpret_cast<void*>(tt->task_end));
-
         /*
          * create a new Task CB in Kernel Space!! only holds information about the task.
          * The task code itself remains at task_info->task_start_addr
          */
-        Task* task = new Task(task_memManager, tt);
+        Task* task = new Task(tt);
         if (taskname != 0)
             task->setName(taskname);
         task->platform_flags = tt->platform;
@@ -426,7 +418,8 @@ ErrorT TaskManager::loadTaskFromFile(File* file, TaskIdT& tid, char* arguments, 
     theOS->getBoard()->getCache()->invalidate(tid);
 #endif
 
-    unint4 task_start = (unint4) theOS->getRamManager()->alloc(file->getFileSize(), tid);
+    unint4 task_size  = (unint4) alignCeil((char*) file->getFileSize(), 0x100000);
+    unint4 task_start = (unint4) theOS->getRamManager()->alloc_physical(task_size, tid);
     LOG(KERNEL, INFO, "TaskManager: new Task will be placed at 0x%x", task_start);
 
     /* no free page available */
@@ -436,13 +429,11 @@ ErrorT TaskManager::loadTaskFromFile(File* file, TaskIdT& tid, char* arguments, 
 
     /* load the file into memory
      * create a temporary vm map ..
-     * TODO: we may need to map more than fileSize to access the heap area if the task layout
-     * changes!
      * disable cache for this mapping as the data must be written directly to main memory
      * for the instruction cache to fetch the correct bytes*/
     theOS->getHatLayer()->map(reinterpret_cast<void*>(task_start), /* 1:1 mapping */
                               reinterpret_cast<void*>(task_start),
-                              file->getFileSize(),
+                              task_size,
                               hatProtectionRead | hatProtectionWrite,
                               3,
                               pCurrentRunningTask->getId(),
@@ -480,15 +471,19 @@ ErrorT TaskManager::loadTaskFromFile(File* file, TaskIdT& tid, char* arguments, 
     }
 
     /* align arg_length */
-    if (arg_length > 0)
+    if (arg_length > 0) {
         arg_length = (unint2) ((arg_length + 4) & (~0x3));
+        if (arg_length > 256) {
+            arg_length = 256;
+        }
+    }
 
     LOG(KERNEL, DEBUG, "TaskManager::loadTaskFromFile: valid task.");
 
-    /* Create the final mapping for the task!*/
+    /* Create the final mapping for the new task! */
     theOS->getHatLayer()->map(reinterpret_cast<void*>(LOG_TASK_SPACE_START),
                               reinterpret_cast<void*>(task_start),
-                              tt->task_end - tt->task_start,
+                              task_size,
                               hatProtectionRead | hatProtectionExecute | hatProtectionWrite,
                               3,
                               tid,
@@ -499,38 +494,31 @@ ErrorT TaskManager::loadTaskFromFile(File* file, TaskIdT& tid, char* arguments, 
 #endif
 
     /* create the memory manager for the task. The memory manager will be inside the kernel space */
-    void* memaddr = theOS->getMemoryManager()->alloc(sizeof(Kernel_MemoryManagerCfdCl), true);
-    LOG(KERNEL, INFO, "TaskManager: new Task memory: [0x%x - 0x%x]", tt->task_heap_start, tt->task_end);
-
-    /* Call constructor of memory manager. Pass the memory region as paramters */
-    register Kernel_MemoryManagerCfdCl* task_memManager =
-            new (memaddr) Kernel_MemoryManagerCfdCl(
-                    reinterpret_cast<void*>(tt->task_heap_start + DEFAULT_USER_STACK_SIZE + arg_length + 8 + RESERVED_BYTES_FOR_STACKFRAME),
-                    reinterpret_cast<void*>(tt->task_end));
-
+    LOG(KERNEL, INFO,  "TaskManager: new Task memory: [0x%x - 0x%x]", tt->task_heap_start, tt->task_end);
     LOG(KERNEL, DEBUG, "TaskManager::loadTaskFromFile: creating Task object.");
+
     /*
      * create a new Task CB in Kernel Space!! only holds information about the task.
      * The task code itself remains at task_info->task_start_addr
      */
-    Task* task = new Task(task_memManager, tt);
+    Task* task = new Task(tt);
 
     /* copy arguments */
     if (arguments != 0) {
-        char* args =  reinterpret_cast<char*> (task_start + (tt->task_heap_start - LOG_TASK_SPACE_START) + DEFAULT_USER_STACK_SIZE + RESERVED_BYTES_FOR_STACKFRAME + 4);
+        char* args =  reinterpret_cast<char*> (task_start + (tt->task_heap_start - LOG_TASK_SPACE_START));
         memcpy(args, arguments, arg_length);
         args[arg_length] = 0;
         // set argument of the initial thread
         Kernel_ThreadCfdCl* thread = static_cast<Kernel_ThreadCfdCl*>(task->getThreadDB()->getHead()->getData());
-        thread->arguments = reinterpret_cast<void*> (tt->task_heap_start + DEFAULT_USER_STACK_SIZE + RESERVED_BYTES_FOR_STACKFRAME + 4);
+        thread->arguments = reinterpret_cast<void*> (tt->task_heap_start);
     }
 
     /* for future accesses set it to the correct VM address */
-    task->tasktable = reinterpret_cast<taskTable*>(LOG_TASK_SPACE_START);
+    task->tasktable      = reinterpret_cast<taskTable*>(LOG_TASK_SPACE_START);
     task->platform_flags = tt->platform;
     LOG(KERNEL, INFO, "TaskManager::loadTaskFromFile: Platform Flags: 0x%x", task->platform_flags);
 
-    /* unmap the new task from the current task virtual memory map */
+    /* unmap the new task from the current task address space */
     theOS->getHatLayer()->unmap(reinterpret_cast<void*>(task_start));
 
 #if DUMP_PAGE_TABLES
@@ -541,7 +529,7 @@ ErrorT TaskManager::loadTaskFromFile(File* file, TaskIdT& tid, char* arguments, 
     LOG(KERNEL, INFO, "TaskManager::loadTaskFromFile: running Task.");
     task->run();
 
-    return (cOk );
+    return (cOk);
 #endif
 }
 
@@ -559,6 +547,7 @@ ErrorT TaskManager::loadTaskFromFile(File* file, TaskIdT& tid, char* arguments, 
  *---------------------------------------------------------------------------*/
 ErrorT TaskManager::terminateThread(Kernel_ThreadCfdCl* pThread) {
     // TODO: SMP
+    int irqstatus;
     DISABLE_IRQS(irqstatus);
     Task* ownerTask = pThread->owner;
 

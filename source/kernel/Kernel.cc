@@ -20,6 +20,7 @@
 #include "Kernel.hh"
 #include "inc/sprintf.hh"
 #include "lwip/netif.h"
+#include "filesystem/RamSharedMemoryDevice.hh"
 
 extern Kernel* theOS;
 
@@ -74,13 +75,14 @@ extern void dwarf_init();
 \\/_________/ \\/_/    \\_\\/\\/____________/\\/_________/   \\_____\\/ "LINEFEED"\
 "LINEFEED""
 
-#define ORCOS_VERSION " 1.5a "
+#define ORCOS_VERSION " 0.8a "
 
 /*--------------------------------------------------------------------------*
  ** Kernel::Kernel
  *
  * actually the constructor is never called
  *---------------------------------------------------------------------------*/
+// cppcheck-suppress uninitMemberVar
 Kernel::Kernel() {
 }
 
@@ -140,6 +142,15 @@ void Kernel::initialize() {
     this->PartitionManagerCfd   = new NEW_FileSystems_PartitionManagerCfd;
 #endif
 
+#if HAS_Kernel_LoggerCfd
+    LoggerCfd = new NEW_Kernel_LoggerCfd;
+#endif
+
+    /* initial early board init */
+    board = new BoardCfdCl();
+    board->early_init();
+
+    puts("\n\nBooting ORCOS...\n");
 #if USE_TRACE
     /* create trace instance if configured */
     this->tracer = new Trace();
@@ -160,7 +171,7 @@ void Kernel::initialize() {
     this->taskManager = new TaskManager();
 
     /* be sure the initial loaded set of tasks is registered at the ramManager */
-    taskManager->registerMemPages();
+    this->taskManager->registerMemPages();
 
 #if HAS_Kernel_InterruptManagerCfd
     /* create the interrupt manager instance to allow device drivers to register
@@ -188,10 +199,6 @@ void Kernel::initialize() {
     #endif
 #endif
 
-#if HAS_Kernel_LoggerCfd
-    LoggerCfd = new NEW_Kernel_LoggerCfd;
-#endif
-
     comStackMutex = new Mutex("ComStack");
     sysArchMutex = reinterpret_cast<void*>(new Mutex("sysArch"));
 
@@ -202,6 +209,20 @@ void Kernel::initialize() {
 
     /* initialize debug environment */
     dwarf_init();
+
+#ifdef HAS_Kernel_RamdiskCfd
+    INIT_Kernel_RamdiskCfd;
+    this->RamdiskCfd = new NEW_Kernel_RamdiskCfd;
+#endif
+
+    new RamSharedMemoryDevice();
+
+#ifdef HAS_Board_HatLayerCfd
+    /* create the hat layer object.
+     this will also create the initial memory mappings */
+    Board_HatLayerCfdCl::initialize();
+    HatLayerCfd = new Board_HatLayerCfdCl();
+#endif
 
 #if USE_WORKERTASK
     LOG(KERNEL, INFO, "Initializing Workertask.");
@@ -214,11 +235,6 @@ void Kernel::initialize() {
     /* now initialize the device drivers
      since some thread classes rely on classes like the timer or the clock */
     this->initDeviceDrivers();
-
-#ifdef HAS_Kernel_RamdiskCfd
-    INIT_Kernel_RamdiskCfd;
-    this->RamdiskCfd = new NEW_Kernel_RamdiskCfd;
-#endif
 
     /* initialize protocol pool here since it depends on the device drivers
      all commdevices need to be created before the protocol pool is created */
@@ -246,12 +262,6 @@ void Kernel::initialize() {
     // LOG(KERNEL, INFO, "Available Safe Kernel Stacks: %d." , ((int) &__stack - (int) &_heap_end) / KERNEL_STACK_SIZE);
 #endif
 
-#ifdef HAS_Board_HatLayerCfd
-    /* create the hat layer object.
-     this will also create the initial memory mappings */
-    Board_HatLayerCfdCl::initialize();
-    HatLayerCfd = new Board_HatLayerCfdCl();
-#endif
 
 #ifdef HAS_Board_HatLayerCfd
     /* now enable HAT for the task creation */
@@ -364,12 +374,10 @@ void Kernel::initDeviceDrivers() {
     /* - Instantiate Board Class -
      * Give components of the board a chance to
      * reference each other by using theOS->getBoard() pointer. */
-    board = new BoardCfdCl();
     board->initialize();            /* now initialize */
     theClock = board->getClock();   /* Get global reference to Clock */
     theTimer = board->getTimer();   /* Get global reference to the Timer*/
     theInterruptController = board->getInterruptController();
-
     ASSERT(theClock);               /* Realtime clock is mandatory! */
     ASSERT(theTimer);               /* Timer is mandatory! */
 

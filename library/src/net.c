@@ -16,36 +16,38 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "./types.h"
-#include "./defines.h"
-#include "./orcos.hh"
-#include "./string.hh"
+#include "orcos_types.h"
+#include "defines.h"
+#include "orcos.h"
+#include <stdio.h>
+#include <string.h>
 
-extern "C" int socket(int domain, int type, int protocol) {
+
+int socket(int domain, int type, int protocol) {
     return (syscall(cSocketSyscallId, domain, type, protocol));
 }
 
-extern "C" int connect(int socket, const sockaddr *toaddress, int timeout) {
+int connect(int socket, const sockaddr *toaddress, int timeout) {
     return (syscall(cConnectSyscallId, socket, toaddress, timeout));
 }
 
-extern "C" int listen(int socket) {
+int listen(int socket) {
     return (syscall(cListenSyscallId, socket));
 }
 
-extern "C" int bind(int socket, const sockaddr *address) {
+int bind(int socket, const sockaddr *address) {
     return (syscall(cBindSyscallId, socket, address));
 }
 
-extern "C" int4 sendto(int socket, const void *buffer, size_t length, const sockaddr *dest_addr) {
+int4 sendto(int socket, const void *buffer, size_t length, const sockaddr *dest_addr) {
     return (syscall(cSendtoSyscallId, socket, buffer, length, dest_addr));
 }
 
-extern "C" size_t recv(int socket, char* data, int len, int flags, unint4 timeout) {
+size_t recv(int socket, char* data, int len, int flags, unint4 timeout) {
     return (syscall(cRecvFromSyscallId, socket, data, len, flags, 0, timeout));
 }
 
-extern "C" size_t recvfrom(int socket, char* data, int len, int flags, sockaddr* sender, unint4 timeout) {
+size_t recvfrom(int socket, char* data, int len, int flags, sockaddr* sender, unint4 timeout) {
     return (syscall(cRecvFromSyscallId, socket, data, len, flags, sender, timeout));
 }
 
@@ -63,7 +65,8 @@ static char*  host_addresses[2];
 static struct hostent lookup_host;
 static int    host_ip4addr;
 
-extern "C" struct hostent* gethostbyname(char* name) {
+
+struct hostent* gethostbyname(const char* name) {
     /* todo we might actually port the lwip dns.c file to user space as it only uses
      * udp transfers! we can than safely use the userspace implementation.. */
     strncpy(host_name, name, 40);
@@ -96,7 +99,7 @@ extern "C" struct hostent* gethostbyname(char* name) {
  * author:
  * Paul Vixie, 1996.
  */
-extern "C" char* inet_ntop(int af, const char *src, char *dst, size_t size) {
+char* inet_ntop(int af, const char *src, char *dst, size_t size) {
     switch (af) {
     case AF_INET:
         return (inet_ntop4(src, dst, size));
@@ -120,8 +123,7 @@ extern "C" char* inet_ntop(int af, const char *src, char *dst, size_t size) {
  * author:
  * Paul Vixie, 1996.
  */
-static char *
-inet_ntop4(const char *src, char *dst, size_t size) {
+char* inet_ntop4(const char *src, char *dst, size_t size) {
     static const char fmt[] = "%u.%u.%u.%u";
     char tmp[sizeof "255.255.255.255"];
     int l;
@@ -141,8 +143,7 @@ inet_ntop4(const char *src, char *dst, size_t size) {
  * author:
  * Paul Vixie, 1996.
  */
-static char *
-inet_ntop6(const char *src, char *dst, size_t size) {
+char* inet_ntop6(const char *src, char *dst, size_t size) {
     /*
      * Note that int32_t and int16_t need only be "at least" large enough
      * to contain a value of the specified size. On some systems, like

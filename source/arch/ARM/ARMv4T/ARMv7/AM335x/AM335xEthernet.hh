@@ -2,7 +2,7 @@
  * AM335xEthernet.hh
  *
  *  Created on: 30.12.2014
- *      Author: DanielBa
+ *    Copyright & Author: DanielBa
  */
 
 #ifndef AM335XETHERNET_HH_
@@ -90,7 +90,6 @@ typedef struct {
     volatile unint4 unknown_vlan;    /* 0x18 */
     volatile unint4 reserved4;       /* 0x1c */
     volatile unint4 tblctl;          /* 0x20 */
-
 } cpsw_ale_regs_t;
 
 typedef struct {
@@ -174,8 +173,7 @@ typedef struct {
 } cpsw_stats_regs_t;
 
 
-class AM335xEthernet : public CommDeviceDriver
-{
+class AM335xEthernet : public CommDeviceDriver {
 public:
     volatile cpsw_wr_regs_t*         cpsw_wr_regs;
     volatile cpsw_ss_regs_t*         cpsw_ss_regs;
@@ -195,9 +193,7 @@ public:
     /* Internal mutex for concurrent access protecting */
     Mutex* mutex;
 public:
-
-
-    AM335xEthernet(T_AM335xEthernet_Init * init);
+    explicit AM335xEthernet(T_AM335xEthernet_Init * init);
 
     ~AM335xEthernet();
 

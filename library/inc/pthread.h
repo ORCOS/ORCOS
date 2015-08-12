@@ -19,11 +19,22 @@
 #ifndef PTHREAD_H_
 #define PTHREAD_H_
 
-#include "types.h"
+#include "orcos_types.h"
 #include "sys/types.h"
 
-extern "C" {
+typedef int pthread_t;
+typedef thread_attr_t pthread_attr_t;
 
+typedef void* pthread_mutex_t;
+typedef void* pthread_mutexattr_t;
+
+typedef void* pthread_cond_t;
+typedef void* pthread_condattr_t;
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 int pthread_create( pthread_t*, const pthread_attr_t*, void *(*start_routine)( void* ), void* );
 void pthread_exit( void *value_ptr );
@@ -51,6 +62,9 @@ int pthread_cond_broadcast( pthread_cond_t * );
 int pthread_cond_wait( pthread_cond_t *, pthread_mutex_t * );
 int pthread_condattr_init( pthread_condattr_t * );
 int pthread_condattr_destroy( pthread_condattr_t * );
+
+#ifdef __cplusplus
 }
+#endif
 
 #endif /* PTHREAD_H_ */

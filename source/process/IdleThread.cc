@@ -39,8 +39,8 @@ IdleThread::~IdleThread() {
 void IdleThread::run() {
     /* reset the stack pointer to the context address since we don't want to waste memory
      * and cannot access the stack from the previous thread */
-    SETSTACKPTR(&__stack);
-    SETPID(0);
+    //SETSTACKPTR(&__stack);
+    //SETPID(0);
 
     theOS->getMemoryManager()->idleEnter();
 

@@ -1592,14 +1592,14 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * debug messages of certain types.
  */
 #ifndef LWIP_DBG_TYPES_ON
-#define LWIP_DBG_TYPES_ON  LWIP_DBG_OFF
+#define LWIP_DBG_TYPES_ON  LWIP_DBG_ON
 #endif
 
 /**
  * ETHARP_DEBUG: Enable debugging in etharp.c.
  */
 #ifndef ETHARP_DEBUG
-#define ETHARP_DEBUG  LWIP_DBG_ON
+#define ETHARP_DEBUG  LWIP_DBG_OFF
 #endif
 
 /**
@@ -1662,7 +1662,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * IP_DEBUG: Enable debugging for IP.
  */
 #ifndef IP_DEBUG
-#define IP_DEBUG  LWIP_DBG_ON
+#define IP_DEBUG  LWIP_DBG_OFF
 #endif
 
 /**
@@ -1824,7 +1824,7 @@ Defines the Platform Byte Order. Value values: LITTLE_ENDIAN | BIG_ENDIAN
  * DNS_DEBUG: Enable debugging for DNS.
  */
 #ifndef DNS_DEBUG
-#define DNS_DEBUG                       LWIP_DBG_OFF
+#define DNS_DEBUG  LWIP_DBG_OFF
 #endif
 
 #endif /* __LWIP_OPT_H__ */

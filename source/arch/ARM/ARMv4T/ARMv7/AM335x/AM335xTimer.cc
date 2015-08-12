@@ -118,7 +118,7 @@ ErrorT AM335xTimer::disable() {
  *  will be programmed to the maximum time possible.
  *******************************************************************************/
 ErrorT AM335xTimer::setTimer(TimeT t) {
-    TimeT currentTime = theOS->getClock()->getClockCycles() + 2 MICROSECONDS;
+    TimeT currentTime = theOS->getClock()->getClockCycles() + 1 MICROSECONDS;
     unint4 dt = 30;
 
     /* otherwise generate the next irq in (t- currentTime) ticks */
@@ -144,7 +144,7 @@ ErrorT AM335xTimer::setTimer(TimeT t) {
         /* be sure no spurious irq exists */
         theOS->getBoard()->getInterruptController()->clearIRQ(irq);
         /* start timer again */
-        hwregs->tclr = 0x1;
+        hwregs->tclr = 0x1 | (1 << 1);
     }
     return (cOk );
 }

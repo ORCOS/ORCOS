@@ -27,17 +27,13 @@ extern unint4 rescheduleCount;
 PriorityThread::PriorityThread(void* p_startRoutinePointer,
                                void* p_exitRoutinePointer,
                                Task* p_owner,
-                               Kernel_MemoryManagerCfdCl* memManager,
                                unint4 stack_size,
-                               void* prioThreadAttributes,
-                               bool newThread) :
+                               void* prioThreadAttributes) :
                         Thread(p_startRoutinePointer,
                                p_exitRoutinePointer,
                                p_owner,
-                               memManager,
                                stack_size,
-                               prioThreadAttributes,
-                               newThread) {
+                               prioThreadAttributes) {
     if (prioThreadAttributes != 0) {
         thread_attr_t* attr = static_cast<thread_attr_t*>(prioThreadAttributes);
         this->initialPriority = attr->priority;
@@ -91,7 +87,7 @@ out:
  * Method: PriorityThread::popPriority(void* m)
  *
  * @description
- * Reduces the priority if the priority associated with m is currently the highest.
+ * Reduces the priority if the priority associated with Mutex m is currently the highest.
  *---------------------------------------------------------------------------*/
 void PriorityThread::popPriority(void* m) {
     if (m == 0) {

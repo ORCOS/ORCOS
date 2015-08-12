@@ -28,8 +28,8 @@
 #define ms * 24000
 #define MICROSECONDS * 24
 
-/* upon dispatching we will get at least 3 microseconds delay on this architecture  */
-#define ARCH_DELAY 3 MICROSECONDS
+/* upon dispatching we will get at least 2 microseconds delay on this architecture  */
+#define ARCH_DELAY 2 MICROSECONDS
 
 #define AM335x_GPT1_BASE_ADDR     0x44E31000
 
@@ -89,7 +89,7 @@ public:
      * @returns
      *  int         Error Code
      *******************************************************************************/
-    inline unint8 getClockCycles() {
+    inline TimeT getClockCycles() {
         unint4 high    = INW(AM335x_GPT1_TOCR); /* upper 20 bits */
         unint4 low     = INW(AM335x_GPT1_TCRR); /* lower 32 bits */
 

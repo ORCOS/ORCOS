@@ -46,9 +46,10 @@ int sc_shm_map(intptr_t sp_int) {
     const char* file;
     unint4* mapped_address;
     unint4* mapped_size;
-    unint4 flags;
+    unint4  flags;
+    unint4  offset;
 
-    SYSCALLGETPARAMS4(sp_int, file, mapped_address, mapped_size, flags);
+    SYSCALLGETPARAMS5(sp_int, file, mapped_address, mapped_size, flags, offset);
 
     /* filename must be provided from task space */
     VALIDATE_IN_PROCESS(file);
@@ -57,11 +58,26 @@ int sc_shm_map(intptr_t sp_int) {
     VALIDATE_IN_PROCESS(mapped_address);
     VALIDATE_IN_PROCESS(mapped_size);
 
-    /* try to find the specified resource */
+    if (offset & 0xfff) {
+        LOG(MEM, ERROR, "sc_shm_map() offset %u is not page aligned!", offset)
+        return (cInvalidArgument);
+    }
+
+    /* try to find the specified resource to be mapped */
     Resource* res = theOS->getFileManager()->getResourceByNameandType(file, cSharedMem);
     if (res == 0) {
         if (!(flags & cCreate))
             return (cFileNotFound);
+
+        /* size 0 is invalid! */
+        if (*mapped_size == 0) {
+            return (cInvalidArgument);
+        }
+
+        /* check for bogus offset */
+        if (offset > *mapped_size) {
+            return (cInvalidArgument);
+        }
 
         /* strip the path prefix for new shared memory creation*/
         int filenamelen = strlen(file);
@@ -93,18 +109,25 @@ int sc_shm_map(intptr_t sp_int) {
 
     /* must be a shared mem resource */
     SharedMemResource* shm_res = static_cast<SharedMemResource*>(res);
-    unint4 virtual_address;
+    unint4 virtual_address = *mapped_address;
+
+    /* check for bogus offset */
+    if (offset > shm_res->getSize()) {
+        return (cInvalidArgument);
+    }
 
     /* is this shared mem resource valid? */
-    if (shm_res->getPhysicalStartAddress() == 0)
+    if (shm_res->getPhysicalStartAddress() == -1)
         return (cInvalidResource);
 
+    unint4 mapping_size = *mapped_size;
+
     /* map it into the address space of the calling task */
-    int retval = shm_res->mapIntoTask(pCurrentRunningTask, virtual_address);
+    int retval = shm_res->mapIntoTask(pCurrentRunningTask, virtual_address, offset, mapping_size, flags);
     if (retval == cOk) {
         /* set return addresses */
         *mapped_address = virtual_address;
-        *mapped_size = shm_res->getSize();
+        *mapped_size    = mapping_size;
 
         pCurrentRunningTask->acquireResource(shm_res, pCurrentRunningThread, false);
         return (shm_res->getId());
@@ -143,7 +166,7 @@ int sc_shm_map(intptr_t sp_int) {
  *  int         Error Code
  *******************************************************************************/
 int sc_delete(intptr_t int_sp) {
-    void* addr;
+    /*void* addr;
     SYSCALLGETPARAMS1(int_sp, addr);
     int retval;
 
@@ -156,7 +179,8 @@ int sc_delete(intptr_t int_sp) {
         ASSERT(0);
     }
 
-    return (retval);
+    return (retval);*/
+    return (cOk);
 }
 #endif
 
@@ -176,7 +200,7 @@ int sc_delete(intptr_t int_sp) {
  *  int         Error Code
  *******************************************************************************/
 int sc_new(intptr_t int_sp) {
-    size_t size;
+   /* size_t size;
     SYSCALLGETPARAMS1(int_sp, size);
     int retval;
 
@@ -184,7 +208,8 @@ int sc_new(intptr_t int_sp) {
     retval = reinterpret_cast<int> (pCurrentRunningTask->getMemManager()->alloc(size, true));
     LOG(SYSCALLS, TRACE, "Syscall: assigned memory at: 0x%x", retval);
 
-    return (retval);
+    return (retval); */
+    return (cOk);
 }
 #endif
 

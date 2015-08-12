@@ -11,17 +11,23 @@
 #include "Resource.hh"
 
 typedef struct {
+    intptr_t physical_address;
     intptr_t virtual_address;
-    Task* task;
+    int      flags;
+    unint4   size;
+    Task*    task;
 }__attribute__((aligned(4))) Mapping;
 
 /*
  * Shared Memory Area Resource. Allows the creation of shared memory areas at
  * arbitrary physical memory locations. This may even be used to create
  * overlays for tasks and IO which on the one hand might be a security risk.
+ *
+ *
+ * TODO: base class should be character device to also allow reading from it
  */
 class SharedMemResource: public Resource {
-private:
+protected:
     /* The physical start address of this memory area */
     unint4 physical_start_address;
 
@@ -39,7 +45,7 @@ public:
      * Method: SharedMemResource(unint4 size, const char* name, Task* owner = 0)
      *
      * @description
-     *  Constructor which does not take an explicit phyiscal start address. It
+     *  Constructor which does not take an explicit physical start address. It
      *  tries to allocate a memory area of the given size to be used as a new
      *  shared memory area.
      *
@@ -49,6 +55,20 @@ public:
      *  int         Error Code
      *******************************************************************************/
     SharedMemResource(unint4 size, const char* name, Task* owner = 0);
+
+    /*****************************************************************************
+     * Method: SharedMemResource(const char* name, unint4 physical_address, unint4 size)
+     *
+     * @description
+     *  Constructor which takes an explicit physical start address and size to define
+     *  the memory area used as a shared memory region.
+     *
+     * @params
+     *
+     * @returns
+     *  int         Error Code
+     *******************************************************************************/
+    SharedMemResource(const char* name, unint4 physical_address, unint4 size);
 
     virtual ~SharedMemResource();
 
@@ -64,8 +84,13 @@ public:
      * @returns
      *  int                 Error Code
      *  virtual_address     The virtual address the region was mapped to
+     *  offset              The offset to start the mapping
+     *  map_size            Size tgo be mapped
+     *  flags               mapping flags:
+     *                          cAllocate
+     *                          cCacheInhibit
      *******************************************************************************/
-    ErrorT mapIntoTask(Task* t, unint4& virtual_address);
+    virtual ErrorT mapIntoTask(Task* t, unint4& virtual_address, unint4 offset, unint4& map_size, unint4 flags);
 
     /*****************************************************************************
      * Method: unmapFromTask(Task* t)

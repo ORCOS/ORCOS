@@ -370,6 +370,28 @@ int ascii2unicode(const char * szAscii, char* szUnicode, unint2 len) {
 }
 
 /*****************************************************************************
+ * Method: unicode2ascii(const char* szUnicode, char* szAscii, unint2 len)
+ *
+ * @description
+ *
+ * @params
+ *      len: length of the string (== length of the ascii string in bytes)
+ * @returns
+ *******************************************************************************/
+int unicode2ascii(const char* szUnicode, char* szAscii, unint2 len) {
+    int i;
+    if ((szUnicode == 0) || (szAscii == 0))
+        return (false);
+
+    for (i = 0; i < len; i++) {
+        *szAscii++ = *szUnicode++;
+        szUnicode++;
+    }
+
+    return (true);
+}
+
+/*****************************************************************************
  * Method: strnlower(char* pstr)
  *
  * @description

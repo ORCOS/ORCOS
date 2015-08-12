@@ -65,11 +65,17 @@ static cppi_rx_descriptor_t* rxqueue;
 static cppi_rx_descriptor_t* rxqueue_head;
 static cppi_rx_descriptor_t* rxqueue_tail;
 
+static int tx_head_index;
+static cppi_tx_descriptor_t* txqueue_tail;
+
+
 /* the mac address used for this device */
 char mac[6] = { 0x00, 0x01, 0x01, 0x01, 0x01, 0x01 };
 char broadcastmac[6] ={ 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 
 extern "C" err_t ethernet_input(struct pbuf *p, struct netif *netif);
+
+static int lock;
 
 /*****************************************************************************
  * Method: low_level_output(struct netif *netif, struct pbuf *p)
@@ -79,49 +85,53 @@ extern "C" err_t ethernet_input(struct pbuf *p, struct netif *netif);
  *   at the hardware tx queue.
  *******************************************************************************/
 static err_t low_level_output(struct netif *netif, struct pbuf *p) {
-    LOG(COMM, TRACE, "AM335xEthernet::sendPacket(). Send packet %x len: %u", p, p->tot_len);
+    LOG(COMM, TRACE, "AM335xEthernet::sendPacket() send packet %x len: %u", p, p->tot_len);
     AM335xEthernet* ethdev = reinterpret_cast<AM335xEthernet*>(netif->state);
+    //SMP_SPINLOCK_GET(lock);
 
-    SMP_SPINLOCK_GET(lock);
 
-    bool send = false;
-
-    // TODO: use complete send queue not only first slot
-    // implement a real queue as it is done for rx
-    while (!send) {
-        /* get a free descriptor and send the packet */
-        for (int i = 0; i < 1; i++) {
-            if (!(txqueue[i].control & OWNER_MAC)) {
-                /* this one is free */
-
-                //memset(tx_buffers[i], 0, 64);
-                struct pbuf *curp = p;
-                int pos = 0;
-                while (curp != 0) {
-                    memcpy(&tx_buffers[i][pos], curp->payload, curp->len);
-                    pos = (unint2) (pos + curp->len);
-                    curp = curp->next;
-                }
-
-                int len = p->tot_len;
-                if (len < 60) {
-                    len = 60;
-                }
-
-                txqueue[i].buffer_pointer = reinterpret_cast<char*>(tx_buffers[i]);
-                txqueue[i].buffer_opt     = len;
-                txqueue[i].control        = SOP | EOP | OWNER_MAC | len;
-                send = true;
-
-                LOG(COMM, TRACE, "AM335xEthernet::sendPacket(). Sending %x at queue pos %u", p, i);
-                break;
-            }
-        }
+    /* wait for current head to be send so we can reuse the descriptor and buffer for this packet
+     * and place it at the tail of the queue again */
+    if (TIMEOUT_WAIT((txqueue[tx_head_index].control & OWNER_MAC), 1000)) {
+       LOG(COMM, ERROR, "AM335xEthernet::sendPacket() Timeout waiting for free tx descriptor.")
+       return (ERR_TIMEOUT);
     }
 
-    /* restart queue processing */
-    ethdev->cpsw_stateram_regs->tx_hdp[0] = reinterpret_cast<unint4>(&txqueue[0]);
-    SMP_SPINLOCK_FREE(lock);
+
+    cppi_tx_descriptor_t* txdescr = &txqueue[tx_head_index];
+
+    struct pbuf *curp = p;
+    int pos = 0;
+    while (curp != 0) {
+        memcpyl(&tx_buffers[tx_head_index][pos], curp->payload, curp->len);
+        pos = (unint2) (pos + curp->len);
+        curp = curp->next;
+    }
+
+    int len = p->tot_len;
+    if (len < 60) {
+        len = 60;
+    }
+
+    txdescr->buffer_pointer = reinterpret_cast<char*>(tx_buffers[tx_head_index]);
+    txdescr->buffer_opt     = len;
+    txdescr->control        = SOP | EOP | OWNER_MAC | len;
+    txdescr->next_descr     = 0;
+
+
+    if (txqueue_tail == 0 || !(txqueue_tail->control & OWNER_MAC)) {
+        /* restart queue processing */
+        ethdev->cpsw_stateram_regs->tx_hdp[0] = reinterpret_cast<unint4>(txdescr);
+    } else {
+        txqueue_tail->next_descr = txdescr;
+    }
+
+    tx_head_index++;
+    if (tx_head_index == 10) {
+        tx_head_index = 0;
+    }
+    txqueue_tail = txdescr;
+
 
     return (ERR_OK);
 }
@@ -133,7 +143,6 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p) {
  *   Netif initialization of the AM335x netif.
  *******************************************************************************/
 static err_t ethernetif_init(struct netif *netif) {
-
 #if LWIP_NETIF_HOSTNAME
     /* Initialize interface hostname */
     netif->hostname = "orcos";
@@ -281,8 +290,8 @@ AM335xEthernet::AM335xEthernet(T_AM335xEthernet_Init * init) :
     rxqueue_tail = &rxqueue[9];
 
     /* initialize tx queue */
-    for (int i = 0; i < 1; i++) {
-        txqueue[i].next_descr     = &txqueue[i + 1];
+    for (int i = 0; i < 10; i++) {
+        //txqueue[i].next_descr     = &txqueue[i + 1];
         txqueue[i].next_descr     = 0;
         txqueue[i].buffer_pointer = 0;
         txqueue[i].buffer_opt     = 0;
@@ -290,8 +299,8 @@ AM335xEthernet::AM335xEthernet(T_AM335xEthernet_Init * init) :
         txqueue[i].control        = 0;
     }
     /* last descriptor ends here */
-    txqueue[0].next_descr = 0;
-    txqueue[0].control    = EOP;
+    tx_head_index = 0;
+    txqueue_tail  = 0;
 
     /* Step6: Configure Interrupts*/
     /* allow all interrupts */
@@ -338,12 +347,12 @@ AM335xEthernet::AM335xEthernet(T_AM335xEthernet_Init * init) :
     //ale_addAddress((cpsw_ale_regs_t*) cpsw_ale_regs, 0, broadcastmac, 1 << 0);
 
     //PORT 1 + 2 are external. PORT 0 is the cpsw_dma
-    struct ip_addr eth_nm   = IP_ADDR_INIT_IPV4(255,255,255,0);
-    struct ip_addr tIpAddr  = IP_ADDR_INIT_IPV4(192,168,1,100);
-    struct ip_addr tgwAddr  = IP_ADDR_INIT_IPV4(192,168,1,1);
+    struct ip_addr eth_nm   = IP_ADDR_INIT_IPV4(255, 255, 255, 0);
+    struct ip_addr tIpAddr  = IP_ADDR_INIT_IPV4(192, 168,   1, 100);
+    struct ip_addr tgwAddr  = IP_ADDR_INIT_IPV4(192, 168,   1, 1);
 
     /* save driver in netif as state */
-    netif_add(&st_netif, &tIpAddr, &eth_nm, &tgwAddr, (void*) this, &ethernetif_init, 0);
+    netif_add(&st_netif, &tIpAddr, &eth_nm, &tgwAddr, this, &ethernetif_init, 0);
     netif_set_default(&st_netif);
 
     LOG(ARCH, INFO, "AM335xEthernet: RX descriptor queue at %x", reinterpret_cast<unint4>(&rxqueue[0]));
@@ -434,7 +443,7 @@ ErrorT AM335xEthernet::handleIRQ() {
         if (status & CRC_PASS)
             packet_len -= 4;
 
-        rxqueue_head = (cppi_rx_descriptor_t*) descr->next_descr;
+        rxqueue_head = (cppi_rx_descriptor_t*)(descr->next_descr);
         if (status & EOQ) {
             cpsw_stateram_regs->rx_hdp[0] = reinterpret_cast<unint4>(rxqueue_head);
         }
@@ -445,7 +454,7 @@ ErrorT AM335xEthernet::handleIRQ() {
         comStackMutex->acquire();
         struct pbuf* ptBuf = pbuf_alloc(PBUF_RAW, packet_len + 10, PBUF_RAM);
         if (ptBuf != 0) {
-             memcpy(ptBuf->payload, (void*) (descr->buffer_pointer), packet_len);
+             memcpyl(ptBuf->payload, (void*)(descr->buffer_pointer), packet_len);
              ethernet_input(ptBuf, &st_netif);
         } else {
              LOG(COMM, ERROR, "AM335xEthernet::handleIRQ(). pbuf alloc failed.. no more memory..");

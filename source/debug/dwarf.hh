@@ -1,10 +1,16 @@
 #include <inc/types.hh>
 
 typedef struct {
-    unint4 address;
-    unint4 length;
-    char* signature;
-} DebugStrTableT;
+    unsigned int address;
+    unsigned int length;
+    char signature[64];
+} __attribute__((packed)) DebugStrTableEntriesT;
+
+typedef struct {
+    unsigned int          numEntries;
+    DebugStrTableEntriesT strTable[];
+} __attribute__((packed)) DebugStrTableT;
+
 
 #ifdef __cplusplus
 extern "C" {

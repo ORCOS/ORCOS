@@ -158,6 +158,7 @@
                 <Defaults Class="arch/ARM/ARMv4T/ARMv7/Omap3530/OmapMMC_SD_HC">
                     <PropertyValue Name="Address" Value="0x4809C000" />
                     <PropertyValue Name="INTC_IRQ" Value="83" />
+                    <PropertyValue Name="Name" Value="mmc0" />
                     <PropertyValue Name="INTC_Priority" Value="10" />
                 </Defaults>
             </MemberRef>

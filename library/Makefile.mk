@@ -87,27 +87,25 @@ ifeq ($(BUILD_CRC32),1)
 
 endif
 
+check_java:
+	@if ! java -version > /dev/null 2> /dev/null; then { echo "Java not found! Stopping! Be sure the PATH variable contains a valid path to a java installation."; exit 1;} fi
+
+
 checktools:
-	@echo
 	@if ! [ -e $(ORCOS_LIB_DIR) ]; then echo "ERROR: ORCOS_LIB_DIR does not exist! $(ORCOS_LIB_DIR)"; exit -1; fi
-	@echo "----------------------------------"
-	@echo "     Checking for tools"
-	@echo "----------------------------------"
+	@echo -ne "Checking for tools: "
 	@if ! [ -e $(CC) ]; then { echo "C-Compiler (CC) $(CC) not found! Stopping!"; exit 1;} fi
 	@if ! [ -e $(CXX) ]; then { echo "C++-Compiler (CXX) $(CXX) not found! Stopping!"; exit 1;} fi
 	@if ! [ -e $(AS) ]; then { echo "Assembler (AS) $(AS) not found! Stopping!"; exit 1;} fi
 	@if ! [ -e $(AR) ]; then { echo "Archiver (AR) $(AR) not found! Stopping!"; exit 1;} fi
-	@if ! java -version >> /dev/null; then { echo "Java not found! Stopping!"; exit 1;} fi
 	@if ! [ -e $(OBJCOPY) ]; then { echo "Object-Copy (OBJCOPY) $(OBJCOPY) not found! Stopping!"; exit 1;} fi
 	@if ! [ -e $(GCC_LIB_DIR) ]; then { echo "GCC_LIB_DIR $(GCC_LIB_DIR) not found! Stopping!"; exit 1;} fi
-	@echo All tools installed...
-	@echo 
+	@echo OK
 
 prepare:
 	@mkdir -p $(BUILD_PLATFORM)
 	@cp -f $(ORCOS_LIB_DIR)/task.ld $(BUILD_PLATFORM)/template.ld
-	@echo ""
-	@echo "Building '$(OUTPUTFILE)'" 
+	@echo "Building '$(BUILD_PLATFORM)/$(OUTPUTFILE)'" 
 	@echo "Task Start     : $(TASK_START)"
 	@echo "Task End       : $(shell printf 0x"%x" $(TASK_END))"
 	@echo "Task Size      : $(TASK_SIZE)"	
@@ -128,7 +126,13 @@ prepare:
 	@echo
 	@$(SED) -f $(BUILD_PLATFORM)/task.sed $(BUILD_PLATFORM)/template.ld > $(BUILD_PLATFORM)/task.ld	
 	 
-all: checktools prepare $(BUILD_OBJS) $(BUILD_PLATFORM)/$(OUTPUTFILE) crc
+	 
+build: $(BUILD_OBJS) $(BUILD_PLATFORM)/$(OUTPUTFILE) crc
+	 
+all: check_java
+	@make -s checktools
+	@make -s prepare
+	@make -s build
 ifdef POST_BUILD
 	$(POST_BUILD)
 endif 
@@ -150,26 +154,26 @@ endif
 		
 $(BUILD_PLATFORM)/$(OUTPUTFILE): $(BUILD_OBJS) $(BUILD_PLATFORM)/task.ld
 	@echo -ne "Linking  [$@]"
-	@$(LD) --script=$(BUILD_PLATFORM)/task.ld $(BUILD_OBJS) -o $(BUILD_PLATFORM)/$(OUTPUTFILE).elf -L$(KERNEL_LIB_DIR) -L$(GCC_LIB_DIR) -lorcos -lgcc
+	@$(CC) -Wl,-Map=$(BUILD_PLATFORM)/$(OUTPUTFILE).map  -Wl,--script=$(BUILD_PLATFORM)/task.ld $(BUILD_OBJS) -o $(BUILD_PLATFORM)/$(OUTPUTFILE).elf -nostartfiles  -L$(KERNEL_LIB_DIR) -L$(GCC_LIB_DIR)  -Wl,--start-group -lorcos -lc -lm -lgcc -Wl,--end-group 
 	@$(OBJCOPY) -O binary $(BUILD_PLATFORM)/$(OUTPUTFILE).elf $(BUILD_PLATFORM)/$(OUTPUTFILE)
 	@$(OBJDUMP) -h $(BUILD_PLATFORM)/$(OUTPUTFILE).elf > $(BUILD_PLATFORM)/task.sections
 	@echo " DONE "
 	@$(SIZE) $(BUILD_PLATFORM)/$(OUTPUTFILE).elf
 
 $(BUILD_PLATFORM)/%.o: %.cpp 
-	@echo Building [$@]
+	@echo [C++] Building $@
 	@$(CXX) $(CPPFLAGS) $< -o $@
 
 $(BUILD_PLATFORM)/%.o: %.c 
-	@echo Building [$@]
-	@$(CXX) $(CFLAGS) $< -o $@
-
+	@echo [ C ] Building $@
+	@$(CC) $(CFLAGS) $< -o $@
+	
 $(BUILD_PLATFORM)/%.o: %.cc 
-	@echo Building [$@]
+	@echo [C++] Building $@
 	@$(CXX) $(CPPFLAGS) $< -o $@
 
 $(BUILD_PLATFORM)/%.o: %.S 
-	@echo Building [$@]
+	@echo [ASM] Building $@
 	@$(AS) $(AFLAGS) $< -o $@
 	
 clean:

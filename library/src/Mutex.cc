@@ -16,12 +16,12 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Mutex.hh"
+#include "mutex.h"
 
-#include "orcos.hh"
+#include "orcos.h"
 
 Mutex::Mutex() {
-	counter = 1;
+    counter = 1;
 }
 
 Mutex::~Mutex() {
@@ -29,14 +29,13 @@ Mutex::~Mutex() {
 
 ErrorT Mutex::acquire(int blocking) {
 
-	// this actually implements a simple Mutex operation
-	// blocked threads will be activated on Mutex::release according to
-	// their priorities
+    // this actually implements a simple Mutex operation
+    // blocked threads will be activated on Mutex::release according to
+    // their priorities
 
     while ( testandset(&counter,1,0) == 0 ) {
-
-    	if (!blocking)
-    		return (cError);
+        if (!blocking)
+            return (cError);
 
         signal_wait( (void*) this, true );
     }

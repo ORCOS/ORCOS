@@ -92,7 +92,7 @@ extern Board_ClockCfdCl* theClock;
 #define CONF_GMPC_CSN1          0x880
 #define CONF_GMPC_CSN2          0x884
 
-#define CONF_GMPC_ADVN_ALE     0x890
+#define CONF_GMPC_ADVN_ALE      0x890
 
 #define CONF_GMPC_AD0           0x800
 #define CONF_GMPC_AD1           0x804
@@ -122,11 +122,11 @@ extern Board_ClockCfdCl* theClock;
  *******************************************************************************/
 
 static t_mapping AM335xMappings[5] = {
-    { 0x0,        0x0,        0xFFFFF,  hatProtectionExecute | hatProtectionRead, 0 }, /* AM335x ROM vectors */
-    { 0x40300000, 0x40300000, 0xFFFF,   hatProtectionExecute | hatProtectionRead | hatProtectionWrite, 0 }, /* SRAM IRQ vectors */
-    { 0x44C00000, 0x44C00000, 0x3FFFFF, hatProtectionRead | hatProtectionWrite, hatCacheInhibit }, /* L4_WKUP Domain (4 MB))*/
-    { 0x48000000, 0x48000000, 0xFFFFFF, hatProtectionRead | hatProtectionWrite, hatCacheInhibit }, /* L4_PER (16 MB)*/
-    { 0x4a000000, 0x4a000000, 0xFFFFFF, hatProtectionRead | hatProtectionWrite, hatCacheInhibit }  /* L4_FAST (16 MB)*/
+    { 0x0,        0x0,        0x100000,  hatProtectionExecute | hatProtectionRead, 0 },                       /* AM335x ROM vectors  (1 MB) */
+    { 0x40300000, 0x40300000, 0x10000,   hatProtectionExecute | hatProtectionRead | hatProtectionWrite, 0 },  /* SRAM IRQ vectors (64 KB)  */
+    { 0x44C00000, 0x44C00000, 0x400000,  hatProtectionRead | hatProtectionWrite, hatCacheInhibit },           /* L4_WKUP Domain (4 MB)) */
+    { 0x48000000, 0x48000000, 0x1000000, hatProtectionRead | hatProtectionWrite, hatCacheInhibit },           /* L4_PER (16 MB) */
+    { 0x4a000000, 0x4a000000, 0x1000000, hatProtectionRead | hatProtectionWrite, hatCacheInhibit }            /* L4_FAST (16 MB) */
 };
 
 /* The important architecture kernel mapping structure */
@@ -138,12 +138,21 @@ t_archmappings arch_kernelmappings =
 /*****************************************************************************
  * METHODS
  *******************************************************************************/
-
+// cppcheck-suppress uninitMemberVar
 BeagleBone::BeagleBone() {
 }
 
 
-void setCPUFrequency(unint4 frequency) {
+/*****************************************************************************
+ * Method: BeagleBone::setCPUFrequency(unint4 frequency)
+ *
+ * @description
+ *  Sets the specific frequency in MHZ.
+ *******************************************************************************/
+void BeagleBone::setCPUFrequency(unint4 frequency) {
+    if (frequency < 10 || frequency > 1000) {
+        return;
+    }
 
     /* put clock in bypass mode */
     int clkmode = INW(CM_WKUP + CM_CLKMODE_DPLL_MPU);
@@ -153,11 +162,11 @@ void setCPUFrequency(unint4 frequency) {
     OUTW(CM_WKUP + CM_CLKMODE_DPLL_MPU, 0x4);
 
     /* wait until in bypass mode*/
-    while((INW(CM_WKUP + CM_IDLEST_DPLL_MPU) & (1 << 8)) == 0 ) {
+    while ((INW(CM_WKUP + CM_IDLEST_DPLL_MPU) & (1 << 8)) == 0) {
     }
 
     /* set m and n and m2*/
-    int mpuclksel = (1000 << 8) | (23);
+    int mpuclksel = (frequency << 8) | (23);
     OUTW(CM_WKUP + CM_CLKSEL_DPLL_MPU, mpuclksel);
 
     /* set m2 */
@@ -173,8 +182,54 @@ void setCPUFrequency(unint4 frequency) {
     OUTW(CM_WKUP + CM_CLKMODE_DPLL_MPU, clkmode);
 
     /* wait until in bypass mode*/
-    while((INW(CM_WKUP + CM_IDLEST_DPLL_MPU) & (1)) == 0 ) {
+    while ((INW(CM_WKUP + CM_IDLEST_DPLL_MPU) & (1)) == 0) {
     }
+}
+
+
+/*****************************************************************************
+ * Method: BeagleBone::early_init()
+ *
+ * @description
+ *  Early initialization code. Setups basic clocks and enables UART stdout.
+ *******************************************************************************/
+void BeagleBone::early_init() {
+    /* enable module clocks */
+     OUTW(CM_WKUP + CM_WKUP_CONTROL_CLKCTRL, 0x2);
+     OUTW(CM_WKUP + CM_WKUP_TIMER0_CLKCTRL, 0x2);
+     OUTW(CM_WKUP + CM_WKUP_UART0_CLKCTRL, 0x2);
+     /* Timer 1 for clock emulation */
+     OUTW(CM_WKUP + CM_WKUP_TIMER1_CLKCTRL, 0x2);
+     OUTW(CM_WKUP + CM_WKUP_I2C0_CLKCTRL, 0x2);
+
+     /* use M_OSC clock for timer 1 */
+     OUTW(CM_DPLL + CLKSEL_TIMER1MS_CLK, 0x00);
+     /* use M_OSC clock for timer 2 */
+     OUTW(CM_DPLL + CLKSEL_TIMER2_CLK, 0x01);
+
+     /* disable watchdog timer .. as it is enabled by rom code..
+      * or make use of the watchdog timer */
+     OUTW(CM_WKUP + CM_WKUP_WDT1_CLKCTRL, 0x2);
+
+     // disable watchdog
+     OUTW(WDT_WSPR, 0xAAAA);
+     while (INW(WDT_WWPS) != 0) {
+     }
+     OUTW(WDT_WSPR, 0x5555);
+     while (INW(WDT_WWPS) != 0) {
+     }
+
+     /* created first so we can very early write to the serial console
+      * to e.g. write error messages! */
+ #ifdef HAS_Board_UARTCfd
+     INIT_Board_UARTCfd
+     UARTCfd = new NEW_Board_UARTCfd;
+
+ #if __EARLY_SERIAL_SUPPORT__
+     theOS->setStdOutputDevice(UARTCfd);
+ #endif
+
+ #endif
 }
 
 /*****************************************************************************
@@ -210,32 +265,23 @@ void BeagleBone::initialize() {
     // disable watchdog
     OUTW(WDT_WSPR, 0xAAAA);
     while (INW(WDT_WWPS) != 0) {
-    };
+    }
     OUTW(WDT_WSPR, 0x5555);
     while (INW(WDT_WWPS) != 0) {
-    };
+    }
 
     /* created first so we can very early write to the serial console
      * to e.g. write error messages! */
-#ifdef HAS_Board_UARTCfd
-    INIT_Board_UARTCfd
-    UARTCfd = new NEW_Board_UARTCfd;
-
-#if __EARLY_SERIAL_SUPPORT__
-    theOS->setStdOutputDevice(UARTCfd);
-#endif
-
     LOG(ARCH, INFO, "Booting ORCOS..");
     LOG(ARCH, INFO, "BeagleBone Initializing...");
     LOG(ARCH, INFO, "BeagleBone: Board UART: [" STRINGIZE(Board_UARTCfdCl) "]");
-#endif
 
     /* enable module clocks */
     /* timer 2 for scheduling */
     OUTW(CM_PER + CM_PER_TIMER2_CLKCTRL, 0x2);
-    OUTW(CM_PER + CM_PER_GPIO1_CLKCTRL, 0x2);
-    OUTW(CM_PER + CM_PER_GPIO2_CLKCTRL, 0x2);
-    OUTW(CM_PER + CM_PER_GPIO3_CLKCTRL, 0x2);
+    OUTW(CM_PER + CM_PER_GPIO1_CLKCTRL,  0x2);
+    OUTW(CM_PER + CM_PER_GPIO2_CLKCTRL,  0x2);
+    OUTW(CM_PER + CM_PER_GPIO3_CLKCTRL,  0x2);
 
     int revision = INW(CONTROL_MODULE + CONTROL_REVISION);
     LOG(ARCH, INFO, "BeagleBone: AM335x Revision %d.%d RTL v.%d", (revision >> 8) & 0x3, (revision & 0x1f), (revision >> 11) & 0x1f);
@@ -429,7 +475,7 @@ void BeagleBone::initialize() {
 #endif
 
 #ifdef HAS_Board_GPIO1Cfd
-    /* enabel clock for GPIO1*/
+    /* enable clock for GPIO1*/
     OUTW(CM_PER + CM_PER_GPIO1_CLKCTRL, 0x2);
     LOG(ARCH, INFO, "BeagleBone: Board GPIO1: [" STRINGIZE(Board_GPIO1CfdCl) "]");
     INIT_Board_GPIO1Cfd
@@ -437,7 +483,7 @@ void BeagleBone::initialize() {
 #endif
 
 #ifdef HAS_Board_GPIO2Cfd
-    /* enabel clock for GPIO1*/
+    /* enable clock for GPIO1*/
     OUTW(CM_PER + CM_PER_GPIO2_CLKCTRL, 0x2);
     LOG(ARCH, INFO, "BeagleBone: Board GPIO2: [" STRINGIZE(Board_GPIO2CfdCl) "]");
     INIT_Board_GPIO2Cfd
@@ -445,7 +491,7 @@ void BeagleBone::initialize() {
 #endif
 
 #ifdef HAS_Board_GPIO3Cfd
-    /* enabel clock for GPIO1*/
+    /* enable clock for GPIO1*/
     OUTW(CM_PER + CM_PER_GPIO3_CLKCTRL, 0x2);
     LOG(ARCH, INFO, "BeagleBone: Board GPIO3: [" STRINGIZE(Board_GPIO3CfdCl) "]");
     INIT_Board_GPIO3Cfd
@@ -486,9 +532,9 @@ void BeagleBone::initialize() {
 #define PULLUP (1 << 4)
 #define INPUT (1<< 5)
     int led2value = 0x0;
-    GPIO2Cfd->writeBytes((char*) &led2value,4);
+    GPIO2Cfd->writeBytes(reinterpret_cast<char*>(&led2value), 4);
     int led1value = 0x0;
-    GPIO1Cfd->writeBytes((char*) &led1value,4);
+    GPIO1Cfd->writeBytes(reinterpret_cast<char*>(&led1value), 4);
 
 
     /* GPMC_SCN1 is muxed to mmc1 clk. activate loopback of clk as
@@ -508,16 +554,15 @@ void BeagleBone::initialize() {
     //GPIO2Cfd->writeBytes((char*) &led2value,4);
 
     led1value = 0xffffffff; //(1 << 21) | 0x1;
-    GPIO1Cfd->writeBytes((char*) &led1value,4);
-    GPIO0Cfd->writeBytes((char*) &led1value,4);
-    GPIO2Cfd->writeBytes((char*) &led1value,4);
-    GPIO3Cfd->writeBytes((char*) &led1value,4);
+    GPIO1Cfd->writeBytes(reinterpret_cast<char*>(&led1value), 4);
+    GPIO0Cfd->writeBytes(reinterpret_cast<char*>(&led1value), 4);
+    GPIO2Cfd->writeBytes(reinterpret_cast<char*>(&led1value), 4);
+    GPIO3Cfd->writeBytes(reinterpret_cast<char*>(&led1value), 4);
 
     LOG(ARCH, INFO, "BeagleBone: MMC1:  [" STRINGIZE(Board_MMC1CfdCl) "]");
     INIT_Board_MMC1Cfd
     MMC1Cfd = new NEW_Board_MMC1Cfd;
 #endif
-
 
 
 #ifdef HAS_Board_USB_HCCfd
@@ -535,7 +580,6 @@ void BeagleBone::initialize() {
     LOG(ARCH, INFO, "BeagleBone: Board Interrupt Handler: [" STRINGIZE(Board_InterruptHandlerCfdCl) "]");
     InterruptHandlerCfd = new NEW_Board_InterruptHandlerCfd;
 #endif
-
 }
 
 BeagleBone::~BeagleBone() {

@@ -92,6 +92,12 @@ ErrorT Mutex::acquire(Resource* pRes, bool blocking) {
         return (cOk);
     }
 
+
+    unint8 enterTime = 0;
+    if (theOS->getClock() != 0)
+        enterTime = theOS->getClock()->getClockCycles();
+
+    int irqstatus;
     DISABLE_IRQS(irqstatus);
     ATOMIC_ADD(&waitingThreads, 1);
     do  {
@@ -130,6 +136,10 @@ ErrorT Mutex::acquire(Resource* pRes, bool blocking) {
             /* program hardware timer to dispatch now.. may internally use a soft irq */
             theOS->getTimerDevice()->setTimer(1);
         }
+        // this check introduces additional latencies.. we may remove it but it helps debugging stalled conditions
+        if ((theOS->getClock() != 0) && ((theOS->getClock()->getClockCycles() - enterTime) > 2000 ms)) {
+            LOG(SYNCHRO, ERROR, "Mutex::acquire() Thread %d stalled on Mutex '%s' (%x), held by: %d", pCallingThread->getId(), this->name, this, m_pThread->getId());
+        }
         _enableInterrupts();
         /* at this point we will be interrupted. */
         NOP;
@@ -150,14 +160,15 @@ ErrorT Mutex::acquire(Resource* pRes, bool blocking) {
  * @returns
  *---------------------------------------------------------------------------*/
 ErrorT Mutex::release(Thread* pThread) {
-
+    int irqstatus;
     DISABLE_IRQS(irqstatus);
-    LOG(SYNCHRO, DEBUG, "Mutex '%s' (%x) released", this->name, this);
     m_pThread   = 0;
     m_pRes      = 0;
     /* reset lock last as some threads on other cores may be spinning on it..*/
     m_locked    = 0;
     RESTORE_IRQS(irqstatus);
+
+    LOG(SYNCHRO, DEBUG, "Mutex '%s' (%x) released", this->name, this);
 
     Kernel_ThreadCfdCl* pCallingThread = static_cast<Kernel_ThreadCfdCl*>(pThread);
     /* reset the priority of the currentRunning thread as it might have been boosted by
@@ -166,7 +177,7 @@ ErrorT Mutex::release(Thread* pThread) {
         pCallingThread->popPriority(this);
     }
 
-    return (cOk );
+    return (cOk);
 }
 
 

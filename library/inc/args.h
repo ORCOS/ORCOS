@@ -12,8 +12,8 @@
 extern "C" {
 #endif
 
-char*   extractNextArg(char* &str);
-int     parseArgs(char* str, char** &argv);
+char*   extractNextArg(char** str);
+int     parseArgs(char* str, char*** argv);
 void    compactPath(char* path);
 
 #ifdef __cplusplus

@@ -5,7 +5,6 @@
  *      Author: Daniel
  */
 
-
 static unsigned int x, y, z, w;
 
 unsigned int xorshift128(void) {
@@ -14,8 +13,6 @@ unsigned int xorshift128(void) {
     w = w ^ (w >> 19) ^ t ^ (t >> 8);
     return (w);
 }
-
-
 
 void srand(unsigned int seed) {
     x = seed;

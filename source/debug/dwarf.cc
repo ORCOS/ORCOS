@@ -2,7 +2,7 @@
  * dwarf.c
  *
  *  Created on: 10.08.2014
- *     Copyright & Author: Daniel
+ *     Copyright & Author: Daniel Baldin
  */
 #include <inc/types.hh>
 #include <kernel/Kernel.hh>
@@ -43,9 +43,11 @@ typedef struct {
 } FDE_Header;
 
 
+extern void* __dwarf_str;
+
 /* str table is auto generated and will overload this symbol at link time!*/
-extern "C" DebugStrTableT debug_strtable[];  //= { { 0, 0xffffffff, "Unknown" } };
-extern "C" unsigned int debug_strtable_entries; //= 0;
+DebugStrTableT* debug_strtable = 0;
+unsigned int debug_strtable_entries = 0;
 static CIE cie;
 
 /*****************************************************************************
@@ -93,8 +95,14 @@ unint4 decodeULEB128(char value) {
  *
  *******************************************************************************/
 void dwarf_init() {
+    debug_strtable = (DebugStrTableT*) &__dwarf_str;
+    if (debug_strtable != 0) {
+        debug_strtable_entries = debug_strtable->numEntries;
+    }
+
     LOG(ARCH, INFO, "DWARF init debug.frames at 0x%x", &_debug_frame);
-    LOG(ARCH, INFO, "debug_strtable_entries = %d", debug_strtable_entries);
+    LOG(ARCH, INFO, "debug_strtable at 0x%x", debug_strtable);
+    LOG(ARCH, INFO, "debug_strtable_entries = %u", debug_strtable_entries);
     frame_info = &_debug_frame;
     if (frame_info) {
         void* addr = dwarf_parseCIE(frame_info, &cie);
@@ -294,7 +302,7 @@ cf_table_entry* dwarf_getCFEntry(void* address) {
     // find the FDE for this address range
     FDE_Header* fde = dwarf_getFDE(address, &cie);
     if (fde == 0) {
-        LOG(ARCH, DEBUG, "DWARF: Could not find FDE Entry for address %x", address);
+        LOG(ARCH, WARN, "DWARF: Could not find FDE Entry for address %x", address);
         return (0);
     }
 
@@ -329,8 +337,8 @@ extern "C" char* getMethodSignature(unint4 address) {
     if (debug_strtable_entries > 0) {
         /* parse table */
         for (unsigned int i = 0; i < debug_strtable_entries; i++) {
-            if (debug_strtable[i].address <= address && debug_strtable[i].address + debug_strtable[i].length >= address) {
-                return (debug_strtable[i].signature);
+            if (debug_strtable->strTable[i].address <= address && debug_strtable->strTable[i].address + debug_strtable->strTable[i].length >= address) {
+                return (debug_strtable->strTable[i].signature);
             }
         }
     }
@@ -460,7 +468,24 @@ void dwarf_init() {
  * @description
  *
  *******************************************************************************/
-void backtrace_addr(void* currentAddress, size_t stackPtr) {
+extern "C" void backtrace_addr(void* currentAddress, size_t stackPtr) {
 }
+
+/*****************************************************************************
+ * Method: void backtrace(void** buffer, int length)
+ *
+ * @description
+ *
+ *******************************************************************************/
+extern "C" void backtrace(void** buffer, int length) {
+}
+
+/*****************************************************************************
+ * Method: void backtrace_current()
+ *
+ * @description
+ *
+ *******************************************************************************/
+extern "C" void backtrace_current() {}
 
 #endif

@@ -8,6 +8,16 @@
 #ifndef STRING_HH_
 #define STRING_HH_
 
+#include <time.h>
+
+extern "C" int      strpos(const char* s1, const char* s2);
+extern "C" int      strmatch(const char *wildcard, const char *string);
+extern "C" void     strnlower(char* pstr, int len);
+extern "C" char*    dirname(const char *path);
+extern "C" char*    basename(const char *path);
+extern "C" void     time2date(struct tm* pTm, time_t seconds);
+
+#if 0
 extern "C" int      sprintf( char *out, const char *format, ... );
 
 extern "C" int      printf( const char *format, ... );
@@ -32,7 +42,17 @@ extern "C" char*    strdup (const char *s);
 
 extern "C" void     strnlower(char* pstr, int len);
 
+extern "C" char*    strpbrk(const char *s1, const char *s2) ;
+
 extern "C" int      strmatch(const char *wildcard, const char *string);
+
+extern "C" double   strtod(const char *str, char **endptr);
+
+extern "C" float    strtof(const char *str, char **endptr);
+
+extern "C" long double strtold(const char *str, char **endptr);
+
+extern "C" double   atof(const char *str);
 
 extern "C" void     itoa( int value, char* str, int base );
 
@@ -52,7 +72,7 @@ extern "C" char*    dirname(const char *path);
 
 extern "C" char*    basename(const char *path);
 
-
 char* fgets (char *s, int count, int fd);
+#endif
 
 #endif /* STRING_HH_ */

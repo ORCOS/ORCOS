@@ -112,7 +112,7 @@ int sc_signal_signal(intptr_t int_sp) {
 
     /* If we have priorities we may need to dispatch .. check this now! */
 #ifdef HAS_PRIORITY
-    DISABLE_IRQS(status);
+    _disableInterrupts();
     SET_RETURN_VALUE((void*)int_sp, (void*)cOk);
     // we may have unblocked a higher priority thread so we need to reschedule now!
     theOS->getDispatcher()->dispatch();

@@ -50,6 +50,7 @@ protected:
 
     /* pointer to the low latency thread to be activated on timer interrupt */
     Thread* llThread;
+    int llThreadOverrunCount;
 
 public:
     explicit TimerDevice(const char* name);

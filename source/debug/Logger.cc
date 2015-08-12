@@ -68,13 +68,13 @@ void Logger::log(Prefix prefix, Level level, const char* msg, ...) {
 #endif
 
 #if LOG_PRINT_TIME
-    unint4 time = 0;
+    unint8 time = 0;
     if (theOS != 0 && theOS->getClock() != 0)
-    time = (unint4) (theOS->getClock()->getClockCycles() / (1 MICROSECONDS));
+    time = (theOS->getClock()->getClockCycles() / (1 MICROSECONDS));
 
-    unint4 seconds = time / (1000000);
-    time = time - (seconds * 1000000);
-    printf("[%05u.%08u]", seconds, time * 100);
+    unint4 seconds      = (unint4) (time / (1000000));
+    unint4 microseconds = (unint4) (time - (seconds * 1000000));
+    printf("[%05u.%06u]", seconds, microseconds);
 #endif
 
     if (pCurrentRunningThread != 0) {

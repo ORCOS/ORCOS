@@ -65,13 +65,11 @@ ThreadIdT Thread::globalThreadIdCounter;
 Thread::Thread(void* p_startRoutinePointer,
                void* p_exitRoutinePointer,
                Task* p_owner,
-               Kernel_MemoryManagerCfdCl* memManager,
                unint4 stack_size,
-               void* attr,
-               bool newThread) :
-                   myListItem(this) {
+               void* attr) :
+               myListItem(this) {
     ASSERT(p_owner);
-    ASSERT(memManager);
+
     /* do not initialize sleeptime here as it is done inside the realtimethread */
     this->myThreadId = globalThreadIdCounter++;
     this->startRoutinePointer   = p_startRoutinePointer;
@@ -96,22 +94,10 @@ Thread::Thread(void* p_startRoutinePointer,
     else
         TRACE_ADD_SOURCE(0, this->myThreadId, 0);
 
-    /* create the thread stack inside the tasks heap!
-     thus the memManager of the heap is used! */
-
-    if (pCurrentRunningTask == 0 || pCurrentRunningTask == owner) {
-        this->threadStack.startAddr = memManager->alloc(stack_size + RESERVED_BYTES_FOR_STACKFRAME, true);
-    } else {
-        /* we are creating this thread from the context of another task
-         probably by new Task() from a system call. Thus, we can not access the memory of the owner task now
-         as they both have the same LOG_START_ADDRESS.
-         switching PID does not work as we are working on the thread stack of the calling task..
-         thus, the TaskManager will set this address. */
-        this->threadStack.startAddr = reinterpret_cast<void*>(owner->getTaskTable()->task_heap_start);
-    }
-
-    this->threadStack.endAddr = reinterpret_cast<void*> ((unint4) threadStack.startAddr + stack_size + RESERVED_BYTES_FOR_STACKFRAME);
-    this->threadStack.top = 0;
+    /* allocate and map thread stack */
+    this->threadStack.startAddr = (void*) theOS->getRamManager()->alloc_logical(stack_size, owner->getId(), 0);
+    this->threadStack.endAddr = reinterpret_cast<void*> ((unint4) threadStack.startAddr + stack_size - RESERVED_BYTES_FOR_STACKFRAME);
+    this->threadStack.top     = 0;
 
     Directory* taskdir = p_owner->getSysFsDirectory();
     if (taskdir) {
@@ -224,20 +210,6 @@ void Thread::sigwait(SignalType signaltype, void* sig) {
     theOS->getDispatcher()->sigwait(signaltype, this);
 }
 #endif
-
-/*****************************************************************************
- * Method: Thread::getMemManager()
- *
- * @description
- *  Returns the memory manager of the thread, beeing the memory
- *  manager of its task.
- *
- * @returns
- *  Kernel_MemoryManagerCfdCl*         Pointer to the memory manager of the thread
- *******************************************************************************/
-Kernel_MemoryManagerCfdCl* Thread::getMemManager() {
-    return (owner->getMemManager());
-}
 
 /*****************************************************************************
  * Method: Thread::block(unint4 timeout)
@@ -367,8 +339,8 @@ void Thread::terminate() {
      * however free only if this stack has been allocated from the memory manager.
      * The only exception is the initial thread that is created by another process!
      * */
-    if (pCurrentRunningTask == this->owner && this->owner->getMemManager()->containsAddr(this->threadStack.startAddr))
-        this->owner->getMemManager()->free(this->threadStack.startAddr);
+    // TODO: free mapped thread stack pages
+
 
     /* remove myself from any scheduling queue */
     this->getLinkedListItem()->remove();

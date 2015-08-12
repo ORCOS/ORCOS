@@ -31,11 +31,9 @@ WorkerTask::WorkerTask() :
     for (int i = 0; i < NUM_WORKERTHREADS; i++) {
         WorkerThread* pWThread = new WorkerThread(this);
         nonWorkingThreads.addHead(pWThread);
-        /* announce the workerthread to the dispatcher by blocking it */
+        /* announce the Workerthread to the dispatcher by blocking it */
         pWThread->block();
     }
-
-    this->memManager = theOS->getMemoryManager();
 }
 
 WorkerTask::~WorkerTask() {

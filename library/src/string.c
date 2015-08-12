@@ -16,12 +16,14 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "./types.h"
-#include "./defines.h"
+#include "orcos_types.h"
+#include "defines.h"
 #include <stdarg.h>  // SYSTEM include not provided by orcos!
-#include "./orcos.hh"
-#include "./string.hh"
+#include "orcos.h"
+#include <string.h>
+#include <malloc.h>
 
+#if 0
 #define PAD_RIGHT       1
 #define PAD_ZERO        2
 #define PRINT_BUF_LEN   26
@@ -34,12 +36,6 @@
 #define LARGE           64      /* use 'ABCDEF' instead of 'abcdef' */
 
 void* __stack_chk_guard = (void*) 0xdeadbeaf;
-
-extern"C" void __stack_chk_fail()
-{
-    while(1);
-}
-
 
 
 void strreverse( char* begin, char* end ) {
@@ -203,7 +199,7 @@ static void prints( char **out, const char *string, int width, int pad ) {
 
 }
 
-extern "C" int print( char **out, const char *format, va_list args ) {
+int print( char **out, const char *format, va_list args ) {
     register int width;
     register int pad;
     char scr[ 2 ];
@@ -336,7 +332,9 @@ int printf( const char *format, ... )
     return (ret);
 }
 
+#endif
 
+#if 0
 /**
  * \brief memcpy - Copies a memory area into another
  *
@@ -344,7 +342,7 @@ int printf( const char *format, ... )
  * \param src0      The source address
  * \parem len0      The size to be copied
  */
-void* memcpy( void* dst0, const void* src0, size_t len0 ) {
+extern"C" void* memcpy( void* dst0, const void* src0, size_t len0 ) {
     char *dst = (char *) dst0;
     char *src = (char *) src0;
 
@@ -357,7 +355,7 @@ void* memcpy( void* dst0, const void* src0, size_t len0 ) {
     return (save);
 }
 
-void* memset( void* ptr, int c, size_t n) {
+extern"C" void* memset( void* ptr, int c, size_t n) {
     char* p = (char*) ptr;
 
     void* save = ptr;
@@ -370,7 +368,7 @@ void* memset( void* ptr, int c, size_t n) {
 }
 
 // newlib strcmp method
-int strcmp( const char *s1, const char *s2) {
+extern"C" int strcmp( const char *s1, const char *s2) {
     while ( *s1 != '\0' && *s1 == *s2 ) {
         s1++;
         s2++;
@@ -379,10 +377,11 @@ int strcmp( const char *s1, const char *s2) {
     return (( *(unsigned char *) s1 ) - ( *(unsigned char *) s2 ));
 }
 
+
 /*!
  * \brief   Determine the length of a character array
  */
-size_t strlen(const char * s){
+extern"C" size_t strlen(const char * s){
     const char *sc;
 
     for (sc = s; *sc != '\0'; ++sc)
@@ -391,7 +390,7 @@ size_t strlen(const char * s){
 }
 
 
-int memcmp(const char* s1, const char* s2, int len) {
+extern"C" int memcmp(const char* s1, const char* s2, int len) {
     for (int i = 0; i < len; i++) {
         if (s1[i] != s2[i]) return (-1);
     }
@@ -399,7 +398,7 @@ int memcmp(const char* s1, const char* s2, int len) {
     return (0);
 
 }
-
+#endif
 /*
  * Returns the position of s1 inside s2
  */
@@ -414,6 +413,7 @@ int strpos(const char* s1, const char* s2) {
     return -1;
 }
 
+#if 0
 char* strcat( char *s1, const char *s2 ) {
     char *s = s1;
 
@@ -500,16 +500,21 @@ char* strtok( char *s, const char *delim ) {
 }
 
 
-char* strncpy(char *dst, const char *src, size_t n)
-{
-    size_t i;
-    char *temp;
-    temp = dst;
+char* strncpy(char *dst0, const char *src0, size_t maxChars) {
+    char *s = dst0;
 
-    for (i = 0; i < n; i++)
-        *dst++ = *src++;
+    while (*src0 && (maxChars > 0)) {
+        *dst0 = *src0;
+        dst0++;
+        src0++;
+        maxChars--;
+    }
 
-    return temp;
+    // copy ending 0
+    if (maxChars)
+        *dst0 = 0;
+
+    return (s);
 }
 
 
@@ -523,6 +528,7 @@ char* strdup (const char *s)
 
     return (char *) memcpy (newstr, s, len);
 }
+#endif
 
 void strnlower(char* pstr, int count) {
     for ( char *p = pstr; *p && count; ++p ) {
@@ -565,7 +571,7 @@ int strmatch(const char *wild, const char *string) {
   return (!*wild);
 }
 
-extern "C" int puts(const char *s) {
+int puts(const char *s) {
     return (printToStdOut(s,strlen(s)));
 }
 
@@ -602,8 +608,9 @@ char* basename(const char *name) {
           base = name;
       }
   }
-  return (const_cast<char*>(base));
+  return ((char*)(base));
 }
+
 
 typedef struct {
     int   num;
@@ -630,6 +637,7 @@ errorstrtable_t errorstrings[] = {
   {cResourceNotReadable,    "Resource not readable (-1015)"},
   {cInvalidResource,        "Invalid Resource (-1016)"},
   {cCanNotAquireResource,   "Resource can not be acquired (-1017)"},
+  {cFileNotFound,           "File can not be found (-1018)"},
   {cArrayLengthOutOfBounds, "Array out of bounds (-800)"},
   {cWrongArrayLengthByte,   "Wrong array length (-801)"},
   {cEOF,                    "End of File (-5)"},
@@ -669,14 +677,16 @@ char* strerror(int errornum) {
 }
 
 
-void bzero(void *b,size_t length) {
+
+void bzero(void *b, size_t length) {
   char *ptr = (char *)b;
   while (length--)
     *ptr++ = 0;
 }
 
+#if 0
 
-extern "C" char*    strchr(const char* s, int c) {
+char*    strchr(const char* s, int c) {
   while (*s && *s != c)
     s++;
 
@@ -685,3 +695,36 @@ extern "C" char*    strchr(const char* s, int c) {
 
   return NULL;
 }
+
+
+
+char *strpbrk(const char *s1, const char *s2) {
+        const  char *c = s2;
+        if (!*s1) {
+                return (char *) NULL;
+        }
+
+        while (*s1) {
+                for (c = s2; *c; c++) {
+                        if (*s1 == *c)
+                                break;
+                }
+                if (*c)
+                        break;
+                s1++;
+        }
+
+        if (*c == '\0')
+                s1 = NULL;
+
+        return (char *) s1;
+}
+
+#endif
+
+void __stack_chk_fail()
+{
+    puts("Stack check failed!\n");
+    while(1);
+}
+

@@ -147,7 +147,7 @@ int sc_fcreate(intptr_t int_sp) {
 #endif
 
 /*******************************************************************
- *                FGOPEN Syscall
+ *                FOPEN Syscall
  *******************************************************************/
 
 #ifdef HAS_SyscallManager_fopenCfd
@@ -222,7 +222,7 @@ int sc_fclose(intptr_t int_sp) {
         int retval = pCurrentRunningTask->releaseResource(res, pCurrentRunningThread);
 
 #ifdef HAS_PRIORITY
-        DISABLE_IRQS(status);
+        _disableInterrupts();
         SET_RETURN_VALUE((void*)int_sp, (void*)retval);
         /* we may have unblocked a higher priority thread so we need to reschedule now! */
         theOS->getDispatcher()->dispatch();
@@ -356,7 +356,7 @@ int sc_fread(intptr_t int_sp) {
  *---------------------------------------------------------------------------*/
 int sc_fstat(intptr_t int_sp) {
     ResourceIdT file_id;
-    stat_t* stat;
+    struct stat* stat;
     Resource* res;
 
     SYSCALLGETPARAMS2(int_sp, file_id, stat);
@@ -593,5 +593,51 @@ int sc_mount(intptr_t int_sp) {
     }
 
     return (cInvalidArgument);
+}
+#endif
+
+#ifdef HAS_SyscallManager_fopenCfd
+/*****************************************************************************
+ * Method: sc_rename(intptr_t sp_int)
+ *
+ * @description
+ *
+ * @params
+ *  sp_int:     The stack pointer at time of system call instruction execution
+ *
+ * @returns
+ *  int         Error Code
+ *---------------------------------------------------------------------------*/
+int sc_rename(intptr_t int_sp) {
+    int fd;
+    char* filenewname;
+    int retval;
+    Resource* res;
+
+    SYSCALLGETPARAMS2(int_sp, fd, filenewname);
+    VALIDATE_IN_PROCESS(filenewname);
+
+    LOG(SYSCALLS, TRACE, "Syscall: rename(%d, %s)", fd, filenewname);
+
+    if (basename(filenewname) != filenewname) {
+        LOG(SYSCALLS, ERROR, "Syscall: rename(%d, %s): Invalid name", fd, filenewname);
+        return (cInvalidArgument);
+    }
+
+    res = pCurrentRunningTask->getOwnedResourceById(fd);
+    if (res != 0) {
+          /* check for correct type */
+          if (res->getType() & (cDirectory)) {
+              Directory* pdir = static_cast<Directory*>(res);
+              return (pdir->rename(filenewname));
+          } else if (res->getType() & (cFile)) {
+              File* pFile = static_cast<File*>(res);
+              return (pFile->rename(filenewname));
+          } else {
+              return (cInvalidResource);
+          }
+    }
+
+    return (cInvalidResource);
 }
 #endif

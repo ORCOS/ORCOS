@@ -21,8 +21,8 @@ ramLength = 0x20000000; /* 512 MB */
 ramOffset = 0x81000000;
 
 /* KERNEL HEAP */
-_kernelHeapSize  = 0x40000;          /* 65*4 KB */
-PROVIDE(_kernelHeapSize  = 0x40000); /* 65*4 KB */
+_kernelHeapSize  = 0x40000;          /* 64*4 KB */
+PROVIDE(_kernelHeapSize  = 0x40000); /* 64*4 KB */
 
 /* KERNEL STACK */
 _kernelStackSize = 0x2000;           /* 8 KB */
@@ -144,16 +144,26 @@ SECTIONS
   . += _kernelStackSize;
   PROVIDE(__stack = .);
 
-  /* put page table in memory (16k alignment) */
 
+ /* put page table in memory (16k alignment) */
+  . = ALIGN(4);
+  .dwarf_str . :
+  {
+      PROVIDE (__dwarf_str = .);
+      LONG(0);
+      /* this section is filled after linking using objcopy */
+  }
+
+
+ /* put page table in memory (16k alignment) */
   . = ALIGN(0x100000);
 
- .cache_inhibit . (NOLOAD) : {
+  .cache_inhibit . (NOLOAD) : {
   PROVIDE(__cache_inihibit_start = .);
 
-   PROVIDE (__PageTableSec_start = .);
-   . += (__PtSize * __MaxNumPts);
-   PROVIDE (__PageTableSec_end = .);
+  PROVIDE (__PageTableSec_start = .);
+  . += (__PtSize * __MaxNumPts);
+  PROVIDE (__PageTableSec_end = .);
 
   *(.cache_inhibit)
   PROVIDE(__cache_inihibit_end = .);

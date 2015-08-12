@@ -24,6 +24,7 @@ LinkedList::LinkedList() {
     headItem = 0;
     tailItem = 0;
     size = 0;
+    m_lock = 0;
 }
 
 /*****************************************************************************
@@ -33,7 +34,7 @@ LinkedList::LinkedList() {
  *
  *******************************************************************************/
 LinkedListItem* LinkedList::removeHead() {
-    DISABLE_IRQS(status);
+    SMP_SPINLOCK_GET(m_lock);
     LinkedListItem* ret = this->headItem;
 
     if (headItem != 0) {
@@ -51,7 +52,7 @@ LinkedListItem* LinkedList::removeHead() {
         size--;
     }
 
-    RESTORE_IRQS(status);
+    SMP_SPINLOCK_FREE(m_lock);
     return (ret);
 }
 
@@ -63,7 +64,7 @@ LinkedListItem* LinkedList::removeHead() {
  *
  *******************************************************************************/
 LinkedListItem* LinkedList::removeTail() {
-    DISABLE_IRQS(status);
+    SMP_SPINLOCK_GET(m_lock);
     LinkedListItem* ret = this->tailItem;
     if (tailItem != 0) {
         tailItem = tailItem->pred;
@@ -78,7 +79,7 @@ LinkedListItem* LinkedList::removeTail() {
         ret->host_db = 0;
         size--;
     }
-    RESTORE_IRQS(status);
+    SMP_SPINLOCK_FREE(m_lock);
     return (ret);
 }
 
@@ -121,7 +122,7 @@ LinkedListItem* LinkedList::removeTail() {
 ErrorT LinkedList::addTail(LinkedListItem* llitem) {
     ASSERT(llitem);
     /* if this item is already in a database remove it there */
-    DISABLE_IRQS(status);
+    SMP_SPINLOCK_GET(m_lock);
     if (llitem->host_db != 0)
         llitem->remove();
 
@@ -142,7 +143,7 @@ ErrorT LinkedList::addTail(LinkedListItem* llitem) {
         tailItem = llitem;
     }
     size++;
-    RESTORE_IRQS(status);
+    SMP_SPINLOCK_FREE(m_lock);
     return (cOk );
 }
 
@@ -155,7 +156,7 @@ ErrorT LinkedList::addTail(LinkedListItem* llitem) {
 ErrorT LinkedList::addHead(LinkedListItem* llitem) {
     ASSERT(llitem);
     /* if this item is already in a database, remove it there */
-    DISABLE_IRQS(status);
+    SMP_SPINLOCK_GET(m_lock);
     if (llitem->host_db != 0)
         llitem->remove();
 
@@ -179,7 +180,7 @@ ErrorT LinkedList::addHead(LinkedListItem* llitem) {
         headItem = llitem;
     }
     size++;
-    RESTORE_IRQS(status);
+    SMP_SPINLOCK_FREE(m_lock);
     return (cOk );
 }
 
@@ -192,16 +193,16 @@ ErrorT LinkedList::addHead(LinkedListItem* llitem) {
 ErrorT LinkedList::remove(ListItem* item) {
     ASSERT(item);
 
-    DISABLE_IRQS(status);
+    SMP_SPINLOCK_GET(m_lock);
     LinkedListItem* llitem = getItem(item);
     if (llitem != 0) {
         ErrorT ret = remove(llitem);
-        RESTORE_IRQS(status);
+        SMP_SPINLOCK_FREE(m_lock);
         delete llitem;
         return (ret);
     }
 
-    RESTORE_IRQS(status);
+    SMP_SPINLOCK_FREE(m_lock);
     return (cError );
 }
 
@@ -216,7 +217,7 @@ ErrorT LinkedList::remove(LinkedListItem* litem) {
     if (litem->host_db != this)
         return (cElementNotInDatabase);
 
-    DISABLE_IRQS(status);
+    SMP_SPINLOCK_GET(m_lock);
 
    /* set pointers */
    LinkedListItem *succ = litem->getSucc();
@@ -238,7 +239,7 @@ ErrorT LinkedList::remove(LinkedListItem* litem) {
    litem->succ = 0;
 
    size--;
-   RESTORE_IRQS(status);
+   SMP_SPINLOCK_FREE(m_lock);
    return (cOk);
 }
 
@@ -282,7 +283,7 @@ ErrorT LinkedList::insertAfter(LinkedListItem* llItem, LinkedListItem* existingI
     ASSERT(existingItem);
     ASSERT((existingItem != llItem));
 
-    DISABLE_IRQS(status);
+    SMP_SPINLOCK_GET(m_lock);
     if (llItem->host_db != 0)
         llItem->remove();
 
@@ -301,40 +302,49 @@ ErrorT LinkedList::insertAfter(LinkedListItem* llItem, LinkedListItem* existingI
     // set this database to its owner
     llItem->host_db = this;
     size++;
-    RESTORE_IRQS(status);
+    SMP_SPINLOCK_FREE(m_lock);
 
     return (cOk );
 }
 
-/*ErrorT LinkedListDatabase::insertBefore( LinkedListDatabaseItem* llItem, LinkedListDatabaseItem* existingItem ) {
+ErrorT LinkedList::insertBefore( LinkedListItem* llItem, LinkedListItem* existingItem ) {
+    ASSERT(llItem);
+    ASSERT(existingItem);
+    ASSERT((existingItem != llItem));
 
- if ( existingItem == 0 ) {
- return cError;
+    SMP_SPINLOCK_GET(m_lock);
+    if (llItem->host_db != 0)
+        llItem->remove();
+
+    if (existingItem->getPred() != 0) {
+       existingItem->getPred()->setSucc(llItem);
+       llItem->setPred(existingItem->getPred());
+    } else {
+        // we must be the new headItem
+        headItem = llItem;
+        llItem->setPred(0);
+    }
+
+    existingItem->setPred(llItem);
+    llItem->setSucc(existingItem);
+
+    // set this database to its owner
+    llItem->host_db = this;
+    size++;
+
+    SMP_SPINLOCK_FREE(m_lock);
+    return (cOk);
  }
 
- if ( existingItem->getPred() != 0 ) {
- existingItem->getPred()->setSucc( llItem );
- llItem->setPred( existingItem->getPred() );
- }
- existingItem->setPred( llItem );
- llItem->setSucc( existingItem );
-
- // set this database to its owner
- llItem->host_db = this;
- size++;
- return cOk;
-
- }
- ;*/
 
 LinkedListItem*
 LinkedList::getItem(ListItem* data) {
-    DISABLE_IRQS(status);
+    SMP_SPINLOCK_GET(m_lock);
     LinkedListItem* curItem = headItem;
     while (curItem != 0 && curItem->getData() != data)
         curItem = curItem->getSucc();
 
-    RESTORE_IRQS(status);
+    SMP_SPINLOCK_FREE(m_lock);
     return (curItem);
 }
 

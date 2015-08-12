@@ -1,6 +1,7 @@
 set verbose on
 set backtrace limit 7
 #set breakpoint auto-hw on
+set breakpoint pending on
 
 #target extended-remote localhost:3333
 

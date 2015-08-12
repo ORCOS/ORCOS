@@ -8,7 +8,7 @@
 #ifndef TASKS_TELNET_SERVER_TELNET_H_
 #define TASKS_TELNET_SERVER_TELNET_H_
 
-#include <orcos.hh>
+#include <orcos.h>
 
 /*** Escape Sequenzen: **********/
 #define ESC_RED         "\033[31m"

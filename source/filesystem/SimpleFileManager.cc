@@ -28,7 +28,7 @@ SimpleFileManager::SimpleFileManager() :
     root = &rootDir;
 
     /* create dir dev/ */
-    Directory* devDir = new Directory("dev");
+    Directory* devDir  = new Directory("dev");
     /* create dir dev/comm */
     Directory* commDir = new Directory("comm");
 
@@ -36,9 +36,9 @@ SimpleFileManager::SimpleFileManager() :
     rootDir.add(devDir);
 
 #if not MINIMAL_FILESYSTEM
-    Directory* memDir = new Directory("mem");
+    Directory* memDir  = new Directory("mem");
     Directory* userDir = new Directory("usr");
-    Directory* mntDir = new Directory("mnt");
+    Directory* mntDir  = new Directory("mnt");
 
     rootDir.add(userDir);
     rootDir.add(mntDir);

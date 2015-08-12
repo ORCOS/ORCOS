@@ -15,7 +15,7 @@
 extern Kernel* theOS;
 
 OmapMMC_SD_HC::OmapMMC_SD_HC(T_OmapMMC_SD_HC_Init *p_init) :
-        BlockDeviceDriver("mmc") {
+        BlockDeviceDriver(p_init->Name) {
 
     card_type = Unknown;
     baseAddress = p_init->Address;

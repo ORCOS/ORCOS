@@ -29,7 +29,7 @@ extern Kernel* theOS;
 
 // the stack address and size may be set explicitly
 WorkerThread::WorkerThread(Task* p_owner) :
-        Kernel_ThreadCfdCl(0, 0, p_owner, theOS->getMemoryManager(), WORKERTHREAD_STACK_SIZE, 0, true) {
+        Kernel_ThreadCfdCl(0, 0, p_owner, WORKERTHREAD_STACK_SIZE, 0) {
     jobid = None;
     param = 0;
     pid = 0;

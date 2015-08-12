@@ -51,12 +51,14 @@ export MODULES_DIR = ./modules/
 # The Linker Script used for this configuration
 LINKERSCRIPT = $(ARCH_DIR)/kernel.ld   
 
+#add dwarf debugging support (increases binray size by multiple KB due to method string table beeing added)
+export ADD_DWARF := 1
 
 # -fno-if-conversion2 enforces to not use THUMB ITT blocks..
 # it seams like they are not correctly executed after context restore ...
 # although the PSR is correct .. (ITSTATE)
 
-OPT_FLAGS = -O2 -mthumb -mcpu=cortex-a8  -DARM_THUMB=1 -fno-builtin -flto -mno-unaligned-access -fno-section-anchors 
+OPT_FLAGS = -O2 -mthumb -mcpu=cortex-a8  -DARM_THUMB=1 -fno-builtin -flto -fno-section-anchors -mno-unaligned-access
 #-fno-if-conversion2
 OPT_FLAGS += -mfpu=neon
 # -mthumb-interwork
@@ -73,7 +75,7 @@ CPFLAGS += -fno-exceptions -fno-unwind-tables -fno-rtti -fno-stack-protector -c 
 #CPFLAGS +=  -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wconversion -msoft-float 
 
 #Command line arguments to the linker.
-LDFLAGS = -o output/kernel.elf -L$(LIBC_DIR) -L$(GCC_LIB_DIR) -Wl,-Map=output/kernel.map  -lgcc -Wl,--script=$(LINKERSCRIPT) -nostartfiles $(OPT_FLAGS)
+LDFLAGS = -L$(LIBC_DIR) -L$(GCC_LIB_DIR) -Wl,-Map=output/kernel.map  -lgcc -Wl,--script=$(LINKERSCRIPT) -nostartfiles $(OPT_FLAGS)
 
 #Command line arguments for the gcc to assemble .S files.
 ASFLAGS = -c -g -I$(KERNEL_DIR)inc/ -I. -I./make/ -I$(KERNEL_DIR) $(ARCH_INCLUDES) -flto  -fno-exceptions -fno-rtti -fno-stack-protector -mcpu=cortex-a8 -mfpu=neon

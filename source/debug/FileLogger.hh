@@ -44,7 +44,7 @@ private:
      * @description
      *  Tries to initialize the file logger.
      *******************************************************************************/
-    void    init();
+    int    init();
 
 public:
     FileLogger();

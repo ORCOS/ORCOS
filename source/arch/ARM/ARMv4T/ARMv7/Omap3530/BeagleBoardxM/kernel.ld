@@ -24,7 +24,7 @@ ramOffset = 0x81000000;
 
 /* Kernel heap + kernel stacks < 16 k */
 /* this way they can easily be mapped into a 16 k page going from 0x10000 - 0x14000 */
-_kernelHeapSize = 0x40000; /* 65*4 KB */
+_kernelHeapSize = 0x40000; /* 64*4 KB */
 _kernelStackSize = 0x2000; /* 8 KB */
 
 __PtSize = 0x4000; /* 16 KB */
@@ -141,6 +141,16 @@ SECTIONS
   PROVIDE(_heap_end = .);
   . += _kernelStackSize;
   PROVIDE(__stack = .);
+
+
+ /* put page table in memory (16k alignment) */
+  . = ALIGN(4);
+  .dwarf_str . :
+  {
+      PROVIDE (__dwarf_str = .);
+      LONG(0);
+      /* this section is filled after linking using objcopy */
+  }
 
   /* put page table in memory (16k alignment) */
 

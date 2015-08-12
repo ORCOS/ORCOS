@@ -115,7 +115,7 @@ LinkedListItem* PriorityThreadScheduler::getNext() {
     return (this->database.removeHead());
 }
 
-#if 0
+#if 1
 void PriorityThreadScheduler::printQueue() {
 
     printf("Queue: ");
@@ -151,7 +151,7 @@ ErrorT PriorityThreadScheduler::enter(LinkedListItem* item) {
     PriorityThread* pPThread = static_cast<PriorityThread*>(item->getData());
 
     TRACE_THREAD_REGISTER(pPThread->getOwner()->getId(), pPThread->getId());
-
+    int status;
     DISABLE_IRQS(status);
     /* Enter Thread in the database in accordance with it's priority.
      * The order will keep threads with the same priority in a round robin fashion due to ">="
@@ -166,7 +166,7 @@ ErrorT PriorityThreadScheduler::enter(LinkedListItem* item) {
         sItem = sItem->getPred();
     }
 
-    /* if this statement is reached, no thread with a bigger priority then the pRTThread was found,
+    /* if this statement is reached, no thread with a higher priority than the pRTThread was found,
      so we add it at the very front of the queue. */
     ErrorT ret = database.addHead(item);
     RESTORE_IRQS(status);

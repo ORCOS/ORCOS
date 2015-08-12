@@ -304,7 +304,7 @@ int sc_task_resume(intptr_t int_sp) {
 
 #ifdef HAS_PRIORITY
         // we might have unblocked higher priority threads! so dispatch!
-        DISABLE_IRQS(status);
+        _disableInterrupts();
 
         SET_RETURN_VALUE((void*)int_sp, (void*)cOk);
         theOS->getDispatcher()->dispatch();
@@ -392,10 +392,10 @@ int sc_thread_create(intptr_t int_sp) {
         attr->stack_size = DEFAULT_USER_STACK_SIZE;
 
     /* create a new thread. It will automatically register itself at the currentRunningTask which will be the parent. */
-    Thread* newthread = new Kernel_ThreadCfdCl(start_routine,
+    Thread* newthread = new Kernel_ThreadCfdCl(
+                                       start_routine,
                                        reinterpret_cast<void*>(tasktable->task_thread_exit_addr),
                                        pCurrentRunningTask,
-                                       pCurrentRunningTask->getMemManager(),
                                        attr->stack_size,
                                        attr);
 
@@ -475,7 +475,7 @@ int sc_thread_run(intptr_t int_sp) {
     }
 
 #ifdef HAS_PRIORITY
-    DISABLE_IRQS(status);
+    _disableInterrupts();
     SET_RETURN_VALUE((void*)int_sp, (void*)cOk);
     theOS->getDispatcher()->dispatch();
     __builtin_unreachable();

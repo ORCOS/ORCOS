@@ -139,13 +139,12 @@ private:
     /*
      * Returns the next sector following 'currentSector'.
      *
-     * params: currenCluster , the cluster the sector is contained in (could be calculated)
+     * params: currentCluster , the cluster the sector is contained in (could be calculated)
      *            allocate    : if the current sector is the last sector of a cluster and no cluster is following
      *                          a new cluster will be allocated if allocate is true.
      *
      */
-    unint4  getNextSector(unint4 currentSector, unint4 &currentCluster, bool allocate =
-                                 false);
+    unint4  getNextSector(unint4 currentSector, unint4 currentCluster, bool allocate =  false);
 
     /*
      * Allocates a new cluster and marks it with the EOC value.

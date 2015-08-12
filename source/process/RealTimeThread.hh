@@ -53,9 +53,11 @@ public:
      * - A periode of 0 means that the real time thread is aperiodic.
      * - An execution time of 0 means that the execution time for the thread is unknown.
      */
-    RealTimeThread(void* startRoutinePointer, void* exitRoutinePointer, Task* owner, Kernel_MemoryManagerCfdCl* memManager, unint4 stack_size =
-                           DEFAULT_USER_STACK_SIZE, void* RTThreadAttributes = 0, bool newThread =
-                           true);
+    RealTimeThread(void* startRoutinePointer,
+                   void* exitRoutinePointer,
+                   Task* owner,
+                   unint4 stack_size = DEFAULT_USER_STACK_SIZE,
+                   void* RTThreadAttributes = 0);
 
     /*! \brief Standard destructor for the real time thread class.
      *

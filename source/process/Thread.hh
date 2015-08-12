@@ -48,21 +48,21 @@ class Mutex;
 
 // Flag definitions
 //! thread is constructed
-#define cNewFlag        (BitmapT)1<<0
+#define cNewFlag        (BitmapT)1<<0      // 0x1
 //! thread is ready to run
-#define cReadyFlag      (BitmapT)1<<1
+#define cReadyFlag      (BitmapT)1<<1      // 0x2
 //! thread has stopped
-#define cBlockedFlag    (BitmapT)1<<2
+#define cBlockedFlag    (BitmapT)1<<2      // 0x4
 //! thread is terminated
-#define cTermFlag       (BitmapT)1<<3
+#define cTermFlag       (BitmapT)1<<3      // 0x8
 //! thread is waiting for a resource
-#define cResource       (BitmapT)1<<4
+#define cResource       (BitmapT)1<<4      // 0x10
 //! thread execution stopped
-#define cStopped        (BitmapT)1<<5
+#define cStopped        (BitmapT)1<<5      // 0x20
 //! thread is waiting for a signal
-#define cSignalFlag     (BitmapT)1<<6
+#define cSignalFlag     (BitmapT)1<<6      // 0x40
 //! thread shall terminate after current instance (soft termination)
-#define cDoTermFlag     (BitmapT)1<<7
+#define cDoTermFlag     (BitmapT)1<<7      // 0x80
 
 /*!
  * \brief Structure holding information on the stack of a thread
@@ -151,8 +151,11 @@ public:
     unint4              blockTimeout;
 
     /* Constructor which takes the startRoutinePointer as argument */
-    Thread(void* startRoutinePointer, void* exitRoutinePointer, Task* owner, Kernel_MemoryManagerCfdCl* memManager,
-           unint4 stack_size = DEFAULT_USER_STACK_SIZE, void* attr = 0, bool newThread = true);
+    Thread(void* startRoutinePointer,
+           void* exitRoutinePointer,
+           Task* owner,
+           unint4 stack_size = DEFAULT_USER_STACK_SIZE,
+           void* attr = 0);
 
     /* Destructor */
     virtual ~Thread();
@@ -308,9 +311,9 @@ public:
         if (threadStack.top < MAXSTACKPTRS - 1) {
             threadStack.stackptrs[threadStack.top] = sp;
             threadStack.top++;
-            return (cOk );
+            return (cOk);
         } else {
-            return (cStackOverflow );
+            return (cStackOverflow);
         }
     }
 
@@ -324,9 +327,9 @@ public:
         if (threadStack.top > 0) {
             threadStack.top--;
             sp = threadStack.stackptrs[threadStack.top];
-            return (cOk );
+            return (cOk);
         } else {
-            return (cStackUnderflow );
+            return (cStackUnderflow);
         }
     }
 
@@ -359,14 +362,6 @@ public:
     inline void* getStartArguments() const {
         return (this->arguments);
     }
-
-    /*****************************************************************************
-     * Method: getMemManager()
-     *
-     * @description
-     *  Returns the Memory Manager of the task the thread belongs to
-     *******************************************************************************/
-    Kernel_MemoryManagerCfdCl* getMemManager();
 
     /*****************************************************************************
      * Method: setName(char* newName)

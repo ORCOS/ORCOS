@@ -22,9 +22,12 @@
 #include <hal/HatLayer.hh>
 #include "synchro/Mutex.hh"
 
-#define SECTION_SIZE 0x100000
+#define SECTION_SIZE     0x100000
+#define LARGE_PAGE_SIZE  0x010000
+#define SMALL_PAGE_SIZE  0x001000
 
 // Define for the Paged Memory Manager
+// preferred mapping size!
 #define PAGESIZE SECTION_SIZE
 
 /*!

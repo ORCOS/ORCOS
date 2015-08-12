@@ -22,202 +22,70 @@
 #include <types.hh>
 #include <Bitmap.hh>
 
-#define ptTypeSection 0
-#define ptTypeSuperSection 2
+#define ptTypeSection 0      /* 1 MB page */
+#define ptTypeSuperSection 1 /* 16 MB page */
+#define ptTypeL2PageTable  2 /* Link to a Level2 page table containing smaller pages */
+#define ptTypeLargePage 3    /* 64 Kb page*/
+#define ptTypeSmallPage 4    /* 4 Kb page*/
 
-/*!
- * \brief This class provides a data structure to represent a proper page table entry
- * for the ARMv7 architecture
- */
-class ARMv7PtEntry {
-    // supersection 16MB, direct phys. address, no L2 table
-    // section 1MB, direct phys. address, no L2 table
-    // pagetable: points to L2 table containing small or large page (not used for now)
-private:
-    Bitmap ptL1Descriptor;
+typedef struct {
+    unint1 type         : 5;
+    unint1 domain       : 4;
+    unint1 impl_defined : 1;
+    unint4 base_address : 22;
+}__attribute__((packed)) ARMv7PtEntry_PageTable_t;
 
-public:
-    //! standard constructor
-    ARMv7PtEntry() {
-    }
+typedef struct {
+    unint1 type         : 2; // must be 0x2
+    unint1 B_bit        : 1;
+    unint1 C_bit        : 1;
+    unint1 XN_bit       : 1;
+    unint1 domain       : 4;
+    unint1 impl_defined : 1;
+    unint1 AP1_bits     : 2;
+    unint1 TEX_bits     : 3;
+    unint1 AP2_bit      : 1;
+    unint1 S_bit        : 1;
+    unint1 nG_bit       : 1;
+    unint1 null_bit     : 1;
+    unint1 ns_bit       : 1;
+    unint4 base_address : 12;
+} __attribute__((packed)) ARMv7PtEntry_Section_t;
 
-    //! standard destructor
-    ~ARMv7PtEntry() {
-    }
+typedef struct {
+    unint1 type         : 2; // must be 0x1
+    unint1 B_bit        : 1;
+    unint1 C_bit        : 1;
+    unint1 AP1_bits     : 2;
+    unint1 SBZ_bits     : 3;
+    unint1 AP2_bit      : 1;
+    unint1 S_bit        : 1;
+    unint1 nG_bit       : 1;
+    unint1 TEX_bits     : 3;
+    unint1 XN_bit       : 1;
+    unint4 base_address : 16;
+} __attribute__((packed)) ARMv7PtEntry_LargePage_t;
 
-    /*****************************************************************************
-     * Method: Clear()
-     *
-     * @description
-     *  Clears the L1 Page table descriptor
-     *******************************************************************************/
-    void Clear() {
-        ptL1Descriptor.clear();
-    }
+typedef struct {
+    unint1 XN_bit       : 1;
+    unint1 type         : 1; // must be 1
+    unint1 B_bit        : 1;
+    unint1 C_bit        : 1;
+    unint1 AP1_bits     : 2;
+    unint1 TEX_bits     : 3;
+    unint1 AP2_bit      : 1;
+    unint1 S_bit        : 1;
+    unint1 nG_bit       : 1;
+    unint4 base_address : 20;
+} __attribute__((packed)) ARMv7PtEntry_SmallPage_t;
 
-    /*****************************************************************************
-     * Method: getDesc(void)
-     *
-     * @description
-     *  Returns the Descriptor as a Bitmap
-     *******************************************************************************/
-    Bitmap getDesc(void) {
-        return (ptL1Descriptor);
-    }
+typedef union {
+    unint4 raw_bytes;
+    ARMv7PtEntry_PageTable_t page_table;
+    ARMv7PtEntry_Section_t   section;
+    ARMv7PtEntry_LargePage_t large_page;
+    ARMv7PtEntry_SmallPage_t small_page;
+} ARMv7PtEntry_t;
 
-    /*****************************************************************************
-     * Method: setType(int type)
-     *
-     * @description
-     *  Sets the type of the page table entry.
-     *  Valid types: ptTypeSection, ptTypeSuperSection
-     *******************************************************************************/
-    void setType(int type) {
-        switch (type) {
-        case ptTypeSection: {
-            ptL1Descriptor.clearBits(0x40003);
-            ptL1Descriptor.setBits(0x2);
-            break;
-        }
-        case ptTypeSuperSection: {
-            ptL1Descriptor.clearBits(0x40003);
-            ptL1Descriptor.setBits(0x40002);
-            break;
-        }
-        default:
-            break;
-        }
-    }
-
-    /*****************************************************************************
-     * Method: setDomain(int dom)
-     *
-     * @description
-     *  Sets the domain field of the descriptor
-     *******************************************************************************/
-    void setDomain(int dom) {
-        ptL1Descriptor.clearBits(0x1E0);
-        ptL1Descriptor.setBits(dom << 5);
-    }
-
-    /*****************************************************************************
-     * Method: setCBit(int value)
-     *
-     * @description
-     *  Sets the C Bit
-     *******************************************************************************/
-    void setCBit(int value) {
-        ptL1Descriptor.clearBits(1 << 3);
-        ptL1Descriptor.setBits((value & 0x1) << 3);
-    }
-
-    /*****************************************************************************
-     * Method: setBBit(int value)
-     *
-     * @description
-     *  Sets the B Bit
-     *******************************************************************************/
-    void setBBit(int value) {
-        ptL1Descriptor.clearBits(1 << 2);
-        ptL1Descriptor.setBits((value & 0x1) << 2);
-    }
-
-    /*****************************************************************************
-     * Method: setSBit()
-     *
-     * @description
-     *  Sets the S Bit
-     *******************************************************************************/
-    void setSBit(int value) {
-        ptL1Descriptor.clearBits(1 << 10);
-        ptL1Descriptor.setBits((value & 0x1) << 10);
-    }
-
-    /*****************************************************************************
-     * Method: setXNBit(Bitmap permission)
-     *
-     * @description
-     *  Sets the Execute Permission Bit
-     *******************************************************************************/
-    void setXNBit(Bitmap permission) {
-        ptL1Descriptor.clearBits(0x10);
-        ptL1Descriptor.setBits(permission << 4);
-    }
-
-    /*****************************************************************************
-     * Method: setNSBit()
-     *
-     * @description
-     *  Sets the NS Bit
-     *******************************************************************************/
-    void setNSBit() {
-    }
-
-    /*****************************************************************************
-     * Method: setTex(int value)
-     *
-     * @description
-     *  Sets the Tex Field
-     *******************************************************************************/
-    void setTex(int value) {
-        ptL1Descriptor.clearBits(0x7 << 12);
-        ptL1Descriptor.setBits((value & 0x7) << 12);
-    }
-
-    /*****************************************************************************
-     * Method: setAP(Bitmap permission)
-     *
-     * @description
-     *  Sets the C Bit
-     *******************************************************************************/
-    void setAP(Bitmap permission) {
-        ptL1Descriptor.clearBits(0xC00);
-        ptL1Descriptor.setBits(permission << 10);
-    }
-
-    /*****************************************************************************
-     * Method: setnGBit(bool nonGlobal)
-     *
-     * @description
-     *
-     *******************************************************************************/
-    void setnGBit(bool nonGlobal) {
-        ptL1Descriptor.clearBits(0x20000);
-        ptL1Descriptor.setBits(nonGlobal << 17);
-    }
-
-    /*****************************************************************************
-     * Method: setBaseAddr(int type, void* physAddr)
-     *
-     * @description
-     *
-     *******************************************************************************/
-    void setBaseAddr(int type, void* physAddr) {
-        unint addr = ((unint) physAddr) >> 20;
-        switch (type) {
-        case ptTypeSection: {
-            // use 12 msb
-            ptL1Descriptor.clearBits(0xFFF00000);
-            ptL1Descriptor.setBits(addr << 20);
-            break;
-        }
-        case ptTypeSuperSection: {
-            break;
-        }
-        default:
-            break;
-        }
-    }
-
-    /*****************************************************************************
-     * Method: setSuperSectionBaseAddr()
-     *
-     * @description
-     *  Sets the C Bit
-     *******************************************************************************/
-    void setSuperSectionBaseAddr() {
-        // only [31:24], extended base address not supported
-    }
-};
 
 #endif /* ARMv7PtEntry_HH_ */

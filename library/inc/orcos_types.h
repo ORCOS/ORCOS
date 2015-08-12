@@ -123,11 +123,11 @@ typedef enum {
 #define TIOCTL_SET_STDOUT 0
 
 //! File statistics
-typedef struct {
+struct stat {
     unint4 st_size;
     unint4 st_type;
     unint4 st_flags;
-} stat_t;
+};
 
 /*!
  * \brief Service description structure which can be used to create a socket
@@ -166,17 +166,6 @@ typedef struct {
 } thread_attr_t;
 
 
-typedef struct {
-    unint2 year;
-    unint1 month;
-    unint1 day;
-    unint1 hour;
-    unint1 minute;
-    unint1 second;
-    unint1 week_day;
-    unint1 day_of_year;
-    unint1 isdaylightsaving;
-} time_t;
 
 typedef int ErrorT;
 typedef unint2 EndianT;

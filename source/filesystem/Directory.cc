@@ -181,7 +181,7 @@ ErrorT Directory::readBytes(char *bytes, unint4 &length) {
         Resource* ritem = static_cast<Resource*>(litem->getData());
         const char* p_name = ritem->getName();
         /* max 256 chars for the name */
-        unint1 namelen = (unint1) strlen(p_name);
+        unint1 namelen = (unint1) (strlen(p_name)+1);
         /* align next entry to multiple of 4 bytes */
         unint2 namelen2 = (namelen + 3) & ~(3);
 
@@ -207,7 +207,7 @@ ErrorT Directory::readBytes(char *bytes, unint4 &length) {
         }
 
         /* copy name into the bytes array */
-        strncpy(entry->name, p_name, namelen+1);
+        strncpy(entry->name, p_name, namelen);
 
         litem = litem->getSucc();
         this->position++;
@@ -215,6 +215,22 @@ ErrorT Directory::readBytes(char *bytes, unint4 &length) {
 
     length = pos;
     return (cOk);
+}
+
+/*****************************************************************************
+ * Method: Directory::rename(char* newName)
+ *
+ * @description
+ *  Renames the directory.
+ *******************************************************************************/
+ErrorT Directory::rename(char* newName) {
+    if (newName != 0) {
+        /* try freeing the old name */
+        delete this->name;
+        this->name = newName;
+        return (cOk);
+    }
+    return (cNullPointerProvided);
 }
 
 OverlayDirectory::OverlayDirectory(const char* name, Directory* baseDir, Directory* overlay) :

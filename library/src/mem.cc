@@ -17,47 +17,27 @@
  */
 
 
-#include "./types.h"
-#include "./defines.h"
-#include "./orcos.hh"
+#include "orcos_types.h"
+#include "defines.h"
+#include "orcos.h"
+#include "sys/types.h"
+#include "stdlib.h"
 
-/*!
- * The new operator for user level threads
- */
+
+extern "C" int shm_map(const char* file,unint4* mapped_address, unint4* mapped_size, unint4 flags, unint4 offset) {
+    return (syscall(cShmMapId, file, mapped_address, mapped_size, flags, offset));
+}
+
 void* operator new( size_t s ) {
-    return ((void*) syscall( cNewSysCallId, s ));
+    return ((void*) malloc(s));
 }
-
-extern "C"void* malloc(size_t s)
-{
-    return ((void*) syscall(cNewSysCallId,s));
-}
-
-extern "C"void* mallocp(size_t s,int mode)
-{
-    return ((void*) syscall(cNewProtSysCallId,s,mode));
-}
-
-extern "C"void free(void *s)
-{
-    syscall(cDeleteSysCallId,s);
-}
-
-extern "C" int map_logmemory( const char* log_start, const char* phy_start, size_t size, int protection)
-{
-	return (syscall(cMapMemorySyscallId,log_start,phy_start,size,protection));
-}
-
-extern "C" int 	shm_map(const char* file,unint4* mapped_address, unint4* mapped_size, unint4 flags) {
-	return (syscall(cShmMapId,file,mapped_address,mapped_size,flags));
-}
-
 
 /*!
  * The delete operator for user level threads
  */
-void operator delete( void* ptr ) {
-    syscall( cDeleteSysCallId, ptr );
+void operator delete(void* ptr) {
+    free(ptr);
 }
+
 
 

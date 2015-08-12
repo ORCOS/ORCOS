@@ -16,22 +16,14 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MUTEX_HH_
-#define MUTEX_HH_
+#include "orcos_types.h"
+#include "defines.h"
+#include "orcos.h"
 
-#include "orcos.hh"
+int signal_wait( void* sig, bool memAddrAsSig ) {
+    return syscall( cSignal_WaitSyscallId, sig, memAddrAsSig );
+}
 
-class Mutex {
-public:
-    Mutex();
-    ~Mutex();
-
-    ErrorT acquire(int blocking = 1);
-
-    ErrorT release();
-
-protected:
-    int counter;
-};
-
-#endif /* MUTEX_HH_ */
+void signal_signal( void* sig ,int value, bool memAddrAsSig ) {
+    syscall( cSignal_SignalSyscallId, sig, value, memAddrAsSig );
+}

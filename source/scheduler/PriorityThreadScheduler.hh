@@ -85,7 +85,7 @@ public:
      *******************************************************************************/
     void startScheduling();
 
-#if 0
+#if 1
     void printQueue();
 #endif
 
