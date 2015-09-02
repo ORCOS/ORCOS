@@ -44,7 +44,9 @@ CPPCHECK   = 0
 LINKERSCRIPT = $(ARCH_DIR)/kernel.ld   
 
 # Optimization flags for gcc and g++
-OPT_FLAGS = -O2 $(CPU_FLAGS) -fno-builtin -flto -fuse-linker-plugin -ffat-lto-objects -fstack-protector-strong $(USER_OPT_FLAGS)
+OPT_FLAGS = -O2 $(CPU_FLAGS) -fno-builtin -flto -fuse-linker-plugin -ffat-lto-objects -fno-stack-protector $(USER_OPT_FLAGS)
+
+#-fstack-protector-strong
 
 #Command line arguments to gcc.
 CFLAGS    = -Wall -g -I$(KERNEL_DIR)inc/ -I./make/ -I$(KERNEL_DIR)comm/lwip/include/ -I$(KERNEL_DIR)comm/lwip/ -I. -I$(KERNEL_DIR) -I$(KERNEL_LIB_DIR)/../../ $(ARCH_INCLUDES)
