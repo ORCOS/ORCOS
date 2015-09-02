@@ -20,7 +20,7 @@
          ************************************ -->
   <Tasks>
     <Task>
-      <Start>0x81160000</Start>
+      <Start>0x81200000</Start>
       <Size>0x0010000</Size>
       <Path>../../../tasks/telnet_server</Path>
       <PriorityOptions>
@@ -89,6 +89,7 @@
         <PropertyValue Name="Address" Value="0x4809C000" Type="unsigned int" />
         <PropertyValue Name="INTC_IRQ" Value="83" Type="unsigned int" />
         <PropertyValue Name="INTC_Priority" Value="10" Type="unsigned int" />
+        <PropertyValue Name="Name" Value="mmc0" Type="char*" />
       </Member>
     </Skeleton>
     <!-- ************************************
@@ -125,7 +126,6 @@
     <Skeleton>
       <Name>USBDriver</Name>
       <Superclass>usb/USBDeviceDriverLibrary</Superclass>
-      <Member Name="Factory" Class="usb/USBDeviceDriverFactory" None="true" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="SMSC95xx" Class="usb/SMSC95xxUSBDeviceDriver" None="true" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="MassStorage" Class="usb/MassStorageSCSIUSBDeviceDriver" None="true" UserSpace="false" PhyLoadAddress="0x0" />
     </Skeleton>
