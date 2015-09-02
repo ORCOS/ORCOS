@@ -9,7 +9,7 @@
  *             INCLUDES
  ***************************************/
 #include "SMSC95xxUSBDeviceDriver.hh"
-#include "mii.hh"
+#include "../mii.hh"
 #include "memtools.hh"
 #include "inet.h"
 #include "kernel/Kernel.hh"
@@ -904,7 +904,7 @@ ErrorT SMSC95xxUSBDeviceDriver::recv(unint4 recv_len) {
 
                 acquireMutex(comStackMutex);
                 ethernet_input(last_pbuf, &st_netif);
-                pbuf_free(last_pbuf);
+                //pbuf_free(last_pbuf);
                 releaseMutex(comStackMutex);
             } else {
                 LOG(ARCH, DEBUG, "SMSC95xxUSBDeviceDriver: rx split packet: %d", recv_len);
@@ -945,7 +945,7 @@ ErrorT SMSC95xxUSBDeviceDriver::recv(unint4 recv_len) {
                 if (packet_len <= r_len) {
                     memcpy(ptBuf->payload, &rxbuffer[recvd_bytes + 4], packet_len);
                     ethernet_input(ptBuf, &st_netif);
-                    pbuf_free(ptBuf);
+                    //pbuf_free(ptBuf);
                 } else {
                     memcpy(ptBuf->payload, &rxbuffer[recvd_bytes + 4], r_len);
                     last_pbuf = ptBuf;
@@ -1199,7 +1199,7 @@ ErrorT SMSC95xxUSBDeviceDriver::initialize() {
      * to the bulk endpoint.
      **/
     memcpy(&dev->endpoints[4], &dev->endpoints[bulkin_ep], sizeof(DeviceEndpoint));
-    dev->endpoints[4].queue_head                = 0;
+    dev->endpoints[4].device_priv               = 0;
     dev->endpoints[4].interrupt_receive_size    = 512*3;
     dev->endpoints[4].type                      = Interrupt;
     dev->endpoints[4].poll_frequency            = 2;
@@ -1252,12 +1252,13 @@ ErrorT SMSC95xxUSBDeviceDriver::initialize() {
 ErrorT SMSC95xxUSBDeviceDriver::handleInterrupt() {
     ErrorT ret = cError;
 
-    volatile QH* qh = dev->endpoints[this->int_ep].queue_head;
+   /* volatile QH* qh = dev->endpoints[this->int_ep].queue_head;
     if (qh == 0)
         return (cError );
     volatile qTD* qtd2 = reinterpret_cast<qTD*>(qh->qh_curtd);
 
-    if (((unint4) qtd2 > QT_NEXT_TERMINATE) && (QT_TOKEN_GET_STATUS(qh->qh_overlay.qt_token) != 0x80)) {
+    if (((unint4) qtd2 > QT_NEXT_TERMINATE) && (QT_TOKEN_GET_STATUS(qh->qh_overlay.qt_token) != 0x80)) {*/
+    if (dev->getEndpointTransferState(int_ep) == EP_TRANSFER_FINISHED) {
         LOG(ARCH, DEBUG, "SMSC95xxUSBDeviceDriver: PHY Interrupt");
 
         if (dev->endpoints[this->int_ep].recv_buffer == 0)
@@ -1271,7 +1272,7 @@ ErrorT SMSC95xxUSBDeviceDriver::handleInterrupt() {
 
         if ((interrupt_sts & INT_EP_CTL_PHY_INT_) != 0) {
             /* clear interrupt status */
-            LOG(ARCH, DEBUG, "SMSC95xxUSBDeviceDriver: Link Activated..");
+            LOG(ARCH, INFO, "SMSC95xxUSBDeviceDriver: Link Activated..");
             link_up = true;
             netif_set_default(&st_netif);
             netif_set_up(&st_netif);
@@ -1285,13 +1286,12 @@ ErrorT SMSC95xxUSBDeviceDriver::handleInterrupt() {
     }
 
     /* check if this was a bulk in transfer complete irq */
-    qh = dev->endpoints[4].queue_head;
+  /*  qh = dev->endpoints[4].queue_head;
     qtd2 = reinterpret_cast<qTD*>(qh->qh_curtd);
 
-    if (((unint4) qtd2 > QT_NEXT_TERMINATE) && (QT_TOKEN_GET_STATUS(qh->qh_overlay.qt_token) != 0x80)) {
-        LOG(ARCH, DEBUG, "SMSC95xxUSBDeviceDriver: Packet received: status %x", QT_TOKEN_GET_STATUS(qh->qh_overlay.qt_token));
-
-        int len = dev->endpoints[4].interrupt_receive_size - QT_TOKEN_GET_TOTALBYTES(qtd2->qt_token);
+    if (((unint4) qtd2 > QT_NEXT_TERMINATE) && (QT_TOKEN_GET_STATUS(qh->qh_overlay.qt_token) != 0x80)) {*/
+    if (dev->getEndpointTransferState(4) == EP_TRANSFER_FINISHED) {
+        int len = dev->getEndpointTransferSize(4); //dev->endpoints[4].interrupt_receive_size - QT_TOKEN_GET_TOTALBYTES(qtd2->qt_token);
 
         /* handle received data */
         if (len > 0)

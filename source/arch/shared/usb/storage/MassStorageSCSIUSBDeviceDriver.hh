@@ -8,9 +8,9 @@
 #ifndef MASSSTORAGESCSIUSBDEVICEDRIVER_HH_
 #define MASSSTORAGESCSIUSBDEVICEDRIVER_HH_
 
-#include "USBDeviceDriverFactory.hh"
+#include "../USBDeviceDriver.hh"
 #include "hal/BlockDeviceDriver.hh"
-#include "arch/shared/USBEHCIHostController.hh"
+#include "arch/shared/usb/USBHostController.hh"
 
 typedef struct
     __attribute__((packed)) {

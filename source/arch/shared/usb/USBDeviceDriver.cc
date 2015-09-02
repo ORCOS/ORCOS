@@ -5,9 +5,9 @@
  *    Copyright &  Author: dbaldin
  */
 
-#include "USBDeviceDriverFactory.hh"
 #include "USBDriverLibrary.hh"
 #include "kernel/Kernel.hh"
+#include "USBDeviceDriver.hh"
 
 extern Kernel *theOS;
 

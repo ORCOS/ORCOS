@@ -8,9 +8,9 @@
 #ifndef SMSC95XXUSBDEVICEDRIVER_HH_
 #define SMSC95XXUSBDEVICEDRIVER_HH_
 
-#include "USBDeviceDriverFactory.hh"
+#include "../USBDeviceDriver.hh"
 #include "hal/CommDeviceDriver.hh"
-#include "arch/shared/USBEHCIHostController.hh"
+#include "arch/shared/usb/USBHostController.hh"
 
 class SMSC95xxUSBDeviceDriver: public USBDeviceDriver, public CommDeviceDriver {
 public:

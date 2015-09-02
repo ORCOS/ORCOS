@@ -13,7 +13,7 @@
 class USBDevice;
 
 /*!
- * Base class for all usb device drivers.
+ * Base class for all USB device drivers.
  */
 class USBDeviceDriver {
 public:
@@ -26,7 +26,12 @@ public:
     }
 
 
-    // some private data
+    /*****************************************************************************
+     * dev_priv
+     *
+     * @description
+     *  Private data to be used by the driver instance
+     *******************************************************************************/
     void* dev_priv;
 
     /*****************************************************************************
@@ -53,6 +58,10 @@ public:
     virtual ErrorT handleInterrupt() = 0;
 };
 
+/*!
+ * Factory class every USB Driver has to provide to create new instances
+ * of the driver for attached USB devices.
+ */
 class USBDeviceDriverFactory: public Resource {
 public:
     /*****************************************************************************

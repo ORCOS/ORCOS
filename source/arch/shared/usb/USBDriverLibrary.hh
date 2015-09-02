@@ -9,7 +9,7 @@
 #define USBDRIVERLIBRARY_HH_
 
 #include "filesystem/Directory.hh"
-#include "USBDeviceDriverFactory.hh"
+#include "USBDeviceDriver.hh"
 
 
 class USBDriverLibrary: public Directory {
