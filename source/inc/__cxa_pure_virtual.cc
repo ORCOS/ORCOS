@@ -17,12 +17,15 @@
  */
 
 #include "kernel/Kernel.hh"
+#include "debug/dwarf.hh"
 
 extern "C" Kernel* theOS;
 
-void* __stack_chk_guard = reinterpret_cast<void*>(0xdeadbeaf);
+void* __attribute__((used)) __stack_chk_guard = reinterpret_cast<void*>(0xdeadbeaf);
 
-extern "C" void __stack_chk_fail() {
+extern "C" __attribute__((used)) void __stack_chk_fail() {
+    puts("BUG: STACK CHECK FAILED!");
+    backtrace_current();
     while (1) { }
 }
 
