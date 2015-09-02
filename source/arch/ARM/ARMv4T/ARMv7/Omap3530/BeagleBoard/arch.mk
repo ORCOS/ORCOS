@@ -21,3 +21,5 @@ ARCH_INCLUDES = -I$(KERNEL_DIR)arch/ARM/ARMv4T/ -I$(KERNEL_DIR)arch/ARM/ARMv4T/A
 
 UIMAGE_ARCH	= arm
 TARGET  	= armv7
+
+CPU_FLAGS   = -mcpu=cortex-a8 -mfpu=neon -mthumb -DARM_THUMB=1 -mno-unaligned-access

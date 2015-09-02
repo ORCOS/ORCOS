@@ -16,4 +16,7 @@ ARCH_VPATH = $(KERNEL_DIR)arch/ARM/ARMv4T $(KERNEL_DIR)arch/ARM/ARMv4T/ARMv7 $(K
 #Where to look for header files in the architecture directories.
 ARCH_INCLUDES = -I$(KERNEL_DIR)arch/ARM/ARMv4T/ -I$(KERNEL_DIR)arch/ARM/ARMv4T/ARMv7 -I$(KERNEL_DIR)arch/ARM/ARMv4T/ARMv7/Omap3530 -I$(KERNEL_DIR)arch/ARM/ARMv4T/ARMv7/Omap3530/BeBot
 
-UIMAGE_ARCH=arm
+UIMAGE_ARCH = arm
+TARGET  	= armv7
+
+CPU_FLAGS   = -mcpu=cortex-a8 -mfpu=neon -mthumb -DARM_THUMB=1 -mno-unaligned-access

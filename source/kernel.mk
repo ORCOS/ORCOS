@@ -32,8 +32,38 @@ CPPLINT_FILTER=-readability/multiline_string,-whitespace/line_length,-whitespace
 # CPP_CHECK
 CPP_CHECK_INCLUDES=-I$(KERNEL_DIR)inc/ -I./make/ -I$(KERNEL_DIR)comm/lwip/include/ -I$(KERNEL_DIR)comm/lwip/ -I. -I$(KERNEL_DIR) -I$(KERNEL_LIB_DIR)/../../ $(ARCH_INCLUDES) 
 # addition static code checks. Deactivated by default. To be overriden by configuration Makefiles
-CHECKSTYLE=0
-CPPCHECK=0
+CHECKSTYLE = 0
+CPPCHECK   = 0
+
+
+#---------------------------------------------------------------------------------------------------------------------------------------
+#                                                      Compiler Flags
+#---------------------------------------------------------------------------------------------------------------------------------------
+
+# The Linker Script used for this configuration
+LINKERSCRIPT = $(ARCH_DIR)/kernel.ld   
+
+# Optimization flags for gcc and g++
+OPT_FLAGS = -O2 $(CPU_FLAGS) -fno-builtin -flto -fuse-linker-plugin -ffat-lto-objects -fstack-protector-strong $(USER_OPT_FLAGS)
+
+#Command line arguments to gcc.
+CFLAGS    = -Wall -g -I$(KERNEL_DIR)inc/ -I./make/ -I$(KERNEL_DIR)comm/lwip/include/ -I$(KERNEL_DIR)comm/lwip/ -I. -I$(KERNEL_DIR) -I$(KERNEL_LIB_DIR)/../../ $(ARCH_INCLUDES)
+CFLAGS    += -fno-exceptions -fno-unwind-tables -msoft-float -Wno-write-strings -c $(OPT_FLAGS) $(USER_CFLAGS)
+
+#Command line arguments to g++.
+CPFLAGS  = -Wall -g -I$(KERNEL_DIR)inc/ -I./make/ -I$(KERNEL_DIR)comm/lwip/include/ -I$(KERNEL_DIR)comm/lwip/ -I. -I$(KERNEL_DIR) -I$(KERNEL_LIB_DIR)/../../ $(ARCH_INCLUDES) 
+CPFLAGS  += -fno-exceptions -fno-unwind-tables -fno-rtti -msoft-float -c -Wno-write-strings -Wuninitialized -Woverloaded-virtual $(OPT_FLAGS) $(USER_CPFLAGS)
+
+#Command line arguments to the linker.
+LDFLAGS  = -o $(OUTPUT_DIR)/kernel.elf -L$(LIBC_DIR) -L$(GCC_LIB_DIR) -Wl,-Map=$(OUTPUT_DIR)/kernel.map  -lgcc -Wl,--script=$(LINKERSCRIPT) -nostartfiles  $(OPT_FLAGS) $(USER_LDFLAGS) 
+
+#Command line arguments for the gcc to assemble .S files.
+ASFLAGS = -c -g -I$(KERNEL_DIR)inc/ -I. -I./make/ -I$(KERNEL_DIR) $(ARCH_INCLUDES) -flto  -fno-exceptions -fno-rtti $(CPU_FLAGS)
+
+#---------------------------------------------------------------------------------------------------------------------------------------
+#                                                      Static Kernel Objects
+#---------------------------------------------------------------------------------------------------------------------------------------
+
 
 # KOBJ and ARCH_OBJ specify the object-files used for linking.
 # For every .cc, .c or .S file there must be a corresponding entry in the KOBJ or ARCH_OBJ list
@@ -55,7 +85,12 @@ KOBJ += Logger.o Trace.o dwarf.o
 KOBJ += File.o Directory.o Resource.o SimpleFileManager.o SharedMemResource.o FileSystemBase.o Partition.o SysFs.o RamSharedMemoryDevice.o
 #hal
 KOBJ += PowerManager.o CharacterDevice.o BlockDeviceDriver.o TimerDevice.o CommDeviceDriver.o  Clock.o BufferDevice.o
-# KOBJ += USCommDeviceDriver.o
+
+# usb support if controller is available
+ifeq ($(HAS_Board_USB_HCCfd), 1)
+KOBJ += USBDevice.o USBHostController.o USBHub.o USBDeviceDriver.o USBDriverLibrary.o
+endif
+
 #inc
 KOBJ += stringtools.o memtools.o sprintf.o putc.o libgccmath.o endian.o crc32.o random.o
 #kernel
@@ -79,7 +114,7 @@ BUILD_OBJ = $(sort $(OBJ))
 # source locations 
 KERNEL_VPATH = db/ debug/ filesystem/ hal/ inc/ inc/newlib/ kernel/ robust/ mem/ process/ scheduler/ syscalls/ 
 KERNEL_VPATH+= synchro/ comm/ migration/ comm/servicediscovery/ comm/lwip/core/ comm/lwip/core/ipv4/ comm/lwip/netif/ 
-KERNEL_VPATH+= comm/lwip/arch/ comm/lwip/core/ipv6/ comm/hcibluetooth/ arch/shared/ arch/shared/usb arch/shared/power
+KERNEL_VPATH+= comm/lwip/arch/ comm/lwip/core/ipv6/ comm/hcibluetooth/ arch/shared/ arch/shared/usb arch/shared/usb/ethernet arch/shared/usb/storage arch/shared/usb_hc arch/shared/power
 
 # Every directory containing source code must be specified in KERNEL_PATH or ARCH_VPATH, 
 # depending on whether they are common kernel code or specific to the archectiture.
