@@ -611,7 +611,6 @@ int sc_mount(intptr_t int_sp) {
 int sc_rename(intptr_t int_sp) {
     int fd;
     char* filenewname;
-    int retval;
     Resource* res;
 
     SYSCALLGETPARAMS2(int_sp, fd, filenewname);

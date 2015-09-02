@@ -18,15 +18,19 @@
 
 package de.upb.cs.orcos.xml;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
 import javax.xml.XMLConstants;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
@@ -36,6 +40,8 @@ import org.jdom.Attribute;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.input.SAXBuilder;
+import org.jdom.output.Format;
+import org.jdom.output.XMLOutputter;
 import org.xml.sax.SAXException;
 
 /**
@@ -63,12 +69,14 @@ public class SCLReader {
     private static ArrayList<String> arch_objects = new ArrayList<String>();
     private static ArrayList<String> module_objects = new ArrayList<String>();
     private static ArrayList<String> module_addresses = new ArrayList<String>();
-
+ 
     private static StringBuffer archdirbuffer = new StringBuffer();
     private static StringBuffer tasksbuffer = new StringBuffer();
     private static StringBuffer tasksdirbuffer = new StringBuffer();
     private static StringBuffer tasksstartbuffer = new StringBuffer();
     private static StringBuffer tasksendbuffer = new StringBuffer();
+    
+    private static StringBuffer makeDefines = new StringBuffer();
 
     private static StringBuffer tasksprioritybuffer = new StringBuffer();
     private static StringBuffer tasksphasebuffer = new StringBuffer();
@@ -76,6 +84,7 @@ public class SCLReader {
     private static StringBuffer tasksdeadlinedbuffer = new StringBuffer();
     private static StringBuffer tasksexectimebuffer = new StringBuffer();
 
+    private static StringBuffer tasksnamebuffer = new StringBuffer();
 
     private static ArrayList<String> typedefs = new ArrayList();
 
@@ -83,7 +92,7 @@ public class SCLReader {
     // is written as first entry to the DEFAULT_TARGET_TASK_CONFIG_NAME
     private static int numberOfTasks = 0;
 
-    private static int verboselevel = 0;
+    private static int verboselevel = 3;
 
     /**
      * Main method which is called on program startup.
@@ -92,12 +101,11 @@ public class SCLReader {
     public static void main(String[] args) {
 
         if (args.length < 2) {
-            System.out
-                    .println("Usage: path-to-xml-file path-to-xml-schema-file [--output-dir path-to-output-dir][--check-deps path-to-deps-xml-file path-to-deps-schema-file]");
+            System.out.println("Usage: path-to-xml-file path-to-xml-schema-file [--output-dir path-to-output-dir][--check-deps path-to-deps-xml-file path-to-deps-schema-file]");
             System.exit(1);
         }
 
-        String xmlInputFileName = args[0];
+        String xmlInputFileName  = args[0];
         String xmlSchemaFileName = args[1];
 
         String dependencyXML = "";
@@ -106,13 +114,35 @@ public class SCLReader {
         // check whether the configfile should be validated against the deps-xml
         boolean checkAgainstDeps = false;
 
-        for (int i = 1; i < args.length; i++) {
+        for (int i = 0; i < args.length; i++) {
+
+            if (args[i].equals("--generate-deps")) {
+                 dependencyXML = args[++i];
+                 dependencySchema = args[++i];
+
+                  try {
+                      xIncludeDep(new File(dependencyXML).toPath(),new File(dependencyXML).getParent());
+
+                      if (validate(dependencySchema, dependencyXML)) {
+                          if (verboselevel > 0)
+                              System.out.println("SCL Dependencies Definition is valid.");
+                          checkAgainstDeps = true;
+                      }
+                 } catch (Exception e) {
+                      System.err.println("Error generting Dependencies File " + dependencyXML);
+                      System.err.println(e.getMessage());
+                      System.exit(1);
+                 }
+                 System.exit(0);
+            }
+
             if (args[i].equals("--check-deps")) {
                 dependencyXML = args[++i];
                 dependencySchema = args[++i];
+
                 try {
                     if (verboselevel > 0)
-                    System.out.println("Checking against dependencies file: " + new File(dependencyXML).getAbsolutePath());
+                        System.out.println("Checking against dependencies file: "  + new File(dependencyXML).getAbsolutePath());
 
                     if (validate(dependencySchema, dependencyXML)) {
                         if (verboselevel > 0)
@@ -145,7 +175,8 @@ public class SCLReader {
         }
 
         if (verboselevel > 0)
-        System.out.println("Transforming file: " + xmlInputFile.getAbsolutePath());
+        System.out.println("Transforming file: "
+                + xmlInputFile.getAbsolutePath());
 
         try {
             if (validate(xmlSchemaFileName, xmlInputFileName)) {
@@ -162,9 +193,11 @@ public class SCLReader {
         StringBuffer sclConfigBuffer = new StringBuffer();
 
         sclConfigBuffer.append("#ifndef _SCLCONFIG_HH_\r\n#define _SCLCONFIG_HH_\r\n");
+        sclConfigBuffer.append("#ifndef __ASSEMBLER__\r\n #include \"types.hh\"\r\n#endif\r\n");
 
         // This is written to tasktable.S
         StringBuffer taskTableBuffer = new StringBuffer();
+        tasksnamebuffer.append(".section .data\n");
 
          tasksdirbuffer.append("TASKS=(");
          tasksstartbuffer.append("TASKS_START=(");
@@ -245,6 +278,8 @@ public class SCLReader {
 
             bufWrite.write(archdirbuffer.toString());
 
+            bufWrite.write(makeDefines.toString());
+            
             bufWrite.flush();
             bufWrite.close();
             output.close();
@@ -256,6 +291,7 @@ public class SCLReader {
             bufWrite.write(".section .tasktable\n");
             bufWrite.write(".long " + numberOfTasks + ";\n");
             bufWrite.write(taskTableBuffer.toString());
+            bufWrite.write(tasksnamebuffer.toString());
             bufWrite.flush();
             bufWrite.close();
             output.close();
@@ -270,6 +306,100 @@ public class SCLReader {
         if (verboselevel > 0)
         System.out.println("Files written to: " + outputDir.getAbsolutePath());
         System.exit(0);
+    }
+
+    @SuppressWarnings("unchecked")
+    protected static Element getChildByNameTextValue(Element parent, String child, String textValue) {
+        if (parent != null) {
+            List<Element> mainElementsList = parent.getChildren(child);
+            for (int i = 0; i < mainElementsList.size(); i++) {
+                Element element = (Element) (mainElementsList.get(i));
+                 if (element != null) {
+                     String elementName = element.getChildText("Name");
+                     if (elementName != null && elementName.equals(textValue)) {
+                         return element;
+                     }
+                 }
+            }
+        }
+        return null;
+    }
+
+    public static void xIncludeDep(Path depfile, String archDir) throws Exception {
+
+         System.out.println("Parsing " + archDir + " for architecture xml files.");
+         File folder = new File(archDir);
+
+         String inFile = depfile.getParent().toString() + "/SCLBase.xml";
+
+         SAXBuilder saxBuilder = new SAXBuilder(false);
+         Document document = saxBuilder.build(new File(inFile));
+
+         Element dep = document.getRootElement();
+         Element board = getChildByNameTextValue(dep,"Skeleton","Board");
+
+        if (board == null) {
+            System.out.println("No Board Skeleton found.. aborting");
+            System.exit(3);
+        }
+
+
+         for (final File fileEntry : folder.listFiles()) {
+             if (fileEntry.getName().toLowerCase().equals("sclbase.xml") ||
+                 fileEntry.getName().toLowerCase().equals("scldependencies.xml")) continue;
+
+             if (fileEntry.isDirectory() == false) {
+                 System.out.println("\nIncluding " + fileEntry.getName());
+
+                 SAXBuilder saxBuilder2 = new SAXBuilder(false);
+                 try {
+                     Document document2 = saxBuilder2.build(fileEntry);
+                     Element root = document2.getRootElement();
+                     Element boardElement = getChildByNameTextValue(root,"Skeleton","Board");
+                     List<Element> superclasses = root.getChildren("Superclasses");
+                     for (Element e : superclasses) {
+                         System.out.println("  Adding Board Definitions");
+                         board.getChild("Superclasses").addContent(e.cloneContent());
+                     }
+                     // add all devices defined inside the file
+                     List<Element> devices = root.getChildren("Device");
+                     if (devices.size() > 0)
+                         System.out.print("  Adding Devices Definitions:\n  ");
+
+                     for(Element device : devices) {
+                         String[] names = device.getAttributeValue("Name").split(",");
+                         for (String name : names) {
+                              Element memberElement = getChildByNameTextValue(board,"Member",name);
+                              if (memberElement != null) {
+                                  System.out.print(name + " ");
+                                  memberElement.getChild("Classes").addContent(device.cloneContent());
+                              } else {
+                                  // Create the element
+                                  Element e = new Element("Member");
+                                  System.out.print(name + " ");
+                                  e.addContent(new Element("Name").setText(name));
+                                  Element e_classes = new Element("Classes");
+                                  e_classes.addContent(device.cloneContent());
+                                  e.addContent(e_classes);
+                                  board.addContent(e);
+                              }
+                         }
+                     }
+
+                 } catch (Exception e) {
+                       System.out.println("Ignoring file due to exception: " + e.getMessage());
+                 }
+               }
+         }
+
+
+         XMLOutputter xmlOutput = new XMLOutputter();
+
+         // display nice nice
+         xmlOutput.setFormat(Format.getPrettyFormat());
+         System.out.println("\nWriting final Dependency file: " + depfile.toString());
+
+         xmlOutput.output(document, new FileWriter(depfile.toString()));
     }
 
 
@@ -312,10 +442,8 @@ public class SCLReader {
             String depsFile, StringBuffer configBuffer,
             StringBuffer taskTableBuffer) throws Exception {
 
-        SAXBuilder saxBuilder = new SAXBuilder(false);
-
-        Document document = saxBuilder.build(new File(filename));
-
+        SAXBuilder saxBuilder       = new SAXBuilder(false);
+        Document document           = saxBuilder.build(new File(filename));
         List<Element> rootChildList = document.getRootElement().getChildren();
 
         // these variables are only created and later used if --check-deps
@@ -325,7 +453,7 @@ public class SCLReader {
 
         if (checkDeps) {
             dependenciesDocument = saxBuilder.build(new File(depsFile));
-            dependenciesList = dependenciesDocument.getRootElement().getChildren();
+            dependenciesList     = dependenciesDocument.getRootElement().getChildren();
         }
 
         // iterate over all found nodes and process them
@@ -360,10 +488,10 @@ public class SCLReader {
                             for (Element dependencyElement : dependenciesList) {
                                 if (dependencyElement.getChildText("Name").equals(skeletonName)) {
 
-                                    if (checkSkeletonDependencies(sclNode,dependencyElement)) {
+                                    if (checkSkeletonDependencies(sclNode, dependencyElement)) {
                                         // the current node is valid against its
                                         // dependencies
-                                        processSkeletonNode(sclNode,configBuffer);
+                                        processSkeletonNode(sclNode, configBuffer);
                                         found = true;
                                         break;
 
@@ -450,6 +578,8 @@ public class SCLReader {
         // SCLDependencies
         String skeletonName = skeleton.getChildText("Name");
         Element superclassElement = skeleton.getChild("Superclass");
+
+        Element depSuperClassElement = null;
         if (superclassElement != null) {
 
             // superclass exists in skeleton
@@ -471,6 +601,7 @@ public class SCLReader {
                 // System.out.println("Diffing: " + dClass.getValue() +
                 // " against: " + superclass);
                 if (depSuperclassItem.getAttributeValue("Name").equals(superclassValue)) {
+                    depSuperClassElement = depSuperclassItem;
                     found = true;
                     break;
                 }
@@ -486,7 +617,35 @@ public class SCLReader {
         // SCLDependencies
         List<Element> memberList = skeleton.getChildren("Member");
         List<Element> depMemberList = dependencies.getChildren("Member");
+        List<Element> mandatoryDepMember =  depSuperClassElement.getChildren("MemberRef");
 
+        // check if every dependent member has a configuration!
+        for (Element depMember : mandatoryDepMember) {
+            //System.out.println("MemberRef: " + depMember.getAttributeValue("Name").trim());
+            String depMemberName = depMember.getAttributeValue("Name").trim();
+            boolean found = false;
+            for (Element member : memberList) {
+                if (member.getAttributeValue("Name").trim().equals(depMemberName)) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                if (skeletonName.equals("SyscallManager")) {
+                    // not configuring syscalls is ok and just triggers a warning
+                    System.out.println("Warning: Syscall '" + depMemberName + "' not found in configuration. Assuming unavailable!");
+                    Element sc = new Element("Member");
+                    skeleton.addContent(sc);
+                    sc.setAttribute("Name", depMemberName);
+                    sc.setAttribute("None","true");
+                } else {
+                    System.err.println("Error: Mandatory member '" + depMemberName + "' of Skeleton " + skeletonName + " not found in configuration!");
+                    return false;
+                }
+            }
+        }
+
+        // check if every configured member is valid!
         for (Element memberItem : memberList) {
 
             String memberName = memberItem.getAttributeValue("Name").trim();
@@ -507,7 +666,7 @@ public class SCLReader {
                         String depClassValue = depClassItem.getAttributeValue("Name").trim();
                         if (memberClass.equals(depClassValue)) {
                             found = true;
-                            if (verboselevel > 1)
+                            if (verboselevel > 4)
                             System.out.println("Checked member: " + memberName
                                     + " ::= " + memberClass);
                             break;
@@ -537,11 +696,14 @@ public class SCLReader {
 
         if (defineNode.getChildText("Name").equals("ENABLE_NETWORKING") && defineNode.getChildText("Value").equals("1"))
         {
-            // add networking objects
+            // add networking objects.. this could be managed inside the files
+            // but we want compiling to be fast so we avoid touching them if
+            // networking is disabled
             arch_objects.add("Socket.o");
             arch_objects.add("ProtocolPool.o");
             arch_objects.add("TCPTransportProtocol.o");
             arch_objects.add("IPv4AddressProtocol.o");
+            arch_objects.add("UDPTransportProtocol.o");
             arch_objects.add("etharp.o");
             arch_objects.add("ip.o");
             arch_objects.add("init.o");
@@ -564,24 +726,19 @@ public class SCLReader {
             arch_objects.add("ip6_addr.o");
             arch_objects.add("ip6.o");
             arch_objects.add("dhcp.o");
+            arch_objects.add("dns.o");
             arch_objects.add("icmp.o");
             arch_objects.add("icmp6.o");
             arch_objects.add("ethar.o");
             arch_objects.add("ethndp.o");
-            arch_objects.add("lwipTMR.o");
             arch_objects.add("FixedSizePBufList.o");
         }
 
         // add workertask files
         if (defineNode.getChildText("Name").equals("USE_WORKERTASK") && defineNode.getChildText("Value").equals("1"))
         {
-            arch_objects.add("WorkerThread.o");
-            arch_objects.add("WorkerTask.o");
-        }
-        if (defineNode.getChildText("Name").equals("HAS_PROCFS_ENABLED") && defineNode.getChildText("Value").equals("1"))
-        {
-            arch_objects.add("SimpleDebugCollector.o");
-            arch_objects.add("SimpleProcfs.o");
+            arch_objects.add("KernelThread.o");
+            arch_objects.add("KernelTask.o");
         }
 
     }
@@ -593,21 +750,39 @@ public class SCLReader {
      * @param outBuffer
      */
     private static void processTaskNode(Element taskNode,
-            StringBuffer taskBuffer) {
+            StringBuffer taskBuffer) throws Exception  {
 
         String start = taskNode.getChildText("Start");
         if (start != null) {
             taskBuffer.append(".long " + start + ";\n");
+        } else {
+            throw new Exception("Task: " + taskNode + " had no start address");
         }
 
+        numberOfTasks++;
         tasksbuffer.append(taskNode.getChildText("Path") + " ");
         tasksdirbuffer.append(taskNode.getChildText("Path") + " ");
         tasksstartbuffer.append(taskNode.getChildText("Start") + " ");
         tasksendbuffer.append(taskNode.getChildText("Size") + " ");
 
+        /* append size of memory area reserved for this initial task */
         taskBuffer.append(".long " + taskNode.getChildText("Size") + ";\n");
+        /* append pointer to name */
+        taskBuffer.append(".long task" + numberOfTasks + "_name;\n");
 
-        numberOfTasks++;
+        /* get the task name*/
+        String taskname = "Task_" + numberOfTasks;
+
+        String filepath = taskNode.getChildText("Path");
+        try {
+            String dirname = new File(filepath).getName();
+            taskname = dirname;
+        } catch (Exception e) {
+
+        }
+
+        tasksnamebuffer.append("task"  + numberOfTasks + "_name:\n");
+        tasksnamebuffer.append(".ascii \"" + taskname + "\\0\"\n");
 
         // get PriorityOptions
         Element priorityOptions = taskNode.getChild("PriorityOptions");
@@ -678,35 +853,26 @@ public class SCLReader {
             StringBuffer outBuffer) throws Exception {
 
         String templateString = "";
-        // required
         String className = skeletonNode.getChild("Name").getValue().trim();
         outBuffer.append("\r\n// Configuration of class " + className + "\r\n #ifndef __ASSEMBLER__\r\n");
 
-        // optional
         String superClassName = null;
 
-        // ================= <Superclass> ============================
-
+        // write superclass configuration to out buffer
         Element superClassNode = skeletonNode.getChild("Superclass");
         if (superClassNode != null) {
             superClassName = superClassNode.getValue().trim();
-
             outBuffer.append("#define " + className + "Cfd_hh <"
                     + superClassName + ".hh>\r\n");
             outBuffer.append("#define "    + className    + "CfdCl "
                     + superClassName.substring(superClassName.lastIndexOf("/") + 1)
                     + templateString + "\r\n");
-
-            if (verboselevel > 2) System.out.println("Superclass #define created for: " + superClassName);
-
         }
-        // ================= </Superclass> ============================
-
 
         if (className.equals("Board")) {
             // check superclass and set ARCH_DIR appropriately
             archdirbuffer.append("ARCH_DIR = $(KERNEL_DIR)");
-            String s = superClassName.substring(0,superClassName.lastIndexOf("/"));
+            String s = superClassName.substring(0, superClassName.lastIndexOf("/"));
             archdirbuffer.append(s);
             archdirbuffer.append("/\n");
             if (verboselevel > 2) System.out.println("ARCH_DIR: " + s);
@@ -720,7 +886,12 @@ public class SCLReader {
             String memberClassName = memberNode.getAttributeValue("Class","").trim();
 
 
-            if (verboselevel > 2) System.out.println("Processing '" + memberName + "' (" + memberClassName + ")");
+            if (verboselevel > 2) {
+                if (memberClassName.isEmpty())
+                    System.out.printf("Processing %-30s ",memberName);
+                else
+                    System.out.printf("Processing %-30s [%s]", memberName, memberClassName);
+            }
 
 
             boolean isNone = false;
@@ -761,7 +932,7 @@ public class SCLReader {
                         // only build object if its not a dummy object
                         arch_objects.add(memberClassFileName + ".o");
                     } else {
-                        System.out.println("Warning: not adding " + memberClassFileName + " to object list (Dummy* Filter)!");
+                        //System.out.println("Warning: not adding " + memberClassFileName + " to object list (Dummy* Filter)!");
                     }
 
                 }
@@ -773,14 +944,7 @@ public class SCLReader {
                     arch_objects.add(memberClassFileName + ".o");
                 }
             }
-
-
-            if (superClassName.contains("usb/")){
-                if (!isNone ){
-                    arch_objects.add("USBDriverLibrary.o");
-                }
-            }
-
+        
 
             if (className.equals("Kernel") && !isNone) {
 
@@ -792,17 +956,22 @@ public class SCLReader {
 
             }
 
-            //Element deviceNode = memberNode.getChild("Device");
-            //Element addressNode = memberNode.getChild("Address");
-            //Element lengthNode = memberNode.getChild("Length");
-            //Element uniqueIDNode = memberNode.getChild("UniqueID");
-            //Element ip4addrNode = memberNode.getChild("IP4Addr");
-            //Element ip4netmaskNode = memberNode.getChild("IP4NetMask");
-
-            //
 
             outBuffer.append("\r\n// Configuration of member " + memberName
                     + " of class " + className + "\r\n");
+
+            if (className.equals("SyscallManager")){
+                // Syscall manager syscall definition
+                if (!isNone) {
+                    /* declare the syscall method */
+                    outBuffer.append("int sc_" + memberName + "(intptr_t sp_int);\r\n");
+                    System.out.print(" [Syscall available]");
+                } else {
+                    /* redirect syscall handler to default implementation */
+                    outBuffer.append("#define sc_" + memberName + " sc_default_handler\r\n");
+                    System.out.print(" [Syscall unavailable]");
+                }
+            }
 
             String property_init = "";
             String constructor = ""; //generateConstructorString(memberNode);
@@ -850,9 +1019,13 @@ public class SCLReader {
                 outBuffer.append("#define HAS_" + className + "_" + memberName
                         + "Cfd 1\r\n");
 
+                makeDefines.append("HAS_" + className + "_" + memberName + "Cfd := 1\n");
+                
                 outBuffer.append("#define " + className + "_" + memberName
                         + "_IN_USERSPACE " + (isUserspace ? "1" : "0") + "\r\n");
             }
+
+
 
             if (memberClassName != "") {
                 if (!isUserspace) {
@@ -922,7 +1095,11 @@ public class SCLReader {
                             + "() { return 0; }\r\n");
                 }
             }
+
+            System.out.println(" ");
         }
+
+
 
         outBuffer.append("#endif\r\n");
     }

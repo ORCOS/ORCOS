@@ -9,10 +9,23 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
+
+class Symbol {
+    String   name;
+    long     address;
+    long     length;
+    String   section;
+}
+
 
 public class TaskSigner {
 
@@ -85,8 +98,8 @@ public class TaskSigner {
                 int crcend   = hton(readWord(in));
 
                 // TODO: detect the following two positions by parsing the headers
-                int CRCFieldOffset  = 68;
-                int taskStartOffset = 72;
+                int CRCFieldOffset  = 76;
+                int taskStartOffset = 80;
                 int taskEndOffset   = taskStartOffset + (crcend - crcstart);
                 System.out.println("Calculating checksum over " + Integer.toHexString(crcstart) + " - " + Integer.toHexString(crcend));
                 System.out.println("File position: " + taskStartOffset + " - " + taskEndOffset);
@@ -127,111 +140,106 @@ public class TaskSigner {
     }
 
 
-    public static void generateStringTable(String file) throws IOException {
-        BufferedReader br = new BufferedReader(new FileReader(file));
+      public static void generateStringTable(String file) throws IOException {
+            BufferedReader br = new BufferedReader(new FileReader(file));
 
-        try {
+            HashMap<Long,Symbol> symbols = new HashMap<Long,Symbol>();
 
-            String outfile = file;
-            outfile = outfile.substring(0, outfile.lastIndexOf("."));
-            outfile += "_strtable.c";
-            System.out.println("Outfile: " + outfile);
-            BufferedWriter writer = new BufferedWriter(new FileWriter(outfile));
-            writer.write("typedef struct {  unsigned int address;  unsigned int length; char* signature;} DebugStrTableT;\n DebugStrTableT debug_strtable[] = {");
-            String line = br.readLine();
+            /* first parse the map file */
+            Pattern section           = Pattern.compile("\\s*\\.([a-zA-Z_]+).*");
+            Pattern sectionlen        = Pattern.compile("\\s*\\.([a-zA-Z_]+)\\s+0x([0-9a-f]+)\\s+0x([0-9a-f]+).*");
+            Pattern regex_symbol      = Pattern.compile("\\s+0x([0-9a-f]+)\\s+(.+)");
+            try {
+              String line = br.readLine();
+              String currentSection = null;
+              long sectionAddr   = 0;
+              long sectionLength = 0;
+              long lastSymbolAddr = 0;
+              Symbol lastSymbol = null;
+              while (line != null) {
+                   /* read the complete file*/
 
-            long address = -1;
-            int length = 0;
-            String signature;
-            boolean textSection = false;
+                  Matcher sectionMatcher = sectionlen.matcher(line);
+                  if(sectionMatcher.matches()) {
+                      currentSection = sectionMatcher.group(1);
+                      sectionAddr    = Long.parseLong(sectionMatcher.group(2),16);
+                      sectionLength  = Long.parseLong(sectionMatcher.group(3),16);
+                  }
 
-            Pattern regex_methodrange = Pattern.compile("\\s+0x([0-9a-f]+)\\s+0x([0-9a-f]+).*");
-            Pattern regex_methodname  = Pattern.compile("\\s+0x([0-9a-f]+)\\s+(.+).*");
-            Pattern textsection       = Pattern.compile("\\s*\\.text\\.(.+)");
-            Pattern section           = Pattern.compile("\\s*\\.([a-zA-Z_]+)\\..+");
+                  /* check for a symbol */
+                  Matcher symbolMatcher = regex_symbol.matcher(line);
+                  if (symbolMatcher.matches() && sectionLength > 0) {
+                      /* found a symbol definition like 0xaddress  Symbol*/
+                      long address = Long.parseLong(symbolMatcher.group(1),16);
 
-            Pattern sectionlen        = Pattern.compile("\\s*\\.text\\.(.+)\\s+0x([0-9a-f]+)\\s+0x([0-9a-f]+).*");
-            int entries = 0;
+                      if (lastSymbol != null) {
+                          if (lastSymbol.length == 0) {
+                              /* update the length as it is now known */
+                              lastSymbol.length = address - lastSymbol.address;
+                              if (lastSymbol.length < 0) {
+                                  lastSymbol.length = 0;
+                              }
+                          }
+                      }
 
-            while (line != null) {
+                      String symbolname = symbolMatcher.group(2);
+                      Symbol s  = new Symbol();
+                      s.address = address;
+                      s.name = symbolname;
+                      if (lastSymbolAddr != 0) {
+                          s.length = address - lastSymbolAddr;
+                      }
+                      s.section = currentSection;
+                      symbols.put(new Long(address), s);
+                      lastSymbol = s;
+                  }
 
-                signature = "";
-                address = 0;
-                length = 0;
+                  line = br.readLine();
+              }
 
-                // try to detect c-style strings as .text.tcp_tmr  0x8100af80       0x24 ./output/\liborcoskernel.a(tcp.o)
-                Matcher mall = sectionlen.matcher(line);
-                if(mall.matches()) {
-                     signature      = mall.group(1);
-                     address        = Long.parseLong(mall.group(2),16);
-                     length         = Integer.parseInt(mall.group(3),16);
-                     // check if next line contains more readable name
-                     line = br.readLine();
-                     Matcher nameMatcher = regex_methodname.matcher(line);
-                     if (nameMatcher.matches()) {
-                         signature = nameMatcher.group(2);
-                     }
-                     writer.write("{ 0x" + Long.toHexString(address) + ", " + length + ", \"" + signature + "\"},\n");
-                    entries++;
-                }
-
-                Matcher m0 = section.matcher(line);
-                if (m0.matches()) {
-                    if (m0.group(1).equals("text")) {
-                        textSection    = true;
-                        address        = 0;
-                        length         = 0;
-
-                        Matcher m1     = textsection.matcher(line);
-                        if (m1.matches()) {
-                            signature      = m1.group(1);
-                           // System.out.println(" Method: " + signature);
-                        }
-
-
-                        line = br.readLine();
-                        Matcher m = regex_methodrange.matcher(line);
-                        if (m.matches()) {
-                            // method start
-                            address = Long.parseLong(m.group(1),16);
-                            length  = Integer.parseInt(m.group(2),16);
-
-                            line = br.readLine();
-
-                            Matcher m2 = regex_methodname.matcher(line);
-                            if (m2.matches()) {
-                                signature = m2.group(2);
-                                if (address != 0 && length > 0 && textSection) {
-                                    //System.out.println("Address: " + address + " length: " + length + " Method: " + signature);
-                                    writer.write("{ 0x" + Long.toHexString(address) + ", " + length + ", \"" + signature + "\"},\n");
-                                    entries++;
-                                }
-                            } else {
-                                // just add using the section name
-                                if (address != 0 && length > 0 && textSection && !signature.equals("")) {
-                                    //System.out.println("Address: " + address + " length: " + length + " Method: " + signature);
-                                    writer.write("{ 0x" + Long.toHexString(address) + ", " + length + ", \"" + signature + "\"},\n");
-                                    entries++;
-                                }
-                            }
-
-                        }
-
-                    }
-                }
-
-
-                line = br.readLine();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
 
-            writer.write("};\n unsigned int debug_strtable_entries = " + entries +";\n");
-            writer.close();
-        } finally {
-          br.close();
+
+
+            try {
+                int entries = 0;
+                String outfile = file;
+                outfile = outfile.substring(0, outfile.lastIndexOf("."));
+                outfile += "_strtable.c";
+                System.out.println("Outfile: " + outfile);
+                BufferedWriter writer = new BufferedWriter(new FileWriter(outfile));
+                writer.write("typedef struct { unsigned int address;  unsigned int length; char signature[64];} __attribute__((packed)) DebugStrTableEntriesT;\ntypedef struct { unsigned int numEntries; DebugStrTableEntriesT strTable[]; } __attribute__((packed)) DebugStrTableT;\nDebugStrTableT debug_strtable = {");
+
+                String strentries = "";
+
+                SortedSet<Long> keys = new TreeSet<Long>(symbols.keySet());
+                for (Long key : keys) {
+                    Symbol s = symbols.get(key);
+
+                    if (s.section.startsWith("text")) {
+                        // write entry
+                        //System.out.println("Address: " + s.address + " length: " + (s.length) + " Method: " + s.name);
+                        String signature = s.name.replace("\\", "_");
+                        signature.trim();
+                        signature = signature.substring(0, Math.min(63, signature.length()));
+
+                        strentries += "{ 0x" + Long.toHexString(s.address) + ", " + (s.length) + ", \"" + signature + "\"},\n";
+                        entries++;
+                    }
+                }
+                writer.write("" + entries +",{\n");
+                writer.write(strentries);
+                writer.write("}};");
+                System.out.println("Debug Table contains " + entries + " Symbols\n");
+                writer.close();
+            } catch (Exception e) {
+              e.printStackTrace();
+            }
+            br.close();
+
         }
-
-
-    }
 
     /**
      * @param args

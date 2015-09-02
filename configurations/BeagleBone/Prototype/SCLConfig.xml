@@ -102,6 +102,10 @@
         <PropertyValue Name="Name" Value="eth0" Type="char*" />
         <PropertyValue Name="INTC_IRQ" Value="41" Type="unsigned int" />
         <PropertyValue Name="INTC_Priority" Value="40" Type="unsigned int" />
+        <PropertyValue Name="INTC_RX0_IRQ" Value="41" Type="unsigned int" />
+        <PropertyValue Name="INTC_RX0_Priority" Value="10" Type="unsigned int" />
+        <PropertyValue Name="INTC_TX0_IRQ" Value="42" Type="unsigned int" />
+        <PropertyValue Name="INTC_TX0_Priority" Value="10" Type="unsigned int" />
       </Member>
       <Member Name="SPI" Class="arch/ARM/ARMv4T/ARMv7/Omap3530/Omap3530SPI" None="false" UserSpace="false" PhyLoadAddress="0x0">
         <PropertyValue Name="Address" Value="0x48030000" Type="unsigned int" />
@@ -193,8 +197,7 @@
     </Skeleton>
     <Skeleton>
       <Name>USBDriver</Name>
-      <Superclass>usb/USBDeviceDriverLibrary</Superclass>
-      <Member Name="Factory" Class="usb/USBDeviceDriverFactory" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Superclass>usb/USBDeviceDriverLibrary</Superclass>      
       <Member Name="SMSC95xx" Class="usb/SMSC95xxUSBDeviceDriver" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="MassStorage" Class="usb/MassStorageSCSIUSBDeviceDriver" None="false" UserSpace="false" PhyLoadAddress="0x0" />
     </Skeleton>

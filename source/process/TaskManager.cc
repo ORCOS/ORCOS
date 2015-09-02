@@ -240,7 +240,7 @@ ErrorT TaskManager::checkValidTask(taskTable* taskCB) {
  *---------------------------------------------------------------------------*/
 void TaskManager::initialize() {
     unint1 num_tasks = tasktable;
-    register Kernel_MemoryManagerCfdCl* OSMemManager = theOS->getMemoryManager();
+    //register Kernel_MemoryManagerCfdCl* OSMemManager = theOS->getMemoryManager();
 
     LOG(KERNEL, INFO, "Creating Initial Tasks");
 
@@ -251,14 +251,14 @@ void TaskManager::initialize() {
     for (unint1 i = 1; i <= num_tasks; i++) {
         /* get the taskTable of task number i */
         taskTable* task_info = initTask->tasktable;
-        unint4 size = initTask->size;
-        char* taskname = initTask->name;
+        unint4 size          = initTask->size;
+        char* taskname       = initTask->name;
 
         LOG(KERNEL, INFO, "TaskCB @0x%x", task_info);
 
         /* create the memory manager for the task. The memory manager will be inside the
          * kernel space */
-        void* memaddr = OSMemManager->alloc(sizeof(Kernel_MemoryManagerCfdCl), true);
+        //void* memaddr = OSMemManager->alloc(sizeof(Kernel_MemoryManagerCfdCl), true);
 
 #ifndef HAS_Board_HatLayerCfd
 

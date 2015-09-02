@@ -25,7 +25,7 @@ extern Kernel* theOS;
 #define CM_FCLKEN3_CORE         0x48004a08
 #define CM_ICLKEN3_CORE         0x48004a18
 
-#define SETBITS(a, UP, LOW, val) a = ((a & ~(( (1 << (UP - LOW + 1)) -1) << LOW)) | ((val & ((1 << (UP - LOW + 1)) -1)) << LOW))
+//#define SETBITS(a, UP, LOW, val) a = ((a & ~(( (1 << (UP - LOW + 1)) -1) << LOW)) | ((val & ((1 << (UP - LOW + 1)) -1)) << LOW))
 
 #define ADDRESS_GROUP_ID3       0x4a
 #define LEDEN_PHYSICAL_ADDRESS  0xEE

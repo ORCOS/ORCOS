@@ -114,7 +114,7 @@ public:
      *  Handles Timer IRQS from this device. Provides the functionality for
      *  ultra low latency thread activations.
      *******************************************************************************/
-    ErrorT handleIRQ();
+    ErrorT handleIRQ(int irq);
 
     /*****************************************************************************
      * Method: ioctl(int request, void* args)

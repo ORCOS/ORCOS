@@ -78,7 +78,7 @@ Omap3530UART::Omap3530UART(T_Omap3530UART_Init* init) :
 
     //Switch to register operational mode to access the UARTi.IER_REG register
     OUTW(baseAddr + UART_LCR_REG_OFFSET, 0x0000);
-    enableIRQ();
+    enableIRQ(init->INTC_IRQ);
 
     // Switch to register configuration mode B
     OUTW(baseAddr + UART_LCR_REG_OFFSET, 0x00BF);
@@ -97,7 +97,7 @@ Omap3530UART::Omap3530UART(T_Omap3530UART_Init* init) :
 
     OUTW(baseAddr + UART_FCR_REG_OFFSET, 0x00);
 
-    disableIRQ();
+    disableIRQ(init->INTC_IRQ);
 }
 
 /*****************************************************************************
@@ -106,7 +106,7 @@ Omap3530UART::Omap3530UART(T_Omap3530UART_Init* init) :
  * @description
  *  Enables IRQ generation from the UART
  *******************************************************************************/
-ErrorT Omap3530UART::enableIRQ() {
+ErrorT Omap3530UART::enableIRQ(int irq) {
     // enable all irqs within UART module
     OUTW(baseAddr + UART_IER_REG_OFFSET, (INW(baseAddr + UART_IER_REG_OFFSET) | UART_IER_MODEM | UART_IER_LINE | UART_IER_THR | UART_IER_RHR));
     return (cOk );
@@ -118,7 +118,7 @@ ErrorT Omap3530UART::enableIRQ() {
  * @description
  *  Disables IRQ generation from the UART
  *******************************************************************************/
-ErrorT Omap3530UART::disableIRQ() {
+ErrorT Omap3530UART::disableIRQ(int irq) {
     // disable all irqs
     OUTW(baseAddr + UART_IER_REG_OFFSET, (INW(baseAddr + UART_IER_REG_OFFSET) & ~(UART_IER_MODEM | UART_IER_LINE | UART_IER_THR | UART_IER_RHR)));
     return (cOk );
@@ -166,7 +166,7 @@ ErrorT Omap3530UART::writeBytes(const char* bytes, unint4 length) {
  * @description
  *
  *******************************************************************************/
-ErrorT Omap3530UART::handleIRQ() {
+ErrorT Omap3530UART::handleIRQ(int irq) {
     return (cError );
 }
 

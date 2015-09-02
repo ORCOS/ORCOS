@@ -127,7 +127,7 @@ public:
      * @description
      *  Clears the IRQ request flag.
      *******************************************************************************/
-    inline ErrorT clearIRQ() {
+    inline ErrorT clearIRQ(int irq) {
         /* reset timer interrupt pending bit */
         hwregs->tisr = 0xf;
         return (cOk);

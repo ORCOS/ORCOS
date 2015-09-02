@@ -121,37 +121,22 @@ void KernelServiceThread::callbackFunc(void* param) {
     LOG(KERNEL, TRACE, "MemoryManager service!");
     theOS->getMemoryManager()->service();
 
-    /* iterate over all tasks and threads to check for the blocked state */
-    LinkedList* llt = theOS->getTaskDatabase();
-
-    int irqstatus;
-    DISABLE_IRQS(irqstatus);
-
-    // TODO this is not safe against concurrent modification!
+    /* Perform unblock on timeout operation */
+    LinkedList* llt = theOS->getDispatcher()->getBlockedlist();
+    llt->lock();
     for (LinkedListItem* lldi = llt->getHead(); lldi != 0; lldi = lldi->getSucc()) {
-        Task* task = static_cast<Task*>(lldi->getData());
-
-        LinkedList* lltask = task->getThreadDB();
-        for (LinkedListItem* lldthread = lltask->getHead(); lldthread != 0; lldthread = lldthread->getSucc()) {
-            RealTimeThread* thread = static_cast<RealTimeThread*>(lldthread->getData());
-
-/*            const char* statusStr = getStatusStr(thread->getStatus());
-
-            printf("%2u %5u %8s\t%10u\t {%s}"LINEFEED
-                   , task->getId(),thread->getId(),statusStr,(unint4)thread->effectivePriority,thread->getName());*/
-
-            if (thread->isBlocked() && thread->blockTimeout > 0) {
-                if (thread->blockTimeout <= 250 ms) {
-                    // unblock the thread
-                    thread->blockTimeout = 0;
-                    thread->unblock();
-                } else {
-                    thread->blockTimeout -= 250 ms;
-                }
+        Thread* thread = static_cast<Thread*>(lldi->getData());
+        if (thread->isBlocked() && thread->blockTimeout > 0) {
+            if (thread->blockTimeout <= 250 ms) {
+                /* unblock the thread */
+                thread->blockTimeout = 0;
+                thread->unblock();
+            } else {
+                thread->blockTimeout -= 250 ms;
             }
         }
     }
-    RESTORE_IRQS(irqstatus);
+    llt->unlock();
 
     LOG(KERNEL, TRACE, "Flushing Kernel Log!");
     /* Perform logger flush */

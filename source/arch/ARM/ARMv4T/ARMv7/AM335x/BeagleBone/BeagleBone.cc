@@ -124,9 +124,9 @@ extern Board_ClockCfdCl* theClock;
 static t_mapping AM335xMappings[5] = {
     { 0x0,        0x0,        0x100000,  hatProtectionExecute | hatProtectionRead, 0 },                       /* AM335x ROM vectors  (1 MB) */
     { 0x40300000, 0x40300000, 0x10000,   hatProtectionExecute | hatProtectionRead | hatProtectionWrite, 0 },  /* SRAM IRQ vectors (64 KB)  */
-    { 0x44C00000, 0x44C00000, 0x400000,  hatProtectionRead | hatProtectionWrite, hatCacheInhibit },           /* L4_WKUP Domain (4 MB)) */
-    { 0x48000000, 0x48000000, 0x1000000, hatProtectionRead | hatProtectionWrite, hatCacheInhibit },           /* L4_PER (16 MB) */
-    { 0x4a000000, 0x4a000000, 0x1000000, hatProtectionRead | hatProtectionWrite, hatCacheInhibit }            /* L4_FAST (16 MB) */
+    { 0x44C00000, 0x44C00000, 0x400000,  hatProtectionRead | hatProtectionWrite, hatCacheMMIO },           /* L4_WKUP Domain (4 MB)) */
+    { 0x48000000, 0x48000000, 0x1000000, hatProtectionRead | hatProtectionWrite, hatCacheMMIO },           /* L4_PER (16 MB) */
+    { 0x4a000000, 0x4a000000, 0x1000000, hatProtectionRead | hatProtectionWrite, hatCacheMMIO }            /* L4_FAST (16 MB) */
 };
 
 /* The important architecture kernel mapping structure */

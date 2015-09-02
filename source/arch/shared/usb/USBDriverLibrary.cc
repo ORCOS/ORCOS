@@ -8,6 +8,14 @@
 #include "USBDriverLibrary.hh"
 #include "kernel/Kernel.hh"
 
+#if HAS_USBDriver_SMSC95xxCfd
+#include "arch/shared/usb/ethernet/SMSC95xxUSBDeviceDriver.hh"
+#endif
+
+#if HAS_USBDriver_MassStorageCfd
+#include "arch/shared/usb/storage/MassStorageSCSIUSBDeviceDriver.hh"
+#endif
+
 extern Kernel *theOS;
 
 USBDriverLibrary::USBDriverLibrary() :

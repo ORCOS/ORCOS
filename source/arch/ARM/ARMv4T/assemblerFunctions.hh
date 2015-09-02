@@ -23,7 +23,8 @@
 #include "SCLConfig.hh"
 #include "ARMv4T.h"
 #include "inc/types.hh"
-#include "process/Thread.hh"
+
+class Thread;
 #endif
 
 extern void* __PageTableSec_start;
@@ -273,7 +274,7 @@ extern void* __PageTableSec_start;
                         "MOV r0, #0; " \
                         "MCR p15, 0, r0, c7, c5, 4;" \
                         "mov r0, %3;" \
-                        "b _ZN12WorkerThread4workEv;" \
+                        "b _ZN12KernelThread4workEv;" \
                         : \
                         : "r" (&__PageTableSec_start), "r" (pid) , "r" (stack_addr), "r" (objectptr)\
                         : "r0", "r1" , "memory")

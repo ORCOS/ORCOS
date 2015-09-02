@@ -44,7 +44,7 @@ public:
      * @description
      *
      *******************************************************************************/
-    ErrorT handleIRQ(unint4 irq);
+    ErrorT handleInterruptIRQ(unint4 irq);
 
     /*****************************************************************************
      * Method: registerIRQ(unint4 irq, GenericDeviceDriver* driver, unint4 priority)

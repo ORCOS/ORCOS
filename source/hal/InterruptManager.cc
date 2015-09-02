@@ -42,7 +42,7 @@ InterruptManager::~InterruptManager() {
  * @description
  *
  *******************************************************************************/
-ErrorT InterruptManager::handleIRQ(unint4 irq) {
+ErrorT InterruptManager::handleInterruptIRQ(unint4 irq) {
     ErrorT ret = cError;
 
     if (irq >= IRQ_MAX) {
@@ -69,13 +69,14 @@ ErrorT InterruptManager::handleIRQ(unint4 irq) {
     }
 
     /* disable further IRQs on this source and continue executing */
-    irqTable[irq].driver->disableIRQ();
-    irqTable[irq].driver->clearIRQ();
+    irqTable[irq].driver->disableIRQ(irq);
+    irqTable[irq].driver->clearIRQ(irq);
     theOS->getBoard()->getInterruptController()->clearIRQ(irq);
 
     /* IRQ handler shall be directly executed? */
     if (irqTable[irq].flags & IRQ_NOTHREAD) {
-        irqTable[irq].driver->handleIRQ();
+        irqTable[irq].driver->handleIRQ(irq);
+        irqTable[irq].driver->enableIRQ(irq);
         ret = cOk;
         goto out;
    } else {
@@ -86,6 +87,7 @@ ErrorT InterruptManager::handleIRQ(unint4 irq) {
           goto out;
        }
 
+        /* unblock thread for IRQ. will cause rescheduling on return if the priority of the thread forces preemption */
        irqTable[irq].pWThread->unblock();
        irqTable[irq].driver->hasAssignedWorkerThread   = true;
        irqTable[irq].driver->interruptPending          = true;
@@ -95,8 +97,8 @@ ErrorT InterruptManager::handleIRQ(unint4 irq) {
 #else
     /* directly execute the interrupt handler as we can not schedule it any way*/
     if (irqTable[irq].driver != 0) {
-        ErrorT result = irqTable[irq].driver->handleIRQ();
-        irqTable[irq].driver->clearIRQ();
+        ErrorT result = irqTable[irq].driver->handleIRQ(irq);
+        irqTable[irq].driver->clearIRQ(irq);
         ret = cOk;
     } else {
         LOG(HAL, ERROR, "InterruptManager::handleIRQ(): unknown IRQ %d.", irq);
@@ -128,10 +130,10 @@ ErrorT InterruptManager::registerIRQ(unint4 irq, GenericDeviceDriver* driver, un
 
 #if USE_WORKERTASK
     if (!(flags & IRQ_NOTHREAD)) {
-        /* try to schedule the IRQ using a workerthread*/
-        irqTable[irq].pWThread = theOS->getWorkerTask()->addJob(IRQJob, 0, irqTable[irq].driver, irqTable[irq].priority);
+        /* try to schedule the IRQ using a workerthread */
+        irqTable[irq].pWThread = theOS->getKernelTask()->getIRQThread(0, irqTable[irq].driver, irq, irqTable[irq].priority);
         if (!irqTable[irq].pWThread) {
-            LOG(HAL, WARN, "InterruptManager::registerIRQ(): No Workerthread available for IRQ %d. Executing directly.", irq);
+            LOG(HAL, WARN, "InterruptManager::registerIRQ(): No KernelThread available for IRQ %d. IRQ processes as IRQ_NOTHREAD.", irq);
             /* remove IRQ_NOTHREAD flag as we must execute the irq handler directly */
             irqTable[irq].flags  =  irqTable[irq].flags & ~IRQ_NOTHREAD;
         } else {
@@ -141,7 +143,7 @@ ErrorT InterruptManager::registerIRQ(unint4 irq, GenericDeviceDriver* driver, un
     }
 #endif
 
-    driver->enableIRQ();
+    driver->enableIRQ(irq);
     TRACE_ADD_SOURCE(0, irq, driver->getName());
     return (cOk);
 }

@@ -16,7 +16,8 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "WorkerThread.hh"
+#include "KernelThread.hh"
+
 #include "hal/CommDeviceDriver.hh"
 #include "kernel/Kernel.hh"
 #include "assemblerFunctions.hh"
@@ -28,14 +29,14 @@ extern Kernel* theOS;
 #endif
 
 // the stack address and size may be set explicitly
-WorkerThread::WorkerThread(Task* p_owner) :
+KernelThread::KernelThread(Task* p_owner) :
         Kernel_ThreadCfdCl(0, 0, p_owner, WORKERTHREAD_STACK_SIZE, 0) {
     jobid = None;
-    param = 0;
     pid = 0;
+    irq = 0;
 }
 
-WorkerThread::~WorkerThread() {
+KernelThread::~KernelThread() {
 }
 
 /*****************************************************************************
@@ -44,7 +45,7 @@ WorkerThread::~WorkerThread() {
  * @description
  *  Entry method for the workerthread
  *******************************************************************************/
-void WorkerThread::callMain() {
+void KernelThread::callMain() {
     /* clear the new flag since we are not new anymore */
     this->status.clearBits(cNewFlag);
 
@@ -62,6 +63,7 @@ void WorkerThread::callMain() {
 
     /* we should never get here */
     ERROR("Workerthread callMain reached end.");
+    __builtin_unreachable();
 }
 
 /*****************************************************************************
@@ -70,7 +72,7 @@ void WorkerThread::callMain() {
  * @description
  *  Workerthread body.
  *******************************************************************************/
-void WorkerThread::work() {
+void KernelThread::work() {
     /* now we are ready to finish the job
      * at this point we are also able to access the
      * jobs parameter since it lies either on the
@@ -82,25 +84,25 @@ void WorkerThread::work() {
     _enableInterrupts();
 
     if (jobid == IRQJob) {
-        GenericDeviceDriver* dev = reinterpret_cast<GenericDeviceDriver*>(param);
+        GenericDeviceDriver* dev = param.driver;
 
         /* call receive method which is the job here
          * as long as interrupts are pending for it */
         while (dev->interruptPending)
-            dev->handleIRQ();
+            dev->handleIRQ(irq);
 
         _disableInterrupts();
 
         /* indicate that the work has been finished on this comm_dev */
         dev->hasAssignedWorkerThread = false;
         /* communication device may now throw interrupts again */
-        dev->enableIRQ();
+        dev->enableIRQ(irq);
     } else if ((jobid == TimedFunctionCallJob)) {
-        TimedFunctionCall* funcCall = reinterpret_cast<TimedFunctionCall*>(param);
+        TimedFunctionCall* funcCall = &param.timedCall;
         /* call the callbackFunction of that object */
         (funcCall->objectptr)->callbackFunc(funcCall->parameterptr);
     } else if (jobid == PeriodicFunctionCallJob) {
-        PeriodicFunctionCall* pcall = reinterpret_cast<PeriodicFunctionCall*>(param);
+        PeriodicFunctionCall* pcall = &param.periodicCall;
         (pcall->functioncall.objectptr)->callbackFunc(pcall->functioncall.parameterptr);
     }
 
@@ -113,7 +115,7 @@ void WorkerThread::work() {
 
     if (jobid == PeriodicFunctionCallJob) {
         /* we are a periodic thread. dont block myself bet get to sleep instead */
-        PeriodicFunctionCall* pcall = reinterpret_cast<PeriodicFunctionCall*>(param);
+        PeriodicFunctionCall* pcall = &param.periodicCall;
         /* set the absolute time of execution */
         pcall->functioncall.time += pcall->period;
         /* increase instance counter */
@@ -130,9 +132,6 @@ void WorkerThread::work() {
     }
 
     __builtin_unreachable();
-    while (1) {
-        NOP;
-    }
 }
 
 /*****************************************************************************
@@ -141,10 +140,9 @@ void WorkerThread::work() {
  * @description
  *
  *******************************************************************************/
-void WorkerThread::stop() {
+void KernelThread::stop() {
    jobid = None;
-   param = 0;
-   WorkerTask* pWTask = static_cast<WorkerTask*>(this->getOwner());
+   KernelTask* pWTask = static_cast<KernelTask*>(this->getOwner());
    pWTask->workFinished(this);
    this->block();
 }

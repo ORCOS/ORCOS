@@ -35,6 +35,8 @@
 
 #define likely(x)       __builtin_expect((x),1)
 #define unlikely(x)     __builtin_expect((x),0)
+#define GETBITS(a, UP, LOW) ((a & (( (1 << (UP - LOW + 1)) -1) << LOW)) >> LOW)
+#define SETBITS(a, UP, LOW, val) a = ((a & ~(( (1 << (UP - LOW + 1)) -1) << LOW)) | ((val & ((1 << (UP - LOW + 1)) -1)) << LOW) )
 
 #define ATTR_CACHE_INHIBIT __attribute__((section (".cache_inhibit")))
 
@@ -128,7 +130,7 @@ class CallableObject;
  */
 typedef struct {
     //! absolute time in clock ticks to execute the function call
-    unint8 time;
+    TimeT time;
     //! object we want to call
     CallableObject* objectptr;
     //! parameter to pass to the method
@@ -145,7 +147,7 @@ typedef struct {
     //! the functioncall parameters
     TimedFunctionCall functioncall;
     //! the period of the function call in clock ticks
-    unint8 period;
+    TimeT period;
 } PeriodicFunctionCall;
 
 #endif

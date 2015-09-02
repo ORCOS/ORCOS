@@ -52,7 +52,7 @@ TimerDevice::~TimerDevice() {
  *  Handles timer IRQS from this device. Provides the functionality for
  *  ultra low latency thread activations. Called with interrupts disabled!
  *******************************************************************************/
-ErrorT TimerDevice::handleIRQ() {
+ErrorT TimerDevice::handleIRQ(int irq) {
 #if 0
     Board_TimerCfdCl* timer = (Board_TimerCfdCl*) this;
     LOG(ARCH,INFO,"llThread Latency: %u",timer->getTimerValue());

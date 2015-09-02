@@ -23,8 +23,8 @@
 #include "db/LinkedList.hh"
 #include "process/Task.hh"
 #include Kernel_Scheduler_hh
-#include "process/WorkerThread.hh"
 #include "inc/signals.hh"
+#include "../process/KernelThread.hh"
 
 
 /*!
@@ -127,9 +127,20 @@ public:
      *  Returns the sleep lists
      *
      * @returns
-     *  unint   The ´sleep list
+     *  unint   The sleep list
      *---------------------------------------------------------------------------*/
     inline LinkedList* getSleeplist() const {   return (this->sleepList);}
+
+    /*****************************************************************************
+     * Method: getBlockedlist()
+     *
+     * @description
+     *  Returns the blocked lists
+     *
+     * @returns
+     *  unint   The blocked list
+     *---------------------------------------------------------------------------*/
+    inline LinkedList* getBlockedlist() const {   return (this->blockedList);}
 
     /*****************************************************************************
      * Method: dispatch()

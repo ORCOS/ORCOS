@@ -64,7 +64,7 @@ public:
      *******************************************************************************/
     inline void clearIRQ(int num) {
         // data synchronization barrier to ensure peripheral clear irq instructions finished
-        asm volatile ("MOV R7, #0; MCR P15, #0, R7, C7, C10, #4;" : : : "r7");
+        asm volatile ("MOV R1, #0; MCR P15, #0, R1, C7, C10, #4;" : : : "r1");
         OUTW(baseAddr + INTCPS_CONTROL, 0x1);
     }
 

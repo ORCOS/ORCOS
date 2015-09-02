@@ -169,7 +169,7 @@ ErrorT OmapGPIO::writeBytes(const char* bytes, unint4 length) {
  * @returns
  *  int         Error Code
  *******************************************************************************/
-ErrorT OmapGPIO::handleIRQ() {
+ErrorT OmapGPIO::handleIRQ(int irq) {
     /* Nothing to do here.
      * User Space thread may be doing something.
      */
@@ -187,7 +187,8 @@ ErrorT OmapGPIO::handleIRQ() {
  * @returns
  *  int         Error Code
  *******************************************************************************/
-ErrorT OmapGPIO::enableIRQ() {
+ErrorT OmapGPIO::enableIRQ(int irq) {
+    // TODO ? board specific stuff in next line?
     OUTW(MPU_INTCPS_ILR(36 + gpionum), (INW(MPU_INTCPS_ILR(36 + gpionum)) & ~0x1));// normal irq
     theOS->getBoard()->getInterruptController()->setIRQPriority(36 + gpionum, 1);  /* low priority! */
     theOS->getBoard()->getInterruptController()->unmaskIRQ(36 + gpionum);
@@ -203,7 +204,7 @@ ErrorT OmapGPIO::enableIRQ() {
  * @returns
  *  int         Error Code
  *******************************************************************************/
-ErrorT OmapGPIO::disableIRQ() {
+ErrorT OmapGPIO::disableIRQ(int irq) {
     theOS->getBoard()->getInterruptController()->maskIRQ(36 + gpionum);
     return (cOk);
 }
@@ -218,7 +219,7 @@ ErrorT OmapGPIO::disableIRQ() {
  * @returns
  *  int         Error Code
  *******************************************************************************/
-ErrorT OmapGPIO::clearIRQ() {
+ErrorT OmapGPIO::clearIRQ(int irq) {
     /* clear all bits */
     OUTW(this->baseAddress + GPIO_IRQSTATUS1, 0xffffffff);
     return (cNotImplemented );
@@ -248,9 +249,9 @@ ErrorT OmapGPIO::ioctl(int request, void* args) {
         OUTW(this->baseAddress + GPIO_SETIRQENABLE1, (unint4) args);
 
         if (args != 0)
-            enableIRQ();
+            enableIRQ(0);
         else
-            disableIRQ();
+            disableIRQ(0);
         return (cOk );
     }
     if (request == IOCTL_GPIO_GET_IRQ_STATUS) {

@@ -100,7 +100,7 @@ extern "C" void restoreContext(Thread* t)  {
             //"MCR    p15, 0, r2, c7 , c5, 4;"  /* Ensure completion of the CP15 write (ISB not working) */
 #endif
 #if  ENABLE_BRANCH_PREDICTION
-           // "MCR p15, 0, r0, c7 , c5, 6;"       /* invalidate whole branch predictor array */
+            //"MCR p15, 0, r0, c7 , c5, 6;"       /* invalidate whole branch predictor array */
 #endif
             //"LDR    sp, =__stack - 0x20;"     /* temporary accessible stack position for context restore */
             "MOV    r0, %0;"                    /* load context address*/

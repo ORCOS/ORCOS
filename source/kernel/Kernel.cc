@@ -182,23 +182,13 @@ void Kernel::initialize() {
 #if HAS_Board_USB_HCCfd
     USBDevice::initialize();
 
-    #if HAS_USBDriver_FactoryCfd
-        /* create the "/usb/" directory which will contain all usb drivers */
-        this->usbDriverLib = new USBDriverLibrary();
-    #endif
-
-        /* TODO: auto generate the usb factory construction using SCL  */
-    #if HAS_USBDriver_SMSC95xxCfd
-        /* Add support for smsc95xx ethernet over USB devices */
-        new SMSC95xxUSBDeviceDriverFactory("smsc95xx");
-    #endif
-
-    #if HAS_USBDriver_MassStorageCfd
-        /* Add support for USB SCSI Bulk only Mass Storage Devices */
-        new MassStorageSCSIUSBDeviceDriverFactory("msd_scsi_bot");
-    #endif
+    /* create the "/usb/" directory which will contain all usb drivers */
+    this->usbDriverLib = new USBDriverLibrary();
 #endif
 
+    /* global communication stack mutex.. protects the communication stack (lwip) from
+     * concurrent thread execution.. This is surely not optimal and should be improved
+     * in the future. */
     comStackMutex = new Mutex("ComStack");
     sysArchMutex = reinterpret_cast<void*>(new Mutex("sysArch"));
 
@@ -215,7 +205,10 @@ void Kernel::initialize() {
     this->RamdiskCfd = new NEW_Kernel_RamdiskCfd;
 #endif
 
+#ifdef HAS_Kernel_RamManagerCfd
+    /* /dev/mem only usable with ram manager support */
     new RamSharedMemoryDevice();
+#endif
 
 #ifdef HAS_Board_HatLayerCfd
     /* create the hat layer object.
@@ -227,9 +220,9 @@ void Kernel::initialize() {
 #if USE_WORKERTASK
     LOG(KERNEL, INFO, "Initializing Workertask.");
     /* initialize the worker task */
-    theWorkerTask = new WorkerTask();
-    theWorkerTask->setName("[kwork]");
-    this->getTaskDatabase()->addTail(theWorkerTask);
+    theKernelTask = new KernelTask();
+    theKernelTask->setName("[kwork]");
+    this->getTaskDatabase()->addTail(theKernelTask);
 #endif
 
     /* now initialize the device drivers
@@ -273,24 +266,17 @@ void Kernel::initialize() {
      * Initialize Workerthreads before user tasks
      */
 #if USE_WORKERTASK
-
-    PeriodicFunctionCall* jobparam      = new PeriodicFunctionCall;
-    jobparam->functioncall.objectptr    = new KernelServiceThread; /* call this object */
-    jobparam->functioncall.parameterptr = 0;        /* no parameter */
-    jobparam->functioncall.time         = 0;        /* call directly!! */
-    jobparam->period                    = 250 ms;   /* set to 250 ms */
-    WorkerThread* wt = theWorkerTask->addJob(PeriodicFunctionCallJob, 0, jobparam, 250000);
+    /* add periodic workerthread call to perform basic OS services
+     * permanently occupies one workerthread */
+    KernelThread* wt = theKernelTask->getPeriodicThread(0, new KernelServiceThread, 250 ms, 8000);
     if (wt) {
-        wt->setName("kservice");
+        wt->setName("kernel");
     }
 
 #if ENABLE_NETWORKING
+    /* add one-time workerthread call to update system time using ntp*/
     LOG(KERNEL, INFO, "Querying NTP Server for Time");
-    TimedFunctionCall* ntpupdate        = new TimedFunctionCall;
-    ntpupdate->objectptr                = theOS->getClock();
-    ntpupdate->parameterptr             = 0;
-    ntpupdate->time                     = 10000 ms;
-    theWorkerTask->addJob(TimedFunctionCallJob, 0, ntpupdate, 100);
+    theKernelTask->getCallbackThread(0, theOS->getClock(), 10000 ms, 1000);
 #endif
 
 #else

@@ -21,6 +21,7 @@
 
 #include "inc/types.hh"
 #include "inc/const.hh"
+#include <assemblerFunctions.hh>
 
 class LinkedListItem;
 class ListItem;
@@ -195,6 +196,30 @@ public:
     inline unint getSize() {
         return (size);
     }
+
+    /*****************************************************************************
+      * Method: lock()
+      *
+      * @description
+      *  Locks the list against concurrent modification.
+      *  Must be called before access to it.
+      *******************************************************************************/
+    inline void lock() {
+        SMP_SPINLOCK_GET(m_lock);
+    }
+
+    /*****************************************************************************
+     * Method: unlock()
+     *
+     * @description
+     *  Unlocks the list again.
+     *******************************************************************************/
+    inline void unlock() {
+        SMP_SPINLOCK_FREE(m_lock);
+    }
+
+
+
 };
 
 #endif /*LINKEDLISTDATABASE_HH_*/

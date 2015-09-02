@@ -22,10 +22,17 @@
 #include "SCLConfig.hh"
 #include "db/ArrayList.hh"
 #include Kernel_Thread_hh
+#include "hal/GenericDeviceDriver.hh"
 
 typedef enum {
     None, IRQJob, TimedFunctionCallJob, PeriodicFunctionCallJob, IdleJob
 } JOBType;
+
+union JobParameter {
+    TimedFunctionCall    timedCall;
+    PeriodicFunctionCall periodicCall;
+    GenericDeviceDriver* driver;
+};
 
 /*!
  * \brief Worker Thread (belonging to WorkerTask), execute jobs for other threads
@@ -43,11 +50,13 @@ typedef enum {
  * PeriodicFunctionCallJob    : call a function periodically <BR>
  *
  */
-class WorkerThread: public Kernel_ThreadCfdCl {
+class KernelThread: public Kernel_ThreadCfdCl {
+    friend class KernelTask;
 private:
-    //! The job table of the worker thread. Layout : jobid | parameters ...
-    // ArrayDatabase* job;
-    void* param;
+    union JobParameter param;
+
+    // irq number this kernel thread is servicing
+    int   irq;
 
     // the jobid
     unint1 jobid;
@@ -60,15 +69,15 @@ private:
 
 public:
     /*****************************************************************************
-     * Method: WorkerThread(Task* owner)
+     * Method: KernelThread(Task* owner)
      *
      * @description
      *  Constructor
      *******************************************************************************/
-    explicit WorkerThread(Task* owner);
+    explicit KernelThread(Task* owner);
 
 
-    ~WorkerThread();
+    ~KernelThread();
 
     /*****************************************************************************
      * Method: callMain()
@@ -92,11 +101,21 @@ public:
      * @description
      *  Set the job of this workerthread
      *******************************************************************************/
-    inline void setJob(JOBType id, void* params) {
+/*    inline void setJob(JOBType id, void* params) {
         jobid = id;
         param = params;
-    }
+    }*/
 
+
+    /*****************************************************************************
+     * Method: void setIRQ(int irq)
+     *
+     * @description
+     *  Sets the irq number this thread is about to handle.
+     *******************************************************************************/
+ /*   inline void setIRQ(int irq) {
+        this->irq = irq;
+    }*/
 
     /*****************************************************************************
      * Method: setPID(unint1 thread_pid)
@@ -104,9 +123,9 @@ public:
      * @description
      *   Set the PID the workerthread shall work with
      *******************************************************************************/
-    inline void setPID(unint1 thread_pid) {
+ /*   inline void setPID(unint1 thread_pid) {
         this->pid = thread_pid;
-    }
+    }*/
 
     /*****************************************************************************
      * Method: stop()

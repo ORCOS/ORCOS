@@ -122,7 +122,7 @@ ErrorT AM335xGPIO::writeBytes(const char* bytes, unint4 length) {
  * @returns
  *  int         Error Code
  *******************************************************************************/
-ErrorT AM335xGPIO::handleIRQ() {
+ErrorT AM335xGPIO::handleIRQ(int irq) {
     /* Nothing to do here.
      * User Space thread may be doing something.
      */
@@ -140,7 +140,7 @@ ErrorT AM335xGPIO::handleIRQ() {
  * @returns
  *  int         Error Code
  *******************************************************************************/
-ErrorT AM335xGPIO::enableIRQ() {
+ErrorT AM335xGPIO::enableIRQ(int irq) {
     //OUTW(MPU_INTCPS_ILR(36 + gpionum), (INW(MPU_INTCPS_ILR(36 + gpionum)) & ~0x1));// normal irq
     theOS->getBoard()->getInterruptController()->setIRQPriority(irqNum, 1);  /* low priority! */
     theOS->getBoard()->getInterruptController()->unmaskIRQ(irqNum);
@@ -156,7 +156,7 @@ ErrorT AM335xGPIO::enableIRQ() {
  * @returns
  *  int         Error Code
  *******************************************************************************/
-ErrorT AM335xGPIO::disableIRQ() {
+ErrorT AM335xGPIO::disableIRQ(int irq) {
     theOS->getBoard()->getInterruptController()->maskIRQ(irqNum);
     return (cOk);
 }
@@ -171,7 +171,7 @@ ErrorT AM335xGPIO::disableIRQ() {
  * @returns
  *  int         Error Code
  *******************************************************************************/
-ErrorT AM335xGPIO::clearIRQ() {
+ErrorT AM335xGPIO::clearIRQ(int irq) {
     /* clear all bits */
     OUTW(this->baseAddress + AM335X_GPIO_IRQSTATUS0, 0xffffffff);
     return (cNotImplemented );
@@ -201,9 +201,9 @@ ErrorT AM335xGPIO::ioctl(int request, void* args) {
         OUTW(this->baseAddress + AM335X_GPIO_IRQSTATUS_SET_0, (unint4) args);
 
         if (args != 0) {
-            enableIRQ();
+            enableIRQ(irqNum);
         } else {
-            disableIRQ();
+            disableIRQ(irqNum);
         }
         return (cOk );
     }

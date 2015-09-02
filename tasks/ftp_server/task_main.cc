@@ -48,7 +48,7 @@ static char temp_msg[200];
 
 static char dataBuffer[2048];
 
-char recvCommand[100];
+char recvCommand[200];
 
 char renameFromFile[256];
 char renameToFile[256];
@@ -245,15 +245,16 @@ int ReceiveFile(int controlsock, int datasock, sockaddr *dataremote, char* file)
             }
         } else {
             // write to file
-            int error = write(res,dataptr,msglen);
+            int error = write(res, dataptr, msglen);
             if (error < 0) {
+                sendResponse(controlsock, "426 Error writing data\r\n");
                 close(res);
                 return (error);
             }
-            timeout = 5;
+            timeout = 10;
         }
 
-        msglen = recv(datasock,dataptr,2048,MSG_WAIT,200);
+        msglen = recv(datasock, dataptr, 2048, MSG_WAIT, 200);
     }
 
     puts("File completely received..\r\n");
@@ -274,7 +275,7 @@ int sendFile(int controlsock, int datasock, sockaddr *dataremote, int handle) {
     puts("Data Connection established..\r\n");
 
     // now read file and send over data connection
-    int num = read(handle, return_msg, 512);
+    int num = read(handle, dataBuffer, 1400);
     if (num == cEOF) {
         return (0);
     }
@@ -285,12 +286,12 @@ int sendFile(int controlsock, int datasock, sockaddr *dataremote, int handle) {
     }
 
 
-    while (num == 512) {
+    while (num == 1400) {
         int timeout = 500;
         // try sending. if failed sleep
         // failing may happen if no more free memory is available
         // inside the TCP/IP stack to hold the packet until acked
-        while (sendto(datasock,return_msg,num,0) != 0) {
+        while (sendto(datasock, dataBuffer, num, 0) != 0) {
             usleep(1000);
             timeout--;
             if (timeout == 0) {
@@ -300,7 +301,7 @@ int sendFile(int controlsock, int datasock, sockaddr *dataremote, int handle) {
             }
         }
 
-        num = read(handle, return_msg, 512);
+        num = read(handle, dataBuffer, 1400);
         if (num == cEOF) {
            return (0);
         }
@@ -314,7 +315,7 @@ int sendFile(int controlsock, int datasock, sockaddr *dataremote, int handle) {
     // send last bytes if any
     if (num > 0) {
         int timeout = 500;
-        while (sendto(datasock, return_msg, num, 0) != 0) {
+        while (sendto(datasock, dataBuffer, num, 0) != 0) {
            usleep(1000);
            timeout--;
            if (timeout == 0) {
@@ -477,7 +478,7 @@ extern "C" int main(int argc, char** argv) {
 
             msgptr = recvCommand;
             /* wait for 200 milliseconds on next packet */
-            int msglen = recv(newsock, msgptr, 100, MSG_WAIT, 200);
+            int msglen = recv(newsock, msgptr, 200, MSG_WAIT, 200);
 
             if (msglen == -1) {
                 // disconnected

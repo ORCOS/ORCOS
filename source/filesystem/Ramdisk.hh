@@ -83,7 +83,7 @@ private:
     Ramdisk* myRamDisk;
 
 public:
-    RamdiskDirectory(Ramdisk* myRamDisk, char* name) : Directory(name) {
+    RamdiskDirectory(Ramdisk* myRamDisk, char* pname) : Directory(pname) {
         this->myRamDisk = myRamDisk;
     }
 

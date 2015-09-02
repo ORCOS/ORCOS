@@ -58,6 +58,10 @@ unint4 Clock::getDateTime() {
 }
 
 
+extern "C" unint4 sys_now() {
+    return (theOS->getClock()->getDateTime());
+}
+
 typedef struct {
     unint1 mode;
     unint1 stratum;

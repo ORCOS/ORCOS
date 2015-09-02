@@ -19,8 +19,8 @@
 #ifndef WORKERTASK_HH_
 #define WORKERTASK_HH_
 
+#include "KernelThread.hh"
 #include "Task.hh"
-#include "process/WorkerThread.hh"
 
 /*!
  * \brief Worker task which holds a certain amount of workeör threads.
@@ -30,8 +30,8 @@
  * arriving jobs. Therefore a workerthread is assigned to the job which is then scheduled
  * like any other realtime thread.
  */
-class WorkerTask: public Task {
-    friend class WorkerThread;
+class KernelTask: public Task {
+    friend class KernelThread;
 
 private:
     /*!
@@ -49,12 +49,13 @@ private:
      * @params
      *  pwthread    The workerthread that finished its work
      *******************************************************************************/
-    void    workFinished(WorkerThread* pwthread);
+    void    workFinished(KernelThread* pwthread);
 
 public:
-    WorkerTask();
+    KernelTask();
 
-    ~WorkerTask();
+    ~KernelTask();
+
 
     /*****************************************************************************
      * Method: addJob(JOBType jobType, unint1 pid, void* param, unint priority_param)
@@ -72,7 +73,15 @@ public:
      *  WorkerThread*  Pointer to the workerthread assigned to the job or null if no
      *                 workerthread could be assigned.
      *******************************************************************************/
-    WorkerThread* addJob(JOBType id, unint1 pid, void* param, unint priority_param);
+   // KernelThread* addJob(JOBType id, unint1 pid, void* param, unint priority_param);
+
+
+    KernelThread* getPeriodicThread(unint1 pid, CallableObject* obj, TimeT period, unint4 priority);
+
+    KernelThread* getCallbackThread(unint1 pid, CallableObject* obj, TimeT delay, unint4 priority);
+
+    KernelThread* getIRQThread(unint1 pid, GenericDeviceDriver* driver, int irq, unint4 priority);
+
 };
 
 #endif /*WORKERTASK_HH_*/

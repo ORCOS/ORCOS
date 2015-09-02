@@ -233,7 +233,7 @@ void Thread::block(unint4 timeout) {
         theOS->getDispatcher()->block(this);
     } else {
         /* since we are going to be blocked save the thread context! */
-        unsigned char buf[ PROCESSOR_CONTEXT_SIZE + 16];
+        unsigned char buf[PROCESSOR_CONTEXT_SIZE + 16];
         void* stackpointer = &buf;
 
         LOG(PROCESS, DEBUG, "Thread::block() id=%d stackpointer=%x ", this->getId(), stackpointer);

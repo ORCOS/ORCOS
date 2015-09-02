@@ -8,7 +8,7 @@
 #ifndef HIGHSPEEDUSBHOSTCONTROLLER_HH_
 #define HIGHSPEEDUSBHOSTCONTROLLER_HH_
 
-#include "arch/shared/USBEHCIHostController.hh"
+#include "arch/shared/usb_hc/USBEHCIHostController.hh"
 
 class HighSpeedUSBHostController: public USB_EHCI_Host_Controller {
 public:

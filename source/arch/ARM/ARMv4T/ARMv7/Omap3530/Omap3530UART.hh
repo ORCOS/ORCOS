@@ -128,7 +128,7 @@ public:
      * @description
      *  enables Interrupt Requests of this device
      *******************************************************************************/
-    ErrorT enableIRQ();
+    ErrorT enableIRQ(int irq);
 
     /*****************************************************************************
      * Method: disableIRQ()
@@ -136,7 +136,7 @@ public:
      * @description
      *  disables Interrupt Requests of this device. Interrupts may still be pending.
      *******************************************************************************/
-    ErrorT disableIRQ();
+    ErrorT disableIRQ(int irq);
 
     /*****************************************************************************
      * Method: handleIRQ()
@@ -144,7 +144,7 @@ public:
      * @description
      *   Generic Device Driver overrides
      *******************************************************************************/
-    ErrorT handleIRQ();
+    ErrorT handleIRQ(int irq);
 
 
     /*****************************************************************************

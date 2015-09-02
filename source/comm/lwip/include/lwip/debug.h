@@ -39,7 +39,7 @@ extern "C" {
 #endif
 
 /* backtrace and print the current call stack */
-void     backtrace_current();
+void     backtrace_current(void);
 
 #ifdef __cplusplus
 } // extern "C"

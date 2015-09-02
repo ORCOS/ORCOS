@@ -88,7 +88,7 @@ void OmapMMC_SD_HC::init() {
     OUTW(baseAddress + MMCHS_SYSCTL, INW(baseAddress + MMCHS_SYSCTL) | (1 << 2));
 
     /* check for card */
-    if (!INW(baseAddress + MMCHS_PSTATE) & (1 << 16)) {
+    if (!(INW(baseAddress + MMCHS_PSTATE) & (1 << 16))) {
         LOG(ARCH, INFO, "MMC/SD HC() CINS is low. No card present!");
     }
 

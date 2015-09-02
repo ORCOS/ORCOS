@@ -34,7 +34,7 @@ class RealTimeThread: public PriorityThread {
 // friend classes
     friend class EarliestDeadlineFirstThreadScheduler;
     friend class RateMonotonicThreadScheduler;
-    friend class WorkerTask;
+    friend class KernelTask;
     friend class Task;
     friend class TaskManager;
 

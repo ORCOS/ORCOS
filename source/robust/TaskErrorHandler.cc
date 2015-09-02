@@ -44,9 +44,8 @@ void TaskErrorHandler::handleError(ErrorType eErrorType) {
         } else {
 #if USE_WORKERTASK
             /* reset workerthread */
-            WorkerThread* wt = static_cast<WorkerThread*>(pCurrentRunningThread);
-            wt->setJob(None, 0);
-            wt->block();
+            KernelThread* wt = static_cast<KernelThread*>(pCurrentRunningThread);
+            wt->stop();
 #endif
         }
 

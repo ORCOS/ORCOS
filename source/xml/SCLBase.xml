@@ -312,16 +312,11 @@
     <Skeleton>
         <Name>USBDriver</Name>
         <Superclasses>
-            <Superclass Name="usb/USBDeviceDriverLibrary">
-                <MemberRef Name="Factory"/>
+            <Superclass Name="usb/USBDeviceDriverLibrary">                
                 <MemberRef Name="SMSC95xx"/>
                 <MemberRef Name="MassStorage"/>
             </Superclass>
         </Superclasses>
-        <Member>
-          <Name>Factory</Name>
-          <Classes> <Class Name="usb/USBDeviceDriverFactory"/> </Classes>
-        </Member>
         <Member>
           <Name>SMSC95xx</Name>
           <Classes> <Class Name="usb/SMSC95xxUSBDeviceDriver"/> </Classes>

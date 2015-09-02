@@ -71,9 +71,9 @@ static inline unint4 rdtsc(void) {
     return r;
 }
 
-static int4 minCycles = 99999999;
-static int4 maxCycles = 0;
-static int numBenchmarks = 0;
+//static int4 minCycles = 99999999;
+//static int4 maxCycles = 0;
+//static int numBenchmarks = 0;
 
 /*****************************************************************************
  * Method: SingleCPUDispatcher::dispatch()

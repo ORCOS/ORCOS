@@ -35,7 +35,7 @@
 #include "process/Task.hh"
 #include "comm/ProtocolPool.hh"
 #if USE_WORKERTASK
-#include "process/WorkerTask.hh"
+#include "../process/KernelTask.hh"
 #endif
 #include Kernel_Scheduler_hh
 #include "filesystem/SimpleFileManager.hh"
@@ -59,14 +59,6 @@
  * ------------------------------------------------------ */
 #if HAS_Board_USB_HCCfd
 #include "arch/shared/usb/USBDriverLibrary.hh"
-
-#if HAS_USBDriver_SMSC95xxCfd
-#include "arch/shared/usb/SMSC95xxUSBDeviceDriver.hh"
-#endif
-
-#if HAS_USBDriver_MassStorageCfd
-#include "arch/shared/usb/MassStorageSCSIUSBDeviceDriver.hh"
-#endif
 #endif
 
 #include "KernelServiceThread.hh"
@@ -148,7 +140,7 @@ private:
 
 #if USE_WORKERTASK
     //! The worker thread of our kernel responsible for handling special interrupts (realtime support)
-    WorkerTask* theWorkerTask;
+    KernelTask* theKernelTask;
 #endif
 
 #if ENABLE_NETWORKING
@@ -305,8 +297,8 @@ public:
     * @returns
     *  WorkerTask* The worker task.
     *---------------------------------------------------------------------------*/
-    WorkerTask* getWorkerTask() {
-        return (this->theWorkerTask);
+    KernelTask* getKernelTask() {
+        return (this->theKernelTask);
     }
 #endif
 

@@ -25,8 +25,6 @@
 
 extern Kernel* theOS;
 
-int ResourceSpinlock = 0;
-
 /* static non-const member variable initialization
  will be executed in ctor*/
 ResourceIdT Resource::globalResourceIdCounter;
@@ -81,16 +79,11 @@ int Resource::acquire(Thread* pThread, bool blocking) {
         }
     }
 
-
-    /* Try to access exclusive access area.
-     * Use a spinlock here as the area is too small to use a mutex.
-     * interrupts will be disabled and access is guaranteed to be protected
-     * from other cores. */
-    SMP_SPINLOCK_GET(ResourceSpinlock);
     /* myResourceId may be 0 if it has been deleted
      * during acquisition */
     if (myResourceId != 0) {
         if (pThread != 0 ) {
+            pThread->getOwner()->aquiredResources.lock();
             /* Add resource to the set of acquired resources */
             int result = pThread->getOwner()->aquiredResources.addTail(this);
             /* forward status back to user */
@@ -102,12 +95,12 @@ int Resource::acquire(Thread* pThread, bool blocking) {
                 CharacterDevice* cdev = static_cast<CharacterDevice*>(this);
                 cdev->resetPosition();
             }
+            pThread->getOwner()->aquiredResources.unlock();
         }
     } else {
-        refCounter--;
+        ATOMIC_ADD(&refCounter, -1);
         retval = cResourceRemoved;
     }
-    SMP_SPINLOCK_FREE(ResourceSpinlock);
 
     return (retval);
 }
@@ -124,9 +117,9 @@ Resource::~Resource() {
         LinkedList* tasks = theOS->getTaskManager()->getTaskDatabase();
         for (LinkedListItem* litem = tasks->getHead(); litem != 0; litem = litem->getSucc()) {
             Task* t = (Task*) (litem->getData());
-            SMP_SPINLOCK_GET(ResourceSpinlock);
+            t->aquiredResources.lock();
             t->aquiredResources.removeItem(this);
-            SMP_SPINLOCK_FREE(ResourceSpinlock);
+            t->aquiredResources.unlock();
         }
     }
 
@@ -164,14 +157,14 @@ ErrorT Resource::release(Thread* pThread) {
 
     if (pThread != 0) {
         /* remove resource from the database */
-        SMP_SPINLOCK_GET(ResourceSpinlock);
+        pThread->getOwner()->aquiredResources.lock();
         ListItem* removedItem = pThread->getOwner()->aquiredResources.removeItem(this);
         if (removedItem == 0) {
             ret = cElementNotInDatabase;
         } else {
-            refCounter--;
+            ATOMIC_ADD(&refCounter, -1);
         }
-        SMP_SPINLOCK_FREE(ResourceSpinlock);
+        pThread->getOwner()->aquiredResources.unlock();
     }
     return (ret);
 }

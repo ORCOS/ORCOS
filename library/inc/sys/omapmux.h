@@ -8,7 +8,7 @@
 #ifndef LIBRARY_INC_SYS_OMAPMUX_H_
 #define LIBRARY_INC_SYS_OMAPMUX_H_
 
-#include "inc/types.h"
+#include "inc/types.hh"
 
 /*
  * IEN  - Input Enable

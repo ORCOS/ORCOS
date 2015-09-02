@@ -215,7 +215,7 @@ extern "C" __attribute__((used)) void dispatchIRQ(void* sp_int, int mode) {
         default: {
             /* all other irqs are handled by the interrupt manager
              * and scheduled using workerthreads if activated */
-            theOS->getInterruptManager()->handleIRQ(irqSrc);
+            theOS->getInterruptManager()->handleInterruptIRQ(irqSrc);
         }
     }
 

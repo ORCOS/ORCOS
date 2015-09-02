@@ -117,7 +117,7 @@ int sc_shm_map(intptr_t sp_int) {
     }
 
     /* is this shared mem resource valid? */
-    if (shm_res->getPhysicalStartAddress() == -1)
+    if (shm_res->getPhysicalStartAddress() == (unint4)-1)
         return (cInvalidResource);
 
     unint4 mapping_size = *mapped_size;

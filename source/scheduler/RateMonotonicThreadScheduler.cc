@@ -113,8 +113,13 @@ void RateMonotonicThreadScheduler::computePriority(RealTimeThread* pRTThread) {
 
     /* This computation assures, that a smaller period will result in a higher priority
      * for periodic threads. non periodic thread priority will not be changed! */
-    if (pRTThread->period != 0)
-        priority = (MAX_UINT4 - pRTThread->period);
+    if (pRTThread->period != 0) {
+        if (pRTThread->period < MAX_UINT4) {
+            priority = (MAX_UINT4 - pRTThread->period);
+        } else {
+            priority = MAX_UINT4 - 1;
+        }
+    }
 
     pRTThread->initialPriority      = priority;
     pRTThread->effectivePriority    = priority;

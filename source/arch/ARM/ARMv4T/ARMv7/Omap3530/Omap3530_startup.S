@@ -52,9 +52,10 @@ FUNC_START(startORCOS)
     MSR cpsr, #svc_mode|CPSR_DISINT
 
     // be sure MMU is disabled
-    MRC p15, 0, r1, c1, c0, 0;    // read CP15 Register 1
-    BIC r1, r1, #0x1;
-    MCR p15, 0, r1, c1, c0, 0;    // disabled
+    MRC    p15, #0, r1, c1, c0, #0      // read CP15 Register 1
+    BIC    r1,  r1, #0x1
+    BIC    r1,  r1, #0x2                // disable alignment faults! ARMv7 processors must be able to handle unanligned accesses
+    MCR    p15, #0, r1, c1, c0, #0      // disabled
 
 #if ENABLE_BRANCH_PREDICTION
     MRC    p15, 0, r0, c1, c0, 0   // read Control Register

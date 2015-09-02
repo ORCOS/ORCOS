@@ -141,6 +141,11 @@ void command_ps(int socket, int showThreads) {
     if (handle != mydirhandle)
         close(handle);
 
+
+    sprintf(dir_content, "PID  TID #RES STATUS \t  PRIORITY   PERIOD\t NAME"LINEFEED);
+
+   sendStr(socket,dir_content);
+
     for (int i = 0; i < numTasks; i++) {
         char path[120];
         sprintf(path,"/sys/tasks/%u",taskids[i]);

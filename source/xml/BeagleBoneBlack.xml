@@ -201,10 +201,14 @@
             <Property Name="cppi_ram" Type="unsigned int" Optional="false" />
             <Property Name="Name" Type="char*" Optional="false"
                 Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree." />
-            <Property Name="INTC_IRQ" Type="unsigned int" Optional="false"
-                Description="Interrupt Line at the Interrupt Controller." />
-            <Property Name="INTC_Priority" Type="unsigned int" Optional="false"
-                Description="IRQ Priority at the Interrupt Controller." />
+            <Property Name="INTC_RX0_IRQ" Type="unsigned int" Optional="false"
+                Description="Interrupt Line for RX interrupts of port 0 at the Interrupt Controller." />
+            <Property Name="INTC_RX0_Priority" Type="unsigned int" Optional="false"
+                Description="IRQ Priority for RX interrupts of port 0 at the Interrupt Controller." />
+            <Property Name="INTC_TX0_IRQ" Type="unsigned int" Optional="false"
+                Description="Interrupt Line for TX interrupts of port 0 at the Interrupt Controller." />
+            <Property Name="INTC_TX0_Priority" Type="unsigned int" Optional="false"
+                Description="IRQ Priority for TX interrupts of port 0 at the Interrupt Controller." />
         </Class>
     </Device>
 

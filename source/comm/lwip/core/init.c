@@ -223,6 +223,8 @@ static void lwip_sanity_check(void) {
 #define lwip_sanity_check()
 #endif /* LWIP_DEBUG */
 
+void tcp_init(void);
+
 /**
  * Perform Sanity check of user-configurable values, and initialize all modules.
  */

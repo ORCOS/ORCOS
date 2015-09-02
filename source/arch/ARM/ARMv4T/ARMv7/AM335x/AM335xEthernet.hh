@@ -185,7 +185,8 @@ public:
     volatile cpsw_stats_regs_t*      cpsw_stats_regs;
 
     /* IRQ number at the interrupt controller */
-    int intc_irq;
+    int intc_rx_irq;
+    int intc_tx_irq;
 
     /* Current position inside the rx queue */
     int rxpos;
@@ -204,7 +205,7 @@ public:
      *   Disables all irqs of the device. Masks the device a the interrupt
      *   controller as well as disables the RX irqs at the cpsw.
      *******************************************************************************/
-    ErrorT disableIRQ();
+    ErrorT disableIRQ(int irq);
 
     /*****************************************************************************
      * Method: enableIRQ()
@@ -213,7 +214,7 @@ public:
      *   Enables all irqs of the device. Unmasks the device a the interrupt
      *   controller as well as enables the RX irqs at the cpsw.
      *******************************************************************************/
-    ErrorT enableIRQ();
+    ErrorT enableIRQ(int irq);
 
     /*****************************************************************************
      * Method: handleIRQ()
@@ -221,7 +222,7 @@ public:
      * @description
      *  Handles RX irqs.
      *******************************************************************************/
-    ErrorT handleIRQ();
+    ErrorT handleIRQ(int irq);
 
     /*****************************************************************************
      * Method: clearIRQ()
@@ -230,7 +231,7 @@ public:
      *   Masks the irq at the interrupt controller as clearing them is handled
      *   inside the rx handler.
      *******************************************************************************/
-    ErrorT clearIRQ();
+    ErrorT clearIRQ(int irq);
 
     /*****************************************************************************
      * Method: ale_addAddress(int type, char* address, int port)

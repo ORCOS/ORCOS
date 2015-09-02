@@ -103,22 +103,22 @@ public:
      * IRQ Handling method
      *
      */
-    virtual ErrorT handleIRQ() {
+    virtual ErrorT handleIRQ(int irq) {
         return (cNotImplemented );
     }
 
     //! enables the hardware interrupts of this device.
-    virtual ErrorT enableIRQ() {
+    virtual ErrorT enableIRQ(int irq) {
         return (cNotImplemented );
     }
 
     //! disables all interrupts of this device (does not clear them!)
-    virtual ErrorT disableIRQ() {
+    virtual ErrorT disableIRQ(int irq) {
         return (cNotImplemented );
     }
 
     //! clears all interrupts of this device
-    virtual ErrorT clearIRQ() {
+    virtual ErrorT clearIRQ(int irq) {
         return (cNotImplemented );
     }
 

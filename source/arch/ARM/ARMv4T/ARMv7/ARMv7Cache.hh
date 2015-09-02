@@ -14,6 +14,9 @@
 class ARMv7Cache: public Cache {
 private:
     unint4 line_len;
+    unint1 LoU; // Level of Unification
+    unint1 LoC; // level of Coherency
+    unint1 LlC; // last level Cache
 
 public:
     ARMv7Cache();
@@ -24,13 +27,29 @@ public:
      *
      * @description
      *  Invalidates all data cache lines containing physical addresses between
-     *  start and end.
+     *  start and end. Data is not written back. Ensures the data
+     *  is fetched from POC (main memory) on next access.
      * @params
      *
      * @returns
      *  int         Error Code
      *******************************************************************************/
-    void invalidate_data(void* start, void* end);
+    void invalidate_data(void* start, size_t len);
+
+
+    /*****************************************************************************
+     * Method: clean_data(void* start, void* end)
+     *
+     * @description
+     *  Cleans all data cache lines containing physical addresses between
+     *  start and end causing the data to be written back to POC (main memory) if
+     *  has changed.
+     * @params
+     *
+     * @returns
+     *  int         Error Code
+     *******************************************************************************/
+    void clean_data(void* start, size_t len);
 
     /*****************************************************************************
      * Method: invalidate_instruction(void* start, void* end)
@@ -43,7 +62,7 @@ public:
      * @returns
      *  int         Error Code
      *******************************************************************************/
-    void invalidate_instruction(void* start, void* end);
+    void invalidate_instruction(void* start, size_t len);
 
     /*****************************************************************************
      * Method: invalidate(unint4 asid)

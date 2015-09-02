@@ -22,6 +22,7 @@
 #include "ListItem.hh"
 #include "inc/types.hh"
 #include "inc/const.hh"
+#include <assemblerFunctions.hh>
 
 /*!
  * \brief Database using an array to store the entries
@@ -67,6 +68,9 @@ private:
 
     //! current position of the headPointer
     unint1 headPointer;
+
+    //! SMP Spinlock for concurrent access protection
+    int    m_lock;
 
 public:
     /*****************************************************************************
@@ -197,6 +201,28 @@ public:
     *  Prints the array to stdout
     *******************************************************************************/
     void print();
+
+    /*****************************************************************************
+      * Method: lock()
+      *
+      * @description
+      *  Locks the list against concurrent modification.
+      *  Must be called before access to it.
+      *******************************************************************************/
+    inline void lock() {
+        SMP_SPINLOCK_GET(m_lock);
+    }
+
+    /*****************************************************************************
+     * Method: unlock()
+     *
+     * @description
+     *  Unlocks the list again.
+     *******************************************************************************/
+    inline void unlock() {
+        SMP_SPINLOCK_FREE(m_lock);
+    }
+
 };
 
 #endif /*ARRAYDATABASE_HH_*/

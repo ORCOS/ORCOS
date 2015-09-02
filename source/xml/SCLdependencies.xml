@@ -989,8 +989,10 @@
           <Property Name="cpsw_wr" Type="unsigned int" Optional="false" />
           <Property Name="cppi_ram" Type="unsigned int" Optional="false" />
           <Property Name="Name" Type="char*" Optional="false" Description="The name of the device this resource can be found inside the filesystem within the '\dev\' subtree." />
-          <Property Name="INTC_IRQ" Type="unsigned int" Optional="false" Description="Interrupt Line at the Interrupt Controller." />
-          <Property Name="INTC_Priority" Type="unsigned int" Optional="false" Description="IRQ Priority at the Interrupt Controller." />
+          <Property Name="INTC_RX0_IRQ" Type="unsigned int" Optional="false" Description="Interrupt Line for RX interrupts of port 0 at the Interrupt Controller." />
+          <Property Name="INTC_RX0_Priority" Type="unsigned int" Optional="false" Description="IRQ Priority for RX interrupts of port 0 at the Interrupt Controller." />
+          <Property Name="INTC_TX0_IRQ" Type="unsigned int" Optional="false" Description="Interrupt Line for TX interrupts of port 0 at the Interrupt Controller." />
+          <Property Name="INTC_TX0_Priority" Type="unsigned int" Optional="false" Description="IRQ Priority for TX interrupts of port 0 at the Interrupt Controller." />
         </Class>
         <Class Requires="RAPTOR" Name="arch/PPC40x/RAPTOR/PLB_EMAC0">
           <Property Name="Address" Type="unsigned int" Optional="false" Description="The Memory Mapped I/O (MMIO) Base Address of this device." />
@@ -1168,17 +1170,10 @@
     <Name>USBDriver</Name>
     <Superclasses>
       <Superclass Name="usb/USBDeviceDriverLibrary">
-        <MemberRef Name="Factory" />
         <MemberRef Name="SMSC95xx" />
         <MemberRef Name="MassStorage" />
       </Superclass>
     </Superclasses>
-    <Member>
-      <Name>Factory</Name>
-      <Classes>
-        <Class Name="usb/USBDeviceDriverFactory" />
-      </Classes>
-    </Member>
     <Member>
       <Name>SMSC95xx</Name>
       <Classes>
