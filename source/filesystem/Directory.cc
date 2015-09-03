@@ -233,6 +233,7 @@ ErrorT Directory::rename(char* newName) {
     return (cNullPointerProvided);
 }
 
+
 OverlayDirectory::OverlayDirectory(const char* name, Directory* baseDir, Directory* overlay) :
         Directory(name, cOverlay) {
     this->baseDir       = baseDir;

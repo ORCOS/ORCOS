@@ -112,6 +112,7 @@ typedef enum {
 #define CLUSTER_TO_SECTOR(clusternum)  FirstDataSector + ((clusternum -2) * myFAT_BPB.BPB_SecPerClus);
 
 class FATDirectory;
+class FATFile;
 
 class FATFileSystem: public FileSystemBase {
     friend class FATDirectory;
@@ -189,7 +190,6 @@ public:
 };
 
 
-
 /*!
  *    Class representing a FAT Filesystem directory.
  *
@@ -232,8 +232,12 @@ private:
                          unint4 &dirEntrySector,
                          unint2 &dirSectorEntry,
                          unint4 &longNameEntrySector,
-                         unint2 &longNameSectorEntry);
+                         unint2 &longNameSectorEntry,
+                         unint4 cluster = 0);
 
+
+    //! Tries to delete the resource from the directory
+    ErrorT removeFileEntries(FATFile* file, bool freeClusterChain = true);
 
 protected:
     /*****************************************************************************
@@ -273,6 +277,8 @@ public:
      * Resets the directory iterator to the first entry
      */
     FAT32_DirEntry* resetToFirstEntry();
+
+    FAT32_DirEntry* moveToEntry(unint2 entryInSector, unint2 sector);
 
     /* writes back the current temp buffer*/
     void            synchEntries();
@@ -339,12 +345,15 @@ private:
     //! the sector containing the first longname entry
     unint4 longname_entry_sector;
 
+    FATDirectory* parent;
+
     bool hasLongName() {
         return (longname_entry_number != -1);
     }
 
 public:
     FATFile(char* name,
+            FATDirectory* parent,
             FAT32_DirEntry* p_entry,
             FATFileSystem * fs,
             unint4 directory_sector,

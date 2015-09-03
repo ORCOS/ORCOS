@@ -13,8 +13,8 @@
 
 extern Kernel* theOS;
 
-static char buffer[1024];  // __attribute__((aligned(4))) ATTR_CACHE_INHIBIT;
-static char temp_buf[512]; // __attribute__((aligned(4))) ATTR_CACHE_INHIBIT;
+static char buffer[1024];
+static char temp_buf[512];
 
 //! the current entry returned by getEntry iterator
 static unint2 it_currentSectorEntry = -1;
@@ -734,7 +734,7 @@ void FATDirectory::populateDirectory() {
                             }
                         }
 
-                        FATFile *file = new FATFile(p_name, fsrootdir_entry, myFS, sector_number, currentEntry, longNameSector, longNameEntry);
+                        FATFile *file = new FATFile(p_name, this, fsrootdir_entry, myFS, sector_number, currentEntry, longNameSector, longNameEntry);
                         this->add(file);
                     }
 
@@ -805,7 +805,8 @@ Resource* FATDirectory::get(const char* p_name, unint1 name_len) {
  *                    unint4 &fileEntrySector,
  *                    unint2 &fileSectorEntry,
  *                    unint4 &longNameEntrySector,
- *                    unint2 &longNameSectorEntry)
+ *                    unint2 &longNameSectorEntry,
+ *                    unint4 cluster)
  *
  * @description
  *   Tries to allocate a new fat entry inside the given fat directory.
@@ -813,13 +814,14 @@ Resource* FATDirectory::get(const char* p_name, unint1 name_len) {
  * @returns
  *   fsrootdir_entry    Pointer to the directory entry
  *******************************************************************************/
-ErrorT FATDirectory::allocateEntry(char* p_name,
-                     int DIR_Attr,
-                     FAT32_DirEntry* &fsrootdir_entry,
-                     unint4 &fileEntrySector,
-                     unint2 &fileSectorEntry,
-                     unint4 &longNameEntrySector,
-                     unint2 &longNameSectorEntry) {
+ErrorT FATDirectory::allocateEntry(char*            p_name,
+                                   int              DIR_Attr,
+                                   FAT32_DirEntry*  &fsrootdir_entry,
+                                   unint4           &fileEntrySector,
+                                   unint2           &fileSectorEntry,
+                                   unint4           &longNameEntrySector,
+                                   unint2           &longNameSectorEntry,
+                                   unint4           cluster) {
     if (get(p_name, strlen(p_name))) {
           LOG(FILESYSTEM, ERROR, " FATDirectory::allocateEntry failed for '%s': entry exists.", p_name);
           return (cError);
@@ -836,27 +838,46 @@ ErrorT FATDirectory::allocateEntry(char* p_name,
 
      unint4 namelen         = strlen(p_name);
      unint1 long_entries    = (unint1) ((namelen / 13) + 1);
+     unint1 freeEntries     = 0; /* Number of consecutive free entries found */
+     unint4 freeEntrySector = 0; /* Sector of the consecutive free entries start */
+     unint4 freeEntryNum    = 0; /* Entry number inside the sector */
 
-     /* we stupidly put new files at the end of the file...
-      * not very efficient .. however simple */
+     /* search for enough consecutive free directory entries for this new entry
+      * or until we reach the end of the directory table */
      fsrootdir_entry = resetToFirstEntry();
      while (fsrootdir_entry != 0 && fsrootdir_entry->DIR_Name[0] != 0) {
+         if (fsrootdir_entry->DIR_Name[0] == 0xE5) {
+             freeEntries++;
+             if (freeEntrySector == 0) {
+                 freeEntrySector = it_currentSector;
+                 freeEntryNum    = it_currentSectorEntry;
+             }
+             /* stop iterating over entries as we have found enough free slots to overwrite */
+             if (freeEntries == (long_entries +1)) break;
+         } else {
+             freeEntries     = 0;
+             freeEntrySector = 0;
+         }
          fsrootdir_entry = getNextEntry(false, false);
      }
      if (fsrootdir_entry == 0) {
          fsrootdir_entry = getNextEntry(false, true);
      }
-
-     /* we will overwrite the trailing entry with the new long name entries
-      * and append a new 'end of entries' entry at the very end */
-
-     /* end found. get the new cluster for the file */
-     unint4 fileCluster = myFS->allocateCluster();
-     if (fileCluster == EOC) {
-         FATAccess->release();
-         return (cError);
+     if (freeEntries == (long_entries +1)) {
+         /* reset to first entry to overwrite */
+         fsrootdir_entry = moveToEntry(freeEntryNum, freeEntrySector);
      }
-     LOG(FILESYSTEM, INFO, " FATDirectory::allocateEntry() new Entry allocated to Cluster %d", fileCluster);
+
+     /* position to insert found. get the new cluster for the file */
+     unint4 fileCluster = cluster;
+     if (fileCluster == 0) {
+         fileCluster = myFS->allocateCluster();
+         if (fileCluster == EOC) {
+             FATAccess->release();
+             return (cError);
+         }
+         LOG(FILESYSTEM, INFO, " FATDirectory::allocateEntry() new Entry allocated to Cluster %d", fileCluster);
+     }
      /* create entries at the end */
      unsigned char shortname[11];
      /* generate the DOS shortname */
@@ -866,8 +887,8 @@ ErrorT FATDirectory::allocateEntry(char* p_name,
      FAT32_LongDirEntry* fslongentry;
      longNameEntrySector = it_currentSector; /* remember the longname sector */
      longNameSectorEntry = it_currentSectorEntry;
-     LOG(FILESYSTEM, INFO, " FATDirectory::allocateEntry() longNameEntrySector %d", longNameEntrySector);
-     LOG(FILESYSTEM, INFO, " FATDirectory::allocateEntry() longNameSectorEntry %d", longNameSectorEntry);
+     LOG(FILESYSTEM, INFO, " FATDirectory::allocateEntry() Directory Entry Sector: %u", longNameEntrySector);
+     LOG(FILESYSTEM, INFO, " FATDirectory::allocateEntry() Entry in Sector: %u", longNameSectorEntry);
 
      /* create long entries first */
      for (int i = 0; i < long_entries; i++) {
@@ -916,13 +937,19 @@ ErrorT FATDirectory::allocateEntry(char* p_name,
      /* write last (short) entry containing file information */
      memset(fsrootdir_entry, 0, sizeof(FAT32_DirEntry));
      memcpy(fsrootdir_entry->DIR_Name, shortname, 11);
-     fsrootdir_entry->DIR_FstClusHI = (unint2) (fileCluster >> 16);
-     fsrootdir_entry->DIR_FstClusLO = fileCluster & 0xffff;
+     fsrootdir_entry->DIR_FstClusHI  = (unint2) (fileCluster >> 16);
+     fsrootdir_entry->DIR_FstClusLO  = fileCluster & 0xffff;
      fsrootdir_entry->DIR_Attr       = DIR_Attr;  // mark as backup
 
-     /* set new end, allocate cluster if needed */
-     FAT32_DirEntry* next_entry = getNextEntry(true, true);
-     next_entry->DIR_Name[0] = 0;
+     /* check if we are appending.. if so add end of table entry */
+     if (freeEntries != (long_entries +1)) {
+         /* we will overwrite the trailing entry with the new long name entries
+          * and append a new 'end of entries' entry at the very end */
+         /* set new end, allocate cluster if needed */
+         FAT32_DirEntry* next_entry = getNextEntry(true, true);
+         next_entry->DIR_Name[0] = 0;
+     }
+
      /* final synch of the current buffer entries */
      synchEntries();
 
@@ -956,7 +983,7 @@ File* FATDirectory::createFile(char* p_name, unint4 flags) {
         return (0);
     }
 
-    FATFile *file = new FATFile(namepcpy, fsrootdir_entry, myFS, fileEntrySector, fileSectorEntry, longNameEntrySector, longNameSectorEntry);
+    FATFile *file = new FATFile(namepcpy, this, fsrootdir_entry, myFS, fileEntrySector, fileSectorEntry, longNameEntrySector, longNameSectorEntry);
     this->add(file);
 
     /* be sure data is written to device */
@@ -1204,6 +1231,15 @@ void FATDirectory::synchEntries() {
     }
 }
 
+FAT32_DirEntry* FATDirectory::moveToEntry(unint2 entryInSector, unint2 entrysector) {
+    it_currentSectorEntry   = entryInSector;
+    it_currentSector        = entrysector;
+    it_currentCluster       = myFS->SectorToCluster(entrysector);
+    myFS->myPartition->readSectors(entrysector, buffer, 1);
+    FAT32_DirEntry* entries = reinterpret_cast<FAT32_DirEntry*>(buffer);
+    return (&entries[it_currentSectorEntry]);
+}
+
 /*****************************************************************************
  * Method: FATDirectory::resetToFirstEntry()
  *
@@ -1219,6 +1255,56 @@ FAT32_DirEntry* FATDirectory::resetToFirstEntry() {
     return (&entries[0]);
 }
 
+
+ErrorT FATDirectory::removeFileEntries(FATFile* file, bool freeClusterChain) {
+    FAT32_DirEntry *fsrootdir_entry;
+    FATAccess->acquire(this);
+
+    if (file->longname_entry_number != -1) {
+       fsrootdir_entry = moveToEntry(file->longname_entry_number, file->longname_entry_sector);
+
+       /* iterate over all longname entries and the final short entry and mark them as free */
+       do {
+           memset(fsrootdir_entry, 0, sizeof(FAT32_DirEntry));
+           LOG(FILESYSTEM, DEBUG, " FATDirectory::remove() invalidating entry %d in sector %d", it_currentSectorEntry, it_currentSector);
+           fsrootdir_entry->DIR_Name[0] = 0xE5;
+           fsrootdir_entry              = getNextEntry(true, false);
+       } while (it_currentSector != file->directory_sector && it_currentSectorEntry != file->directory_entry_number);
+    } else {
+        fsrootdir_entry = moveToEntry(file->directory_entry_number, file->directory_sector);
+    }
+
+    /* remove short name entry */
+    if (fsrootdir_entry) {
+        memset(fsrootdir_entry, 0, sizeof(FAT32_DirEntry));
+        fsrootdir_entry->DIR_Name[0] = 0xE5;
+    }
+
+    /* check if the last entry was also the last entry inside the dir table*/
+    FAT32_DirEntry *nextEntry = getNextEntry(true, false);
+    if (!nextEntry) {
+       /* reached the end */
+        fsrootdir_entry->DIR_Name[0] = 0x0;
+    }
+
+    /* be sure entries are all written back */
+    synchEntries();
+
+    if (freeClusterChain) {
+        LOG(FILESYSTEM, DEBUG, " FATDirectory::remove() Freeing cluster chain");
+        /* now free up the FAT cluster chain entries used by this file */
+        if (!myFS->freeClusterChain(file->clusterStart)) {
+            LOG(FILESYSTEM, ERROR, "FATFile::freeClusterChain failed");
+        }
+    }
+
+    /* be sure data is really written back */
+    myFS->myPartition->flushCache();
+
+    FATAccess->release();
+    return (cOk);
+}
+
 /*****************************************************************************
  * Method: FATDirectory::remove(Resource *res)
  *
@@ -1232,71 +1318,8 @@ ErrorT FATDirectory::remove(Resource *res) {
     if (!(res->getType() & (cFile)))
         return (cWrongResourceType );
 
-    FATAccess->acquire(this);
     FATFile* file = static_cast<FATFile*>(res);
-
-    it_currentSector        = file->directory_sector;
-    it_currentSectorEntry   = file->directory_entry_number;
-
-    if (file->longname_entry_number != -1) {
-        /* start removing the entries at the first longname entry
-         * Set directory iterator to the sector containing the first longname entry */
-        it_currentSector        = file->longname_entry_sector;
-        /* Set directory iterator to the entry number of first longname entry */
-        it_currentSectorEntry   = file->longname_entry_number;
-    }
-
-    LOG(FILESYSTEM, DEBUG, " FATDirectory::remove() it_currentSector %u", it_currentSector);
-    LOG(FILESYSTEM, DEBUG, " FATDirectory::remove() it_currentSectorEntry %u", it_currentSectorEntry);
-
-    it_currentCluster = myFS->SectorToCluster(it_currentSector);
-
-    /* fill up the iterator buffer at the current sector */
-    int error = myFS->myPartition->readSectors(it_currentSector, buffer, 1);
-    if (error < 0) {
-        FATAccess->release();
-        return (error);
-    }
-
-    /* get the entry pointer to by it_currentSectorEntry*/
-    FAT32_DirEntry *fsrootdir_entry = &(reinterpret_cast<FAT32_DirEntry*>(buffer))[it_currentSectorEntry];
-
-    /* iterate over all longname entries and the final short entry and mark them as free */
-    do {
-        memset(fsrootdir_entry, 0, sizeof(FAT32_DirEntry));
-        LOG(FILESYSTEM, DEBUG, " FATDirectory::remove() invalidating entry %d in sector %d", it_currentSectorEntry, it_currentSector);
-        fsrootdir_entry->DIR_Name[0] = 0xE5;
-        fsrootdir_entry              = getNextEntry(true, false);
-    } while (it_currentSector != file->directory_sector && it_currentSectorEntry != file->directory_entry_number);
-
-    if (fsrootdir_entry) {
-        memset(fsrootdir_entry, 0, sizeof(FAT32_DirEntry));
-        fsrootdir_entry->DIR_Name[0] = 0xE5;
-    }
-
-    /* check if the last entry was also the last entry inside the dir table*/
-    FAT32_DirEntry *nextEntry = getNextEntry(true, false);
-    if (!nextEntry) {
-        /* reached the end */
-        fsrootdir_entry->DIR_Name[0] = 0x0;
-    }
-
-    LOG(FILESYSTEM, DEBUG, " FATDirectory::remove() Synching sector %d", it_currentSector);
-
-    /* be sure last entry is written back as well */
-    synchEntries();
-
-    LOG(FILESYSTEM, DEBUG, " FATDirectory::remove() Freeing cluster chain");
-
-    /* now free up the FAT cluster chain entries used by this file */
-    if (!myFS->freeClusterChain(file->clusterStart)) {
-        LOG(FILESYSTEM, ERROR, "FATFile::freeClusterChain failed");
-    }
-
-    /* be sure data is really written back */
-    myFS->myPartition->flushCache();
-
-    FATAccess->release();
+    removeFileEntries(file, true);
 
     /* finally remove internal dir object */
     ErrorT ret = Directory::remove(res);
@@ -1377,13 +1400,20 @@ ErrorT FATDirectory::ioctl(int request, void* args) {
         buf->buffer[len] = 0;
         FATAccess->release();
 
-        return (cOk );
+        return (cOk);
     }
 
-    return (cError );
+    return (cError);
 }
 
-FATFile::FATFile(char* p_name, FAT32_DirEntry* p_entry, FATFileSystem * p_fs, unint4 directory_sector, unint2 directory_entry_number, unint4 longname_entry_sector, unint2 longname_entry_number) :
+FATFile::FATFile(char* p_name,
+                 FATDirectory* parent,
+                 FAT32_DirEntry* p_entry,
+                 FATFileSystem * p_fs,
+                 unint4 directory_sector,
+                 unint2 directory_entry_number,
+                 unint4 longname_entry_sector,
+                 unint2 longname_entry_number) :
         File(p_name, p_entry->DIR_FileSize, p_entry->DIR_Attr) {
     this->clusterStart              = ((p_entry->DIR_FstClusHI << 16) | p_entry->DIR_FstClusLO);
     this->currentCluster            = clusterStart;
@@ -1393,6 +1423,7 @@ FATFile::FATFile(char* p_name, FAT32_DirEntry* p_entry, FATFileSystem * p_fs, un
     this->directory_entry_number    = directory_entry_number;
     this->longname_entry_sector     = longname_entry_sector;
     this->longname_entry_number     = longname_entry_number;
+    this->parent                    = parent;
 }
 
 FATFile::~FATFile() {
@@ -1604,10 +1635,36 @@ ErrorT FATFile::resetPosition() {
  *
  *******************************************************************************/
 ErrorT FATFile::rename(char* newName) {
-    // TODO: update directory entries... this may get complicated
+    unint4 fileEntrySector = -1;
+    unint2 fileSectorEntry = -1;
+
+    unint4 longNameEntrySector = -1;
+    unint2 longNameSectorEntry = -1;
+    FAT32_DirEntry* fsrootdir_entry;
+
+    /* remove old name entries inside the directory table */
+    parent->removeFileEntries(this, false);
+
+    /* allocate memory for new name */
+    unint4 namelen         = strlen(newName);
+    char* namepcpy         = new char[namelen +1];
+    memcpy(namepcpy, newName, namelen + 1);
+
+    /* allocate new directory entries for the new name */
+    ErrorT ret = parent->allocateEntry(namepcpy, ATTR_ARCHIVE, fsrootdir_entry, fileEntrySector, fileSectorEntry, longNameEntrySector, longNameSectorEntry, clusterStart);
+    if (isError(ret)) {
+        delete[] namepcpy;
+        return (ret);
+    }
+
+    /* store reference to the new directory entries */
+    this->directory_sector          = fileEntrySector;
+    this->directory_entry_number    = fileSectorEntry;
+    this->longname_entry_sector     = longNameEntrySector;
+    this->longname_entry_number     = longNameSectorEntry;
 
     /* finally call base method */
-    File::rename(newName);
+    File::rename(namepcpy);
     return (cOk);
 }
 
