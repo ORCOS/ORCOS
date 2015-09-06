@@ -80,7 +80,7 @@ void*       memsetlong(void* ptr, int c, size_t n);
  *
  *  0xab 0x34 0x12 0x14    char1 char2 char3 char 4
  *******************************************************************************/
-void        memdump(int addr, int length);
+void        memdump(void* addr, int length);
 
 #ifdef __cplusplus
 }

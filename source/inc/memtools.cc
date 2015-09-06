@@ -208,27 +208,40 @@ void makeHexCharCompatible(char* msg, int len) {
  * @description
  *
  *******************************************************************************/
-void memdump(int addr, int length) {
-    for (int i = 0; i < length; i++) {
+void memdump(void* address, int length) {
+    int addr = (int) address;
+    for (int i = 0; i < length; i+=8) {
 #if PROGRMEM
-        printf_p(PSTR("0x%x: "),     static_cast<int>(addr + (4 * i)));
-        printf_p(PSTR("0x%2x "),     static_cast<int>(INB(addr + (4 * i))));
-        printf_p(PSTR("0x%2x "),     static_cast<int>(INB(addr + (4 * i) + 1)));
-        printf_p(PSTR("0x%2x "),     static_cast<int>(INB(addr + (4 * i) + 2)));
-        printf_p(PSTR("0x%2x \r\n"), static_cast<int>(INB(addr + (4 * i) + 3)));
+        printf_p(PSTR("0x%x: "),     static_cast<int>(addr + i));
+        printf_p(PSTR("0x%2x "),     static_cast<int>(INB(addr + i)));
+        printf_p(PSTR("0x%2x "),     static_cast<int>(INB(addr + i + 1)));
+        printf_p(PSTR("0x%2x "),     static_cast<int>(INB(addr + i + 2)));
+        printf_p(PSTR("0x%2x \r\n"), static_cast<int>(INB(addr + i + 3)));
+        printf_p(PSTR("0x%2x "),     static_cast<int>(INB(addr + i + 4)));
+        printf_p(PSTR("0x%2x "),     static_cast<int>(INB(addr + i + 5)));
+        printf_p(PSTR("0x%2x "),     static_cast<int>(INB(addr + i + 6)));
+        printf_p(PSTR("0x%2x \r\n"), static_cast<int>(INB(addr + i + 7)));
 #else
-        printf("0x%x: ",  static_cast<int>(addr + (4 * i)));
-        printf("0x%2x ",  static_cast<int>(INB(addr + (4 * i))));
-        printf("0x%2x ",  static_cast<int>(INB(addr + (4 * i) + 1)));
-        printf("0x%2x ",  static_cast<int>(INB(addr + (4 * i) + 2)));
-        printf("0x%2x ",  static_cast<int>(INB(addr + (4 * i) + 3)));
-        char ascii[5];
-        ascii[0] = INB(addr + (4 * i));
-        ascii[1] = INB(addr + (4 * i) + 1);
-        ascii[2] = INB(addr + (4 * i) + 2);
-        ascii[3] = INB(addr + (4 * i) + 3);
-        ascii[4] = 0;
-        makeHexCharCompatible(ascii, 4);
+        printf("0x%x: ",  static_cast<int>(addr + i));
+        printf("0x%2x ",  static_cast<int>(INB(addr + i)));
+        printf("0x%2x ",  static_cast<int>(INB(addr + i + 1)));
+        printf("0x%2x ",  static_cast<int>(INB(addr + i + 2)));
+        printf("0x%2x ",  static_cast<int>(INB(addr + i + 3)));
+        printf("0x%2x ",  static_cast<int>(INB(addr + i + 4)));
+        printf("0x%2x ",  static_cast<int>(INB(addr + i + 5)));
+        printf("0x%2x ",  static_cast<int>(INB(addr + i + 6)));
+        printf("0x%2x ",  static_cast<int>(INB(addr + i + 7)));
+        char ascii[9];
+        ascii[0] = INB(addr + i);
+        ascii[1] = INB(addr + i + 1);
+        ascii[2] = INB(addr + i + 2);
+        ascii[3] = INB(addr + i + 3);
+        ascii[4] = INB(addr + i + 4);
+        ascii[5] = INB(addr + i + 5);
+        ascii[6] = INB(addr + i + 6);
+        ascii[7] = INB(addr + i + 7);
+        ascii[8] = 0;
+        makeHexCharCompatible(ascii, 8);
         printf(" %s\r\n", ascii);
 #endif
     }
