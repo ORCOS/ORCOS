@@ -219,9 +219,14 @@ static err_t tcp_accept_wrapper(void *arg, struct tcp_pcb *newpcb, err_t err) {
     newsock->connected(cOk);
 
     /* add the new connection to the listening socket*/
-    oldsock->accepted(newsock);
+    int error = oldsock->accepted(newsock);
+    if (isOk(error)) {
+        return (ERR_OK);
+    }
 
-    return (ERR_OK);
+    delete newsock;
+    // no further connections allowed!
+    return (ERR_BUF);
 }
 
 /*****************************************************************************
