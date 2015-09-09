@@ -38,6 +38,8 @@
 
 #include "lwip/opt.h"
 
+int sysArchLock;
+
 #if (NO_SYS == 0) /* don't build if not configured for use in lwipopts.h */
 
 #include "lwip/sys.h"

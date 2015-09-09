@@ -33,6 +33,7 @@
 #define __LWIP_SYS_H__
 
 #include "lwip/opt.h"
+#include <assemblerFunctions.hh>
 
 #ifdef __cplusplus
 extern "C" {
@@ -287,11 +288,11 @@ u32_t sys_jiffies(void);
 
 #else
 
-extern void* sysArchMutex;
+extern int sysArchLock;
 
 #define SYS_ARCH_DECL_PROTECT(lev)
-#define SYS_ARCH_PROTECT(lev)       acquireMutex(sysArchMutex)
-#define SYS_ARCH_UNPROTECT(lev)     releaseMutex(sysArchMutex)
+#define SYS_ARCH_PROTECT(lev)       SMP_SPINLOCK_GET(sysArchLock)
+#define SYS_ARCH_UNPROTECT(lev)     SMP_SPINLOCK_FREE(sysArchLock)
 
 #endif /* SYS_LIGHTWEIGHT_PROT */
 
