@@ -104,7 +104,7 @@ extern "C" void handleUndefinedIRQ(int addr, int spsr, int context, int sp) {
 
     dumpContext(reinterpret_cast<void*>(context));
 
-    memdump(addr - 16, 8);
+    memdump((void*) (addr - 16), 32);
 
     /* print the call trace */
     backtrace_addr(reinterpret_cast<void*>(addr), sp);
