@@ -51,6 +51,8 @@ public:
     // my logical unit number
     int myLUN;
 
+    int deviceNumber;
+
     // next LUN msd of the same usb device
     MassStorageSCSIUSBDeviceDriver *next;
 
@@ -67,7 +69,7 @@ public:
 
 private:
     // constructor for additional luns
-    MassStorageSCSIUSBDeviceDriver(MassStorageSCSIUSBDeviceDriver* parent, int lun, char* p_name);
+    MassStorageSCSIUSBDeviceDriver(MassStorageSCSIUSBDeviceDriver* parent, int lun);
 
     /*****************************************************************************
      * Method: performTransaction(char* bot_cbw, char* data, unint2 length)

@@ -39,7 +39,7 @@ typedef struct {
 #define CBW_SET_LUN(cbw, lun) cbw[13] = (static_cast<char>(lun))
 
 
-unint4 lun ATTR_CACHE_INHIBIT;
+unint1 lun ATTR_CACHE_INHIBIT;
 
 static char cbwInquiry[31] __attribute__((aligned(4))) = { 'U', 'S', 'B', 'C',     // CBW Signature
         0x12, 0x34, 0x56, 0x78,             // CBW Tag
@@ -88,11 +88,11 @@ MassStorageSCSIUSBDeviceDriver::MassStorageSCSIUSBDeviceDriver(USBDevice* p_dev)
     this->myLUN         = 0;
     this->next          = 0;
 
-    int num         = reinterpret_cast<int>(BlockDeviceDriver::freeBlockDeviceIDs->removeHead());
+    deviceNumber    = reinterpret_cast<int>(BlockDeviceDriver::freeBlockDeviceIDs->removeHead());
     char* new_name  = new char[4];
     new_name[0] = 's';
     new_name[1] = 'd';
-    new_name[2] = ('0' + num);
+    new_name[2] = ('0' + deviceNumber);
     new_name[3] = 0;
 
     this->name = new_name;
@@ -101,9 +101,9 @@ MassStorageSCSIUSBDeviceDriver::MassStorageSCSIUSBDeviceDriver(USBDevice* p_dev)
     LOG(ARCH, INFO, "MassStorageSCSIUSBDeviceDriver: created LUN 0 as '%s'", name);
 }
 
-MassStorageSCSIUSBDeviceDriver::MassStorageSCSIUSBDeviceDriver(MassStorageSCSIUSBDeviceDriver* parent, int lun, char* p_name) :
+MassStorageSCSIUSBDeviceDriver::MassStorageSCSIUSBDeviceDriver(MassStorageSCSIUSBDeviceDriver* parent, int lun) :
         USBDeviceDriver(),
-        BlockDeviceDriver(p_name) {
+        BlockDeviceDriver("sdx") {
     this->dev = parent->dev;
     this->bulkin_ep     = parent->bulkin_ep;
     this->bulkout_ep    = parent->bulkout_ep;
@@ -111,6 +111,14 @@ MassStorageSCSIUSBDeviceDriver::MassStorageSCSIUSBDeviceDriver(MassStorageSCSIUS
     this->myLUN         = lun;
     this->sector_size   = 512;
     this->next          = 0;
+
+    deviceNumber    = reinterpret_cast<int>(BlockDeviceDriver::freeBlockDeviceIDs->removeHead());
+    char* new_name  = new char[4];
+    new_name[0] = 's';
+    new_name[1] = 'd';
+    new_name[2] = ('0' + deviceNumber);
+    new_name[3] = 0;
+    this->name = new_name;
 
     LOG(ARCH, INFO, "MassStorageSCSIUSBDeviceDriver: created LUN %d as '%s'", lun, name);
 
@@ -316,13 +324,7 @@ ErrorT MassStorageSCSIUSBDeviceDriver::initialize() {
 
     /* create additional logical unit representations */
     for (unint1 i = 1; i < lun; i++) {
-        char* p_name    = new char[4];
-        int num         = reinterpret_cast<int>(BlockDeviceDriver::freeBlockDeviceIDs->removeHead());
-        p_name[0] = 's';
-        p_name[1] = 'd';
-        p_name[2] = ('0' + num);
-        p_name[3] = 0;
-        MassStorageSCSIUSBDeviceDriver *p_next = new MassStorageSCSIUSBDeviceDriver(this, i, p_name);
+        MassStorageSCSIUSBDeviceDriver *p_next = new MassStorageSCSIUSBDeviceDriver(this, i);
         /* link the created LUNs MSDs so we can delete them again */
         current->next = p_next;
         current = p_next;
@@ -450,7 +452,7 @@ MassStorageSCSIUSBDeviceDriver::~MassStorageSCSIUSBDeviceDriver() {
     if (this->next != 0)
         delete this->next;
 
-    BlockDeviceDriver::freeBlockDeviceIDs->addHead(reinterpret_cast<ListItem*>(this->myLUN));
+    BlockDeviceDriver::freeBlockDeviceIDs->addHead(reinterpret_cast<ListItem*>(this->deviceNumber));
 }
 
 /*****************************************************************************
