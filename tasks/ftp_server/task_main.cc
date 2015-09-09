@@ -31,24 +31,21 @@
 
 const char* welcome_msg = "220 ORCOS FTP Server ready.\r\n";
 
-// the current command being received
-static char command[100];
-
 // current directory we are in
-static char current_dir[100];
+static char current_dir[256];
 
 // last directory
-static char last_dir[100];
+static char last_dir[256];
 
 static char return_msg[520];
 
 static char dir_msg[1024];
 
-static char temp_msg[200];
+static char temp_msg[256];
 
 static char dataBuffer[2048];
 
-char recvCommand[200];
+char recvCommand[512];
 
 char renameFromFile[256];
 char renameToFile[256];
@@ -106,11 +103,11 @@ char* extractFilePath(char* &str) {
     return 0;
 }
 
+char newpath[256];
 
 // reduces the path by "." and ".." statements
 void compactPath(char* path) {
 
-    char newpath[100];
     newpath[0] = '/';
     newpath[1] = '\0';
 
@@ -126,7 +123,7 @@ void compactPath(char* path) {
         if ((next_token != 0) && ((strcmp(next_token,"..") == 0))) nextisparent = true;
 
         if ((strcmp(token,".") != 0) && !nextisparent && (strcmp(token,"..") != 0 )) {
-            strcat(newpath,token);
+            strcat(newpath, token);
             strcat(newpath,"/");
         }
 
@@ -404,6 +401,9 @@ int htonl(int n)
 
 char* getFTPPath(char* msgptr) {
    int len = strpos("\r\n", msgptr);
+   if (len > 200) {
+       return ("");
+   }
    memcpy(temp_msg, msgptr, len);
    temp_msg[len] = 0;
 
@@ -453,7 +453,7 @@ extern "C" int main(int argc, char** argv) {
     while(1)
     {
         // wait for new connection
-        int newsock = listen(mysock);
+        int newsock = listen(mysock, 1);
         if (newsock < 0) {
             printf("Listen error %d: %s\n", newsock, strerror(newsock));
             continue;
@@ -478,7 +478,7 @@ extern "C" int main(int argc, char** argv) {
 
             msgptr = recvCommand;
             /* wait for 200 milliseconds on next packet */
-            int msglen = recv(newsock, msgptr, 200, MSG_WAIT, 200);
+            int msglen = recv(newsock, msgptr, 512, MSG_WAIT, 200);
 
             if (msglen == -1) {
                 // disconnected
@@ -545,7 +545,8 @@ extern "C" int main(int argc, char** argv) {
 
              int err = create(file, cTYPE_DIR);
              if (err >= 0) {
-                 sendto(newsock,"250 \r\n",6,0);
+                 sendto(newsock,"250 \r\n", 6, 0);
+                 close(err);
              } else {
                  printf("Could not create '%s'. Error: %s\r\n", file, strerror(err));
                  sendResponse(newsock, "450 Error creating directory: %s\r\n", strerror(err));
@@ -597,7 +598,7 @@ extern "C" int main(int argc, char** argv) {
                  if (fd < 0) {
                      sendResponse(newsock, "450 Error renaming. Error opening %s.\r\n", renameFromFile);
                  } else {
-
+                     frename(fd, basename(renameToFile));
                      sendResponse(newsock, "250 \r\n");
                  }
 
@@ -633,6 +634,34 @@ extern "C" int main(int argc, char** argv) {
               *     REQUEST PASSIVE MODE
               ***********************************************/
              sendResponse(newsock, "500 PASV mode not supported.\r\n");
+         } else if (strpos("RMD ",msgptr) == 0) {
+             /***********************************************
+              *     REMOVE DIRECTORY
+              ***********************************************/
+             int len = strpos("\r\n",msgptr);
+             memcpy(temp_msg,msgptr,len);
+             temp_msg[len] = 0;
+
+             char* file = &temp_msg[4];
+             if (file[0] != '/') {
+                // relative path
+                strcpy(temp_msg, current_dir);
+                strcat(temp_msg, &msgptr[4]);
+                len = strpos("\r\n",temp_msg);
+                temp_msg[len] = 0;
+                file  = temp_msg;
+             }
+
+             printf("Delete directory '%s'\r\n",file);
+
+             int status = remove(file);
+             if (status == 0) {
+               // tell control connection that data has been received
+               sendResponse(newsock, "250 Directory deleted.\r\n");
+             } else {
+               printf("Could not delete '%s'. Error: %d\r\n",file,status);
+               sendResponse(newsock, "450 Error deleting directory.\r\n");
+             }
          } else if (strpos("DELE ",msgptr) == 0) {
              /***********************************************
               *     DELETE FILE
@@ -828,13 +857,13 @@ extern "C" int main(int argc, char** argv) {
               ***********************************************/
             char* dir = getFTPPath(&msgptr[4]);
 
-            memcpy(last_dir,current_dir,100);
+            memcpy(last_dir, current_dir, 256);
 
             // open dir
             int newdir_len = strlen(dir);
             if (dir[newdir_len-1] == '/') newdir_len--;
 
-            memcpy(current_dir,dir,newdir_len);
+            memcpy(current_dir, dir, newdir_len);
             current_dir[newdir_len] = '/';
             current_dir[newdir_len+1] = '\0';
 
@@ -850,7 +879,7 @@ extern "C" int main(int argc, char** argv) {
                 sendResponse(newsock, "250 \"%s\" is current directory.\r\n", current_dir);
             } else {
                 sendResponse(newsock, "450 Could not open \"%s\". Error: %s\r\n", current_dir, strerror(handle));
-                memcpy(current_dir, last_dir, 100);
+                memcpy(current_dir, last_dir, 256);
             }
 
          } else if (strpos("SIZE ",msgptr) == 0) {
@@ -868,7 +897,7 @@ extern "C" int main(int argc, char** argv) {
              } else {
                 printf("Could not open '%s'. Error: %s\r\n", current_dir, strerror(handle));
                 sendResponse(newsock, "550 Could not open '%s'. Error: %s\r\n", current_dir, strerror(handle));
-                memcpy(current_dir, last_dir, 100);
+                memcpy(current_dir, last_dir, 256);
              }
          }
          else {

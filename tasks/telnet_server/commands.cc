@@ -222,7 +222,7 @@ void command_ls(int socket, int handle, int details, int humanReadable) {
     while (direntry) {
 
         /* shorten name */
-        if (direntry->namelen > 30) {
+        if (direntry->namelen > 30 && !details) {
             direntry->name[28] = '~';
             direntry->name[29] = 0;
         }

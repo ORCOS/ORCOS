@@ -760,7 +760,7 @@ extern "C" int main(int argc, char** argv) {
     puts("Telnet-Server bound and waiting for clients."LINEFEED);
 
     while (1) {
-        newsock = listen(mysock);
+        newsock = listen(mysock, 1);
         if (newsock < 0) {
             printf("Listen error %d: %s\n", newsock, strerror(newsock));
             continue;
