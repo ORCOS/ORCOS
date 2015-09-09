@@ -13,6 +13,7 @@
 #include "USBDriverLibrary.hh"
 
 class USB_Host_Controller;
+class USBHub;
 
 typedef enum {
     EP_ERROR,
@@ -41,7 +42,7 @@ public:
         }
     }
 
-    USBDevice(USB_Host_Controller *controller, USBDevice *parent, unint1 port, unint1 speed);
+    USBDevice(USB_Host_Controller *controller, USBHub *parent, unint1 port, unint1 speed);
 
     virtual ~USBDevice();
 
@@ -58,7 +59,7 @@ public:
       USB_Host_Controller *controller;
 
       // parent device (hub) or null
-      USBDevice *parent;
+      USBHub *parent;
 
 
       // the associated device address

@@ -12,7 +12,9 @@
 #include "USBDevice.hh"
 #include "USBDriverLibrary.hh"
 
+
 class USBDevice;
+class USBHub;
 
 typedef struct {
     // status of this port
@@ -177,7 +179,7 @@ public:
      *******************************************************************************/
     //virtual void removefromPeriodic(QH* qh, int poll_rate) = 0;
 
-    virtual USBDevice* createDevice(USBDevice *parent, unint1 port, unint1 speed) = 0;
+    virtual USBDevice* createDevice(USBHub *parent, unint1 port, unint1 speed) = 0;
 
     // destructor
     virtual ~USB_Host_Controller() {};

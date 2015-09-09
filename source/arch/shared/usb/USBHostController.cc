@@ -47,7 +47,7 @@ static char recv_buf[256] __attribute__((aligned(4))) ATTR_CACHE_INHIBIT;
  *******************************************************************************/
 ErrorT USB_Host_Controller::enumerateDevice(USBDevice *dev) {
     char msg[8] = USB_DESCRIPTOR_REQUEST(DEVICE_DESCRIPTOR);
-    int4 ret_len = this->sendUSBControlMsg(dev, 0, msg, USB_DIR_IN, 0x40, recv_buf);
+    int4 ret_len = this->sendUSBControlMsg(dev, 0, msg, USB_DIR_IN | USB_IGNORE_ERROR, 0x40, recv_buf);
 
     if (ret_len >= 0) {
         unint1 bdevLength = recv_buf[0];
@@ -65,7 +65,7 @@ ErrorT USB_Host_Controller::enumerateDevice(USBDevice *dev) {
             LOG(ARCH, INFO, "USB_Host_Controller:  Class: %x (%s)", dev->dev_descr.bDeviceClass, bDeviceClassStr[dev->dev_descr.bDeviceClass]);
             LOG(ARCH, INFO, "USB_Host_Controller:  SubClass: %x Proto: %x", dev->dev_descr.bDeviceSubClass, dev->dev_descr.bDeviceProtocol);
             LOG(ARCH, INFO, "USB_Host_Controller:  Vendor: %4x - Product: %4x", dev->dev_descr.idVendor, dev->dev_descr.idProduct);
-
+            LOG(ARCH, INFO, "USB_Host_Controller:  Max Packet Size: %d", dev->dev_descr.bMaxPacketSize);
         } else {
             return (cError);
         }
@@ -74,8 +74,6 @@ ErrorT USB_Host_Controller::enumerateDevice(USBDevice *dev) {
         return (cError);
         // failed .. handle error
     }
-
-    kwait(1);
 
     /* reset the port again
      some device only react on the following messages after resetting the port two times */
@@ -86,20 +84,18 @@ ErrorT USB_Host_Controller::enumerateDevice(USBDevice *dev) {
             return (result);
         }
     } else {
-        // parent must be a hub
-        // TODO: send a port reset feature request
+        /* parent must be a hub */
+        USBHub* hub = dev->parent;
+        hub->resetPort(dev->port);
     }
+
+    // give some time for reset recovery of device
+    kwait(10);
 
     unint1 next_device_addr = (unint1) ((unint4) USBDevice::freeDeviceIDs->removeHead());
     LOG(ARCH, INFO, "USB_Host_Controller: Setting Device Address: %d", next_device_addr);
 
-    //unint4 cap_token = INW(dev->endpoints[0].queue_head+4);
-    /*unint4 cap_token = dev->endpoints[0].queue_head->qh_endpt1;
-    SETBITS(cap_token, 26, 16, dev->dev_descr.bMaxPacketSize);
-    //OUTW(dev->endpoints[0].queue_head+4,cap_token);
-    dev->endpoints[0].queue_head->qh_endpt1 = cap_token;*/
     dev->setMaxPacketSize(0, dev->dev_descr.bMaxPacketSize);
-
     dev->endpoints[0].interrupt_receive_size = dev->dev_descr.bMaxPacketSize;
 
     // set the device address!
@@ -110,19 +106,39 @@ ErrorT USB_Host_Controller::enumerateDevice(USBDevice *dev) {
     }
 
     // give some time to the device to change its address
-    kwait(1);
+    kwait(10);
 
-    memset(&recv_buf, 0, 0x40);
+    if (ret_len < 18) {
+        /* second device descriptor request */
+        ret_len = this->sendUSBControlMsg(dev, 0, msg, USB_DIR_IN , 0x40, recv_buf);
+        if (ret_len >= 0) {
+           unint1 bdevLength = 18;
+           LOG(ARCH, TRACE, "USB_Host_Controller: Device Descriptor Length %d:", bdevLength);
+
+           if (bdevLength > 0 && bdevLength <= sizeof(DeviceDescriptor)) {
+               /* copy received device descriptor so we can reference it later on */
+               memcpy(&dev->dev_descr, &recv_buf, bdevLength);
+           } else {
+               return (cError);
+           }
+       } else {
+           LOG(ARCH, ERROR, "USB_Host_Controller: Getting Device Descriptor failed.");
+           return (cError);
+       }
+   }
+
+    memset(&recv_buf, 0, 0xff);
     char msg3[8] = USB_DESCRIPTOR_REQUEST(CONFIGURATION_DESCRIPTOR);
-    error = this->sendUSBControlMsg(dev, 0, msg3, USB_DIR_IN, 0x40, recv_buf);
+    error = this->sendUSBControlMsg(dev, 0, msg3, USB_DIR_IN, 0xff, recv_buf);
     if (error < 0)
         return (cError );
 
     ConfigurationDescriptor* cConf = reinterpret_cast<ConfigurationDescriptor*>(&recv_buf);
     unint4 total_length = cConf->wtotalLength;
 
-    LOG(ARCH, DEBUG, "USB_Host_Controller: Configuration %d [%x]:", cConf->bConfigurationValue, cConf->bmAttributes);
-    LOG(ARCH, DEBUG, "USB_Host_Controller:   NumInterfaces: %d maxPower: %d mA", cConf->bNumInterfaces, cConf->bMaxPower * 2);
+    int firstConfig = cConf->bConfigurationValue;
+    LOG(ARCH, INFO, "USB_Host_Controller: Configuration %d [%x]:", cConf->bConfigurationValue, cConf->bmAttributes);
+    LOG(ARCH, INFO, "USB_Host_Controller:   NumInterfaces: %d maxPower: %d mA", cConf->bNumInterfaces, cConf->bMaxPower * 2);
     InterfaceDescriptor* iDescr = reinterpret_cast<InterfaceDescriptor*>(cConf + 1);
 
     unint4 bytes_read = sizeof(ConfigurationDescriptor);
@@ -130,10 +146,10 @@ ErrorT USB_Host_Controller::enumerateDevice(USBDevice *dev) {
     // store interface descriptor for driver
     memcpy(&dev->if_descr, iDescr, sizeof(InterfaceDescriptor));
 
-    LOG(ARCH, DEBUG, "USB_Host_Controller: Interface %d :", iDescr->bInterfaceNumber);
-    LOG(ARCH, DEBUG, "USB_Host_Controller:  NumEndpoints: %d", iDescr->bNumEndpoints);
-    LOG(ARCH, DEBUG, "USB_Host_Controller:  Class: %s", bDeviceClassStr[iDescr->bInterfaceClass]);
-    LOG(ARCH, DEBUG, "USB_Host_Controller:  Subclass: %x Protocol: %x", iDescr->bInterfaceSubClass, iDescr->bInterfaceProtocol);
+    LOG(ARCH, INFO, "USB_Host_Controller: Interface %d :", dev->if_descr.bInterfaceNumber);
+    LOG(ARCH, INFO, "USB_Host_Controller:  NumEndpoints: %d", dev->if_descr.bNumEndpoints);
+    LOG(ARCH, INFO, "USB_Host_Controller:  Class: %x", dev->if_descr.bInterfaceClass);
+    LOG(ARCH, INFO, "USB_Host_Controller:  Subclass: %x Protocol: %x", dev->if_descr.bInterfaceSubClass, dev->if_descr.bInterfaceProtocol);
 
     bytes_read += iDescr->bLength;
 
@@ -162,7 +178,7 @@ ErrorT USB_Host_Controller::enumerateDevice(USBDevice *dev) {
 
         if (descr->btype != 0x5) {
             LOG(ARCH, ERROR, "USB_Host_Controller: Endpoint Descriptor failure.. bType != 0x5: %x", i + 1, descr->btype);
-            memdump((unint4) &dev->endpoints[i + 1].descriptor, 3);
+            memdump(&dev->endpoints[i + 1].descriptor, sizeof(EndpointDescriptor));
             return (cError );
         }
 
@@ -209,12 +225,14 @@ ErrorT USB_Host_Controller::enumerateDevice(USBDevice *dev) {
 
     // Done Enumeration. Now set the configuration
 
-    char msg4[8] = USB_SETCONFIGURATION_REQUEST(1);
-    error = this->sendUSBControlMsg(dev, 0, msg4);
+    if (dev->dev_descr.idVendor != 0x58f) {
+        char msg4[8] = USB_SETCONFIGURATION_REQUEST(1);
+        error = this->sendUSBControlMsg(dev, 0, msg4);
 
-    if (error < 0) {
-        LOG(ARCH, ERROR, "USB_Host_Controller: Setting Configuration failed..");
-        return (cError );
+        if (error < 0) {
+            LOG(ARCH, ERROR, "USB_Host_Controller: Setting Configuration failed..");
+            return (cError );
+        }
     }
 
     // Setting the interface is not supported by all devices

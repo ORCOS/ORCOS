@@ -13,7 +13,8 @@
 
 #define USB_DIR_IN                  1 /* BULK transfer IN direction */
 #define USB_DIR_OUT                 0 /* BULK transfer OUT direction */
-
+#define USB_DIR_NONE                2
+#define USB_IGNORE_ERROR            4
 
 #define DIRECTION_OUT                   0
 #define DIRECTION_IN                    1
@@ -87,7 +88,12 @@ typedef struct {
 
     unint2 idVendor;
     unint2 idProduct;
-    unint1 fill[8];
+
+    unint2 bcdDevice;
+    unint1 iManufacturer;
+    unint1 iProduct;
+    unint1 iSerialNumber;
+    unint1 bNumConfigurations;
 }__attribute__((packed)) DeviceDescriptor;
 
 typedef struct {

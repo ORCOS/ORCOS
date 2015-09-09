@@ -8,12 +8,13 @@
 #include "USBEHCIHostController.hh"
 #include "kernel/Kernel.hh"
 #include "inc/memtools.hh"
+#include "arch/shared/usb/USBHub.hh"
 
 extern Kernel* theOS;
 extern Kernel_ThreadCfdCl* pCurrentRunningThread;
 
-#define ALIGN(x, a)              __ALIGN_MASK(x, (typeof(x))(a)-1)
 #define __ALIGN_MASK(x, mask)    (((x)+(mask))&~(mask))
+#define ALIGN(x, a)              __ALIGN_MASK(x, (typeof(x))(a)-1)
 
 /* The main QH we are enqueing to */
 volatile QH QHmain __attribute__((aligned(32))) ATTR_CACHE_INHIBIT;
@@ -21,8 +22,28 @@ volatile QH QHmain __attribute__((aligned(32))) ATTR_CACHE_INHIBIT;
 #define FRAME_LIST_SIZE 256
 unint4 framelist[FRAME_LIST_SIZE] __attribute__((aligned(0x1000))) ATTR_CACHE_INHIBIT;
 
-static volatile qTD qtds[8] __attribute__((aligned(32))) ATTR_CACHE_INHIBIT;
+char controlMsg[8] __attribute__((aligned(32))) ATTR_CACHE_INHIBIT;
+
+static qTD qtds[8] __attribute__((aligned(32))) ATTR_CACHE_INHIBIT;
 static int ATTR_CACHE_INHIBIT qtdnum = 0;
+
+
+typedef struct {
+    int bitmask;
+    char* name;
+} qTDStatus;
+
+qTDStatus qtdStatusCodes[8] = {
+        {1 << 7, "Active" },
+        {1 << 6, "Halted" },
+        {1 << 5, "Date Buffer Error" },
+        {1 << 4, "Babble" },
+        {1 << 3, "XactError" },
+        {1 << 2, "Missed uFrame" },
+        {1 << 1, "Split Transaction" },
+        {1 << 0, "Do Ping" },
+};
+
 
 USB_EHCI_Host_Controller::USB_EHCI_Host_Controller(unint4 ehci_dev_base) :
         USB_Host_Controller("EHCI_HC") {
@@ -373,6 +394,8 @@ int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1
     // set next qtd in qh overlay to activate transfer
     qh->qh_overlay.qt_next = (unint4) qtd;
 
+    theOS->getBoard()->getCache()->clean_data((void*)data, data_len);
+
     /* insert transfer at front */
     QH_LINK(qh, QHmain.qh_link);
     QH_LINK(&QHmain, qh);
@@ -393,6 +416,8 @@ int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1
         }
     }
 
+    theOS->getBoard()->getCache()->invalidate_data((void*)data, data_len);
+
     // get number of bytes transferred
     int num = 0;
     if (data_len > 0) {
@@ -406,18 +431,12 @@ int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1
         LOG(ARCH, ERROR, "USBCMD: %x", INW(operational_register_base + USBCMD_OFFSET));
         LOG(ARCH, ERROR, "qtd     \t(%08x)\tstatus: %x", qtd, qtd->qt_token);
         LOG(ARCH, ERROR, "qtd_last\t(%08x)\tstatus: %x", qtd_last, qtd_last->qt_token);
-        LOG(ARCH, ERROR, "AsyncListAddr: 0x%x", INW(operational_register_base + ASYNCLISTADDR_OFFSET));
-        LOG(ARCH, ERROR, "qH: 0x%x", dev->endpoints[endpoint].device_priv);
 
-        LOG(ARCH, ERROR, "qtd:");
-
-        memdump((unint4) qtd, 5);
-        LOG(ARCH, ERROR, "qh:");
-        // debug the asynchronous list
-        memdump((unint4) qh, 8);
-        //return as we can not use this port
-        LOG(ARCH, ERROR, "QHmain:");
-        memdump((unint4) &QHmain, 8);
+        for (int i  = 0; i < 8; i++) {
+            if (qtd_last->qt_token & qtdStatusCodes[i].bitmask) {
+                LOG(ARCH, ERROR, "Status: %s", qtdStatusCodes[i].name);
+            }
+        }
 
         num = -1;
 
@@ -439,7 +458,6 @@ int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1
     return (num);    // return number of bytes transferred
 }
 
-char controlMsg[8] __attribute__((aligned(32))) ATTR_CACHE_INHIBIT;
 
 
 /*****************************************************************************
@@ -484,15 +502,13 @@ int USB_EHCI_Host_Controller::sendUSBControlMsg(USBDevice *dev,
     memcpy(controlMsg, control_msg, 8);
 
     // get some memory for qtds
-    volatile qTD* qtd = &qtds[(qtdnum++) & 0x7];
-    volatile qTD* qtd2 = &qtds[(qtdnum++) & 0x7];
-    volatile qTD* qtd3 = &qtds[(qtdnum++) & 0x7];
-    volatile qTD* lastqtd = qtd2;
-
-    // SETUP TOKEN
-    QT_LINK(qtd, qtd2);
+    qTD* qtd  = &qtds[(qtdnum++) & 0x7];
+    qTD* qtd2 = &qtds[(qtdnum++) & 0x7];
+    qTD* qtd3 = &qtds[(qtdnum++) & 0x7];
+    qTD* lastqtd = qtd;
 
     // SETUP STAGE
+    qtd->qt_next        = QT_NEXT_TERMINATE;
     qtd->qt_altnext     = QT_NEXT_TERMINATE;
     qtd->qt_token       = /*QT_TOKEN_DT(0) |*/ QT_TOKEN_CERR(3) | QT_TOKEN_IOC(0) | QT_TOKEN_PID(QT_TOKEN_PID_SETUP) | QT_TOKEN_STATUS_ACTIVE | QT_TOKEN_TOTALBYTES(8);
     qtd->qt_buffer[0]   = (unint4) controlMsg;  // set control message to send
@@ -502,6 +518,10 @@ int USB_EHCI_Host_Controller::sendUSBControlMsg(USBDevice *dev,
     if (direction == USB_DIR_OUT)
         dir = QT_TOKEN_PID_OUT;
 
+    // SETUP TOKEN
+    QT_LINK(qtd, qtd2);
+    lastqtd = qtd2;
+
     // IN Packet
     qtd2->qt_next       = QT_NEXT_TERMINATE;
     qtd2->qt_altnext    = QT_NEXT_TERMINATE;
@@ -510,14 +530,15 @@ int USB_EHCI_Host_Controller::sendUSBControlMsg(USBDevice *dev,
     qtd2->qt_buffer[1]  = (unint4) alignCeil(data, 4096);  // set control message to send
 
 #if 0
-    if (data_len > 0 && direction == USB_DIR_IN) {
-        QT_LINK(qtd2, qtd3);
-        qtd3->qt_next = QT_NEXT_TERMINATE;
-        qtd3->qt_altnext = QT_NEXT_TERMINATE;
-        qtd3->qt_token = /*QT_TOKEN_DT(1) |*/ QT_TOKEN_CERR(3) | QT_TOKEN_IOC(0) | QT_TOKEN_PID(QT_TOKEN_PID_OUT) | QT_TOKEN_STATUS_ACTIVE | QT_TOKEN_TOTALBYTES(0);
-        lastqtd = qtd3;
-    }
+        if (direction & USB_ZERO_LENGTH_PACKET_OUT) {
+            QT_LINK(qtd2, qtd3);
+            qtd3->qt_next    = QT_NEXT_TERMINATE;
+            qtd3->qt_altnext = QT_NEXT_TERMINATE;
+            qtd3->qt_token   = /*QT_TOKEN_DT(1) |*/ QT_TOKEN_CERR(3) | QT_TOKEN_IOC(0) | QT_TOKEN_PID(QT_TOKEN_PID_OUT) | QT_TOKEN_STATUS_ACTIVE | QT_TOKEN_TOTALBYTES(0);
+            lastqtd = qtd3;
+        }
 #endif
+
 
     // clear status bits
     OUTW(operational_register_base + USBSTS_OFFSET, 0x3a);
@@ -527,6 +548,7 @@ int USB_EHCI_Host_Controller::sendUSBControlMsg(USBDevice *dev,
     qh->qh_overlay.qt_next = (unint4) qtd;
 
     QH_LINK(qh, &QHmain);
+    asm volatile ("dsb");
     QH_LINK(&QHmain, qh);
 
     volatile unint4 timeout = 400;
@@ -539,20 +561,27 @@ int USB_EHCI_Host_Controller::sendUSBControlMsg(USBDevice *dev,
     // get number of bytes transferred
     unint4 num = 0;
     if (data_len > 0)
-        num = data_len - QT_TOKEN_GET_TOTALBYTES(qtd2->qt_token);
+        num = data_len - QT_TOKEN_GET_TOTALBYTES(lastqtd->qt_token);
 
     // stop execution of this queue head
     if (timeout == 0 || (QT_TOKEN_GET_STATUS(lastqtd->qt_token) != 0x0)) {
         LOG(ARCH, ERROR, "USB_EHCI_Host_Controller::send() error on control packet..");
-        LOG(ARCH, ERROR, "timeout: %d", timeout);
-        LOG(ARCH, ERROR, "lastqtd \t %08x", lastqtd);
-        LOG(ARCH, ERROR, "qtd1    \t(%08x)\tstatus: %x", qtd, qtd->qt_token);
+        LOG(ARCH, ERROR, "timeout: %d lastqtd \t %08x", timeout, lastqtd);
+        LOG(ARCH, ERROR, "qtd1    \t(%08x)\tstatus: %x", qtd,  qtd->qt_token);
         LOG(ARCH, ERROR, "qtd2    \t(%08x)\tstatus: %x", qtd2, qtd2->qt_token);
-        LOG(ARCH, ERROR, "qtd3    \t(%08x)\tstatus: %x", qtd3, qtd3->qt_token);
-        LOG(ARCH, ERROR, "AsyncListAddr: 0x%x", INW(operational_register_base + ASYNCLISTADDR_OFFSET));
-        memdump((unint4) qh, 8);
+        for (int i  = 0; i < 8; i++) {
+            if (lastqtd->qt_token & qtdStatusCodes[i].bitmask) {
+                LOG(ARCH, ERROR, "Status: %s", qtdStatusCodes[i].name);
+            }
+        }
+
+        //LOG(ARCH, ERROR, "qtd3    \t(%08x)\tstatus: %x", qtd3, qtd3->qt_token);
+        //LOG(ARCH, ERROR, "AsyncListAddr: 0x%x", INW(operational_register_base + ASYNCLISTADDR_OFFSET));
+        //memdump((unint4) qh, 8);
         //return as we can not use this port
-        num = -1;
+        if (!(direction & USB_IGNORE_ERROR)) {
+            num = -1;
+        }
     }
 
     QH_LINK(&QHmain, &QHmain);
@@ -803,7 +832,9 @@ ErrorT EHCI_USBDevice::reactivateEp(int num) {
 
     if ((QT_TOKEN_GET_STATUS(qh->qh_overlay.qt_token) != 0x80)) {
         // set qtd back to active
-        qtd2->qt_token =  QT_TOKEN_CERR(0) | QT_TOKEN_IOC(1) | QT_TOKEN_PID(QT_TOKEN_PID_IN)  | QT_TOKEN_STATUS_ACTIVE | QT_TOKEN_TOTALBYTES(endpoints[num].interrupt_receive_size);
+        qtd2->qt_next    = QT_NEXT_TERMINATE;
+        qtd2->qt_altnext = QT_NEXT_TERMINATE;
+        qtd2->qt_token   = QT_TOKEN_CERR(0) | QT_TOKEN_IOC(1) | QT_TOKEN_PID(QT_TOKEN_PID_IN)  | QT_TOKEN_STATUS_ACTIVE | QT_TOKEN_TOTALBYTES(endpoints[num].interrupt_receive_size);
         qtd2->qt_buffer[0]      = (unint4) endpoints[num].recv_buffer;
         qtd2->qt_buffer[1]      = (unint4) alignCeil(endpoints[num].recv_buffer, 4096);
         qh->qh_overlay.qt_next  = (unint4) qtd2;
@@ -856,7 +887,7 @@ ErrorT EHCI_USBDevice::activateEndpoint(int num) {
     if (this->speed == 2) {
         queue_head_new->qh_endpt2 = QH_ENDPT2_MULT(1);
     } else {
-        queue_head_new->qh_endpt2 = QH_ENDPT2_MULT(1) | QH_ENDPT2_HUBADDR(this->parent->addr) | QH_ENDPT2_PORTNUM(this->port);
+        queue_head_new->qh_endpt2 = QH_ENDPT2_MULT(1) | QH_ENDPT2_HUBADDR(this->parent->getDevice()->addr) | QH_ENDPT2_PORTNUM(this->port);
         if (num == 0)
             queue_head_new->qh_endpt1 |= QH_ENDPT1_C(1);
     }
@@ -901,7 +932,7 @@ ErrorT EHCI_USBDevice::activateEndpoint(int num) {
 
         // setup interrupt transfer qtd .. try to receive interrupt_receive_size bytes
         qtd->qt_token = QT_TOKEN_CERR(0) | QT_TOKEN_IOC(1) | QT_TOKEN_PID(QT_TOKEN_PID_IN)
-        | QT_TOKEN_STATUS_ACTIVE | QT_TOKEN_TOTALBYTES(endpoints[num].interrupt_receive_size);
+                        | QT_TOKEN_STATUS_ACTIVE | QT_TOKEN_TOTALBYTES(endpoints[num].interrupt_receive_size);
 
         if (endpoints[num].poll_frequency <= 1)
             endpoints[num].poll_frequency = (unint1) (22 + num + this->addr);
@@ -912,7 +943,7 @@ ErrorT EHCI_USBDevice::activateEndpoint(int num) {
     return (cOk);
 }
 
-EHCI_USBDevice::EHCI_USBDevice(USB_Host_Controller *p_controller, USBDevice *p_parent, unint1 u_port, unint1 u_speed)
+EHCI_USBDevice::EHCI_USBDevice(USB_Host_Controller *p_controller, USBHub *p_parent, unint1 u_port, unint1 u_speed)
      : USBDevice(p_controller, p_parent, u_port, u_speed) {
 
     if (this->activateEndpoint(0) != cOk) {

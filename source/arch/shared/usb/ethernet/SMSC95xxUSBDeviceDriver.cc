@@ -879,12 +879,12 @@ ErrorT SMSC95xxUSBDeviceDriver::init() {
  * @returns
  *  int         Error Code
  *******************************************************************************/
-ErrorT SMSC95xxUSBDeviceDriver::recv(unint4 recv_len) {
+ErrorT SMSC95xxUSBDeviceDriver::recv(char* rxbuffer, unint4 recv_len) {
     int4 packet_len;
     LOG(ARCH, DEBUG, "SMSC95xxUSBDeviceDriver: RX IRQ. len: %d", recv_len);
 
     unint4 recvd_bytes = 0;
-    char* rxbuffer = reinterpret_cast<char*>(&dev->endpoints[4].recv_buffer[0]);
+    //char* rxbuffer = reinterpret_cast<char*>(&dev->endpoints[4].recv_buffer[0]);
     if (recv_len <= 0)
         return (-1);
 
@@ -952,9 +952,9 @@ ErrorT SMSC95xxUSBDeviceDriver::recv(unint4 recv_len) {
                     cur_len = r_len;
                     remaining_len = packet_len - cur_len;
 
-                    dev->endpoints[bulkin_ep].data_toggle = dev->endpoints[4].data_toggle;
+                    //dev->endpoints[bulkin_ep].data_toggle = dev->endpoints[4].data_toggle;
 
-                    /*recv_len = dev->controller->USBBulkMsg(dev,bulkin_ep,USB_DIR_IN,512,tmp_data);
+                     /*recv_len = dev->controller->USBBulkMsg(dev,bulkin_ep,USB_DIR_IN,512,tmp_data);
                      if ((int) recv_len >= remaining_len) {
                      dev->endpoints[4].data_toggle = dev->endpoints[bulkin_ep].data_toggle;
 
@@ -1252,12 +1252,6 @@ ErrorT SMSC95xxUSBDeviceDriver::initialize() {
 ErrorT SMSC95xxUSBDeviceDriver::handleInterrupt() {
     ErrorT ret = cError;
 
-   /* volatile QH* qh = dev->endpoints[this->int_ep].queue_head;
-    if (qh == 0)
-        return (cError );
-    volatile qTD* qtd2 = reinterpret_cast<qTD*>(qh->qh_curtd);
-
-    if (((unint4) qtd2 > QT_NEXT_TERMINATE) && (QT_TOKEN_GET_STATUS(qh->qh_overlay.qt_token) != 0x80)) {*/
     if (dev->getEndpointTransferState(int_ep) == EP_TRANSFER_FINISHED) {
         LOG(ARCH, DEBUG, "SMSC95xxUSBDeviceDriver: PHY Interrupt");
 
@@ -1285,17 +1279,14 @@ ErrorT SMSC95xxUSBDeviceDriver::handleInterrupt() {
         ret = cOk;
     }
 
-    /* check if this was a bulk in transfer complete irq */
-  /*  qh = dev->endpoints[4].queue_head;
-    qtd2 = reinterpret_cast<qTD*>(qh->qh_curtd);
-
-    if (((unint4) qtd2 > QT_NEXT_TERMINATE) && (QT_TOKEN_GET_STATUS(qh->qh_overlay.qt_token) != 0x80)) {*/
     if (dev->getEndpointTransferState(4) == EP_TRANSFER_FINISHED) {
-        int len = dev->getEndpointTransferSize(4); //dev->endpoints[4].interrupt_receive_size - QT_TOKEN_GET_TOTALBYTES(qtd2->qt_token);
+        // get size of interrupt transfer
+        int len = dev->getEndpointTransferSize(4);
 
+        theOS->getBoard()->getCache()->invalidate_data((void*)&dev->endpoints[4].recv_buffer[0], dev->endpoints[4].interrupt_receive_size);
         /* handle received data */
         if (len > 0)
-            recv(len);
+            recv(&dev->endpoints[4].recv_buffer[0], len);
 
         /* clear received data */
         memset(&dev->endpoints[4].recv_buffer[0], 0, dev->endpoints[4].interrupt_receive_size);

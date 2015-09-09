@@ -198,7 +198,7 @@ private:
 public:
     // constructs a new USB device
     // a queue head is created inside the asynchronous list for this device
-    EHCI_USBDevice(USB_Host_Controller *controller, USBDevice *parent, unint1 port, unint1 speed);
+    EHCI_USBDevice(USB_Host_Controller *controller, USBHub *parent, unint1 port, unint1 speed);
 
     ~EHCI_USBDevice() {};
 
@@ -384,7 +384,7 @@ public:
        void removefromPeriodic(QH* qh, int poll_rate);
 
 
-       USBDevice* createDevice(USBDevice *parent, unint1 port, unint1 speed) {
+       USBDevice* createDevice(USBHub *parent, unint1 port, unint1 speed) {
            return (new EHCI_USBDevice(this, parent, port, speed));
        }
 

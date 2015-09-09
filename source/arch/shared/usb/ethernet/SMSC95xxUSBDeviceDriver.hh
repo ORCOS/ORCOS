@@ -36,7 +36,7 @@ public:
 
 private:
     /*****************************************************************************
-     * Method: recv(unint4 recv_len)
+     * Method: recv(char* rxbuffer, unint4 recv_len)
      *
      * @description
      *  Receives the packet transfered by the IRQ usb transfer and
@@ -48,7 +48,7 @@ private:
      * @returns
      *  int         Error Code
      *******************************************************************************/
-    ErrorT recv(unint4 recv_len);
+    ErrorT recv(char* rxbuffer, unint4 recv_len);
 
     /*****************************************************************************
      * Method: init()

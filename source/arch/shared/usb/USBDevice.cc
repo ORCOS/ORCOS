@@ -34,22 +34,21 @@ ArrayList* USBDevice::freeDeviceIDs;
  *******************************************************************************/
 ErrorT USBDevice::setAddress(unint1 u_addr) {
     // got device descriptor ! set address
-    this->addr = u_addr;
-
+    this->addr   = u_addr;
     char msg2[8] = USB_SETADDRESS_REQUEST((unint1)u_addr);
-    unint4 error = controller->sendUSBControlMsg(this, 0, msg2);
+    int error    = controller->sendUSBControlMsg(this, 0, msg2);
 
     // keep communicating with address 0 until we set the configuration and ask for the status!
     if (error < 0) {
         LOG(ARCH, ERROR, "USBDevice: Setting Device Address failed..");
-        return (cError );
+        return (cError);
     }
 
     return (cOk );
 }
 
 
-USBDevice::USBDevice(USB_Host_Controller *p_controller, USBDevice *p_parent, unint1 u_port, unint1 u_speed)
+USBDevice::USBDevice(USB_Host_Controller *p_controller, USBHub *p_parent, unint1 u_port, unint1 u_speed)
     : Resource(cGenericDevice, true, "USB_Device") {
     this->controller    = p_controller;
     this->parent        = p_parent;
