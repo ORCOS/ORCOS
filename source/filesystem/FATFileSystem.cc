@@ -110,7 +110,8 @@ FATFileSystem::FATFileSystem(Partition* p_myPartition) :
             this->blockSize = myFAT_BPB.BPB_BytsPerSec;
 
             CountOfClusters = DataSec / myFAT_BPB.BPB_SecPerClus;
-            LOG(ARCH, INFO, "FATFileSystem: Clusters: %d, DataSectors: %d", CountOfClusters, DataSec);
+            LOG(ARCH, INFO, "FATFileSystem: Clusters   : %u, DataSectors: %u", CountOfClusters, DataSec);
+            LOG(ARCH, INFO, "FATFileSystem: ClusterSize: %u ", myFAT_BPB.BPB_SecPerClus * 512);
 
             if (CountOfClusters < 4085) {
                 this->myFatType = FAT12;
@@ -214,7 +215,7 @@ unint4 FATFileSystem::allocateCluster() {
             fatentoffset = currentClusterAddr & (myFAT_BPB.BPB_BytsPerSec - 1);
 
             // get the partition sector containing the table entry
-            fatsecnum = myFAT_BPB.BPB_RsvdSecCnt + (currentClusterAddr / myFAT_BPB.BPB_BytsPerSec);
+            fatsecnum = myFAT_BPB.BPB_RsvdSecCnt + (currentClusterAddr >> sector_shift_value); // / myFAT_BPB.BPB_BytsPerSec);
 
             // read the sector
             error = myPartition->readSectors(fatsecnum, temp_buf, 1);
@@ -285,7 +286,7 @@ bool FATFileSystem::freeClusterChain(unint4 clusterStart) {
         fatentoffset = currentClusterAddr & (myFAT_BPB.BPB_BytsPerSec - 1);
 
         /* get the partition sector containing the table entry */
-        fatsecnum = myFAT_BPB.BPB_RsvdSecCnt + (currentClusterAddr / myFAT_BPB.BPB_BytsPerSec);
+        fatsecnum = myFAT_BPB.BPB_RsvdSecCnt + (currentClusterAddr >> sector_shift_value); /// myFAT_BPB.BPB_BytsPerSec);
 
         /* read the sector */
         LOG(FILESYSTEM, DEBUG, "FATFileSystem::freeClusterChain() reading sector %d, ", fatsecnum);
@@ -318,7 +319,7 @@ bool FATFileSystem::freeClusterChain(unint4 clusterStart) {
 
             /* get the partition sector containing the next fat table entry
              * check if we need to read the next sector..*/
-            unint4 nextfatsecnum = myFAT_BPB.BPB_RsvdSecCnt + (currentClusterAddr / myFAT_BPB.BPB_BytsPerSec);
+            unint4 nextfatsecnum = myFAT_BPB.BPB_RsvdSecCnt + (currentClusterAddr >> sector_shift_value); /// myFAT_BPB.BPB_BytsPerSec);
             if (nextfatsecnum != fatsecnum) {
                 /* write back sector and get next one!*/
                 LOG(FILESYSTEM, DEBUG, "FATFileSystem::freeClusterChain() writing sector %d, ", fatsecnum);
@@ -372,7 +373,7 @@ unint4 FATFileSystem::getFATTableEntry(unint4 clusterNum, bool allocate) {
     unint4 fatentoffset = addr & (myFAT_BPB.BPB_BytsPerSec - 1);
 
     // get the partition sector containing the table entry
-    unint4 fatsecnum = myFAT_BPB.BPB_RsvdSecCnt + (addr / myFAT_BPB.BPB_BytsPerSec);
+    unint4 fatsecnum = myFAT_BPB.BPB_RsvdSecCnt + (addr >> sector_shift_value); /// myFAT_BPB.BPB_BytsPerSec);
 
     // read the sector
     int error = myPartition->readSectors(fatsecnum, buffer, 1);
@@ -650,6 +651,9 @@ void FATDirectory::populateDirectory() {
     while (fsrootdir_entry->DIR_Name[0] != 0) {
         FAT32_LongDirEntry* fslongentry = reinterpret_cast<FAT32_LongDirEntry*>(fsrootdir_entry);
 
+        //printf("Entry: %u Sector: %u:\r\n", currentEntry, sector_number);
+        //memdump(fslongentry, sizeof(FAT32_LongDirEntry));
+
         /* check if this is not a free entry */
         if (fsrootdir_entry->DIR_Name[0] != 0xE5) {
             if ((fslongentry->LDIR_Attr & ATTR_LONG_NAME_MASK) == ATTR_LONG_NAME) {
@@ -837,7 +841,10 @@ ErrorT FATDirectory::allocateEntry(char*            p_name,
      longNameSectorEntry    = -1;
 
      unint4 namelen         = strlen(p_name);
-     unint1 long_entries    = (unint1) ((namelen / 13) + 1);
+     unint1 long_entries    = (unint1) ((namelen / 13));
+     if (namelen - (long_entries * 13) > 0) {
+         long_entries++;
+     }
      unint1 freeEntries     = 0; /* Number of consecutive free entries found */
      unint4 freeEntrySector = 0; /* Sector of the consecutive free entries start */
      unint4 freeEntryNum    = 0; /* Entry number inside the sector */
@@ -1100,7 +1107,7 @@ void FATDirectory::generateShortName(unsigned char* shortname, char* p_name) {
         memcpy(shortname, p_name, len);
     } else {
         // get extension length
-        unint1 ext_len = (unint1) ((len - dotpos) - 1);
+        unint1 ext_len = (unint1) (len - dotpos) - 1;
         if (ext_len > 3)
             ext_len = 3;
         // copy extension, shrink to 3 chars
@@ -1108,7 +1115,7 @@ void FATDirectory::generateShortName(unsigned char* shortname, char* p_name) {
 
         // copy name before extension
         // shrink name
-        if (dotpos > 10)
+        if (dotpos > 8)
             dotpos = 8;
         memcpy(shortname, p_name, dotpos);
     }
@@ -1298,9 +1305,6 @@ ErrorT FATDirectory::removeFileEntries(FATFile* file, bool freeClusterChain) {
         }
     }
 
-    /* be sure data is really written back */
-    myFS->myPartition->flushCache();
-
     FATAccess->release();
     return (cOk);
 }
@@ -1320,6 +1324,9 @@ ErrorT FATDirectory::remove(Resource *res) {
 
     FATFile* file = static_cast<FATFile*>(res);
     removeFileEntries(file, true);
+
+    /* be sure data is really written back */
+    myFS->myPartition->flushCache();
 
     /* finally remove internal dir object */
     ErrorT ret = Directory::remove(res);
@@ -1642,9 +1649,12 @@ ErrorT FATFile::rename(char* newName) {
     unint2 longNameSectorEntry = -1;
     FAT32_DirEntry* fsrootdir_entry;
 
+    LOG(FILESYSTEM, WARN, "FATFile::rename() Removing old entries!");
+
     /* remove old name entries inside the directory table */
     parent->removeFileEntries(this, false);
 
+    LOG(FILESYSTEM, WARN, "FATFile::rename() allocating new entries!");
     /* allocate memory for new name */
     unint4 namelen         = strlen(newName);
     char* namepcpy         = new char[namelen +1];
@@ -1653,6 +1663,7 @@ ErrorT FATFile::rename(char* newName) {
     /* allocate new directory entries for the new name */
     ErrorT ret = parent->allocateEntry(namepcpy, ATTR_ARCHIVE, fsrootdir_entry, fileEntrySector, fileSectorEntry, longNameEntrySector, longNameSectorEntry, clusterStart);
     if (isError(ret)) {
+        LOG(FILESYSTEM, ERROR, "FATFile::rename() Error allocating new entries!");
         delete[] namepcpy;
         return (ret);
     }
@@ -1662,6 +1673,9 @@ ErrorT FATFile::rename(char* newName) {
     this->directory_entry_number    = fileSectorEntry;
     this->longname_entry_sector     = longNameEntrySector;
     this->longname_entry_number     = longNameSectorEntry;
+
+    /* be sure data is written to device */
+    this->myFS->myPartition->flushCache();
 
     /* finally call base method */
     File::rename(namepcpy);

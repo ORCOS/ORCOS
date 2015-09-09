@@ -362,8 +362,12 @@ int ascii2unicode(const char * szAscii, char* szUnicode, unint2 len) {
         return (false);
 
     for (i = 0; i < len; i++) {
-        *szUnicode++ = *szAscii++;
-        *szUnicode++ = 0;
+        char code = *szAscii++;
+        *szUnicode++ = code;
+        if (code != 0xff)
+            *szUnicode++ = 0;
+        else
+            *szUnicode++ = 0xff;
     }
 
     return (true);
