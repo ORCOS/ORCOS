@@ -22,13 +22,26 @@ typedef struct {
     Partition* pPartition;
 } tPartitionBlockCache;
 
-tPartitionBlockCache CachedBlocks[5] __attribute__((aligned(4))) ATTR_CACHE_INHIBIT;
+tPartitionBlockCache CachedBlocks[5] __attribute__((aligned(4))); // ATTR_CACHE_INHIBIT;
 
 LinkedList* BlockCacheList;
 
 Partition::~Partition() {
     if (this->mountedFileSystem != 0) {
        delete this->mountedFileSystem;
+
+       LinkedListItem* litem = BlockCacheList->getHead();
+       tPartitionBlockCache* blockCache = 0;
+       while (litem) {
+          blockCache = reinterpret_cast<tPartitionBlockCache*>(litem->getData());
+          if (blockCache->pPartition == this) {
+              blockCache->pPartition  = 0;
+              blockCache->block_start = -1;
+              blockCache->modified    = 0;
+              break;
+          }
+          litem = litem->getSucc();
+      }
     }
 }
 

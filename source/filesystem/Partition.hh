@@ -79,7 +79,7 @@ public:
         this->sectors           = i_sectors;
         this->partition_number  = i_partition_num;
         this->mountedFileSystem = 0;
-        this->sectorsPerBlock   = 16;
+        this->sectorsPerBlock   = BLOCK_SIZE / this->myBlockDevice->sector_size;
     }
 
 
@@ -90,7 +90,7 @@ public:
         this->sectors           = 0;
         this->partition_number  = 0;
         this->mountedFileSystem = 0;
-        this->sectorsPerBlock   = 16;
+        this->sectorsPerBlock   = BLOCK_SIZE / this->myBlockDevice->sector_size;
     }
 
 
