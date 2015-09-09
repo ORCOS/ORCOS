@@ -92,6 +92,47 @@ ErrorT USBHub::enumerate() {
 static char u_recv_buf[20] ATTR_CACHE_INHIBIT;
 char port_status[4] ATTR_CACHE_INHIBIT;
 
+ErrorT USBHub::resetPort(int port) {
+    int error;
+    char msg4[8] = USB_GETPORT_STATUS();
+    LOG(ARCH, INFO, "USBHub: resetting port %u", port);
+
+    char msg3[8] = USB_SETPORT_FEATURE(PORT_RESET);
+    msg3[4] = port;
+
+    // wait until port is enabled
+    error = controller->sendUSBControlMsg(dev, 0, msg3);
+    if (error < 0) {
+        LOG(ARCH, ERROR, "USBHub: Resetting hub port %d failed.. ", port);
+        return (cError );
+    }
+
+    volatile unint1 enabled = 0;
+    volatile int4 timeout = 100;
+
+    while (enabled == 0) {
+        msg4[4] = port;
+        memset(&u_recv_buf, 0, 20);
+        error = controller->sendUSBControlMsg(dev, 0, msg4, USB_DIR_IN, 20, u_recv_buf);
+        enabled = u_recv_buf[0] & (1 << 1);
+        timeout--;
+
+        if (timeout < 0) {
+            LOG(ARCH, ERROR, "USBHub: Enabling port failed.. ");
+            return (cError );
+        }
+    }
+
+    char msg5[8] = USB_CLEARPORT_FEATURE(C_PORT_RESET);
+    msg5[4] = port;
+    error = controller->sendUSBControlMsg(dev, 0, msg5);
+    if (error < 0) {
+        LOG(ARCH, ERROR, "USBHub: Clearing Port Feature failed.. ");
+        return (cError );
+    }
+    return (cOk );
+}
+
 /*****************************************************************************
  * Method: USBHub::handleStatusChange()
  *
@@ -131,41 +172,9 @@ void USBHub::handleStatusChange() {
                 if (port_status[0] & 1) {
                     LOG(ARCH, INFO, "USBHub: Device attached on port %d..", i);
 
-                    // device on this hub port!
-                    // reset port and enumerate the device
-                    char msg3[8] = USB_SETPORT_FEATURE(PORT_RESET);
-                    msg3[4] = i;
-
-                    // wait until port is enabled
-                    error = controller->sendUSBControlMsg(dev, 0, msg3);
-                    if (error < 0) {
-                        LOG(ARCH, ERROR, "USBHub: Resetting hub port %d failed.. ", i);
+                    error = resetPort(i);
+                    if (!isOk(error))
                         return;
-                    }
-
-                    volatile unint1 enabled = 0;
-                    volatile int4 timeout = 100;
-
-                    while (enabled == 0) {
-                        msg4[4] = i;
-                        memset(&u_recv_buf, 0, 20);
-                        error = controller->sendUSBControlMsg(dev, 0, msg4, USB_DIR_IN, 20, u_recv_buf);
-                        enabled = u_recv_buf[0] & (1 << 1);
-                        timeout--;
-
-                        if (timeout < 0) {
-                            LOG(ARCH, ERROR, "USBHub: Enabling port failed.. ");
-                            return;
-                        }
-                    }
-
-                    char msg5[8] = USB_CLEARPORT_FEATURE(C_PORT_RESET);
-                    msg5[4] = i;
-                    error = controller->sendUSBControlMsg(dev, 0, msg5);
-                    if (error < 0) {
-                        LOG(ARCH, ERROR, "USBHub: Clearing Port Feature failed.. ");
-                        return;
-                    }
 
                     LOG(ARCH, INFO, "USBHub: Port enabled.. Enumerating ");
 
@@ -197,7 +206,7 @@ void USBHub::handleStatusChange() {
                         }
                     }
 
-                    USBDevice *newdev = controller->createDevice(dev, i, speed);  // deletion 10 lines down
+                    USBDevice *newdev = controller->createDevice(this, i, speed);  // deletion 10 lines down
                     this->portDevices[i] = newdev;
 
                     // try to enumerate the port
@@ -288,7 +297,7 @@ ErrorT USBHub::handleInterrupt() {
     //QH* qh = dev->endpoints[1].queue_head;
 
     //if ((QT_TOKEN_GET_STATUS(qh->qh_overlay.qt_token) != 0x80)) {
-     if (dev->getEndpointTransferState(1) == EP_TRANSFER_FINISHED) {
+    if (dev->getEndpointTransferState(1) == EP_TRANSFER_FINISHED) {
         LOG(ARCH, DEBUG, "USB_Hub: Interrupt Request finished, status: %x", dev->endpoints[1].recv_buffer[0]);
 
         // get status of port
@@ -298,8 +307,8 @@ ErrorT USBHub::handleInterrupt() {
         // reactivate the interrupt transfer so we get interrupted again
         dev->activateEndpoint(1);
 
-        return (cOk);
+        return (cOk );
     }
 
-    return (cError);
+    return (cError );
 }
