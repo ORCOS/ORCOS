@@ -75,6 +75,9 @@ Socket::~Socket() {
         this->acceptedConnections = 0;
     }
 
+    delete this->mutex;
+    this->mutex = 0;
+
 #ifdef HAS_Kernel_ServiceDiscoveryCfd
     // remove service from service discovery if weve got a service descriptor
     if (strcmp(sd.address. name_data, "") != 0) {
@@ -265,10 +268,13 @@ int Socket::accepted(Socket* newConnection) {
         int error = acceptedConnections->addTail(newConnection);
 
         Thread* threadToUnblock = 0;
-        /* wake up the waiting thread */
-        if (this->blockedThread != 0) {
-            threadToUnblock = blockedThread;
-            this->blockedThread = 0;
+        if (isOk(error)) {
+            /* wake up the waiting thread */
+            if (this->blockedThread != 0) {
+                threadToUnblock = blockedThread;
+            }
+        } else {
+            LOG(COMM, ERROR, "Socket::accepted(): Could not accept connection");
         }
         SMP_SPINLOCK_FREE(m_lock);
 
@@ -278,7 +284,7 @@ int Socket::accepted(Socket* newConnection) {
 
         return (error);
     }
-    return (cError );
+    return (cError);
 }
 
 /*****************************************************************************
@@ -291,23 +297,26 @@ int Socket::accepted(Socket* newConnection) {
  * @returns
  *  int         Error Code
  *******************************************************************************/
-int Socket::listen(Kernel_ThreadCfdCl* thread) {
+int Socket::listen(Kernel_ThreadCfdCl* thread, int backlog_size) {
     if (this->type == SOCK_STREAM) {
         this->state = SOCKET_LISTENING;
 
         /* allow 10 pending accepted connections */
         if (acceptedConnections == 0)
-            acceptedConnections = new ArrayList(10);
+            acceptedConnections = new ArrayList(backlog_size);
 
-        SMP_SPINLOCK_GET(m_lock);
         if (!this->hasListeningThread) {
             this->hasListeningThread = true;
             this->tproto->listen(this);
+        }
+
+        SMP_SPINLOCK_GET(m_lock);
+        if ( this->blockedThread == 0) {
             this->blockedThread = thread;
             SMP_SPINLOCK_FREE(m_lock);
         } else {
             SMP_SPINLOCK_FREE(m_lock);
-            LOG(COMM, ERROR, "Socket::listen(): Thread %x already listening", blockedThread);
+            LOG(COMM, ERROR, "Socket::listen(): Thread %x already waiting", blockedThread);
             return (cSocketAlreadyListened);
         }
 
@@ -316,7 +325,9 @@ int Socket::listen(Kernel_ThreadCfdCl* thread) {
             thread->block();
 
         /* got unblocked! maybe new connection? */
+        SMP_SPINLOCK_GET(m_lock);
         Socket* newConn = static_cast<Socket*>(acceptedConnections->removeHead());
+        SMP_SPINLOCK_FREE(m_lock);
 
         if (newConn != 0) {
             /* add new socket to task to allow access to it */
@@ -325,12 +336,12 @@ int Socket::listen(Kernel_ThreadCfdCl* thread) {
             LOG(COMM, DEBUG, "Socket::listen(): new Connection %d", newConn->getId());
             /* if we get here we got a new connection.
              * A new socket has been created. Return the resource id of it.*/
-            this->hasListeningThread = false;
+            this->blockedThread = 0;
             return (newConn->getId());
         }
 
         /* probably socket destroyed? TODO: return error code on destruction? */
-        this->hasListeningThread = false;
+        this->blockedThread = 0;
         return (cError);
     } else {
         return (cError);

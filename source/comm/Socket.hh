@@ -135,7 +135,7 @@ public:
      * @description
      *  listen to a given socket address
      *******************************************************************************/
-    int listen(Kernel_ThreadCfdCl* thread);
+    int listen(Kernel_ThreadCfdCl* thread, int backlog_size = 10);
 
     /*****************************************************************************
      * Method: connected(int error)
