@@ -53,7 +53,7 @@ private:
     /*
      * Number of waiting threads
      */
-    int2        waitingThreads;
+    int4        waitingThreads;
 
     /*! Stores a pointer to the thread currently locking this mutex. */
     Kernel_ThreadCfdCl* m_pThread;
