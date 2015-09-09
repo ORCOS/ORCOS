@@ -373,6 +373,8 @@ extern "C" {
  int             remove(const char* filepath);
 
 
+ int             frename(int fd, char* newname);
+
 /*
  * \brief Tries to seek inside the file descriptor.
  *
@@ -540,16 +542,28 @@ extern "C" {
  int         connect(int socket, const sockaddr *toaddress, int timeout DEFAULT(2000) );
 
 /*!
- * \brief Listen for connection on a socket.
+ * \brief Listen for incoming connections on a socket.
  *
  * \param socket       The connection oriented socket to listen on
+ * \param backlog_size The number of accepted connections that can be buffered. Valid values: 0 < x < 50
  *
  *  Listen to the specified socket. This call is only valid for connection oriented sockets (SOCK_STREAM).
  *  This call is a blocking call and returns upon successful connection establishment.
  *
- * \return             The file descriptor of the socket on success. Error Code otherwise.
+ *  A backlog buffer is created for the first call to this function on the specified socket. The backlog
+ *  buffers incoming connections until they are received by further listen calls. Each listen call
+ *  returning a valid socket frees one backlog buffer.
+ *
+ *  Connections accepted and lying on the backlog should be received in timely manner, as otherwise the connection
+ *  may be closed by the other peer due to no reaction on the connection.
+ *  The best design is to have a single listen thread waiting for incoming connections by looping on the listen call.
+ *  Upon receiving a new connection another thread should be used to service the connection, thus allowing the listn thread to
+ *  receive further connections.
+ *
+ *
+ * \return             The file descriptor of the socket holding the new connection on success. Error Code otherwise.
  */
- int         listen(int socket);
+ int         listen(int socket, int backlog_size);
 
 /*!
  * \brief Bind a socket to the address given by the parameter address.

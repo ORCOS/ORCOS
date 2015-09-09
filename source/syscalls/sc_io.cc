@@ -122,7 +122,7 @@ int sc_fcreate(intptr_t int_sp) {
          * we do not allow duplicate names */
         if (dir->get(filename, strlen(filename))) {
             LOG(SYSCALLS, ERROR, "Syscall: fcreate(%s) FAILED. Name already exists.", filepath);
-            return (cResourceAlreadyExists );
+            return (cResourceAlreadyExists);
         }
 
         if (flags & cTYPE_DIR) {
@@ -137,11 +137,11 @@ int sc_fcreate(intptr_t int_sp) {
             return (res->getId());
         } else {
             LOG(SYSCALLS, ERROR, "Syscall: fcreate(%s) FAILED. File could not be created.", filename);
-            return (cError );
+            return (cError);
         }
     } else {
         LOG(SYSCALLS, ERROR, "Syscall: fcreate(%s) FAILED. Invalid path", filename);
-        return (cInvalidPath );
+        return (cInvalidPath);
     }
 }
 #endif

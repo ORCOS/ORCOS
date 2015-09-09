@@ -9,7 +9,7 @@
 #include "syscalls.hh"
 #include "SCLConfig.hh"
 
-#define MAX_SYSCALL_NUM 48
+#define MAX_SYSCALL_NUM 49
 /*****************************************************************************
  * Method: sc_default_handler(intptr_t sp_int)
  *
@@ -75,7 +75,8 @@ p_syscall_handler_t syscall_handler[MAX_SYSCALL_NUM+1] = {
         sc_mount,           /* cMountSyscallId          = 45 */
         sc_waitirq,         /* cThreadWaitIRQSyscallId  = 46 */
         sc_gethostbyname,   /* cGetHostByNameSyscallId  = 47 */
-        sc_getCycles        /* cGetCyclesSyscallId      = 48 */
+        sc_getCycles,       /* cGetCyclesSyscallId      = 48 */
+        sc_rename           /* cRenameSyscallId         = 49 */
 };
 
 extern "C" void handleSyscall(intptr_t sp_int) {

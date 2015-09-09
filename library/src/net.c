@@ -31,8 +31,8 @@ int connect(int socket, const sockaddr *toaddress, int timeout) {
     return (syscall(cConnectSyscallId, socket, toaddress, timeout));
 }
 
-int listen(int socket) {
-    return (syscall(cListenSyscallId, socket));
+int listen(int socket, int backlog_size) {
+    return (syscall(cListenSyscallId, socket, backlog_size));
 }
 
 int bind(int socket, const sockaddr *address) {

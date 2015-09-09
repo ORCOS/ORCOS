@@ -68,6 +68,10 @@ int fstat(int fd, struct stat* stat) {
     return syscall(cFStatId, fd, stat);
 }
 
+int frename(int fd, char* newname) {
+    return syscall(cRenameSyscallId, fd, newname);
+}
+
 int remove(const char* filepath) {
     // ensure the resource has been acquired
     int error = open(filepath, 1);

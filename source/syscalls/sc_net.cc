@@ -128,9 +128,14 @@ int sc_connect(intptr_t int_sp) {
  *******************************************************************************/
 int sc_listen(intptr_t int_sp) {
     ResourceIdT socketid;
+    unint4 backlog_size;
     int retval;
 
-    SYSCALLGETPARAMS1(int_sp, socketid);
+    SYSCALLGETPARAMS2(int_sp, socketid, backlog_size);
+    if (backlog_size > 50 || backlog_size == 0) {
+        LOG(SYSCALLS, ERROR, "Syscall: listen. Invalid backlog size %u.", backlog_size);
+        return (cInvalidArgument);
+    }
 
     Resource* res;
     res = pCurrentRunningTask->getOwnedResourceById(socketid);
@@ -139,7 +144,7 @@ int sc_listen(intptr_t int_sp) {
 
         if (res->getType() == cSocket) {
             Socket* sock = static_cast<Socket*>(res);
-            retval = sock->listen(pCurrentRunningThread);
+            retval = sock->listen(pCurrentRunningThread, backlog_size);
         } else {
             retval = cWrongResourceType;
             LOG(SYSCALLS, ERROR, "Syscall: listen invalid.. Resource is not a Socket. ");
