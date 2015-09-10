@@ -264,7 +264,15 @@ Directory* SimpleFileManager::getDirectory(const char* dir, Directory* &parentDi
  *  directory will be overlayed.
  *  Otherwise the resource specified by path is searched and overlayed
  *  if it is an directory. If the resource specified by the path does not
- *  exists a new directory is created with no overlay.
+ *  exist this method fails.
+ *
+ *  The overlay is only created in temporary ram memory. No block device directory is
+ *  altered. File or directory additions to overlayed directories are only
+ *  made on the overlay. If the overlay is a directory inside a block device
+ *  changes to the overlay will of course ne handled as changes to the overlay directory,
+ *  thus causing block device alterations.
+ *
+ *
  * @params
  *  overlay         The directory which overlaying another directory
  *  path            Path to the directory to be overlayed
