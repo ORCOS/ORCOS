@@ -190,7 +190,6 @@ void Kernel::initialize() {
      * concurrent thread execution.. This is surely not optimal and should be improved
      * in the future. */
     comStackMutex = new Mutex("ComStack");
-    sysArchMutex = reinterpret_cast<void*>(new Mutex("sysArch"));
 
     /* Initialize the Internet Protocol Stack */
 #if ENABLE_NETWORKING
@@ -218,7 +217,7 @@ void Kernel::initialize() {
 #endif
 
 #if USE_WORKERTASK
-    LOG(KERNEL, INFO, "Initializing Workertask.");
+    LOG(KERNEL, INFO, "Initializing Kernel Task");
     /* initialize the worker task */
     theKernelTask = new KernelTask();
     theKernelTask->setName("[kwork]");
@@ -263,33 +262,30 @@ void Kernel::initialize() {
 #endif
 
     /*
-     * Initialize Workerthreads before user tasks
+     * Initialize Kernel Threads before user tasks
      */
 #if USE_WORKERTASK
-    /* add periodic workerthread call to perform basic OS services
-     * permanently occupies one workerthread */
+    /* add periodic kernel thread to perform basic OS services
+     * permanently occupies one kernel thread */
     KernelThread* wt = theKernelTask->getPeriodicThread(0, new KernelServiceThread, 250 ms, 8000);
     if (wt) {
         wt->setName("kernel");
     }
 
 #if ENABLE_NETWORKING
-    /* add one-time workerthread call to update system time using ntp*/
+    /* add one-time kernel thread  callback to update system time using NTP.
+     * Temporarly occupies one kernel thread until the call has finished. */
     LOG(KERNEL, INFO, "Querying NTP Server for Time");
     theKernelTask->getCallbackThread(0, theOS->getClock(), 10000 ms, 1000);
 #endif
 
-#else
+#else // if USE_WORKERTASK
 #if (LWIP_TCP | LWIP_ARP) && ENABLE_NETWORKING
     LOG(KERNEL, WARN, (KERNEL, WARN, "TCP and ARP will not work correctly without workerthreads!!"));
 #warning "LWIP_TCP or LWIP_ARP defined without supporting Workerthreads.. \n The IPstack will not work correctly without workerthreads.."
 #endif
 #endif
 
-    /*
-     * Now initialize the user tasks deployed within this Image.
-     * The Task Manager will check the integrity and create memory maps.
-     */
 #if USE_TRACE
     this->tracer->init();
 #endif
