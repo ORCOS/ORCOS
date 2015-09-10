@@ -164,7 +164,7 @@ ErrorT Directory::readBytes(char *bytes, unint4 &length) {
     if (length < 1)
         return (cOk);
 
-    unint4 pos = 0;
+    unint4 pos       = 0;
     unint4 entry_num = 0;
 
     LinkedListItem* litem = this->dir_content.getHead();
@@ -178,15 +178,17 @@ ErrorT Directory::readBytes(char *bytes, unint4 &length) {
     /* keep reading from current directory entry until end
      * or requested length is maximally used */
     while (litem != 0) {
-        Resource* ritem = static_cast<Resource*>(litem->getData());
+        Resource* ritem    = static_cast<Resource*>(litem->getData());
         const char* p_name = ritem->getName();
         /* max 256 chars for the name */
-        unint1 namelen = (unint1) (strlen(p_name)+1);
+        unint2 namelen = (unint2) (strlen(p_name)+1);
         /* align next entry to multiple of 4 bytes */
         unint2 namelen2 = (namelen + 3) & ~(3);
+        if (namelen2 > 256)
+            namelen2 = 256;
 
         Directory_Entry_t* entry = reinterpret_cast<Directory_Entry_t*>(bytes);
-        if (pos + sizeof(Directory_Entry_t) + namelen2 > length)
+        if (pos + sizeof(Directory_Entry_t) + namelen2 >= length)
             break;
 
         bytes   += sizeof(Directory_Entry_t) + namelen2;
@@ -200,7 +202,7 @@ ErrorT Directory::readBytes(char *bytes, unint4 &length) {
         entry->flags        = 0;
 
         if (ritem->getType() & cFile) {
-            File* file = static_cast<File*>(ritem);
+            File* file          = static_cast<File*>(ritem);
             entry->filesize     = file->getFileSize();
             entry->flags        = file->getFlags();
             entry->datetime     = file->getDateTime();
