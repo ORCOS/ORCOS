@@ -544,16 +544,22 @@ int sc_mkdev(intptr_t int_sp) {
     SYSCALLGETPARAMS2(int_sp, devname, bufferSize);
     VALIDATE_IN_PROCESS(devname);
 
-    if (strlen(devname) == 0) {
+    int devnamelen = strlen(devname);
+
+    if (devnamelen == 0 || devnamelen > 255) {
         return (cInvalidArgument);
     }
 
     Directory* dir = theOS->getFileManager()->getDirectory("/dev/");
-    if (dir->get(devname, strlen(devname)) != 0)
+    if (dir->get(devname, devnamelen) != 0)
         return (cResourceAlreadyExists);
 
-    LOG(SYSCALLS, DEBUG, "Syscall: mkdev(%s, %u)", devname, bufferSize);
-    res = new BufferDevice(devname, bufferSize);
+    char* pdevname = new char[devnamelen];
+    strncpy(pdevname, devname, devnamelen);
+
+    LOG(SYSCALLS, DEBUG, "Syscall: mkdev(%s, %u)", pdevname, bufferSize);
+    res = new BufferDevice(pdevname, bufferSize);
+
     if (!res->isValid()) {
         delete res;
         return (cError);
@@ -618,20 +624,31 @@ int sc_rename(intptr_t int_sp) {
 
     LOG(SYSCALLS, TRACE, "Syscall: rename(%d, %s)", fd, filenewname);
 
+    int namelen = strlen(filenewname);
+
+    if (namelen == 0 || namelen > 255) {
+        return (cInvalidArgument);
+    }
+
     if (basename(filenewname) != filenewname) {
         LOG(SYSCALLS, ERROR, "Syscall: rename(%d, %s): Invalid name", fd, filenewname);
         return (cInvalidArgument);
     }
+
+    /* allocate memory for new name so this name is visible
+     * in all address spaces */
+    char* namepcpy         = new char[namelen +1];
+    memcpy(namepcpy, filenewname, namelen + 1);
 
     res = pCurrentRunningTask->getOwnedResourceById(fd);
     if (res != 0) {
           /* check for correct type */
           if (res->getType() & (cDirectory)) {
               Directory* pdir = static_cast<Directory*>(res);
-              return (pdir->rename(filenewname));
+              return (pdir->rename(namepcpy));
           } else if (res->getType() & (cFile)) {
               File* pFile = static_cast<File*>(res);
-              return (pFile->rename(filenewname));
+              return (pFile->rename(namepcpy));
           } else {
               return (cInvalidResource);
           }

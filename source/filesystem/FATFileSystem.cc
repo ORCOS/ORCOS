@@ -1655,16 +1655,11 @@ ErrorT FATFile::rename(char* newName) {
     parent->removeFileEntries(this, false);
 
     LOG(FILESYSTEM, WARN, "FATFile::rename() allocating new entries!");
-    /* allocate memory for new name */
-    unint4 namelen         = strlen(newName);
-    char* namepcpy         = new char[namelen +1];
-    memcpy(namepcpy, newName, namelen + 1);
 
     /* allocate new directory entries for the new name */
-    ErrorT ret = parent->allocateEntry(namepcpy, ATTR_ARCHIVE, fsrootdir_entry, fileEntrySector, fileSectorEntry, longNameEntrySector, longNameSectorEntry, clusterStart);
+    ErrorT ret = parent->allocateEntry(newName, ATTR_ARCHIVE, fsrootdir_entry, fileEntrySector, fileSectorEntry, longNameEntrySector, longNameSectorEntry, clusterStart);
     if (isError(ret)) {
         LOG(FILESYSTEM, ERROR, "FATFile::rename() Error allocating new entries!");
-        delete[] namepcpy;
         return (ret);
     }
 
@@ -1678,7 +1673,7 @@ ErrorT FATFile::rename(char* newName) {
     this->myFS->myPartition->flushCache();
 
     /* finally call base method */
-    File::rename(namepcpy);
+    File::rename(newName);
     return (cOk);
 }
 
