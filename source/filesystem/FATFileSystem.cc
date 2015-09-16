@@ -980,17 +980,12 @@ File* FATDirectory::createFile(char* p_name, unint4 flags) {
     unint2 longNameSectorEntry = -1;
     FAT32_DirEntry* fsrootdir_entry;
 
-    unint4 namelen         = strlen(p_name);
-    char* namepcpy         = new char[namelen +1];
-    memcpy(namepcpy, p_name, namelen + 1);
-
-    ErrorT ret = allocateEntry(namepcpy, ATTR_ARCHIVE, fsrootdir_entry, fileEntrySector, fileSectorEntry, longNameEntrySector, longNameSectorEntry);
+    ErrorT ret = allocateEntry(p_name, ATTR_ARCHIVE, fsrootdir_entry, fileEntrySector, fileSectorEntry, longNameEntrySector, longNameSectorEntry);
     if (isError(ret)) {
-        delete[] namepcpy;
         return (0);
     }
 
-    FATFile *file = new FATFile(namepcpy, this, fsrootdir_entry, myFS, fileEntrySector, fileSectorEntry, longNameEntrySector, longNameSectorEntry);
+    FATFile *file = new FATFile(p_name, this, fsrootdir_entry, myFS, fileEntrySector, fileSectorEntry, longNameEntrySector, longNameSectorEntry);
     this->add(file);
 
     /* be sure data is written to device */

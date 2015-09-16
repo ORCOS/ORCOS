@@ -63,40 +63,38 @@ int sc_shm_map(intptr_t sp_int) {
         return (cInvalidArgument);
     }
 
+    unint4 shmsize = *mapped_size;
+
     /* try to find the specified resource to be mapped */
     Resource* res = theOS->getFileManager()->getResourceByNameandType(file, cSharedMem);
     if (res == 0) {
-        if (!(flags & cCreate))
+        if (!(flags & cCreate)) {
             return (cFileNotFound);
+        }
 
         /* size 0 is invalid! */
-        if (*mapped_size == 0) {
+        if (shmsize == 0) {
             return (cInvalidArgument);
         }
 
         /* check for bogus offset */
-        if (offset > *mapped_size) {
+        if (offset >= shmsize) {
             return (cInvalidArgument);
         }
 
-        /* strip the path prefix for new shared memory creation*/
-        int filenamelen = strlen(file);
-        if (filenamelen > 256)
+        /* strip the path prefix for new shared memory creation */
+        char* shmname   = basename(file);
+        int filenamelen = strlen(shmname);
+        if (filenamelen > 255 || filenamelen <= 0) {
             return (cInvalidArgument);
-
-        /* identify index with filename start*/
-        int i;
-        for (i = filenamelen - 1; i > 0; i--)
-            if (file[i] == '/')
-                break;
+        }
 
         /* allocate memory for name */
-        char* name = reinterpret_cast<char*>(theOS->getMemoryManager()->alloc(filenamelen - i));
-        memset(name, 0, filenamelen - i);
-        memcpy(name, &file[i + 1], filenamelen - i - 1);
+        char* name = reinterpret_cast<char*>(theOS->getMemoryManager()->alloc(filenamelen + 1));
+        memcpy(name, shmname, filenamelen + 1);
 
         /* create the shared mem resource */
-        SharedMemResource* sres = new SharedMemResource(*mapped_size, name, pCurrentRunningTask);
+        SharedMemResource* sres = new SharedMemResource(shmsize, name, pCurrentRunningTask);
         /* check on creation failure */
         if (sres->getPhysicalStartAddress() == 0) {
             /* delete resource again */
@@ -112,7 +110,7 @@ int sc_shm_map(intptr_t sp_int) {
     unint4 virtual_address = *mapped_address;
 
     /* check for bogus offset */
-    if (offset > shm_res->getSize()) {
+    if (offset >= shm_res->getSize()) {
         return (cInvalidArgument);
     }
 
@@ -120,7 +118,7 @@ int sc_shm_map(intptr_t sp_int) {
     if (shm_res->getPhysicalStartAddress() == (unint4)-1)
         return (cInvalidResource);
 
-    unint4 mapping_size = *mapped_size;
+    unint4 mapping_size = shmsize;
 
     /* map it into the address space of the calling task */
     int retval = shm_res->mapIntoTask(pCurrentRunningTask, virtual_address, offset, mapping_size, flags);
@@ -150,66 +148,4 @@ int sc_shm_map(intptr_t sp_int) {
 }
 #endif /* check if hat layer is available */
 
-/*******************************************************************
- *                DELETE Syscall
- *******************************************************************/
-#ifdef HAS_SyscallManager_deleteCfd
-/*****************************************************************************
- * Method: sc_delete(intptr_t sp_int)
- *
- * @description
- *
- * @params
- *  sp_int:     The stack pointer at time of system call instruction execution
- *
- * @returns
- *  int         Error Code
- *******************************************************************************/
-int sc_delete(intptr_t int_sp) {
-    /*void* addr;
-    SYSCALLGETPARAMS1(int_sp, addr);
-    int retval;
-
-    VALIDATE_IN_PROCESS(addr);
-
-    LOG(SYSCALLS, TRACE, "Syscall: free(%x)", addr);
-    retval = pCurrentRunningTask->getMemManager()->free(addr);
-
-    if (retval != cOk) {
-        ASSERT(0);
-    }
-
-    return (retval);*/
-    return (cOk);
-}
-#endif
-
-/*******************************************************************
- *                NEW Syscall
- *******************************************************************/
-#ifdef HAS_SyscallManager_newCfd
-/*****************************************************************************
- * Method: sc_new(intptr_t sp_int)
- *
- * @description
- *
- * @params
- *  sp_int:     The stack pointer at time of system call instruction execution
- *
- * @returns
- *  int         Error Code
- *******************************************************************************/
-int sc_new(intptr_t int_sp) {
-   /* size_t size;
-    SYSCALLGETPARAMS1(int_sp, size);
-    int retval;
-
-    LOG(SYSCALLS, TRACE, "Syscall: Thread new called. size: %d", size);
-    retval = reinterpret_cast<int> (pCurrentRunningTask->getMemManager()->alloc(size, true));
-    LOG(SYSCALLS, TRACE, "Syscall: assigned memory at: 0x%x", retval);
-
-    return (retval); */
-    return (cOk);
-}
-#endif
 

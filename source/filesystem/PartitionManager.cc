@@ -14,7 +14,7 @@
 
 extern Kernel* theOS;
 
-static char buffer[512] __attribute__((aligned(4))) ATTR_CACHE_INHIBIT;
+static char buffer[512] __attribute__((aligned(4)));
 
 /*****************************************************************************
  * Method: is_extended(int part_type)
@@ -91,7 +91,7 @@ ErrorT PartitionManager::handleEFIPartitionTable(BlockDeviceDriver* bdev) {
  * @description
  *
  *******************************************************************************/
-ErrorT PartitionManager::tryDOSMBR(BlockDeviceDriver* bdev) {
+ErrorT PartitionManager::tryMBR(BlockDeviceDriver* bdev) {
     memset(buffer, 0xde, sizeof(buffer));
     // read first sector
     int error = bdev->readBlock(0, buffer, 1);
@@ -101,19 +101,41 @@ ErrorT PartitionManager::tryDOSMBR(BlockDeviceDriver* bdev) {
     }
 
     if ((buffer[DOS_PART_MAGIC_OFFSET + 0] != 0x55) || (buffer[DOS_PART_MAGIC_OFFSET + 1] != 0xaa)) {
-        LOG(FILESYSTEM, INFO, "PartitionManager: No DOS-Partition Table Header found");
-        //memdump((int) buffer,512/4);
+        LOG(FILESYSTEM, INFO, "PartitionManager: No MBR found");
         return (cError );
     } /* no DOS Signature at all */
 
-    int disksig = le32_to_int(&buffer[DOS_PART_DISKSIG_OFFSET]);
-    LOG(FILESYSTEM, INFO, "PartitionManager: Disk Signature: %x", disksig);
+    MBRType mbrType = STANDARD_MBR;
+    int table_offset = DOS_PART_TBL_OFFSET;
+    int tableEntries = 4;
+    if (buffer[428] == 0x78 && buffer[429] == 0x56) {
+        mbrType = AAP_MBR;
+        table_offset = 0x1be;
+    }
+    if (buffer[380] == 0x5a && buffer[381] == 0xa5) {
+        mbrType = ASTNEC_MBR;
+        table_offset = 0x17e;
+        tableEntries = 8;
+    }
+    if (buffer[252] == 0xaa && buffer[253] == 0x55) {
+        mbrType = DISKMANAGER_MBR;
+        table_offset = 0xfe;
+        tableEntries = 16;
+    }
+    int disksig = 0;
+
+    if (mbrType == STANDARD_MBR) {
+        disksig = le32_to_int(&buffer[DOS_PART_DISKSIG_OFFSET]);
+        LOG(FILESYSTEM, INFO, "PartitionManager: Disk Signature: %x", disksig);
+    }
+
+    int ret = cError;
 
     if (memcmp(&buffer[DOS_PBR_FSTYPE_OFFSET], "FAT", 3) == 0 ||
         memcmp(&buffer[DOS_PBR32_FSTYPE_OFFSET], "FAT32", 5) == 0) {
         // handle partition table .. mount every partition if possible
-        PT_Entry *pt_entry = reinterpret_cast<PT_Entry*>(buffer + DOS_PART_TBL_OFFSET);
-        for (int i = 0; i < 4; i++, pt_entry++) {
+        PT_Entry *pt_entry = reinterpret_cast<PT_Entry*>(buffer + table_offset);
+        for (int i = 0; i < tableEntries; i++, pt_entry++) {
             switch (pt_entry->type) {
                 case 0:
                     break;
@@ -132,6 +154,7 @@ ErrorT PartitionManager::tryDOSMBR(BlockDeviceDriver* bdev) {
                     if (fs->isValidFileSystem())
                         fs->initialize();
 
+                    ret = cOk;
                     break;
                 }
     #endif
@@ -141,12 +164,12 @@ ErrorT PartitionManager::tryDOSMBR(BlockDeviceDriver* bdev) {
                     return (handleEFIPartitionTable(bdev));
                 }
                 default: {
-                    LOG(FILESYSTEM, WARN, "PartitionManager: No Partition support for Type: %x", pt_entry->type);
+                    LOG(FILESYSTEM, WARN, "PartitionManager: No Partition support for Type: 0x%x lba: 0x%x sectors:0x%x", pt_entry->type, pt_entry->lba_start,  pt_entry->lba_size);
                 }
             } // switch
         }
 
-        return (cOk ); /* is PBR */
+        return (ret); /* is PBR */
     }
 
     dos_partition_t *pt;
@@ -178,7 +201,7 @@ ErrorT PartitionManager::tryDOSMBR(BlockDeviceDriver* bdev) {
                     return (handleEFIPartitionTable(bdev));
                 }
                 default: {
-                    LOG(FILESYSTEM, WARN, "PartitionManager: No FileSystem Support for SYS_IND: %x", pt->sys_ind);
+                    LOG(FILESYSTEM, WARN, "PartitionManager: No FileSystem Support for SYS_IND: 0x%x", pt->sys_ind);
                 }
             } // switch
         }
@@ -206,7 +229,7 @@ PartitionManager::PartitionManager() :
  *******************************************************************************/
 void PartitionManager::registerBlockDevice(BlockDeviceDriver* bdev) {
     // try and find the correct partition type of the device
-    if (tryDOSMBR(bdev) == cOk)
+    if (tryMBR(bdev) == cOk)
         return;
     /* No MBR? .. try mounting the partition directly using the whole block device */
 

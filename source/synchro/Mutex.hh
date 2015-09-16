@@ -67,8 +67,8 @@ private:
     const char* name;
 
 public:
-    //! Constructor, initializes m_locked to false, so the Mutex can be aquired, and initializes the scheduler.
-    Mutex(const char* name);
+    //! Constructor, initializes m_locked to false, so the Mutex can be acquired
+    explicit Mutex(const char* name);
 
     //! Destructor, deletes scheduler object, if it has been allocated.
     ~Mutex();

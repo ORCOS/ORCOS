@@ -127,6 +127,7 @@ struct stat {
     unint4 st_size;
     unint4 st_type;
     unint4 st_flags;
+    unint4 st_date;
 };
 
 /*!

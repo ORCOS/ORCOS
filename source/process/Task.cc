@@ -50,7 +50,7 @@ Task::Task(taskTable* tasktbl) :
     this->tasktable = tasktbl;
     /* Set initial name and working directory */
     strcpy(this->name, "No Name");
-    strcpy(this->workingDirectory, "/");
+    strcpy(this->workingDirectory, "/tmp/");
     stdOutput = theOS->getStdOutputDevice();
 
 #if SYSFS_SUPPORT
@@ -205,7 +205,7 @@ ErrorT Task::releaseResource(Resource* res, Thread* t) {
             Socket* s = static_cast<Socket*>(res);
             LOG(KERNEL, DEBUG, "Task::removeThread(): destroying socket!");
             delete s;
-            return (cOk );
+            return (cOk);
         } else if (res->getType() == cSharedMem) {
             SharedMemResource* shmres = static_cast<SharedMemResource*>(res);
             shmres->unmapFromTask(t->getOwner());
@@ -227,7 +227,7 @@ ErrorT Task::releaseResource(Resource* res, Thread* t) {
         return (error);
     }
 
-    return (cError );
+    return (cError);
 }
 
 

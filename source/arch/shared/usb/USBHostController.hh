@@ -33,7 +33,7 @@ class USB_Host_Controller: public GenericDeviceDriver {
 protected:
 
     // ports
-    PortInfo ports[3];
+    PortInfo ports[4];
 
     // maximum of 10 registered devices
     USBDeviceDriver *registered_devices[10];
@@ -74,6 +74,10 @@ public:
     explicit USB_Host_Controller(char* hc_name) : GenericDeviceDriver(true, hc_name) {
         for (int i = 0; i < 10; i++) {
            registered_devices[i] = 0;
+        }
+        for (int i = 0; i < 4; i++) {
+            ports[i].root_device = 0;
+            ports[i].status      = 0;
         }
     };
 

@@ -45,22 +45,25 @@ int sc_signal_wait(intptr_t int_sp) {
     SYSCALLGETPARAMS2(int_sp, sig, memAddrAsSig);
 
     /* signal null (0) is not allowed as it stands for "no" signal */
-    if (sig == 0)
-        return (cInvalidArgument );
+    if (sig == 0) {
+        return (cInvalidArgument);
+    }
 
 #ifdef ORCOS_SUPPORT_SIGNALS
 #ifdef HAS_Board_HatLayerCfd
     // if we want to use a Memory Address as the signal, we have to get the physical Address
     if (memAddrAsSig) {
         sig = static_cast<void*> (theOS->getHatLayer()->getPhysicalAddress(sig));
+        /* wait for signal in SIGNA_COND wait list */
         pCurrentRunningThread->sigwait(SIGNAL_COND, sig);
     } else
 #endif //HAS_Board_HatLayerCfd
     {
+        /* wait for signal on SIGNAL_GENERIC wait list*/
         pCurrentRunningThread->sigwait(SIGNAL_GENERIC, sig);
     }
     __builtin_unreachable();
-    return (cOk );
+    return (cOk);
 #else
     return (cError);
 #endif
@@ -86,13 +89,14 @@ int sc_signal_wait(intptr_t int_sp) {
 #ifdef HAS_SyscallManager_signal_signalCfd
 int sc_signal_signal(intptr_t int_sp) {
     void* sig;
-    int value;
-    bool memAddrAsSig;
+    int   value;
+    bool  memAddrAsSig;
     SYSCALLGETPARAMS3(int_sp, sig, value, memAddrAsSig);
 
     /* signal null (0) is not allowed as it stands for "no" signal */
-    if (sig == 0)
-        return (cInvalidArgument );
+    if (sig == 0) {
+        return (cInvalidArgument);
+    }
 
 #ifdef ORCOS_SUPPORT_SIGNALS
 
@@ -106,7 +110,8 @@ int sc_signal_signal(intptr_t int_sp) {
     {
     /* TODO: we might restrict sig to sig & 0xffff.. however for
      * now we let user space generate any kind of signals.. also maybe
-     * SIG_TASK_TERMINATED..*/
+     * SIG_TASK_TERMINATED..
+     * This might be a feature .. need to be discussed */
     theOS->getDispatcher()->signal(sig, value);
     }
 
@@ -119,7 +124,7 @@ int sc_signal_signal(intptr_t int_sp) {
     __builtin_unreachable();
 #endif
 
-    return (cOk );
+    return (cOk);
 #else
     return cError;
 #endif

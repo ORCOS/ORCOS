@@ -80,9 +80,9 @@ int sc_socket(intptr_t int_sp) {
  *******************************************************************************/
 int sc_connect(intptr_t int_sp) {
     ResourceIdT socketid;
-    sockaddr* addr;
-    int timeout_ms;
-    int retval;
+    sockaddr*   addr;
+    int         timeout_ms;
+    int         retval;
 
     SYSCALLGETPARAMS3(int_sp, socketid, addr, timeout_ms);
     VALIDATE_IN_PROCESS(addr);
@@ -128,8 +128,8 @@ int sc_connect(intptr_t int_sp) {
  *******************************************************************************/
 int sc_listen(intptr_t int_sp) {
     ResourceIdT socketid;
-    unint4 backlog_size;
-    int retval;
+    unint4      backlog_size;
+    int         retval;
 
     SYSCALLGETPARAMS2(int_sp, socketid, backlog_size);
     if (backlog_size > 50 || backlog_size == 0) {
@@ -176,8 +176,8 @@ int sc_listen(intptr_t int_sp) {
  *******************************************************************************/
 int sc_bind(intptr_t int_sp) {
     ResourceIdT socketid;
-    sockaddr* addr;
-    int retval;
+    sockaddr*   addr;
+    int         retval;
 
     SYSCALLGETPARAMS2(int_sp, socketid, addr);
     VALIDATE_IN_PROCESS(addr);
@@ -197,7 +197,6 @@ int sc_bind(intptr_t int_sp) {
             retval = cWrongResourceType;
             LOG(SYSCALLS, ERROR, "Syscall: bind invalid.. Resource is not a Socket. ");
         }
-
     } else {
         retval = cResourceNotOwned;
         LOG(SYSCALLS, ERROR, "Syscall: bind invalid.. Resource not owned.. ");
@@ -223,11 +222,11 @@ int sc_bind(intptr_t int_sp) {
  *  int         Error Code
  *******************************************************************************/
 int sc_sendto(intptr_t int_sp) {
-    ResourceIdT socket;
-    const void* buffer;
-    size_t length;
-    const sockaddr *dest_addr;
-    int retval;
+    ResourceIdT     socket;
+    const void*     buffer;
+    size_t          length;
+    const sockaddr* dest_addr;
+    int             retval;
 
     SYSCALLGETPARAMS4(int_sp, socket, buffer, length, dest_addr);
 
@@ -277,12 +276,12 @@ int sc_sendto(intptr_t int_sp) {
  *******************************************************************************/
 int sc_recv(intptr_t int_sp) {
     ResourceIdT socketid;
-    char* data_addr;
-    size_t data_len;
-    int flags;
-    int retval;
-    sockaddr* sender;
-    unint4 timeout;
+    char*       data_addr;
+    size_t      data_len;
+    int         flags;
+    int         retval;
+    sockaddr*   sender;
+    unint4      timeout;
 
     SYSCALLGETPARAMS6(int_sp, socketid, data_addr, data_len, flags, sender, timeout);
 
@@ -298,7 +297,7 @@ int sc_recv(intptr_t int_sp) {
         LOG(SYSCALLS, TRACE, "Syscall: recv valid");
 
         /* resource valid and owned
-         check if resource is a socket */
+           check if resource is a socket */
         if (res->getType() == cSocket) {
             Socket* sock = static_cast<Socket*>(res);
             retval = sock->recvfrom(pCurrentRunningThread, data_addr, data_len, flags, sender, timeout);
@@ -334,6 +333,7 @@ int sc_gethostbyname(intptr_t int_sp) {
 #else
    char*  host_name;
    int*   host_ip4addr;
+
    SYSCALLGETPARAMS2(int_sp, host_name, host_ip4addr);
    VALIDATE_IN_PROCESS(host_name);
    VALIDATE_IN_PROCESS(host_ip4addr);
@@ -354,6 +354,7 @@ int sc_gethostbyname(intptr_t int_sp) {
            return (cError);
        }
    }
+
    *host_ip4addr = res_addr.addr.ip4addr.addr;
    return (cOk);
 #endif
@@ -370,7 +371,7 @@ int sc_gethostbyname(intptr_t int_sp) {
  *******************************************************************************/
 #ifdef HAS_SyscallManager_recvCfd
 int sc_recv(intptr_t int_sp) {
- return (cNotImplemented);
+   return (cNotImplemented);
 }
 #endif
 
@@ -382,7 +383,7 @@ int sc_recv(intptr_t int_sp) {
  *******************************************************************************/
 #ifdef HAS_SyscallManager_sendtoCfd
 int sc_sendto(intptr_t int_sp) {
- return (cNotImplemented);
+   return (cNotImplemented);
 }
 #endif
 
@@ -394,7 +395,7 @@ int sc_sendto(intptr_t int_sp) {
  *******************************************************************************/
 #ifdef HAS_SyscallManager_bindCfd
 int sc_bind(intptr_t int_sp) {
- return (cNotImplemented);
+   return (cNotImplemented);
 }
 #endif
 
@@ -406,7 +407,7 @@ int sc_bind(intptr_t int_sp) {
  *******************************************************************************/
 #ifdef HAS_SyscallManager_socketCfd
 int sc_socket(intptr_t int_sp) {
- return (cNotImplemented);
+   return (cNotImplemented);
 }
 #endif
 
@@ -418,7 +419,7 @@ int sc_socket(intptr_t int_sp) {
  *******************************************************************************/
 #ifdef HAS_SyscallManager_connectCfd
 int sc_connect(intptr_t int_sp) {
- return (cNotImplemented);
+   return (cNotImplemented);
 }
 #endif
 
@@ -430,7 +431,7 @@ int sc_connect(intptr_t int_sp) {
  *******************************************************************************/
 #ifdef HAS_SyscallManager_listenCfd
 int sc_listen(intptr_t int_sp) {
- return (cNotImplemented);
+   return (cNotImplemented);
 }
 #endif
 
@@ -442,7 +443,7 @@ int sc_listen(intptr_t int_sp) {
  *******************************************************************************/
 #ifdef HAS_SyscallManager_gethostbynameCfd
 int sc_gethostbyname(intptr_t int_sp) {
- return (cNotImplemented);
+   return (cNotImplemented);
 }
 #endif
 

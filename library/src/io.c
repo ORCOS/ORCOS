@@ -105,9 +105,6 @@ Directory_Entry_t* readdir(int fd) {
     static int remainingBytes = 0;
 
     if (!remainingBytes) {
-        /* unbuffered reading entry by entry
-         * could be speed up by reading multiple entries at once
-         * */
         int readb = read(fd, buffer, 300);
         /* error occurred reading */
         if (readb < 0)

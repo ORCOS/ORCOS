@@ -169,10 +169,7 @@ File* RamdiskDirectory::createFile(char* name, unint4 flags) {
         return (0);
     }
 
-    char* fileName = new char[strlen(name)+1];
-    strcpy(fileName, name);
-
-    RamdiskFile* f = new RamdiskFile(this->myRamDisk, block, fileName, flags);
+    RamdiskFile* f = new RamdiskFile(this->myRamDisk, block, name, flags);
     this->add(f);
     return (f);
 }
@@ -193,10 +190,7 @@ Directory* RamdiskDirectory::createDirectory(char* name, unint4 flags) {
        return (0);
     }
 
-    char* dirName = new char[strlen(name)+1];
-    strcpy(dirName, name);
-
-    RamdiskDirectory* f = new RamdiskDirectory(this->myRamDisk, dirName);
+    RamdiskDirectory* f = new RamdiskDirectory(this->myRamDisk, name);
     this->add(f);
     return (f);
 }

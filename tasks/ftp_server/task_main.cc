@@ -338,7 +338,7 @@ static const char mon_name[][4] = {
 
 void sendDirectoryContents(int controlsock, int datasock, sockaddr *dataremote) {
 
-    if (connect(datasock,dataremote) != 0) {
+    if (connect(datasock, dataremote) != 0) {
         puts("sendDirectoryContents(): Error Connecting..\r\n");
         sendResponse(controlsock, "425 Cannot open data connection\r\n");
         return;
@@ -354,7 +354,7 @@ void sendDirectoryContents(int controlsock, int datasock, sockaddr *dataremote) 
 
     Directory_Entry_t* direntry = readdir(mydirhandle);
     char* retmsg = dir_msg;
-    memset(retmsg,0,10);
+    memset(retmsg, 0, 1024);
 
     while (direntry) {
 
@@ -363,29 +363,29 @@ void sendDirectoryContents(int controlsock, int datasock, sockaddr *dataremote) 
         sprintf(timestr, "%s %2d %02d:%02d", mon_name[pTm.tm_mon], pTm.tm_mday,  pTm.tm_hour, pTm.tm_min );
 
         if (direntry->resType == 1) {
-            sprintf(line, "%s   1 %-10s %-10s %10u %s %s\r\n",
+            sprintf(line, "%s   1 %-10s %-10s %10u %s %s\n",
                           "d-rw-rw-rw-", "User", "User", 0, timestr, direntry->name);
         } else {
             //sprintf(line, "%s   1 %-10s %-10s %10u Jan  1  1980 %s\r\n",
-            sprintf(line, "%s   1 %-10s %-10s %10u %s %s\r\n",
+            sprintf(line, "%s   1 %-10s %-10s %10u %s %s\n",
                           "-rw-rw-rw-", "User", "User", direntry->filesize, timestr, direntry->name);
         }
 
         // concat the line
-        retmsg = strcat(retmsg,line);
+        retmsg = strcat(retmsg, line);
 
         if (strlen(dir_msg) > 800) {
             //puts(dir_msg);
-            sendto(datasock,dir_msg,strlen(dir_msg),0);
+            sendto(datasock, dir_msg, strlen(dir_msg),0);
             retmsg = dir_msg;
-            memset(retmsg,0,10);
+            memset(retmsg, 0, 1024);
         }
 
         direntry = readdir(mydirhandle);
     }
 
 
-    sendto(datasock,dir_msg,strlen(dir_msg),0);
+    sendto(datasock, dir_msg, strlen(dir_msg), 0);
 }
 
 

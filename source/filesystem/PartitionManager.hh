@@ -12,6 +12,15 @@
 #include "filesystem/Partition.hh"
 #include "filesystem/Directory.hh"
 
+typedef enum  {
+    GENERIC_MBR,
+    STANDARD_MBR,
+    AAP_MBR,
+    NEWLDR_MBR,
+    ASTNEC_MBR,
+    DISKMANAGER_MBR
+} MBRType ;
+
 class PartitionManager: Directory {
 private:
     /*****************************************************************************
@@ -22,7 +31,7 @@ private:
      *
      *  returns: cOk on success
      *******************************************************************************/
-    ErrorT tryDOSMBR(BlockDeviceDriver *bdev);
+    ErrorT tryMBR(BlockDeviceDriver *bdev);
 
     /*****************************************************************************
      * Method: handleEFIPartitionTable(BlockDeviceDriver* bdev)

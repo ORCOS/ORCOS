@@ -94,16 +94,22 @@ int sc_getDateTime(intptr_t sp_int) {
  *---------------------------------------------------------------------------*/
 int sc_printToStdOut(intptr_t int_sp) {
     const char *write_ptr;
-    unint4 write_size;
+    unint4      write_size;
     SYSCALLGETPARAMS2(int_sp, write_ptr, write_size);
     VALIDATE_IN_PROCESS(write_ptr);
+    /* write_ptr + write_size may be outside the process.. this will probably cause
+     * a data abort killing the process */
 
     LOG(SYSCALLS, TRACE, "Syscall: printToStdOut(%s)", write_ptr);
 
-    if (pCurrentRunningTask->getStdOutputDevice() != 0)
-        return (pCurrentRunningTask->getStdOutputDevice()->writeBytes(write_ptr, write_size));
-    else
-        return (cError );
+    if (pCurrentRunningTask->getStdOutputDevice() != 0) {
+        CharacterDevice* outdev = pCurrentRunningTask->getStdOutputDevice();
+        if (outdev != 0) {
+            return (pCurrentRunningTask->getStdOutputDevice()->writeBytes(write_ptr, write_size));
+        }
+    }
+
+    return (cError);
 }
 
 /*****************************************************************************
@@ -146,22 +152,22 @@ int sc_thread_terminate(intptr_t sp_int) {
     register Kernel_ThreadCfdCl* t = pCurrentRunningTask->getThreadbyId(threadId);
 
     if (t == 0) {
-        return (cError );
+        return (cError);
     }
 
     if (params == TERM_SOFT) {
         LOG(SYSCALLS, DEBUG, "Syscall: Thread %d TERM_SOFT ", threadId);
         /* set the soft termination flag */
         t->setStatusFlag(cDoTermFlag);
-        return (cOk );
+        return (cOk);
     } else if (params == TERM_HARD) {
         LOG(SYSCALLS, DEBUG, "Syscall: Thread %d TERM_HARD ", threadId);
         /* call Thread::terminate to be sure no
          * further instances are created as it would be
          * done inside RealtimeThread::terminate() */
         theOS->getTaskManager()->terminateThread(t);
-        return (cOk );
+        return (cOk);
     }
 
-    return (cInvalidArgument );
+    return (cInvalidArgument);
 }

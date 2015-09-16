@@ -271,7 +271,7 @@ void command_ls(int socket, int handle, int details, int humanReadable) {
             num++;
             if (num >= 3)  {
                 num = 0;
-                strcat(dir_content,LINEFEED);
+                strcat(dir_content, LINEFEED);
             }
         }
 
@@ -280,7 +280,7 @@ void command_ls(int socket, int handle, int details, int humanReadable) {
         /* read/send next entry  */
         direntry = readdir(handle);
         if (!direntry && !details) {
-            sendStr(socket,LINEFEED);
+            sendStr(socket, LINEFEED);
         }
     }
 

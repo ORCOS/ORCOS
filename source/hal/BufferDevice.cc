@@ -14,7 +14,9 @@ extern Kernel* theOS;
 
 BufferDevice::BufferDevice(char* name, int bufferSize) :
         CharacterDevice(false, name) {
+
     buffersize = bufferSize;
+
     if (buffersize > MAX_BUFFER_SIZE)
         buffersize = MAX_BUFFER_SIZE;
 
@@ -24,6 +26,9 @@ BufferDevice::BufferDevice(char* name, int bufferSize) :
 }
 
 BufferDevice::~BufferDevice() {
+    if (buffer) {
+        delete(buffer);
+    }
 }
 
 /*****************************************************************************
@@ -33,7 +38,7 @@ BufferDevice::~BufferDevice() {
  *******************************************************************************/
 ErrorT BufferDevice::readBytes(char *bytes, unint4 &length) {
     if (!isValid())
-        return (cError );
+        return (cError);
     if (usedBytes == 0) {
         length = 0;
         return (cOk );

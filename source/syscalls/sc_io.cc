@@ -40,11 +40,14 @@
  *---------------------------------------------------------------------------*/
 int sc_ioctl(intptr_t int_sp) {
     ResourceIdT file_id;
-    int request;
-    void* args;
-    Resource* res;
+    int         request;
+    void*       args;
+    Resource*   res;
 
     SYSCALLGETPARAMS3(int_sp, file_id, request, args);
+    /* args are not checked here as args may also be a valid
+     * integer which does not correspond anyhow to the address space of the task
+     * THUS: the devices MUST check args on their own! */
     //VALIDATE_IN_PROCESS(args);
 
     LOG(SYSCALLS, DEBUG, "Syscall: ioctl(%d,%d,%x)", file_id, request, args);
@@ -57,11 +60,11 @@ int sc_ioctl(intptr_t int_sp) {
             CharacterDevice* cdev = static_cast<CharacterDevice*>(res);
             return (cdev->ioctl(request, args));
         } else {
-            return (cInvalidResource );
+            return (cInvalidResource);
         }
     }
 
-    return (cInvalidResource );
+    return (cInvalidResource);
 }
 #endif
 
@@ -83,8 +86,8 @@ int sc_ioctl(intptr_t int_sp) {
  *  int         Error Code
  *---------------------------------------------------------------------------*/
 int sc_fcreate(intptr_t int_sp) {
-    char* filepath;
-    int flags;
+    char*     filepath;
+    int       flags;
     Resource* res;
 
     SYSCALLGETPARAMS2(int_sp, filepath, flags);
@@ -98,12 +101,10 @@ int sc_fcreate(intptr_t int_sp) {
         }
 
         char* lpos;
-
         if (filename != filepath) {
             lpos = filename -1;
             lpos[0] = 0;
         }
-
 
         LOG(SYSCALLS, DEBUG, "Syscall: fcreate(%s,%s)", filepath, filename);
         res = theOS->getFileManager()->getDirectory(filepath);
@@ -125,10 +126,21 @@ int sc_fcreate(intptr_t int_sp) {
             return (cResourceAlreadyExists);
         }
 
+        int namelen = strlen(filename);
+
+        if (namelen == 0 || namelen > 255) {
+            return (cInvalidArgument);
+        }
+
+        /* allocate memory for new name so this name is visible
+         * in all address spaces */
+        char* namepcpy         = new char[namelen +1];
+        memcpy(namepcpy, filename, namelen + 1);
+
         if (flags & cTYPE_DIR) {
-            res = dir->createDirectory(filename, 0);
+            res = dir->createDirectory(namepcpy, 0);
         } else {
-            res = dir->createFile(filename, flags);
+            res = dir->createFile(namepcpy, flags);
         }
 
         if (res != 0) {
@@ -136,6 +148,7 @@ int sc_fcreate(intptr_t int_sp) {
             res->acquire(pCurrentRunningThread, false);
             return (res->getId());
         } else {
+            delete[] namepcpy;
             LOG(SYSCALLS, ERROR, "Syscall: fcreate(%s) FAILED. File could not be created.", filename);
             return (cError);
         }
@@ -156,17 +169,20 @@ int sc_fcreate(intptr_t int_sp) {
  *
  * @description
  *
+ *  sp_int     The stack pointer at time of system call instruction execution*
+ *
  * @params
- *  sp_int:     The stack pointer at time of system call instruction execution
+ *  filename   The filepath to open, absolute or relative.
+ *  blocking   Block if the resource can currently not be acquired?
  *
  * @returns
  *  int         Error Code
  *---------------------------------------------------------------------------*/
 int sc_fopen(intptr_t int_sp) {
-    char* filename;
-    int retval;
+    char*     filename;
+    int       retval;
     Resource* res;
-    int blocking;
+    int       blocking;
 
     SYSCALLGETPARAMS2(int_sp, filename, blocking);
     VALIDATE_IN_PROCESS(filename);
@@ -203,16 +219,21 @@ int sc_fopen(intptr_t int_sp) {
  * Method: sc_fclose(intptr_t sp_int)
  *
  * @description
+ *  sp_int:     The stack pointer at time of system call instruction execution
+ *
+ *  Closes the resource and removes the resource from the list of
+ *  acquired resources. If the resouce is a socket the socket is closed (connection
+ *  closed) and deleted.
  *
  * @params
- *  sp_int:     The stack pointer at time of system call instruction execution
+ *  file_id     ID of the owned resource to close. May also be a socket.
  *
  * @returns
  *  int         Error Code
  *---------------------------------------------------------------------------*/
 int sc_fclose(intptr_t int_sp) {
     ResourceIdT file_id;
-    Resource* res;
+    Resource*   res;
 
     SYSCALLGETPARAMS1(int_sp, file_id);
     LOG(SYSCALLS, DEBUG, "Syscall: fclose(%d)", file_id);
@@ -222,15 +243,16 @@ int sc_fclose(intptr_t int_sp) {
         int retval = pCurrentRunningTask->releaseResource(res, pCurrentRunningThread);
 
 #ifdef HAS_PRIORITY
+        /* we may have unblocked a higher priority thread so we need to reschedule now! */
         _disableInterrupts();
         SET_RETURN_VALUE((void*)int_sp, (void*)retval);
-        /* we may have unblocked a higher priority thread so we need to reschedule now! */
+        /* instead of returning we allow the scheduler to choose the correct thread to execute now!*/
         theOS->getDispatcher()->dispatch();
         __builtin_unreachable();
 #endif
         return (retval);
     } else {
-        return (cResourceNotOwned );
+        return (cResourceNotOwned);
     }
 }
 #endif
@@ -252,10 +274,10 @@ int sc_fclose(intptr_t int_sp) {
  *  int         Error Code
  *---------------------------------------------------------------------------*/
 int sc_fwrite(intptr_t int_sp) {
-    char *buf;
-    unint4 count;
+    char*       buf;
+    unint4      count;
     ResourceIdT fd;
-    int retval = 0;
+    int         retval = cError;
 
     SYSCALLGETPARAMS3(int_sp, fd, buf, count);
 
@@ -272,9 +294,8 @@ int sc_fwrite(intptr_t int_sp) {
         LOG(SYSCALLS, TRACE, "Syscall: fwrite valid");
 
         if (res->getType() & (cStreamDevice | cCommDevice | cFile)) {
-            char* pointer = buf;
             CharacterDevice* cdev = static_cast<CharacterDevice*>(res);
-            ErrorT result         = cdev->writeBytes(pointer, count);
+            ErrorT result         = cdev->writeBytes(buf, count);
             return (result);
         } else {
             retval = cResourceNotWriteable;
@@ -305,10 +326,10 @@ int sc_fwrite(intptr_t int_sp) {
  *  int         Error Code
  *---------------------------------------------------------------------------*/
 int sc_fread(intptr_t int_sp) {
-    char *buf;
-    unint4 count;
+    char*       buf;
+    unint4      count;
     ResourceIdT fd;
-    int retval = 0;
+    int         retval = cError;
 
     SYSCALLGETPARAMS3(int_sp, fd, buf, count);
     VALIDATE_IN_PROCESS(buf);
@@ -320,11 +341,10 @@ int sc_fread(intptr_t int_sp) {
         LOG(SYSCALLS, DEBUG, "Syscall: fread valid. Resource: %s", res->getName());
 
         if (res->getType() & (cStreamDevice | cCommDevice | cFile | cDirectory)) {
-            char* pointer = buf;
             CharacterDevice* cdev = static_cast<CharacterDevice*>(res);
-            ErrorT result = cdev->readBytes(pointer, count);
+            ErrorT result = cdev->readBytes(buf, count);
             /* check if reading failed */
-            if (isError(result)){
+            if (isError(result)) {
                 return (result);
             }
             /* success: return bytes read */
@@ -333,7 +353,6 @@ int sc_fread(intptr_t int_sp) {
             retval = cResourceNotReadable;
             LOG(SYSCALLS, ERROR, "Syscall: fread failed. Not a readable device.");
         }
-
     } else {
         retval = cResourceNotOwned;
         LOG(SYSCALLS, ERROR, "Syscall: fread on device with id %d failed", fd);
@@ -355,9 +374,9 @@ int sc_fread(intptr_t int_sp) {
  *  int         Error Code
  *---------------------------------------------------------------------------*/
 int sc_fstat(intptr_t int_sp) {
-    ResourceIdT file_id;
-    struct stat* stat;
-    Resource* res;
+    ResourceIdT   file_id;
+    struct stat*  stat;
+    Resource*     res;
 
     SYSCALLGETPARAMS2(int_sp, file_id, stat);
     VALIDATE_IN_PROCESS(stat);
@@ -373,6 +392,7 @@ int sc_fstat(intptr_t int_sp) {
             File* file     = static_cast<File*>(res);
             stat->st_size  = file->getFileSize();
             stat->st_flags = file->getFlags();
+            stat->st_date  = file->getDateTime();
         } else if (res->getType() & cDirectory) {
             Directory* dir = static_cast<Directory*>(res);
             stat->st_size  = dir->getNumEntries();
@@ -399,7 +419,7 @@ int sc_fstat(intptr_t int_sp) {
  *---------------------------------------------------------------------------*/
 int sc_fremove(intptr_t int_sp) {
     const char* filepath;
-    Resource* res;
+    Resource*   res;
 
     SYSCALLGETPARAMS1(int_sp, filepath);
     VALIDATE_IN_PROCESS(filepath);
@@ -433,8 +453,9 @@ int sc_fremove(intptr_t int_sp) {
         return (cInvalidPath);
     }
 
-    Directory* dir = static_cast<Directory*>(res);
+    Directory* dir     = static_cast<Directory*>(res);
     Resource* res_file = dir->get(filename, strlen(filename));
+
     /* resource found? */
     if (res_file == 0)
         return (cInvalidPath);
@@ -474,20 +495,22 @@ int sc_fremove(intptr_t int_sp) {
  *---------------------------------------------------------------------------*/
 #ifdef HAS_SyscallManager_fseekCfd
 int sc_fseek(intptr_t int_sp) {
-    int fd;
-    int offset;
-    int whence;
+    int       fd;
+    int       offset;
+    int       whence;
     Resource* res;
 
     SYSCALLGETPARAMS3(int_sp, fd, offset, whence);
     res = pCurrentRunningTask->getOwnedResourceById(fd);
 
-    if (whence < 0 || whence > 2)
+    if (whence < SEEK_SET || whence > SEEK_END) {
         return (cInvalidArgument);
+    }
 
     if (res != 0) {
         if (res->getType() & (cDirectory | cFile)) {
             unint4 maxsize = 0;
+
             if (res->getType() & cDirectory) {
                 Directory* dir = static_cast<Directory*>(res);
                 maxsize = dir->getNumEntries();
@@ -536,10 +559,10 @@ int sc_fseek(intptr_t int_sp) {
  *  int         Error Code
  *---------------------------------------------------------------------------*/
 int sc_mkdev(intptr_t int_sp) {
-    char* devname;
-    size_t bufferSize;
+    char*         devname;
+    size_t        bufferSize;
     BufferDevice* res;
-    int retval;
+    int           retval;
 
     SYSCALLGETPARAMS2(int_sp, devname, bufferSize);
     VALIDATE_IN_PROCESS(devname);
@@ -585,10 +608,12 @@ int sc_mount(intptr_t int_sp) {
     char* srcpath;
     char* dstpath;
     int   type;
+
     SYSCALLGETPARAMS3(int_sp, srcpath, dstpath, type);
     VALIDATE_IN_PROCESS(srcpath);
     VALIDATE_IN_PROCESS(dstpath);
 
+    /* Test in mount type: Overlay */
     if (type == cMountType_Overlay) {
         Directory* srcDir = theOS->getFileManager()->getDirectory(srcpath);
         if (srcDir == 0) {
@@ -615,8 +640,8 @@ int sc_mount(intptr_t int_sp) {
  *  int         Error Code
  *---------------------------------------------------------------------------*/
 int sc_rename(intptr_t int_sp) {
-    int fd;
-    char* filenewname;
+    int       fd;
+    char*     filenewname;
     Resource* res;
 
     SYSCALLGETPARAMS2(int_sp, fd, filenewname);
@@ -637,7 +662,7 @@ int sc_rename(intptr_t int_sp) {
 
     /* allocate memory for new name so this name is visible
      * in all address spaces */
-    char* namepcpy         = new char[namelen +1];
+    char* namepcpy = new char[namelen +1];
     memcpy(namepcpy, filenewname, namelen + 1);
 
     res = pCurrentRunningTask->getOwnedResourceById(fd);

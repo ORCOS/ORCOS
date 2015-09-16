@@ -41,7 +41,7 @@ private:
     int2 id;
 
 public:
-    TransportProtocol(int2 protocol_id) {
+    explicit TransportProtocol(int2 protocol_id) {
         this->id = protocol_id;
     }
 

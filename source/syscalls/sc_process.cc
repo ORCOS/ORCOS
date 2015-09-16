@@ -41,9 +41,9 @@
  *  int         Error Code
  *---------------------------------------------------------------------------*/
 int sc_task_run(intptr_t sp_int) {
-    int retval = 0;
-    char* path;
-    char* arguments;
+    int    retval = 0;
+    char*  path;
+    char*  arguments;
     unint2 arg_length = 0;
     unint4 flags;
 
@@ -59,28 +59,26 @@ int sc_task_run(intptr_t sp_int) {
 
     LOG(SYSCALLS, DEBUG, "Syscall: runTask(%s)", path);
 
-    if (path == 0)
-        return (cError );
-
     Resource* res = theOS->getFileManager()->getResourceByNameandType(path, cFile);
     if (res == 0) {
         LOG(SYSCALLS, ERROR, "Syscall: runTask(%s) FAILED: invalid path.", path);
-        return (cInvalidResource );
+        return (cInvalidResource);
     }
 
     /* we got the resource .. load as task */
     TaskIdT taskId;
     retval = theOS->getTaskManager()->loadTaskFromFile(static_cast<File*>(res), taskId, arguments, arg_length);
     /* on failure return the error number*/
-    if (isError(retval))
+    if (isError(retval)) {
         return (retval);
+    }
 
     Task* t = theOS->getTaskManager()->getTask(taskId);
     t->setName(res->getName());
     char* filename  = basename(path);
     char* lpos;
     if (filename != path) {
-         lpos = filename -1;
+         lpos    = filename -1;
          lpos[0] = 0;
     }
     t->setWorkingDirectory(path);
@@ -98,8 +96,9 @@ int sc_task_run(intptr_t sp_int) {
 #endif
     } else {
         /* on success return task id*/
-        if (isOk(retval))
+        if (isOk(retval)) {
             retval = taskId;
+        }
 
         /* set return value now! as we must dispatch */
         void* sp_int;
@@ -110,7 +109,7 @@ int sc_task_run(intptr_t sp_int) {
     /* new task may have higher priority so dispatch now! */
     theOS->getDispatcher()->dispatch();
     __builtin_unreachable();
-    return (cError );
+    return (cError);
 }
 #endif
 
@@ -128,7 +127,7 @@ int sc_task_run(intptr_t sp_int) {
  *  int         Error Code
  *---------------------------------------------------------------------------*/
 int sc_thread_wait(intptr_t sp_int) {
-    int pid;
+    int       pid;
     ThreadIdT threadid;
     SYSCALLGETPARAMS2(sp_int, pid, threadid);
     LOG(SYSCALLS, DEBUG, "Syscall: thread_wait: pid %d", pid);
@@ -149,11 +148,11 @@ int sc_thread_wait(intptr_t sp_int) {
         pCurrentRunningThread->sigwait(SIGNAL_GENERIC, reinterpret_cast<void*>(signal));
         __builtin_unreachable();
     } else {
-        /* if we are waiting for another task, we may only wait for the task
+        /* if we are waiting on another task, we may only wait for the task
          * not for a thread of that specific task! */
         Task* t = theOS->getTaskManager()->getTask(pid);
         if (t == 0) {
-            return (cInvalidArgument );
+            return (cInvalidArgument);
         }
         /* wait for task to finish
          * this will block the current thread. we will not return here
@@ -164,7 +163,7 @@ int sc_thread_wait(intptr_t sp_int) {
         __builtin_unreachable();
     }
 
-    return (cError );
+    return (cError);
 }
 #endif
 
@@ -221,19 +220,19 @@ int sc_task_kill(intptr_t sp_int) {
 
 #if USE_WORKERTASK
     /* we must not kill the workertask! */
-    if (taskid == 0)
-        return (cInvalidArgument );
+    if (taskid == 0) {
+        return (cInvalidArgument);
+    }
 #endif
 
     Task* t = theOS->getTaskManager()->getTask(taskid);
-    if (t == 0)
-        return (cError );
+    if (t == 0) {
+        return (cError);
+    }
 
     /* let the task manager cleanup everything. do not call t->terminate on your own
      * if you do not clean up everything else */
-    theOS->getTaskManager()->removeTask(t);
-
-    return (cOk );
+    return (theOS->getTaskManager()->removeTask(t));
 }
 #endif
 
@@ -261,16 +260,19 @@ int sc_task_stop(intptr_t int_sp) {
 
     LOG(SYSCALLS, DEBUG, "Syscall: task_stop(%d)", taskid);
 
-    if (taskid <= 0)
-        return (cError );
+#if USE_WORKERTASK
+    if (taskid == 0) {
+        return (cError);
+    }
+#endif
 
     Task* task = theOS->getTaskManager()->getTask(taskid);
     if (task != 0) {
         task->stop();
-        return (cOk );
+        return (cOk);
     }
 
-    return (cError );
+    return (cError);
 }
 #endif
 
@@ -303,15 +305,16 @@ int sc_task_resume(intptr_t int_sp) {
         task->resume();
 
 #ifdef HAS_PRIORITY
-        // we might have unblocked higher priority threads! so dispatch!
+        /* we might have unblocked higher priority threads! so dispatch! */
         _disableInterrupts();
 
         SET_RETURN_VALUE((void*)int_sp, (void*)cOk);
         theOS->getDispatcher()->dispatch();
         __builtin_unreachable();
 #endif
+        return (cOk);
     }
-    return (cError );
+    return (cError);
 }
 #endif
 
@@ -333,12 +336,17 @@ int sc_task_resume(intptr_t int_sp) {
  *  int         Error Code
  *---------------------------------------------------------------------------*/
 int sc_sleep(intptr_t int_sp) {
-    int t;
+    unsigned int t;
     SYSCALLGETPARAMS1(int_sp, t);
-    LOG(SYSCALLS, DEBUG, "Syscall: sleep(%d)", t);
+    LOG(SYSCALLS, DEBUG, "Syscall: sleep(%u)", t);
 
     TimeT timePoint = theOS->getClock()->getClockCycles();
 
+    if (t == 0) {
+        return (cOk);
+    }
+
+    SET_RETURN_VALUE((void*)int_sp, (void*)cOk);
     /* sleep time is expected to be us */
 #if CLOCK_RATE >= (1 MHZ)
     pCurrentRunningThread->sleep(timePoint + (t * (CLOCK_RATE / 1000000)));
@@ -348,7 +356,7 @@ int sc_sleep(intptr_t int_sp) {
     __builtin_unreachable();
     /* return will not be called
      * if the system works correctly */
-    return (cOk );
+    return (cOk);
 }
 #endif
 
@@ -370,17 +378,18 @@ int sc_sleep(intptr_t int_sp) {
  *  int         Error Code
  *---------------------------------------------------------------------------*/
 int sc_thread_create(intptr_t int_sp) {
-    ThreadIdT* threadid;
+    ThreadIdT*     threadid;
     thread_attr_t* attr;
-    void* start_routine;
-    void* arg;
+    void*          start_routine;
+    void*          arg;
 
     SYSCALLGETPARAMS4(int_sp, threadid, attr, start_routine, arg);
 
     VALIDATE_IN_PROCESS(attr);
     VALIDATE_IN_PROCESS(start_routine);
-    if (threadid != 0)
+    if (threadid != 0) {
         VALIDATE_IN_PROCESS(threadid);
+    }
 
     LOG(SYSCALLS, DEBUG, "Syscall: thread_create(0x%x,0x%x,0x%x)", attr, start_routine, arg);
     LOG(SYSCALLS, DEBUG, "Syscall: rel_deadline %d", attr->deadline);
@@ -388,8 +397,9 @@ int sc_thread_create(intptr_t int_sp) {
     // create the thread CB. First get the tasktable to get the address of the threads exit routine
     register taskTable* tasktable = pCurrentRunningTask->getTaskTable();
 
-    if (attr->stack_size <= 0)
+    if (attr->stack_size <= 0) {
         attr->stack_size = DEFAULT_USER_STACK_SIZE;
+    }
 
     /* create a new thread. It will automatically register itself at the currentRunningTask which will be the parent. */
     Thread* newthread = new Kernel_ThreadCfdCl(
@@ -434,9 +444,9 @@ int sc_thread_create(intptr_t int_sp) {
 int sc_thread_run(intptr_t int_sp) {
     ThreadIdT threadid;
     SYSCALLGETPARAMS1(int_sp, threadid);
-    LOG(SYSCALLS, TRACE, "Syscall: thread_run(%d)", threadid);
+    LOG(SYSCALLS, TRACE, "Syscall: thread_run(%u)", threadid);
 
-    if (threadid >= cFirstThread) {
+    if (threadid != 0) {
         /* run the given thread */
         register Kernel_ThreadCfdCl* t = pCurrentRunningTask->getThreadbyId(threadid);
 
@@ -447,14 +457,11 @@ int sc_thread_run(intptr_t int_sp) {
             /* announce to scheduler! */
             t->run();
         } else {
-            return (cThreadNotFound );
+            return (cThreadNotFound);
         }
     } else {
-        /* run all new threads of this task!
-         if we are realtime set the arrivaltime of all threads!
-         the arrivaltime will be the same then, which is important
-         if all threads shall start at the same time (no phase shifting) */
-        LinkedList* threadDb = pCurrentRunningTask->getThreadDB();
+        /* run all new threads of this task! */
+        LinkedList* threadDb  = pCurrentRunningTask->getThreadDB();
         LinkedListItem* litem = threadDb->getHead();
 
         while (litem != 0) {
@@ -466,7 +473,9 @@ int sc_thread_run(intptr_t int_sp) {
                 theOS->getCPUScheduler()->computePriority(thread);
 #endif
 
-                /* finally announce the thread to the scheduler */
+                /* finally announce the thread to the scheduler.
+                 * If an arrivaltime has been specified the dispatcher
+                 * will put the thread to sleep until that timepoint */
                 thread->run();
             }
 
@@ -481,7 +490,7 @@ int sc_thread_run(intptr_t int_sp) {
     __builtin_unreachable();
 #endif
 
-    return (cOk );
+    return (cOk);
 }
 #endif
 
@@ -504,7 +513,6 @@ int sc_thread_run(intptr_t int_sp) {
  *---------------------------------------------------------------------------*/
 int sc_thread_self(intptr_t int_sp) {
     LOG(SYSCALLS, TRACE, "Syscall: threadSelf()");
-
     return (pCurrentRunningThread->getId());
 }
 #endif
@@ -569,8 +577,9 @@ int sc_getpid(intptr_t int_sp) {
  *  int         Error Code
  *---------------------------------------------------------------------------*/
 int sc_thread_name(intptr_t int_sp) {
-    char* name;
+    char*     name;
     ThreadIdT tid;
+
     SYSCALLGETPARAMS2(int_sp, tid, name);
     VALIDATE_IN_PROCESS(name);
 
@@ -578,12 +587,12 @@ int sc_thread_name(intptr_t int_sp) {
     if (tid != 0) {
         p_thread = pCurrentRunningTask->getThreadbyId(tid);
         if (!p_thread) {
-            return (cInvalidArgument );
+            return (cInvalidArgument);
         }
     }
 
     p_thread->setName(name);
-    return (cOk );
+    return (cOk);
 }
 #endif
 
@@ -605,8 +614,8 @@ int sc_thread_name(intptr_t int_sp) {
  *  int         Error Code
  *---------------------------------------------------------------------------*/
 int sc_task_ioctl(intptr_t int_sp) {
-    int cmd;
-    int taskId;
+    int   cmd;
+    int   taskId;
     char* devpath;
 
     SYSCALLGETPARAMS3(int_sp, cmd, taskId, devpath);
@@ -614,18 +623,19 @@ int sc_task_ioctl(intptr_t int_sp) {
 
     Task* task = theOS->getTaskManager()->getTask(taskId);
     if (task == 0)
-        return (cInvalidArgument );
+        return (cInvalidArgument);
 
     CharacterDevice* res = static_cast<CharacterDevice*>(theOS->getFileManager()->getResourceByNameandType(devpath, cStreamDevice));
-    if (res == 0)
-        return (cInvalidResourceType );
+    if (res == 0) {
+        return (cInvalidResourceType);
+    }
 
     if (cmd == TIOCTL_SET_STDOUT) {
         /* SET STDOUT of task*/
         task->setStdOut(res);
-        return (cOk );
+        return (cOk);
     } else {
-        return (cInvalidArgument );
+        return (cInvalidArgument);
     }
 }
 #endif

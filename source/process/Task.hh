@@ -128,7 +128,7 @@ public:
     /*!
      *  \brief Constructor of a task taking the memory manager and the pointer to the tasktable of this task.
      */
-    Task(taskTable* tasktbl);
+    explicit Task(taskTable* tasktbl);
 
     /*!
      * \brief Constructor only used for derived classes e.g. WorkerTask
