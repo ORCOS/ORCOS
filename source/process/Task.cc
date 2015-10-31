@@ -50,7 +50,7 @@ Task::Task(taskTable* tasktbl) :
     this->tasktable = tasktbl;
     /* Set initial name and working directory */
     strcpy(this->name, "No Name");
-    strcpy(this->workingDirectory, "/tmp/");
+    setWorkingDirectory("/");
     stdOutput = theOS->getStdOutputDevice();
 
 #if SYSFS_SUPPORT
@@ -91,7 +91,7 @@ Task::Task() :
     myTaskId = (TaskIdT) ((unint4) Task::freeTaskIDs->removeHead());
     /* Set initial name and working directory */
     strcpy(this->name, "No Name");
-    strcpy(this->workingDirectory, "/");
+    setWorkingDirectory("/");
     stdOutput = theOS->getStdOutputDevice();
 
 #if SYSFS_SUPPORT
@@ -259,7 +259,6 @@ void Task::run() {
 void Task::terminate() {
     LOG(KERNEL, DEBUG, "Task::terminate()");
 
-
 #ifdef ORCOS_SUPPORT_SIGNALS
     int signal =  SIGNAL_SPACE_TASK(this->getId()) | SIG_TASK_TERMINATED;
     theOS->getDispatcher()->signal(reinterpret_cast<void*>(signal), this->exitValue);
@@ -336,6 +335,28 @@ Kernel_ThreadCfdCl* Task::getThreadbyId(ThreadIdT threadid) {
  *******************************************************************************/
 TaskIdT Task::getIdOfNextCreatedTask() {
     return ((TaskIdT) ((unint4) Task::freeTaskIDs->getHead()));
+}
+
+
+/*****************************************************************************
+ * Method: setWorkingDirectory(char* newDir)
+ *
+ * @description
+ *   Sets the current working directory of this task. Only possible by providing
+ *   the path name. May fail if the directory does not exist.
+ *******************************************************************************/
+ErrorT Task::setWorkingDirectory(char* newDir)
+{
+    if (newDir == 0) {
+        return (cNullPointerProvided);
+    }
+    Directory* dir = theOS->getFileManager()->getDirectory(newDir);
+    if (dir == 0) {
+        return (cInvalidPath);
+    }
+    this->workingDirectory = dir;
+    strncpy(this->workingDirectoryPath, newDir, 255);
+    return (cOk);
 }
 
 /*****************************************************************************

@@ -109,7 +109,7 @@ private:
     void*               exitRoutinePointer;
 
     //!  A global Thread counter.
-    static ThreadIdT    globalThreadIdCounter;
+    static IDMap*       freeIDMap;
 
     //! The sysFs directory of this thread
     Directory*          sysFsDir;
@@ -167,7 +167,7 @@ public:
      *  Static initialization of the Thread class
      *******************************************************************************/
     static void initialize() {
-        globalThreadIdCounter = cFirstThread;
+        freeIDMap = new IDMap(1024);
     }
 
     /*****************************************************************************

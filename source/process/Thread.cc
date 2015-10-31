@@ -41,7 +41,7 @@ extern Task* pCurrentRunningTask;
 
 /* static non-const member variable initialization
  * will be executed in ctor */
-ThreadIdT Thread::globalThreadIdCounter;
+IDMap* Thread::freeIDMap;
 
 /* check if stack growing direction is set by scl */
 #ifndef STACK_GROWS_DOWNWARDS
@@ -71,7 +71,7 @@ Thread::Thread(void* p_startRoutinePointer,
     ASSERT(p_owner);
 
     /* do not initialize sleeptime here as it is done inside the realtimethread */
-    this->myThreadId = globalThreadIdCounter++;
+    this->myThreadId            = freeIDMap->getNextID();
     this->startRoutinePointer   = p_startRoutinePointer;
     this->exitRoutinePointer    = p_exitRoutinePointer;
     this->owner                 = p_owner;
@@ -96,8 +96,8 @@ Thread::Thread(void* p_startRoutinePointer,
 
     /* allocate and map thread stack */
     this->threadStack.startAddr = (void*) theOS->getRamManager()->alloc_logical(stack_size, owner->getId(), 0);
-    this->threadStack.endAddr = reinterpret_cast<void*> ((unint4) threadStack.startAddr + stack_size - RESERVED_BYTES_FOR_STACKFRAME);
-    this->threadStack.top     = 0;
+    this->threadStack.endAddr   = reinterpret_cast<void*> ((unint4) threadStack.startAddr + stack_size - RESERVED_BYTES_FOR_STACKFRAME);
+    this->threadStack.top       = 0;
 
     Directory* taskdir = p_owner->getSysFsDirectory();
     if (taskdir) {
@@ -117,7 +117,7 @@ Thread::Thread(void* p_startRoutinePointer,
 #ifdef HAS_PRIORITY
         PriorityThread* prioThread = static_cast<PriorityThread*>(this);
         SYSFS_ADD_RO_UINT_NAMED(sysFsDir, "effectivePriority", prioThread->effectivePriority);
-        SYSFS_ADD_RO_UINT_NAMED(sysFsDir, "initialPriority", prioThread->initialPriority);
+        SYSFS_ADD_RO_UINT_NAMED(sysFsDir, "initialPriority"  , prioThread->initialPriority);
 #endif
 #ifdef REALTIME
         RealTimeThread* rtThread = static_cast<RealTimeThread*>(this);
@@ -334,11 +334,6 @@ void Thread::terminate() {
     theOS->getDispatcher()->signal(reinterpret_cast<void*>(signalnum), cOk);
 #endif
 
-    /* free thread stack. we are using it here thus the code
-     * path following is critical!
-     * however free only if this stack has been allocated from the memory manager.
-     * The only exception is the initial thread that is created by another process!
-     * */
     // TODO: free mapped thread stack pages
 
 
@@ -355,4 +350,6 @@ void Thread::terminate() {
             sysFsDir = 0;
         }
     }
+
+    freeIDMap->freeID(this->myThreadId);
 }

@@ -116,4 +116,57 @@ public:
 
 };
 
+
+class IDMap {
+private:
+    /* map of free IDs
+     * 1: ID free, 0 : ID used */
+    unint4* map;
+    unint1 size;
+
+public:
+    IDMap(int ids) {
+        size = (ids / 32);
+        if (size == 0) {
+            size = 1;
+        }
+        map = new unint4[size];
+        for (int i = 0; i < size; i++) {
+            map[i] = 0xffffffff;
+        }
+    }
+
+
+    int getNextID() {
+        int id = -1;
+        for (int i = 0; i < size; i++) {
+           int freeindex = __builtin_clz(map[i]);
+           if (freeindex < 32) {
+               /* mark ID as used */
+               map[i] &= ~(1 << (31 - freeindex));
+               id = freeindex + (i * 32);
+               break;
+           }
+        }
+        return (id);
+    }
+
+    void invalidateID(int id) {
+        int index = ((unint4) id) / 32;
+        int bit = (id - (index * 32));
+        if (index < size) {
+           map[index] &= ~(1 << (31 - bit));
+        }
+    }
+
+    void freeID(int id) {
+        int index = ((unint4) id) / 32;
+        int bit = (id - (index * 32));
+        if (index < size) {
+            map[index] |= (1 << (31 - bit));
+        }
+    }
+
+};
+
 #endif /* _BITMAP_HH */

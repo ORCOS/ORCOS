@@ -102,9 +102,14 @@ protected:
     char               name[32];
 
     /*!
-     * \brief The current working directory of this task.
+     * \brief The current working directory path of this task.
      */
-    char               workingDirectory[256];
+    char               workingDirectoryPath[256];
+
+    /*!
+     * \brief The current working directory of this task (corresponds to workingDirectoryPath).
+     */
+    Directory*         workingDirectory;
 
     /*!
      * \brief The Device this task is writing to by default as e.g. by printf().
@@ -298,8 +303,18 @@ public:
      * @description
      *   Returns the current working directory of this task
      *******************************************************************************/
-    inline char* getWorkingDirectory() {
+    inline Directory* getWorkingDirectory() {
         return (this->workingDirectory);
+    }
+
+    /*****************************************************************************
+     * Method: getWorkingDirectory()
+     *
+     * @description
+     *   Returns the current working directory path of this task
+     *******************************************************************************/
+    inline char* getWorkingDirectoryPath() {
+        return (this->workingDirectoryPath);
     }
 
     /*****************************************************************************
@@ -308,10 +323,7 @@ public:
      * @description
      *   Sets the current working directory of this task
      *******************************************************************************/
-    inline void setWorkingDirectory(char* newDir) {
-        strncpy(this->workingDirectory, newDir, 255);
-    }
-
+    ErrorT setWorkingDirectory(char* newDir);
 
     /*****************************************************************************
      * Method: getSysFsDirectory()
