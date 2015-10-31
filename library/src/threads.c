@@ -40,8 +40,8 @@ int task_stop(int taskid) {
     return (syscall(cTask_StopSysCallId, taskid));
 }
 
-int task_run(char* path, char* arguments) {
-    return (syscall(cRunTaskId, path, arguments));
+int task_run(char* path, char* arguments, char* stdout) {
+    return (syscall(cRunTaskId, path, arguments, stdout));
 }
 
 int thread_name(int threadid,char* name) {
@@ -75,11 +75,11 @@ void thread_yield()
     syscall(cThread_YieldSysCallId);
 }
 
-int thread_terminate(ThreadIdT threadId, int flag) {
+int thread_terminate(int threadId, int flag) {
     return (syscall(cThreadTerminateSyscallId, threadId, flag));
 }
 
-int waitpid(TaskIdT pid)
+int waitpid(int pid)
 {
     return (syscall(cThread_WaitPID, pid, 0));
 }
@@ -90,7 +90,7 @@ int wait()
    return (waitpid(0));
 }
 
-int waittid(ThreadIdT tid)
+int waittid(int tid)
 {
     /* wait for a thread inside our task to finish */
     return (syscall(cThread_WaitPID, 0, tid));

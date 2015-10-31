@@ -136,7 +136,7 @@ public:
      *  Resource*   The resource if found or null
      *  parentDir   Parent directory of the resource found
      *******************************************************************************/
-    Resource* getResourceByNameandType(const char* pathname, ResourceType type, Directory* &parentDir);
+    Resource* getResourceByNameandType(const char* pathname, ResourceType type, Directory* &parentDir, Directory* rootDir = 0);
 
 
     Resource* getResourceByNameandType(const char* pathname, ResourceType type) {

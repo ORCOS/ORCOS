@@ -69,8 +69,9 @@ void Logger::log(Prefix prefix, Level level, const char* msg, ...) {
 
 #if LOG_PRINT_TIME
     unint8 time = 0;
-    if (theOS != 0 && theOS->getClock() != 0)
-    time = (theOS->getClock()->getClockCycles() / (1 MICROSECONDS));
+    if (theOS != 0 && theOS->getClock() != 0) {
+        time = (theOS->getClock()->getClockCycles() / (1 MICROSECONDS));
+    }
 
     unint4 seconds      = (unint4) (time / (1000000));
     unint4 microseconds = (unint4) (time - (seconds * 1000000));

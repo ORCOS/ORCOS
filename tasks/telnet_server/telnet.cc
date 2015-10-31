@@ -318,13 +318,13 @@ void handleCommand(int socket, int command_length) {
         }
         compactPath(filename);
 
-        int taskid = task_run(filename, arguments);
-        if (taskid > 0) {
-            /* task started  */
-            /* set stdout of new task to us! */
-            taskioctl(0, taskid, "/dev/tty0");
-        } else {
-            sendMsg(socket, "Error running task.", taskid);
+        int taskid = task_run(filename, arguments, "/dev/tty0");
+        if (taskid < 0) {
+            sendMsg(socket, "Error running task", taskid);
+        }
+        if (command[strlen(command)-1] != '&') {
+            waitpid(taskid);
+            usleep(100000);
         }
 
         return;
@@ -339,8 +339,7 @@ void handleCommand(int socket, int command_length) {
             if (id != getpid()) {
                 int error = task_kill(id);
                 // no argument given
-                sprintf(return_msg, "Killing Task Error: %d"LINEFEED, error);
-                sendto(socket, return_msg, strlen(return_msg) + 1, 0);
+                sendMsg(socket, "Killing Task Error", error);
             } else {
                 sprintf(return_msg, "I dont want to kill myself.."LINEFEED);
                 sendto(socket, return_msg, strlen(return_msg) + 1, 0);
@@ -455,13 +454,13 @@ void handleCommand(int socket, int command_length) {
             struct stat filetype;
             filetype.st_type = 10;
             fstat(filehandle, &filetype);
-            if (filetype.st_type & cTYPE_KVAR && filetype.st_type != 2) {
+            if ((filetype.st_type & cTYPE_KVAR) && filetype.st_type != 2) {
                 /* Kernel Variable */
                 /*SYSFS_SIGNED_INTEGER    = 0,
                  SYSFS_UNSIGNED_INTEGER  = 1,
                  SYSFS_STRING = 2 */
                 if (filetype.st_flags < 2) {
-                    char* format = "d (0x%x)\n";
+                    char* format = "%d (0x%x)\n";
                     if (filetype.st_flags == 1)
                         format = "%u (0x%x)\n";
 

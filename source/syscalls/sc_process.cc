@@ -44,17 +44,22 @@ int sc_task_run(intptr_t sp_int) {
     int    retval = 0;
     char*  path;
     char*  arguments;
+    char*  stdoutdev;
+    char*  workingDir;
     unint2 arg_length = 0;
-    unint4 flags;
 
-    SYSCALLGETPARAMS3(sp_int, path, arguments, flags);
+    SYSCALLGETPARAMS4(sp_int, path, arguments, stdoutdev, workingDir);
 
-    // TODO: safely validate path length to avoid running out of process bounds
-    // TODO: safely validate arguments length to avoid running out of process bounds
     VALIDATE_IN_PROCESS(path);
     if (arguments != 0) {
         VALIDATE_IN_PROCESS(arguments);
         arg_length = (unint2) strlen(arguments);
+    }
+    if (stdoutdev != 0) {
+        VALIDATE_IN_PROCESS(stdoutdev);
+    }
+    if (workingDir != 0) {
+       VALIDATE_IN_PROCESS(workingDir);
     }
 
     LOG(SYSCALLS, DEBUG, "Syscall: runTask(%s)", path);
@@ -75,36 +80,49 @@ int sc_task_run(intptr_t sp_int) {
 
     Task* t = theOS->getTaskManager()->getTask(taskId);
     t->setName(res->getName());
-    char* filename  = basename(path);
-    char* lpos;
-    if (filename != path) {
-         lpos    = filename -1;
-         lpos[0] = 0;
-    }
-    t->setWorkingDirectory(path);
-    if (filename != path) {
-        /* restore original string */
-        lpos[0] = '/';
-    }
-
-    if (flags & cWait) {
-#ifdef ORCOS_SUPPORT_SIGNALS
-        /* lets wait for this task to finish */
-        int signal = SIGNAL_SPACE_TASK(t->getId()) | SIG_TASK_TERMINATED;
-        pCurrentRunningThread->sigwait(SIGNAL_GENERIC, reinterpret_cast<void*>(signal));
-        __builtin_unreachable();
-#endif
-    } else {
-        /* on success return task id*/
-        if (isOk(retval)) {
-            retval = taskId;
+    if (workingDir == 0 || isError(t->setWorkingDirectory(workingDir))) {
+        if (path[0] == '/') {
+            char* filename  = basename(path);
+            char* lpos;
+            if (filename != path) {
+                 lpos    = filename -1;
+                 lpos[0] = 0;
+            }
+            t->setWorkingDirectory(path);
+            if (filename != path) {
+                /* restore original string */
+                lpos[0] = '/';
+            }
+        } else {
+            // relative path
+            char tmppath[256];
+            sprintf(tmppath, "%s/%s", pCurrentRunningTask->getWorkingDirectoryPath(), path);
+            if (isError(t->setWorkingDirectory(tmppath))) {
+                t->setWorkingDirectory("/");
+            }
         }
-
-        /* set return value now! as we must dispatch */
-        void* sp_int;
-        GET_RETURN_CONTEXT(pCurrentRunningThread, sp_int);
-        SET_RETURN_VALUE(sp_int, retval);
     }
+
+    /* set specified stdout */
+    if (stdoutdev != 0) {
+        CharacterDevice* stdoutres = static_cast<CharacterDevice*>(theOS->getFileManager()->getResourceByNameandType(stdoutdev, cStreamDevice));
+        if (stdoutres != 0) {
+            /* SET STDOUT of task*/
+            t->setStdOut(stdoutres);
+        }
+    }
+
+    /* on success return task id*/
+    if (isOk(retval)) {
+        retval = taskId;
+    }
+
+    /* set return value now! as we must dispatch */
+/*    {
+    void* sp_int;
+    GET_RETURN_CONTEXT(pCurrentRunningThread, sp_int);*/
+    SET_RETURN_VALUE(sp_int, retval);
+    //}
 
     /* new task may have higher priority so dispatch now! */
     theOS->getDispatcher()->dispatch();
@@ -128,10 +146,11 @@ int sc_task_run(intptr_t sp_int) {
  *---------------------------------------------------------------------------*/
 int sc_thread_wait(intptr_t sp_int) {
     int       pid;
-    ThreadIdT threadid;
+    int       threadid;
     SYSCALLGETPARAMS2(sp_int, pid, threadid);
     LOG(SYSCALLS, DEBUG, "Syscall: thread_wait: pid %d", pid);
 
+#ifdef ORCOS_SUPPORT_SIGNALS
     if (pid == 0) {
         /* wait for any child to terminate on our current process
          * this will block the current thread. we will not return here
@@ -158,10 +177,11 @@ int sc_thread_wait(intptr_t sp_int) {
          * this will block the current thread. we will not return here
          * as the syscall context will be restored with return code
          * upon signal reception. */
-        int signal = SIGNAL_SPACE_TASK(pCurrentRunningTask->getId()) | SIG_TASK_TERMINATED;
+        int signal = SIGNAL_SPACE_TASK(t->getId()) | SIG_TASK_TERMINATED;
         pCurrentRunningThread->sigwait(SIGNAL_GENERIC, reinterpret_cast<void*>(signal));
         __builtin_unreachable();
     }
+#endif
 
     return (cError);
 }
@@ -399,6 +419,9 @@ int sc_thread_create(intptr_t int_sp) {
 
     if (attr->stack_size <= 0) {
         attr->stack_size = DEFAULT_USER_STACK_SIZE;
+    }
+    if (attr->stack_size > 0x10000) {
+        attr->stack_size = 0x10000;
     }
 
     /* create a new thread. It will automatically register itself at the currentRunningTask which will be the parent. */

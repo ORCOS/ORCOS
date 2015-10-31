@@ -61,10 +61,11 @@ extern "C" {
  *
  * \param path              The path to the task file to be executed
  * \param arguments         A null terminated string of arguments
+ * \param stdout            Path to the stdout device of this task. If 0 or not found it will be ignored.
  *
  * \return                  Error Number < 0 or task id > 0
  */
- int              task_run(char* path, char* arguments);
+ int              task_run(char* path, char* arguments, char* stdout DEFAULT(0));
 
 /*!
  * \brief Stops and removes a task from the system.
@@ -122,7 +123,7 @@ extern "C" {
  *
  * \return                 The exit value of the terminated process.
  */
- int              waitpid(TaskIdT pid);
+ int              waitpid(int pid);
 
 
 /*!
@@ -139,7 +140,7 @@ extern "C" {
  *
  * \return                  The exit value of the terminated process.
  */
- int              waittid(ThreadIdT tid);
+ int              waittid(int tid);
 
 /*!
  * \brief wait for irq method.  Blocks the current calling thread until the irq is raised.
@@ -238,7 +239,7 @@ extern "C" {
  *
  *returns ErrorCode
  */
- int             thread_terminate(ThreadIdT threadId, int flag DEFAULT(TERM_SOFT));
+ int             thread_terminate(int threadId, int flag DEFAULT(TERM_SOFT));
 
 
 /**************************************

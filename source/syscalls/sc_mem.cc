@@ -96,7 +96,7 @@ int sc_shm_map(intptr_t sp_int) {
         /* create the shared mem resource */
         SharedMemResource* sres = new SharedMemResource(shmsize, name, pCurrentRunningTask);
         /* check on creation failure */
-        if (sres->getPhysicalStartAddress() == 0) {
+        if (sres->getPhysicalStartAddress() == (unint4)-1) {
             /* delete resource again */
             delete sres;
             return (cMemMappingError);

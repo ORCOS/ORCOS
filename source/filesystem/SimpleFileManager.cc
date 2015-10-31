@@ -140,13 +140,17 @@ ErrorT SimpleFileManager::unregisterResource(Resource* res) {
  *  Resource*   The resource if found or null
  *  parentDir   Parent directory of the resource found
  *******************************************************************************/
-Resource* SimpleFileManager::getResourceByNameandType(const char* pathname, ResourceType typefilter, Directory* &parentDir) {
+Resource* SimpleFileManager::getResourceByNameandType(const char* pathname, ResourceType typefilter, Directory* &parentDir, Directory* rootDir) {
     /* parse the directory tree for a resource matching the pathname */
     ASSERT(pathname);
 
     register Resource* res = root;
     register Directory* dir;
     parentDir = 0;
+
+    if (rootDir != 0) {
+        res = rootDir;
+    }
 
     /*
      * The following code parses the pathname string on substrings

@@ -84,12 +84,9 @@ t_archmappings arch_kernelmappings =
 BeagleBoardxM::BeagleBoardxM() {
 }
 
-/*****************************************************************************
- * Method: BeagleBoardxM::initialize()
- *
- * @description
- *******************************************************************************/
-void BeagleBoardxM::initialize() {
+void BeagleBoardxM::early_init()
+{
+
     // Initialize interface and function clock tree
     /*
      * Tables for 36XX/37XX devices
@@ -256,175 +253,186 @@ void BeagleBoardxM::initialize() {
     theOS->setStdOutputDevice(UARTCfd);
 #endif
 
-    LOG(ARCH, INFO, "");
-    printf_p("\rORCOS booting..\r");
+
+    puts("\n");
     LOG(ARCH, INFO, "BeagleBoardXM Initializing...");
     LOG(ARCH, INFO, "BeagleBoardxM: Board UART: [" STRINGIZE(Board_UARTCfdCl) "]");
 #endif
 
     unint4 cm_idlest_wkup = INW(0x48004c20);
-    if ((cm_idlest_wkup & 0)) {
-        LOG(ARCH, ERROR, "GPTIMER1 cannot be accessed..");
-    }
-    if ((cm_idlest_wkup & (1 << 2))) {
-        LOG(ARCH, ERROR, "32k Sync Timer cannot be accessed..");
-    }
-    if ((cm_idlest_wkup & (1 << 3))) {
-        LOG(ARCH, ERROR, "GPIO1 cannot be accessed..");
-    }
-    if ((cm_idlest_wkup & (1 << 5))) {
-        LOG(ARCH, ERROR, "WDTIMER2 cannot be accessed..");
-    }
+     if ((cm_idlest_wkup & 0)) {
+         LOG(ARCH, ERROR, "GPTIMER1 cannot be accessed..");
+     }
+     if ((cm_idlest_wkup & (1 << 2))) {
+         LOG(ARCH, ERROR, "32k Sync Timer cannot be accessed..");
+     }
+     if ((cm_idlest_wkup & (1 << 3))) {
+         LOG(ARCH, ERROR, "GPIO1 cannot be accessed..");
+     }
+     if ((cm_idlest_wkup & (1 << 5))) {
+         LOG(ARCH, ERROR, "WDTIMER2 cannot be accessed..");
+     }
 
-    // enable clocks of most components uart1-3 i2c1-3 a.s.o
-    OUTW(CM_FCLKEN1_CORE, 0x03fffe29);
-    OUTW(CM_ICLKEN1_CORE, 0x3ffffffb);
+     // enable clocks of most components uart1-3 i2c1-3 a.s.o
+     OUTW(CM_FCLKEN1_CORE, 0x03fffe29);
+     OUTW(CM_ICLKEN1_CORE, 0x3ffffffb);
 
-    OUTW(0x48004A14, 0x0000001f);
-    // CM_FCLKEN_WKUP
-    /* enable wakeup domain function clocks for GPIO1 and Timer1*/
-    OUTW(0x48004c00, 0x000000e9);
+     OUTW(0x48004A14, 0x0000001f);
+     // CM_FCLKEN_WKUP
+     /* enable wakeup domain function clocks for GPIO1 and Timer1*/
+     OUTW(0x48004c00, 0x000000e9);
 
-    //CM_ICLKEN_WKUP
-    /* enable wakeup domain interface clocks for GPIO1 and Timer1*/
-    OUTW(0x48004c10, 0x0000003f);
+     //CM_ICLKEN_WKUP
+     /* enable wakeup domain interface clocks for GPIO1 and Timer1*/
+     OUTW(0x48004c10, 0x0000003f);
 
-    //CM_CLKSEL_WKUP
-    OUTW(0x48004c40, 0x15);
-    OUTW(0x48004c30, 0x0);
+     //CM_CLKSEL_WKUP
+     OUTW(0x48004c40, 0x15);
+     OUTW(0x48004c30, 0x0);
 
 
-    //     unint4 cm_core = INW(0x48004A40);
-    //    SETBITS(cm_core,13,12,2);
-    //    OUTW(0x48004A40,cm_core);
+     //     unint4 cm_core = INW(0x48004A40);
+     //    SETBITS(cm_core,13,12,2);
+     //    OUTW(0x48004A40,cm_core);
 
-    // enable i2c pullup
-    OUTW(0x48000000 + 0x2000 + 0x448, ~(0x00000001));
+     // enable i2c pullup
+     OUTW(0x48000000 + 0x2000 + 0x448, ~(0x00000001));
 
-    LOG(ARCH, DEBUG, "BeagleBoardxM: CM_FCLKEN1_CORE  =%x", INW(CM_FCLKEN1_CORE));
-    LOG(ARCH, DEBUG, "BeagleBoardxM: CM_CLKSEL_CORE   =%x", INW(0x48004A40));
-    LOG(ARCH, DEBUG, "BeagleBoardxM: CM_CLKSEL1_PLL   =%x", INW(0x48004D40));
-    LOG(ARCH, DEBUG, "BeagleBoardxM: CM_IDLEST2_CKGEN =%x", INW(0x48004d24));
+     LOG(ARCH, DEBUG, "BeagleBoardxM: CM_FCLKEN1_CORE  =%x", INW(CM_FCLKEN1_CORE));
+     LOG(ARCH, DEBUG, "BeagleBoardxM: CM_CLKSEL_CORE   =%x", INW(0x48004A40));
+     LOG(ARCH, DEBUG, "BeagleBoardxM: CM_CLKSEL1_PLL   =%x", INW(0x48004D40));
+     LOG(ARCH, DEBUG, "BeagleBoardxM: CM_IDLEST2_CKGEN =%x", INW(0x48004d24));
 
-    unint sys_clk = INW(REG_PRM_CLKSEL);
-    LOG(ARCH, DEBUG, "BeagleBoardxM: PRM_CLKSEL       =%d", sys_clk);
+     unint sys_clk = INW(REG_PRM_CLKSEL);
+     LOG(ARCH, DEBUG, "BeagleBoardxM: PRM_CLKSEL       =%d", sys_clk);
 
-    // TODO read sysclock / 2 bit
-    sys_clock = 26000;
+     // TODO read sysclock / 2 bit
+     sys_clock = 26000;
 
-    if (sys_clk == 4)
-        sys_clock = 38400;
-    else if (sys_clk == 3)
-        sys_clock = 26000;
-    else if (sys_clk == 2)
-        sys_clock = 19200;
-    else if (sys_clk == 1)
-        sys_clock = 13000;
-    else if (sys_clk == 0)
-        sys_clock = 12000;
+     if (sys_clk == 4)
+         sys_clock = 38400;
+     else if (sys_clk == 3)
+         sys_clock = 26000;
+     else if (sys_clk == 2)
+         sys_clock = 19200;
+     else if (sys_clk == 1)
+         sys_clock = 13000;
+     else if (sys_clk == 0)
+         sys_clock = 12000;
 
-    sys_clock = sys_clock >> 1;
-    LOG(ARCH, INFO, "BeagleBoardxM: System Clock      = %d kHz", sys_clock);
+     sys_clock = sys_clock >> 1;
+     LOG(ARCH, INFO, "BeagleBoardxM: System Clock      = %d kHz", sys_clock);
 
-    unint m_dpll3 = (INW(CM_CLKSEL1_PLL) >> 16) & 0x7ff;  // dpll3 multiplier
-    unint n_dpll3 = (INW(CM_CLKSEL1_PLL) >> 8) & 0x7f;  // dpll3 divisor
-    unint f_clkout = (sys_clock * m_dpll3) / (n_dpll3 + 1);
-    LOG(ARCH, INFO,  "BeagleBoardxM: f_CLKOUT          = %d kHz ", f_clkout);
-    LOG(ARCH, DEBUG, "BeagleBoardxM:                     [m = %d, n = %d]", m_dpll3, n_dpll3);
+     unint m_dpll3 = (INW(CM_CLKSEL1_PLL) >> 16) & 0x7ff;  // dpll3 multiplier
+     unint n_dpll3 = (INW(CM_CLKSEL1_PLL) >> 8) & 0x7f;  // dpll3 divisor
+     unint f_clkout = (sys_clock * m_dpll3) / (n_dpll3 + 1);
+     LOG(ARCH, INFO,  "BeagleBoardxM: f_CLKOUT          = %d kHz ", f_clkout);
+     LOG(ARCH, DEBUG, "BeagleBoardxM:                     [m = %d, n = %d]", m_dpll3, n_dpll3);
 
-    unint m2_dpll3 = INW(CM_CLKSEL1_PLL) >> 27;
-    unint core_clock = f_clkout / m2_dpll3;   // dpll3 output clock
-    LOG(ARCH, INFO,  "BeagleBoardxM: CORE_CLOCK        = %d kHz ", core_clock);
-    LOG(ARCH, DEBUG, "BeagleBoardxM:                     [m2 = %d]", m2_dpll3);
+     unint m2_dpll3 = INW(CM_CLKSEL1_PLL) >> 27;
+     unint core_clock = f_clkout / m2_dpll3;   // dpll3 output clock
+     LOG(ARCH, INFO,  "BeagleBoardxM: CORE_CLOCK        = %d kHz ", core_clock);
+     LOG(ARCH, DEBUG, "BeagleBoardxM:                     [m2 = %d]", m2_dpll3);
 
-    //unint mpu_dpll_clock = ((core_clock / mpu_clk_src) * mpu_m) / mpu_n;
-    unint mpu_dpll_clock = ((sys_clock * mpu_m * 2) / ((mpu_n + 1) * m2_dpll3));
-    LOG(ARCH, INFO, "BeagleBoardxM: MPU_DPLL_CLOCK    = %d kHz [%0x]", mpu_dpll_clock, cm_clksel1_pll_mpu_val);
-    LOG(ARCH, INFO, "BeagleBoardxM: ARM Core at       = %d kHz", mpu_dpll_clock / 2);
+     //unint mpu_dpll_clock = ((core_clock / mpu_clk_src) * mpu_m) / mpu_n;
+     unint mpu_dpll_clock = ((sys_clock * mpu_m * 2) / ((mpu_n + 1) * m2_dpll3));
+     LOG(ARCH, INFO, "BeagleBoardxM: MPU_DPLL_CLOCK    = %d kHz [%0x]", mpu_dpll_clock, cm_clksel1_pll_mpu_val);
+     LOG(ARCH, INFO, "BeagleBoardxM: ARM Core at       = %d kHz", mpu_dpll_clock / 2);
 
-    unint4 m_dpll4 = (INW(CM_CLKSEL2_PLL) >> 8) & 0x7ff;
-    unint4 n_dpll4 = INW(CM_CLKSEL2_PLL) & 0x7f;
-    unint dpll4_clock = (sys_clock * m_dpll4) / (n_dpll4 + 1);
-    LOG(ARCH, INFO,  "BeagleBoardxM: DPLL4_CLOCK       = %d kHz ", dpll4_clock);
-    LOG(ARCH, DEBUG, "BeagleBoardxM:                     [m = %d, n = %d]", m_dpll4, n_dpll4);
-    LOG(ARCH, INFO,  "BeagleBoardxM: DPLL4_AWON_FCLKOUT= %d kHz", dpll4_clock * 2);
+     unint4 m_dpll4 = (INW(CM_CLKSEL2_PLL) >> 8) & 0x7ff;
+     unint4 n_dpll4 = INW(CM_CLKSEL2_PLL) & 0x7f;
+     unint dpll4_clock = (sys_clock * m_dpll4) / (n_dpll4 + 1);
+     LOG(ARCH, INFO,  "BeagleBoardxM: DPLL4_CLOCK       = %d kHz ", dpll4_clock);
+     LOG(ARCH, DEBUG, "BeagleBoardxM:                     [m = %d, n = %d]", m_dpll4, n_dpll4);
+     LOG(ARCH, INFO,  "BeagleBoardxM: DPLL4_AWON_FCLKOUT= %d kHz", dpll4_clock * 2);
 
-    unint4 mhz54clock = dpll4_clock / (INW(0x48004e40) >> 8);
-    LOG(ARCH, INFO, "BeagleBoardxM: 54Mhz Clock       = %d kHz", mhz54clock);
+     unint4 mhz54clock = dpll4_clock / (INW(0x48004e40) >> 8);
+     LOG(ARCH, INFO, "BeagleBoardxM: 54Mhz Clock       = %d kHz", mhz54clock);
 
-    unint mhz96clock = dpll4_clock / (INW(CM_CLKSEL3_PLL) & 0x1f);
-    LOG(ARCH, INFO,  "BeagleBoardxM: 96Mhz Clock       = %d kHz ", mhz96clock);
-    LOG(ARCH, DEBUG, "BeagleBoardxM: DIV_96M           = %d", (INW(CM_CLKSEL3_PLL) & 0x1f));
+     unint mhz96clock = dpll4_clock / (INW(CM_CLKSEL3_PLL) & 0x1f);
+     LOG(ARCH, INFO,  "BeagleBoardxM: 96Mhz Clock       = %d kHz ", mhz96clock);
+     LOG(ARCH, DEBUG, "BeagleBoardxM: DIV_96M           = %d", (INW(CM_CLKSEL3_PLL) & 0x1f));
 
-    unint4 m_dpll5 = (INW(CM_CLKSEL4_PLL) >> 8) & 0x7ff;
-    unint4 n_dpll5 = INW(CM_CLKSEL4_PLL) & 0x7f;
-    unint4 dpll5_clock = (sys_clock * m_dpll5) / (n_dpll5 + 1);
-    unint mhz120clock = dpll5_clock / (INW(CM_CLKSEL5_PLL) & 0x1f);
-    LOG(ARCH, INFO, "BeagleBoardxM: 120Mhz Clock      = %d kHz ", mhz120clock);
+     unint4 m_dpll5 = (INW(CM_CLKSEL4_PLL) >> 8) & 0x7ff;
+     unint4 n_dpll5 = INW(CM_CLKSEL4_PLL) & 0x7f;
+     unint4 dpll5_clock = (sys_clock * m_dpll5) / (n_dpll5 + 1);
+     unint mhz120clock = dpll5_clock / (INW(CM_CLKSEL5_PLL) & 0x1f);
+     LOG(ARCH, INFO, "BeagleBoardxM: 120Mhz Clock      = %d kHz ", mhz120clock);
 
-    unint4 cm_idlest1 = INW(0x48004d20);
-    if (!(cm_idlest1 & 1)) {
-        LOG(ARCH, ERROR, "BeagleBoardxM: ERROR: DPLL3 not locked..");
-    }
-    if (!(cm_idlest1 & 2)) {
-        LOG(ARCH, ERROR, "BeagleBoardxM: ERROR: DPLL4 not locked..");
-    }
-    if (!(cm_idlest1 & 1 << 2)) {
-        LOG(ARCH, ERROR, "BeagleBoardxM: ERROR: 96Mhz FCLK clock not active..");
-    }
-    if (!(cm_idlest1 & 1 << 3)) {
-        LOG(ARCH, ERROR, "BeagleBoardxM: ERROR: 48Mhz clock not active..");
-    }
-    if (!(cm_idlest1 & 1 << 4)) {
-        LOG(ARCH, ERROR, "BeagleBoardxM: ERROR: 12Mhz clock not active..");
-    }
-    if (!(cm_idlest1 & 1 << 5)) {
-        LOG(ARCH, ERROR, "BeagleBoardxM: ERROR: 54Mhz clock not active..");
-    }
-    if (!(cm_idlest1 & 1 << 9)) {
-        LOG(ARCH, ERROR, "BeagleBoardxM: ERROR: DPLL4_M2_CLK clock not active..");
-    }
-    if (!(cm_idlest1 & 1 << 10)) {
-        LOG(ARCH, ERROR, "BeagleBoardxM: ERROR: DPLL4_M3_CLK clock not active..");
-    }
+     unint4 cm_idlest1 = INW(0x48004d20);
+     if (!(cm_idlest1 & 1)) {
+         LOG(ARCH, ERROR, "BeagleBoardxM: ERROR: DPLL3 not locked..");
+     }
+     if (!(cm_idlest1 & 2)) {
+         LOG(ARCH, ERROR, "BeagleBoardxM: ERROR: DPLL4 not locked..");
+     }
+     if (!(cm_idlest1 & 1 << 2)) {
+         LOG(ARCH, ERROR, "BeagleBoardxM: ERROR: 96Mhz FCLK clock not active..");
+     }
+     if (!(cm_idlest1 & 1 << 3)) {
+         LOG(ARCH, ERROR, "BeagleBoardxM: ERROR: 48Mhz clock not active..");
+     }
+     if (!(cm_idlest1 & 1 << 4)) {
+         LOG(ARCH, ERROR, "BeagleBoardxM: ERROR: 12Mhz clock not active..");
+     }
+     if (!(cm_idlest1 & 1 << 5)) {
+         LOG(ARCH, ERROR, "BeagleBoardxM: ERROR: 54Mhz clock not active..");
+     }
+     if (!(cm_idlest1 & 1 << 9)) {
+         LOG(ARCH, ERROR, "BeagleBoardxM: ERROR: DPLL4_M2_CLK clock not active..");
+     }
+     if (!(cm_idlest1 & 1 << 10)) {
+         LOG(ARCH, ERROR, "BeagleBoardxM: ERROR: DPLL4_M3_CLK clock not active..");
+     }
 
-    unint4 cm_idlest2 = INW(0x48004d24);
-    if (!(cm_idlest2 & 1)) {
-        LOG(ARCH, ERROR, "BeagleBoardxM: ERROR: DPLL5 not locked..");
-    }
+     unint4 cm_idlest2 = INW(0x48004d24);
+     if (!(cm_idlest2 & 1)) {
+         LOG(ARCH, ERROR, "BeagleBoardxM: ERROR: DPLL5 not locked..");
+     }
 
-    // CM_IDLEST_PLL_MPU
-    cm_idlest2 = INW(0x48004924);
-    if (!(cm_idlest2 & 1)) {
-        LOG(ARCH, ERROR, "BeagleBoardxM: ERROR: DPLL1 not locked..");
-    }
+     // CM_IDLEST_PLL_MPU
+     cm_idlest2 = INW(0x48004924);
+     if (!(cm_idlest2 & 1)) {
+         LOG(ARCH, ERROR, "BeagleBoardxM: ERROR: DPLL1 not locked..");
+     }
 
-    // set all mux values
-    MUX_BEAGLE()
+     // set all mux values
+     MUX_BEAGLE()
 
-    MUX_BEAGLE_XM()
+     MUX_BEAGLE_XM()
 
-    /* Set GPIO states before they are made outputs */
-    // GPIO6
-    OUTW(0x49058000 + 0x94, GPIO23 | GPIO10 | GPIO8 | GPIO2 | GPIO1);
-    // GPIO5
-    OUTW(0x49056000 + 0x94, GPIO31 | GPIO30 | GPIO29 | GPIO28 | GPIO22 | GPIO21 | GPIO15 | GPIO14 | GPIO13 | GPIO12);
+     /* Set GPIO states before they are made outputs */
+     // GPIO6
+     OUTW(0x49058000 + 0x94, GPIO23 | GPIO10 | GPIO8 | GPIO2 | GPIO1);
+     // GPIO5
+     OUTW(0x49056000 + 0x94, GPIO31 | GPIO30 | GPIO29 | GPIO28 | GPIO22 | GPIO21 | GPIO15 | GPIO14 | GPIO13 | GPIO12);
 
-    /* Configure GPIOs to output */
-    //GPIO6
-    OUTW(0x49058000 + 0x34, ~(GPIO23 | GPIO10 | GPIO8 | GPIO2 | GPIO1));
-    // GPIO5
-    OUTW(0x49056000 + 0x34, ~(GPIO31 | GPIO30 | GPIO29 | GPIO11 | GPIO28 | GPIO22 | GPIO21 | GPIO15 | GPIO14 | GPIO13 | GPIO12));
+     /* Configure GPIOs to output */
+     //GPIO6
+     OUTW(0x49058000 + 0x34, ~(GPIO23 | GPIO10 | GPIO8 | GPIO2 | GPIO1));
+     // GPIO5
+     OUTW(0x49056000 + 0x34, ~(GPIO31 | GPIO30 | GPIO29 | GPIO11 | GPIO28 | GPIO22 | GPIO21 | GPIO15 | GPIO14 | GPIO13 | GPIO12));
 
-    // Enable I2C clocks
-    unint4 clocks = INW(0x48004A00);
-    OUTW(0x48004A00, clocks | 1 << 15 | 1 << 16 | 1 << 17);
+     // Enable I2C clocks
+     unint4 clocks = INW(0x48004A00);
+     OUTW(0x48004A00, clocks | 1 << 15 | 1 << 16 | 1 << 17);
 
-    unint4 coreen = INW(CM_ICLKEN1_CORE);
-    // enable all spi interface clocks
-    coreen |= 0x3C0000;
-    OUTW(CM_ICLKEN1_CORE, coreen);
+     unint4 coreen = INW(CM_ICLKEN1_CORE);
+     // enable all spi interface clocks
+     coreen |= 0x3C0000;
+     OUTW(CM_ICLKEN1_CORE, coreen);
 
+
+
+
+}
+
+/*****************************************************************************
+ * Method: BeagleBoardxM::initialize()
+ *
+ * @description
+ *******************************************************************************/
+void BeagleBoardxM::initialize() {
 
 #ifdef HAS_Board_InterruptControllerCfd
     INIT_Board_InterruptControllerCfd

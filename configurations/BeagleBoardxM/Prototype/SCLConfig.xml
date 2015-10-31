@@ -202,7 +202,7 @@
     </Skeleton>
     <Skeleton>
       <Name>USBDriver</Name>
-      <Superclass>usb/USBDeviceDriverLibrary</Superclass>   
+      <Superclass>usb/USBDeviceDriverLibrary</Superclass>
       <Member Name="SMSC95xx" Class="usb/SMSC95xxUSBDeviceDriver" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="MassStorage" Class="usb/MassStorageSCSIUSBDeviceDriver" None="false" UserSpace="false" PhyLoadAddress="0x0" />
     </Skeleton>

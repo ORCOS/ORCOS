@@ -226,14 +226,14 @@ private:
     void generateShortName(unsigned char* shortname, char* name);
 
 
-    ErrorT allocateEntry(char* name,
-                         int DIR_Attr,
+    ErrorT allocateEntry(char*           name,
+                         int             DIR_Attr,
                          FAT32_DirEntry* &fsrootdir_entry,
-                         unint4 &dirEntrySector,
-                         unint2 &dirSectorEntry,
-                         unint4 &longNameEntrySector,
-                         unint2 &longNameSectorEntry,
-                         unint4 cluster = 0);
+                         unint4          &dirEntrySector,
+                         unint2          &dirSectorEntry,
+                         unint4          &longNameEntrySector,
+                         int2            &longNameSectorEntry,
+                         unint4          cluster = 0);
 
 
     //! Tries to delete the resource from the directory
@@ -340,7 +340,7 @@ private:
     unint2 directory_entry_number;
 
     //! the long name entry for this file inside the directory table
-    unint2 longname_entry_number;
+    int2 longname_entry_number;
 
     //! the sector containing the first longname entry
     unint4 longname_entry_sector;
@@ -352,14 +352,14 @@ private:
     }
 
 public:
-    FATFile(char* name,
-            FATDirectory* parent,
-            FAT32_DirEntry* p_entry,
-            FATFileSystem * fs,
-            unint4 directory_sector,
-            unint2 directory_entry_number,
-            unint4 longname_entry_sector,
-            unint2 longname_entry_number);
+    FATFile(char*               name,
+            FATDirectory*       parent,
+            FAT32_DirEntry*     p_entry,
+            FATFileSystem *     fs,
+            unint4              directory_sector,
+            unint2              directory_entry_number,
+            unint4              longname_entry_sector,
+            int2                longname_entry_number);
 
     ~FATFile();
 

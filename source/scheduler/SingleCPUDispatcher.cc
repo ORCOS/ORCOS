@@ -339,7 +339,7 @@ void SingleCPUDispatcher::signal(LinkedList* list, void* sig, int sigvalue) {
         Thread* pThread = static_cast<Thread*>(litem->getData());
 
         if (pThread->signal == sig) {
-            LOG(SCHEDULER, TRACE, "SingleCPUDispatcher::signal() signal to thread %d", pThread->getId());
+            LOG(SCHEDULER, DEBUG, "SingleCPUDispatcher::signal() signal to thread %d", pThread->getId());
 
             pThread->status.clearBits(cSignalFlag);
             /* Set the signal return value. The restore Context must handle passing this value

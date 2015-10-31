@@ -351,6 +351,7 @@ int sc_gethostbyname(intptr_t int_sp) {
        pCurrentRunningThread->block(5000 ms);
        if (pCurrentRunningThread->blockTimeout == 0) {
            LOG(SYSCALLS, ERROR, "Syscall: gethostbyname lookup for %s timed out.", host_name);
+           *host_ip4addr = 0;
            return (cError);
        }
    }

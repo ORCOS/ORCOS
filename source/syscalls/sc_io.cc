@@ -86,14 +86,16 @@ int sc_ioctl(intptr_t int_sp) {
  *  int         Error Code
  *---------------------------------------------------------------------------*/
 int sc_fcreate(intptr_t int_sp) {
-    char*     filepath;
-    int       flags;
-    Resource* res;
+    char*      filepath;
+    int        flags;
+    Resource*  res;
+    Directory* parentDir;
 
     SYSCALLGETPARAMS2(int_sp, filepath, flags);
     VALIDATE_IN_PROCESS(filepath);
     char* filename  = basename(filepath);
 
+    LOG(SYSCALLS, DEBUG, "Syscall: fcreate(%s,%s)", filepath, filename);
     if (filepath[0] == '/') {
         /* handle absolute path */
         if (strlen(filename) == 0) {
@@ -106,22 +108,26 @@ int sc_fcreate(intptr_t int_sp) {
             lpos[0] = 0;
         }
 
-        LOG(SYSCALLS, DEBUG, "Syscall: fcreate(%s,%s)", filepath, filename);
-        res = theOS->getFileManager()->getDirectory(filepath);
+        parentDir = theOS->getFileManager()->getDirectory(filepath);
 
         if (filename != filepath) {
             lpos[0] = '/';
         }
     } else {
-        /* file or directory creation inside current working dir */
-        res = theOS->getFileManager()->getDirectory(pCurrentRunningTask->getWorkingDirectory());
+        /* get current working directory */
+        Directory* rootDir = pCurrentRunningTask->getWorkingDirectory();
+        if (rootDir == 0) {
+            LOG(SYSCALLS, ERROR, "Syscall: fcreate(%s) BUG. CWD not found: %s", filepath, pCurrentRunningTask->getWorkingDirectory());
+            return (cInvalidPath);
+        }
+        /* starting from current working directory find basename directory */
+        theOS->getFileManager()->getResourceByNameandType(filepath, cDirectory, parentDir, rootDir);
     }
 
-    if (res != 0) {
-        Directory* dir = static_cast<Directory*>(res);
+    if (parentDir != 0) {
         /* check if resource with the same name already exists..
          * we do not allow duplicate names */
-        if (dir->get(filename, strlen(filename))) {
+        if (parentDir->get(filename, strlen(filename))) {
             LOG(SYSCALLS, ERROR, "Syscall: fcreate(%s) FAILED. Name already exists.", filepath);
             return (cResourceAlreadyExists);
         }
@@ -138,9 +144,9 @@ int sc_fcreate(intptr_t int_sp) {
         memcpy(namepcpy, filename, namelen + 1);
 
         if (flags & cTYPE_DIR) {
-            res = dir->createDirectory(namepcpy, 0);
+            res = parentDir->createDirectory(namepcpy, 0);
         } else {
-            res = dir->createFile(namepcpy, flags);
+            res = parentDir->createFile(namepcpy, flags);
         }
 
         if (res != 0) {
@@ -192,12 +198,15 @@ int sc_fopen(intptr_t int_sp) {
     if (filename[0] == '/') {
         res = theOS->getFileManager()->getResource(filename);
     } else {
-        Directory* dir = theOS->getFileManager()->getDirectory(pCurrentRunningTask->getWorkingDirectory());
-        if (strlen(filename) > 0) {
-            res = dir->get(filename, strlen(filename));
-        } else {
-            res = dir;
+        Directory* rootDir = pCurrentRunningTask->getWorkingDirectory();
+        if (rootDir == 0) {
+           LOG(SYSCALLS, ERROR, "Syscall: fopen(%s) BUG. CWD not found: %s", filename, pCurrentRunningTask->getWorkingDirectory());
+           return (cInvalidPath);
         }
+
+        Directory* parentDir;
+        /* starting from current working directory find resource */
+        res = theOS->getFileManager()->getResourceByNameandType(filename, cAnyResource, parentDir, rootDir);
     }
 
     if (res != 0) {
@@ -420,6 +429,7 @@ int sc_fstat(intptr_t int_sp) {
 int sc_fremove(intptr_t int_sp) {
     const char* filepath;
     Resource*   res;
+    Directory*  parentDir;
 
     SYSCALLGETPARAMS1(int_sp, filepath);
     VALIDATE_IN_PROCESS(filepath);
@@ -439,39 +449,44 @@ int sc_fremove(intptr_t int_sp) {
          }
 
         LOG(SYSCALLS, DEBUG, "Syscall: fremove(%s, %s)", filepath, filename);
-        res = theOS->getFileManager()->getDirectory(filepath);
+        parentDir = theOS->getFileManager()->getDirectory(filepath);
         if (filename != filepath) {
             lpos[0] = '/';
         }
     } else {
-        /* file or directory creation inside current working dir */
-        res = theOS->getFileManager()->getDirectory(pCurrentRunningTask->getWorkingDirectory());
+        Directory* rootDir = pCurrentRunningTask->getWorkingDirectory();
+        if (rootDir == 0) {
+            LOG(SYSCALLS, ERROR, "Syscall: fremove(%s) BUG. CWD not found: %s", filepath, pCurrentRunningTask->getWorkingDirectory());
+            return (cInvalidPath);
+        }
+
+        /* starting from current working directory find resource */
+        theOS->getFileManager()->getResourceByNameandType(filepath, cAnyResource, parentDir, rootDir);
     }
 
     /* directory found? */
-    if (res == 0) {
+    if (parentDir == 0) {
         return (cInvalidPath);
     }
 
-    Directory* dir     = static_cast<Directory*>(res);
-    Resource* res_file = dir->get(filename, strlen(filename));
+    res = parentDir->get(filename, strlen(filename));
 
     /* resource found? */
-    if (res_file == 0)
+    if (res == 0)
         return (cInvalidPath);
 
     /* For internal files we must first check the type of resource */
-    if (res_file->getType() & (cNonRemovableResource))
+    if (res->getType() & (cNonRemovableResource))
         return (cResourceNotRemovable);
 
     /* if this resource is owned by the current task remove it from the task */
     /* only acquired resources may be removed to avoid references to already deleted resources! */
-    res = pCurrentRunningTask->getOwnedResourceById(res_file->getId());
+    res = pCurrentRunningTask->getOwnedResourceById(res->getId());
     if (res != 0) {
         ErrorT ret = pCurrentRunningTask->releaseResource(res, pCurrentRunningThread);
         if (isOk(ret)) {
             /* remove also will / must delete/schedule deletion res_file */
-            ret = dir->remove(res_file);
+            ret = parentDir->remove(res);
         }
 
         return (ret);
@@ -567,6 +582,10 @@ int sc_mkdev(intptr_t int_sp) {
     SYSCALLGETPARAMS2(int_sp, devname, bufferSize);
     VALIDATE_IN_PROCESS(devname);
 
+    if (basename(devname) != devname) {
+        return (cInvalidArgument);
+    }
+
     int devnamelen = strlen(devname);
 
     if (devnamelen == 0 || devnamelen > 255) {
@@ -577,8 +596,8 @@ int sc_mkdev(intptr_t int_sp) {
     if (dir->get(devname, devnamelen) != 0)
         return (cResourceAlreadyExists);
 
-    char* pdevname = new char[devnamelen];
-    strncpy(pdevname, devname, devnamelen);
+    char* pdevname = new char[devnamelen + 1];
+    memcpy(pdevname, devname, devnamelen + 1);
 
     LOG(SYSCALLS, DEBUG, "Syscall: mkdev(%s, %u)", pdevname, bufferSize);
     res = new BufferDevice(pdevname, bufferSize);

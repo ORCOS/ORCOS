@@ -166,9 +166,6 @@ ErrorT USB_EHCI_Host_Controller::Init(unint4 priority) {
 
     LOG(ARCH, INFO, "USB_EHCI_Host_Controller::Init() reset successful..");
 
-    /* register ourself at the IRQ Manager, TODO: EHCI_IRQ not portable!! */
-    theOS->getInterruptManager()->registerIRQ(EHCI_IRQ, this, priority);
-
     /* now initialize the aperiodic and periodic frame space
        set all frame list entries to invalid
        initialize the working queues */
@@ -179,22 +176,27 @@ ErrorT USB_EHCI_Host_Controller::Init(unint4 priority) {
     /* disableinterrupts */
     OUTW(operational_register_base + USBINTR_OFFSET, 0x0);
 
+    OUTW(operational_register_base + USBSTS_OFFSET, 0x3f);
+
+    LOG(ARCH, INFO, "USB_EHCI_Host_Controller::Init() registering IRQ");
+    /* register ourself at the IRQ Manager, TODO: EHCI_IRQ not portable!! */
+    theOS->getInterruptManager()->registerIRQ(EHCI_IRQ, this, priority);
+
     // start the HC + enable asynchronous park mode so we can transfer multiple packets per frame
     OUTW(operational_register_base + USBCMD_OFFSET, 0x080b09);  // 256 frame list elements
     //OUTW(operational_register_base + USBCMD_OFFSET,0x080b01); // 1024 frame list elements
 
-    OUTW(operational_register_base + USBSTS_OFFSET, 0x3f);
-
     // route everything to us!
     OUTW(operational_register_base + CONFIGFLAG_OFFSET, 1);
 
+    LOG(ARCH, INFO, "USB_EHCI_Host_Controller::Init() Init Power");
     // Initalize power of each port!
     if (power_control) {
         LOG(ARCH, INFO, "USB_EHCI_Host_Controller::Init() Setting Ports power to ON");
 
         for (unint1 i = 0; i < num_ports; i++) {
             unint4 portsc = INW(operational_register_base + PORTSC1_OFFSET + 4*i);
-            LOG(ARCH, TRACE, "USB_EHCI_Host_Controller::Init() Port %d Status: %x", i + 1, portsc);
+            LOG(ARCH, INFO, "USB_EHCI_Host_Controller::Init() Port %d Status: %x", i + 1, portsc);
 
             // we need to power on the ports.. otherwise bus stays powered down!
             OUTW(operational_register_base + PORTSC1_OFFSET + 4*i, portsc | 1 << 12);
@@ -504,7 +506,7 @@ int USB_EHCI_Host_Controller::sendUSBControlMsg(USBDevice *dev,
     // get some memory for qtds
     qTD* qtd  = &qtds[(qtdnum++) & 0x7];
     qTD* qtd2 = &qtds[(qtdnum++) & 0x7];
-    qTD* qtd3 = &qtds[(qtdnum++) & 0x7];
+    //qTD* qtd3 = &qtds[(qtdnum++) & 0x7];
     qTD* lastqtd = qtd;
 
     // SETUP STAGE

@@ -144,7 +144,7 @@ int sc_thread_exit(intptr_t sp_int) {
  *  int         Error Code
  *---------------------------------------------------------------------------*/
 int sc_thread_terminate(intptr_t sp_int) {
-    ThreadIdT threadId;
+    int threadId;
     int params;
     SYSCALLGETPARAMS2(sp_int, threadId, params);
 
