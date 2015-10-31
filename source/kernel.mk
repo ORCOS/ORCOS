@@ -43,8 +43,12 @@ CPPCHECK   = 0
 # The Linker Script used for this configuration
 LINKERSCRIPT = $(ARCH_DIR)/kernel.ld   
 
+ifeq ($(LTO), 1)
+OPT_LTO     := -flto -fuse-linker-plugin -ffat-lto-objects
+endif
+
 # Optimization flags for gcc and g++
-OPT_FLAGS = -O2 $(CPU_FLAGS) -fno-builtin -flto -fuse-linker-plugin -ffat-lto-objects -fno-stack-protector $(USER_OPT_FLAGS)
+OPT_FLAGS = -O2 $(CPU_FLAGS) -fno-builtin $(OPT_LTO) -fno-stack-protector $(USER_OPT_FLAGS)
 
 #-fstack-protector-strong
 
@@ -60,7 +64,7 @@ CPFLAGS  += -fno-exceptions -fno-unwind-tables -fno-rtti -msoft-float -c -Wno-wr
 LDFLAGS  = -o $(OUTPUT_DIR)/kernel.elf -L$(LIBC_DIR) -L$(GCC_LIB_DIR) -Wl,-Map=$(OUTPUT_DIR)/kernel.map  -lgcc -Wl,--script=$(LINKERSCRIPT) -nostartfiles  $(OPT_FLAGS) $(USER_LDFLAGS) 
 
 #Command line arguments for the gcc to assemble .S files.
-ASFLAGS = -c -g -I$(KERNEL_DIR)inc/ -I. -I./make/ -I$(KERNEL_DIR) $(ARCH_INCLUDES) -flto  -fno-exceptions -fno-rtti $(CPU_FLAGS)
+ASFLAGS = -c -g -I$(KERNEL_DIR)inc/ -I. -I./make/ -I$(KERNEL_DIR) $(ARCH_INCLUDES) -fno-exceptions -fno-rtti $(CPU_FLAGS)
 
 #---------------------------------------------------------------------------------------------------------------------------------------
 #                                                      Static Kernel Objects
@@ -191,7 +195,7 @@ build:
 	@echo "----------------------------------------------"
 	@echo "     Building the Kernel"
 	@echo "----------------------------------------------"
-	@make -s  $(OUTPUT_DIR)kernel.elf
+	@make -s -r -O -j 4  $(OUTPUT_DIR)kernel.elf
 ifeq ($(ADD_DWARF), 1)
 	@echo "----------------------------------------------"
 	@echo "     Patching DEBUG info into Kernel Image"
@@ -201,9 +205,9 @@ endif
 	@echo "----------------------------------------------"
 	@echo "     Generating Boot Binaries"
 	@echo "----------------------------------------------"
-	@make -s binary	 
-	@make -s size
-	@make -s uImage
+	@make -s -r binary	 
+	@make -s -r size
+	@make -s -r uImage
 	@echo All done .. Images can be found inside the output directory..
 
 

@@ -48,6 +48,7 @@ export MODULES_DIR = ./modules/
 #                                                     User Defined FLAGS
 #---------------------------------------------------------------------------------------------------------------------------------------
 	
+export ADD_DWARF := 1
 
 # -fno-if-conversion2 enforces to not use THUMB ITT blocks..
 # it seams like they are not correctly executed after context restore ...
