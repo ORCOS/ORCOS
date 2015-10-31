@@ -18,7 +18,7 @@ extern Kernel* theOS;
  *
  **********************************************************************/
 
-ArrayList* USBDevice::freeDeviceIDs;
+IDMap* USBDevice::freeDeviceIDs;
 
 /*****************************************************************************
  * Method: USBDevice::setAddress(unint1 addr)
@@ -68,13 +68,13 @@ USBDevice::USBDevice(USB_Host_Controller *p_controller, USBHub *p_parent, unint1
        endpoints[i].recv_buffer  = 0;
        endpoints[i].type = UnknownTT;
        endpoints[i].direction = UnknownDir;
-       /* intitialize with some valid values before we have received
+       /* initialize with some valid values before we have received
           the endpoint descriptor */
        if (speed == 1) {
-           endpoints[i].interrupt_receive_size = 8;
+           endpoints[i].interrupt_receive_size    = 8;
            endpoints[i].descriptor.wMaxPacketSize = 8;
        } else {
-           endpoints[i].interrupt_receive_size = 64;
+           endpoints[i].interrupt_receive_size    = 64;
            endpoints[i].descriptor.wMaxPacketSize = 64;
        }
    }
@@ -85,9 +85,11 @@ USBDevice::USBDevice(USB_Host_Controller *p_controller, USBHub *p_parent, unint1
 }
 
 
-
 USBDevice::~USBDevice() {
     if (driver != 0)
         delete driver;
-    USBDevice::freeDeviceIDs->addTail(reinterpret_cast<ListItem*>(this->addr));
+
+    if (this->addr != 0) {
+        freeDeviceIDs->freeID(this->addr);
+    }
 }
