@@ -55,7 +55,8 @@ extern "C" void handleDataAbort(int addr, int instr, int context, int spsr) {
 
     dumpContext(reinterpret_cast<void*>(context));
 
-    int sp = (reinterpret_cast<unint4*>(context))[14];
+    LOG(KERNEL, ERROR, " LR: 0x%08x   %s", (reinterpret_cast<unint4*>(context))[16], getMethodSignature((reinterpret_cast<unint4*>(context))[16]));
+    int sp = (reinterpret_cast<unint4*>(context))[15];
 
     /* print the call trace */
     backtrace_addr(reinterpret_cast<void*>(instr), sp);

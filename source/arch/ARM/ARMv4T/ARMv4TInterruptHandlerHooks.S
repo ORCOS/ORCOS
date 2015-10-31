@@ -196,22 +196,25 @@ jumpToSwiHandler:
 .section    .data_abort,  "ax", "progbits"
 
 FUNC_START(abortIRQHandler)
-    MRS     sp, SPSR        // load saved status register
-    AND     sp, sp, #0x1F   // extract mode bits
+    LDR     sp, =__stack - 0x200
 
-    CMP     sp, #user_mode                      // compare with user mode bit setting
-    MOVEQ   sp, #(system_mode) | CPSR_DISINT    // use system mode to save registers
-    ORRNE   sp, sp, #CPSR_DISINT                // use interrupted mode to save registers
-    BICNE   sp, sp, #0x220                      // Clear Bits: Thumb and Big Endian
+    sub     sp,  sp,#12         // make room for pc
+    stmfd   sp!, {r0-r12}       // store context
 
-    MSR     CPSR_c, sp          // switch to context save mode (access to interrupted mode register bank)
+    MOV     r0, sp
 
-    LDR     lr, =__stack - 0x200
+    MRS     r1, SPSR        // load saved status register
+    AND     r1, r1, #0x1F   // extract mode bits
 
-    str     sp, [lr,#-8]        // store stack pointer
-    str     lr, [lr,#-4]        // save lr
-    sub     lr,  lr,#12         // make room for pc
-    stmfd   lr!, {r0-r12}       // store context
+    CMP     r1, #user_mode                      // compare with user mode bit setting
+    MOVEQ   r1, #(system_mode) | CPSR_DISINT    // use system mode to save registers
+    ORRNE   r1, r1, #CPSR_DISINT                // use interrupted mode to save registers
+    BICNE   r1, r1, #0x220                      // Clear Bits: Thumb and Big Endian
+
+    MSR     CPSR_c, r1          // switch to context save mode (access to interrupted mode register bank)
+
+    str     sp, [r0, #56]        // store stack pointer
+    str     lr, [r0, #60]        // save lr
 
     // we can now safely use r0-r12
     MSR     CPSR_c, #(abort_mode)|CPSR_DISINT
@@ -219,12 +222,9 @@ FUNC_START(abortIRQHandler)
     mrs     r3, SPSR            // get the return PSR to store away
     sub     r1, lr, #4          // get the return PC
 
-    // switch back to user mode to store PSR and PC
-    MSR     CPSR_c, sp
-
-    str     r1 , [lr,#52]       // store return PC
-    stmfd   lr!, {r3}           // store SP
-    mov     r2 , lr             // get save context address
+    str     r1 , [r0, #52]      // store return PC
+    stmfd   r0!, {r3}           // store SPSR
+    MOV     r2, r0              // get context address into r2
 
     // switch to uninterrupable svc mode for interrupt handling (OS mode)
     MSR     CPSR_c, #(svc_mode) | CPSR_DISINT
@@ -232,7 +232,7 @@ FUNC_START(abortIRQHandler)
     LDR     sp, =__stack
 
     // Read CP15 Data Fault Address Register and copy to r0
-    MRC     p15,0,r0,c6,c0,0
+    MRC     p15, 0, r0, c6, c0, 0
 
     // handle the data abort using a safe kernel stack
     B      FUNC_NAME(handleDataAbort)
