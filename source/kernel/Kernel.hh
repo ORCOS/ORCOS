@@ -67,6 +67,10 @@
  *               Main Kernel Methods
  * ------------------------------------------------------ */
 
+extern Board_ClockCfdCl* theClock;
+extern Board_TimerCfdCl* theTimer;
+
+
 /*****************************************************************************
  * Method: kwait(int milliseconds)
  *
@@ -208,7 +212,7 @@ public:
     *  Board_TimerCfdCl* The current Timer device used.
     *---------------------------------------------------------------------------*/
     inline Board_TimerCfdCl* getTimerDevice() {
-        return (board->getTimer());
+        return (theTimer);
     }
 
     /*****************************************************************************
@@ -221,9 +225,7 @@ public:
     *  Board_ClockCfdCl* The current clock device used.
     *---------------------------------------------------------------------------*/
     inline Board_ClockCfdCl* getClock() {
-        if (board != 0)
-            return (board->getClock());
-        return (0);
+        return (theClock);
     }
 
 #if USE_TRACE

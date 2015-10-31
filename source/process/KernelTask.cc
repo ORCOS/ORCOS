@@ -155,7 +155,7 @@ KernelThread* KernelTask::getIRQThread(unint1 pid, GenericDeviceDriver* driver, 
          * this will cause the thread
          * either to be scheduled directly
          * or send to sleep if the sleeptime is > 0 */
-         pWThread->unblock();
+        // pWThread->unblock();
          return (pWThread);
     }
     return (0);

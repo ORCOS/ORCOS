@@ -545,7 +545,7 @@ extern "C" int main(int argc, char** argv) {
 
              int err = create(file, cTYPE_DIR);
              if (err >= 0) {
-                 sendto(newsock,"250 \r\n", 6, 0);
+                 sendResponse(newsock,"250 \r\n");
                  close(err);
              } else {
                  printf("Could not create '%s'. Error: %s\r\n", file, strerror(err));
@@ -660,7 +660,7 @@ extern "C" int main(int argc, char** argv) {
                sendResponse(newsock, "250 Directory deleted.\r\n");
              } else {
                printf("Could not delete '%s'. Error: %d\r\n",file,status);
-               sendResponse(newsock, "450 Error deleting directory.\r\n");
+               sendResponse(newsock, "450 Error deleting directory: %s\r\n", strerror(status));
              }
          } else if (strpos("DELE ",msgptr) == 0) {
              /***********************************************
@@ -689,7 +689,7 @@ extern "C" int main(int argc, char** argv) {
                  sendResponse(newsock, "250 File deleted.\r\n");
               } else {
                  printf("Could not delete '%s'. Error: %d\r\n",file,status);
-                 sendResponse(newsock, "450 Error deleting file.\r\n");
+                 sendResponse(newsock, "450 Error deleting file: %s\r\n", strerror(status));
               }
 
          }  else if (strpos("STOR ",msgptr) == 0) {
@@ -729,7 +729,7 @@ extern "C" int main(int argc, char** argv) {
                 // tell control connection that data has been received
                 sendResponse(newsock, "226 Transfer complete.\r\n");
              } else {
-                sendResponse(newsock, "552 Error storing file.\r\n");
+                sendResponse(newsock, "552 Error storing file: %s\r\n", strerror(status));
              }
 
          } else if (strpos("RETR ",msgptr) == 0) {

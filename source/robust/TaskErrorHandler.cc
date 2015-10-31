@@ -54,7 +54,7 @@ void TaskErrorHandler::handleError(ErrorType eErrorType) {
         theOS->getLogger()->flush();
 
         /* Continue executing anything else */
-        LOG(KERNEL, DEBUG, "TaskErrorHandler::handleError: Dispatching");
+        LOG(KERNEL, INFO, "TaskErrorHandler::handleError: Dispatching");
         theOS->getDispatcher()->dispatch();
     } else {
         LOG(KERNEL, ERROR, "FATAL error occurred during BOOT. Can not recover from this.");

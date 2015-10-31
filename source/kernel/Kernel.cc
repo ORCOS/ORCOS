@@ -109,6 +109,7 @@ Kernel::~Kernel() {
  *
  *---------------------------------------------------------------------------*/
 void Kernel::initialize() {
+    _disableInterrupts();
     /* set all members to 0 for safety reasons */
     fileManager         = 0;
     taskManager         = 0;
@@ -116,7 +117,8 @@ void Kernel::initialize() {
     stdOutputDevice     = 0;
     board               = 0;
     errorHandler        = 0;
-
+    theClock            = 0;
+    theTimer            = 0;
     /*-------------------------------------------------------
      Initialize all static member variables here!
      Important to do that before creating any objects of that kind
@@ -150,7 +152,6 @@ void Kernel::initialize() {
     board = new BoardCfdCl();
     board->early_init();
 
-    puts("\n\nBooting ORCOS...\n");
 #if USE_TRACE
     /* create trace instance if configured */
     this->tracer = new Trace();
