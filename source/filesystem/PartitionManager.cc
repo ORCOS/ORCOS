@@ -10,11 +10,11 @@
 #include "inc/endian.h"
 #include "kernel/Kernel.hh"
 #include "filesystem/DOSPartition.hh"
-#include "filesystem/FATFileSystem.hh"
+#include "filesystem/fat/FATFileSystem.hh"
 
 extern Kernel* theOS;
 
-static char buffer[512] __attribute__((aligned(4)));
+static char buffer[1024] __attribute__((aligned(4)));
 
 /*****************************************************************************
  * Method: is_extended(int part_type)
@@ -29,29 +29,29 @@ static inline int is_extended(int part_type) {
 static char EFI_Signature[8] = { 0x45, 0x46, 0x49, 0x20, 0x50, 0x41, 0x52, 0x54 };
 
 typedef struct {
-    char signature[8];
-    unint4 revision;
-    unint4 header_size_le;
-    unint4 header_crc32;
-    unint4 reserved;
-    unint8 header_lba;
-    unint8 backup_lba;
-    unint8 partitions_start_lba;    // first lba used for partitions
-    unint8 partitions_end_lba;
-    char disk_GUID[16];
-    unint8 pt_lba;                    // start of the partition table
-    unint4 num_pte;                // number of pt entries
-    unint4 pte_size;
-    unint4 pt_crc32;
+    char    signature[8];
+    unint4  revision;
+    unint4  header_size_le;
+    unint4  header_crc32;
+    unint4  reserved;
+    unint8  header_lba;
+    unint8  backup_lba;
+    unint8  partitions_start_lba;    // first lba used for partitions
+    unint8  partitions_end_lba;
+    char    disk_GUID[16];
+    unint8  pt_lba;                 // start of the partition table
+    unint4  num_pte;                // number of pt entries
+    unint4  pte_size;
+    unint4  pt_crc32;
 }__attribute__((packed)) EFI_PT_Header;
 
 typedef struct {
-    unint1 bootable;
-    char chs_first[3];
-    unint1 type;
-    char chs_last[3];
-    unint4 lba_start;
-    unint4 lba_size;
+    unint1  bootable;
+    char    chs_first[3];
+    unint1  type;
+    char    chs_last[3];
+    unint4  lba_start;
+    unint4  lba_size;
 }__attribute__((packed)) PT_Entry;
 
 /*****************************************************************************
@@ -62,14 +62,15 @@ typedef struct {
  *******************************************************************************/
 ErrorT PartitionManager::handleEFIPartitionTable(BlockDeviceDriver* bdev) {
     int error = bdev->readBlock(1, buffer, 1);
-    if (error < 0)
-        return (cError );
+    if (error < 0) {
+        return (cError);
+    }
 
     EFI_PT_Header* efi_header = reinterpret_cast<EFI_PT_Header*>(buffer);
 
     if (memcmp(efi_header->signature, EFI_Signature, 8) != 0) {
         LOG(FILESYSTEM, INFO, "PartitionManager: EFI Signature validation failed.");
-        return (cError );
+        return (cError);
     }
 
     LOG(FILESYSTEM, INFO, "PartitionManager: Found EFI Header.");
@@ -77,12 +78,12 @@ ErrorT PartitionManager::handleEFIPartitionTable(BlockDeviceDriver* bdev) {
 
     if (efi_header->num_pte > 2) {
         LOG(FILESYSTEM, INFO, "PartitionManager: No support for more than 2 EFI partitions.");
-        return (cError );
+        return (cError);
     }
 
     LOG(FILESYSTEM, INFO, "PartitionManager: EFI Support missing.");
 
-    return (cOk );
+    return (cOk);
 }
 
 /*****************************************************************************
@@ -92,8 +93,14 @@ ErrorT PartitionManager::handleEFIPartitionTable(BlockDeviceDriver* bdev) {
  *
  *******************************************************************************/
 ErrorT PartitionManager::tryMBR(BlockDeviceDriver* bdev) {
+    if (bdev->sector_size > 1024) {
+        LOG(FILESYSTEM, ERROR, "PartitionManager: Sector size %d > 1024 unsupported", bdev->sector_size);
+        return (cError);
+    }
+
     memset(buffer, 0xde, sizeof(buffer));
-    // read first sector
+
+    /* read first sector */
     int error = bdev->readBlock(0, buffer, 1);
     if (error < 0) {
         LOG(FILESYSTEM, ERROR, "PartitionManager: Could not read first block. Error %d", error);
@@ -130,6 +137,8 @@ ErrorT PartitionManager::tryMBR(BlockDeviceDriver* bdev) {
     }
 
     int ret = cError;
+
+
 
     if (memcmp(&buffer[DOS_PBR_FSTYPE_OFFSET], "FAT", 3) == 0 ||
         memcmp(&buffer[DOS_PBR32_FSTYPE_OFFSET], "FAT32", 5) == 0) {

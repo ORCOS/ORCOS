@@ -12,19 +12,20 @@
 
 extern Kernel* theOS;
 
-
+/* Buffer for read operation to the partition. 1024 bytes for maximum sector size. */
 static char buffer[1024];
 
+/* This structure defines the global partition cache */
 typedef struct {
-    char buffer[BLOCK_SIZE];
-    int  block_start;
-    int  modified;
-    Partition* pPartition;
+    char        buffer[BLOCK_SIZE];
+    int         block_start;
+    int         modified;
+    Partition*  pPartition;
 } tPartitionBlockCache;
 
-tPartitionBlockCache CachedBlocks[5] __attribute__((aligned(4))); // ATTR_CACHE_INHIBIT;
-
-LinkedList* BlockCacheList;
+tPartitionBlockCache CachedBlocks[5] __attribute__((aligned(4)));
+/* List of Pointers to hte tPartitionBlockCache Elements. Sorted in reverse order of last access */
+LinkedList*          BlockCacheList;
 
 Partition::~Partition() {
     if (this->mountedFileSystem != 0) {

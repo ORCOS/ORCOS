@@ -274,7 +274,7 @@ int Socket::accepted(Socket* newConnection) {
                 threadToUnblock = blockedThread;
             }
         } else {
-            LOG(COMM, ERROR, "Socket::accepted(): Could not accept connection");
+            LOG(COMM, ERROR, "Socket::accepted(): Could not accept connection. Too many connections %d", acceptedConnections->size());
         }
         SMP_SPINLOCK_FREE(m_lock);
 
@@ -441,8 +441,8 @@ int Socket::sendto(const void* buffer, unint2 length, const sockaddr *dest_addr)
         }
 #endif
 
-        // create a new linked list packet_layer structure which will contain
-        // the pointer to the payload to be send
+        /* create a new linked list packet_layer structure which will contain
+         * the pointer to the payload to be send */
         LOG(COMM, DEBUG, "Socket::sendto(): buffer: 0x%x, length: %d", buffer, length);
 
         /*TODO: change to pbuf */
@@ -477,19 +477,24 @@ int Socket::sendto(const void* buffer, unint2 length, const sockaddr *dest_addr)
  *                          unint4 timeout)
  *
  * @description
+ *   Tries to receive the next message from the socket.
+ *   If no data is available blocks the thread.
+ *   If another thread is already blocked waiting for data
+ *   this method returns with an error code.
+ *
  *
  * @params
- *  timeout     Timout in milliseconds
+ *  timeout     Timeout in milliseconds
  *
  * @returns
  *  int         Error Code
  *******************************************************************************/
 size_t Socket::recvfrom(Kernel_ThreadCfdCl* thread,
-                        char* data_addr,
-                        size_t data_size,
-                        unint4 flags,
-                        sockaddr* addr,
-                        unint4 timeout) {
+                        char*               data_addr,
+                        size_t              data_size,
+                        unint4              flags,
+                        sockaddr*           addr,
+                        unint4              timeout) {
     LOG(COMM, TRACE, "Socket::recvfrom()");
     int ret    = 0;
     size_t len = 0;

@@ -49,7 +49,7 @@ export MODULES_DIR = ./modules/
 #---------------------------------------------------------------------------------------------------------------------------------------
 	
 export ADD_DWARF := 1
-
+export LTO := 1
 # -fno-if-conversion2 enforces to not use THUMB ITT blocks..
 # it seams like they are not correctly executed after context restore ...
 # although the PSR is correct .. (ITSTATE)

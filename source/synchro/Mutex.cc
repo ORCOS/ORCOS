@@ -94,8 +94,9 @@ ErrorT Mutex::acquire(Resource* pRes, bool blocking) {
 
 
     unint8 enterTime = 0;
-    if (theOS->getClock() != 0)
+    if (theOS->getClock() != 0) {
         enterTime = theOS->getClock()->getClockCycles();
+    }
 
     int irqstatus;
     DISABLE_IRQS(irqstatus);
@@ -136,7 +137,8 @@ ErrorT Mutex::acquire(Resource* pRes, bool blocking) {
             /* program hardware timer to dispatch now.. may internally use a soft irq */
             theOS->getTimerDevice()->setTimer(1);
         }
-        // this check introduces additional latencies.. we may remove it but it helps debugging stalled conditions
+
+        /* this check introduces additional latencies.. we may remove it but it helps debugging stalled conditions */
         if ((theOS->getClock() != 0) && ((theOS->getClock()->getClockCycles() - enterTime) > 2000 ms)) {
             LOG(SYNCHRO, ERROR, "Mutex::acquire() Thread %d stalled on Mutex '%s' (%x), held by: %d", pCallingThread->getId(), this->name, this, m_pThread->getId());
         }
