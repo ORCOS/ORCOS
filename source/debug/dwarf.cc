@@ -20,19 +20,22 @@ extern void* _debug_frame_end;
 static void* frame_info;
 
 typedef struct {
-    void* location;
-    unint4 cfa_offset; /* call frame offset at this location */
-    unint4 stored_regs[16]; /* stored register offsets on the call frame addresses at this location*/
+    void*   location;
+    unint4  cfa_offset;       /* call frame offset at this location */
+    unint4  stored_regs[16];  /* stored register offsets on the call frame addresses at this location*/
 } cf_table_entry;
 
 typedef struct {
-    unint4 length;
-    unint1 version;
-    char* augmentation;
-    int4 code_alignment;
-    int4 data_alignment;
-    unint1 return_reg;
-    void* initial_regs[16]; /* initial register config */
+    unint4  length;
+    unint1  version;
+    char*   augmentation;
+    int4    code_alignment;
+    int4    data_alignment;
+    unint1  return_reg;
+    void*   initial_regs[16]; /* initial register config */
+
+    unint4  saved_regs[16];   /* saved register offsets on the call frame*/
+    unint4  saved_offset;
 } CIE;
 
 typedef struct {
@@ -119,7 +122,7 @@ void dwarf_init() {
  * Method: dwarf_parseCIE(void* address, CIE* cie)
  *
  * @description
- *
+ *  Parses the Common Information Entry (CIE)
  *******************************************************************************/
 void* dwarf_parseCIE(void* address, CIE* cie) {
     char* stream_ptr;
@@ -129,8 +132,9 @@ void* dwarf_parseCIE(void* address, CIE* cie) {
     addr++;
     unint4 entry_id = *addr;
     addr++;
-    if (entry_id != 0xffffffff)
+    if (entry_id != 0xffffffff) {
         return (0);
+    }
 
     stream_ptr = reinterpret_cast<char*>(addr);
     cie->version = *stream_ptr;
@@ -150,7 +154,7 @@ void* dwarf_parseCIE(void* address, CIE* cie) {
     stream_ptr++;
     cie->data_alignment = decodeLEB128(*stream_ptr);
     stream_ptr++;
-    cie->return_reg = *stream_ptr;
+    cie->return_reg     = *stream_ptr;
 
     /* following the scratch register initialization program*/
     // TODO: parse CIE init register scratch program
@@ -162,17 +166,19 @@ void* dwarf_parseCIE(void* address, CIE* cie) {
  * Method: dwarf_getFDE(void* address, CIE* cie)
  *
  * @description
- *
+ *  Parses the Frame Descriptor for the current address and
+ *  retursn the FDE Header
  *******************************************************************************/
 FDE_Header* dwarf_getFDE(void* address, CIE* cie) {
-    if (frame_info == 0)
+    if (frame_info == 0) {
         return (0);
+    }
 
     void* addr = frame_info;
     /* first must be a CIE header */
     addr = dwarf_parseCIE(addr, cie);
     if (addr == 0) {
-        LOG(ARCH, WARN, "DWARF: expected CIE header");
+        LOG(ARCH, WARN, "DWARF: dwarf_getFDE() error parsing CIE");
         /* ERROR wrong entry type */
         return (0);
     }
@@ -180,19 +186,19 @@ FDE_Header* dwarf_getFDE(void* address, CIE* cie) {
     FDE_Header* fde_head = reinterpret_cast<FDE_Header*>(addr);
 
     while (reinterpret_cast<void*>(fde_head) < &_debug_frame_end &&
-            !(fde_head->location <= (unint4) address &&
-            (fde_head->location + fde_head->addr_range) > (unint4) address)) {
+                                 !(fde_head->location <= (unint4) address &&
+                                  (fde_head->location + fde_head->addr_range) > (unint4) address)) {
         /* iterate through the fde list until we get our entry or another CIE follows*/
         while (reinterpret_cast<void*>(fde_head) < &_debug_frame_end &&
-                fde_head->CIE_ptr != 0xffffffff
-                && !(fde_head->location <= (unint4) address &&
-                (fde_head->location + fde_head->addr_range) > (unint4) address)) {
+                                       (fde_head->CIE_ptr != 0xffffffff)  &&
+                                      !(fde_head->location <= (unint4) address &&
+                                       (fde_head->location + fde_head->addr_range) > (unint4) address)) {
             fde_head = reinterpret_cast<FDE_Header*> (((unint4) fde_head) + fde_head->length + 4);
         }
 
         if (reinterpret_cast<void*>(fde_head) < &_debug_frame_end &&
-            fde_head->location <= (unint4) address &&
-            (fde_head->location + fde_head->addr_range) > (unint4) address) {
+                                   (fde_head->location <= (unint4) address) &&
+                                   (fde_head->location + fde_head->addr_range) > (unint4) address) {
                 return (fde_head);
         }
         if (reinterpret_cast<void*>(fde_head) >= &_debug_frame_end)
@@ -209,8 +215,9 @@ FDE_Header* dwarf_getFDE(void* address, CIE* cie) {
         fde_head = reinterpret_cast<FDE_Header*>(addr);
     }
 
-    if (reinterpret_cast<void*>(fde_head) >= &_debug_frame_end)
+    if (reinterpret_cast<void*>(fde_head) >= &_debug_frame_end) {
         return (0);
+    }
 
     /* fde here! */
     return (fde_head);
@@ -227,18 +234,18 @@ static cf_table_entry entry;
 bool dwarf_interpret_cfa(cf_table_entry* entry, unint1*& stream, CIE* cie) {
     // LOG(ARCH,INFO,"dwarf_interpret_cfa %x",*stream);
     unint1 highBits = *stream >> 6;
-    int lowBits = *stream & 0x3f;
+    int lowBits     = *stream & 0x3f;
     stream++;
 
     switch (highBits) {
     case 1: {
         /* DW_CFA_advance_loc */
-        LOG(ARCH, DEBUG, "DW_CFA_advance_loc %d", cie->code_alignment * lowBits);
         entry->location = reinterpret_cast<void*>((size_t) entry->location + cie->code_alignment * lowBits);
+        LOG(ARCH, DEBUG, "DW_CFA_advance_loc %d -> %x", cie->code_alignment * lowBits, entry->location);
         return (true);
     }
     case 2: {
-        /*DW_CFA_offset */
+        /* DW_CFA_offset */
         char operand = decodeULEB128(*stream);
         stream++;
         LOG(ARCH, DEBUG, "DW_CFA_offset r%d %d", lowBits, operand * cie->data_alignment);
@@ -247,47 +254,58 @@ bool dwarf_interpret_cfa(cf_table_entry* entry, unint1*& stream, CIE* cie) {
     }
     case 3: {
         /* DW_CFA_restore*/
-        entry->stored_regs[lowBits] = (size_t) cie->initial_regs[lowBits];
+        LOG(ARCH, DEBUG, "DW_CFA_restoret r%d", lowBits);
+        entry->stored_regs[lowBits] = (size_t) cie->saved_regs[lowBits];
         return (true);
     }
     case 0: {
         switch (lowBits) {
-        case 0: { /*NOP */
-            return (true);
-        }
-        case 2: {
-            unsigned char operand = *stream;
-            stream++;
-            entry->location = reinterpret_cast<void*>((size_t) entry->location + operand);
-            return (true);
-        }
-        case 0xe: {
-            /* DW_CFA_def_cfa_offset */
-            char operand = *stream;
-            stream++;
-            LOG(ARCH, DEBUG, "DW_CFA_def_cfa_offset %d", decodeULEB128(operand));
-            int newoffset = decodeULEB128(operand);
-            entry->cfa_offset = newoffset;
-            return (true);
-        }
-        case 0xa: {
-            /* save current state*/
-            /* TODO */
-        }
-        case 0xb: {
-            /* restore state..*/
-            /* TODO*/
-        }
+            case 0: { /*NOP */
+                return (true);
+            }
+            case 2: {
+                /* DW_CFA_advance_loc1 */
+                unsigned char operand = *stream;
+                stream++;
+                entry->location = reinterpret_cast<void*>((size_t) entry->location + operand);
+                LOG(ARCH, DEBUG, "DW_CFA_advance_loc1 %d -> %x", operand, entry->location);
+                return (true);
+            }
+            case 0xe: {
+                /* DW_CFA_def_cfa_offset */
+                char operand = *stream;
+                stream++;
+                LOG(ARCH, DEBUG, "DW_CFA_def_cfa_offset %d", decodeULEB128(operand));
+                int newoffset     = decodeULEB128(operand);
+                entry->cfa_offset = newoffset;
+                return (true);
+            }
+            case 0xa: {
+                /* save current state*/
+                LOG(ARCH, DEBUG, "DW_CFA_remember_state");
+                memcpy(cie->saved_regs, entry->stored_regs, sizeof(unint4) * 16);
+                cie->saved_offset = entry->cfa_offset;
+                return (true);
+            }
+            case 0xb: {
+                /* restore state..*/
+                LOG(ARCH, DEBUG, "DW_CFA_restore_state");
+                memcpy(entry->stored_regs, cie->saved_regs, sizeof(unint4) * 16);
+                entry->cfa_offset = cie->saved_offset;
+                return (true);
+            }
 
-        default: {
-            //LOG(ARCH,WARN,"Unknown DW_CFA instruction: high: %d low: %d",highBits,lowBits);
-            return (true);
+            default: {
+                LOG(ARCH,WARN,"Unknown DW_CFA instruction: high: %d low: %d",highBits,lowBits);
+                return (true);
+            }
         }
-        }
+        LOG(ARCH,WARN,"Unknown DW_CFA instruction: high: %d low: %d",highBits,lowBits);
         return (false);
     }
 
     default:
+        LOG(ARCH,WARN,"Unknown DW_CFA instruction: high: %d low: %d",highBits,lowBits);
         return (false);
     }
 }
@@ -309,10 +327,12 @@ cf_table_entry* dwarf_getCFEntry(void* address) {
     LOG(ARCH, DEBUG, "DWARF: FDE Entry found at %x", fde);
 
     /* initialize entry */
-    entry.location = reinterpret_cast<void*>(fde->location);
+    entry.location   = reinterpret_cast<void*>(fde->location);
     entry.cfa_offset = 0;
-    for (int i = 0; i < 16; i++)
+
+    for (int i = 0; i < 16; i++) {
         entry.stored_regs[i] = 0xffffffff;
+    }
 
     /* get call frame instruction stream start */
     unint1* cfi_stream = (reinterpret_cast<unint1*>(fde)) + 16;
@@ -323,7 +343,7 @@ cf_table_entry* dwarf_getCFEntry(void* address) {
     }
 
     /* got entry here */
-
+    LOG(ARCH, DEBUG, "DWARF: CF entry created");
     return (&entry);
 }
 
@@ -358,17 +378,20 @@ extern "C" void backtrace_addr(void* currentAddress, size_t stackPtr) {
     LOG(KERNEL, ERROR, "  0x%08x   %s", currentAddress, getMethodSignature((unint4) currentAddress));
 
     cf_table_entry* cf_entry = dwarf_getCFEntry(currentAddress);
-    if (cf_entry == 0)
+    if (cf_entry == 0) {
         return;
+    }
 
     int num = 0;
     while (cf_entry && num < 10) {
         stackPtr = stackPtr + cf_entry->cfa_offset;
 
-        if (cf_entry->stored_regs[14] != 0xffffffff)
-            currentAddress = reinterpret_cast<void*>(*(reinterpret_cast<unint4*>((size_t) stackPtr + cf_entry->stored_regs[14])));
-        else
+        if (cf_entry->stored_regs[cie.return_reg] != 0xffffffff) {
+            // TODO: check if address is accessible using HATLayer in order to avoid data aborts here
+            currentAddress = reinterpret_cast<void*>(*(reinterpret_cast<unint4*>((size_t) stackPtr + cf_entry->stored_regs[cie.return_reg])));
+        } else {
             return;
+        }
 
         LOG(KERNEL, ERROR, "  0x%08x   %s", currentAddress, getMethodSignature((unint4) currentAddress));
         cf_table_entry* next_cf_entry = dwarf_getCFEntry(currentAddress);
@@ -384,26 +407,30 @@ extern "C" void backtrace_addr(void* currentAddress, size_t stackPtr) {
  *
  *******************************************************************************/
 extern "C" void backtrace_current() {
-    void* currentAddress;
+    void*  currentAddress;
     size_t stackPtr;
+    void*  pc;
+
     GETSTACKPTR(stackPtr);
-    void* pc;
     GETPC(pc);
     currentAddress = pc;
     LOG(KERNEL, ERROR, "Backtrace:");
 
     cf_table_entry* cf_entry = dwarf_getCFEntry(currentAddress);
-    if (cf_entry == 0)
+    if (cf_entry == 0) {
         return;
+    }
 
     int num = 0;
     while (cf_entry && num < 10) {
         stackPtr = stackPtr + cf_entry->cfa_offset;
 
-        if (cf_entry->stored_regs[14] != 0xffffffff)
-            currentAddress =  reinterpret_cast<void*>(*(reinterpret_cast<unint4*>((size_t) stackPtr + cf_entry->stored_regs[14])));
-        else
+        if (cf_entry->stored_regs[cie.return_reg] != 0xffffffff) {
+            // TODO: check if address is accessible using HATLayer in order to avoid data aborts here
+            currentAddress =  reinterpret_cast<void*>(*(reinterpret_cast<unint4*>((size_t) stackPtr + cf_entry->stored_regs[cie.return_reg])));
+        } else {
             return;
+        }
 
         LOG(KERNEL, ERROR, "  0x%08x   %s", currentAddress, getMethodSignature((unint4) currentAddress));
         cf_table_entry* next_cf_entry = dwarf_getCFEntry(currentAddress);
@@ -419,31 +446,36 @@ extern "C" void backtrace_current() {
  *
  *******************************************************************************/
 extern "C" void backtrace(void** buffer, int length) {
-    void* currentAddress;
+    void*  currentAddress;
     size_t stackPtr;
+    void*  pc;
+
     GETSTACKPTR(stackPtr);
-    void* pc;
     GETPC(pc);
     currentAddress = pc;
 
     int num = 0;
 
     cf_table_entry* cf_entry = dwarf_getCFEntry(currentAddress);
-    if (cf_entry == 0)
+    if (cf_entry == 0) {
         return;
+    }
 
     int numSteps = 0;
     while (cf_entry && numSteps < 10) {
         stackPtr = stackPtr + cf_entry->cfa_offset;
 
-        if (cf_entry->stored_regs[14] != 0xffffffff)
+        if (cf_entry->stored_regs[14] != 0xffffffff) {
+            // TODO: check if address is accessible using HATLayer in order to avoid data aborts here
             currentAddress =  reinterpret_cast<void*>(*(reinterpret_cast<unint4*>((size_t) stackPtr + cf_entry->stored_regs[14])));
-        else
+        } else {
             return;
+        }
 
         buffer[num++] = currentAddress;
-        if (num >= length)
+        if (num >= length) {
             return;
+        }
 
         cf_table_entry* next_cf_entry = dwarf_getCFEntry(currentAddress);
         cf_entry = next_cf_entry;
@@ -453,6 +485,7 @@ extern "C" void backtrace(void** buffer, int length) {
 
 #else
 
+#warning "Dwarf support disabled!"
 /*****************************************************************************
  * Method: dwarf_init()
  *
