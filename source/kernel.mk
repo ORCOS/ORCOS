@@ -12,10 +12,6 @@
 -include make/scl_make.mk
 -include $(ARCH_DIR)/arch.mk
 
-KOBJ 	= $(notdir $(KASRC:.S=.o)) $(ARCH_OBJ)
-OBJ 	= $(addprefix $(OUTPUT_DIR),$(KOBJ))
-MODULES = $(addprefix $(MODULES_DIR),$(MODULE_OBJ))
-
 SCLFILTER =  $(RELATIVE_SOURCE_PATH)/source/xml/SCLdependencies.xml
 SCLDEPSF  = $(wildcard $(RELATIVE_SOURCE_PATH)/source/xml/*.xml)
 SCLDEPS   = $(filter-out $(SCLFILTER),$(SCLDEPSF))
@@ -70,6 +66,10 @@ ASFLAGS = -c -g -I$(KERNEL_DIR)inc/ -I. -I./make/ -I$(KERNEL_DIR) $(ARCH_INCLUDE
 #                                                      Static Kernel Objects
 #---------------------------------------------------------------------------------------------------------------------------------------
 
+# get all depend makefiles
+COMPONENTS_MAKEFILES = $(wildcard $(KERNEL_DIR)**/depend.mk)
+
+-include $(COMPONENTS_MAKEFILES)
 
 # KOBJ and ARCH_OBJ specify the object-files used for linking.
 # For every .cc, .c or .S file there must be a corresponding entry in the KOBJ or ARCH_OBJ list
@@ -80,6 +80,8 @@ ASFLAGS = -c -g -I$(KERNEL_DIR)inc/ -I. -I./make/ -I$(KERNEL_DIR) $(ARCH_INCLUDE
 
 # the scl configuration tool generates the configurable list of objects to create
 # the following list only contains the base classes or non configurable components
+
+KOBJ 	= $(notdir $(KASRC:.S=.o)) $(ARCH_OBJ)
 
 #config dir
 KOBJ += tasktable.o __cxa_pure_virtual.o
@@ -114,11 +116,17 @@ KOBJ += Mutex.o
 #syscall
 KOBJ += sc_common.o sc_io.o sc_mem.o sc_net.o sc_process.o sc_synchro.o sc_table.o
 
+# add dependency files
+KOBJ_DEPEND = $(KOBJ) $(foreach obj,$(KOBJ),$($(obj)_depend))
+
+OBJ 	= $(addprefix $(OUTPUT_DIR),$(KOBJ_DEPEND))
+MODULES = $(addprefix $(MODULES_DIR),$(MODULE_OBJ))
+
 # sorted list of object files to create
 BUILD_OBJ = $(sort $(OBJ))
 
 # source locations 
-KERNEL_VPATH = db/ debug/ filesystem/ hal/ inc/ inc/newlib/ kernel/ robust/ mem/ process/ scheduler/ syscalls/ 
+KERNEL_VPATH+= db/ debug/ filesystem/ hal/ inc/ inc/newlib/ kernel/ robust/ mem/ process/ scheduler/ syscalls/ 
 KERNEL_VPATH+= synchro/ comm/ migration/ comm/servicediscovery/ comm/lwip/core/ comm/lwip/core/ipv4/ comm/lwip/netif/ 
 KERNEL_VPATH+= comm/lwip/arch/ comm/lwip/core/ipv6/ comm/hcibluetooth/ arch/shared/ arch/shared/usb arch/shared/usb/ethernet arch/shared/usb/storage arch/shared/usb_hc arch/shared/power
 
