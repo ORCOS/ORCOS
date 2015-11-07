@@ -19,6 +19,7 @@ extern void* _debug_frame_end;
 /* pointer to the dwarf debug.frames section*/
 static void* frame_info;
 
+// TODO: number of registers is architecture depended.. read them from debug information!
 typedef struct {
     void*   location;
     unint4  cfa_offset;       /* call frame offset at this location */
@@ -520,5 +521,15 @@ extern "C" void backtrace(void** buffer, int length) {
  *
  *******************************************************************************/
 extern "C" void backtrace_current() {}
+
+/*****************************************************************************
+ * Method: getMethodSignature(unint4 address)
+ *
+ * @description
+ *
+ *******************************************************************************/
+extern "C" char* getMethodSignature(unint4 address) {
+    return "??? <dwarf unavailable>";
+}
 
 #endif
