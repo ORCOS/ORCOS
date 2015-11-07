@@ -40,8 +40,8 @@ int task_stop(int taskid) {
     return (syscall(cTask_StopSysCallId, taskid));
 }
 
-int task_run(char* path, char* arguments, char* stdout) {
-    return (syscall(cRunTaskId, path, arguments, stdout));
+int task_run(char* path, char* arguments, char* stdout, char* workingDir) {
+    return (syscall(cRunTaskId, path, arguments, stdout, workingDir));
 }
 
 int thread_name(int threadid,char* name) {

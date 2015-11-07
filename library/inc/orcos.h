@@ -65,7 +65,7 @@ extern "C" {
  *
  * \return                  Error Number < 0 or task id > 0
  */
- int              task_run(char* path, char* arguments, char* stdout DEFAULT(0));
+ int              task_run(char* path, char* arguments, char* stdout DEFAULT(0), char* workingDir DEFAULT(0));
 
 /*!
  * \brief Stops and removes a task from the system.

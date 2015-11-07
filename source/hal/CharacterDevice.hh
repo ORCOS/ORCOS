@@ -84,14 +84,14 @@ public:
      * Method: writeBytes(const char *bytes, unint4 length)
      *
      * @description
-     * writes a number of bytes to the device
+     *   writes a number of bytes to the device
      *
      * abstract function to write a number of bytes to the device.
      * if the device could not accept as much bytes as specified by length
      * an error value is returned.
       *******************************************************************************/
     virtual ErrorT writeBytes(const char *bytes, unint4 length) {
-        return (cNotImplemented );
+        return (cNotImplemented);
     }
 
     /*****************************************************************************

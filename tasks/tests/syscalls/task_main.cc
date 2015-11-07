@@ -31,7 +31,11 @@
 
 #define TEST( x , name ) { puts("Testing " name); if (x(str) == OK) { puts("[OK]"LINEFEED);} else { puts("[FAILED]"LINEFEED); puts(str); puts(""LINEFEED);}  usleep(10000); }
 
-#define ASSERT(value, msg, ...) if( value == 0) { str = temp; sprintf(str, msg ". value was: %d (%x)", ##__VA_ARGS__, value, value); return (FAIL);}
+
+
+#define ASSERT(x) if (!(x)) {str = temp; sprintf(str,"TEST (" #x ") FAILED. Line %d", __LINE__); return (FAIL);}
+
+//#define ASSERT(value, msg, ...) if( value == 0) { str = temp; sprintf(str, msg ". value was: %d (%x)", ##__VA_ARGS__, value, value); return (FAIL);}
 #define ASSERT_GREATER(value,comp,msg) if( !(value > comp)) {str = temp; sprintf(str,"TEST ASSERTION %u: " msg ". value was: %d (%x)", __LINE__, value, value);return (FAIL);}
 #define ASSERT_EQUAL(value,comp,msg) if( ! (value == comp)) {str = temp; sprintf(str,"TEST ASSERTION IN %u: " msg ". value was: %d (%x)", __LINE__, value, value); return (FAIL);}
 #define ASSERT_SMALLER(value,comp,msg) if( ! (value < comp)) {str = temp; sprintf(str,"TEST ASSERTION IN %u: " msg ". value was: %d (%x)", __LINE__, value, value); return (FAIL);}
@@ -40,40 +44,40 @@ char temp[200];
 
 int test_new(char* &str) {
     void* address = malloc(1);
-    ASSERT(address,"malloc(1)!= 0");
+    ASSERT(address != 0);
     free(address);
 
     address = malloc(0);
-    ASSERT(address,"malloc(0) != 0");
+    ASSERT(address != 0);
     free(address);
 
     unint4 addr = 0;
     unint4 size = 4096;
     int result = shm_map("/mem/mem", &addr, &size, cAllocate, 0);
-    ASSERT_GREATER(result,0,"shm_map(/mem/mem, &addr, &size, cAllocate, 0) failed");
-    ASSERT(addr,"shm_map() mapped addr == 0!");
-    ASSERT_EQUAL(size, 4096, "shm_map() size != 4096");
+    ASSERT(result > 0);
+    ASSERT(addr != 0);
+    ASSERT(size == 4096);
 
     // try mapping physical address 0x800000
     result = shm_map("/mem/mem", &addr, &size, 0, 0x800000);
-    ASSERT_GREATER(result,0,"shm_map(/mem/mem, &addr, &size, 0, 0x800000) failed");
-    ASSERT(addr,"shm_map() mapped addr == 0!");
-    ASSERT_EQUAL(size, 4096, "shm_map() size != 4096");
+    ASSERT(result > 0);
+    ASSERT(addr != 0);
+    ASSERT(size == 4096);
 
     while (1) {
         unint4 addr = 0;
         unint4 size = 0x100000;
         int result = shm_map("/mem/mem", &addr, &size, cAllocate, 0);
         if (result < 0) break;
-        ASSERT(addr,"shm_map() mapped addr == 0!");
-        ASSERT_EQUAL(size, 0x100000, "shm_map() size != 0x100000");
+        ASSERT(addr != 0);
+        ASSERT(size == 0x100000);
     }
 
     close(result);
 
     for (int i = 0; i < 1024; i++) {
         address = malloc(4096);
-        ASSERT(address,"malloc(4096) != 0. i : %u", i);
+        ASSERT(address != 0);
     }
 
     return (OK);
@@ -82,26 +86,25 @@ int test_new(char* &str) {
 int test_task_run(char* &str) {
     int result;
     result = task_run(0,0);
-    ASSERT_SMALLER(result,0,"task_run(0,0) succeeded");
+    ASSERT(result < 0);
 
     result = task_run(0,(char*) 10);
-    ASSERT_SMALLER(result,0,"task_run(0,10) succeeded");
+    ASSERT(result < 0);
 
     result = task_run((char*) 1244,(char*) 10);
-    ASSERT_SMALLER(result,0,"task_run(1244,10) succeeded");
+    ASSERT(result < 0);
 
     result = task_run("NOTASKHERE",0);
-    ASSERT_SMALLER(result,0,"task_run(NOTASKHERE,0) succeeded");
+    ASSERT(result < 0);
 
     result = task_run("/",0);
-    ASSERT_SMALLER(result,0,"task_run(/,0) succeeded");
+    ASSERT(result < 0);
 
     result = task_run("//",0);
-    ASSERT_SMALLER(result,0,"task_run(//,0) succeeded");
+    ASSERT(result < 0);
 
     result = task_run("/////",0);
-    ASSERT_SMALLER(result,0,"task_run(/////,0) succeeded");
-
+    ASSERT(result < 0);
 
     return (OK);
 }
@@ -109,16 +112,16 @@ int test_task_run(char* &str) {
 int test_task_kill(char* &str) {
     int result;
     result = task_kill(0);
-    ASSERT_SMALLER(result,0,"task_kill(0) succeeded");
+    ASSERT(result < 0);
 
     result = task_kill(-1);
-    ASSERT_SMALLER(result,0,"task_kill(-1) succeeded");
+    ASSERT(result < 0);
 
     result = task_kill(-200);
-    ASSERT_SMALLER(result,0,"task_kill(-200) succeeded");
+    ASSERT(result < 0);
 
     result = task_kill(-65324);
-    ASSERT_SMALLER(result,0,"task_kill(-65324) succeeded");
+    ASSERT(result < 0);
 
     return (OK);
 }
@@ -126,16 +129,16 @@ int test_task_kill(char* &str) {
 int test_task_stop(char* &str) {
     int result;
     result = task_stop(0);
-    ASSERT_SMALLER(result,0,"task_stop(0) succeeded");
+    ASSERT(result < 0);
 
     result = task_stop(-1);
-    ASSERT_SMALLER(result,0,"task_stop(0) succeeded");
+    ASSERT(result < 0);
 
     result = task_stop(-200);
-    ASSERT_SMALLER(result,0,"task_stop(-200) succeeded");
+    ASSERT(result < 0);
 
     result = task_stop(-65324);
-    ASSERT_SMALLER(result,0,"task_stop(-65324) succeeded");
+    ASSERT(result < 0);
 
     return (OK);
 }
@@ -148,22 +151,22 @@ void* thread_entry(void* arg) {
 int test_thread_create(char* &str) {
     int result;
     result = thread_create(0,0,0,0);
-    ASSERT_SMALLER(result,0,"thread_create(0,0,0,0) succeeded");
+    ASSERT(result < 0);
 
     result = thread_create(0,0,thread_entry,0);
-    ASSERT_SMALLER(result,0,"thread_create(0,0,thread_entry,0) succeeded");
+    ASSERT(result < 0);
 
     thread_attr_t attr;
     memset(&attr,0,sizeof(thread_attr_t));
 
     result = thread_create(0,&attr,thread_entry,0);
-    ASSERT_EQUAL(result,cOk,"thread_create(0,&attr,thread_entry,0) failed");
+    ASSERT(result == cOk);
 
     result = thread_run(-1);
-    ASSERT(result,"thread_run(-1) succeeded");
+    ASSERT(result < 0);
 
     result = thread_run(0);
-    ASSERT_EQUAL(result,0,"thread_run(0) failed");
+    ASSERT(result == 0);
 
     return (OK);
 }
@@ -172,37 +175,38 @@ int test_files(char* &str) {
     int result;
 
     result = create(0,0);
-    ASSERT_SMALLER(result,0,"create(0,0) succeeded");
+    ASSERT(result < 0);
 
     result = create("//NOSUCHDIR//");
-    ASSERT_SMALLER(result,0,"create(//NOSUCHDIR//) succeeded");
+    ASSERT(result < 0);
 
     result = open("//NOSUCHDIR//",0);
-    ASSERT_SMALLER(result,0,"open(//NOSUCHDIR//) succeeded");
+    ASSERT(result < 0);
 
     result = open(0,0);
-    ASSERT_SMALLER(result,0,"open(0) succeeded");
+    ASSERT(result < 0);
 
+    // open cwd
     result = open("",0);
-    ASSERT_GREATER(result,0,"open(\"\") failed");
+    ASSERT(result > 0);
 
     result = close(result);
-    ASSERT_EQUAL(result,cOk,"close(\"\") failed");
+    ASSERT(result == cOk);
 
     result = open("/",0);
-    ASSERT_GREATER(result,0,"open(/) failed");
+    ASSERT(result > 0);
 
     result = close(result);
-    ASSERT_EQUAL(result,cOk,"close(/) failed");
+    ASSERT(result == cOk);
 
     result = close(0);
-    ASSERT_SMALLER(result,0,"close(0) succeeded");
+    ASSERT(result < 0);
 
     result = close(-1);
-    ASSERT_SMALLER(result,0,"close(-1) succeeded");
+    ASSERT(result < 0);
 
     result = close(-1123141);
-    ASSERT_SMALLER(result,0,"close(-1123141) succeeded");
+    ASSERT(result < 0);
 
   /*  srand(getCycles());
     for (int i = 0; i < 1000; i++) {
@@ -216,6 +220,23 @@ int test_files(char* &str) {
         }
     }*/
 
+    result = create("testfile1");
+    ASSERT(result > 0);
+    result = write(result, "test1", 4);
+    ASSERT(result == cOk);
+    result = remove("testfile1");
+    ASSERT(result == cOk);
+
+    result = create("dirtest", cTYPE_DIR);
+    ASSERT(result > 0);
+    int result2 = create("dirtest/testfile1");
+    ASSERT(result2 > 0);
+    result2 = write(result2, "test1", 4);
+    ASSERT(result2 == cOk);
+    result2 = remove("dirtest/testfile1");
+    ASSERT(result2 == cOk);
+    result2 = remove("dirtest");
+    ASSERT(result2 == cOk);
 
     /*
      * This tests file creation/removal on bugs as well
@@ -224,23 +245,26 @@ int test_files(char* &str) {
      */
     for (int i = 0; i < 2000; i++) {
         result = create("/mnt/ramdisk/testfile1");
-        ASSERT_GREATER(result,0,"create(/mnt/ramdisk/testfile1) failed");
-        write(result, "test1", 4);
+        ASSERT(result > 0);
+        result = write(result, "test1", 4);
+        ASSERT(result == cOk);
 
         result = create("/mnt/ramdisk/testfile2");
-        ASSERT_GREATER(result,0,"create(/mnt/ramdisk/testfile2) failed");
-        write(result, "test2", 4);
+        ASSERT(result > 0);
+        result = write(result, "test2", 4);
+        ASSERT(result == cOk);
 
         result = create("/mnt/ramdisk/testfile3");
-        ASSERT_GREATER(result,0,"create(/mnt/ramdisk/testfile3) failed");
-        write(result, "test3", 4);
+        ASSERT(result > 0);
+        result = write(result, "test3", 4);
+        ASSERT(result == cOk);
 
         result = remove("/mnt/ramdisk/testfile1");
-        ASSERT_EQUAL(result,cOk,"remove(/mnt/ramdisk/testfile1) failed");
+        ASSERT(result == cOk);
         result = remove("/mnt/ramdisk/testfile2");
-        ASSERT_EQUAL(result,cOk,"remove(/mnt/ramdisk/testfile2) failed");
+        ASSERT(result == cOk);
         result = remove("/mnt/ramdisk/testfile3");
-        ASSERT_EQUAL(result,cOk,"remove(/mnt/ramdisk/testfile3) failed");
+        ASSERT(result == cOk);
     }
 
 
@@ -518,18 +542,18 @@ int test_latency(char* &str) {
     unint4 count = rdtsc();
     thread_self();
     count = rdtsc() - count;
-    printf("thread_self  :   %u processor-cycles, %u ns"LINEFEED, count, (count * 1000) / 1000);
+    printf("thread_self  : %u processor-cycles, %u ns"LINEFEED, count, (count * 1000) / 1000);
     count = rdtsc();
     getCycles();
     count = rdtsc() - count;
-    printf("getCycles    :   %u processor-cycles, %u ns"LINEFEED, count, (count * 1000) / 1000);
+    printf("getCycles    : %u processor-cycles, %u ns"LINEFEED, count, (count * 1000) / 1000);
     tscoverhead = ((count * 1200) / 1000);
-    printf("getCycles    :   allowed overhead: %u cycles, %u ns"LINEFEED, tscoverhead, (tscoverhead * 1000) / 1000);
+    printf("getCycles    : allowed overhead: %u cycles, %u ns"LINEFEED, tscoverhead, (tscoverhead * 1000) / 1000);
 
 
     unint8 time = getCycles();
     unint4 overhead = ((getCycles() - time)) >> 1;
-    printf("getCycles    :   overhead: %u clock-cycles"LINEFEED,overhead);
+    printf("getCycles    : overhead: %u clock-cycles"LINEFEED,overhead);
 
     nextTime = getCycles() + 1000000 * clockfreqns;
     unint8 startTime = nextTime;
@@ -559,7 +583,7 @@ int test_latency(char* &str) {
     avgLatency /= MAX_ITERATIONS;
     avgLatency -= overhead;
 
-    printf("minLatency    : %d clock-cycles [%d ns] (it. %d)"LINEFEED"avgLatency    : %d clock-cycles [%d ns]"LINEFEED"maxLatency    : %d clock-cycles [%d ns] (it. %d)"LINEFEED,
+    printf("minLatency   : %d clock-cycles [%d ns] (it. %d)"LINEFEED"avgLatency   : %d clock-cycles [%d ns]"LINEFEED"maxLatency   : %d clock-cycles [%d ns] (it. %d)"LINEFEED,
            minLatency,(minLatency * 41), minIteration,
            avgLatency, (avgLatency * 41),
            maxLatency,(maxLatency * 41), maxIteration);

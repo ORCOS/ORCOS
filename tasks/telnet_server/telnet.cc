@@ -318,7 +318,7 @@ void handleCommand(int socket, int command_length) {
         }
         compactPath(filename);
 
-        int taskid = task_run(filename, arguments, "/dev/tty0");
+        int taskid = task_run(filename, arguments, "/dev/tty0", current_dir);
         if (taskid < 0) {
             sendMsg(socket, "Error running task", taskid);
         }

@@ -185,8 +185,8 @@ Resource* SimpleFileManager::getResourceByNameandType(const char* pathname, Reso
         /* if we got here res is another directory and we haven't finished searching */
         dir = static_cast<Directory*>(res);
         res = dir->get(token, tokenlen);
+        parentDir = dir;
         if (res != 0) {
-            parentDir = dir;
             /* the directory contains the next token
              * check if this is the last token */
             token += tokenlen;

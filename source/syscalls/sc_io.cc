@@ -104,7 +104,7 @@ int sc_fcreate(intptr_t int_sp) {
 
         char* lpos;
         if (filename != filepath) {
-            lpos = filename -1;
+            lpos    = filename -1;
             lpos[0] = 0;
         }
 
@@ -121,8 +121,13 @@ int sc_fcreate(intptr_t int_sp) {
             return (cInvalidPath);
         }
         /* starting from current working directory find basename directory */
-        theOS->getFileManager()->getResourceByNameandType(filepath, cDirectory, parentDir, rootDir);
+        if (filename != filepath) {
+            theOS->getFileManager()->getResourceByNameandType(filepath, cDirectory, parentDir, rootDir);
+        } else {
+            parentDir = rootDir;
+        }
     }
+
 
     if (parentDir != 0) {
         /* check if resource with the same name already exists..
@@ -151,11 +156,15 @@ int sc_fcreate(intptr_t int_sp) {
 
         if (res != 0) {
             /* acquire this resource as we have created it */
-            res->acquire(pCurrentRunningThread, false);
-            return (res->getId());
+            ErrorT ret = res->acquire(pCurrentRunningThread, false);
+            if (isOk(ret)) {
+                return (res->getId());
+            } else {
+                return (ret);
+            }
         } else {
             delete[] namepcpy;
-            LOG(SYSCALLS, ERROR, "Syscall: fcreate(%s) FAILED. File could not be created.", filename);
+            LOG(SYSCALLS, ERROR, "Syscall: fcreate(%s) FAILED. Resource could not be created.", filename);
             return (cError);
         }
     } else {
@@ -435,6 +444,8 @@ int sc_fremove(intptr_t int_sp) {
     VALIDATE_IN_PROCESS(filepath);
     char* filename  = basename(filepath);
 
+    LOG(SYSCALLS, DEBUG, "Syscall: fremove(%s, %s)", filepath, filename);
+
     if (filepath[0] == '/') {
         /* handle absolute path */
          if (strlen(filename) == 0) {
@@ -461,23 +472,32 @@ int sc_fremove(intptr_t int_sp) {
         }
 
         /* starting from current working directory find resource */
-        theOS->getFileManager()->getResourceByNameandType(filepath, cAnyResource, parentDir, rootDir);
+        if (filename != filepath) {
+            theOS->getFileManager()->getResourceByNameandType(filepath, cAnyResource, parentDir, rootDir);
+        } else {
+            parentDir = rootDir;
+        }
     }
 
     /* directory found? */
     if (parentDir == 0) {
+        LOG(SYSCALLS, ERROR, "Syscall: fremove(%s) Invalid path. Parent dir not found", filepath);
         return (cInvalidPath);
     }
 
     res = parentDir->get(filename, strlen(filename));
 
     /* resource found? */
-    if (res == 0)
+    if (res == 0) {
+        LOG(SYSCALLS, ERROR, "Syscall: fremove(%s) Invalid path", filepath);
         return (cInvalidPath);
+    }
 
     /* For internal files we must first check the type of resource */
-    if (res->getType() & (cNonRemovableResource))
+    if (res->getType() & (cNonRemovableResource)) {
+        LOG(SYSCALLS, ERROR, "Syscall: fremove(%s) Resource not removeable", filepath);
         return (cResourceNotRemovable);
+    }
 
     /* if this resource is owned by the current task remove it from the task */
     /* only acquired resources may be removed to avoid references to already deleted resources! */
@@ -487,10 +507,13 @@ int sc_fremove(intptr_t int_sp) {
         if (isOk(ret)) {
             /* remove also will / must delete/schedule deletion res_file */
             ret = parentDir->remove(res);
+        } else {
+            LOG(SYSCALLS, ERROR, "Syscall: fremove(%s) Error releasing resource", filepath);
         }
 
         return (ret);
     } else {
+        LOG(SYSCALLS, ERROR, "Syscall: fremove(%s) Resource not owned", filepath);
         return (cResourceNotOwned);
     }
 }
