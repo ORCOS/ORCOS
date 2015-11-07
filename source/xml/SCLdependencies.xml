@@ -1036,10 +1036,9 @@
         <MemberRef Name="Ramdisk" />
         <MemberRef Name="PowerManager" />
         <MemberRef Name="TaskManager" optional="false" />
-        <MemberRef Name="MigrationManager" />
-        <MemberRef Name="ServiceDiscovery" />
         <MemberRef Name="RamManager" />
         <MemberRef Name="InterruptManager" />
+        <MemberRef Name="Tracer" />
       </Superclass>
     </Superclasses>
     <Member>
@@ -1101,10 +1100,7 @@
     <Member>
       <Name>Ramdisk</Name>
       <Classes>
-        <Class Name="filesystem/Ramdisk">
-          <Property Name="StartAddress" Type="unsigned int" Optional="false" Description="Memory Start Address of the Ram Disk." />
-          <Property Name="Size" Type="unsigned int" Optional="false" Description="Size of the memory disk in Bytes." />
-        </Class>
+        <Class Name="filesystem/ram/Ramdisk" />
       </Classes>
     </Member>
     <Member>
@@ -1120,15 +1116,9 @@
       </Classes>
     </Member>
     <Member>
-      <Name>MigrationManager</Name>
+      <Name>Tracer</Name>
       <Classes>
-        <Class Name="migration/MigrationManager" />
-      </Classes>
-    </Member>
-    <Member>
-      <Name>ServiceDiscovery</Name>
-      <Classes>
-        <Class Name="comm/servicediscovery/SNServiceDiscovery" />
+        <Class Name="debug/Trace" />
       </Classes>
     </Member>
   </Skeleton>
@@ -1142,6 +1132,7 @@
         <MemberRef Name="PartitionManager" optional="true" />
         <MemberRef Name="DOSPartition" />
         <MemberRef Name="FATFileSystem" />
+        <MemberRef Name="RamFilesystem" />
       </Superclass>
     </Superclasses>
     <Member>
@@ -1159,7 +1150,16 @@
     <Member>
       <Name>FATFileSystem</Name>
       <Classes>
-        <Class Name="filesystem/FATFileSystem" />
+        <Class Name="filesystem/fat/FATFileSystem" />
+      </Classes>
+    </Member>
+    <Member>
+      <Name>RamFilesystem</Name>
+      <Classes>
+        <Class Name="filesystem/ram/RamFilesystem">
+          <Property Name="StartAddress" Type="unsigned int" Optional="false" Description="Memory Start Address of the Ram Disk." />
+          <Property Name="Size" Type="unsigned int" Optional="false" Description="Size of the memory disk in Bytes." />
+        </Class>
       </Classes>
     </Member>
   </Skeleton>

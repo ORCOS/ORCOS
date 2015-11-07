@@ -1074,25 +1074,29 @@ public class SCLReader {
                             +  "* get" + memberName + "() { return (" + configuredType    + "*) "
                             + memberName + "Cfd; }\r\n");
 
-                if (!isUserspace) {
-
-                    outBuffer.append("#define INIT_" + className + "_" + memberName
+	                if (!isUserspace) {
+	                    outBuffer.append("#define NEW_" + className + "_" + memberName
+	                            + "Cfd " + className + "_" + memberName + "CfdCl" + "("
+	                            + constructor + ")\r\n");
+	                } else {
+	                    outBuffer.append("#define NEW_" + className + "_" + memberName
+	                            + "Cfd " + className + "_" + memberName + "CfdCl" + "("
+	                            + constructor + ",1024," + phyloadAddr + ")\r\n");
+	                }
+	                
+	            	outBuffer.append("#define INIT_" + className + "_" + memberName
                             + "Cfd " + property_init + "\r\n");
-
-                    outBuffer.append("#define NEW_" + className + "_" + memberName
-                            + "Cfd " + className + "_" + memberName + "CfdCl" + "("
-                            + constructor + ")\r\n");
-                } else {
-                    outBuffer.append("#define NEW_" + className + "_" + memberName
-                            + "Cfd " + className + "_" + memberName + "CfdCl" + "("
-                            + constructor + ",1024," + phyloadAddr + ")\r\n");
-                }
+	                
+	                outBuffer.append("#define INIT_" + className + "_" + memberName 
+	                		+ " { INIT_" + className + "_" + memberName + "Cfd; "
+	                  	    +  memberName + "Cfd = new NEW_" + className + "_" + memberName + "Cfd; }\r\n");
 
                 } else {
                     outBuffer.append("    void set" + memberName + "("
                             + configuredType + "* o) { } \\\r\n");
                     outBuffer.append("    " + configuredType + "* get" + memberName
                             + "() { return 0; }\r\n");
+                    outBuffer.append("#define INIT_" + className + "_" + memberName + " \r\n");
                 }
             }
 

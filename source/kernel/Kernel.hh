@@ -46,9 +46,10 @@
 #include Kernel_TaskManager_hh
 #include Kernel_Logger_hh
 #include Kernel_PowerManager_hh
-#include Kernel_MigrationManager_hh
-#include Kernel_ServiceDiscovery_hh
 #include Kernel_Ramdisk_hh
+#include Kernel_Tracer_hh
+#include FileSystems_FATFileSystem_hh
+#include FileSystems_RamFilesystem_hh
 #include Kernel_InterruptManager_hh
 #include Kernel_Dispatcher_hh
 
@@ -228,26 +229,6 @@ public:
         return (theClock);
     }
 
-#if USE_TRACE
-
-private:
-    Trace* tracer;
-
-public:
-    /*****************************************************************************
-    * Method: getTrace()
-    *
-    * @description
-    *  Returns the current tracer module used for kernel profiling
-    *
-    * @returns
-    *  Trace* The current tracer
-    *---------------------------------------------------------------------------*/
-    Trace* getTrace() {
-        return (tracer);
-    }
-#endif
-
     /*****************************************************************************
     * Method: getCPUScheduler()
     *
@@ -411,19 +392,16 @@ public:
     DEF_FileSystems_PartitionManagerCfd
 
 
-    DEF_Kernel_ServiceDiscoveryCfd
-
-
     DEF_Kernel_LoggerCfd
 
 
     DEF_Kernel_PowerManagerCfd
 
 
-    DEF_Kernel_MigrationManagerCfd
-
-
     DEF_Kernel_RamdiskCfd
+
+
+    DEF_FileSystems_RamFilesystemCfd
 
 
     DEF_Kernel_InterruptManagerCfd
@@ -433,6 +411,8 @@ public:
 
 
     DEF_Kernel_MemoryManagerCfd
+
+    DEF_Kernel_TracerCfd
 };
 
 

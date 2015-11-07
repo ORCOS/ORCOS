@@ -4,7 +4,9 @@
  *  Created on: 08.06.2009
  *     Copyright & Author: dbaldin
  */
-#if USE_TRACE
+#include "SCLConfig.hh"
+
+#ifdef HAS_Kernel_TracerCfd
 
 #include "Trace.hh"
 #include "kernel/Kernel.hh"
@@ -61,23 +63,23 @@ static Trace_Source sources[50];
 static Socket* commandSocket;
 static Socket* streamSocket;
 
-#define cTCP                         0x6
-#define cIPV4                         0x800
-#define cUDP                          17
+#define cTCP                        0x6
+#define cIPV4                       0x800
+#define cUDP                        17
 
 #define cGETPLATFORMINFO            0x1
-#define cSETDESTINATION                0x2
-#define cGETSOURCES                    0x3
+#define cSETDESTINATION             0x2
+#define cGETSOURCES                 0x3
 #define cSTARTDATASTREAM            0x4
-#define cSTOPDATASTREAM                0x5
+#define cSTOPDATASTREAM             0x5
 
-#define COMMAND_THREAD                0
+#define COMMAND_THREAD               0
 #define STREAM_THREAD                1
 
 static char rcvbuf[100];
 
 static bool streaming = false;
-WorkerThread* streamThread;
+KernelThread* streamThread;
 
 Trace::Trace() {
     current_entry = 0;
@@ -107,24 +109,19 @@ sockaddr streamDest;
 void Trace::init() {
     sockaddr addr;
     addr.port_data = 46;
-    addr.sa_data = 0;
+    addr.sa_data   = 0;
 
     // setup the two sockets
     commandSocket = new Socket(cIPV4, SOCK_STREAM, cTCP);
     commandSocket->bind(&addr);
 
-    streamSocket = new Socket(cIPV4, SOCK_DGRAM, cUDP);
+    streamSocket   = new Socket(cIPV4, SOCK_DGRAM, cUDP);
     addr.port_data = 0;
-    addr.sa_data = 0;
+    addr.sa_data   = 0;
     streamSocket->bind(&addr);
 
-    TimedFunctionCall* jobparam = new TimedFunctionCall;
-    jobparam->objectptr = this; /* call this object */
-    jobparam->parameterptr = COMMAND_THREAD; /* store the index of the request */
-    jobparam->time = theOS->getClock()->getClockCycles() + 200 ms; /* call the first time in 200 ms */
-
     // use one workerthread "permanently" for the command socket handler
-    theOS->getWorkerTask()->addJob(TimedFunctionCallJob, 0, jobparam, 250000);
+    theOS->getKernelTask()->getCallbackThread(0, this, 200 ms, 50, COMMAND_THREAD);
 }
 
 /*****************************************************************************
@@ -177,14 +174,8 @@ void Trace::callbackFunc(void* param) {
                         printf("Starting  data stream.\r");
 
                         if (streamThread == 0) {
-                            PeriodicFunctionCall* jobparam = new PeriodicFunctionCall;
-                            jobparam->functioncall.objectptr    = this; /* call this object */
-                            jobparam->functioncall.parameterptr = reinterpret_cast<void*>(STREAM_THREAD);
-                            jobparam->functioncall.time = theOS->getClock()->getClockCycles() + 10 ms; /* call the first time in 200 ms */
-                            jobparam->period = 50 ms;
-
                             // use one workerthread "permanently" for the command socket handler
-                            streamThread = theOS->getWorkerTask()->addJob(PeriodicFunctionCallJob, 0, jobparam, 10000);
+                            streamThread = theOS->getKernelTask()->getPeriodicThread(0, this, 10 ms, 41, reinterpret_cast<void*>(STREAM_THREAD));
                         }
 
                         break;
@@ -192,6 +183,9 @@ void Trace::callbackFunc(void* param) {
                     case cSTOPDATASTREAM: {
                         streaming = false;
                         printf("Stopping data stream.\r");
+                        if (streamThread) {
+                            streamThread->stop();
+                        }
                     }
                 } // switch
 

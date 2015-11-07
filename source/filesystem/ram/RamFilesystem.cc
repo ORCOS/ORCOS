@@ -5,7 +5,8 @@
  *      Copyright & Author: dbaldin
  */
 
-#include "Ramdisk.hh"
+#include "RamFilesystem.hh"
+
 #include "inc/types.hh"
 #include "kernel/Kernel.hh"
 #include "inc/Alignment.hh"
@@ -14,7 +15,7 @@ extern Kernel* theOS;
 
 #define RAMDISK_BLOCK_SIZE 4096
 
-Ramdisk::Ramdisk(T_Ramdisk_Init* init) : FileSystemBase("ramdisk") {
+RamFilesystem::RamFilesystem(T_RamFilesystem_Init* init) : FileSystemBase("ramdisk") {
     /* get Ramdisk location and size from SCL configuration */
     unint4 start    = init->StartAddress;
     unint4 end      = init->StartAddress + init->Size - 1;
@@ -50,7 +51,7 @@ Ramdisk::Ramdisk(T_Ramdisk_Init* init) : FileSystemBase("ramdisk") {
 
     // create the ramdisk mount directory
     /* TODO: use SCL to get path and name */
-    RamdiskDirectory* dir = new RamdiskDirectory(this, "ramdisk");
+    RamFilesystemDirectory* dir = new RamFilesystemDirectory(this, "ramdisk");
     theOS->getFileManager()->getDirectory("/mnt")->add(dir);
 }
 
@@ -61,7 +62,7 @@ Ramdisk::Ramdisk(T_Ramdisk_Init* init) : FileSystemBase("ramdisk") {
  *   Allocates a Ramdisk block using the block number not
  *   the physical address
  *******************************************************************************/
-unint4 Ramdisk::allocateBlock(unint4 prev) {
+unint4 RamFilesystem::allocateBlock(unint4 prev) {
     for (unint4 i = 0; i < blockChainEntries; i++) {
         if (blockChain[i] == (unint4) -1) {  // -1 == free
             blockChain[i] = 0;               //  0 == End of Chain
@@ -81,7 +82,7 @@ unint4 Ramdisk::allocateBlock(unint4 prev) {
  * @description
  *   Frees a block chain starting at block #blocknum
  *******************************************************************************/
-int Ramdisk::freeBlock(unint4 blockNum) {
+int RamFilesystem::freeBlock(unint4 blockNum) {
     if (blockNum != (unint4) -1) {
         unint4 nextBlock     = blockChain[blockNum];
         blockChain[blockNum] = -1;
@@ -104,7 +105,7 @@ int Ramdisk::freeBlock(unint4 blockNum) {
  * @description
  *   Returns the next block of the block list and allocates it if allocate is set
  *******************************************************************************/
-unint4 Ramdisk::getNextBlock(unint4 currentBlock, bool allocate) {
+unint4 RamFilesystem::getNextBlock(unint4 currentBlock, bool allocate) {
     if (currentBlock != (unint4) -1) {
         unint4 nextBlock = blockChain[currentBlock];
 
@@ -118,7 +119,7 @@ unint4 Ramdisk::getNextBlock(unint4 currentBlock, bool allocate) {
     }
 }
 
-Ramdisk::~Ramdisk() {
+RamFilesystem::~RamFilesystem() {
 }
 
 
@@ -132,7 +133,7 @@ Ramdisk::~Ramdisk() {
  * @returns
  *  int         Error Code
  *******************************************************************************/
-ErrorT RamdiskDirectory::remove(Resource* res) {
+ErrorT RamFilesystemDirectory::remove(Resource* res) {
     int error = Directory::remove(res);
 
     if (isError(error)) {
@@ -155,7 +156,7 @@ ErrorT RamdiskDirectory::remove(Resource* res) {
  * @returns
  *  File*       The file created or nul
  *******************************************************************************/
-File* RamdiskDirectory::createFile(char* name, unint4 flags) {
+File* RamFilesystemDirectory::createFile(char* name, unint4 flags) {
     /* avoid creating duplicate file names */
     if (get(name, strlen(name))) {
         LOG(FILESYSTEM, ERROR, "RamdiskDirectory::createFile(): Filename already exists '%s'", name);
@@ -169,7 +170,7 @@ File* RamdiskDirectory::createFile(char* name, unint4 flags) {
         return (0);
     }
 
-    RamdiskFile* f = new RamdiskFile(this->myRamDisk, block, name, flags);
+    RamFilesystemFile* f = new RamFilesystemFile(this->myRamDisk, block, name, flags);
     this->add(f);
     return (f);
 }
@@ -184,13 +185,13 @@ File* RamdiskDirectory::createFile(char* name, unint4 flags) {
  * @returns
  *  Directory*  Pointer to the directory or null if an error occured.
  *******************************************************************************/
-Directory* RamdiskDirectory::createDirectory(char* name, unint4 flags) {
+Directory* RamFilesystemDirectory::createDirectory(char* name, unint4 flags) {
     if (get(name, strlen(name))) {
        LOG(FILESYSTEM, ERROR, "RamdiskDirectory::createDirectory(): Directory already exists '%s'", name);
        return (0);
     }
 
-    RamdiskDirectory* f = new RamdiskDirectory(this->myRamDisk, name);
+    RamFilesystemDirectory* f = new RamFilesystemDirectory(this->myRamDisk, name);
     this->add(f);
     return (f);
 }
@@ -202,7 +203,7 @@ Directory* RamdiskDirectory::createDirectory(char* name, unint4 flags) {
  *  Reads up to length number of bytes from the file into the
  *  array. Length is updated to the actual number of bytes read.
  *******************************************************************************/
-ErrorT RamdiskFile::readBytes(char* bytes, unint4& length) {
+ErrorT RamFilesystemFile::readBytes(char* bytes, unint4& length) {
     unint4 sector_pos;
     unint4 sector_read_len;
     unint4 pos = 0;
@@ -266,7 +267,7 @@ ErrorT RamdiskFile::readBytes(char* bytes, unint4& length) {
  *  Writes up to length number of bytes to the file at its current position
  *  from the given array. Length is updated to the actual number of bytes written.
  *******************************************************************************/
-ErrorT RamdiskFile::writeBytes(const char* bytes, unint4 length) {
+ErrorT RamFilesystemFile::writeBytes(const char* bytes, unint4 length) {
     unint4 sector_pos;
     unint4 sector_write_len;
     bool sector_changed = false;
@@ -302,7 +303,7 @@ ErrorT RamdiskFile::writeBytes(const char* bytes, unint4 length) {
             unint4 nextBlock = myRamDisk->getNextBlock(currentBlock, true);
             if (nextBlock == (unint4) -1) {
                 // no more memory..
-                return (cDeviceMemoryExhausted );
+                return (cDeviceMemoryExhausted);
             }
             currentBlock = nextBlock;
         }
@@ -319,7 +320,7 @@ ErrorT RamdiskFile::writeBytes(const char* bytes, unint4 length) {
     return (cOk );
 }
 
-RamdiskFile::RamdiskFile(Ramdisk* myRamdisk, unint4 blockNum, char* name, int flags) :
+RamFilesystemFile::RamFilesystemFile(RamFilesystem* myRamdisk, unint4 blockNum, char* name, int flags) :
         File(name, 0, flags) {
     this->myRamDisk     = myRamdisk;
     this->myBlockNumber = blockNum;
@@ -328,7 +329,7 @@ RamdiskFile::RamdiskFile(Ramdisk* myRamdisk, unint4 blockNum, char* name, int fl
 }
 
 
-RamdiskFile::~RamdiskFile() {
+RamFilesystemFile::~RamFilesystemFile() {
     /* we are deleted.. free the blocks this file occupied */
     myRamDisk->freeBlock(this->myBlockNumber);
 }
@@ -339,7 +340,7 @@ RamdiskFile::~RamdiskFile() {
  * @description
  *   Resets the file position to its beginning.
  *******************************************************************************/
-ErrorT RamdiskFile::resetPosition() {
+ErrorT RamFilesystemFile::resetPosition() {
     //File::resetPosition();
     readPos      = 0;
     currentBlock = myBlockNumber;

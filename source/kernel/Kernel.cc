@@ -98,9 +98,9 @@ Kernel::~Kernel() {
  * @description
  *  Initializes the Kernel object. This is the main entry of the kernel c++ code
  *  after kernelmain has been called. The kernel memory manager already exists.
- *  The intitialization routine creates all kernel components,
+ *  The initialization routine creates all kernel components,
  *  initializes the architecture dependent board class which in turn
- *  intiailizes all device driver. Afterwards all initial task contained
+ *  initializes all device driver. Afterwards all initial task contained
  *  inside the kernel image are loaded and started.
  *
  * @params
@@ -131,31 +131,22 @@ void Kernel::initialize() {
     Partition::initialize();
 
     this->errorHandler          = new TaskErrorHandler();
-#ifdef HAS_Kernel_RamManagerCfd
-    /* create the Ram Manager using a simple paging algorithm */
-    this->RamManagerCfd         = new NEW_Kernel_RamManagerCfd;
-#endif
+    /* Initialize the Ram Manager if configured */
+    INIT_Kernel_RamManager;
     /* create the cpu dispatcher with scheduler */
     this->DispatcherCfd         = new NEW_Kernel_DispatcherCfd;
     /* create the file manager implementing the file system */
     this->fileManager           = new SimpleFileManager();
-#ifdef HAS_FileSystems_PartitionManagerCfd
-    /* create the partition manager implementing the partition support*/
-    this->PartitionManagerCfd   = new NEW_FileSystems_PartitionManagerCfd;
-#endif
-
-#if HAS_Kernel_LoggerCfd
-    LoggerCfd = new NEW_Kernel_LoggerCfd;
-#endif
+    /* Initialize the Parition Manager if configured */
+    INIT_FileSystems_PartitionManager;
+    /* Initialize the Logger if configured */
+    INIT_Kernel_Logger;
 
     /* initial early board init */
     board = new BoardCfdCl();
     board->early_init();
 
-#if USE_TRACE
-    /* create trace instance if configured */
-    this->tracer = new Trace();
-#endif
+    INIT_Kernel_Tracer;
 
 #if SYSFS_SUPPORT
     /* initialize the sysfs aka kernelvariable sub directory system*/
@@ -174,11 +165,9 @@ void Kernel::initialize() {
     /* be sure the initial loaded set of tasks is registered at the ramManager */
     this->taskManager->registerMemPages();
 
-#if HAS_Kernel_InterruptManagerCfd
     /* create the interrupt manager instance to allow device drivers to register
      * irqs and handlers. */
-    this->InterruptManagerCfd = new NEW_Kernel_InterruptManagerCfd;
-#endif
+    INIT_Kernel_InterruptManager;
 
 #if HAS_Board_USB_HCCfd
     USBDevice::initialize();
@@ -200,10 +189,9 @@ void Kernel::initialize() {
     /* initialize debug environment */
     dwarf_init();
 
-#ifdef HAS_Kernel_RamdiskCfd
-    INIT_Kernel_RamdiskCfd;
-    this->RamdiskCfd = new NEW_Kernel_RamdiskCfd;
-#endif
+    INIT_Kernel_Ramdisk;
+
+    INIT_FileSystems_RamFilesystem;
 
 #ifdef HAS_Kernel_RamManagerCfd
     /* /dev/mem only usable with ram manager support */
@@ -250,11 +238,6 @@ void Kernel::initialize() {
 
     // if ((int) &_heap_start - (int) &_data_start <= 0) ERROR("Data Area mangled! Check ELF/Linkerscript for used but not specified sections!");
 
-#if USE_SAFE_KERNEL_STACKS
-    /* This is a PPC extension for context switches */
-    // LOG(KERNEL, INFO, "Available Safe Kernel Stacks: %d." , ((int) &__stack - (int) &_heap_end) / KERNEL_STACK_SIZE);
-#endif
-
 
 #ifdef HAS_Board_HatLayerCfd
     /* now enable HAT for the task creation */
@@ -294,22 +277,6 @@ void Kernel::initialize() {
     LOG(KERNEL, INFO, "Initializing Task Set");
     taskManager->initialize();
 
-    /*
-     * Initialize Service Discovery if configured
-     */
-#ifdef HAS_Kernel_ServiceDiscoveryCfd
-    ServiceDiscoveryCfd = new NEW_Kernel_ServiceDiscoveryCfd;
-    LOG(KERNEL, INFO, (KERNEL, INFO, "ServiceDiscovery at:0x%x", getServiceDiscovery()));
-#endif
-
-    /*
-     * Initialize the Migration Manager if configured
-     */
-#ifdef HAS_Kernel_MigrationManagerCfd
-    MigrationManagerCfd = new NEW_Kernel_MigrationManagerCfd;
-    LOG(KERNEL, INFO, (KERNEL, INFO, "MigrationManager at:0x%x", getMigrationManager()));
-#endif
-
     /* Now we are done. start scheduling.
      this gives the scheduler the chance to setup
      needed components (e.g timer period) and
@@ -323,9 +290,6 @@ void Kernel::initialize() {
     getLogger()->flush();
 
 #if PRINT_BOOT_LOGO
-    /*
-     * Print some Boot Logo
-     */
     printf_p(ORCOS_LOGO);
     printf_p(ORCOS_VERSION);
     printf_p(__DATE__);

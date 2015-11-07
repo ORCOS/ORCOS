@@ -10,9 +10,9 @@
 
 #include "filesystem/Directory.hh"
 #include "filesystem/File.hh"
-#include "FileSystemBase.hh"
+#include "filesystem/FileSystemBase.hh"
 
-class Ramdisk : public FileSystemBase {
+class RamFilesystem : public FileSystemBase {
 private:
     /* The global block chain */
     unint4* blockChain;
@@ -30,9 +30,9 @@ public:
      * @description
      *  Creates a new ramdisk with the given init paramters.
      *******************************************************************************/
-    explicit Ramdisk(T_Ramdisk_Init* init);
+    explicit RamFilesystem(T_RamFilesystem_Init* init);
 
-    virtual ~Ramdisk();
+    virtual ~RamFilesystem();
 
     /*****************************************************************************
      * Method: initialize()
@@ -78,12 +78,12 @@ public:
     }
 };
 
-class RamdiskDirectory: public Directory {
+class RamFilesystemDirectory: public Directory {
 private:
-    Ramdisk* myRamDisk;
+    RamFilesystem* myRamDisk;
 
 public:
-    RamdiskDirectory(Ramdisk* myRamDisk, char* pname) : Directory(pname) {
+    RamFilesystemDirectory(RamFilesystem* myRamDisk, char* pname) : Directory(pname) {
         this->myRamDisk = myRamDisk;
     }
 
@@ -124,11 +124,11 @@ public:
     Directory* createDirectory(char* name, unint4 flags);
 };
 
-class RamdiskFile: public File {
-    friend class RamdiskDirectory;
+class RamFilesystemFile: public File {
+    friend class RamFilesystemDirectory;
 
 private:
-    Ramdisk* myRamDisk;
+    RamFilesystem* myRamDisk;
 
     unint4   myBlockNumber;
 
@@ -137,9 +137,9 @@ private:
     unint4   readPos;
 
 public:
-    RamdiskFile(Ramdisk* myRamdisk, unint4 blockNum, char* name, int flags);
+    RamFilesystemFile(RamFilesystem* myRamdisk, unint4 blockNum, char* name, int flags);
 
-    ~RamdiskFile();
+    ~RamFilesystemFile();
 
     /*****************************************************************************
      * Method: readBytes(char *bytes, unint4 &length)

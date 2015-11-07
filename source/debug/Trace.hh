@@ -12,9 +12,7 @@
 #include "inc/types.hh"
 #include "hal/CallableObject.hh"
 
-#ifndef USE_TRACE
-#define USE_TRACE 0
-#endif
+#ifdef HAS_Kernel_TracerCfd
 
 #define EVENT_THREAD_START      0x1
 #define EVENT_THREAD_STOP       0x2
@@ -59,27 +57,26 @@ typedef struct {
     //TraceArgs arg;        // additional parameters for memory and thread stack informations
 }__attribute__((packed, aligned(4))) Trace_Entry;
 
-#if USE_TRACE
 
-#define TRACE_THREAD_START(taskid, threadid) theOS->getTrace()->trace_addEntry(EVENT_THREAD_START, taskid, threadid)
+#define TRACE_THREAD_START(taskid, threadid) theOS->getTracer()->trace_addEntry(EVENT_THREAD_START, taskid, threadid)
 
-#define TRACE_THREAD_STOP(taskid, threadid) theOS->getTrace()->trace_addEntry(EVENT_THREAD_STOP, taskid, threadid)
+#define TRACE_THREAD_STOP(taskid, threadid) theOS->getTracer()->trace_addEntry(EVENT_THREAD_STOP, taskid, threadid)
 
-#define TRACE_THREAD_EXIT(taskid, threadid) theOS->getTrace()->trace_addEntry(EVENT_THREAD_EXIT, taskid, threadid)
+#define TRACE_THREAD_EXIT(taskid, threadid) theOS->getTracer()->trace_addEntry(EVENT_THREAD_EXIT, taskid, threadid)
 
-#define TRACE_THREAD_REGISTER(taskid, threadid) theOS->getTrace()->trace_addEntry(EVENT_THREAD_REGISTER, taskid, threadid)
+#define TRACE_THREAD_REGISTER(taskid, threadid) theOS->getTracer()->trace_addEntry(EVENT_THREAD_REGISTER, taskid, threadid)
 
-#define TRACE_IRQ_ENTRY(sourceid) theOS->getTrace()->trace_addEntry(EVENT_IRQ_ENTRY, 0, sourceid)
+#define TRACE_IRQ_ENTRY(sourceid) theOS->getTracer()->trace_addEntry(EVENT_IRQ_ENTRY, 0, sourceid)
 
-#define TRACE_IRQ_EXIT(sourceid) theOS->getTrace()->trace_addEntry(EVENT_IRQ_EXIT, 0, sourceid)
+#define TRACE_IRQ_EXIT(sourceid) theOS->getTracer()->trace_addEntry(EVENT_IRQ_EXIT, 0, sourceid)
 
-#define TRACE_MEMALLOC(address, size) theOS->getTrace()->trace_memAlloc(address, size)
+#define TRACE_MEMALLOC(address, size) theOS->getTracer()->trace_memAlloc(address, size)
 
-#define TRACE_MEMFREE(address) theOS->getTrace()->trace_memFree(address)
+#define TRACE_MEMFREE(address) theOS->getTracer()->trace_memFree(address)
 
-#define TRACE_ADD_SOURCE(taskid, sourceid, name) theOS->getTrace()->addSource(taskid, sourceid, (const char*) name)
+#define TRACE_ADD_SOURCE(taskid, sourceid, name) theOS->getTracer()->addSource(taskid, sourceid, (const char*) name)
 
-#define TRACE_REMOVE_SOURCE(taskid, sourceid) theOS->getTrace()->removeSource(taskid, sourceid)
+#define TRACE_REMOVE_SOURCE(taskid, sourceid) theOS->getTracer()->removeSource(taskid, sourceid)
 
 #else
 
@@ -93,6 +90,7 @@ typedef struct {
 #define TRACE_MEMFREE(address)
 #define TRACE_ADD_SOURCE(taskid, sourceid, name)
 #define TRACE_REMOVE_SOURCE(taskid, sourceid)
+
 #endif
 
 class Trace: CallableObject {

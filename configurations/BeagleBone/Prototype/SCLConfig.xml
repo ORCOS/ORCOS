@@ -170,8 +170,6 @@
     <Skeleton>
       <Name>Kernel</Name>
       <Superclass>kernel/Kernel</Superclass>
-      <Member Name="MigrationManager" Class="migration/MigrationManager" None="true" UserSpace="false" PhyLoadAddress="0x0" />
-      <Member Name="ServiceDiscovery" Class="comm/servicediscovery/SNServiceDiscovery" None="true" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="MemoryManager" Class="mem/SequentialFitMemManager" None="false" UserSpace="false" PhyLoadAddress="0x0">
         <PropertyValue Name="LastFit" Value="0" Type="unsigned int" />
       </Member>
@@ -182,22 +180,24 @@
       <Member Name="PowerManager" Class="hal/PowerManager" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="TaskManager" Class="process/TaskManager" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="RamManager" Class="mem/PagedRamMemManager" None="false" UserSpace="false" PhyLoadAddress="0x0" />
-      <Member Name="Ramdisk" Class="filesystem/Ramdisk" None="false" UserSpace="false" PhyLoadAddress="0x0">
-        <PropertyValue Name="StartAddress" Value="0x83000000" Type="unsigned int" />
-        <PropertyValue Name="Size" Value="0x04000000" Type="unsigned int" />
-      </Member>
+      <Member Name="Ramdisk" Class="filesystem/ram/Ramdisk" None="true" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="InterruptManager" Class="hal/InterruptManager" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="Tracer" Class="debug/Trace" None="true" UserSpace="false" PhyLoadAddress="0x0" />
     </Skeleton>
     <Skeleton>
       <Name>FileSystems</Name>
       <Superclass>filesystem/SimpleFileManager</Superclass>
       <Member Name="PartitionManager" Class="filesystem/PartitionManager" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="DOSPartition" Class="filesystem/DOSPartition" None="false" UserSpace="false" PhyLoadAddress="0x0" />
-      <Member Name="FATFileSystem" Class="filesystem/FATFileSystem" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="FATFileSystem" Class="filesystem/fat/FATFileSystem" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="RamFilesystem" Class="filesystem/ram/RamFilesystem" None="false" UserSpace="false" PhyLoadAddress="0x0">
+        <PropertyValue Name="StartAddress" Value="0x83000000" Type="unsigned int" />
+        <PropertyValue Name="Size" Value="0x04000000" Type="unsigned int" />
+      </Member>
     </Skeleton>
     <Skeleton>
       <Name>USBDriver</Name>
-      <Superclass>usb/USBDeviceDriverLibrary</Superclass>      
+      <Superclass>usb/USBDeviceDriverLibrary</Superclass>
       <Member Name="SMSC95xx" Class="usb/SMSC95xxUSBDeviceDriver" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="MassStorage" Class="usb/MassStorageSCSIUSBDeviceDriver" None="false" UserSpace="false" PhyLoadAddress="0x0" />
     </Skeleton>
