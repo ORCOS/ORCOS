@@ -55,7 +55,7 @@ void KernelTask::workFinished(KernelThread* pwthread) {
 }
 
 
-KernelThread* KernelTask::getPeriodicThread(unint1 pid, CallableObject* obj, TimeT period, unint4 priority) {
+KernelThread* KernelTask::getPeriodicThread(unint1 pid, CallableObject* obj, TimeT period, unint4 priority, void* param) {
     /* find a available workerthread and assign the job */
      ListItem* litem = this->nonWorkingThreads.removeHead();
 
@@ -64,8 +64,9 @@ KernelThread* KernelTask::getPeriodicThread(unint1 pid, CallableObject* obj, Tim
          pWThread->jobid = PeriodicFunctionCallJob;
          pWThread->pid   = pid;
          pWThread->param.periodicCall.period = period;
-         pWThread->param.periodicCall.functioncall.objectptr = obj;
-         pWThread->param.periodicCall.functioncall.time = 0;
+         pWThread->param.periodicCall.functioncall.objectptr    = obj;
+         pWThread->param.periodicCall.functioncall.time         = 0;
+         pWThread->param.periodicCall.functioncall.parameterptr = param;
 
          // set the arrival time to now!
          pWThread->arrivalTime = 0;
@@ -97,7 +98,7 @@ KernelThread* KernelTask::getPeriodicThread(unint1 pid, CallableObject* obj, Tim
      return (0);
 }
 
-KernelThread* KernelTask::getCallbackThread(unint1 pid, CallableObject* obj, TimeT delay, unint4 priority) {
+KernelThread* KernelTask::getCallbackThread(unint1 pid, CallableObject* obj, TimeT delay, unint4 priority, void* param) {
     /* find a available workerthread and assign the job */
     ListItem* litem = this->nonWorkingThreads.removeHead();
 
@@ -107,9 +108,9 @@ KernelThread* KernelTask::getCallbackThread(unint1 pid, CallableObject* obj, Tim
 
         pWThread->jobid = TimedFunctionCallJob;
         pWThread->pid   = pid;
-        pWThread->param.timedCall.objectptr = obj;
-        pWThread->param.timedCall.time      = now + delay;
-        pWThread->param.timedCall.parameterptr = 0;
+        pWThread->param.timedCall.objectptr    = obj;
+        pWThread->param.timedCall.time         = now + delay;
+        pWThread->param.timedCall.parameterptr = param;
 
         pWThread->sleepTime = pWThread->param.timedCall.time;
 

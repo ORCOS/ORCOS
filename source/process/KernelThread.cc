@@ -127,7 +127,6 @@ void KernelThread::work() {
         this->block();
     } else {
         /* stop again so we can be reassigned */
-        this->setName("");
         this->stop();
     }
 
@@ -142,6 +141,7 @@ void KernelThread::work() {
  *******************************************************************************/
 void KernelThread::stop() {
    jobid = None;
+   this->setName("");
    KernelTask* pWTask = static_cast<KernelTask*>(this->getOwner());
    pWTask->workFinished(this);
    this->block();
