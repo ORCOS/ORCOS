@@ -108,9 +108,11 @@ ErrorT USBHub::resetPort(int port) {
     }
 
     volatile unint1 enabled = 0;
-    volatile int4 timeout = 100;
+    volatile int4 timeout = 1000;
 
     while (enabled == 0) {
+        /* give port some time to get out of reset .. */
+        kwait_us(1000);
         msg4[4] = port;
         memset(&u_recv_buf, 0, 20);
         error = controller->sendUSBControlMsg(dev, 0, msg4, USB_DIR_IN, 20, u_recv_buf);

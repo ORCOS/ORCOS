@@ -28,10 +28,11 @@ extern Kernel_ThreadCfdCl* pCurrentRunningThread;
 
 Socket::Socket(unint2 domain, SOCK_TYPE e_type, unint2 protocol) :
         Resource(cSocket, false) {
+
+    LOG(COMM, DEBUG, "Socket::Socket() created %x", this);
     /* create the message buffer. hold up to 20 messages till overflow */
     this->messageBuffer         = new FixedSizePBufList(20);
     this->arg                   = 0;
-    this->mutex                 = new Mutex("Socket");
     this->m_lock                = 0;
 
     ProtocolPool* protopool     = theOS->getProtocolPool();
@@ -40,6 +41,7 @@ Socket::Socket(unint2 domain, SOCK_TYPE e_type, unint2 protocol) :
 
     this->type                  = (SOCK_TYPE) e_type;
     this->blockedThread         = 0;
+    this->sendBlockedThread     = 0;
     this->state                 = SOCKET_DISCONNECTED;
     this->hasListeningThread    = false;
     this->myboundaddr.sa_data   = 0;
@@ -52,7 +54,7 @@ Socket::Socket(unint2 domain, SOCK_TYPE e_type, unint2 protocol) :
 }
 
 Socket::~Socket() {
-    LOG(COMM, DEBUG, "Socket::~Socket(): being destroyed!");
+    LOG(COMM, DEBUG, "Socket::~Socket(): %x being destroyed!", this);
 
     if ((this->state & (SOCKET_CONNECTED | SOCKET_LISTENING)) || (this->type == SOCK_DGRAM)) {
         this->aproto->unbind(&myboundaddr, this);
@@ -75,9 +77,6 @@ Socket::~Socket() {
         this->acceptedConnections = 0;
     }
 
-    delete this->mutex;
-    this->mutex = 0;
-
 #ifdef HAS_Kernel_ServiceDiscoveryCfd
     // remove service from service discovery if weve got a service descriptor
     if (strcmp(sd.address. name_data, "") != 0) {
@@ -92,7 +91,7 @@ Socket::~Socket() {
  * Method: Socket::bind(sockaddr* address)
  *
  * @description
- *  Bin call on sockets. Called by user space applications to
+ *  Bind call on sockets. Called by user space applications to
  *  bind a socket to a given transport protocol port and address
  *  protocol address (if applicable).
  * @params
@@ -102,14 +101,14 @@ Socket::~Socket() {
  *******************************************************************************/
 ErrorT Socket::bind(sockaddr* address) {
     if (myboundaddr.sa_data != 0) {
-        return (cSocketAlreadyBoundError );
+        return (cSocketAlreadyBoundError);
     }
 
     ErrorT error = cOk;
 
     /* register this socket at transportprotocol so we can receive something from now on */
     if (tproto != 0) {
-        error = tproto->register_socket(address->port_data, this);
+        error = tproto->register_socket(&address->port_data, this);
     } else {
         error = cTransportProtocolNotAvailable;
     }
@@ -123,7 +122,7 @@ ErrorT Socket::bind(sockaddr* address) {
 
     if (isOk(error)) {
         /* finally if both previous steps succeeded remember my bound address */
-        myboundaddr = *address;
+        myboundaddr         = *address;
         myboundaddr.sa_data = address->sa_data;
         LOG(COMM, INFO, "Socket::bind(): binding socket to addr: 0x%x port: %d", myboundaddr.sa_data, myboundaddr.port_data);
     } else {
@@ -193,15 +192,16 @@ void Socket::connected(int error) {
  *  int         Error Code
  *******************************************************************************/
 void Socket::disconnected(int error) {
-    LOG(COMM, WARN, "Socket::disconnected(): status %d", error);
+    LOG(COMM, DEBUG, "Socket::disconnected(): status %d", error);
     this->state = SOCKET_DISCONNECTED;
 
     /* TODO: propagate error code to user if remotely closed. */
-
+    SMP_SPINLOCK_GET(m_lock);
     if (this->blockedThread != 0) {
         this->blockedThread->unblock();
         this->blockedThread = 0;
     }
+    SMP_SPINLOCK_FREE(m_lock);
 }
 
 /*****************************************************************************
@@ -239,13 +239,12 @@ int Socket::connect(Kernel_ThreadCfdCl* thread, sockaddr* toaddr, int timeout_ms
 
         /* connection success?? */
         if (this->state == SOCKET_CONNECTED) {
-            return ( cOk );
+            return (cOk);
         } else {
-            return ( cError );
+            return (cErrorConnecting);
         }
-
     } else {
-        return ( cError );
+        return (cInvalidSocketType);
     }
 }
 
@@ -253,11 +252,14 @@ int Socket::connect(Kernel_ThreadCfdCl* thread, sockaddr* toaddr, int timeout_ms
  * Method: Socket::accepted(Socket* newConnection)
  *
  * @description
+ *  Callback called by transportprotocol if a connection
+ *  has been accepted.
  *
  * @params
- *
+ *  newConnection  The new socket which contains the newly
+ *                 accepted connection.
  * @returns
- *  int         Error Code
+ *  int            Error Code
  *******************************************************************************/
 int Socket::accepted(Socket* newConnection) {
     if (!(state & SOCKET_LISTENING))
@@ -297,7 +299,7 @@ int Socket::accepted(Socket* newConnection) {
  * @returns
  *  int         Error Code
  *******************************************************************************/
-int Socket::listen(Kernel_ThreadCfdCl* thread, int backlog_size) {
+int Socket::listen(Kernel_ThreadCfdCl* thread, int backlog_size, int timout_ms) {
     if (this->type == SOCK_STREAM) {
         this->state = SOCKET_LISTENING;
 
@@ -307,7 +309,11 @@ int Socket::listen(Kernel_ThreadCfdCl* thread, int backlog_size) {
 
         if (!this->hasListeningThread) {
             this->hasListeningThread = true;
-            this->tproto->listen(this);
+            int ret = this->tproto->listen(this);
+            if (ret < 0)
+            {
+                return (ret);
+            }
         }
 
         SMP_SPINLOCK_GET(m_lock);
@@ -321,8 +327,9 @@ int Socket::listen(Kernel_ThreadCfdCl* thread, int backlog_size) {
         }
 
         /* block if no new connection available */
-        if (acceptedConnections->size() == 0)
-            thread->block();
+        if (acceptedConnections->size() == 0) {
+            thread->block(timout_ms ms);
+        }
 
         /* got unblocked! maybe new connection? */
         SMP_SPINLOCK_GET(m_lock);
@@ -340,11 +347,12 @@ int Socket::listen(Kernel_ThreadCfdCl* thread, int backlog_size) {
             return (newConn->getId());
         }
 
+        LOG(COMM, DEBUG, "Socket::listen(): Timed out");
         /* probably socket destroyed? TODO: return error code on destruction? */
         this->blockedThread = 0;
-        return (cError);
+        return (cTimeout);
     } else {
-        return (cError);
+        return (cInvalidSocketType);
     }
 }
 
@@ -366,8 +374,6 @@ ErrorT Socket::addMessage(pbuf* p, sockaddr *fromaddr) {
     }
 
     if (fromaddr != 0) {
-        // be sure service name is unset!
-        fromaddr->name_data[0] = '\0';
         LOG(COMM, DEBUG, "Socket::addMessage(): adding msg len: %d, from: 0x%x port: %d", p->len, fromaddr->sa_data, fromaddr->port_data);
     }
 
@@ -394,12 +400,12 @@ ErrorT Socket::addMessage(pbuf* p, sockaddr *fromaddr) {
     }
     SMP_SPINLOCK_FREE(m_lock);
 
-    /* unblock thread after releasing mutex to avoid mutex stalls */
+    /* unblock thread */
     if (threadToUnblock != 0) {
         threadToUnblock->unblock();
     }
 
-    return (cOk );
+    return (cOk);
 }
 
 /*****************************************************************************
@@ -413,6 +419,8 @@ ErrorT Socket::addMessage(pbuf* p, sockaddr *fromaddr) {
  *  int         Error Code
  *******************************************************************************/
 int Socket::sendto(const void* buffer, unint2 length, const sockaddr *dest_addr) {
+    ErrorT ret = cError;
+
     if ((this->type == SOCK_DGRAM) || (this->state & SOCKET_CONNECTED)) {
         sockaddr* dest = const_cast<sockaddr*>(dest_addr);
 
@@ -441,6 +449,17 @@ int Socket::sendto(const void* buffer, unint2 length, const sockaddr *dest_addr)
         }
 #endif
 
+
+        SMP_SPINLOCK_GET(m_lock);
+        if (state & SOCKET_SENDING) {
+            /* already another thread in send! not allowed! */
+            SMP_SPINLOCK_FREE(m_lock);
+            goto out;
+        }
+
+        state |= SOCKET_SENDING;
+        SMP_SPINLOCK_FREE(m_lock);
+
         /* create a new linked list packet_layer structure which will contain
          * the pointer to the payload to be send */
         LOG(COMM, DEBUG, "Socket::sendto(): buffer: 0x%x, length: %d", buffer, length);
@@ -455,30 +474,37 @@ int Socket::sendto(const void* buffer, unint2 length, const sockaddr *dest_addr)
         // send the message
         if (this->type == SOCK_DGRAM) {
             LOG(COMM, DEBUG, "Socket::sendto(): sending packet to 0x%x, port %d, len %d", dest->sa_data, dest->port_data, length);
-            return (this->tproto->sendto(&payload_layer, &myboundaddr, dest_addr, this->aproto, this));
+            ret = this->tproto->sendto(&payload_layer, &myboundaddr, dest_addr, this->aproto, this);
         } else if (this->state & SOCKET_CONNECTED) {
             LOG(COMM, DEBUG, "Socket::sendto(): sending packet to 0x%x, port %d", connected_socket.sa_data, connected_socket.port_data);
-            return (this->tproto->send(&payload_layer, this->aproto, this));
+            ret = this->tproto->send(&payload_layer, this->aproto, this);
         } else {
             LOG(COMM, ERROR, "Socket::sendto(): failed!");
-            return (cNotConnected);
+            ret = cNotConnected;
         }
+
+        SMP_SPINLOCK_GET(m_lock);
+        state &= ~SOCKET_SENDING;
+        SMP_SPINLOCK_FREE(m_lock);
     }
 
-    return (cError);
+out:
+
+    return (ret);
 }
 
 /*****************************************************************************
  * Method: Socket::recvfrom(Kernel_ThreadCfdCl* thread,
- *                          char* data_addr,
- *                          size_t data_size,
- *                          unint4 flags,
- *                          sockaddr* addr,
- *                          unint4 timeout)
+ *                          char*               data_addr,
+ *                          size_t              data_size,
+ *                          unint4              flags,
+ *                          sockaddr*           addr,
+ *                          unint4              timeout)
  *
  * @description
  *   Tries to receive the next message from the socket.
- *   If no data is available blocks the thread.
+ *   If no data is available blocks the thread if MSG_WAIT is
+ *   set in flags.
  *   If another thread is already blocked waiting for data
  *   this method returns with an error code.
  *
@@ -487,7 +513,7 @@ int Socket::sendto(const void* buffer, unint2 length, const sockaddr *dest_addr)
  *  timeout     Timeout in milliseconds
  *
  * @returns
- *  int         Error Code
+ *  int         Error Code if < 0. Length of message on success
  *******************************************************************************/
 size_t Socket::recvfrom(Kernel_ThreadCfdCl* thread,
                         char*               data_addr,
@@ -500,7 +526,6 @@ size_t Socket::recvfrom(Kernel_ThreadCfdCl* thread,
     size_t len = 0;
     pbuf* pb   = 0;
 
-    //mutex->acquire(this, true);
     SMP_SPINLOCK_GET(m_lock);
 
     if (!messageBuffer->hasData()) {
@@ -544,7 +569,7 @@ size_t Socket::recvfrom(Kernel_ThreadCfdCl* thread,
             } else {
                 /* some other thread is already waiting on this socket ..
                  signal an error */
-                ret = cError;
+                ret = cInvalidConcurrentAccess;
                 goto out;
             }
         } else {
@@ -555,7 +580,7 @@ size_t Socket::recvfrom(Kernel_ThreadCfdCl* thread,
         SMP_SPINLOCK_FREE(m_lock);
     }
 
-    mutex->acquire(this, true);
+    SMP_SPINLOCK_GET(m_lock);
     len = messageBuffer->getFirst(data_addr, data_size, addr, pb);
     /* tell lower layer that this data has been received */
     if (len > 0 && pb != 0) {
@@ -567,7 +592,7 @@ size_t Socket::recvfrom(Kernel_ThreadCfdCl* thread,
     }
 
     ret = len;
-    mutex->release();
+    SMP_SPINLOCK_FREE(m_lock);
     return (ret);
 
 out:

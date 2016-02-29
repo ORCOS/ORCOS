@@ -77,6 +77,14 @@ static char cbwTestUnitReady[31] __attribute__((aligned(4))) = {
 };
 #endif
 
+/*****************************************************************************
+ * Method: MassStorageSCSIUSBDeviceDriver(USBDevice* p_dev)
+ *
+ * @description
+ *  Constructor for SCSI USB devices.
+ *
+ *
+ *******************************************************************************/
 MassStorageSCSIUSBDeviceDriver::MassStorageSCSIUSBDeviceDriver(USBDevice* p_dev) :
         USBDeviceDriver(),
         BlockDeviceDriver("sdx") {
@@ -88,7 +96,7 @@ MassStorageSCSIUSBDeviceDriver::MassStorageSCSIUSBDeviceDriver(USBDevice* p_dev)
     this->myLUN         = 0;
     this->next          = 0;
 
-    deviceNumber    = reinterpret_cast<int>(BlockDeviceDriver::freeBlockDeviceIDs->removeHead());
+    deviceNumber    = reinterpret_cast<int>(BlockDeviceDriver::freeBlockDeviceIDs.getNextID());
     char* new_name  = new char[4];
     new_name[0] = 's';
     new_name[1] = 'd';
@@ -101,6 +109,14 @@ MassStorageSCSIUSBDeviceDriver::MassStorageSCSIUSBDeviceDriver(USBDevice* p_dev)
     LOG(ARCH, INFO, "MassStorageSCSIUSBDeviceDriver: created LUN 0 as '%s'", name);
 }
 
+/*****************************************************************************
+ * Method: MassStorageSCSIUSBDeviceDriver(MassStorageSCSIUSBDeviceDriver* parent, int lun)
+ *
+ * @description
+ *  Constructor for slave devices on multi LUN SCSI USB devices
+ *
+ *
+ *******************************************************************************/
 MassStorageSCSIUSBDeviceDriver::MassStorageSCSIUSBDeviceDriver(MassStorageSCSIUSBDeviceDriver* parent, int lun) :
         USBDeviceDriver(),
         BlockDeviceDriver("sdx") {
@@ -112,7 +128,7 @@ MassStorageSCSIUSBDeviceDriver::MassStorageSCSIUSBDeviceDriver(MassStorageSCSIUS
     this->sector_size   = 512;
     this->next          = 0;
 
-    deviceNumber    = reinterpret_cast<int>(BlockDeviceDriver::freeBlockDeviceIDs->removeHead());
+    deviceNumber    = reinterpret_cast<int>(BlockDeviceDriver::freeBlockDeviceIDs.getNextID());
     char* new_name  = new char[4];
     new_name[0] = 's';
     new_name[1] = 'd';
@@ -128,7 +144,6 @@ MassStorageSCSIUSBDeviceDriver::MassStorageSCSIUSBDeviceDriver(MassStorageSCSIUS
         LOG(ARCH, ERROR, "MassStorageSCSIUSBDeviceDriver: device inquiry failed. Ignoring LUN %d.", this->myLUN);
     } else {
         theOS->getPartitionManager()->registerBlockDevice(this);
-        theOS->getFileManager()->getDirectory("dev")->add(this);
     }
 }
 
@@ -339,7 +354,6 @@ ErrorT MassStorageSCSIUSBDeviceDriver::initialize() {
 
     /* we only register if inquiry succeeds */
     theOS->getPartitionManager()->registerBlockDevice(this);
-    theOS->getFileManager()->getDirectory("dev")->add(this);
 
     return (cOk );
 }
@@ -401,8 +415,9 @@ ErrorT MassStorageSCSIUSBDeviceDriver::writeBlock(unint4 blockNum, char* buffer,
     cbw[15] = SCSI_WRITE10;
 
     // block size = 512
-    if (blocks > 256)
-        return (cBlockDeviceTooManyBlocks );
+    if (blocks > 256) {
+        return (cBlockDeviceTooManyBlocks);
+    }
     unint2 length = (unint2) (blocks << 9);
 
     // initialize read command
@@ -449,10 +464,12 @@ MassStorageSCSIUSBDeviceDriver::~MassStorageSCSIUSBDeviceDriver() {
     // remove driver from dev directory
     theOS->getFileManager()->getDirectory("dev")->remove(this);
 
-    if (this->next != 0)
+    // delete slave lun devices
+    if (this->next != 0) {
         delete this->next;
+    }
 
-    BlockDeviceDriver::freeBlockDeviceIDs->addHead(reinterpret_cast<ListItem*>(this->deviceNumber));
+    BlockDeviceDriver::freeBlockDeviceIDs.freeID(this->deviceNumber);
 }
 
 /*****************************************************************************

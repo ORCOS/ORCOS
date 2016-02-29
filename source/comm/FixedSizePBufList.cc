@@ -65,7 +65,7 @@ int FixedSizePBufList::addPbuf(pbuf* p, sockaddr* from) {
 
     // all entries used?
     if (last == head_id) {
-        return (cError );
+        return (cDatabaseOverflow);
     }
 
     LOG(COMM, TRACE, "FixedSizePBufList::addPbuf():last_id: %d, pbuf_list : %x, fromaddr: %x", last_id, pbuf_list, from);
@@ -79,7 +79,7 @@ int FixedSizePBufList::addPbuf(pbuf* p, sockaddr* from) {
 
     last_id = last;
 
-    return (cOk );
+    return (cOk);
 }
 
 /*****************************************************************************
@@ -95,12 +95,12 @@ int FixedSizePBufList::addPbuf(pbuf* p, sockaddr* from) {
  *******************************************************************************/
 int FixedSizePBufList::getFirst(char* data, size_t len, sockaddr* from, pbuf* &pb) {
     if (!hasData())
-        return (cNoData );
+        return (cNoData);
 
     pbuf* p = pbuf_list[head_id];
     if (p->len > len) {
         LOG(COMM, WARN, "FixedSizePBufList::getFirst(): packet too long to receive: %d > %d", p->len, len);
-        return (cError );
+        return (cError);
     }
 
     memcpy(data, p->payload, p->len);

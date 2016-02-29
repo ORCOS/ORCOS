@@ -155,7 +155,12 @@ ErrorT PartitionManager::tryMBR(BlockDeviceDriver* bdev) {
                 case 13:  // FAT 32 (LBA)
                 case 14:  // FAT 16 (LBA)
                 {
-                    Partition* partition = new Partition(bdev, "PT", pt_entry->lba_start, pt_entry->lba_size, i);
+                    static char tmpname[100];
+                    char* name = new char[40];
+                    name[39] = 0;
+                    sprintf(tmpname, "<unnamed>@%s", bdev->getName());
+                    strncpy(name, tmpname, 40);
+                    Partition* partition = new Partition(bdev, name, pt_entry->lba_start, pt_entry->lba_size, i);
                     this->add(partition);
 
                     // FAT Filesystem
@@ -242,7 +247,13 @@ void PartitionManager::registerBlockDevice(BlockDeviceDriver* bdev) {
         return;
     /* No MBR? .. try mounting the partition directly using the whole block device */
 
-    Partition* partition = new Partition(bdev, "PT", 0, -1, 0);
+    static char tmpname[100];
+    char* name = new char[40];
+    name[39]   = 0;
+    sprintf(tmpname, "<unnamed>@%s", bdev->getName());
+    strncpy(name, tmpname, 40);
+
+    Partition* partition = new Partition(bdev, name, 0, -1, 0);
     if (FATFileSystem::isFATFileSystem(partition)) {
         /* FAT FS found.. probably windows created FS.
          * Windows does not create a MBR. It just plain initializes the FAT FS

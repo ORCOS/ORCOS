@@ -17,7 +17,7 @@
 */
 
 #include <orcos.hh>
-#include <string.hh>
+#include <string.h>
 
 #define SCREEN_WIDTH 1024
 char* fb;

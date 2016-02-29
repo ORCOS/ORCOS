@@ -75,7 +75,7 @@ AM335xGPIO::~AM335xGPIO() {
  *******************************************************************************/
 ErrorT AM335xGPIO::readBytes(char* bytes, unint4& length) {
     if (length < 4)
-        return (cError );
+        return (cError);
     // check alignment
     if ((((unint4) bytes) & 0x3) != 0) {
         return (cWrongAlignment );
@@ -83,7 +83,7 @@ ErrorT AM335xGPIO::readBytes(char* bytes, unint4& length) {
 
     OUTW(bytes, INW(this->baseAddress + AM335X_GPIO_DATA_IN));
     length = 4;
-    return (cOk );
+    return (cOk);
 }
 
 /*****************************************************************************

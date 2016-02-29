@@ -72,20 +72,6 @@ extern "C" {
 #define be16tocpu cputobe16
 
     /*****************************************************************************
-     * Method: le32_to_int(unsigned char *le32)
-     *
-     * @description
-     *  Convert char[4] in little endian format to the host format integer
-     * @params
-     *
-     * @returns
-     *  int         value in host format
-     *******************************************************************************/
-    static inline int le32_to_int(char *le32) {
-        return ((le32[3] << 24) + (le32[2] << 16) + (le32[1] << 8) + le32[0]);
-    }
-
-    /*****************************************************************************
      * Method: __get_unaligned_le16(char* p)
      *
      * @description
@@ -125,15 +111,31 @@ extern "C" {
 #endif
     }
 
+
+    /*****************************************************************************
+     * Method: le32_to_int(unsigned char *le32)
+     *
+     * @description
+     *  Convert char[4] in little endian format to the host format integer
+     * @params
+     *
+     * @returns
+     *  int         value in host format
+     *******************************************************************************/
+    static inline int le32_to_int(char *le32) {
+        return (__get_unaligned_le32(le32));
+    }
+
 #ifdef __cplusplus
 }
 #endif
 
-#define ___swab32(x) \
-    ((unint4)( \
+#define ___swab32(x)  __builtin_bswap32(x)
+
+/*((unint4)( \
         (((unint4)(x) & (unint4)0x000000ffUL) << 24) | \
         (((unint4)(x) & (unint4)0x0000ff00UL) <<  8) | \
         (((unint4)(x) & (unint4)0x00ff0000UL) >>  8) | \
-        (((unint4)(x) & (unint4)0xff000000UL) >> 24) ))
+        (((unint4)(x) & (unint4)0xff000000UL) >> 24) ))*/
 
 #endif  // SOURCE_INC_ENDIAN_H_

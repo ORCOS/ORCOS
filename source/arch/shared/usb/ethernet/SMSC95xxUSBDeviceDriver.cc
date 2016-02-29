@@ -174,7 +174,7 @@ static char default_macaddr[6] = { 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0 };
 
 /* usb transfer memory area. placed in cache inhibit memory region to allow ehci hc
  * to see the correct data  */
-static char tmp_data[2048] ATTR_CACHE_INHIBIT;
+static char tmp_data[2048]; // ATTR_CACHE_INHIBIT;
 
 int4 tmpbuf[2] __attribute__((aligned(4))) ATTR_CACHE_INHIBIT;
 
@@ -904,7 +904,6 @@ ErrorT SMSC95xxUSBDeviceDriver::recv(char* rxbuffer, unint4 recv_len) {
 
                 acquireMutex(comStackMutex);
                 ethernet_input(last_pbuf, &st_netif);
-                //pbuf_free(last_pbuf);
                 releaseMutex(comStackMutex);
             } else {
                 LOG(ARCH, DEBUG, "SMSC95xxUSBDeviceDriver: rx split packet: %d", recv_len);
@@ -945,7 +944,6 @@ ErrorT SMSC95xxUSBDeviceDriver::recv(char* rxbuffer, unint4 recv_len) {
                 if (packet_len <= r_len) {
                     memcpy(ptBuf->payload, &rxbuffer[recvd_bytes + 4], packet_len);
                     ethernet_input(ptBuf, &st_netif);
-                    //pbuf_free(ptBuf);
                 } else {
                     memcpy(ptBuf->payload, &rxbuffer[recvd_bytes + 4], r_len);
                     last_pbuf = ptBuf;
@@ -1131,7 +1129,7 @@ err_t smsc9x_ethernetif_init(struct netif *netif) {
 
     /* maximum transfer unit */
     //netif->mtu = HS_USB_PKT_SIZE - 100; //MAX_FRAME_SIZE;
-    netif->mtu          = 1400;
+    netif->mtu          = 1500;
     netif->rxbytes      = 0;
     netif->txbytes      = 0;
     netif->rxpackets    = 0;
@@ -1226,9 +1224,9 @@ ErrorT SMSC95xxUSBDeviceDriver::initialize() {
 
     /* save driver in netif as state
      * use ethernet interface init method in lwip_ethernetif.c */
+    netif_set_down(&st_netif);
     netif_add(&st_netif, &tIpAddr, &eth_nm, &tgwAddr, this, &smsc9x_ethernetif_init, 0);
     netif_set_default(&st_netif);
-    netif_set_down(&st_netif);
 
     return (cOk );
 }
@@ -1283,14 +1281,15 @@ ErrorT SMSC95xxUSBDeviceDriver::handleInterrupt() {
         // get size of interrupt transfer
         int len = dev->getEndpointTransferSize(4);
 
-        theOS->getBoard()->getCache()->invalidate_data((void*)&dev->endpoints[4].recv_buffer[0], dev->endpoints[4].interrupt_receive_size);
-        /* handle received data */
-        if (len > 0)
+        if (len > 0) {
+            theOS->getBoard()->getCache()->invalidate_data((void*)&dev->endpoints[4].recv_buffer[0], dev->endpoints[4].interrupt_receive_size);
+
+            /* handle received data */
             recv(&dev->endpoints[4].recv_buffer[0], len);
+        }
 
         /* clear received data */
-        memset(&dev->endpoints[4].recv_buffer[0], 0, dev->endpoints[4].interrupt_receive_size);
-        /* set qtd back to active */
+        //memset(&dev->endpoints[4].recv_buffer[0], 0, dev->endpoints[4].interrupt_receive_size);
 
         /* dev->activateEndpoint(bulkin_ep); */
         dev->activateEndpoint(4);

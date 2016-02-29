@@ -21,6 +21,7 @@
 #include <assemblerFunctions.hh>
 #include "kernel/Kernel.hh"
 #include "sprintf.hh"
+#include "debug/Trace.hh"
 
 extern Kernel*                 theOS;
 extern Board_TimerCfdCl*       theTimer;
@@ -125,7 +126,7 @@ void SingleCPUDispatcher::dispatch() {
 
         int tid = pCurrentRunningThread->getId();
 
-        TRACE_THREAD_START(tid, pCurrentRunningThread->getId());
+        TRACE_THREAD_START(pCurrentRunningTask->getId(), pCurrentRunningThread->getId());
 
         pCurrentRunningThread->instance++;
 
@@ -184,6 +185,8 @@ void SingleCPUDispatcher::sleep(Thread* thread) {
     /* be sure that this critical area cant be interrupted */
     int irqstatus;
     DISABLE_IRQS(irqstatus);
+
+    TRACE_THREAD_STOP(thread->getOwner()->getId(), thread->getId());
 
     /* place into sleeplist at correct location. sorted on sleeptime. */
     LinkedListItem* sItem = sleepList->getTail();
@@ -262,6 +265,7 @@ void SingleCPUDispatcher::unblock(Thread* thread) {
     if (thread->sleepTime > 0) {
         this->sleepList->addTail(thread->getLinkedListItem());
     } else {
+        TRACE_THREAD_REGISTER(thread->getOwner()->getId(), thread->getId());
         this->SchedulerCfd->enter(thread->getLinkedListItem());
 
         Kernel_ThreadCfdCl *pThread = static_cast<Kernel_ThreadCfdCl *>(thread);
@@ -294,6 +298,7 @@ void SingleCPUDispatcher::sigwait(SignalType signaltype, Thread* thread) {
     DISABLE_IRQS(irqstatus);
 
     LOG(SCHEDULER, TRACE, "SingleCPUDispatcher::sigwait() adding Thread");
+    TRACE_THREAD_STOP(thread->getOwner()->getId(), thread->getId());
 
     switch (signaltype) {
     case (SIGNAL_GENERIC) : {
@@ -358,6 +363,7 @@ void SingleCPUDispatcher::signal(LinkedList* list, void* sig, int sigvalue) {
                     this->sleepList->addTail(litem);
                 } else {
                     /* put on run queue */
+                    TRACE_THREAD_REGISTER(pThread->getOwner()->getId(), pThread->getId());
                     this->SchedulerCfd->enter(litem);
                 }
             }

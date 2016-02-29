@@ -9,7 +9,7 @@
 #include "syscalls.hh"
 #include "SCLConfig.hh"
 
-#define MAX_SYSCALL_NUM 49
+#define MAX_SYSCALL_NUM 51
 /*****************************************************************************
  * Method: sc_default_handler(intptr_t sp_int)
  *
@@ -76,7 +76,9 @@ p_syscall_handler_t syscall_handler[MAX_SYSCALL_NUM+1] = {
         sc_waitirq,         /* cThreadWaitIRQSyscallId  = 46 */
         sc_gethostbyname,   /* cGetHostByNameSyscallId  = 47 */
         sc_getCycles,       /* cGetCyclesSyscallId      = 48 */
-        sc_rename           /* cRenameSyscallId         = 49 */
+        sc_rename,          /* cRenameSyscallId         = 49 */
+        sc_getcwd,          /* cGetCwdSyscallId         = 50 */
+        sc_chdir            /* cChDirSyscallId          = 51 */
 };
 
 extern "C" void handleSyscall(intptr_t sp_int) {
@@ -94,6 +96,8 @@ extern "C" void handleSyscall(intptr_t sp_int) {
     /* get passed syscall id */
     GET_SYSCALL_NUM(sp_int, syscallnum);
     syscallnum &= 0xff;
+
+   TRACE_SYSCALL_ENTER(pCurrentRunningTask->getId(), pCurrentRunningThread->getId(), syscallnum);
 
     /* check for valid range*/
     if (syscallnum > MAX_SYSCALL_NUM) {

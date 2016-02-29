@@ -161,8 +161,9 @@ Directory*  Directory::createDirectory(char* p_name, unint4 flags) {
  *  USed from user space to list the directory contents.
  *******************************************************************************/
 ErrorT Directory::readBytes(char *bytes, unint4 &length) {
-    if (length < 1)
+    if (length < 1) {
         return (cOk);
+    }
 
     unint4 pos       = 0;
     unint4 entry_num = 0;
@@ -184,12 +185,15 @@ ErrorT Directory::readBytes(char *bytes, unint4 &length) {
         unint2 namelen = (unint2) (strlen(p_name)+1);
         /* align next entry to multiple of 4 bytes */
         unint2 namelen2 = (namelen + 3) & ~(3);
-        if (namelen2 > 256)
+        if (namelen2 > 256) {
             namelen2 = 256;
+        }
 
         Directory_Entry_t* entry = reinterpret_cast<Directory_Entry_t*>(bytes);
-        if (pos + sizeof(Directory_Entry_t) + namelen2 >= length)
+        if (pos + sizeof(Directory_Entry_t) + namelen2 >= length) {
+            memset(&bytes[pos], 0xff, length - pos -1);
             break;
+        }
 
         bytes   += sizeof(Directory_Entry_t) + namelen2;
         pos     += sizeof(Directory_Entry_t) + namelen2;
@@ -197,6 +201,7 @@ ErrorT Directory::readBytes(char *bytes, unint4 &length) {
         entry->namelen      = namelen2;
         entry->datetime     = 0;
         entry->filesize     = 0;
+        entry->reserved     = 0;
         entry->resId        = ritem->getId();
         entry->resType      = ritem->getType();
         entry->flags        = 0;

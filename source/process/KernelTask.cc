@@ -60,16 +60,21 @@ KernelThread* KernelTask::getPeriodicThread(unint1 pid, CallableObject* obj, Tim
      ListItem* litem = this->nonWorkingThreads.removeHead();
 
      if (litem != 0) {
+         TimeT now = 0;
+         if (theClock) {
+             // set the arrival time to now!
+             now = theClock->getClockCycles();
+         }
+
          KernelThread* pWThread = static_cast<KernelThread*>(litem);
          pWThread->jobid = PeriodicFunctionCallJob;
          pWThread->pid   = pid;
          pWThread->param.periodicCall.period = period;
          pWThread->param.periodicCall.functioncall.objectptr    = obj;
-         pWThread->param.periodicCall.functioncall.time         = 0;
+         pWThread->param.periodicCall.functioncall.time         = now;
          pWThread->param.periodicCall.functioncall.parameterptr = param;
 
-         // set the arrival time to now!
-         pWThread->arrivalTime = 0;
+         pWThread->arrivalTime = now;
          pWThread->instance    = 1;
 
 #ifdef HAS_PRIORITY

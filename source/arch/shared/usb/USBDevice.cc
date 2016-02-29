@@ -18,7 +18,7 @@ extern Kernel* theOS;
  *
  **********************************************************************/
 
-IDMap* USBDevice::freeDeviceIDs;
+IDMap<256> USBDevice::freeDeviceIDs;
 
 /*****************************************************************************
  * Method: USBDevice::setAddress(unint1 addr)
@@ -90,6 +90,6 @@ USBDevice::~USBDevice() {
         delete driver;
 
     if (this->addr != 0) {
-        freeDeviceIDs->freeID(this->addr);
+        freeDeviceIDs.freeID(this->addr);
     }
 }

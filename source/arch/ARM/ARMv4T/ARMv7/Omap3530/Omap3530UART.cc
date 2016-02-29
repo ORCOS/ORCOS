@@ -221,13 +221,13 @@ ErrorT Omap3530UART::outputSCC(int4 Timeout, byte c) {
     int ret = cError;
 
     while (Timeout == -1 || Timeout--) {
-        {
-            if (!isTransmitBufferFull()) {
-                sendByte(c); /* output char */
-                ret = cOk;
-                break;
-            }
+        SMP_SPINLOCK_GET(lock);
+        if (!isTransmitBufferFull()) {
+            sendByte(c); /* output char */
+            ret = cOk;
+            break;
         }
+        SMP_SPINLOCK_FREE(lock);
     } /* end while */
     return (ret);
 }

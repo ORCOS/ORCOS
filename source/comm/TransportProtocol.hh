@@ -70,7 +70,7 @@ public:
     virtual ErrorT listen(Socket* socket) = 0;
 
     //! Register a socket on the following so it can receive messages
-    virtual ErrorT register_socket(unint2 port, Socket* socket) = 0;
+    virtual ErrorT register_socket(unint2* port, Socket* socket) = 0;
 
     //! Unregister a socket (after that it can not receive a message anymore)
     virtual ErrorT unregister_socket(Socket* socket) = 0;

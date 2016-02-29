@@ -92,7 +92,7 @@ ErrorT USB_Host_Controller::enumerateDevice(USBDevice *dev) {
     // give some time for reset recovery of device
     kwait(10);
 
-    int nextId = USBDevice::freeDeviceIDs->getNextID();
+    int nextId = USBDevice::freeDeviceIDs.getNextID();
     if (nextId == -1) {
         LOG(ARCH, ERROR, "USB_Host_Controller: No free USB Device ID left!");
         return (cError);
@@ -143,7 +143,7 @@ ErrorT USB_Host_Controller::enumerateDevice(USBDevice *dev) {
     ConfigurationDescriptor* cConf = reinterpret_cast<ConfigurationDescriptor*>(&recv_buf);
     unint4 total_length = cConf->wtotalLength;
 
-    int firstConfig = cConf->bConfigurationValue;
+    //int firstConfig = cConf->bConfigurationValue;
     LOG(ARCH, INFO, "USB_Host_Controller: Configuration %d [%x]:", cConf->bConfigurationValue, cConf->bmAttributes);
     LOG(ARCH, INFO, "USB_Host_Controller:   NumInterfaces: %d maxPower: %d mA", cConf->bNumInterfaces, cConf->bMaxPower * 2);
     InterfaceDescriptor* iDescr = reinterpret_cast<InterfaceDescriptor*>(cConf + 1);

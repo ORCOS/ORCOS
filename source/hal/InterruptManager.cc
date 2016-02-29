@@ -49,7 +49,7 @@ ErrorT InterruptManager::handleInterruptIRQ(unint4 irq) {
         return (cError);
     }
 
-    TRACE_IRQ_ENTRY(irq);
+    TRACE_IRQ_ENTRY(irq << 8);
     irqTable[irq].triggerCount++;
 
     LOG(HAL, TRACE, "InterruptManager::handleIRQ(): IRQ %d.", irq);
@@ -107,7 +107,7 @@ ErrorT InterruptManager::handleInterruptIRQ(unint4 irq) {
 #endif
 
 out:
-    TRACE_IRQ_EXIT(irq);
+    TRACE_IRQ_EXIT(irq << 8);
     return (ret);
 }
 
@@ -144,7 +144,7 @@ ErrorT InterruptManager::registerIRQ(unint4 irq, GenericDeviceDriver* driver, un
 #endif
 
     driver->enableIRQ(irq);
-    TRACE_ADD_SOURCE(0, irq, driver->getName());
+    TRACE_ADD_SOURCE(0, irq << 8, driver->getName());
     return (cOk);
 }
 
@@ -190,13 +190,19 @@ ErrorT InterruptManager::unregisterIRQ(unint4 irq) {
  *******************************************************************************/
 ErrorT InterruptManager::readBytes(char* bytes, unint4& length) {
     unint4 len = 0;
+    ErrorT ret = cOk;
+
+    if (this->position > 0) {
+        ret = cEOF;
+        goto out;
+    }
 
     if (len + 33 > length) {
         goto out;
     }
 
     sprintf(bytes, " IRQ      COUNT  PRIORITY  NAME"LINEFEED);
-    len += 33;
+    len   += 33;
     bytes += 33;
 
     if (len + (16 + 6 + 12) > length) {
@@ -204,7 +210,7 @@ ErrorT InterruptManager::readBytes(char* bytes, unint4& length) {
     }
 
     sprintf(bytes, " %3u %10u   HIGHEST  %s"LINEFEED, 0, scheduleCount, "Timer");
-    len += 16 + 6 + 12;
+    len   += 16 + 6 + 12;
     bytes += 16 + 6 + 12;
 
     if (len + (27 + 22) > length) {
@@ -234,7 +240,9 @@ ErrorT InterruptManager::readBytes(char* bytes, unint4& length) {
         }
     }
 
-    out: length = len;
-    return (cOk );
+out:
+    this->position += len;
+    length = len;
+    return (ret);
 }
 

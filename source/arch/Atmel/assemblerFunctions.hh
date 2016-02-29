@@ -10,7 +10,8 @@
 
 #include "SCLConfig.hh"
 #include <types.hh>
-#include <process/Thread.hh>
+//#include <process/Thread.hh>
+class Thread;
 
 extern unint4 sc_return_value;
 extern unint4 sc_number;
@@ -81,6 +82,9 @@ extern unint4 sc_param5;
 #define SYSCALLGETPARAM5(int_sp, param5) param5 = sc_param5
 
 #define SETSTACKPTR(st)
+
+#define SMP_SPINLOCK_GET(spinlock)
+#define SMP_SPINLOCK_FREE(spinlock)
 
 #define SETPID(pid)
 

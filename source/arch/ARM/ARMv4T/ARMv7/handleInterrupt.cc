@@ -209,6 +209,7 @@ extern "C" __attribute__((used)) void dispatchIRQ(void* sp_int, int mode) {
         /* General Purpose Timer interrupt used for scheduling */
         case SCHED_TIMER_IRQ: {
             /* non returning irq ..*/
+            TRACE_IRQ_ENTRY(irqSrc << 8);
             theTimer->tick();
             __builtin_unreachable();
             break;

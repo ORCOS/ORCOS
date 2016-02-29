@@ -17,9 +17,12 @@ BufferDevice::BufferDevice(char* name, int bufferSize) :
 
     buffersize = bufferSize;
 
-    if (buffersize > MAX_BUFFER_SIZE)
+    if (buffersize > MAX_BUFFER_SIZE) {
         buffersize = MAX_BUFFER_SIZE;
+    }
 
+    // allocate in kernel space so every process can read this buffer
+    // without mapping the space
     buffer      = new char[buffersize];
     usedBytes   = 0;
     readPointer = 0;
@@ -27,7 +30,7 @@ BufferDevice::BufferDevice(char* name, int bufferSize) :
 
 BufferDevice::~BufferDevice() {
     if (buffer) {
-        delete(buffer);
+        delete (buffer);
     }
 }
 
@@ -37,11 +40,13 @@ BufferDevice::~BufferDevice() {
  * @description
  *******************************************************************************/
 ErrorT BufferDevice::readBytes(char *bytes, unint4 &length) {
-    if (!isValid())
+    if (!isValid()) {
         return (cError);
+    }
+
     if (usedBytes == 0) {
         length = 0;
-        return (cOk );
+        return (cOk);
     }
 
     if (length > usedBytes) {
@@ -62,7 +67,7 @@ ErrorT BufferDevice::readBytes(char *bytes, unint4 &length) {
 
     usedBytes -= length;
 
-    return (cOk );
+    return (cOk);
 }
 
 /*****************************************************************************
@@ -78,8 +83,9 @@ ErrorT BufferDevice::writeBytes(const char *bytes, unint4 length) {
     if (writeBytes + usedBytes > buffersize)
         writeBytes = buffersize - usedBytes;
 
-    if (writeBytes == 0)
-        return (cDeviceMemoryExhausted );
+    if (writeBytes == 0) {
+        return (cDeviceMemoryExhausted);
+    }
 
     if (this->position + writeBytes >= buffersize) {
         int copy1 = buffersize - this->position;

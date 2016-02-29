@@ -12,6 +12,30 @@
 #include "filesystem/File.hh"
 #include "filesystem/FileSystemBase.hh"
 
+
+struct SuperBlock {
+    unint1 freeBlocks;
+    unint1 nextFreeBlock;
+    unint1 numBlocks;
+    unint1 reserved;
+} __attribute__((packed));
+
+
+/* @class: RamFilesystem
+ *
+ * @description
+ *   The RamFilesystem class implements a very simple filesystem which
+ *   is completely placed in ram. If uses a blockchain mechanism similar
+ *   to FAT to allocate/free and track blocks of a file.
+ *   Directories are kept in Kernel memory not utilizing any blocks.
+ *
+ *   To increase write allocate speed a superblock chain is maintained
+ *   which tracks the number of free blocks per superblock.
+ *   A superblock consists of NUM_BLOCKS_PER_SUPERBLOCK blocks and
+ *   allows the allocation to be speed up by not iterating over every
+ *   single block.
+ *
+ */
 class RamFilesystem : public FileSystemBase {
 private:
     /* The global block chain */
@@ -23,6 +47,11 @@ private:
     /* Address of the first block allocatable */
     unint4  firstBlock;
 
+    unint4  superBlocks;
+
+    struct SuperBlock* superBlockChain;
+
+    Mutex  myMutex;
 public:
     /*****************************************************************************
      * Method: Ramdisk(T_Ramdisk_Init* init)

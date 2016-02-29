@@ -361,7 +361,7 @@ ErrorT TaskManager::removeTask(Task* task) {
     if (task == 0)
         return (cError );
 
-    LOG(KERNEL, INFO, "TaskManager::removeTask: removing task");
+    LOG(KERNEL, INFO, "TaskManager::removeTask: removing task %u", task->getId());
 #ifdef HAS_Kernel_RamManagerCfd
     /* mark the used pages as free again */
     theOS->getRamManager()->freeAll(task->getId());

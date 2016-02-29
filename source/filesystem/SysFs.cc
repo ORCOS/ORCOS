@@ -99,19 +99,25 @@ KernelVariable::~KernelVariable() {
  *
  *******************************************************************************/
 ErrorT KernelVariable::readBytes(char *bytes, unint4 &length) {
+    if (this->position > 0) {
+        /* must reset position first before reading again! */
+        return (cEOF);
+    }
+
     if (mode & READ) {
         /* read the memory address */
-
-        if (length > this->filesize)
+        if (length > this->filesize) {
             length = this->filesize;
+        }
 
         for (unint i = 0; i < this->filesize; i++) {
             bytes[i] = (reinterpret_cast<char*>(this->address))[i];
         }
 
+        this->position = length;
         return (cOk);
     } else {
-        return (cError);
+        return (cResourceNotReadable);
     }
 }
 
@@ -125,8 +131,8 @@ ErrorT KernelVariable::readBytes(char *bytes, unint4 &length) {
  *******************************************************************************/
 ErrorT KernelVariable::writeBytes(const char *bytes, unint4 length) {
     if (mode & WRITE) {
-        if (length < this->filesize) {
-            return (cInvalidArgument );
+        if (length != this->filesize) {
+            return (cInvalidArgument);
         }
 
         length = this->filesize;
@@ -136,12 +142,12 @@ ErrorT KernelVariable::writeBytes(const char *bytes, unint4 length) {
                 (reinterpret_cast<char*>(this->address))[i] = bytes[i];
             }
 
-            return (cOk );
+            return (cOk);
         } else {
             return (onWriteHandler(bytes, length));
         }
     } else {
-        return (cError );
+        return (cResourceNotWriteable);
     }
 }
 

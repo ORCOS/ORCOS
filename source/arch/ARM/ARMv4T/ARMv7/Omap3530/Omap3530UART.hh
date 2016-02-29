@@ -65,6 +65,7 @@
 ORCOS_MODULE(Omap3530UART, CharacterDevice) {
 private:
     int4 baseAddr;
+    int4 lock;
 
     /*****************************************************************************
      * Method: sendByte(byte Data)

@@ -29,10 +29,12 @@
  *  int        value in little endian format
  *******************************************************************************/
 unint4 cputole32(unint4 n) {
-    return ((n & 0xff) << 24) |
+    return (__builtin_bswap32(n));
+
+    /*return ((n & 0xff) << 24) |
     ((n & 0xff00) << 8) |
     ((n & 0xff0000UL) >> 8) |
-    ((n & 0xff000000UL) >> 24);
+    ((n & 0xff000000UL) >> 24);*/
 }
 
 /*****************************************************************************
@@ -47,7 +49,8 @@ unint4 cputole32(unint4 n) {
  *  int        value in little endian format
  *******************************************************************************/
 unint2 cputole16(unint2 n) {
-    return ((n & 0xff) << 8) | ((n & 0xff00) >> 8);
+    return (__builtin_bswap16(n));
+    //return ((n & 0xff) << 8) | ((n & 0xff00) >> 8);
 }
 
 #else
@@ -130,8 +133,9 @@ unint2 cputobe16(unint2 n) {
  *  int        value in big endian format
  *******************************************************************************/
 unint4 cputobe32(unint4 n) {
-    return (((n & 0xff) << 24) | ((n & 0xff00) << 8) | ((n & 0xff0000UL) >> 8)
-            | ((n & 0xff000000UL) >> 24));
+    return (__builtin_bswap32(n));
+    /*return (((n & 0xff) << 24) | ((n & 0xff00) << 8) | ((n & 0xff0000UL) >> 8)
+            | ((n & 0xff000000UL) >> 24));*/
 }
 
 /*****************************************************************************
@@ -146,7 +150,8 @@ unint4 cputobe32(unint4 n) {
  *  int        value in big endian format
  *******************************************************************************/
 unint2 cputobe16(unint2 n) {
-    return ((unint2)(((n & 0xff) << 8) | ((n & 0xff00) >> 8)));
+    return (__builtin_bswap16(n));
+    //return ((unint2)(((n & 0xff) << 8) | ((n & 0xff00) >> 8)));
 }
 
 #endif

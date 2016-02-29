@@ -32,7 +32,7 @@
  */
 class Clock: public CallableObject {
 private:
-    /* The Date Time at synchronization point*/
+    /* The Date Time (since 1970) at synchronization point */
     unint4 synchDateTime;
 
     /* The local time at synchronization point*/

@@ -82,7 +82,7 @@ public:
      * @returns
      *  int         Error Code
      *******************************************************************************/
-    ErrorT register_socket(unint2 port, Socket* socket);
+    ErrorT register_socket(unint2* port, Socket* socket);
 
     /*****************************************************************************
      * Method: connect(AddressProtocol* nextLayer, sockaddr *toaddr, Socket* fromsocket)

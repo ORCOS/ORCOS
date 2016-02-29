@@ -105,9 +105,15 @@ int sc_task_run(intptr_t sp_int) {
 
     /* set specified stdout */
     if (stdoutdev != 0) {
-        CharacterDevice* stdoutres = static_cast<CharacterDevice*>(theOS->getFileManager()->getResourceByNameandType(stdoutdev, cStreamDevice));
+        CharacterDevice* stdoutres = static_cast<CharacterDevice*>(theOS->getFileManager()->getResourceByNameandType(stdoutdev, (ResourceType) (cStreamDevice | cFile)));
         if (stdoutres != 0) {
             /* SET STDOUT of task*/
+            if (stdoutres->getType() & cFile) {
+                File* file = static_cast<File*>(stdoutres);
+                file->resetPosition();
+                file->seek(file->getFileSize());
+            }
+
             t->setStdOut(stdoutres);
         }
     }
@@ -117,12 +123,7 @@ int sc_task_run(intptr_t sp_int) {
         retval = taskId;
     }
 
-    /* set return value now! as we must dispatch */
-/*    {
-    void* sp_int;
-    GET_RETURN_CONTEXT(pCurrentRunningThread, sp_int);*/
     SET_RETURN_VALUE(sp_int, retval);
-    //}
 
     /* new task may have higher priority so dispatch now! */
     theOS->getDispatcher()->dispatch();

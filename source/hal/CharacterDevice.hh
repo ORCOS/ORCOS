@@ -73,8 +73,8 @@ public:
      * parameter length, which is given by reference.
      * the function should alter the length parameter according to the number
      * of bytes which could be read.
-     * if no data could be read, length should be set to 0 and an error value
-     * is returned by the function.
+     * If no data could be read (example end of file reached), length shall
+     * be set to 0 and an error value shall be returned by the function.
       *******************************************************************************/
     virtual ErrorT readBytes(char *bytes, unint4 &length) {
         return (cNotImplemented);
@@ -107,11 +107,12 @@ public:
       *******************************************************************************/
     virtual ErrorT seek(int4 seek_value) {
         /* avoid negative positions */
-        if (this->position + seek_value < 0)
+        if (this->position + seek_value < 0) {
             this->position = 0;
-        else
+        } else  {
             this->position += seek_value;
-        return (cOk );
+        }
+        return (cOk);
     }
 
 
@@ -123,7 +124,7 @@ public:
       *******************************************************************************/
     virtual ErrorT resetPosition() {
         this->position = 0;
-        return (cOk );
+        return (cOk);
     }
 };
 

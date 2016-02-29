@@ -343,12 +343,12 @@ public:
         * @description
         *  see USB_Host_Controller::sendUSBControlMsg
         *******************************************************************************/
-       int sendUSBControlMsg(USBDevice *dev,
-                               unint1 endpoint,
-                               char *control_msg,
-                               unint1 direction = USB_DIR_IN,
-                               unint1 length = 0,
-                               char *data = 0);
+       int sendUSBControlMsg(USBDevice  *dev,
+                               unint1   endpoint,
+                               char     *control_msg,
+                               unint1   direction = USB_DIR_IN,
+                               unint1   length = 0,
+                               char     *data = 0);
 
        /*****************************************************************************
         * Method: USBBulkMsg(USBDevice *dev,
@@ -360,11 +360,12 @@ public:
         * @description
         *  see USB_Host_Controller::USBBulkMsg
         *******************************************************************************/
-       int USBBulkMsg(USBDevice *dev,
-                        unint1 endpoint,
-                        unint1 direction,
-                        unint2 data_len,
-                        char *data);
+       int USBBulkMsg(USBDevice     *dev,
+                        unint1      endpoint,
+                        unint1      direction,
+                        unint2      data_len,
+                        char        *data,
+                        int         timeout_ms = 2000);
 
 
        /*****************************************************************************

@@ -5,6 +5,9 @@
  *    Copyright &  Author: dbaldin
  */
 
+#include "SCLConfig.hh"
+#ifdef USE_WORKERTASK
+
 #include <kernel/KernelServiceThread.hh>
 #include "kernel/Kernel.hh"
 #include "lwipopts.h"
@@ -121,18 +124,18 @@ void KernelServiceThread::callbackFunc(void* param) {
     LOG(KERNEL, TRACE, "MemoryManager service!");
     theOS->getMemoryManager()->service();
 
+    TimeT now = theClock->getClockCycles();
+
     /* Perform unblock on timeout operation */
     LinkedList* llt = theOS->getDispatcher()->getBlockedlist();
     llt->lock();
     for (LinkedListItem* lldi = llt->getHead(); lldi != 0; lldi = lldi->getSucc()) {
         Thread* thread = static_cast<Thread*>(lldi->getData());
         if (thread->isBlocked() && thread->blockTimeout > 0) {
-            if (thread->blockTimeout <= 250 ms) {
+            if (now >= thread->blockTimeout) {
                 /* unblock the thread */
                 thread->blockTimeout = 0;
                 thread->unblock();
-            } else {
-                thread->blockTimeout -= 250 ms;
             }
         }
     }
@@ -143,3 +146,5 @@ void KernelServiceThread::callbackFunc(void* param) {
     theOS->getLogger()->flush();
     LOG(KERNEL, TRACE, "Services Thread done!");
 }
+
+#endif

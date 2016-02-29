@@ -21,6 +21,7 @@
 #include "process/Task.hh"
 #include "filesystem/File.hh"
 #include "assemblerFunctions.hh"
+#include "debug/Trace.hh"
 
 extern Kernel* theOS;
 extern Kernel_ThreadCfdCl* pCurrentRunningThread;
@@ -92,11 +93,14 @@ ErrorT Mutex::acquire(Resource* pRes, bool blocking) {
         return (cOk);
     }
 
+    if (pCallingThread) {
+        TRACE_MUTEX_ACQUIRE(pCallingThread->getOwner()->getId(), pCallingThread->getId(), this->name);
+    }
 
-    unint8 enterTime = 0;
+    /*unint8 enterTime = 0;
     if (theOS->getClock() != 0) {
         enterTime = theOS->getClock()->getClockCycles();
-    }
+    }*/
 
     int irqstatus;
     DISABLE_IRQS(irqstatus);
@@ -139,9 +143,9 @@ ErrorT Mutex::acquire(Resource* pRes, bool blocking) {
         }
 
         /* this check introduces additional latencies.. we may remove it but it helps debugging stalled conditions */
-        if ((theOS->getClock() != 0) && ((theOS->getClock()->getClockCycles() - enterTime) > 2000 ms)) {
+        /*if ((theOS->getClock() != 0) && ((theOS->getClock()->getClockCycles() - enterTime) > 2000 ms)) {
             LOG(SYNCHRO, ERROR, "Mutex::acquire() Thread %d stalled on Mutex '%s' (%x), held by: %d", pCallingThread->getId(), this->name, this, m_pThread->getId());
-        }
+        }*/
         _enableInterrupts();
         /* at this point we will be interrupted. */
         NOP;
@@ -173,6 +177,9 @@ ErrorT Mutex::release(Thread* pThread) {
     LOG(SYNCHRO, DEBUG, "Mutex '%s' (%x) released", this->name, this);
 
     Kernel_ThreadCfdCl* pCallingThread = static_cast<Kernel_ThreadCfdCl*>(pThread);
+    if (pCallingThread) {
+        TRACE_MUTEX_RELEASE(pCallingThread->getOwner()->getId(), pCallingThread->getId(), this->name);
+    }
     /* reset the priority of the currentRunning thread as it might have been boosted by
      * higher priority waiting threads  */
     if (pCallingThread != 0 && waitingThreads > 0) {

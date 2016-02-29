@@ -109,7 +109,7 @@ private:
     void*               exitRoutinePointer;
 
     //!  A global Thread counter.
-    static IDMap*       freeIDMap;
+    static IDMap<1024>  freeIDMap;
 
     //! The sysFs directory of this thread
     Directory*          sysFsDir;
@@ -128,6 +128,12 @@ public:
     //! The absolute time point in cycles this thread will be sleeping up to
     TimeT               sleepTime;
 
+    /* The current timeout time of the blocked thread
+     * If this timepoint is reached the thread is unblocked by the
+     * kernel service thread.
+     */
+    TimeT               blockTimeout;
+
     //! The arguments passed to the thread on startup
     void*               arguments;
 
@@ -143,12 +149,6 @@ public:
      * The last signal value this thread received
      */
     unint4              signalvalue;
-
-    /* The current timeout value of the blocked stated. Periodically
-     * decremented if the thread is blocked and blockTimeout is > 0.
-     * If the value reaches 0 the thread is unblocked. This allows
-     * blocking operations with timeout to prevent system stalls. */
-    unint4              blockTimeout;
 
     /* Constructor which takes the startRoutinePointer as argument */
     Thread(void* startRoutinePointer,
@@ -167,7 +167,7 @@ public:
      *  Static initialization of the Thread class
      *******************************************************************************/
     static void initialize() {
-        freeIDMap = new IDMap(1024);
+
     }
 
     /*****************************************************************************

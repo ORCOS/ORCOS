@@ -33,7 +33,7 @@ extern Kernel* theOS;
 TaskIdT Task::globalTaskIdCounter;
 
 /* array of free task ids for task creation */
-ArrayList *Task::freeTaskIDs;
+IDMap<MAX_NUM_TASKS> Task::freeTaskIDs;
 
 /*--------------------------------------------------------------------------*
  ** Task::Task
@@ -44,7 +44,7 @@ Task::Task(taskTable* tasktbl) :
         stopped(false),
         sysFsDir(0),
         platform_flags(0) {
-    myTaskId = (TaskIdT) ((unint4) Task::freeTaskIDs->removeHead());
+    myTaskId = (TaskIdT) ((unint4) Task::freeTaskIDs.getNextID());
 
     /* store reference to my tasktable */
     this->tasktable = tasktbl;
@@ -61,7 +61,7 @@ Task::Task(taskTable* tasktbl) :
         sysFsDir = new Directory(idstr);
         dir->add(sysFsDir);
         SYSFS_ADD_RO_STRING(sysFsDir, name);
-        SYSFS_ADD_RO_STRING(sysFsDir, workingDirectory);
+        SYSFS_ADD_RO_STRING_NAMED(sysFsDir, "workingDirectory", workingDirectoryPath);
         SYSFS_ADD_RO_UINT(sysFsDir, platform_flags);
         SYSFS_ADD_RO_UINT(sysFsDir, myTaskId);
         SYSFS_ADD_RO_UINT(sysFsDir, stopped);
@@ -88,7 +88,7 @@ Task::Task() :
         sysFsDir(0),
         platform_flags(0) {
     tasktable = 0;
-    myTaskId = (TaskIdT) ((unint4) Task::freeTaskIDs->removeHead());
+    myTaskId = (TaskIdT) ((unint4) Task::freeTaskIDs.getNextID());
     /* Set initial name and working directory */
     strcpy(this->name, "No Name");
     setWorkingDirectory("/");
@@ -103,7 +103,7 @@ Task::Task() :
         dir->add(sysFsDir);
 
         SYSFS_ADD_RO_STRING(sysFsDir, name);
-        SYSFS_ADD_RO_STRING(sysFsDir, workingDirectory);
+        SYSFS_ADD_RO_STRING_NAMED(sysFsDir, "workingDirectory", workingDirectoryPath);
         SYSFS_ADD_RO_UINT(sysFsDir, platform_flags);
         SYSFS_ADD_RO_UINT(sysFsDir, myTaskId);
         SYSFS_ADD_RO_UINT(sysFsDir, stopped);
@@ -273,7 +273,7 @@ void Task::terminate() {
     }
 
     /* add our id back to the database */
-    Task::freeTaskIDs->addTail(reinterpret_cast<ListItem*>(this->getId()));
+    Task::freeTaskIDs.freeID(this->getId());
 }
 
 /*****************************************************************************
@@ -334,7 +334,10 @@ Kernel_ThreadCfdCl* Task::getThreadbyId(ThreadIdT threadid) {
  *  Returns the ID of the Task, who will be created next
  *******************************************************************************/
 TaskIdT Task::getIdOfNextCreatedTask() {
-    return ((TaskIdT) ((unint4) Task::freeTaskIDs->getHead()));
+    // TODO this must be atomic...
+    TaskIdT nextId = Task::freeTaskIDs.getNextID();
+    Task::freeTaskIDs.freeID(nextId);
+    return (nextId);
 }
 
 
@@ -345,7 +348,7 @@ TaskIdT Task::getIdOfNextCreatedTask() {
  *   Sets the current working directory of this task. Only possible by providing
  *   the path name. May fail if the directory does not exist.
  *******************************************************************************/
-ErrorT Task::setWorkingDirectory(char* newDir)
+ErrorT Task::setWorkingDirectory(const char* newDir)
 {
     if (newDir == 0) {
         return (cNullPointerProvided);

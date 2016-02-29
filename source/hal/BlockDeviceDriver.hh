@@ -15,8 +15,7 @@ protected:
     /*!
      * \brief list of block device ids
      */
-    static ArrayList *freeBlockDeviceIDs;
-
+    static IDMap<20> freeBlockDeviceIDs;
 public:
     /*****************************************************************************
      * Method: BlockDeviceDriver(char* name)
@@ -39,10 +38,6 @@ public:
      *  initialize
      *******************************************************************************/
     static void initialize() {
-        freeBlockDeviceIDs = new ArrayList(20);
-        for (unint4 i = 0; i < 20; i++) {
-            freeBlockDeviceIDs->addTail(reinterpret_cast<ListItem*>(i));
-        }
     }
 
     /*****************************************************************************

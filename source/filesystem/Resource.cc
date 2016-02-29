@@ -91,7 +91,7 @@ int Resource::acquire(Thread* pThread, bool blocking) {
                 retval = result;
 
             /* for files we also reset the position */
-            if (this->getType() & (cFile | cDirectory)) {
+            if (this->getType() & (cFile | cDirectory | cStreamDevice)) {
                 CharacterDevice* cdev = static_cast<CharacterDevice*>(this);
                 cdev->resetPosition();
             }

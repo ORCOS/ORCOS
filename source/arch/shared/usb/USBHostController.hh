@@ -149,11 +149,12 @@ public:
      * @returns
      *  int         Number of bytes transferred inside the data phase
      *******************************************************************************/
-    virtual int USBBulkMsg(USBDevice *dev,
-                   unint1 endpoint,
-                   unint1 direction,
-                   unint2 data_len,
-                   char *data) = 0;
+    virtual int USBBulkMsg(USBDevice    *dev,
+                   unint1               endpoint,
+                   unint1               direction,
+                   unint2               data_len,
+                   char                 *data,
+                   int                  timeout_ms = 2000) = 0;
 
     /*****************************************************************************
      * Method: insertPeriodicQH(QH* qh, int poll_rate)

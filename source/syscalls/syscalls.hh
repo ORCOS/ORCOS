@@ -124,6 +124,8 @@ int sc_getDateTime(intptr_t sp_int);
 
 // TODO SCL
 int sc_rename(intptr_t sp_int);
+int sc_getcwd(intptr_t int_sp);
+int sc_chdir(intptr_t int_sp);
 
 /*******************************************************************
  *              Syscall Dispatching

@@ -94,7 +94,7 @@ ErrorT Omap3530SPI::writeBytes(const char* bytes, unint4 length) {
      **/
     int channel = bytes[0];
     if (channel > 4)
-        return (cInvalidArgument );
+        return (cInvalidArgument);
 
     OUTW(base+ MCSPI_CHxCTRL(channel), 1);
     //OUTW(base+ MCSPI_CHxCTRL(0),1);
@@ -129,8 +129,9 @@ ErrorT Omap3530SPI::writeBytes(const char* bytes, unint4 length) {
     int data2 = INW(base+ MCSPI_RX(channel));
 
     LOG(ARCH, TRACE, "SPI RX: %x, STATUS %x", data2, INW(base+ MCSPI_CHxSTAT(channel)));
-    if (length == 1)
+    if (length == 1) {
         retbytes[0] = data2 & 0xff;
+    }
     if (length == 2) {
         retbytes[0] = data2 & 0xff;
         retbytes[1] = (data2 >> 8) & 0xff;

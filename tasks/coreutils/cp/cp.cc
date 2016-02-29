@@ -17,8 +17,8 @@
  */
 
 #include <orcos.hh>
-#include <string.hh>
 #include <args.h>
+#include <string.h>
 
 #define optProgress  (1 << 0)
 #define optSpeed     (1 << 1)

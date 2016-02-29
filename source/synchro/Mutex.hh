@@ -87,7 +87,7 @@ public:
      * Method: release(Thread* pThread = pCurrentRunningThread)
      *
      * @description
-     *  Releases the current Mutex
+     *  Releases the current mutex
      *---------------------------------------------------------------------------*/
     ErrorT release(Thread* pThread = pCurrentRunningThread);
 
@@ -95,7 +95,7 @@ public:
      * Method: getWaitingThreadCount()
      *
      * @description
-     *  Returns the current numnber of threads waiting on this mutex.
+     *  Returns the current number of threads waiting on this mutex.
      *---------------------------------------------------------------------------*/
     unint2 getWaitingThreadCount() { return (waitingThreads); }
 };

@@ -150,7 +150,6 @@ ErrorT PriorityThreadScheduler::enter(LinkedListItem* item) {
 
     PriorityThread* pPThread = static_cast<PriorityThread*>(item->getData());
 
-    TRACE_THREAD_REGISTER(pPThread->getOwner()->getId(), pPThread->getId());
     int status;
     DISABLE_IRQS(status);
     /* Enter Thread in the database in accordance with it's priority.

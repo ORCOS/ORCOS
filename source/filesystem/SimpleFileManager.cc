@@ -183,8 +183,16 @@ Resource* SimpleFileManager::getResourceByNameandType(const char* pathname, Reso
 
     while (token != 0) {
         /* if we got here res is another directory and we haven't finished searching */
+        /* TODO add parsing rule for names ala <#12> which can be used to
+         * select elements by ID not by name! This also allows opening
+         * files/directories which have duplicate names! */
         dir = static_cast<Directory*>(res);
-        res = dir->get(token, tokenlen);
+        /* we do accept the '.' token here */
+        if (tokenlen == 1 && token[0] == '.') {
+            res = dir;
+        } else {
+            res = dir->get(token, tokenlen);
+        }
         parentDir = dir;
         if (res != 0) {
             /* the directory contains the next token

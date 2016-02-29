@@ -44,7 +44,7 @@
  * Again with the aim of being simple, correct and fully portable.
  * Byte swapping is the second thing you would want to optimize. You will
  * need to port it to your architecture and in your cc.h:
- * 
+ *
  * #define LWIP_PLATFORM_BYTESWAP 1
  * #define LWIP_PLATFORM_HTONS(x) <your_htons>
  * #define LWIP_PLATFORM_HTONL(x) <your_htonl>
@@ -61,7 +61,8 @@
  * @return n in network byte order
  */
 u16_t htons(u16_t n) {
-    return ((n & 0xff) << 8) | ((n & 0xff00) >> 8);
+    //return ((n & 0xff) << 8) | ((n & 0xff00) >> 8);
+    return (__builtin_bswap16(n));
 }
 
 /**
@@ -81,8 +82,9 @@ u16_t ntohs(u16_t n) {
  * @return n in network byte order
  */
 u32_t htonl(u32_t n) {
-    return ((n & 0xff) << 24) | ((n & 0xff00) << 8) | ((n & 0xff0000UL) >> 8)
-            | ((n & 0xff000000UL) >> 24);
+    /*return ((n & 0xff) << 24) | ((n & 0xff00) << 8) | ((n & 0xff0000UL) >> 8)
+            | ((n & 0xff000000UL) >> 24);*/
+    return (__builtin_bswap32(n));
 }
 
 /**

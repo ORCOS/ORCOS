@@ -131,7 +131,7 @@ static void udp_recv_wrapper(void *arg, struct udp_pcb *upcb, struct pbuf *p, st
  * @description
  *
  *******************************************************************************/
-ErrorT UDPTransportProtocol::register_socket(unint2 port, Socket* socket) {
+ErrorT UDPTransportProtocol::register_socket(unint2* port, Socket* socket) {
     struct udp_pcb *pcb;
     /* Create a new TCP PCB. */
     comStackMutex->acquire();
@@ -142,12 +142,13 @@ ErrorT UDPTransportProtocol::register_socket(unint2 port, Socket* socket) {
         bindaddr.version = 4;
         bindaddr.addr.ip4addr.addr = 0;
 
-        err_t err = udp_bind(pcb, &bindaddr, port);
+        err_t err = udp_bind(pcb, &bindaddr, *port);
         if (err != ERR_OK) {
             LOG(COMM, ERROR, "UDP:bind to port %d failed %d", port, err);
             return (cError );
         }
 
+        *port = pcb->local_port;
         /* set rx callback */
         udp_recv(pcb, udp_recv_wrapper, reinterpret_cast<void*>(socket));
         socket->arg = pcb;

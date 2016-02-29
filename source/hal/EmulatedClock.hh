@@ -24,7 +24,7 @@
 /*! \brief Emulation of a clock based on timer interrupts, may overflow easily
  *
  */
-class EmulatedClock: public Clock {
+class EmulatedClock /*: public Clock*/ {
 
 private:
     TimeT high_precision_time;
@@ -42,6 +42,10 @@ public:
 
     void incTime(unint4 cycles) {
         high_precision_time += cycles;
+    }
+
+    unint4 getDateTime() {
+        return high_precision_time;
     }
 
     TimeT getClockCycles() {

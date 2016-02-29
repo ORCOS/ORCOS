@@ -36,6 +36,7 @@
 #define SOCKET_CONNECTED    (1 << 1)
 #define SOCKET_LISTENING    (1 << 2)
 #define SOCKET_DISCONNECTED (1 << 0)
+#define SOCKET_SENDING      (1 << 3)
 
 /*!
  * \brief Socket class which is used for communications.
@@ -44,47 +45,50 @@
 class Socket: public Resource {
 private:
     //! The addressprotocol used
-    AddressProtocol* aproto;
+    AddressProtocol*    aproto;
 
     //! The transportprotocol used
-    TransportProtocol* tproto;
+    TransportProtocol*  tproto;
 
     //! The message buffer of received msgs
-    FixedSizePBufList* messageBuffer;
+    FixedSizePBufList*  messageBuffer;
 
     //! The type of the socket (SOCK_STREAM, SOCK_DGRAM)
-    SOCK_TYPE type;
+    SOCK_TYPE           type;
 
     //! The socket we are connected to if this is a connection oriented socket
-    sockaddr connected_socket;
+    sockaddr            connected_socket;
 
     //! The addr this socket is bound to
-    sockaddr myboundaddr;
+    sockaddr            myboundaddr;
 
     //! The current state of the socket (CONNECTED, LISTENING..)
-    int state;
+    int                 state;
 
     //! Array of accepted connections if this socket is in listening state
-    ArrayList* acceptedConnections;
+    ArrayList*          acceptedConnections;
 
-    Mutex* mutex;
-
-    unint4 m_lock;
+    //! SMP spinlock for short exclusive areas
+    unint4              m_lock;
 
 public:
     //! Thread blocked by this socket due to recv call on empty message buffer
     Kernel_ThreadCfdCl* blockedThread;
 
+    /* Thread blocked on this socket trying to send data (set by transportprotocl if
+     * sending fails temporarily  */
+    Kernel_ThreadCfdCl* sendBlockedThread;
+
 
 #ifdef HAS_Kernel_ServiceDiscoveryCfd
-    servicedescriptor sd;
+    servicedescriptor   sd;
 #endif
 
     //! is true if a thread is currently waiting for new connections
-    bool hasListeningThread;
+    bool                hasListeningThread;
 
-public:
-    void* arg;
+    //! argument to be used by transportprotocol
+    void*               arg;
 
     /*
      * Socket Constructor.
@@ -135,7 +139,7 @@ public:
      * @description
      *  listen to a given socket address
      *******************************************************************************/
-    int listen(Kernel_ThreadCfdCl* thread, int backlog_size = 10);
+    int listen(Kernel_ThreadCfdCl* thread, int backlog_size = 10, int timout_ms = 0);
 
     /*****************************************************************************
      * Method: connected(int error)

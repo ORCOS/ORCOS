@@ -326,11 +326,12 @@ ErrorT USB_EHCI_Host_Controller::Init(unint4 priority) {
  * @returns
  *  int         Number of bytes transferred inside the data phase
  *******************************************************************************/
-int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1 direction, unint2 data_len, char *data) {
+int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1 direction, unint2 data_len, char *data, int timeout_ms) {
     // finally link the queue head to the qtd chain
     volatile QH* qh = (QH*) dev->endpoints[endpoint].device_priv;
-    if (qh == 0)
-        return (cError );
+    if (qh == 0) {
+        return (cError);
+    }
 
     dev->acquire();
 
@@ -409,7 +410,7 @@ int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1
     OUTW(operational_register_base + USBCMD_OFFSET, INW(operational_register_base + USBCMD_OFFSET) | (1 << 6));
 
     /* wait for maximum 2s... for slow devices*/
-    unint8 deadline = theOS->getClock()->getClockCycles() + 2000000 MICROSECONDS;
+    unint8 deadline = theOS->getClock()->getClockCycles() + timeout_ms * 1000 MICROSECONDS;
     while ((QT_TOKEN_GET_STATUS(qtd_last->qt_token) & QT_TOKEN_STATUS_ACTIVE) &&
            (theOS->getClock()->getClockCycles() < deadline)) {
         /* do some looping on registers to avoid memory bus congestion*/
@@ -428,7 +429,7 @@ int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1
 
     /* check on error .. ignore ping state bit as this is taken care of by the HC*/
     if ((QT_TOKEN_GET_STATUS(qtd_last->qt_token) & 0xFE) != 0x0) {
-        LOG(ARCH, ERROR, "USB_EHCI_Host_Controller::send() error on bulk packet..");
+        LOG(ARCH, ERROR, "USB_EHCI_Host_Controller::USBBulkMsg() error on bulk packet..");
         LOG(ARCH, ERROR, "USBSTS: %x", INW(operational_register_base + USBSTS_OFFSET));
         LOG(ARCH, ERROR, "USBCMD: %x", INW(operational_register_base + USBCMD_OFFSET));
         LOG(ARCH, ERROR, "qtd     \t(%08x)\tstatus: %x", qtd, qtd->qt_token);
@@ -553,11 +554,12 @@ int USB_EHCI_Host_Controller::sendUSBControlMsg(USBDevice *dev,
     asm volatile ("dsb");
     QH_LINK(&QHmain, qh);
 
-    volatile unint4 timeout = 400;
-    while ((QT_TOKEN_GET_STATUS(INW(&lastqtd->qt_token)) == 0x80) && timeout) {
+    volatile unint4 timeout = 400000;
+    while ((QT_TOKEN_GET_STATUS(lastqtd->qt_token) & QT_TOKEN_STATUS_ACTIVE) && timeout)
+    {
         timeout--;
         /* control messages are much slower */
-        kwait(1);
+        kwait_us_nonmem(10);
     }
 
     // get number of bytes transferred
@@ -567,7 +569,7 @@ int USB_EHCI_Host_Controller::sendUSBControlMsg(USBDevice *dev,
 
     // stop execution of this queue head
     if (timeout == 0 || (QT_TOKEN_GET_STATUS(lastqtd->qt_token) != 0x0)) {
-        LOG(ARCH, ERROR, "USB_EHCI_Host_Controller::send() error on control packet..");
+        LOG(ARCH, ERROR, "USB_EHCI_Host_Controller::sendUSBControlMsg() error on control packet..");
         LOG(ARCH, ERROR, "timeout: %d lastqtd \t %08x", timeout, lastqtd);
         LOG(ARCH, ERROR, "qtd1    \t(%08x)\tstatus: %x", qtd,  qtd->qt_token);
         LOG(ARCH, ERROR, "qtd2    \t(%08x)\tstatus: %x", qtd2, qtd2->qt_token);

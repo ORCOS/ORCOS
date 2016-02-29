@@ -25,7 +25,8 @@ typedef enum {
 
 class USBDevice : public Resource {
 public:
-    static IDMap* freeDeviceIDs;
+    /* maximum 255 devices (USB 2.0 limit) */
+    static IDMap<256> freeDeviceIDs;
 
     /*****************************************************************************
      * Method: initialize()
@@ -34,10 +35,8 @@ public:
      *  Static Initialization
      *******************************************************************************/
     static void initialize() {
-        /* maximum 255 devices (USB 2.0 limit) */
-        freeDeviceIDs = new IDMap(256);
         // be sure ID 0 is not returned!
-        freeDeviceIDs->invalidateID(0);
+        freeDeviceIDs.invalidateID(0);
     }
 
     USBDevice(USB_Host_Controller *controller, USBHub *parent, unint1 port, unint1 speed);

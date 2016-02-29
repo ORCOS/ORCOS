@@ -26,7 +26,10 @@ extern Kernel* theOS;
 
 Board_ClockCfdCl* theClock = 0;
 Board_TimerCfdCl* theTimer = 0;
+
+#ifdef HAS_Board_InterruptControllerCfd
 Board_InterruptControllerCfdCl* theInterruptController = 0;
+#endif
 
 Mutex* comStackMutex;
 void*  sysArchMutex;
@@ -257,10 +260,10 @@ void Kernel::initialize() {
     }
 
 #if ENABLE_NETWORKING
-    /* add one-time kernel thread  callback to update system time using NTP.
-     * Temporarly occupies one kernel thread until the call has finished. */
+    /* add periodic kernel thread callback to update system time using NTP.
+     * Occupies one kernel thread. */
     LOG(KERNEL, INFO, "Querying NTP Server for Time");
-    theKernelTask->getCallbackThread(0, theOS->getClock(), 10000 ms, 1000);
+    theKernelTask->getPeriodicThread(0, theOS->getClock(), 3600ULL * 1000 ms, 1000);
 #endif
 
 #else // if USE_WORKERTASK
@@ -271,7 +274,7 @@ void Kernel::initialize() {
 #endif
 
 #if USE_TRACE
-    this->tracer->init();
+    this->getTracer()->init();
 #endif
 
     LOG(KERNEL, INFO, "Initializing Task Set");
@@ -324,7 +327,9 @@ void Kernel::initDeviceDrivers() {
     board->initialize();            /* now initialize */
     theClock = board->getClock();   /* Get global reference to Clock */
     theTimer = board->getTimer();   /* Get global reference to the Timer*/
+#ifdef HAS_Board_InterruptControllerCfd
     theInterruptController = board->getInterruptController();
+#endif
     ASSERT(theClock);               /* Realtime clock is mandatory! */
     ASSERT(theTimer);               /* Timer is mandatory! */
 

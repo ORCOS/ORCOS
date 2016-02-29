@@ -110,6 +110,9 @@ public:
      *  Returns difference between FreeHeadPtr and startAddr
      *---------------------------------------------------------------------------*/
     size_t getUsedMemSize();
+
+
+    void idleEnter() {}
 };
 
 #endif /*LINEARMEMMANAGER_HH_*/

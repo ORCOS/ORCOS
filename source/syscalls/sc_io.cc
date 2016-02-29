@@ -23,6 +23,9 @@
 #include "assemblerFunctions.hh"
 #include "hal/BufferDevice.hh"
 
+/* flag set by scheduler to indicate a rescheduling request */
+extern bool needReschedule;
+
 /*******************************************************************
  *                I/O CONTROL Syscall
  *******************************************************************/
@@ -222,7 +225,7 @@ int sc_fopen(intptr_t int_sp) {
         retval = pCurrentRunningTask->acquireResource(res, pCurrentRunningThread, blocking);
     } else {
         retval = cInvalidResource;
-        LOG(SYSCALLS, ERROR, "Syscall: fopen(%s) FAILED", filename);
+        LOG(SYSCALLS, DEBUG, "Syscall: fopen(%s) FAILED", filename);
     }
     return (retval);
 }
@@ -261,12 +264,14 @@ int sc_fclose(intptr_t int_sp) {
         int retval = pCurrentRunningTask->releaseResource(res, pCurrentRunningThread);
 
 #ifdef HAS_PRIORITY
-        /* we may have unblocked a higher priority thread so we need to reschedule now! */
-        _disableInterrupts();
-        SET_RETURN_VALUE((void*)int_sp, (void*)retval);
-        /* instead of returning we allow the scheduler to choose the correct thread to execute now!*/
-        theOS->getDispatcher()->dispatch();
-        __builtin_unreachable();
+        if (needReschedule)
+        {
+            /* we have unblocked a higher priority thread so we need to reschedule now! */
+            _disableInterrupts();
+            SET_RETURN_VALUE((void*)int_sp, (void*)retval);
+            /* instead of returning we allow the scheduler to choose the correct thread to execute now!*/
+            theOS->getDispatcher()->dispatch();
+        }
 #endif
         return (retval);
     } else {
@@ -314,6 +319,10 @@ int sc_fwrite(intptr_t int_sp) {
         if (res->getType() & (cStreamDevice | cCommDevice | cFile)) {
             CharacterDevice* cdev = static_cast<CharacterDevice*>(res);
             ErrorT result         = cdev->writeBytes(buf, count);
+            if (res->getType() & cFile) {
+                File* file = static_cast<File*>(res);
+                file->setDateTime(theOS->getClock()->getDateTime());
+            }
             return (result);
         } else {
             retval = cResourceNotWriteable;
@@ -364,6 +373,10 @@ int sc_fread(intptr_t int_sp) {
             /* check if reading failed */
             if (isError(result)) {
                 return (result);
+            }
+            if (count == 0) {
+                // be sure we return end of file indicator
+                return (cEOF);
             }
             /* success: return bytes read */
             return (count);
@@ -481,7 +494,7 @@ int sc_fremove(intptr_t int_sp) {
 
     /* directory found? */
     if (parentDir == 0) {
-        LOG(SYSCALLS, ERROR, "Syscall: fremove(%s) Invalid path. Parent dir not found", filepath);
+        LOG(SYSCALLS, DEBUG, "Syscall: fremove(%s) Invalid path. Parent dir not found", filepath);
         return (cInvalidPath);
     }
 
@@ -489,7 +502,7 @@ int sc_fremove(intptr_t int_sp) {
 
     /* resource found? */
     if (res == 0) {
-        LOG(SYSCALLS, ERROR, "Syscall: fremove(%s) Invalid path", filepath);
+        LOG(SYSCALLS, DEBUG, "Syscall: fremove(%s) Invalid path", filepath);
         return (cInvalidPath);
     }
 
@@ -569,7 +582,8 @@ int sc_fseek(intptr_t int_sp) {
                 return (cres->seek(offset));
             }
             if (whence == SEEK_END) {
-                offset = maxsize - offset;
+                cres->resetPosition();
+                offset = maxsize + offset;
                 return (cres->seek(offset));
             }
 
@@ -724,3 +738,31 @@ int sc_rename(intptr_t int_sp) {
     return (cInvalidResource);
 }
 #endif
+
+int sc_getcwd(intptr_t int_sp) {
+    char*     buf;
+    int       buflen;
+
+    SYSCALLGETPARAMS2(int_sp, buf, buflen);
+    VALIDATE_IN_PROCESS(buf);
+
+    char* cwd = pCurrentRunningTask->getWorkingDirectoryPath();
+    strncpy(buf, cwd, buflen);
+
+    return (cOk);
+}
+
+int sc_chdir(intptr_t int_sp) {
+    const char*     path;
+    SYSCALLGETPARAMS1(int_sp, path);
+    VALIDATE_IN_PROCESS(path);
+
+
+    Directory* dir = theOS->getFileManager()->getDirectory(path);
+    if (dir) {
+        pCurrentRunningTask->setWorkingDirectory(path);
+        return (cOk);
+    }
+
+    return (cError);
+}

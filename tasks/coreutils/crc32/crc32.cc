@@ -17,8 +17,8 @@
 */
 
 #include <orcos.hh>
-#include <string.hh>
 #include <args.h>
+#include <string.h>
 
 
 static unint4 crc_32_tab[] = { /* CRC polynomial 0xedb88320 */

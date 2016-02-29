@@ -20,6 +20,7 @@
 #include "kernel/Kernel.hh"
 #include "assembler.h"
 #include "assemblerFunctions.hh"
+#include "debug/Trace.hh"
 
 extern Kernel* theOS;
 extern unint4 rescheduleCount;
@@ -77,6 +78,7 @@ void PriorityThread::pushPriority(TimeT newPriority, void* m) {
     LOG(PROCESS, ERROR, "PriorityThread::pushPriority() out of PIP priorities..");
 
 out:
+    TRACE_CHANGE_PRIORITY(this->getOwner()->getId(), this->getId(), newPriority);
     this->effectivePriority = newPriority;
     this->getLinkedListItem()->remove();
     theOS->getCPUScheduler()->enter(this->getLinkedListItem());
@@ -125,7 +127,8 @@ void PriorityThread::popPriority(void* m) {
     {
         SMP_SPINLOCK_GET(m_priolock);
         if (highestPrio != 0) {
-            /* update ourself at the scheduler! */
+             TRACE_CHANGE_PRIORITY(this->getOwner()->getId(), this->getId(), highestPrio);
+             /* update ourself at the scheduler! */
              this->effectivePriority = highestPrio;
              rescheduleCount++;
              /* program hardware timer to dispatch now.. may internally use a soft irq */

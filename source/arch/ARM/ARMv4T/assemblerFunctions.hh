@@ -296,26 +296,9 @@ extern void* __PageTableSec_start;
 // Enable interrupts (IRQ).
 #define _enableInterrupts() asm volatile("CPSIE i" : : : "memory");
 
-/*
-                                "MRS    r0, cpsr;" \
-                                "BIC    r0, r0, #0x80;" \
-                                "MSR    cpsr, r0;" \
-                                : \
-                                : \
-                                : "r0" \
-                            )*/
 
 // Disable interrupts (IRQ).
 #define _disableInterrupts() asm volatile("CPSID i" : : : "memory");
-
-/*\
-                                "MRS    r0, cpsr;" \
-                                "ORR    r0, r0, #0x80;" \
-                                "MSR    cpsr, r0;" \
-                                : \
-                                : \
-                                : "r0" \
-                            )*/
 
 
 #define GET_CPSR(var) asm volatile("mrs  %0, CPSR;" : "=&r" (var):  :)

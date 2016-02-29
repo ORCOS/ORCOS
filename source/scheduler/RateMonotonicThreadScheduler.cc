@@ -79,6 +79,7 @@ TimeT RateMonotonicThreadScheduler::getNextTimerEvent(LinkedList* sleepList, Tim
                 litem2->remove();
                 pSleepThread->sleepTime = 0;
                 // enter into ready queue again
+                TRACE_THREAD_REGISTER(pSleepThread->getOwner()->getId(), pSleepThread->getId());
                 this->enter(litem2);
                 /* get new head.. and use its priority */
                 pDBNextItem = database.getHead();

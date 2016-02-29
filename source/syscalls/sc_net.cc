@@ -130,8 +130,9 @@ int sc_listen(intptr_t int_sp) {
     ResourceIdT socketid;
     unint4      backlog_size;
     int         retval;
+    int         timeout_ms;
 
-    SYSCALLGETPARAMS2(int_sp, socketid, backlog_size);
+    SYSCALLGETPARAMS3(int_sp, socketid, backlog_size, timeout_ms);
     if (backlog_size > 50 || backlog_size == 0) {
         LOG(SYSCALLS, ERROR, "Syscall: listen. Invalid backlog size %u.", backlog_size);
         return (cInvalidArgument);
@@ -144,7 +145,7 @@ int sc_listen(intptr_t int_sp) {
 
         if (res->getType() == cSocket) {
             Socket* sock = static_cast<Socket*>(res);
-            retval = sock->listen(pCurrentRunningThread, backlog_size);
+            retval = sock->listen(pCurrentRunningThread, backlog_size, timeout_ms);
         } else {
             retval = cWrongResourceType;
             LOG(SYSCALLS, ERROR, "Syscall: listen invalid.. Resource is not a Socket. ");
@@ -355,7 +356,12 @@ int sc_gethostbyname(intptr_t int_sp) {
            return (cError);
        }
    }
-
+   /* get result now */
+   result = dns_gethostbyname(host_name, &res_addr, 0, 0);
+   if (result < 0) {
+       *host_ip4addr = 0;
+       return (cError);
+   }
    *host_ip4addr = res_addr.addr.ip4addr.addr;
    return (cOk);
 #endif

@@ -50,11 +50,13 @@ OPT_FLAGS = -O2 $(CPU_FLAGS) -fno-builtin $(OPT_LTO) -fno-stack-protector $(USER
 
 #Command line arguments to gcc.
 CFLAGS    = -Wall -g -I$(KERNEL_DIR)inc/ -I./make/ -I$(KERNEL_DIR)comm/lwip/include/ -I$(KERNEL_DIR)comm/lwip/ -I. -I$(KERNEL_DIR) -I$(KERNEL_LIB_DIR)/../../ $(ARCH_INCLUDES)
-CFLAGS    += -fno-exceptions -fno-unwind-tables -msoft-float -Wno-write-strings -c $(OPT_FLAGS) $(USER_CFLAGS)
+CFLAGS    += -fno-exceptions -fno-unwind-tables  -Wno-write-strings -Wno-packed-bitfield-compat -c $(OPT_FLAGS) $(USER_CFLAGS)
+#-msoft-float
 
 #Command line arguments to g++.
 CPFLAGS  = -Wall -g -I$(KERNEL_DIR)inc/ -I./make/ -I$(KERNEL_DIR)comm/lwip/include/ -I$(KERNEL_DIR)comm/lwip/ -I. -I$(KERNEL_DIR) -I$(KERNEL_LIB_DIR)/../../ $(ARCH_INCLUDES) 
-CPFLAGS  += -fno-exceptions -fno-unwind-tables -fno-rtti -msoft-float -c -Wno-write-strings -Wuninitialized -Woverloaded-virtual $(OPT_FLAGS) $(USER_CPFLAGS)
+CPFLAGS  += -fno-exceptions -fno-unwind-tables -fno-rtti -c -Wno-write-strings -Wno-packed-bitfield-compat -Wuninitialized -Woverloaded-virtual $(OPT_FLAGS) $(USER_CPFLAGS)
+#-msoft-float 
 
 #Command line arguments to the linker.
 LDFLAGS  = -o $(OUTPUT_DIR)/kernel.elf -L$(LIBC_DIR) -L$(GCC_LIB_DIR) -Wl,-Map=$(OUTPUT_DIR)/kernel.map  -lgcc -Wl,--script=$(LINKERSCRIPT) -nostartfiles  $(OPT_FLAGS) $(USER_LDFLAGS) 
@@ -108,7 +110,8 @@ KOBJ += new.o timers.o
 # scheduler
 KOBJ += RoundRobinThreadScheduler.o PriorityThreadScheduler.o RateMonotonicThreadScheduler.o EarliestDeadlineFirstThreadScheduler.o
 #process
-KOBJ += IdleThread.o Task.o Thread.o TaskManager.o  Module.o
+KOBJ += IdleThread.o Task.o Thread.o TaskManager.o  
+#Module.o
 #robustness
 KOBJ += TaskErrorHandler.o 
 #synchro

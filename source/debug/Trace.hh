@@ -14,6 +14,8 @@
 
 #ifdef HAS_Kernel_TracerCfd
 
+#define USE_TRACE               1
+
 #define EVENT_THREAD_START      0x1
 #define EVENT_THREAD_STOP       0x2
 #define EVENT_THREAD_EXIT       0x3
@@ -28,6 +30,11 @@
 
 #define EVENT_MEM_ALLOC         0x10
 #define EVENT_MEM_FREE          0x11
+
+#define EVENT_MUTEX_ACQUIRE     0x12
+#define EVENT_MUTEX_RELEASE     0x13
+
+#define EVENT_CHANGE_PRIORITY   0x14
 
 typedef struct {
     unint4 stack_pointer;
@@ -44,17 +51,13 @@ typedef union {
     Trace_MemInfo mem_info;
 }__attribute__((packed)) TraceArgs;
 
-// Total size: 20 bytes
+// Total size: 24 bytes
 typedef struct {
-    TimeT timestamp;    // the cpu clock ticks
-    /*    unint1 type;        // the type of event
-     unint1 taskid;      // the task this event belongs to
-     unint1 sourceid;    // the source this event belongs to inside the task (might be a thread id)
-     unint1 param1;        // a free parameter*/
-    unint4 id;
-    unint4 arg1;
-    unint4 arg2;
-    //TraceArgs arg;        // additional parameters for memory and thread stack informations
+    TimeT   timestamp;    // the cpu clock ticks
+    unint4  id;           // id containing event type | task id | source id
+    unint4  cnt;          // counter for event loss detection
+    unint4  arg;          // argument
+    unint4  arg2;         // argument2
 }__attribute__((packed, aligned(4))) Trace_Entry;
 
 
@@ -78,6 +81,13 @@ typedef struct {
 
 #define TRACE_REMOVE_SOURCE(taskid, sourceid) theOS->getTracer()->removeSource(taskid, sourceid)
 
+#define TRACE_MUTEX_ACQUIRE(taskid, sourceid, name) theOS->getTracer()->trace_addEntryStr(EVENT_MUTEX_ACQUIRE, taskid, sourceid, name)
+#define TRACE_MUTEX_RELEASE(taskid, sourceid, name) theOS->getTracer()->trace_addEntryStr(EVENT_MUTEX_RELEASE, taskid, sourceid, name)
+
+#define TRACE_CHANGE_PRIORITY(taskid, sourceid, priority) theOS->getTracer()->trace_addEntry(EVENT_CHANGE_PRIORITY, taskid, sourceid, priority)
+
+#define TRACE_SYSCALL_ENTER(taskid, sourceid, syscallId) theOS->getTracer()->trace_addEntry(EVENT_SYSCALL, taskid, sourceid, syscallId)
+
 #else
 
 #define TRACE_THREAD_START(taskid, threadid)
@@ -90,6 +100,9 @@ typedef struct {
 #define TRACE_MEMFREE(address)
 #define TRACE_ADD_SOURCE(taskid, sourceid, name)
 #define TRACE_REMOVE_SOURCE(taskid, sourceid)
+#define TRACE_MUTEX_ACQUIRE(taskid, sourceid, name)
+#define TRACE_MUTEX_RELEASE(taskid, sourceid, name)
+#define TRACE_SYSCALL_ENTER(taskid, sourceid, syscallId)
 
 #endif
 
@@ -117,14 +130,14 @@ public:
      *
      * @description
      *******************************************************************************/
-    ErrorT addSource(unint1 taskid, unint1 sourceid, const char* name);
+    ErrorT addSource(unint1 taskid, unint2 sourceid, const char* name);
 
     /*****************************************************************************
      * Method: removeSource(unint1 taskid, unint1 sourceid)
      *
      * @description
      *******************************************************************************/
-    ErrorT removeSource(unint1 taskid, unint1 sourceid);
+    ErrorT removeSource(unint1 taskid, unint2 sourceid);
 
     /*****************************************************************************
      * Method: trace_memAlloc(unint4 address, unint4 size)
@@ -145,8 +158,14 @@ public:
      *
      * @description
      *******************************************************************************/
-    void trace_addEntry(unint1 type, unint1 taskid, unint1 sourceid);
+    void trace_addEntry(unint1 type, unint1 taskid, unint2 sourceid, unint4 argument = 0);
 
+    /*****************************************************************************
+     * Method: trace_addEntryStr(unint1 type, unint1 taskid, unint2 sourceid, const char* argument)
+     *
+     * @description
+     *******************************************************************************/
+    void trace_addEntryStr(unint1 type, unint1 taskid, unint2 sourceid, const char* argument);
     /*****************************************************************************
      * Method: callbackFunc(void* param)
      *

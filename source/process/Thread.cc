@@ -41,7 +41,7 @@ extern Task* pCurrentRunningTask;
 
 /* static non-const member variable initialization
  * will be executed in ctor */
-IDMap* Thread::freeIDMap;
+IDMap<1024> Thread::freeIDMap;
 
 /* check if stack growing direction is set by scl */
 #ifndef STACK_GROWS_DOWNWARDS
@@ -71,7 +71,7 @@ Thread::Thread(void* p_startRoutinePointer,
     ASSERT(p_owner);
 
     /* do not initialize sleeptime here as it is done inside the realtimethread */
-    this->myThreadId            = freeIDMap->getNextID();
+    this->myThreadId            = freeIDMap.getNextID();
     this->startRoutinePointer   = p_startRoutinePointer;
     this->exitRoutinePointer    = p_exitRoutinePointer;
     this->owner                 = p_owner;
@@ -178,8 +178,6 @@ void Thread::callMain() {
 void Thread::sleep(TimeT timePoint) {
     LOG(PROCESS, DEBUG, "Thread::sleep: TimePoint: %x %x", (unint4) ((timePoint >> 32) & 0xffffffff), (unint4) ((timePoint) & 0xffffffff));
 
-    TRACE_THREAD_STOP(this->getOwner()->getId(), this->getId());
-
     this->sleepTime = timePoint;
 
     /* remove the ready flag since we are not ready to run */
@@ -226,7 +224,11 @@ void Thread::block(unint4 timeout) {
     /* remove the ready flag since we are not ready to run any more */
     this->status.clearBits(cReadyFlag);
     this->status.setBits(cBlockedFlag);
-    this->blockTimeout = timeout;
+    this->blockTimeout = 0;
+    if (timeout > 0 && theClock != 0)
+    {
+        this->blockTimeout = theClock->getClockCycles() + timeout;
+    }
 
     if (pCurrentRunningThread != this) {
         /* no need to save context since its not the currently running thread thats going to be blocked */
@@ -351,5 +353,5 @@ void Thread::terminate() {
         }
     }
 
-    freeIDMap->freeID(this->myThreadId);
+    freeIDMap.freeID(this->myThreadId);
 }

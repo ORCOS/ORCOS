@@ -70,7 +70,7 @@ public:
      * @description
      *  Register a socket on the following so it can receive messages
      *******************************************************************************/
-    ErrorT register_socket(unint2 port, Socket* socket);
+    ErrorT register_socket(unint2* port, Socket* socket);
 
     /*****************************************************************************
      * Method: connect(AddressProtocol* nextLayer, sockaddr *toaddr, Socket* fromsocket)

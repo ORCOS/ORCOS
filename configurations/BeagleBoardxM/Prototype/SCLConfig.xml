@@ -166,7 +166,7 @@
         <PropertyValue Name="Address" Value="0x4809C000" Type="unsigned int" />
         <PropertyValue Name="INTC_IRQ" Value="83" Type="unsigned int" />
         <PropertyValue Name="INTC_Priority" Value="10" Type="unsigned int" />
-        <PropertyValue Name="Name" Value="mmc0" Type="char*" />
+        <PropertyValue Name="Name" Value="mmc" Type="char*" />
       </Member>
     </Skeleton>
     <!-- ************************************
@@ -187,7 +187,7 @@
       <Member Name="RamManager" Class="mem/PagedRamMemManager" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="Ramdisk" Class="filesystem/ram/Ramdisk" None="true" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="InterruptManager" Class="hal/InterruptManager" None="false" UserSpace="false" PhyLoadAddress="0x0" />
-      <Member Name="Tracer" Class="debug/Trace" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="Tracer" Class="debug/Trace" None="false" UserSpace="false" PhyLoadAddress="0x0" />
     </Skeleton>
     <Skeleton>
       <Name>FileSystems</Name>
@@ -254,6 +254,7 @@
       <Member Name="thread_name" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="mount" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="waitirq" Class="" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="gethostbyname" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
     </Skeleton>
     <!--  DEFINES -->
     <Define>
@@ -267,7 +268,7 @@
     </Define>
     <Define>
       <Name>NUM_WORKERTHREADS</Name>
-      <Value>5</Value>
+      <Value>8</Value>
     </Define>
     <!-- logical Memory addresses -->
     <Define>

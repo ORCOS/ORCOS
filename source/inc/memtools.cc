@@ -157,9 +157,18 @@ int memcmp(const void* m1, const void* m2, size_t n) {
  *
  *******************************************************************************/
 void* memset(void* ptr, int c, size_t n) {
-    char* p = reinterpret_cast<char*>(ptr);
-
+    char* p    = reinterpret_cast<char*>(ptr);
     void* save = ptr;
+
+    if ((n > 20) && ((((intptr_t)p) & 0x3) == 0)) {
+        int words = n >> 2;
+        memsetlong(ptr, c , words);
+        int leftbytes = n & 0x3;
+        for (int i = 0; i < leftbytes; i++) {
+            p[(words << 2) + i] = 0;
+        }
+        return (save);
+    }
 
     while (n--) {
         *p++ = (unsigned char) c;

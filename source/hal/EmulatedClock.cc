@@ -19,8 +19,8 @@
 #include "EmulatedClock.hh"
 #include "inc/memio.h"
 
-EmulatedClock::EmulatedClock() {
-
+EmulatedClock::EmulatedClock()
+{
     high_precision_time = 0;
 }
 

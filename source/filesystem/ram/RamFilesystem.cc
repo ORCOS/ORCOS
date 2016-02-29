@@ -14,21 +14,37 @@
 extern Kernel* theOS;
 
 #define RAMDISK_BLOCK_SIZE 4096
+#define NUM_BLOCKS_PER_SUPERBLOCK 128
 
-RamFilesystem::RamFilesystem(T_RamFilesystem_Init* init) : FileSystemBase("ramdisk") {
+
+RamFilesystem::RamFilesystem(T_RamFilesystem_Init* init) : FileSystemBase("ramdisk"), myMutex("RamFsMutex") {
     /* get Ramdisk location and size from SCL configuration */
     unint4 start    = init->StartAddress;
     unint4 end      = init->StartAddress + init->Size - 1;
 
-    blockChain              = reinterpret_cast<unint4*>(start);
-
+    /* calculate number of blocks. drop insufficient sized last block  */
     unint4 numblocks        = ((end - start) / RAMDISK_BLOCK_SIZE);
+    /* calculate size of block chain region needed for this number of blocks */
     unint4 blockChainSize   = (sizeof(unint4*)) * numblocks;
+    /* calculate number of super blocks */
+    superBlocks             = (numblocks / NUM_BLOCKS_PER_SUPERBLOCK) +1;
+    /* calculate size of superblock chain */
+    unint4 superBlockSize   = superBlocks * sizeof(struct SuperBlock);
+
+    /* substract the blockchain and superblockchain size */
     numblocks              -= ((blockChainSize / RAMDISK_BLOCK_SIZE) + 1);
+    numblocks              -= ((superBlockSize / RAMDISK_BLOCK_SIZE) + 1);
+
     blockChainSize          = (sizeof(unint4*)) * numblocks;
     blockChainEntries       = numblocks;
 
-    firstBlock              = start + blockChainSize;
+    superBlocks             = (numblocks / NUM_BLOCKS_PER_SUPERBLOCK) +1;
+    superBlockSize          = superBlocks * sizeof(struct SuperBlock);
+
+    superBlockChain         = (struct SuperBlock*) start;
+    blockChain              = reinterpret_cast<unint4*>(alignCeil(reinterpret_cast<char*>(start + superBlockSize), RAMDISK_BLOCK_SIZE));
+
+    firstBlock              = ((unint4) blockChain) + blockChainSize;
     firstBlock              = (unint4) alignCeil(reinterpret_cast<char*>(firstBlock), RAMDISK_BLOCK_SIZE);
 
     if (theOS->getRamManager() != 0) {
@@ -36,18 +52,33 @@ RamFilesystem::RamFilesystem(T_RamFilesystem_Init* init) : FileSystemBase("ramdi
         theOS->getRamManager()->markAsUsed(start, end, 0);
     }
 
-    for (unint4 i = 0; i < blockChainEntries; i++)
+    for (unint4 i = 0; i < blockChainEntries; i++) {
         blockChain[i] = (unint4) -1;  // mark as free
+    }
+
+    for (unint4 i = 0; i < superBlocks; i++) {
+        superBlockChain[i].freeBlocks    = NUM_BLOCKS_PER_SUPERBLOCK;
+        superBlockChain[i].nextFreeBlock = 0;
+        superBlockChain[i].numBlocks     = NUM_BLOCKS_PER_SUPERBLOCK;
+        superBlockChain[i].reserved      = 0;
+    }
+
 
     /* set filesystem base variables */
     numBlocks  = blockChainEntries;
     freeBlocks = numBlocks;
     blockSize  = RAMDISK_BLOCK_SIZE;
 
-    LOG(FILESYSTEM, WARN, "Ramdisk: firstBlock %x", firstBlock);
-    LOG(FILESYSTEM, WARN, "Ramdisk: blockChain %x", blockChain);
-    LOG(FILESYSTEM, WARN, "Ramdisk: numBlocks %x", numBlocks);
-    LOG(FILESYSTEM, WARN, "Ramdisk: lastBlock %x", firstBlock + (numBlocks * RAMDISK_BLOCK_SIZE));
+    /* update number of blocks in last superblock */
+    superBlockChain[superBlocks-1].numBlocks  = numBlocks - ((superBlocks-1) *  NUM_BLOCKS_PER_SUPERBLOCK);
+    superBlockChain[superBlocks-1].freeBlocks = superBlockChain[superBlocks-1].numBlocks;
+
+    LOG(FILESYSTEM, WARN, "Ramdisk: Blocks          0x%08x-0x%08x", firstBlock, firstBlock + (numBlocks * RAMDISK_BLOCK_SIZE));
+    LOG(FILESYSTEM, WARN, "Ramdisk: SuperBlockChain 0x%08x-0x%08x", superBlockChain, ((unint4) superBlockChain) + superBlockSize);
+    LOG(FILESYSTEM, WARN, "Ramdisk: BlockChain      0x%08x-0x%08x", blockChain, ((unint4) blockChain) + blockChainSize);
+    LOG(FILESYSTEM, WARN, "Ramdisk: #Blocks         %u", numBlocks);
+    LOG(FILESYSTEM, WARN, "Ramdisk: SuperBlocks     %u", superBlocks);
+    LOG(FILESYSTEM, WARN, "Ramdisk: LastSB#blks     %u", superBlockChain[superBlocks-1].numBlocks);
 
     // create the ramdisk mount directory
     /* TODO: use SCL to get path and name */
@@ -63,16 +94,40 @@ RamFilesystem::RamFilesystem(T_RamFilesystem_Init* init) : FileSystemBase("ramdi
  *   the physical address
  *******************************************************************************/
 unint4 RamFilesystem::allocateBlock(unint4 prev) {
-    for (unint4 i = 0; i < blockChainEntries; i++) {
-        if (blockChain[i] == (unint4) -1) {  // -1 == free
-            blockChain[i] = 0;               //  0 == End of Chain
-            if (prev != (unint4) -1)
-                blockChain[prev] = i;
+    myMutex.acquire();
+    // TODO the last super block MAY contain less than NUM_BLOCKS_PER_SUPERBLOCK blocks!
+    for (unint4 superBlock = 0; superBlock < superBlocks; superBlock++) {
+        if (superBlockChain[superBlock].freeBlocks > 0) {
+            /* calculate blockChain Entry of superBlock */
+            unint4 blockChainEntry = superBlock * NUM_BLOCKS_PER_SUPERBLOCK;
 
-            freeBlocks--;
-            return (i);
+            if (superBlockChain[superBlock].nextFreeBlock != 255) {
+                /* perfect .. use the block */
+                blockChainEntry += superBlockChain[superBlock].nextFreeBlock;
+                superBlockChain[superBlock].nextFreeBlock = 255;
+            } else {
+                /* search inside the blockchain */
+                int numBlocks = superBlockChain[superBlock].numBlocks;
+                for (int i = 0; i < numBlocks; i++) {
+                    if (blockChain[blockChainEntry + i] == (unint4) -1) {
+                        blockChainEntry = blockChainEntry + i;
+                        break;
+                    }
+                }
+            }
+            superBlockChain[superBlock].freeBlocks--;
+
+            blockChain[blockChainEntry] = 0;               //  0 == End of Chain
+            if (prev != (unint4) -1)
+               blockChain[prev] = blockChainEntry;
+
+           freeBlocks--;
+           myMutex.release();
+           return (blockChainEntry);
         }
     }
+
+    myMutex.release();
     return (-1);
 }
 
@@ -83,12 +138,21 @@ unint4 RamFilesystem::allocateBlock(unint4 prev) {
  *   Frees a block chain starting at block #blocknum
  *******************************************************************************/
 int RamFilesystem::freeBlock(unint4 blockNum) {
+    myMutex.acquire();
+
     if (blockNum != (unint4) -1) {
         unint4 nextBlock     = blockChain[blockNum];
+        unint4 superBlock    = blockNum / NUM_BLOCKS_PER_SUPERBLOCK;
         blockChain[blockNum] = -1;
+        superBlockChain[superBlock].freeBlocks++;
+        superBlockChain[superBlock].nextFreeBlock = blockNum & (NUM_BLOCKS_PER_SUPERBLOCK - 1);
         freeBlocks++;
 
         while (nextBlock != 0 && nextBlock != (unint4) -1) {
+            superBlock            = nextBlock / NUM_BLOCKS_PER_SUPERBLOCK;
+            superBlockChain[superBlock].freeBlocks++;
+            superBlockChain[superBlock].nextFreeBlock = nextBlock & (NUM_BLOCKS_PER_SUPERBLOCK - 1);
+
             blockNum              = blockChain[nextBlock];
             blockChain[nextBlock] = (unint4) -1;
             nextBlock             = blockNum;
@@ -96,6 +160,7 @@ int RamFilesystem::freeBlock(unint4 blockNum) {
         }
     }
 
+    myMutex.release();
     return (cOk );
 }
 
@@ -110,7 +175,9 @@ unint4 RamFilesystem::getNextBlock(unint4 currentBlock, bool allocate) {
         unint4 nextBlock = blockChain[currentBlock];
 
         if ((nextBlock == 0 || nextBlock == (unint4) -1) && allocate) {
-            return (allocateBlock(currentBlock));
+            nextBlock = allocateBlock(currentBlock);
+            LOG(FILESYSTEM, TRACE, "Ramdisk: allocated Block  %u", nextBlock);
+            return (nextBlock);
         } else {
             return (nextBlock);
         }
@@ -281,7 +348,7 @@ ErrorT RamFilesystemFile::writeBytes(const char* bytes, unint4 length) {
         sector_pos = this->position & (RAMDISK_BLOCK_SIZE - 1);  // position inside the sector
         sector_write_len = RAMDISK_BLOCK_SIZE - sector_pos;      // the length we are writing inside this sector
 
-        // check if we read less than the remaining bytes in this sector
+        // check if we write less than the remaining bytes in this sector
         if (length < sector_write_len) {
             sector_write_len = length;
         } else {
@@ -317,7 +384,7 @@ ErrorT RamFilesystemFile::writeBytes(const char* bytes, unint4 length) {
         this->filesize = this->position;
     }
 
-    return (cOk );
+    return (cOk);
 }
 
 RamFilesystemFile::RamFilesystemFile(RamFilesystem* myRamdisk, unint4 blockNum, char* name, int flags) :
@@ -342,7 +409,8 @@ RamFilesystemFile::~RamFilesystemFile() {
  *******************************************************************************/
 ErrorT RamFilesystemFile::resetPosition() {
     //File::resetPosition();
-    readPos      = 0;
+    readPos        = 0;
+    this->position = 0;
     currentBlock = myBlockNumber;
-    return (cOk );
+    return (cOk);
 }

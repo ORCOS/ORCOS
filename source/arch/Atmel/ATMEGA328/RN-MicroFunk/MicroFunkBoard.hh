@@ -24,7 +24,7 @@
 #include Board_Processor_hh
 #include Board_UART_hh
 #include Board_Clock_hh
-#include <OmapGPTimer.hh>
+#include Board_Timer_hh
 
 #define ATMEL 0x1a
 
@@ -44,7 +44,9 @@ public:
 
     ~MicroFunkBoard();
 
-    void initialize();
+    void early_init();
+
+    void initialize() {}
 
     char* getBoardInfo() {return ("ATMEGA328p");}
 };

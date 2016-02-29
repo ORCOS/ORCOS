@@ -85,7 +85,7 @@ ntppacket_t ntpquery;
  ***********************************/
 #if ENABLE_NETWORKING
 unint4 ntpserver[3] = {
-        IP4ADDR(5, 83, 190, 253),   /* pool.ntp.org */
+        IP4ADDR(85, 25, 197, 197),   /* pool.ntp.org */
         IP4ADDR(96 , 226, 242, 9),  /* nist.time.nosc.us  96.226.242.9    Carrollton, Texas  */
         IP4ADDR(206, 246, 122, 250) /* time.nist.gov   global address for all servers  Multiple locations  */
 };
@@ -102,6 +102,7 @@ unint4 ntpserver[3] = {
 void Clock::callbackFunc(void* param) {
 #if ENABLE_NETWORKING
     char rxbuf[256];
+    pCurrentRunningThread->setName("ntpd");
     LOG(KERNEL, INFO, "Updating DateTime using NTP");
     /* We need networking for this*/
     sockaddr addr;
@@ -135,8 +136,9 @@ void Clock::callbackFunc(void* param) {
         ntppacket_t* ntpp   = reinterpret_cast<ntppacket_t*>(rxbuf);
         unint4 seconds      = (unint4) be32tocpu(ntpp->transmit_ts_seconds);
 
-        LOG(KERNEL, INFO, "NTP SYNC successful (%u tries). Seconds: %u", tries, seconds);
-        this->synchDateTime     = seconds;
+        LOG(KERNEL, INFO, "NTP SYNC successful (%u tries). Seconds: %u UNIX Time: %u", tries, seconds, seconds- 2208988800UL);
+        /* convert to unix / posix date time*/
+        this->synchDateTime     = (seconds - 2208988800UL);
         this->synchLocalCycles  = getClockCycles();
     }
 

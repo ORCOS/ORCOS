@@ -108,9 +108,10 @@ void kwait_us_nonmem(int us) {
     } else {
         volatile unint8 now = theOS->getClock()->getClockCycles();
 
-        while (theOS->getClock()->getClockCycles() < now + us MICROSECONDS) {
-        /* do some looping on registers to avoid memory bus congestion*/
+        while (theOS->getClock()->getClockCycles() < (now + (us MICROSECONDS))) {
+            /* do some looping on registers to avoid memory bus congestion*/
             for (volatile int i = 0; i < 100; i++) {
+                NOP;
             }
         }
     }

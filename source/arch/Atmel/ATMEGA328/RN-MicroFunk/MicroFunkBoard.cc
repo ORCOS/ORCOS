@@ -47,7 +47,7 @@ extern Kernel* theOS;
 MicroFunkBoard::MicroFunkBoard() {
 }
 
-void MicroFunkBoard::initialize() {
+void MicroFunkBoard::early_init() {
     CLKPR = 128; // allow clock change!
     CLKPR = 0;   // divide by 1!
 

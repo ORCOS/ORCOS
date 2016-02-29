@@ -94,7 +94,7 @@ protected:
     /*!
      * \brief List of free task ids which can be used for task creation
      */
-    static ArrayList    *freeTaskIDs;
+    static IDMap<MAX_NUM_TASKS>    freeTaskIDs;
 
     /*!
      * \brief The name of this task. Typically its filename
@@ -153,20 +153,15 @@ public:
      *******************************************************************************/
     static void initialize() {
         globalTaskIdCounter = cFirstTask;
-        freeTaskIDs = new ArrayList(MAX_NUM_TASKS);
 
         /* Workertasks must be mapped to PID 0
          to ensure they are running with kernel mappings
          under virtual memory
          user tasks must start at PID 1 to ensure
          the kernel page table to be not overwritten */
-#if USE_WORKERTASK
-        for (unint4 i = 0; i < MAX_NUM_TASKS; i++) {
-#else
-        for (unint4 i = 1; i < MAX_NUM_TASKS; i++) {
-#endif
-            freeTaskIDs->addTail(reinterpret_cast<ListItem*>(i));
-        }
+        #if USE_WORKERTASK
+        //freeTaskIDs.invalidateID(0);
+        #endif
     }
 
     /*****************************************************************************
@@ -323,7 +318,7 @@ public:
      * @description
      *   Sets the current working directory of this task
      *******************************************************************************/
-    ErrorT setWorkingDirectory(char* newDir);
+    ErrorT setWorkingDirectory(const char* newDir);
 
     /*****************************************************************************
      * Method: getSysFsDirectory()

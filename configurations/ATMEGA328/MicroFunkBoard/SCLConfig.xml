@@ -38,8 +38,6 @@
     <Skeleton>
       <Name>Kernel</Name>
       <Superclass>kernel/Kernel</Superclass>
-      <Member Name="MigrationManager" Class="migration/MigrationManager" None="true" UserSpace="false" PhyLoadAddress="0x0" />
-      <Member Name="ServiceDiscovery" Class="comm/servicediscovery/SNServiceDiscovery" None="true" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="MemoryManager" Class="mem/LinearMemManager" None="false" UserSpace="false" PhyLoadAddress="0x0">
         <PropertyValue Name="LastFit" Value="0" Type="unsigned int" />
       </Member>
@@ -50,23 +48,24 @@
       <Member Name="PowerManager" Class="hal/PowerManager" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="TaskManager" Class="process/TaskManager" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="RamManager" Class="mem/NoRamManager" None="true" UserSpace="false" PhyLoadAddress="0x0" />
-      <Member Name="Ramdisk" Class="filesystem/Ramdisk" None="true" UserSpace="false" PhyLoadAddress="0x0">
-        <PropertyValue Name="StartAddress" Value="Unknown" Type="unsigned int" />
-        <PropertyValue Name="Size" Value="Unknown" Type="unsigned int" />
-      </Member>
+      <Member Name="Ramdisk" Class="filesystem/ram/Ramdisk" None="true" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="InterruptManager" Class="hal/InterruptManager" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="Tracer" Class="debug/Trace" None="true" UserSpace="false" PhyLoadAddress="0x0" />
     </Skeleton>
     <Skeleton>
       <Name>FileSystems</Name>
       <Superclass>filesystem/SimpleFileManager</Superclass>
       <Member Name="PartitionManager" Class="filesystem/PartitionManager" None="true" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="DOSPartition" Class="filesystem/DOSPartition" None="true" UserSpace="false" PhyLoadAddress="0x0" />
-      <Member Name="FATFileSystem" Class="filesystem/FATFileSystem" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="FATFileSystem" Class="filesystem/fat/FATFileSystem" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="RamFilesystem" Class="filesystem/ram/RamFilesystem" None="true" UserSpace="false" PhyLoadAddress="0x0">
+        <PropertyValue Name="StartAddress" Value="Unknown" Type="unsigned int" />
+        <PropertyValue Name="Size" Value="Unknown" Type="unsigned int" />
+      </Member>
     </Skeleton>
     <Skeleton>
       <Name>USBDriver</Name>
       <Superclass>usb/USBDeviceDriverLibrary</Superclass>
-      <Member Name="Factory" Class="usb/USBDeviceDriverFactory" None="true" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="SMSC95xx" Class="usb/SMSC95xxUSBDeviceDriver" None="true" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="MassStorage" Class="usb/MassStorageSCSIUSBDeviceDriver" None="true" UserSpace="false" PhyLoadAddress="0x0" />
     </Skeleton>
@@ -79,19 +78,19 @@
       <Member Name="sleep" None="true" />
       <Member Name="thread_create" None="true" />
       <Member Name="thread_run" None="true" />
-      <Member Name="thread_self" None="false" />
-      <Member Name="thread_yield" None="false" />
+      <Member Name="thread_self" None="true" />
+      <Member Name="thread_yield" None="true" />
       <Member Name="signal_wait" None="true" />
       <Member Name="signal_signal" None="true" />
-      <Member Name="fputc" None="false" />
-      <Member Name="fgetc" None="false" />
-      <Member Name="fcreate" None="false" />
-      <Member Name="fopen" None="false" />
-      <Member Name="fclose" None="false" />
-      <Member Name="fwrite" None="false" />
-      <Member Name="fread" None="false" />
-      <Member Name="new" None="false" />
-      <Member Name="delete" None="false" />
+      <Member Name="fputc" None="true" />
+      <Member Name="fgetc" None="true" />
+      <Member Name="fcreate" None="true" />
+      <Member Name="fopen" None="true" />
+      <Member Name="fclose" None="true" />
+      <Member Name="fwrite" None="true" />
+      <Member Name="fread" None="true" />
+      <Member Name="new" None="true" />
+      <Member Name="delete" None="true" />
       <Member Name="socket" None="true" />
       <Member Name="connect" None="true" />
       <Member Name="listen" None="true" />
@@ -101,13 +100,23 @@
       <Member Name="add_devaddr" None="true" />
       <Member Name="task_stop" None="true" />
       <Member Name="task_resume" None="true" />
-      <Member Name="ioctl" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="ioctl" Class="" None="true" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="thread_wait" Class="" None="true" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="fstat" Class="" None="true" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="task_run" Class="" None="true" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="task_kill" Class="" None="true" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="mapMemory" Class="" None="true" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="shm_map" Class="" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="thread_terminate" Class="" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="thread_name" Class="" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="getpid" Class="" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="fseek" Class="" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="fremove" Class="" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="task_ioctl" Class="" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="mkdev" Class="" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="mount" Class="" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="waitirq" Class="" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="gethostbyname" Class="" None="true" UserSpace="false" PhyLoadAddress="0x0" />
     </Skeleton>
     <!--  DEFINES -->
     <Define>

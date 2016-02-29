@@ -55,8 +55,8 @@ DOSPartition::DOSPartition(BlockDeviceDriver *bdev, dos_partition_t *p_mypartiti
            reinterpret_cast<void*>(p_mypartition),
            sizeof(dos_partition_t));
 
-    char* myname = reinterpret_cast<char*>(theOS->getMemoryManager()->alloc(16));
-    sprintf(myname, "DOS_%04x-%02d", disksig, part_num);
+    char* myname = reinterpret_cast<char*>(theOS->getMemoryManager()->alloc(16 + strlen(bdev->getName()) + 2));
+    sprintf(myname, "DOS_%04x-%02d@%s", disksig, part_num,  bdev->getName());
 
     this->name = myname;
     this->partition_number = part_num;

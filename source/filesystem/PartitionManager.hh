@@ -7,6 +7,7 @@
 
 #ifndef PARTITIONMANAGER_HH_
 #define PARTITIONMANAGER_HH_
+
 #include "PartitionManager.hh"
 #include "hal/BlockDeviceDriver.hh"
 #include "filesystem/Partition.hh"
