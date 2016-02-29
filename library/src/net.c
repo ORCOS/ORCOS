@@ -31,23 +31,27 @@ int connect(int socket, const sockaddr *toaddress, int timeout) {
     return (syscall(cConnectSyscallId, socket, toaddress, timeout));
 }
 
-int listen(int socket, int backlog_size) {
-    return (syscall(cListenSyscallId, socket, backlog_size));
+int listen(int socket, int backlog_size, int timeout_ms) {
+    return (syscall(cListenSyscallId, socket, backlog_size, timeout_ms));
 }
 
 int bind(int socket, const sockaddr *address) {
     return (syscall(cBindSyscallId, socket, address));
 }
 
-int4 sendto(int socket, const void *buffer, size_t length, const sockaddr *dest_addr) {
+int sendto(int socket, const void *buffer, size_t length, const sockaddr *dest_addr) {
     return (syscall(cSendtoSyscallId, socket, buffer, length, dest_addr));
 }
 
-size_t recv(int socket, char* data, int len, int flags, unint4 timeout) {
+int send(int socket_fd,  const void* data, size_t length) {
+    return (syscall(cSendtoSyscallId, socket_fd, data, length, 0));
+}
+
+int recv(int socket, char* data, int len, int flags, unint4 timeout) {
     return (syscall(cRecvFromSyscallId, socket, data, len, flags, 0, timeout));
 }
 
-size_t recvfrom(int socket, char* data, int len, int flags, sockaddr* sender, unint4 timeout) {
+int recvfrom(int socket, char* data, int len, int flags, sockaddr* sender, unint4 timeout) {
     return (syscall(cRecvFromSyscallId, socket, data, len, flags, sender, timeout));
 }
 

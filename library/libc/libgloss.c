@@ -169,6 +169,9 @@ static char stdout_buf[512];
 static int  stdout_index = 0;
 
 int writeStdOut(char* msg, int len) {
+    //printToStdOut("writeStdOut:'", 13);
+    //printToStdOut(msg, len);
+    //printToStdOut("'\n", 2);
     int inlen = len;
     while (len > 0) {
         if (stdout_index + len < 256) {
@@ -178,6 +181,7 @@ int writeStdOut(char* msg, int len) {
         } else {
             int remlen = 255 - stdout_index;
             memcpy(&stdout_buf[stdout_index], msg, len);
+            stdout_buf[stdout_index+len] = '\0';
             printToStdOut(stdout_buf, 256);
             len -= remlen;
             stdout_index = 0;
@@ -186,6 +190,7 @@ int writeStdOut(char* msg, int len) {
 
     if (msg[inlen-1] == '\n') {
         if (stdout_index > 0) {
+            stdout_buf[stdout_index] = '\0';
             printToStdOut(stdout_buf, stdout_index);
             stdout_index = 0;
         }

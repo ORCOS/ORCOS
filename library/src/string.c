@@ -571,8 +571,28 @@ int strmatch(const char *wild, const char *string) {
   return (!*wild);
 }
 
+int writeStdOut(char* msg, int len);
+
 int puts(const char *s) {
-    return (printToStdOut(s,strlen(s)));
+    return (writeStdOut(s, strlen(s)));
+}
+
+
+int isspace(int c)
+{
+        return ((c>=0x09 && c<=0x0D) || (c==0x20));
+}
+
+char* trim(const char * s) {
+    int l = strlen(s);
+    if (l == 0) {
+        return (strdup(s));
+    }
+
+    while(isspace(s[l - 1])) --l;
+    while(* s && isspace(* s)) ++s, --l;
+
+    return (strndup(s, l));
 }
 
 
@@ -642,12 +662,13 @@ errorstrtable_t errorstrings[] = {
   {cWrongArrayLengthByte,   "Wrong array length (-801)"},
   {cEOF,                    "End of File (-5)"},
   {cInvalidPath,            "Invalid Path (-6)"},
+  {cUnknownCmdOrPath,       "Command or File not found (-7)"},
   {cHeapMemoryExhausted,    "Heap Memory exhausted (-100)"},
   {cDeviceMemoryExhausted,  "Device Memory exhausted (-103)"},
   {cInvalidCBHeader,        "Invalid Task Control Block Header (-300)"},
   {cTaskCRCFailed,          "Task CRC check failed (-301)"},
   {cThreadNotFound,         "Thread not found (-302)"},
-  {cNotConnected,           "Not connected (-400)"},
+  {cNotConnected,           "Operation failed: Not connected (-400)"},
   {cTransportProtocolNotAvailable,   "Transport Protocol not available (-401)"},
   {cAddressProtocolNotAvailable,     "Address Protocol not available (-402)"},
   {cSocketAlreadyBoundError,"Socket already bound (-403)"},
@@ -660,6 +681,10 @@ errorstrtable_t errorstrings[] = {
   {cBlockDeviceReadError,   "Block device read error (-700)"},
   {cBlockDeviceWriteError,  "Block device write error (-701)"},
   {cBlockDeviceTooManyBlocks,  "Block device: Too many blocks given (-702)"},
+  {cTimeout,                "Operation timed out (-1019)"},
+  {cInvalidSocketType,      "Invalid socket type for operation (-407)"},
+  {cErrorConnecting,        "Error connecting (-408)"},
+  {cInvalidConcurrentAccess,"Invalid concurrent access. Another thread already performs this operation (-1020)"}
 };
 
 

@@ -27,14 +27,11 @@ typedef unsigned int size_t;
 
 typedef int1 sa_family_t;
 
-typedef char service_name[17];
-
 //! Structure describing the address of a socket.
 typedef struct {
     unint4          sa_data;            //!< socket address
     unint2          port_data;          //!< port
     sa_family_t     sa_family;          //!< The adress family of this struct
-    service_name    name_data;      //!< socket name, maximum 16 chars
 } sockaddr;
 
 
@@ -68,7 +65,7 @@ typedef enum {
 typedef struct {
     unint4  flags;
     unint4  filesize;
-    unint4  datetime;
+    unint4  datetime; /* since 1970-01-01 00:00.00 UTC */
     unint4  resId;
     unint2  reserved;
     unint1  resType;

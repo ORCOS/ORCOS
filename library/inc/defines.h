@@ -192,5 +192,7 @@
 #define cGetHostByNameSyscallId             47
 #define cGetCyclesSyscallId                 48
 #define cRenameSyscallId                    49
+#define cGetCwdSyscallId                    50
+#define cChDirSyscallId                     51
 
 #endif /* TASKLIB_HH_ */

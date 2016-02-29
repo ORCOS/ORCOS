@@ -17,7 +17,7 @@
 */
 
 #include <orcos.h>
-#include "string.hh"
+#include <string.h>
 #include <sys/timer.h>
 #include <stdlib.h>
 #include "stdio.h"

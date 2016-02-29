@@ -27,6 +27,6 @@ KERNEL_LIB_DIR = $(ORCOS_LIB_DIR)/bin/armv7
 
 #no -mthumb until thread entry and static.o task_main are in the same mode
 AFLAGS =
-CFLAGS = -c -I$(ORCOS_LIB_DIR)/libc/include/ -I$(ORCOS_LIB_DIR)/libc/time/ -I$(ORCOS_LIB_DIR)/inc/ -I$(ORCOS_LIB_DIR)/inc/$(BUILD_PLATFORM) -mno-unaligned-access -fno-exceptions -O2  -Wno-write-strings -ffunction-sections  -mcpu=cortex-a8  -mfpu=neon 
+CFLAGS = -c -I$(ORCOS_LIB_DIR)/inc/ -I$(ORCOS_LIB_DIR)/libc/include/ -I$(ORCOS_LIB_DIR)/libc/time/ -I$(ORCOS_LIB_DIR)/inc/$(BUILD_PLATFORM) -mno-unaligned-access -fno-exceptions -O2  -Wno-write-strings -ffunction-sections  -mcpu=cortex-a8  -mfpu=neon 
 CFLAGS += -fno-builtin -mno-unaligned-access -fno-section-anchors -fno-if-conversion2
 CPPFLAGS = $(CFLAGS) -g -fno-rtti

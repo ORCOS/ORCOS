@@ -41,7 +41,7 @@ int close(int fileid)
 /*!
  * The fread() function shall read into the array pointed to by ptr up to nitems elements whose size is specified by size in bytes, from the stream pointed to by stream.
  */
-size_t read(int fd, char *ptr, size_t size)
+int read(int fd, char *ptr, size_t size)
 {
     return syscall(cFReadSysCallId, fd, ptr, size);
 }
@@ -49,19 +49,29 @@ size_t read(int fd, char *ptr, size_t size)
 /*!
  * The fwrite() function shall write, from the array pointed to by ptr, up to nitems elements whose size is specified by size, to the stream pointed to by stream.
  */
-size_t write(int fd, const void *buf, size_t count)
+int write(int fd, const void *buf, size_t count)
 {
     return syscall(cFWriteSysCallId, fd, buf, count);
 }
 
-int    ioctl(int fd, int request, void* args) {
+int ioctl(int fd, int request, void* args) {
 
     return syscall(cIOControl, fd, request, args);
 }
 
-size_t printToStdOut(const void* ptr,size_t max)
+stdoutfn_t current_stdout = 0;
+
+void setstdout(stdoutfn_t fn) {
+    current_stdout = fn;
+}
+
+size_t printToStdOut(const void* ptr, size_t max)
 {
-    return syscall(cPrintToStdOut, ptr, max);
+    if (current_stdout != 0) {
+        return (current_stdout((char*) ptr));
+    } else {
+        return syscall(cPrintToStdOut, ptr, max);
+    }
 }
 
 int fstat(int fd, struct stat* stat) {
@@ -97,24 +107,40 @@ int  lseek(int fd, int offset, int whence) {
     return (syscall(cFSeekSyscallId, fd, offset, whence));
 }
 
+int   getcwd(char* buf, int buflen) {
+    if (!buf) {
+        return (cInvalidArgument);
+    }
+    if (buflen < 1) {
+        return (cInvalidArgument);
+    }
+    return (syscall(cGetCwdSyscallId, buf, buflen));
+}
+
+int chdir(const char* path) {
+    return (syscall(cChDirSyscallId, path));
+}
+
+
 
 
 Directory_Entry_t* readdir(int fd) {
-    static char buffer[300];
+    static char buffer[512];
     static int pos = 0;
     static int remainingBytes = 0;
 
     if (!remainingBytes) {
-        int readb = read(fd, buffer, 300);
+        int readb = read(fd, buffer, 512);
         /* error occurred reading */
-        if (readb < 0)
+        if (readb < 0) {
             return (0);
+        }
+
         if (readb > (int) sizeof(Directory_Entry_t)) {
             pos = 0;
             remainingBytes = readb;
-        }
-        else {
-            /* reset directory position*/
+        } else {
+            /* reset directory position (readb == 0)*/
             lseek(fd, 0, SEEK_SET);
             pos = 0;
             remainingBytes = 0;
@@ -125,8 +151,11 @@ Directory_Entry_t* readdir(int fd) {
     Directory_Entry_t* ret = (Directory_Entry_t*) (buffer + pos);
     remainingBytes -= sizeof(Directory_Entry_t) + ret->namelen;
     pos += sizeof(Directory_Entry_t) + ret->namelen;
-    if (remainingBytes < (int) sizeof(Directory_Entry_t))
+
+    if ((remainingBytes < (int) sizeof(Directory_Entry_t)) ||
+        ((Directory_Entry_t*) (buffer + pos))->reserved == 0xffff ) {
         remainingBytes = 0;
+    }
 
     return (ret);
 
@@ -134,28 +163,6 @@ Directory_Entry_t* readdir(int fd) {
 
 int isatty(int file) {
     return 0;
-}
-
-char* fgets (int fd, char *s, int count) {
-    char* str = s;
-    int   readb = 0;
-    while(readb < count) {
-        int result = read(fd, s, 1);
-        if (result == 0)
-            return (0);
-
-        if (*s == '\n')
-        {
-            s++;
-            *s = 0;
-            return str;
-        }
-        s++;
-        readb++;
-    }
-
-    return str;
-
 }
 
 

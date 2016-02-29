@@ -10,20 +10,6 @@
 #include "telnet.h"
 
 
-const char* types[11] = {
-        "d ", // directory
-        "s ", // streamdevice
-        "c ", // commdevice
-        "g ", // genericdevice
-        "f ", // file
-        "S ", //socket
-        "u ", // usb
-        "b ", // blockdevice
-        "p ", // partition
-        "sm ", // shared mem
-        "kv " //kernel variable
-};
-
 const char* states[8] = {
         "NEW", // new
         "READY", // ready
@@ -41,27 +27,17 @@ static char return_msg[520];
 
 void sendMsg(int socket, char* msg, int error) {
     if (error != 0) {
-        sprintf(return_msg, "%s. Error: %s"LINEFEED, msg, strerror(error));
+        sprintf(return_msg, "%s%s"LINEFEED, msg, strerror(error));
     } else {
         sprintf(return_msg, "%s"LINEFEED, msg);
     }
 
     int end = strlen(return_msg);
-    int timeout = 100;
-    while (sendto(socket, return_msg, end + 1, 0) < 0 && timeout > 0) {
-        usleep(1000);
-        timeout--;
-
-    }
+    sendto(socket, return_msg, end + 1, 0);
 }
 
 void sendData(int socket, char* data, int len) {
-    int timeout = 100;
-    while (sendto(socket, data, len, 0) < 0 && timeout > 0) {
-        usleep(1000);
-        timeout--;
-
-    }
+    send(socket, data, len);
 }
 
 void sendUnknownCommand(int socket) {
@@ -70,11 +46,7 @@ void sendUnknownCommand(int socket) {
 }
 
 void sendStr(int socket, char* str) {
-    int timeout = 100;
-    while (sendto(socket, str, strlen(str) + 1, 0) < 0 && timeout > 0) {
-        usleep(1000);
-        timeout--;
-    }
+    sendto(socket, str, strlen(str) + 1, 0);
 }
 
 
@@ -100,66 +72,6 @@ void makeHexCharCompatible(char* msg, int len) {
     }
 }
 
-
-char typestr[12];
-
-const char* getTypeStr(int resourceType) {
-    char* ret = typestr;
-    ret[0] = 0;
-    for (int i = 0; i < 11; i++) {
-        if (resourceType & (1 << i))
-            strcat(ret,types[i]);
-    }
-    return ret;
-}
-
-const char* getStatusStr(unint4 status) {
-    char* ret = "SLEEPING";
-    for (int i = 0; i < 8; i++) {
-        if (status & (1 << i))
-            return (states[i]);
-    }
-    return ret;
-}
-
-bool readKernelVarStr(char* filepath, char* result, int size) {
-    result[0] = 0;
-    int file = open(filepath, 0);
-    if (file < 0)
-        return (false);
-
-    int num = read(file, result, size - 1);
-    result[num] = 0;
-    close(file);
-    return (true);
-}
-
-bool readKernelVarInt(int filehandle, void* result, int size) {
-    int num = read(filehandle, (char*) result, 4);
-    return (true);
-}
-
-bool readKernelVarUInt4(char* filepath, unint4* result) {
-    result[0] = 0;
-    int file = open(filepath, 0);
-    if (file < 0)
-        return (false);
-
-    int num = read(file, (char*) result, 4);
-    close(file);
-    return (true);
-}
-
-bool readKernelVarUInt8(char* filepath, unint8* result) {
-    result[0] = 0;
-    int file = open(filepath, 0);
-    if (file < 0)
-        return (false);
-
-    int num = read(file, (char*) result, 8);
-    close(file);
-    return (true);
-}
 
 char* extractPath(char* &str) {
 

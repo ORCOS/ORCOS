@@ -60,6 +60,8 @@
 #define cInvalidResource        (int)-1016
 #define cCanNotAquireResource   (int)-1017
 #define cFileNotFound           (int)-1018
+#define cTimeout                (int)-1019
+#define cInvalidConcurrentAccess (int)-1020
 
 #define cArrayLengthOutOfBounds (int)-800
 #define cWrongArrayLengthByte   (int)-801
@@ -75,6 +77,7 @@
 
 #define cEOF                    (int)-5
 #define cInvalidPath            (int)-6
+#define cUnknownCmdOrPath       (int)-7
 
 // Error
 
@@ -118,6 +121,10 @@
 #define cTCPEnqueueFailed                   (int)-404
 #define cPBufNoMoreMemory                   (int)-405
 #define cSocketAlreadyListened              (int)-406
+#define cInvalidSocketType                  (int)-407
+#define cErrorConnecting                    (int)-408
+
+
 // Error
 
 //-----------------------------------------------------

@@ -10,6 +10,7 @@
 #include <time.h>
 #include <defines.h>
 #include <error.h>
+#include <orcos.h>
 
 #if 0
 char* __findenv(const char *name, int *offset);
@@ -188,14 +189,6 @@ time_t time(time_t* t) {
     return value;
 }
 
-int system(const char *cmd) {
-    /* try to execute the command..
-     * we must interpret the command first..
-     * the first argument must be the program to run ..
-     * the rest is the program argument vector */
-
-    return -1;
-}
 
 void  abort(void) {
     thread_exit(-1);
@@ -203,10 +196,14 @@ void  abort(void) {
 
 
 void*  mutex_create() {
-  return (malloc(sizeof(int)));
+    int* counter = malloc(sizeof(int));
+    *counter = 1;
+    return (counter);
 }
 
 ErrorT  mutex_destroy(void* mutex) {
+    int* counter = (int*) mutex;
+    *counter = 0;
     free(mutex);
     return (cOk);
 }
@@ -216,11 +213,11 @@ ErrorT mutex_acquire(void* mutex, int blocking) {
     // blocked threads will be activated on Mutex::release according to
     // their priorities
     int* counter = (int*) mutex;
-    while ( testandset(counter, 1, 0) == 0 ) {
+    while (testandset(counter, 1, 0) == 0) {
          if (!blocking)
              return (cError);
 
-         signal_wait( (void*) counter, 0, 1 );
+         signal_wait((void*) counter, 1);
     }
 
     counter = 0;
@@ -229,7 +226,7 @@ ErrorT mutex_acquire(void* mutex, int blocking) {
 
 ErrorT mutex_release(void* mutex) {
     int* counter = (int*) mutex;
-    counter = 1;
-    signal_signal( (void*) counter, 0, 1 );
+    *counter = 1;
+    signal_signal((void*) counter, 0, 1);
     return (cOk);
 }

@@ -30,7 +30,7 @@ SECTIONS
     ADDITIONAL_HEADER
    }
 
- CRC_START = .;
+  CRC_START = .;
   .text : {
     static.o(.text)
     *(.text*)
@@ -39,15 +39,9 @@ SECTIONS
     *(.rodata*)
   }
 
-  .data : {
-     *(.data*)     
-     *(.bss*)
-  }
-  .sbss     ALIGN(4) :
+  .data :
   {
-     PROVIDE(__sbss_start = .);
-     *(.sbss*)
-     PROVIDE(__sbss_end = .);
+     *(.data*)         
   }
   .init     ALIGN(4) :
   {
@@ -61,7 +55,19 @@ SECTIONS
      *(.fini*)
      PROVIDE(__fini_end = .);
   }
- CRC_END = .;
+  CRC_END = .;
+  .bss      ALIGN(4) :
+  {
+     PROVIDE(__bss_start = .);
+     *(.bss*)
+     PROVIDE(__bss_end = .);
+  }
+  .sbss     ALIGN(4) :
+  {
+     PROVIDE(__sbss_start = .);
+     *(.sbss*)
+     PROVIDE(__sbss_end = .);
+  }
 
  TASK_HEAP = ALIGN(TASK_HEAP_ALIGN);
  PROVIDE(_taskHeapStart = TASK_HEAP);

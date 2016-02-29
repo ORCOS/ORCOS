@@ -195,6 +195,9 @@ extern void* __fini_end;
 extern void* __sbss_start;
 extern void* __sbss_end;
 
+extern void* __bss_start;
+extern void* __bss_end;
+
 /*****************************************************************************
  * Method: void (*init_handler)(void)
  *******************************************************************************/
@@ -210,6 +213,13 @@ void task_main(char* args) {
         sbss_start++;
     }
 
+    size_t* bss_start = (size_t*)(&__bss_start);
+    size_t* bss_end   = (size_t*)(&__bss_end);
+
+    while (bss_start < bss_end) {
+        *bss_start = 0;
+        bss_start++;
+    }
     size_t* init_start = (size_t*)(&__init_start);
     size_t* init_end   = (size_t*)(&__init_end);
     while (init_start < init_end) {
