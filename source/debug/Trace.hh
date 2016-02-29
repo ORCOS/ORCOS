@@ -102,6 +102,7 @@ typedef struct {
 #define TRACE_REMOVE_SOURCE(taskid, sourceid)
 #define TRACE_MUTEX_ACQUIRE(taskid, sourceid, name)
 #define TRACE_MUTEX_RELEASE(taskid, sourceid, name)
+#define TRACE_CHANGE_PRIORITY(taskid, sourceid, priority)
 #define TRACE_SYSCALL_ENTER(taskid, sourceid, syscallId)
 
 #endif
