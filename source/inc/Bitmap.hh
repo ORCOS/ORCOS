@@ -32,10 +32,10 @@ private:
 public:
     ///  Default constructor
     Bitmap() :
-            Flags(0) {
+       Flags(0) {
     }
     Bitmap(BitmapT b) :
-            Flags(b) {
+       Flags(b) {
     }
 
     ///  Sets the bit numbered 'bitNr'
@@ -116,57 +116,202 @@ public:
 
 };
 
+#define CEILING(x,y) (((x) + (y) - 1) / (y))
+#define BITS_PER_LONG (sizeof(long)*8)
 
+static inline int __clz(unsigned long val)
+{
+    if (!val) {
+        return (BITS_PER_LONG);
+    }
+    return (__builtin_clzl(val));
+}
+
+
+/*****************************************************************************
+ * Template class LargeBitmap.
+ *
+ * Stores a large bitmap inside an array of long words. Template
+ * class to allow the compiler to generate optimal code for
+ * array access.
+ *
+ *******************************************************************************/
+template <int Bits>
+class LargeBitmap {
+private:
+    unsigned long   bitmap[CEILING(Bits, BITS_PER_LONG)];
+
+public:
+    LargeBitmap() {
+        for (unsigned int i = 0; i < CEILING(Bits, BITS_PER_LONG); i++) {
+            bitmap[i] = 0;
+        }
+    }
+
+    /*****************************************************************************
+     * Method: setBit(int bit)
+     *
+     * @description
+     *  Sets the bit inside the bitmap
+     *
+     * @params
+     *  bit     bit to set
+     *******************************************************************************/
+    void setBit(int bit)
+    {
+        if (bit >= Bits) return;
+        int word = bit / BITS_PER_LONG;
+        bit = bit - (word * BITS_PER_LONG);
+        bitmap[word] |= 1ul << bit;
+    }
+
+    /*****************************************************************************
+     * Method: clearBit(int bit)
+     *
+     * @description
+     *  Clears the bit inside the bitmap
+     *
+     * @params
+     *  bit     bit to clear
+     *******************************************************************************/
+    void clearBit(int bit)
+    {
+        if (bit >= Bits) return;
+        int word = bit/ BITS_PER_LONG;
+        bit = bit - (word * BITS_PER_LONG);
+        bitmap[word] &= ~(1ul << bit);
+    }
+
+    /*****************************************************************************
+     * Method: isSet(int bit)
+     *
+     * @description
+     *  Returns the state of the bit
+     *
+     * @params
+     *  bit     bit to check
+     *******************************************************************************/
+    bool isSet(int bit)
+    {
+        if (bit >= Bits) return (false);
+        int word = bit/BITS_PER_LONG;
+        bit = bit - (word * BITS_PER_LONG);
+        return ((bitmap[word] & (1ul << bit)) != 0);
+    }
+
+    /*****************************************************************************
+     * Method: getFirstBit()
+     *
+     * @description
+     *  Returns the first bit set or -1
+     *
+     * @returns -1 on failure. first set bit otherwise
+     *
+     *******************************************************************************/
+    int getFirstBit()
+    {
+        // to be optimized (e.g. unrolled) by compiler as upper bound is known
+        // at compile time
+        for (unsigned int i = 0; i < CEILING(Bits, BITS_PER_LONG); i++) {
+             // compiler will generate hardware ffs version here hopefully
+             // be sure to specify -march= so compiler can really use architecture
+             // specific asm instructions here
+             int firstset = __builtin_ffsl(bitmap[i]);
+             if (firstset != 0)
+             {
+                 return ((i * BITS_PER_LONG) + firstset-1);
+             }
+        }
+        return (-1);
+    }
+};
+
+
+/*****************************************************************************
+ * Template class IDMap.
+ *
+ * Stores a set of ID inside an array of long words. Template
+ * class to allow the compiler to generate optimal code for
+ * array access.
+ *
+ *******************************************************************************/
+template <int IDs>
 class IDMap {
 private:
     /* map of free IDs
      * 1: ID free, 0 : ID used */
-    unint4* map;
-    unint1 size;
+    unsigned long  map[CEILING(IDs, BITS_PER_LONG)];
 
 public:
-    IDMap(int ids) {
-        size = (ids / 32);
-        if (size == 0) {
-            size = 1;
+    IDMap() {
+        for (unsigned int i = 0; i < CEILING(IDs, BITS_PER_LONG); i++)
+        {
+            map[i] = (long)-1;
         }
-        map = new unint4[size];
-        for (int i = 0; i < size; i++) {
-            map[i] = 0xffffffff;
-        }
+        // remove last ids in last word not belonging to the map
+        int lastIds = IDs % BITS_PER_LONG;
+        map[CEILING(IDs, BITS_PER_LONG)-1] &= ~((1ul << (BITS_PER_LONG - lastIds))-1);
     }
 
 
-    int getNextID() {
+    /*****************************************************************************
+     * Method: getNextID(int bit)
+     *
+     * @description
+     *  Returns the next id and removes the id from the map
+     *
+     * @returns the nest id or -1
+     *******************************************************************************/
+    int getNextID()
+    {
         int id = -1;
-        for (int i = 0; i < size; i++) {
-           int freeindex = __builtin_clz(map[i]);
-           if (freeindex < 32) {
+        for (unsigned int i = 0; i < CEILING(IDs, BITS_PER_LONG); i++)
+        {
+           unsigned int freeindex = __clz(map[i]);
+           if (freeindex < BITS_PER_LONG)
+           {
                /* mark ID as used */
-               map[i] &= ~(1 << (31 - freeindex));
-               id = freeindex + (i * 32);
+               map[i] &= ~(1ul << ((BITS_PER_LONG-1)-freeindex));
+               id = freeindex + (i * BITS_PER_LONG);
                break;
            }
         }
         return (id);
     }
 
-    void invalidateID(int id) {
-        int index = ((unint4) id) / 32;
-        int bit = (id - (index * 32));
-        if (index < size) {
-           map[index] &= ~(1 << (31 - bit));
-        }
+    /*****************************************************************************
+     * Method: invalidateID(int bit)
+     *
+     * @description
+     *  Invalidates the ID. The ID can not be returned by getNextID until freed.
+     *
+     * @params
+     *  id     ID to invalidate
+     *******************************************************************************/
+    void invalidateID(int id)
+    {
+        if (id >= IDs) return;
+        int index = id / BITS_PER_LONG;
+        int bit = id - (index * BITS_PER_LONG);
+        map[index] &= ~(1ul << ((BITS_PER_LONG-1)-bit));
     }
 
-    void freeID(int id) {
-        int index = ((unint4) id) / 32;
-        int bit = (id - (index * 32));
-        if (index < size) {
-            map[index] |= (1 << (31 - bit));
-        }
+    /*****************************************************************************
+     * Method: freeID(int bit)
+     *
+     * @description
+     *  Frees the ID. The ID can be reused again.
+     *
+     * @params
+     *  id     ID to free
+     *******************************************************************************/
+    void freeID(int id)
+    {
+        if (id >= IDs) return;
+        int index = id / BITS_PER_LONG;
+        int bit = id - (index * BITS_PER_LONG);
+        map[index] |= (1ul << ((BITS_PER_LONG-1)-bit));
     }
-
 };
 
 #endif /* _BITMAP_HH */
