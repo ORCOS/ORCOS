@@ -488,12 +488,12 @@ int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1
  * @returns
  *  int         Number of bytes transferred inside the data phase
  *******************************************************************************/
-int USB_EHCI_Host_Controller::sendUSBControlMsg(USBDevice *dev,
-                                                unint1 endpoint,
-                                                char *control_msg,
-                                                unint1 direction,
-                                                unint1 data_len,
-                                                char *data) {
+int USB_EHCI_Host_Controller::sendUSBControlMsg(USBDevice*  dev,
+                                                unint1      endpoint,
+                                                char*       control_msg,
+                                                unint1      direction,
+                                                unint1      data_len,
+                                                char*       data) {
     // finally link the queue head to the qtd chain
     volatile QH* qh = (QH*) dev->endpoints[endpoint].device_priv;
     if (qh == 0)
@@ -546,6 +546,8 @@ int USB_EHCI_Host_Controller::sendUSBControlMsg(USBDevice *dev,
     // clear status bits
     OUTW(operational_register_base + USBSTS_OFFSET, 0x3a);
 
+    theOS->getBoard()->getCache()->clean_data((void*)data, data_len);
+
     // execute!
     // set next qtd in qh overlay to activate transfer
     qh->qh_overlay.qt_next = (unint4) qtd;
@@ -561,6 +563,8 @@ int USB_EHCI_Host_Controller::sendUSBControlMsg(USBDevice *dev,
         /* control messages are much slower */
         kwait_us_nonmem(10);
     }
+
+    theOS->getBoard()->getCache()->invalidate_data((void*)data, data_len);
 
     // get number of bytes transferred
     unint4 num = 0;

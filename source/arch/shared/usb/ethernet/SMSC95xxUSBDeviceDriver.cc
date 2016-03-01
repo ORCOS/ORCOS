@@ -36,30 +36,30 @@ extern "C" err_t ethernet_input(struct pbuf *p, struct netif *netif);
 
 /* SMSC LAN95xx based USB 2.0 Ethernet Devices */
 /* Tx command words */
-#define TX_CMD_A_FIRST_SEG_     0x00002000
-#define TX_CMD_A_LAST_SEG_      0x00001000
+#define TX_CMD_A_FIRST_SEG_          0x00002000
+#define TX_CMD_A_LAST_SEG_           0x00001000
 
 /* Rx status word */
-#define RX_STS_FL_              0x3FFF0000  /* Frame Length */
-#define RX_STS_ES_              0x00008000  /* Error Summary */
+#define RX_STS_FL_                   0x3FFF0000  /* Frame Length */
+#define RX_STS_ES_                   0x00008000  /* Error Summary */
 
 /* SCSRs */
-#define ID_REV                  0x00
+#define ID_REV                       0x00
 
-#define TX_CFG                  0x10
-#define TX_CFG_ON_              0x00000004
+#define TX_CFG                       0x10
+#define TX_CFG_ON_                   0x00000004
 
-#define HW_CFG                  0x14
-#define HW_CFG_BIR_             0x00001000
-#define HW_CFG_RXDOFF_          0x00000600
-#define HW_CFG_MEF_             0x00000020
-#define HW_CFG_BCE_             0x00000002
-#define HW_CFG_LRST_            0x00000008
+#define HW_CFG                       0x14
+#define HW_CFG_BIR_                  0x00001000
+#define HW_CFG_RXDOFF_               0x00000600
+#define HW_CFG_MEF_                  0x00000020
+#define HW_CFG_BCE_                  0x00000002
+#define HW_CFG_LRST_                 0x00000008
 
-#define PM_CTRL                 0x20
-#define PM_CTL_PHY_RST_         0x00000010
+#define PM_CTRL                      0x20
+#define PM_CTL_PHY_RST_              0x00000010
 
-#define AFC_CFG                 0x2C
+#define AFC_CFG                      0x2C
 
 /*
  * Hi watermark = 15.5Kb (~10 mtu pkts)
@@ -67,58 +67,58 @@ extern "C" err_t ethernet_input(struct pbuf *p, struct netif *netif);
  * backpressure duration = ~ 350us
  * Apply FC on any frame.
  */
-#define AFC_CFG_DEFAULT         0x00F830A1
+#define AFC_CFG_DEFAULT              0x00F830A1
 
-#define E2P_CMD                 0x30
-#define E2P_CMD_BUSY_           0x80000000
-#define E2P_CMD_READ_           0x00000000
-#define E2P_CMD_TIMEOUT_        0x00000400
-#define E2P_CMD_LOADED_         0x00000200
-#define E2P_CMD_ADDR_           0x000001FF
+#define E2P_CMD                      0x30
+#define E2P_CMD_BUSY_                0x80000000
+#define E2P_CMD_READ_                0x00000000
+#define E2P_CMD_TIMEOUT_             0x00000400
+#define E2P_CMD_LOADED_              0x00000200
+#define E2P_CMD_ADDR_                0x000001FF
 
-#define E2P_DATA                0x34
+#define E2P_DATA                     0x34
 
-#define BURST_CAP               0x38
+#define BURST_CAP                    0x38
 
-#define INT_EP_CTL              0x68
-#define INT_EP_CTL_PHY_INT_     0x00008000
+#define INT_EP_CTL                   0x68
+#define INT_EP_CTL_PHY_INT_          0x00008000
 
-#define INT_STS                         (0x08)
-#define INT_STS_TX_STOP_                (0x00020000)
-#define INT_STS_RX_STOP_                (0x00010000)
-#define INT_STS_PHY_INT_                (0x00008000)
-#define INT_STS_TXE_                    (0x00004000)
-#define INT_STS_TDFU_                   (0x00002000)
-#define INT_STS_TDFO_                   (0x00001000)
-#define INT_STS_RXDF_                   (0x00000800)
-#define INT_STS_GPIOS_                  (0x000007FF)
-#define INT_STS_CLEAR_ALL_              (0xFFFFFFFF)
+#define INT_STS                      (0x08)
+#define INT_STS_TX_STOP_             (0x00020000)
+#define INT_STS_RX_STOP_             (0x00010000)
+#define INT_STS_PHY_INT_             (0x00008000)
+#define INT_STS_TXE_                 (0x00004000)
+#define INT_STS_TDFU_                (0x00002000)
+#define INT_STS_TDFO_                (0x00001000)
+#define INT_STS_RXDF_                (0x00000800)
+#define INT_STS_GPIOS_               (0x000007FF)
+#define INT_STS_CLEAR_ALL_           (0xFFFFFFFF)
 
-#define BULK_IN_DLY         0x6C
+#define BULK_IN_DLY                  0x6C
 
 /* MAC CSRs */
-#define MAC_CR              0x100
-#define MAC_CR_MCPAS_       0x00080000
-#define MAC_CR_PRMS_        0x00040000
-#define MAC_CR_HPFILT_      0x00002000
-#define MAC_CR_TXEN_        0x00000008
-#define MAC_CR_RXEN_        0x00000004
+#define MAC_CR                       0x100
+#define MAC_CR_MCPAS_                0x00080000
+#define MAC_CR_PRMS_                 0x00040000
+#define MAC_CR_HPFILT_               0x00002000
+#define MAC_CR_TXEN_                 0x00000008
+#define MAC_CR_RXEN_                 0x00000004
 
-#define ADDRH               0x104
-#define ADDRL               0x108
+#define ADDRH                        0x104
+#define ADDRL                        0x108
 
-#define MII_ADDR            0x114
-#define MII_WRITE_          0x02
-#define MII_BUSY_           0x01
-#define MII_READ_           0x00 /* ~of MII Write bit */
-#define MII_DATA            0x118
+#define MII_ADDR                     0x114
+#define MII_WRITE_                   0x02
+#define MII_BUSY_                    0x01
+#define MII_READ_                    0x00 /* ~of MII Write bit */
+#define MII_DATA                     0x118
 
-#define FLOW                0x11C
-#define VLAN1               0x120
+#define FLOW                         0x11C
+#define VLAN1                        0x120
 
-#define COE_CR              0x130
-#define Tx_COE_EN_          0x00010000
-#define Rx_COE_EN_          0x00000001
+#define COE_CR                       0x130
+#define Tx_COE_EN_                   0x00010000
+#define Rx_COE_EN_                   0x00000001
 
 /* Vendor-specific PHY Definitions */
 #define PHY_INT_SRC                  29
@@ -129,10 +129,9 @@ extern "C" err_t ethernet_input(struct pbuf *p, struct netif *netif);
 
 /* USB Vendor Requests */
 #define USB_VENDOR_REQUEST_WRITE_REGISTER    0xA0
-#define USB_VENDOR_REQUEST_READ_REGISTER    0xA1
+#define USB_VENDOR_REQUEST_READ_REGISTER     0xA1
 
 /* Some extra defines */
-//#define HS_USB_PKT_SIZE            512
 #define HS_USB_PKT_SIZE              512
 #define FS_USB_PKT_SIZE              64
 #define DEFAULT_HS_BURST_CAP_SIZE    (16 * 1024 + 5 * HS_USB_PKT_SIZE)
@@ -145,18 +144,17 @@ extern "C" err_t ethernet_input(struct pbuf *p, struct netif *netif);
 
 /* local defines */
 #define SMSC95XX_BASE_NAME "sms"
-#define USB_CTRL_SET_TIMEOUT        5000
-#define USB_CTRL_GET_TIMEOUT        5000
-#define USB_BULK_SEND_TIMEOUT       5000
-#define USB_BULK_RECV_TIMEOUT       5000
+#define USB_CTRL_SET_TIMEOUT         5000
+#define USB_CTRL_GET_TIMEOUT         5000
+#define USB_BULK_SEND_TIMEOUT        5000
+#define USB_BULK_RECV_TIMEOUT        5000
 
-#define AX_RX_URB_SIZE              2048
-#define PHY_CONNECT_TIMEOUT         5000
+#define AX_RX_URB_SIZE               2048
+#define PHY_CONNECT_TIMEOUT          5000
+#define PKTSIZE                      1518
 
 /* Activate Turbo Mode */
 #define TURBO_MODE
-
-#define PKTSIZE         1518
 
 /* driver private */
 struct smsc95xx_private {
@@ -174,14 +172,13 @@ static char default_macaddr[6] = { 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0 };
 
 /* usb transfer memory area. placed in cache inhibit memory region to allow ehci hc
  * to see the correct data  */
-static char tmp_data[2048]; // ATTR_CACHE_INHIBIT;
+static char tmp_data[2048];
 
-int4 tmpbuf[2] __attribute__((aligned(4))) ATTR_CACHE_INHIBIT;
+/* temporary buffer for usb control transfers */
+static int4 tmpbuf[2];
 
-/* control msg variable */
-static char msg[8] ATTR_CACHE_INHIBIT;
-
-unint4 dummyFrame[2] = { (TX_CMD_A_FIRST_SEG_ | TX_CMD_A_LAST_SEG_), 0x0 };
+/* dummy frame to ensure frame completion */
+static unint4 dummyFrame[2] = { (TX_CMD_A_FIRST_SEG_ | TX_CMD_A_LAST_SEG_), 0x0 };
 
 extern void* comStackMutex;
 
@@ -207,10 +204,14 @@ static int smsc95xx_write_reg(USBDevice *dev, unint2 index, unint4 data) {
     tmpbuf[0] = data;
     index = cputobe16(index);
 
-    char msg2[8] = { USB_TYPE_VENDOR | USB_RECIP_DEVICE, USB_VENDOR_REQUEST_WRITE_REGISTER, 0x0, 0x0, (unint1) ((index & 0xff00) >> 8),
-            (unint1) (index & 0xff), sizeof(data), 0x0 };
-
-    memcpy(msg, msg2, 8);
+    char msg[8] = { USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+                    USB_VENDOR_REQUEST_WRITE_REGISTER,
+                    0x0,
+                    0x0,
+                    (unint1) ((index & 0xff00) >> 8),
+                    (unint1) (index & 0xff),
+                    sizeof(data),
+                    0x0 };
 
     int4 error = dev->controller->sendUSBControlMsg(dev,                                  /* device to send control msg to*/
                                                     0,                                    /* endpoint number */
@@ -245,9 +246,14 @@ static int smsc95xx_write_reg(USBDevice *dev, unint2 index, unint4 data) {
 static int smsc95xx_read_reg(USBDevice *dev, unint2 index, unint4 *data) {
     index = cputobe16(index);
 
-    char msg2[8] = { 0x80 | USB_TYPE_VENDOR | USB_RECIP_DEVICE, USB_VENDOR_REQUEST_READ_REGISTER, 0x0, 0x0,
-                    (unint1) ((index & 0xff00) >> 8), (unint1) (index & 0xff), sizeof(data), 0x0 };
-    memcpy(msg, msg2, 8);
+    char msg[8] = { 0x80 | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+                    USB_VENDOR_REQUEST_READ_REGISTER,
+                    0x0,
+                    0x0,
+                    (unint1) ((index & 0xff00) >> 8),
+                    (unint1) (index & 0xff),
+                    sizeof(data),
+                    0x0 };
 
     int4 error = dev->controller->sendUSBControlMsg(dev,                                 /* device to send control msg to*/
                                                     0,                                   /* endpoint number */
@@ -1032,6 +1038,10 @@ SMSC95xxUSBDeviceDriver::SMSC95xxUSBDeviceDriver(USBDevice* p_dev) :
  *  err_t         Error Code. 0 on success
  *******************************************************************************/
 static err_t smsc95xx_low_level_output(struct netif *netif, struct pbuf *p) {
+    if (p == 0) {
+        return (ERR_ARG);
+    }
+
     LOG(ARCH, DEBUG, "SMSC95xxUSBDeviceDriver: sending packet of length: %d", p->tot_len);
 
     if (p->tot_len > 1500) {
@@ -1039,11 +1049,10 @@ static err_t smsc95xx_low_level_output(struct netif *netif, struct pbuf *p) {
         return (ERR_MEM);
     }
 
-    if (p == 0) {
-        return (ERR_ARG);
-    }
-
     SMSC95xxUSBDeviceDriver *driver = reinterpret_cast<SMSC95xxUSBDeviceDriver*>(netif->state);
+    if (driver == 0) {
+        return (ERR_BUF);
+    }
     driver->mutex->acquire();
 
     unint2 pos = 0;
@@ -1069,15 +1078,13 @@ static err_t smsc95xx_low_level_output(struct netif *netif, struct pbuf *p) {
     memcpy(&data[0], &tx_cmd_a, sizeof(tx_cmd_a));
     memcpy(&data[0] + sizeof(tx_cmd_a), &tx_cmd_b, sizeof(tx_cmd_b));
 
-    if (driver != 0) {
-        LOG(ARCH, DEBUG, "SMSC95xxUSBDeviceDriver: sending packet len %d", len);
+    LOG(ARCH, DEBUG, "SMSC95xxUSBDeviceDriver: sending packet len %d", len);
 
-        /* Send dummy frame to ensure completion of previous frame ...
-         * maybe this is not needed at all. needs more testing:
-         * without this the smsc stalls with too much data send .. ? */
-        int error = driver->dev->controller->USBBulkMsg(driver->dev, driver->bulkout_ep, USB_DIR_OUT, 8, reinterpret_cast<char*>(dummyFrame));
-        error |= driver->dev->controller->USBBulkMsg(driver->dev, driver->bulkout_ep, USB_DIR_OUT, (unint2) (len + 8), data);
-    }
+    /* Send dummy frame to ensure completion of previous frame ...
+     * maybe this is not needed at all. needs more testing:
+     * without this the smsc stalls with too much data send .. ? */
+    int error = driver->dev->controller->USBBulkMsg(driver->dev, driver->bulkout_ep, USB_DIR_OUT, 8, reinterpret_cast<char*>(dummyFrame));
+    error |= driver->dev->controller->USBBulkMsg(driver->dev, driver->bulkout_ep, USB_DIR_OUT, (unint2) (len + 8), data);
 
     driver->mutex->release();
     return (ERR_OK);
