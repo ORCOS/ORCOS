@@ -731,10 +731,12 @@ int sc_rename(intptr_t int_sp) {
               File* pFile = static_cast<File*>(res);
               return (pFile->rename(namepcpy));
           } else {
+              delete namepcpy; //< avoid memory leak
               return (cInvalidResource);
           }
     }
 
+    delete namepcpy; //< avoid memory leak
     return (cInvalidResource);
 }
 #endif
