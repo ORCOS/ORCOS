@@ -24,19 +24,13 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include <defines.h>
 
-#define IPV4 0x800
-#define TCP 0x6
 
 #define LINEFEED "\r\n"
 
 const char* welcome_msg = "220 ORCOS FTP Server ready.\r\n";
 
-
-
-unint2 htons(unint2 n) {
-    return ((n & 0xff) << 8) | ((n & 0xff00) >> 8);
-}
 
 void FTPServer::sendResponse(int socket, char* msg, ...) {
     va_list arglist;
@@ -177,14 +171,6 @@ ErrorT FTPServer::sendDirectoryContents(int datasock) {
     close(mydirhandle);
     sendto(datasock, dataBuffer, strlen(dataBuffer), 0);
     return cOk;
-}
-
-int htonl(int n)
-{
-    return ((n & 0xff) << 24) |
-    ((n & 0xff00) << 8) |
-    ((n & 0xff0000UL) >> 8) |
-    ((n & 0xff000000UL) >> 24);
 }
 
 char* FTPServer::getFTPPath(char* msgptr) {
@@ -448,7 +434,7 @@ void FTPServer::thread_entry() {
           ***********************************************/
          if (datasocket != 0) close(datasocket);
 
-         datasocket = socket(IPV4, SOCK_STREAM, TCP);
+         datasocket = socket(cIPV4, SOCK_STREAM, cTCP);
          if (datasocket < 0)
          {
              sendResponse(socketfd, "500 Error entering passive mode\r\n");
@@ -593,7 +579,7 @@ void FTPServer::thread_entry() {
              sendResponse(socketfd, "150 Opening BINARY mode data connection\r\n");
 
              // create new socket
-             datasock = socket(IPV4, SOCK_STREAM, TCP);
+             datasock = socket(cIPV4, SOCK_STREAM, cTCP);
              // bind to local port
              bind(datasock, dataaddr);
 
@@ -664,7 +650,7 @@ void FTPServer::thread_entry() {
              } else {
                 // file opened .. send
                 // create new socket
-                datasock = socket(IPV4,SOCK_STREAM,TCP);
+                datasock = socket(cIPV4, SOCK_STREAM, cTCP);
                 // bind to local port
                 bind(datasock, dataaddr);
 
@@ -717,7 +703,7 @@ void FTPServer::thread_entry() {
                     sendResponse(socketfd, "150 Opening ASCII mode data connection\r\n");
 
                     // create new socket
-                    datasock = socket(IPV4,SOCK_STREAM,TCP);
+                    datasock = socket(cIPV4, SOCK_STREAM, cTCP);
                     // bind to local port
                     bind(datasock, dataaddr);
 
@@ -840,9 +826,7 @@ void FTPServer::thread_entry() {
          printf("Unknown Command: %s", msgptr);
          sendResponse(socketfd, "500 command not understood.\r\n", msgptr);
      }
-
     } // while connected
-
 }
 
 
@@ -857,7 +841,7 @@ void* ftp_entry(void* arg) {
 extern "C" int main(int argc, char** argv) {
     int i;
     puts("FTP-Server starting.\n");
-    int mysock = socket(IPV4, SOCK_STREAM, TCP);
+    int mysock = socket(cIPV4, SOCK_STREAM, cTCP);
 
     // bind our socket to some address
     sockaddr* addr = (sockaddr*) malloc(sizeof(sockaddr));

@@ -683,4 +683,16 @@ char*    inet_ntop(int af, const char *src, char *dst, size_t size);
 }
 #endif
 
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+#define htons(n) __builtin_bswap16(n)
+#define htonl(n) __builtin_bswap32(n)
+#define ntohs(n) __builtin_bswap16(n)
+#define ntohl(n) __builtin_bswap32(n)
+#else
+#define htons(n) n
+#define htonl(n) n
+#define ntohs(n) n
+#define ntohl(n) n
+#endif
+
 #endif /*ORCOS_HH_*/

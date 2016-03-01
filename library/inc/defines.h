@@ -20,7 +20,6 @@
 #define cIPV4                       0x800
 #define cIPv4AddressProtocol        0x800
 
-
 /* Supported address families. */
 #define AF_UNSPEC   0
 #define AF_UNIX     1   /* Unix domain sockets      */
