@@ -8,6 +8,7 @@
 #ifndef SHAREDMEMRESOURCE_HH_
 #define SHAREDMEMRESOURCE_HH_
 
+#include "db/LinkedList.hh"
 #include "Resource.hh"
 
 typedef struct {

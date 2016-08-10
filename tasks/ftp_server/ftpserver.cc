@@ -305,8 +305,6 @@ void FTPServer::thread_entry() {
         msgptr[msglen] = 0;
         printf("> %s", msgptr);
 
-        // TODO: add mkdir
-
      if (strpos("USER",msgptr) == 0) {
          /***********************************************
           *     USER LOGIN

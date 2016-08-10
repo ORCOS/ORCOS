@@ -769,20 +769,31 @@ public class SCLReader {
         taskBuffer.append(".long " + taskNode.getChildText("Size") + ";\n");
         /* append pointer to name */
         taskBuffer.append(".long task" + numberOfTasks + "_name;\n");
+        /* append pointer to arguments */
+        taskBuffer.append(".long task" + numberOfTasks + "_arguments;\n");
 
         /* get the task name*/
-        String taskname = "Task_" + numberOfTasks;
-
+        String taskname      = "Task_" + numberOfTasks;
+        String taskarguments = "";
+        
         String filepath = taskNode.getChildText("Path");
         try {
             String dirname = new File(filepath).getName();
-            taskname = dirname;
+            taskname = dirname;            
         } catch (Exception e) {
-
+        }
+        try {
+        	if (taskNode.getChildText("Arguments") != null)
+        		taskarguments = taskNode.getChildText("Arguments");
+        } catch (Exception e)
+        {
+        	
         }
 
         tasksnamebuffer.append("task"  + numberOfTasks + "_name:\n");
         tasksnamebuffer.append(".ascii \"" + taskname + "\\0\"\n");
+        tasksnamebuffer.append("task"  + numberOfTasks + "_arguments:\n");
+        tasksnamebuffer.append(".ascii \"" + taskarguments + "\\0\"\n");
 
         // get PriorityOptions
         Element priorityOptions = taskNode.getChild("PriorityOptions");

@@ -87,7 +87,9 @@ public:
      *  propagated to the application (e.g. unmounting a directory during file access).
      *  Resources marked as invalid should be freed soon after invalidating them.
      *  This is done by inserting the root of an invalid directory tree or the invalid
-     *  resource to the delayed freeing list of the scheduler.
+     *  resource to the delayed freeing list of the memory manager, aka calling
+     *  scheduleDeletion on the memory manager.
+     *
      *******************************************************************************/
     virtual void invalidate() { this->myResourceId = 0; }
 

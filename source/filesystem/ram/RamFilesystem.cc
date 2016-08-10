@@ -95,18 +95,18 @@ RamFilesystem::RamFilesystem(T_RamFilesystem_Init* init) : FileSystemBase("ramdi
  *******************************************************************************/
 unint4 RamFilesystem::allocateBlock(unint4 prev) {
     myMutex.acquire();
-    // TODO the last super block MAY contain less than NUM_BLOCKS_PER_SUPERBLOCK blocks!
     for (unint4 superBlock = 0; superBlock < superBlocks; superBlock++) {
         if (superBlockChain[superBlock].freeBlocks > 0) {
             /* calculate blockChain Entry of superBlock */
             unint4 blockChainEntry = superBlock * NUM_BLOCKS_PER_SUPERBLOCK;
 
+            // check if next free block is known
             if (superBlockChain[superBlock].nextFreeBlock != 255) {
-                /* perfect .. use the block */
+                /* free block known.. perfect .. use the block */
                 blockChainEntry += superBlockChain[superBlock].nextFreeBlock;
                 superBlockChain[superBlock].nextFreeBlock = 255;
             } else {
-                /* search inside the blockchain */
+                /* search inside the blockchain to find the free block */
                 int numBlocks = superBlockChain[superBlock].numBlocks;
                 for (int i = 0; i < numBlocks; i++) {
                     if (blockChain[blockChainEntry + i] == (unint4) -1) {

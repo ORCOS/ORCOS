@@ -14,10 +14,10 @@
 #include "comm/Socket.hh"
 #include "inet.h"
 
-extern Kernel*              theOS;
-extern Kernel_ThreadCfdCl*  pCurrentRunningThread;
-extern Task*                pCurrentRunningTask;
-extern Board_ClockCfdCl*    theClock;
+extern Kernel* theOS;
+extern Kernel_ThreadCfdCl* pCurrentRunningThread;
+extern Task* pCurrentRunningTask;
+extern Board_ClockCfdCl* theClock;
 
 #ifndef DEBUG_TRACE_LOCATION
 #define DEBUG_TRACE_LOCATION 0
@@ -33,28 +33,28 @@ extern Board_ClockCfdCl*    theClock;
 #define NUM_TRACE_ENTRIES 1024
 
 typedef struct {
-    unint4      TraceID;
-    unint4      SystemId;
+    unint4 TraceID;
+    unint4 SystemId;
     Trace_Entry buffer[NUM_TRACE_ENTRIES];
 }__attribute__((packed, aligned(4))) Trace_Buffer;
 
 static Trace_Buffer trace_buffer1;
 static Trace_Buffer trace_buffer2;
 
-static unint2           current_entry;
-static unint4           num_entries;
-static Trace_Buffer*    current_buffer;
+static unint2 current_entry;
+static unint4 num_entries;
+static Trace_Buffer* current_buffer;
 
 typedef struct {
-    unint1      taskid;
-    unint2      sourceid;
-    char        name[11];
+    unint1 taskid;
+    unint2 sourceid;
+    char name[11];
 }__attribute__((packed)) Trace_Source;
 
 typedef struct {
-    unint4  PlatformID;                      // ARM, PPC e.t.c
-    unint4  SystemID;                        // to be assigned by the host
-    unint4  clockTicksPerSecond;             // the number of clock ticks per second
+    unint4 PlatformID;                      // ARM, PPC e.t.c
+    unint4 SystemID;// to be assigned by the host
+    unint4 clockTicksPerSecond;// the number of clock ticks per second
 }__attribute__((packed)) PlatformInfo;
 
 static PlatformInfo platformInfo;
@@ -77,17 +77,17 @@ static Socket* streamSocket;
 #define COMMAND_THREAD               0
 #define STREAM_THREAD                1
 
-static char    rcvbuf[100];
-static unint4  eventCounter = 0;
+static char rcvbuf[100];
+static unint4 eventCounter = 0;
 
 static bool streaming = false;
 KernelThread* streamThread;
 
 Trace::Trace() {
-    current_entry  = 0;
+    current_entry = 0;
     current_buffer = &trace_buffer1;
-    num_entries    = 0;
-    streamThread   = 0;
+    num_entries = 0;
+    streamThread = 0;
     memset(sources, 0, sizeof(sources));
 
     trace_buffer1.TraceID = 0x23551a3f;
@@ -111,15 +111,15 @@ sockaddr streamDest;
 void Trace::init() {
     sockaddr addr;
     addr.port_data = 46;
-    addr.sa_data   = 0;
+    addr.sa_data = 0;
 
     // setup the two sockets
     commandSocket = new Socket(cIPV4, SOCK_STREAM, cTCP);
     commandSocket->bind(&addr);
 
-    streamSocket   = new Socket(cIPV4, SOCK_DGRAM, cUDP);
+    streamSocket = new Socket(cIPV4, SOCK_DGRAM, cUDP);
     addr.port_data = 0;
-    addr.sa_data   = 0;
+    addr.sa_data = 0;
     streamSocket->bind(&addr);
 
     // use one workerthread "permanently" for the command socket handler
@@ -171,7 +171,7 @@ void Trace::callbackFunc(void* param) {
                     }
                     case cSTARTDATASTREAM: {
                         if (streaming)
-                            break;
+                        break;
 
                         streaming = true;
 
@@ -180,7 +180,7 @@ void Trace::callbackFunc(void* param) {
 
                         if (streamThread == 0) {
                             // use one workerthread "permanently" for the command socket handler
-                            streamThread = theOS->getKernelTask()->getPeriodicThread(0, this, 10 ms, 41, reinterpret_cast<void*>(STREAM_THREAD));
+                            streamThread = theOS->getKernelTask()->getPeriodicThread(0, this, 0, 10 ms, 41, reinterpret_cast<void*>(STREAM_THREAD));
                             if (streamThread) {
                                 streamThread->setName("tracer tx");
                             } else {
@@ -198,7 +198,7 @@ void Trace::callbackFunc(void* param) {
                             streamThread = 0;
                         }
                     }
-                } // switch
+                }  // switch
 
                 len = sessionSock->recvfrom(pCurrentRunningThread, rcvbuf, 100, MSG_WAIT, 0);
             }
@@ -210,14 +210,14 @@ void Trace::callbackFunc(void* param) {
         // we must be the stream thread
         if (streaming) {
             /* initiate a buffer switch */
-            Trace_Buffer* tosend_buffer  = current_buffer;
-            unint4 numEvents             = num_entries;
+            Trace_Buffer* tosend_buffer = current_buffer;
+            unint4 numEvents = num_entries;
 
             if (numEvents > NUM_TRACE_ENTRIES) {
                 numEvents = NUM_TRACE_ENTRIES;
             }
 
-            num_entries   = 0;
+            num_entries = 0;
             current_entry = 0;
             if (current_buffer == &trace_buffer1) {
                 current_buffer = &trace_buffer2;
@@ -247,7 +247,6 @@ void Trace::callbackFunc(void* param) {
     }
 }
 
-
 /*****************************************************************************
  * Method: Trace::addSource(unint1 taskid, unint1 sourceid, const char* name)
  *
@@ -264,7 +263,7 @@ ErrorT Trace::addSource(unint1 taskid, unint2 sourceid, const char* name) {
             if (name != 0) {
                 int len = strlen(name);
                 if (len > 9)
-                    len = 9;
+                len = 9;
                 memset(sources[i].name, 0, 10);
                 memcpy(sources[i].name, name, len);
             }
@@ -288,13 +287,30 @@ ErrorT Trace::removeSource(unint1 taskid, unint2 sourceid) {
         if (sources[i].sourceid == sourceid && sources[i].taskid == taskid) {
             sources[i].taskid = 0;
             sources[i].sourceid = 0;
-            return (cOk );
+            return (cOk);
         }
     }
 
     return (cError);
 }
 
+ErrorT Trace::renameSource(unint1 taskid, unint2 sourceid, const char* name) {
+    // search for the entry
+    for (int i = 0; i < 50; i++) {
+        if (sources[i].sourceid == sourceid && sources[i].taskid == taskid) {
+            if (name != 0) {
+                int len = strlen(name);
+                if (len > 9)
+                len = 9;
+                memset(sources[i].name, 0, 10);
+                memcpy(sources[i].name, name, len);
+            }
+            return (cOk);
+        }
+    }
+
+    return (cError);
+}
 
 /*****************************************************************************
  * Method: Trace::trace_memAlloc(unint4 address, unint4 size)
@@ -328,10 +344,10 @@ void Trace::trace_addEntry(unint1 type, unint1 taskid, unint2 sourceid, unint4 a
         time = theClock->getClockCycles();
     }
     current_buffer->buffer[current_entry].timestamp = time;
-    current_buffer->buffer[current_entry].id        = ((type) | (taskid << 8) | (sourceid << 16));
-    current_buffer->buffer[current_entry].cnt       = eventCounter++;
-    current_buffer->buffer[current_entry].arg       = argument;
-    current_buffer->buffer[current_entry].arg2      = 0;
+    current_buffer->buffer[current_entry].id = ((type) | (taskid << 8) | (sourceid << 16));
+    current_buffer->buffer[current_entry].cnt = eventCounter++;
+    current_buffer->buffer[current_entry].arg = argument;
+    current_buffer->buffer[current_entry].arg2 = 0;
     current_entry = (current_entry + 1) & (NUM_TRACE_ENTRIES - 1);
     num_entries++;
 }
@@ -348,10 +364,10 @@ void Trace::trace_addEntryStr(unint1 type, unint1 taskid, unint2 sourceid, const
         time = theClock->getClockCycles();
     }
     current_buffer->buffer[current_entry].timestamp = time;
-    current_buffer->buffer[current_entry].id        = ((type) | (taskid << 8) | (sourceid << 16));
-    current_buffer->buffer[current_entry].cnt       = eventCounter++;
-    current_buffer->buffer[current_entry].arg       = 0;
-    current_buffer->buffer[current_entry].arg2      = 0;
+    current_buffer->buffer[current_entry].id = ((type) | (taskid << 8) | (sourceid << 16));
+    current_buffer->buffer[current_entry].cnt = eventCounter++;
+    current_buffer->buffer[current_entry].arg = 0;
+    current_buffer->buffer[current_entry].arg2 = 0;
     if (argument != 0) {
         strncpy((char*) &current_buffer->buffer[current_entry].arg, argument, 8);
     }

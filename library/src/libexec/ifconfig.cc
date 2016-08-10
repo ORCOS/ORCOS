@@ -12,8 +12,6 @@
 #include <stdlib.h>
 #include <orcos.h>
 
-#define LINEFEED "\n"
-
 /*** Escape Sequenzen: **********/
 #define ESC_RED         "\033[31m"
 #define ESC_GREEN       "\033[32m"
@@ -31,44 +29,48 @@ int exec_ifconfig(int argc, char** argv) {
         if (handle) {
             Directory_Entry_t* direntry = readdir(handle);
 
-            char devpath[60];
-            sprintf(devpath, "/dev/comm/%s", direntry->name);
-            int devicehandle = open(devpath);
-            netif_stat_t netifstats;
-            ioctl(devicehandle, cNETIF_GET_STATS, &netifstats);
+            while (direntry)
+            {
+                char devpath[60];
+                sprintf(devpath, "/dev/comm/%s", direntry->name);
+                int devicehandle = open(devpath);
+                netif_stat_t netifstats;
+                ioctl(devicehandle, cNETIF_GET_STATS, &netifstats);
 
-            printf("%s\tHWaddr: %02x:%02x:%02x:%02x:%02x:%02x\n", direntry->name, netifstats.hwaddr[0], netifstats.hwaddr[2], netifstats.hwaddr[2], netifstats.hwaddr[3], netifstats.hwaddr[4], netifstats.hwaddr[5]);
-            printf("   \tinet addr:%u.%u.%u.%u  Bcast:%u.%u.%u.255  Mask:%u.%u.%u.%u\n", (netifstats.ipv4addr >> 24) & 0xff, (netifstats.ipv4addr
-                            >> 16) & 0xff, (netifstats.ipv4addr >> 8) & 0xff, (netifstats.ipv4addr) & 0xff, (netifstats.ipv4addr >> 24) & 0xff, (netifstats.ipv4addr
-                            >> 16) & 0xff, (netifstats.ipv4addr >> 8) & 0xff, (netifstats.ipv4netmask >> 24) & 0xff, (netifstats.ipv4netmask >> 16) & 0xff, (netifstats.ipv4netmask
-                            >> 8) & 0xff, (netifstats.ipv4netmask) & 0xff);
+                printf("%s\tHWaddr: %02x:%02x:%02x:%02x:%02x:%02x" LINEFEED, direntry->name, netifstats.hwaddr[0], netifstats.hwaddr[2], netifstats.hwaddr[2], netifstats.hwaddr[3], netifstats.hwaddr[4], netifstats.hwaddr[5]);
+                printf("   \tinet addr:%u.%u.%u.%u  Bcast:%u.%u.%u.255  Mask:%u.%u.%u.%u" LINEFEED, (netifstats.ipv4addr >> 24) & 0xff, (netifstats.ipv4addr
+                                >> 16) & 0xff, (netifstats.ipv4addr >> 8) & 0xff, (netifstats.ipv4addr) & 0xff, (netifstats.ipv4addr >> 24) & 0xff, (netifstats.ipv4addr
+                                >> 16) & 0xff, (netifstats.ipv4addr >> 8) & 0xff, (netifstats.ipv4netmask >> 24) & 0xff, (netifstats.ipv4netmask >> 16) & 0xff, (netifstats.ipv4netmask
+                                >> 8) & 0xff, (netifstats.ipv4netmask) & 0xff);
 
-            inet_ntop(AF_INET6, netifstats.ipv6addr, devpath, 60);
-            printf("   \tinet6 addr:%s\n", devpath);
-            printf("   \t");
-            if (netifstats.flags & NETIF_FLAG_UP)
-                printf("UP ");
-            else
-                printf("DOWN ");
+                inet_ntop(AF_INET6, netifstats.ipv6addr, devpath, 60);
+                printf("   \tinet6 addr:%s" LINEFEED, devpath);
+                printf("   \t");
+                if (netifstats.flags & NETIF_FLAG_UP)
+                    printf("UP ");
+                else
+                    printf("DOWN ");
 
-            if (netifstats.flags & NETIF_FLAG_BROADCAST)
-                printf("BROADCAST ");
+                if (netifstats.flags & NETIF_FLAG_BROADCAST)
+                    printf("BROADCAST ");
 
-            if (netifstats.flags & NETIF_FLAG_POINTTOPOINT)
-                printf("PPP ");
+                if (netifstats.flags & NETIF_FLAG_POINTTOPOINT)
+                    printf("PPP ");
 
-            if (netifstats.flags & NETIF_FLAG_DHCP)
-                printf("DHCP ");
+                if (netifstats.flags & NETIF_FLAG_DHCP)
+                    printf("DHCP ");
 
-            printf("RUNNING  MTU:%u  Metric:1\n", netifstats.mtu);
-            printf("   \tRX packets:%u  TX packets:%u  errors:%u\n", netifstats.rxpackets, netifstats.txpackets, netifstats.errors);
-            printf("   \tRX bytes:%u (%u KiB) TX bytes:%u (%u KiB)\n\n",
-                   netifstats.rxbytes,
-                   netifstats.rxbytes / 1024,
-                   netifstats.txbytes,
-                   netifstats.txbytes / 1024);
+                printf("RUNNING  MTU:%u  Metric:1" LINEFEED, netifstats.mtu);
+                printf("   \tRX packets:%u  TX packets:%u  errors:%u" LINEFEED, netifstats.rxpackets, netifstats.txpackets, netifstats.errors);
+                printf("   \tRX bytes:%u (%u KiB) TX bytes:%u (%u KiB)" LINEFEED,
+                       netifstats.rxbytes,
+                       netifstats.rxbytes / 1024,
+                       netifstats.txbytes,
+                       netifstats.txbytes / 1024);
 
-            close(devicehandle);
+                close(devicehandle);
+                direntry = readdir(handle);
+            }
         }
 
        close(handle);

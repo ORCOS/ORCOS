@@ -102,9 +102,9 @@ extern "C"
 #define ntohl(x) LWIP_PLATFORM_HTONL(x)
 #else /* LWIP_PLATFORM_BYTESWAP */
 
-    u16_t htons(u16_t x);
-    u32_t htonl(u32_t x);
-    u32_t ntohl_24(u32_t x);
+    static inline u16_t htons(u16_t x) { return (__builtin_bswap16(x)); }
+    static inline u32_t htonl(u32_t x) { return (__builtin_bswap32(x)); }
+    static inline u32_t ntohl_24(u32_t x) { return (htonl(x << 8)); }
 
 #define ntohl htonl
 #define ntohs htons

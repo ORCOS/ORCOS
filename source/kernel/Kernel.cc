@@ -24,16 +24,27 @@
 
 extern Kernel* theOS;
 
+/********************************************
+ *  Global References to important Components
+ ********************************************/
+/* Reference to the clock */
 Board_ClockCfdCl* theClock = 0;
+/* Reference to the timer used for scheduling */
 Board_TimerCfdCl* theTimer = 0;
-
+/* Reference to the interrupt controller if available */
 #ifdef HAS_Board_InterruptControllerCfd
 Board_InterruptControllerCfdCl* theInterruptController = 0;
 #endif
 
+/********************************************
+ * Mutexes needed for subsystems
+ ********************************************/
 Mutex* comStackMutex;
 void*  sysArchMutex;
 
+/********************************************
+ * Phyiscal addresses provided by linker script
+ ********************************************/
 extern void* _text_start;
 extern void* _heap_start;
 extern void* _heap_end;
@@ -95,6 +106,9 @@ Kernel::Kernel() {
 Kernel::~Kernel() {
 }
 
+#include <mem/FixedSizeMemPool.hh>
+FixedSizeMemPool<32, 10> testPool;
+
 /*****************************************************************************
  * Method: Kernel::initialize()
  *
@@ -134,16 +148,18 @@ void Kernel::initialize() {
     Partition::initialize();
 
     this->errorHandler          = new TaskErrorHandler();
-    /* Initialize the Ram Manager if configured */
-    INIT_Kernel_RamManager;
     /* create the cpu dispatcher with scheduler */
     this->DispatcherCfd         = new NEW_Kernel_DispatcherCfd;
     /* create the file manager implementing the file system */
     this->fileManager           = new SimpleFileManager();
+    /* Initialize the Ram Manager if configured */
+    INIT_Kernel_RamManager;
     /* Initialize the Parition Manager if configured */
     INIT_FileSystems_PartitionManager;
     /* Initialize the Logger if configured */
     INIT_Kernel_Logger;
+
+    this->idleThread = new IdleThread();
 
     /* initial early board init */
     board = new BoardCfdCl();
@@ -252,9 +268,13 @@ void Kernel::initialize() {
      * Initialize Kernel Threads before user tasks
      */
 #if USE_WORKERTASK
+    KernelThread* wt = theKernelTask->getCallbackThread(0, this->idleThread, 0, 0, 0);
+    if (wt) {
+        wt->setName("idle");
+    }
     /* add periodic kernel thread to perform basic OS services
      * permanently occupies one kernel thread */
-    KernelThread* wt = theKernelTask->getPeriodicThread(0, new KernelServiceThread, 250 ms, 8000);
+    wt = theKernelTask->getPeriodicThread(0, new KernelServiceThread, 0, 250 ms, 8000);
     if (wt) {
         wt->setName("kernel");
     }
@@ -262,8 +282,8 @@ void Kernel::initialize() {
 #if ENABLE_NETWORKING
     /* add periodic kernel thread callback to update system time using NTP.
      * Occupies one kernel thread. */
-    LOG(KERNEL, INFO, "Querying NTP Server for Time");
-    theKernelTask->getPeriodicThread(0, theOS->getClock(), 3600ULL * 1000 ms, 1000);
+    //LOG(KERNEL, INFO, "Querying NTP Server for Time");
+    //theKernelTask->getPeriodicThread(0, theOS->getClock(), 2000 ms, 3600ULL * 1000 ms, 1000);
 #endif
 
 #else // if USE_WORKERTASK

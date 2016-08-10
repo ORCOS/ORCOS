@@ -29,6 +29,7 @@
 #include "inc/stringtools.hh"
 #include "hal/CharacterDevice.hh"
 #include "filesystem/Directory.hh"
+#include "scheduler/ScheduleableItem.hh"
 
 class Resource;
 

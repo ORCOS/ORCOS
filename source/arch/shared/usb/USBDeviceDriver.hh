@@ -58,11 +58,61 @@ public:
     virtual ErrorT handleInterrupt() = 0;
 };
 
+
+#define USB_VENDOR_PRODUCT(x, y) { .vendorId=x, .productId=y}
+
+#define USB_DRIVER(drivername) \
+                    TUSBDriver _usbdriver_##drivername __attribute__((externally_visible)) =
+
+#define REGISTER_DRIVER(name)  \
+            extern TUSBDriver* USBDriverList; \
+            void __attribute__((used, constructor)) __addDriver_##name(void) \
+                { _usbdriver_##name.next = USBDriverList; USBDriverList = (TUSBDriver*) &_usbdriver_##name; }
+
+//                volatile int __init_##name __attribute__((used)) = __addDriver_##name();
+
+
+#define AUTHOR(x)    author : x
+#define NAME(x)      name : x
+#define VERSION(x)   version : x
+#define ID_TABLE(x)  id_table : (TUSB_Product_Id*) x
+#define USB_CLASS(x,y,z)  usb_class : { interfaceClass : x, interfaceSubClass: y, interfaceProtocol : z}
+#define USB_CLASS_UNSPECIFIED  USB_CLASS(0,0,0)
+
+#define USB_DRIVER_CLASS(x) device_creator : &x::getInstance
+
+typedef USBDeviceDriver* (*TPtr_USB_Device_Creation)(USBDevice* dev);
+
+typedef struct {
+    unint2 vendorId;
+    unint2 productId;
+} TUSB_Product_Id;
+
+typedef struct {
+    unint1 interfaceClass;
+    unint1 interfaceSubClass;
+    unint1 interfaceProtocol;
+} TUSB_ClassType;
+
+typedef struct TUSBDriver {
+    TUSBDriver*               next;
+    char*                     name;
+    char*                     author;
+    char*                     version;
+    TUSB_Product_Id*          id_table;
+    TUSB_ClassType            usb_class;
+    TPtr_USB_Device_Creation  device_creator;
+} TUSBDriver;
+
+
 /*!
  * Factory class every USB Driver has to provide to create new instances
  * of the driver for attached USB devices.
  */
 class USBDeviceDriverFactory: public Resource {
+private:
+    TUSBDriver* driverInfo;
+
 public:
     /*****************************************************************************
      * Method: USBDeviceDriverFactory(char* name)
@@ -70,7 +120,7 @@ public:
      * @description
      *
      *******************************************************************************/
-    explicit USBDeviceDriverFactory(char* name);
+    explicit USBDeviceDriverFactory(TUSBDriver* driverInfo);
 
     /*****************************************************************************
      * Method: isDriverFor(USBDevice* dev)
@@ -78,7 +128,7 @@ public:
      * @description
      *  checks whether the given class,product device is supported by this driver
      *******************************************************************************/
-    virtual bool isDriverFor(USBDevice* dev) = 0;
+    bool isDriverFor(USBDevice* dev);
 
     /*****************************************************************************
      * Method: getInstance(USBDevice* dev)
@@ -86,9 +136,9 @@ public:
      * @description
      *
      *******************************************************************************/
-    virtual USBDeviceDriver* getInstance(USBDevice* dev) = 0;
+    USBDeviceDriver* getInstance(USBDevice* dev);
 
-    virtual ~USBDeviceDriverFactory();
+    ~USBDeviceDriverFactory();
 };
 
 #endif /* USBDEVICEDRIVER_HH_ */

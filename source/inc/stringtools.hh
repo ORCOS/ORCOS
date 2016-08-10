@@ -137,6 +137,8 @@ char* strtok(char *s, char const *delim);
  *******************************************************************************/
 char* strcat(char *s1, const char *s2);
 
+char* strncat(char *dst, const char *src, register size_t n);
+
 /*****************************************************************************
  * Method: strlen(const char * s)
  *

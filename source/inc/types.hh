@@ -250,7 +250,9 @@ typedef enum {
     cKernelVariable     = 1 << 10,
     cOverlay            = 1 << 11,
     cTimerDevice        = 1 << 12,
-    cNonRemovableResource = cStreamDevice | cOverlay | cKernelVariable| cPartition | cBlockDevice | cCommDevice | cGenericDevice | cSocket | cUSBDriver | cTimerDevice,
+    cThread             = 1 << 13,
+    cTask               = 1 << 14,
+    cNonRemovableResource = cStreamDevice | cOverlay | cKernelVariable| cPartition | cBlockDevice | cCommDevice | cGenericDevice | cSocket | cUSBDriver | cTimerDevice | cThread | cTask,
     cAnyNoDirectory       = cStreamDevice | cCommDevice | cGenericDevice | cFile | cSocket | cUSBDriver | cBlockDevice | cSharedMem | cTimerDevice,
     cAnyResource          = cStreamDevice | cCommDevice | cGenericDevice | cFile | cSocket | cUSBDriver | cDirectory | cBlockDevice | cSharedMem | cOverlay | cTimerDevice
 } ResourceType;

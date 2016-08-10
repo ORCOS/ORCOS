@@ -39,8 +39,6 @@
 #define MODE        1
 #define FORWARDMASK 2
 
-#define LINEFEED "\r\n"
-
 void sendMsg(int socket, char* msg, int error = 0) ;
 void sendData(int socket, char* data, int len);
 void sendUnknownCommand(int socket);

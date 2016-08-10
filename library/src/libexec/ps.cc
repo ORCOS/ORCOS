@@ -10,8 +10,6 @@
 #include <stdlib.h>
 #include <orcos.h>
 
-#define LINEFEED "\n"
-
 static int  taskids[100];
 
 static const char* states[8] = {

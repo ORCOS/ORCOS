@@ -75,7 +75,7 @@
 //-----------------------------------------------------
 // Warning or Status Value
 
-#define cEOF                    (int)-5
+#define cEOF                    (int)0
 #define cInvalidPath            (int)-6
 #define cUnknownCmdOrPath       (int)-7
 
@@ -91,7 +91,8 @@
 #define cGivenTLBEntryNotFound  (int)-101
 #define cNoValidChunkAddress    (int)-102
 #define cDeviceMemoryExhausted  (int)-103
-#define cMemMappingError           (int)-104
+#define cMemMappingError        (int)-104
+#define cErrorAllocatingMemory  (int)-105
 
 //-----------------------------------------------------
 // Synchronization          200 <= |C(s)| < 300
@@ -123,6 +124,7 @@
 #define cSocketAlreadyListened              (int)-406
 #define cInvalidSocketType                  (int)-407
 #define cErrorConnecting                    (int)-408
+#define cErrorBindingPort                   (int)-409
 
 
 // Error

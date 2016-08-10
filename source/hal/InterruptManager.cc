@@ -192,56 +192,62 @@ ErrorT InterruptManager::readBytes(char* bytes, unint4& length) {
     unint4 len = 0;
     ErrorT ret = cOk;
 
-    if (this->position > 0) {
+    if (this->position >= IRQ_MAX) {
         ret = cEOF;
         goto out;
     }
 
-    if (len + 33 > length) {
-        goto out;
+    if (this->position == 0)
+    {
+        if (len + 33 > length) {
+            this->position = IRQ_MAX;
+            goto out;
+        }
+
+        sprintf(bytes, " IRQ      COUNT  PRIORITY  NAME"LINEFEED);
+        len   += 33;
+        bytes += 33;
+
+        if (len + (16 + 6 + 12) > length) {
+            this->position = IRQ_MAX;
+            goto out;
+        }
+
+        sprintf(bytes, " %3u %10u   HIGHEST  %s"LINEFEED, 0, scheduleCount, "Timer");
+        len   += 16 + 6 + 12;
+        bytes += 16 + 6 + 12;
+
+        if (len + (27 + 22) > length) {
+            this->position = IRQ_MAX;
+            goto out;
+        }
+
+        sprintf(bytes, " %3u %10u   HIGHEST  %s"LINEFEED, 0, rescheduleCount, "Reschedule Interrupts");
+        len   += 27 + 23;
+        bytes += 27 + 23;
     }
 
-    sprintf(bytes, " IRQ      COUNT  PRIORITY  NAME"LINEFEED);
-    len   += 33;
-    bytes += 33;
-
-    if (len + (16 + 6 + 12) > length) {
-        goto out;
-    }
-
-    sprintf(bytes, " %3u %10u   HIGHEST  %s"LINEFEED, 0, scheduleCount, "Timer");
-    len   += 16 + 6 + 12;
-    bytes += 16 + 6 + 12;
-
-    if (len + (27 + 22) > length) {
-        goto out;
-    }
-
-    sprintf(bytes, " %3u %10u   HIGHEST  %s"LINEFEED, 0, rescheduleCount, "Reschedule Interrupts");
-    len += 27 + 23;
-    bytes += 27 + 23;
-
-    for (int i = 0; i < IRQ_MAX; i++) {
+    for (int i = this->position; i < IRQ_MAX; i++) {
         if (irqTable[i].triggerCount > 0 || irqTable[i].driver != 0) {
             const char* name = "Unknown";
             int namelen = 7;
             if (irqTable[i].driver != 0 && irqTable[i].driver->getName() != 0) {
-                name = irqTable[i].driver->getName();
+                name    = irqTable[i].driver->getName();
                 namelen = strlen(name);
             }
 
             if (len + (16 + 12 + namelen) > length) {
+                this->position = i;
                 goto out;
             }
 
             sprintf(bytes, " %3d %10u   %7u  %s"LINEFEED, i, irqTable[i].triggerCount, irqTable[i].priority, name);
-            len += 16 + namelen + 13;
+            len   += 16 + namelen + 13;
             bytes += 16 + namelen + 13;
         }
     }
-
+    this->position = IRQ_MAX;
 out:
-    this->position += len;
     length = len;
     return (ret);
 }

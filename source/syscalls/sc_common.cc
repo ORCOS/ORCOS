@@ -82,6 +82,25 @@ int sc_getDateTime(intptr_t sp_int) {
 }
 
 /*****************************************************************************
+ * Method: sc_setDateTime(intptr_t sp_int)
+ *
+ * @description
+ *  SYSCALL: Set the current DateTime and parameter
+ *
+ * @params
+ *  sp_int:     The stack pointer at time of system call instruction execution
+ *
+ * @returns
+ *  int         Error Code
+ *---------------------------------------------------------------------------*/
+int sc_setDateTime(intptr_t sp_int) {
+    SetDateTime_t* dateTimeToSet;
+    SYSCALLGETPARAMS1(sp_int, dateTimeToSet);
+    VALIDATE_IN_PROCESS(dateTimeToSet);
+    return (theOS->getClock()->setDateTime(dateTimeToSet->datetime, dateTimeToSet->gmtoffset));
+}
+
+/*****************************************************************************
  * Method: sc_printToStdOut(intptr_t sp_int)
  *
  * @description

@@ -76,11 +76,6 @@ private    :
     LinkedList* condwaitList;
 #endif
 
-
-    IdleThread* idleThread;
-
-
-
     /*****************************************************************************
      * Method: signal(LinkedList* list, void* sig, int signalvalue = cOk)
      *

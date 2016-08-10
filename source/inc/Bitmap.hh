@@ -20,6 +20,7 @@
 #define _BITMAP_HH
 
 #include "inc/types.hh"
+#include "inc/error.h"
 
 ///  \brief Little endian bitmap.
 ///

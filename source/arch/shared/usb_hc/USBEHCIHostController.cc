@@ -9,6 +9,7 @@
 #include "kernel/Kernel.hh"
 #include "inc/memtools.hh"
 #include "arch/shared/usb/USBHub.hh"
+#include "mem/FixedSizeMemPool.hh"
 
 extern Kernel* theOS;
 extern Kernel_ThreadCfdCl* pCurrentRunningThread;
@@ -16,16 +17,25 @@ extern Kernel_ThreadCfdCl* pCurrentRunningThread;
 #define __ALIGN_MASK(x, mask)    (((x)+(mask))&~(mask))
 #define ALIGN(x, a)              __ALIGN_MASK(x, (typeof(x))(a)-1)
 
+/* Spinlock tp protect QHMain accesses */
+unint4 QH_Spinlock;
 /* The main QH we are enqueing to */
-volatile QH QHmain __attribute__((aligned(32))) ATTR_CACHE_INHIBIT;
+QH QHmain __attribute__((aligned(32))) ATTR_CACHE_INHIBIT;
 
+/* interrupt transfer frame list */
 #define FRAME_LIST_SIZE 256
 unint4 framelist[FRAME_LIST_SIZE] __attribute__((aligned(0x1000))) ATTR_CACHE_INHIBIT;
 
-char controlMsg[8] __attribute__((aligned(32))) ATTR_CACHE_INHIBIT;
+/* Memory Pools for Queue heads and qTDs
+ * We place them directly in non-cacheable memory areas
+ * to avoid clean->invalidate storm on them */
+FixedSizeMemPool<ALIGN(sizeof(QH),32) , 30> QHMemPool  ATTR_CACHE_INHIBIT;
+FixedSizeMemPool<sizeof(qTD), 40>           QTDMemPool ATTR_CACHE_INHIBIT;
 
-static qTD qtds[8] __attribute__((aligned(32))) ATTR_CACHE_INHIBIT;
-static int ATTR_CACHE_INHIBIT qtdnum = 0;
+/* temporary buffers for control messages */
+static char controlMsg[8]   __attribute__((aligned(32))) ATTR_CACHE_INHIBIT;
+static qTD  qtds[8]         __attribute__((aligned(32))) ATTR_CACHE_INHIBIT;
+static int  qtdnum = 0;
 
 
 typedef struct {
@@ -47,8 +57,8 @@ qTDStatus qtdStatusCodes[8] = {
 
 USB_EHCI_Host_Controller::USB_EHCI_Host_Controller(unint4 ehci_dev_base) :
         USB_Host_Controller("EHCI_HC") {
-    this->operational = false;
-    this->async_qh_reg = 0;
+    this->operational               = false;
+    this->async_qh_reg              = 0;
     this->operational_register_base = 0;
 
     LOG(ARCH, DEBUG, "USB_EHCI_Host_Controller() creating HC at addr: %x", ehci_dev_base);
@@ -59,7 +69,6 @@ USB_EHCI_Host_Controller::USB_EHCI_Host_Controller(unint4 ehci_dev_base) :
     for (int i = 0; i < FRAME_LIST_SIZE; i++) {
         framelist[i] = QT_NEXT_TERMINATE;
     }
-
 
     /* regarding cpplint error:
      *  can not use reinterpret cast:
@@ -88,6 +97,8 @@ USB_EHCI_Host_Controller::USB_EHCI_Host_Controller(unint4 ehci_dev_base) :
 ErrorT USB_EHCI_Host_Controller::Init(unint4 priority) {
     /* try read out the control register length field */
     unint1 length = INB(hc_base + CAPLENGTH_OFFSET);
+
+    QH_Spinlock = 0;
 
     this->operational_register_base = hc_base + length;
     this->async_qh_reg = this->operational_register_base + ASYNCLISTADDR_OFFSET;
@@ -298,6 +309,27 @@ ErrorT USB_EHCI_Host_Controller::Init(unint4 priority) {
     return (cOk );
 }
 
+void USB_EHCI_Host_Controller::dumpAsyncList() {
+    QH* qh = (QH*) INW(operational_register_base + ASYNCLISTADDR_OFFSET);
+    LOG(ARCH, ERROR, "ASYNC HEAD: %x", qh);
+    do {
+        LOG(ARCH, ERROR, "QH        : %x -> %x", qh, qh->qh_link);
+        LOG(ARCH, ERROR, "  entpt1  : %x", qh->qh_endpt1);
+        LOG(ARCH, ERROR, "  entpt2  : %x", qh->qh_endpt2);
+        LOG(ARCH, ERROR, "  Device  : %u", qh->qh_endpt1 & 0x7f);
+        LOG(ARCH, ERROR, "  Endpoint: %u", (qh->qh_endpt1 >> 8) & 0xf);
+        LOG(ARCH, ERROR, "  qtd     : %x", qh->qh_curtd);
+        LOG(ARCH, ERROR, "  ov->qtd : %x", qh->qh_overlay.qt_next);
+        LOG(ARCH, ERROR, "  ov->tok : %x", qh->qh_overlay.qt_token);
+
+        if (!(qh->qh_link & 0x1)) {
+            qh = (QH*) (qh->qh_link & 0xfffffff0);
+        } else {
+            break;
+        }
+    } while (qh != &QHmain);
+}
+
 /*****************************************************************************
  * Method: USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev,
  *                    unint1     endpoint,
@@ -333,11 +365,12 @@ int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1
         return (cError);
     }
 
+    /* Acquire USB device.. be sure we are the only one communicating with this
+     * device now as we are using its QH and qtd */
     dev->acquire();
 
-    // get some memory for first qtd and last qtd
-    volatile qTD* qtd = (qTD*) dev->endpoints[endpoint].device_priv2; //&qtds[(qtdnum++) & 0x7];
-    volatile qTD* qtd_last;
+    // get qtd for data transfer to this endpoints
+    volatile qTD* qtd = (qTD*) dev->endpoints[endpoint].device_priv2;
 
     // maximum packet size 4096 .. we could go up to 5*4096
     unint4 length = 4096*5;
@@ -350,76 +383,44 @@ int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1
 
     unint4 qtd_data_len = length;
 
+    // convert to physical addresses, as the EHCI Controller only knows physical addresses
+    data = (char*) theOS->getHatLayer()->getPhysicalAddress(data);
+
+    // set next qtd in qh overlay to activate transfer
+    qh->qh_curtd                = 0;
+    qh->qh_overlay.qt_next      = (unint4) qtd;
+    qh->qh_overlay.qt_token    &= 0x80000000;
+    qh->qh_overlay.qt_altnext   = QT_NEXT_TERMINATE;
+    qh->qh_overlay.qt_buffer[0] = 0;
+
+
     // FIRST PACKET
     qtd->qt_next         = QT_NEXT_TERMINATE;
     qtd->qt_altnext      = QT_NEXT_TERMINATE;
     qtd->qt_token        = QT_TOKEN_CERR(3) | QT_TOKEN_PID(dir) | QT_TOKEN_STATUS_ACTIVE | QT_TOKEN_TOTALBYTES(qtd_data_len);
     qtd->qt_buffer[0]    = (unint4) data;  // set data to send
-    qtd->qt_buffer[1]    = (unint4) alignCeil(data, 4096);  // align next part of the data
-    qtd->qt_buffer[2]    = (unint4) alignCeil(data + 4096, 4096);  // align next part of the data
+    qtd->qt_buffer[1]    = (unint4) alignCeil(data, 4096);           // align next part of the data
+    qtd->qt_buffer[2]    = (unint4) alignCeil(data + 4096, 4096);    // align next part of the data
     qtd->qt_buffer[3]    = (unint4) alignCeil(data + 4096*2, 4096);  // align next part of the data
     qtd->qt_buffer[4]    = (unint4) alignCeil(data + 4096*3, 4096);  // align next part of the data
 
-    qtd_last = qtd;
-
-#if USB_BULK_MULTIPLE_QTDS
-    data += qtd_data_len;
-    length -= qtd_data_len;
-    unint4 num_qtds = 1;
-
-    // create a chain of qtds for the data to be transferred
-
-    while (length > 0) {
-        volatile qTD *qtd2 = &qtds[num_qtds];
-        num_qtds++;
-
-        toggle = toggle ^ 1;
-
-        qtd_data_len = length;
-
-        qtd2->qt_next = QT_NEXT_TERMINATE;
-        qtd2->qt_altnext = QT_NEXT_TERMINATE;
-        qtd2->qt_token = QT_TOKEN_DT(toggle) | QT_TOKEN_CERR(3) | QT_TOKEN_IOC(0) | QT_TOKEN_PID(dir)
-        | QT_TOKEN_STATUS_ACTIVE | QT_TOKEN_TOTALBYTES(qtd_data_len);
-        qtd2->qt_buffer[0] = (unint4) data;  // set data to send
-        qtd2->qt_buffer[0] = (unint4) alignCeil(data, 4096); // align next part of the data
-
-        QT_LINK(qtd_last, qtd2);
-
-        qtd_last = qtd2;
-
-        data += qtd_data_len;
-        length -= qtd_data_len;
-    }
-#endif
-
-
-    // set next qtd in qh overlay to activate transfer
-    qh->qh_overlay.qt_next = (unint4) qtd;
-
+    /* clean data => write back from cache to memory for ehci controller to see the data */
     theOS->getBoard()->getCache()->clean_data((void*)data, data_len);
 
+    SMP_SPINLOCK_GET(QH_Spinlock);
     /* insert transfer at front */
     QH_LINK(qh, QHmain.qh_link);
+    MEM_BARRIER();
     QH_LINK(&QHmain, qh);
+    SMP_SPINLOCK_FREE(QH_Spinlock);
 
-    /* ack errors and reclamation to start a new aperiodic traversal */
-    OUTW(operational_register_base + USBSTS_OFFSET, 0x3a);
-    /* wait for completion of usb transaction */
-    OUTW(operational_register_base + USBSTS_OFFSET, 1 << 5);
-    OUTW(operational_register_base + USBCMD_OFFSET, INW(operational_register_base + USBCMD_OFFSET) | (1 << 6));
+    /* wait for timeout of completion */
+    TIMEOUT_WAIT(QT_TOKEN_GET_STATUS(qtd->qt_token) & QT_TOKEN_STATUS_ACTIVE, timeout_ms * 1000);
 
-    /* wait for maximum 2s... for slow devices*/
-    unint8 deadline = theOS->getClock()->getClockCycles() + timeout_ms * 1000 MICROSECONDS;
-    while ((QT_TOKEN_GET_STATUS(qtd_last->qt_token) & QT_TOKEN_STATUS_ACTIVE) &&
-           (theOS->getClock()->getClockCycles() < deadline)) {
-        /* do some looping on registers to avoid memory bus congestion*/
-        for (volatile int i = 0; i < 100; i++) {
-            asm volatile("nop;");
-        }
+    if (direction == USB_DIR_IN) {
+        /* be sure data is fetched from memory again */
+        theOS->getBoard()->getCache()->invalidate_data((void*)data, data_len);
     }
-
-    theOS->getBoard()->getCache()->invalidate_data((void*)data, data_len);
 
     // get number of bytes transferred
     int num = 0;
@@ -428,33 +429,35 @@ int USB_EHCI_Host_Controller::USBBulkMsg(USBDevice *dev, unint1 endpoint, unint1
     }
 
     /* check on error .. ignore ping state bit as this is taken care of by the HC*/
-    if ((QT_TOKEN_GET_STATUS(qtd_last->qt_token) & 0xFE) != 0x0) {
-        LOG(ARCH, ERROR, "USB_EHCI_Host_Controller::USBBulkMsg() error on bulk packet..");
-        LOG(ARCH, ERROR, "USBSTS: %x", INW(operational_register_base + USBSTS_OFFSET));
-        LOG(ARCH, ERROR, "USBCMD: %x", INW(operational_register_base + USBCMD_OFFSET));
+    if ((QT_TOKEN_GET_STATUS(qtd->qt_token) & 0xFE) != 0x0) {
+        LOG(ARCH, ERROR, "USB_EHCI_Host_Controller::USBBulkMsg() error packet: Direction %d", direction);
+        LOG(ARCH, ERROR, "USBSTS    : %x", INW(operational_register_base + USBSTS_OFFSET));
+        LOG(ARCH, ERROR, "USBCMD    : %x", INW(operational_register_base + USBCMD_OFFSET));
+        dumpAsyncList();
+        LOG(ARCH, ERROR, "QH        : %x", qh);
         LOG(ARCH, ERROR, "qtd     \t(%08x)\tstatus: %x", qtd, qtd->qt_token);
-        LOG(ARCH, ERROR, "qtd_last\t(%08x)\tstatus: %x", qtd_last, qtd_last->qt_token);
 
         for (int i  = 0; i < 8; i++) {
-            if (qtd_last->qt_token & qtdStatusCodes[i].bitmask) {
+            if (qtd->qt_token & qtdStatusCodes[i].bitmask) {
                 LOG(ARCH, ERROR, "Status: %s", qtdStatusCodes[i].name);
             }
         }
 
         num = -1;
 
-        //unint1 msg[8] = USB_CLEAR_FEATURE(0x0,endpoint);
-        //this->sendUSBControlMsg(dev,0x0,(unint1*) &msg);
+        // clear USBERRINT
+        OUTW(operational_register_base + USBSTS_OFFSET, 1 << 1);
     }
 
     // unlink data transfer
-
-    QH_LINK(&QHmain, qh->qh_link);
-
-    OUTW(operational_register_base + USBSTS_OFFSET, 1 << 5);
-    OUTW(operational_register_base + USBCMD_OFFSET, INW(operational_register_base + USBCMD_OFFSET) | (1 << 6));
-
-   // while (! (INW(operational_register_base + USBSTS_OFFSET) & (1 << 5))) ;
+    SMP_SPINLOCK_GET(QH_Spinlock);
+    // search for queue head referencing qh
+    QH* prevQH = &QHmain;
+    while ( (prevQH->qh_link & ~0x1f) != (unint4)qh) {
+        prevQH = (QH*) (prevQH->qh_link & ~0x1f);
+    }
+    QH_LINK(prevQH, qh->qh_link);
+    SMP_SPINLOCK_FREE(QH_Spinlock);
 
     dev->release();
 
@@ -497,23 +500,25 @@ int USB_EHCI_Host_Controller::sendUSBControlMsg(USBDevice*  dev,
     // finally link the queue head to the qtd chain
     volatile QH* qh = (QH*) dev->endpoints[endpoint].device_priv;
     if (qh == 0)
-        return (cError );
+        return (cError);
 
     dev->acquire();
 
     // be sure control message is in cache inhibit memory for EHCI to access it.
     memcpy(controlMsg, control_msg, 8);
 
+    // convert to physical addresses, as the EHCI Controller only knows physical addresses
+    data         = (char*) theOS->getHatLayer()->getPhysicalAddress(data);
+
     // get some memory for qtds
     qTD* qtd  = &qtds[(qtdnum++) & 0x7];
     qTD* qtd2 = &qtds[(qtdnum++) & 0x7];
-    //qTD* qtd3 = &qtds[(qtdnum++) & 0x7];
-    qTD* lastqtd = qtd;
+    qTD* lastqtd = qtd2;
 
     // SETUP STAGE
     qtd->qt_next        = QT_NEXT_TERMINATE;
     qtd->qt_altnext     = QT_NEXT_TERMINATE;
-    qtd->qt_token       = /*QT_TOKEN_DT(0) |*/ QT_TOKEN_CERR(3) | QT_TOKEN_IOC(0) | QT_TOKEN_PID(QT_TOKEN_PID_SETUP) | QT_TOKEN_STATUS_ACTIVE | QT_TOKEN_TOTALBYTES(8);
+    qtd->qt_token       = QT_TOKEN_CERR(3) | QT_TOKEN_IOC(0) | QT_TOKEN_PID(QT_TOKEN_PID_SETUP) | QT_TOKEN_STATUS_ACTIVE | QT_TOKEN_TOTALBYTES(8);
     qtd->qt_buffer[0]   = (unint4) controlMsg;  // set control message to send
     qtd->qt_buffer[1]   = (unint4) alignCeil(controlMsg, 4096);  // set control message to send
 
@@ -523,38 +528,26 @@ int USB_EHCI_Host_Controller::sendUSBControlMsg(USBDevice*  dev,
 
     // SETUP TOKEN
     QT_LINK(qtd, qtd2);
-    lastqtd = qtd2;
 
     // IN Packet
     qtd2->qt_next       = QT_NEXT_TERMINATE;
     qtd2->qt_altnext    = QT_NEXT_TERMINATE;
-    qtd2->qt_token      = /*QT_TOKEN_DT(1) |*/ QT_TOKEN_CERR(3) | QT_TOKEN_IOC(0) | QT_TOKEN_PID(dir) | QT_TOKEN_STATUS_ACTIVE | QT_TOKEN_TOTALBYTES(data_len);
+    qtd2->qt_token      = QT_TOKEN_CERR(3) | QT_TOKEN_IOC(0) | QT_TOKEN_PID(dir) | QT_TOKEN_STATUS_ACTIVE | QT_TOKEN_TOTALBYTES(data_len);
     qtd2->qt_buffer[0]  = (unint4) data;  // set data buffer
     qtd2->qt_buffer[1]  = (unint4) alignCeil(data, 4096);  // set control message to send
 
-#if 0
-        if (direction & USB_ZERO_LENGTH_PACKET_OUT) {
-            QT_LINK(qtd2, qtd3);
-            qtd3->qt_next    = QT_NEXT_TERMINATE;
-            qtd3->qt_altnext = QT_NEXT_TERMINATE;
-            qtd3->qt_token   = /*QT_TOKEN_DT(1) |*/ QT_TOKEN_CERR(3) | QT_TOKEN_IOC(0) | QT_TOKEN_PID(QT_TOKEN_PID_OUT) | QT_TOKEN_STATUS_ACTIVE | QT_TOKEN_TOTALBYTES(0);
-            lastqtd = qtd3;
-        }
-#endif
-
-
-    // clear status bits
-    OUTW(operational_register_base + USBSTS_OFFSET, 0x3a);
-
+    // push data through cache to memory.. so EHCI HC sees the data
     theOS->getBoard()->getCache()->clean_data((void*)data, data_len);
 
-    // execute!
     // set next qtd in qh overlay to activate transfer
+    qh->qh_curtd           = QT_NEXT_TERMINATE;
     qh->qh_overlay.qt_next = (unint4) qtd;
 
+    SMP_SPINLOCK_GET(QH_Spinlock);
     QH_LINK(qh, &QHmain);
-    asm volatile ("dsb");
+    MEM_BARRIER();
     QH_LINK(&QHmain, qh);
+    SMP_SPINLOCK_FREE(QH_Spinlock);
 
     volatile unint4 timeout = 400000;
     while ((QT_TOKEN_GET_STATUS(lastqtd->qt_token) & QT_TOKEN_STATUS_ACTIVE) && timeout)
@@ -564,7 +557,10 @@ int USB_EHCI_Host_Controller::sendUSBControlMsg(USBDevice*  dev,
         kwait_us_nonmem(10);
     }
 
-    theOS->getBoard()->getCache()->invalidate_data((void*)data, data_len);
+
+    if (direction == USB_DIR_IN) {
+        theOS->getBoard()->getCache()->invalidate_data((void*)data, data_len);
+    }
 
     // get number of bytes transferred
     unint4 num = 0;
@@ -572,9 +568,10 @@ int USB_EHCI_Host_Controller::sendUSBControlMsg(USBDevice*  dev,
         num = data_len - QT_TOKEN_GET_TOTALBYTES(lastqtd->qt_token);
 
     // stop execution of this queue head
-    if (timeout == 0 || (QT_TOKEN_GET_STATUS(lastqtd->qt_token) != 0x0)) {
+    if (timeout == 0 || (QT_TOKEN_GET_STATUS(lastqtd->qt_token) & 0xFE) != 0x0) {
         LOG(ARCH, ERROR, "USB_EHCI_Host_Controller::sendUSBControlMsg() error on control packet..");
         LOG(ARCH, ERROR, "timeout: %d lastqtd \t %08x", timeout, lastqtd);
+        dumpAsyncList();
         LOG(ARCH, ERROR, "qtd1    \t(%08x)\tstatus: %x", qtd,  qtd->qt_token);
         LOG(ARCH, ERROR, "qtd2    \t(%08x)\tstatus: %x", qtd2, qtd2->qt_token);
         for (int i  = 0; i < 8; i++) {
@@ -583,20 +580,15 @@ int USB_EHCI_Host_Controller::sendUSBControlMsg(USBDevice*  dev,
             }
         }
 
-        //LOG(ARCH, ERROR, "qtd3    \t(%08x)\tstatus: %x", qtd3, qtd3->qt_token);
-        //LOG(ARCH, ERROR, "AsyncListAddr: 0x%x", INW(operational_register_base + ASYNCLISTADDR_OFFSET));
-        //memdump((unint4) qh, 8);
         //return as we can not use this port
         if (!(direction & USB_IGNORE_ERROR)) {
             num = -1;
         }
     }
 
+    SMP_SPINLOCK_GET(QH_Spinlock);
     QH_LINK(&QHmain, &QHmain);
-    // invalidate qtd transfer anyway
-    //qh->qh_overlay.qt_next = QT_NEXT_TERMINATE;
-    OUTW(operational_register_base + USBSTS_OFFSET, 1 << 5);
-    OUTW(operational_register_base + USBCMD_OFFSET, INW(operational_register_base + USBCMD_OFFSET) | (1 << 6));
+    SMP_SPINLOCK_FREE(QH_Spinlock);
 
     dev->release();
 
@@ -650,6 +642,11 @@ ErrorT USB_EHCI_Host_Controller::resetPort(unint1 port) {
  *******************************************************************************/
 void USB_EHCI_Host_Controller::insertPeriodicQH(QH* qh, int poll_rate) {
     qh->qh_link = QH_LINK_TERMINATE;
+
+    // avoid filling up the whole queue
+    if (poll_rate <= 1) {
+        poll_rate = 2;
+    }
 
     for (int i = poll_rate; i < FRAME_LIST_SIZE; i += poll_rate) {
         if (framelist[i] != QH_LINK_TERMINATE) {
@@ -794,17 +791,19 @@ ErrorT EHCI_USBDevice::deactivate() {
         // remove the allocated queue heads
         if (endpoints[i].type == Interrupt) {
             LOG(ARCH, INFO, "EHCI_USBDevice: Stopping Periodic Transfer for Endpoint %d.", i);
-
             ((USB_EHCI_Host_Controller*)controller)->removefromPeriodic((QH*)endpoints[i].device_priv, endpoints[i].poll_frequency);
         }
 
         // delete its allocated receive buffer
-        if (endpoints[i].recv_buffer != 0)
+        if (endpoints[i].recv_buffer != 0) {
             delete endpoints[i].recv_buffer;
-        if (endpoints[i].device_priv != 0)
-            delete (QH*) endpoints[i].device_priv;
-        if (endpoints[i].device_priv2 != 0)
-            delete (qTD*) endpoints[i].device_priv2;
+        }
+        if (endpoints[i].device_priv != 0) {
+            QHMemPool.free(endpoints[i].device_priv);
+        }
+        if (endpoints[i].device_priv2 != 0) {
+            QTDMemPool.free(endpoints[i].device_priv2);
+        }
 
         // can only be removed if the associated device driver is removed from controller
         endpoints[i].device_priv  = 0;
@@ -878,10 +877,16 @@ ErrorT EHCI_USBDevice::activateEndpoint(int num) {
     // generate a queue head for this device inside the asynchronous list
     QH* queue_head_new = 0; //pqh;
     if (queue_head_new == 0) {
-        queue_head_new = reinterpret_cast<QH*>(theOS->getMemoryManager()->alloci(sizeof(QH) + 8, true, 32));    // delete @ USBDevice::deactivate
+        /* allocate a new QH from the global pool */
+        queue_head_new = reinterpret_cast<QH*>(QHMemPool.allocate());
+        if (queue_head_new == 0)
+        {
+            LOG(ARCH, ERROR, "USB_Device:activateEndpoint %d no more memory for queue head");
+            return (cHeapMemoryExhausted);
+        }
     }
 
-    LOG(ARCH, DEBUG, "USB_Device:activateEndpoint %d new QH at %x",num, queue_head_new);
+    LOG(ARCH, DEBUG, "USB_Device:activateEndpoint %d new QH at %x", num, queue_head_new);
 
     // store address and clear area
     endpoints[num].device_priv = queue_head_new;
@@ -889,7 +894,7 @@ ErrorT EHCI_USBDevice::activateEndpoint(int num) {
 
     // hs : QH_ENDPT1_EPS_HS
     queue_head_new->qh_endpt1 = QH_ENDPT1_DEVADDR(this->addr) | QH_ENDPT1_MAXPKTLEN(endpoints[num].descriptor.wMaxPacketSize)
-    | QH_ENDPT1_EPS(this->speed) | QH_ENDPT1_ENDPT(endpoints[num].address);
+                              | QH_ENDPT1_EPS(this->speed)    | QH_ENDPT1_ENDPT(endpoints[num].address);
 
     // allow 1 packet per microframe
     if (this->speed == 2) {
@@ -906,7 +911,15 @@ ErrorT EHCI_USBDevice::activateEndpoint(int num) {
     // generate one qtd for bulk data transfer
     qTD* qtd = 0; //pqtd;
     if (qtd == 0) {
-        qtd = reinterpret_cast<qTD*>(theOS->getMemoryManager()->alloci(sizeof(qTD) + 8, true, 32));        // delete @ USBDevice::deactivate
+        /* allocate a new qTD from the global pool */
+        qtd = reinterpret_cast<qTD*>(QTDMemPool.allocate());
+        if (queue_head_new == 0)
+        {
+           LOG(ARCH, ERROR, "USB_Device:activateEndpoint %d no more memory for qTD");
+           QHMemPool.free(queue_head_new);
+           endpoints[num].device_priv = queue_head_new = 0;
+           return (cHeapMemoryExhausted);
+        }
     }
 
     endpoints[num].device_priv2 = qtd;
@@ -930,10 +943,11 @@ ErrorT EHCI_USBDevice::activateEndpoint(int num) {
         queue_head_new->qh_overlay.qt_token = 0;
         queue_head_new->qh_overlay.qt_altnext = QT_NEXT_TERMINATE;
 
+        LOG(ARCH, DEBUG, "USB_Device:activateEndpoint %d getting interrupt recv_buffer of size %d",num, endpoints[num].interrupt_receive_size);
         // get interrupt receive buffer
-        endpoints[num].recv_buffer = reinterpret_cast<char*>(theOS->getMemoryManager()->alloci(endpoints[num].interrupt_receive_size, true, 4));  // delete @ USBDevice::deactivate
+        endpoints[num].recv_buffer = reinterpret_cast<char*>(theOS->getMemoryManager()->alloci(endpoints[num].interrupt_receive_size + 8));  // delete @ USBDevice::deactivate
         memset(endpoints[num].recv_buffer, 0, endpoints[num].interrupt_receive_size);
-        LOG(ARCH, DEBUG, "USB_Device:activateEndpoint %d new recv_buffer at %x",num, endpoints[num].recv_buffer);
+        LOG(ARCH, INFO, "USB_Device:activateEndpoint %d new recv_buffer at %x",num, endpoints[num].recv_buffer);
 
         qtd->qt_buffer[0] = (unint4) endpoints[num].recv_buffer;
         qtd->qt_buffer[1] = (unint4) alignCeil(endpoints[num].recv_buffer, 4096);
@@ -945,7 +959,7 @@ ErrorT EHCI_USBDevice::activateEndpoint(int num) {
         if (endpoints[num].poll_frequency <= 1)
             endpoints[num].poll_frequency = (unint1) (22 + num + this->addr);
 
-        // insert qh in periodic list
+        /* insert qh in periodic list */
         ((USB_EHCI_Host_Controller*) controller)->insertPeriodicQH(queue_head_new, endpoints[num].poll_frequency);
     }
     return (cOk);
@@ -1013,6 +1027,8 @@ TEndPointTransferState EHCI_USBDevice::getEndpointTransferState(int num) {
           return (EP_TRANSFER_ERROR);
       }
 
+      /* invalidate received data area to make the data visible to the user */
+      // theOS->getBoard()->getCache()->invalidate_data((void*)endpoints[num].recv_buffer, endpoints[num].interrupt_receive_size);
       return (EP_TRANSFER_FINISHED);
 }
 

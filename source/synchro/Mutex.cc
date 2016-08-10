@@ -22,6 +22,7 @@
 #include "filesystem/File.hh"
 #include "assemblerFunctions.hh"
 #include "debug/Trace.hh"
+#include Kernel_Thread_hh
 
 extern Kernel* theOS;
 extern Kernel_ThreadCfdCl* pCurrentRunningThread;
@@ -93,7 +94,7 @@ ErrorT Mutex::acquire(Resource* pRes, bool blocking) {
         return (cOk);
     }
 
-    if (pCallingThread) {
+    if (pCallingThread && pCallingThread->getOwner()) {
         TRACE_MUTEX_ACQUIRE(pCallingThread->getOwner()->getId(), pCallingThread->getId(), this->name);
     }
 
@@ -127,11 +128,13 @@ ErrorT Mutex::acquire(Resource* pRes, bool blocking) {
             return (cOk);
         }
 
+#ifdef HAS_PRIORITY
         /* PIP is implemented here */
         if (pCallingThread != 0 && m_pThread != 0) {
             LOG(SYNCHRO, DEBUG, "Mutex::acquire() pushing priority of %d", m_pThread->getId());
-            m_pThread->pushPriority(pCallingThread->effectivePriority + 1, this);
+            ((Kernel_ThreadCfdCl*)m_pThread)->pushPriority(pCallingThread->effectivePriority + 1, this);
         }
+#endif
 
         /* in blocking mode we must dispatch here!
          * Do this by raising a timer IRQ to reschedule */
@@ -165,7 +168,7 @@ ErrorT Mutex::acquire(Resource* pRes, bool blocking) {
  *
  * @returns
  *---------------------------------------------------------------------------*/
-ErrorT Mutex::release(Thread* pThread) {
+ErrorT Mutex::release(Kernel_ThreadCfdCl* pThread) {
     int irqstatus;
     DISABLE_IRQS(irqstatus);
     m_pThread   = 0;
@@ -177,7 +180,7 @@ ErrorT Mutex::release(Thread* pThread) {
     LOG(SYNCHRO, DEBUG, "Mutex '%s' (%x) released", this->name, this);
 
     Kernel_ThreadCfdCl* pCallingThread = static_cast<Kernel_ThreadCfdCl*>(pThread);
-    if (pCallingThread) {
+    if (pCallingThread && pCallingThread->getOwner()) {
         TRACE_MUTEX_RELEASE(pCallingThread->getOwner()->getId(), pCallingThread->getId(), this->name);
     }
     /* reset the priority of the currentRunning thread as it might have been boosted by

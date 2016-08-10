@@ -61,10 +61,11 @@ FileLogger::FileLogger() :
  *******************************************************************************/
 int FileLogger::init() {
     if (initialized)
-        return 1;
+        return (1);
 
     initialized = true; /* set first to avoid endless recursion in init.*/
 
+    // TODO get paths from configuration
     /* try permanent root storage! */
     Directory* rootDir = theOS->getFileManager()->getDirectory("/mnt/ROOT");
     if (rootDir != 0) {
@@ -73,7 +74,7 @@ int FileLogger::init() {
             rootDir->remove(logfile);
         }
         logFile = rootDir->createFile("Kernel.log", 0);
-        return 1;
+        return (1);
     }
 
 
@@ -81,12 +82,12 @@ int FileLogger::init() {
     Directory* ramdisk = theOS->getFileManager()->getDirectory("/mnt/ramdisk");
     if (ramdisk != 0) {
         logFile = ramdisk->createFile("Kernel.log", 0);
-        return 1;
+        return (1);
     }
 
     /* mount points not available .. try later*/
     initialized = false;
-    return 0;
+    return (0);
 }
 
 /*****************************************************************************

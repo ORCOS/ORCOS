@@ -29,7 +29,7 @@ int exec_mount(int argc, char** argv) {
     char* srcpath = argv[argc - 2];
     char* dstpath = argv[argc - 1];
 
-    printf("Mounting '%s' to '%s' (type: %d)\n", srcpath, dstpath, type);
+    printf("Mounting '%s' to '%s' (type: %d)" LINEFEED, srcpath, dstpath, type);
 
     int error = mount(srcpath, dstpath, type);
     return (error);

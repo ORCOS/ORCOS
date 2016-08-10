@@ -24,6 +24,7 @@ int exec_rm(int argc, char** argv);
 int exec_touch(int argc, char** argv);
 int exec_kill(int argc, char** argv);
 int exec_hexdump(int argc, char** argv);
+int exec_date(int argc, char** argv);
 
 extern "C" int parseArgs(char* str, char*** argv);
 
@@ -51,6 +52,7 @@ systemCmd commands[] = {
      {"touch",      exec_touch},
      {"kill",       exec_kill},
      {"hexdump",    exec_hexdump},
+     {"date",       exec_date}
 };
 
 
@@ -88,10 +90,17 @@ extern "C" int system(const char *cmd)
     }
 
     /* last chance try to find argv[0] inside /bin */
-    // TODO
+    if (ret < 0)
+    {
+        char tmppath[128];
+        snprintf(tmppath, 127, "/bin/%s", argv[0]);
+        tmppath[127] = 0;
+        argv[0] = tmppath;
+        ret = exec_task(argc, argv);
+    }
 
     if (ret < 0) {
-        printf("%s\n", strerror(ret));
+        printf("%s" LINEFEED, strerror(ret));
     }
 
     free(command);

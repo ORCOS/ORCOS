@@ -22,13 +22,11 @@
 // includes
 #include "SCLConfig.hh"
 #include "inc/const.hh"
-#include "db/ArrayList.hh"
-#include Kernel_Scheduler_hh
-#include Kernel_Thread_hh
-#include Kernel_MemoryManager_hh
 
 class Resource;
 class Task;
+class Thread;
+class Kernel_ThreadCfdCl;
 
 extern Kernel_ThreadCfdCl* pCurrentRunningThread;
 
@@ -56,7 +54,7 @@ private:
     int4        waitingThreads;
 
     /*! Stores a pointer to the thread currently locking this mutex. */
-    Kernel_ThreadCfdCl* m_pThread;
+    Thread* m_pThread;
 
     //! Stores a pointer to the Resource guarded by this mutex.
     Resource*   m_pRes;
@@ -89,7 +87,7 @@ public:
      * @description
      *  Releases the current mutex
      *---------------------------------------------------------------------------*/
-    ErrorT release(Thread* pThread = pCurrentRunningThread);
+    ErrorT release(Kernel_ThreadCfdCl* pThread = pCurrentRunningThread);
 
     /*****************************************************************************
      * Method: getWaitingThreadCount()

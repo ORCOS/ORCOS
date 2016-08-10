@@ -145,7 +145,7 @@ ErrorT UDPTransportProtocol::register_socket(unint2* port, Socket* socket) {
         err_t err = udp_bind(pcb, &bindaddr, *port);
         if (err != ERR_OK) {
             LOG(COMM, ERROR, "UDP:bind to port %d failed %d", port, err);
-            return (cError );
+            return (cErrorBindingPort);
         }
 
         *port = pcb->local_port;
@@ -157,7 +157,7 @@ ErrorT UDPTransportProtocol::register_socket(unint2* port, Socket* socket) {
     } else {
         LOG(COMM, ERROR, "UDP:bind could not create udp_pcb ");
         socket->arg = 0;
-        return (cError );
+        return (cErrorAllocatingMemory);
     }
 }
 
@@ -172,10 +172,10 @@ ErrorT UDPTransportProtocol::unregister_socket(Socket* socket) {
         comStackMutex->acquire();
         udp_remove((struct udp_pcb*) socket->arg);
         comStackMutex->release();
-        return (cOk );
+        return (cOk);
     } else {
         LOG(COMM, ERROR, "UDPTransportProtocol::unregister_socket socket->arg == 0");
     }
-    return (cError );
+    return (cInvalidArgument);
 }
 #endif

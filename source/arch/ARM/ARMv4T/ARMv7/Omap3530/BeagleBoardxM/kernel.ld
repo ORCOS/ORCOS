@@ -90,22 +90,21 @@ SECTIONS
 
   /* read only data */
   .rodata ALIGN(4)    :
-      {
-      PROVIDE(_data_start = .);
-      *(.rodata*)
+  {    
+    PROVIDE(_data_start = .);
+    *(.rodata*)
 
-      /* write the tasktable into memory */
-      tasktable = .;
+    /* write the tasktable into memory */
+    tasktable = .;
     *(.tasktable);
-   }
+  }
 
   . = ALIGN(4);
   .data     ALIGN(4) :
   {
     PROVIDE(_data_start_data = .);
     *(.data*)
-    *(.sdata)
-    *(.ctors)
+    *(.sdata)  
     PROVIDE(_debug_frame = .);
      *(.debug_frame)
     PROVIDE(_debug_frame_end = .);
@@ -115,6 +114,7 @@ SECTIONS
   {
      PROVIDE(__init_start = .);
      *(.init*)
+     *(.ctors)     
      PROVIDE(__init_end = .);
   }
 

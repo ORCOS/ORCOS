@@ -15,24 +15,24 @@
 class SMSC95xxUSBDeviceDriver: public USBDeviceDriver, public CommDeviceDriver {
 public:
     /* THe usb device this driver operates on*/
-    USBDevice *dev;
+    USBDevice*      dev;
 
     // endpoint number for bulk out transfer
-    unint1 bulkout_ep;
+    unint1          bulkout_ep;
 
     // endpoint number for bulk in transfer
-    unint1 bulkin_ep;
+    unint1          bulkin_ep;
 
     // interrupt endpoint number
-    unint1 int_ep;
+    unint1          int_ep;
 
-    struct pbuf* last_pbuf;
+    struct pbuf*    last_pbuf;
 
-    unint4 remaining_len;
+    unint4          remaining_len;
 
-    int cur_len;
+    int             cur_len;
 
-    Mutex* mutex;
+    Mutex*          mutex;
 
 private:
     /*****************************************************************************
@@ -84,6 +84,11 @@ public:
 
     ~SMSC95xxUSBDeviceDriver();
 
+
+    static USBDeviceDriver* getInstance(USBDevice* dev) {
+        return new SMSC95xxUSBDeviceDriver(dev);
+    }
+
     /*****************************************************************************
      * Method: initialize()
      *
@@ -98,6 +103,21 @@ public:
      *  int         Error Code
      *******************************************************************************/
     ErrorT initialize();
+
+
+    /*****************************************************************************
+     * Method: reset()
+     *
+     * @description
+     *  Resets the hardware. Initializes all PHY, MII etc. components
+     *  using USB control transfers to the SMSC95xx usb device.
+     *
+     * @params
+     *
+     * @returns
+     *  int         Error Code. cOk == 0 on success.
+     *******************************************************************************/
+    ErrorT reset();
 
     /*****************************************************************************
      * Method: handleInterrupt()
@@ -115,53 +135,6 @@ public:
      *  int         Error Code
      *******************************************************************************/
     ErrorT handleInterrupt();
-};
-
-class SMSC95xxUSBDeviceDriverFactory: public USBDeviceDriverFactory {
-public:
-    /*****************************************************************************
-     * Method: SMSC95xxUSBDeviceDriverFactory(char* name)
-     *
-     * @description
-     *   Constructur for the SMSC95xx Driver Factory.
-     *
-     * @params
-     *  name        Name of the driver factory
-     *******************************************************************************/
-    explicit SMSC95xxUSBDeviceDriverFactory(char* name);
-
-    /*****************************************************************************
-     * Method: isDriverFor(USBDevice* dev)
-     *
-     * @description
-     *  checks whether the given class,product device is supported by this driver
-     *
-     * @params
-     *  dev         The usb device to be checked.
-     *
-     * @returns
-     *  bool         true if this driver factory provides a driver for this device.
-     *******************************************************************************/
-    bool isDriverFor(USBDevice* dev);
-
-    /*****************************************************************************
-     * Method: getInstance(USBDevice* dev)
-     *
-     * @description
-     *  Creates a new driver instance for a given compatible device.
-     *
-     * @params
-     *  dev              The usb device the driver shall be generated for.
-     *
-     * @returns
-     *  USBDeviceDriver  The new driver instance
-     *******************************************************************************/
-    USBDeviceDriver* getInstance(USBDevice* dev) {
-        return (new SMSC95xxUSBDeviceDriver(dev));
-    }
-
-    virtual ~SMSC95xxUSBDeviceDriverFactory() {
-    }
 };
 
 #endif /* SMSC95XXUSBDEVICEDRIVER_HH_ */

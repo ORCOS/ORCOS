@@ -370,7 +370,7 @@ int sc_sleep(intptr_t int_sp) {
     SET_RETURN_VALUE((void*)int_sp, (void*)cOk);
     /* sleep time is expected to be us */
 #if CLOCK_RATE >= (1 MHZ)
-    pCurrentRunningThread->sleep(timePoint + (t * (CLOCK_RATE / 1000000)));
+    pCurrentRunningThread->sleep(timePoint + (((TimeT)t) * (CLOCK_RATE / 1000000)));
 #else
     pCurrentRunningThread->sleep(timePoint + ((t * CLOCK_RATE) / 1000000));
 #endif

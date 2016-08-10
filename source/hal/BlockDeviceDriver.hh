@@ -9,6 +9,7 @@
 #define BLOCKDEVICEDRIVER_HH_
 
 #include "GenericDeviceDriver.hh"
+#include "inc/Bitmap.hh"
 
 class BlockDeviceDriver:  public GenericDeviceDriver {
 protected:

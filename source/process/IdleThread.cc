@@ -36,25 +36,26 @@ IdleThread::~IdleThread() {
  * @description
  *  Simple idle loop that can be preempted at any time.
  *---------------------------------------------------------------------------*/
-void IdleThread::run() {
-    /* reset the stack pointer to the context address since we don't want to waste memory
-     * and cannot access the stack from the previous thread */
-    //SETSTACKPTR(&__stack);
-    //SETPID(0);
-
-    theOS->getMemoryManager()->idleEnter();
-
+void IdleThread::run()
+{
     _enableInterrupts();
 
     /* loop forever */
-    while (true) {
+    while (true)
+    {
+        theOS->getMemoryManager()->idleEnter();
 #ifdef HAS_Kernel_PowerManagerCfd
         /* Kernel has PowerManager configured. hand over control
          * to it to idle the system */
         theOS->getPowerManager()->enterIdleThread();
-#else
-        /* this nop is used to ensure that the endless loop is not optimized out by the compiler */
-        NOP;
 #endif
+        // spend some time doing nothing to avoid calling idleEnter too often
+        //for (int i = 0; i < 500000; i++) { NOP; }
     }
+}
+
+void IdleThread::callbackFunc(void* param) {
+    // just call run to enter endless loop
+    LOG(KERNEL, INFO, "Idle thread running");
+    run();
 }

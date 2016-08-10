@@ -80,12 +80,15 @@ ARMv7Cache::~ARMv7Cache() {
  * @returns
  *  int         Error Code
  *******************************************************************************/
-void ARMv7Cache::invalidate_data(void* start,size_t len) {
+void ARMv7Cache::invalidate_data(void* start, size_t len) {
     /* Invalidate the data cache by MVA*/
+
+   if (len == 0)
+       return;
 
     unint4 mva;
     unint4 start_address = (unint4) start;
-    unint4 end_address = start_address + len;
+    unint4 end_address   = start_address + len;
 
     LOG(ARCH, DEBUG, "ARMv7Cache::invalidate_data() 0x%08x - 0x%08x", start_address, end_address);
 
@@ -126,12 +129,16 @@ void ARMv7Cache::invalidate_data(void* start,size_t len) {
  *  int         Error Code
  *******************************************************************************/
 void ARMv7Cache::clean_data(void* start, size_t len) {
+
+    if (len == 0)
+        return;
+
     unint4 mva;
     unint4 start_address = (unint4) start;
     unint4 end_address = start_address + len;
     start_address &= ~(line_len-1);
-    end_address += line_len;
-    end_address &= ~(line_len-1);
+    end_address   += line_len;
+    end_address   &= ~(line_len-1);
 
     LOG(ARCH, DEBUG, "ARMv7Cache::clean_data() 0x%08x - 0x%08x", start_address, end_address);
     asm volatile("DSB");

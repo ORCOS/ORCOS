@@ -78,8 +78,8 @@ typedef struct {
 #define TRACE_MEMFREE(address) theOS->getTracer()->trace_memFree(address)
 
 #define TRACE_ADD_SOURCE(taskid, sourceid, name) theOS->getTracer()->addSource(taskid, sourceid, (const char*) name)
-
 #define TRACE_REMOVE_SOURCE(taskid, sourceid) theOS->getTracer()->removeSource(taskid, sourceid)
+#define TRACE_RENAME_SOURCE(taskid, sourceid, name) theOS->getTracer()->renameSource(taskid, sourceid, (const char*) name)
 
 #define TRACE_MUTEX_ACQUIRE(taskid, sourceid, name) theOS->getTracer()->trace_addEntryStr(EVENT_MUTEX_ACQUIRE, taskid, sourceid, name)
 #define TRACE_MUTEX_RELEASE(taskid, sourceid, name) theOS->getTracer()->trace_addEntryStr(EVENT_MUTEX_RELEASE, taskid, sourceid, name)
@@ -100,6 +100,7 @@ typedef struct {
 #define TRACE_MEMFREE(address)
 #define TRACE_ADD_SOURCE(taskid, sourceid, name)
 #define TRACE_REMOVE_SOURCE(taskid, sourceid)
+#define TRACE_RENAME_SOURCE(taskid, sourceid, name)
 #define TRACE_MUTEX_ACQUIRE(taskid, sourceid, name)
 #define TRACE_MUTEX_RELEASE(taskid, sourceid, name)
 #define TRACE_CHANGE_PRIORITY(taskid, sourceid, priority)
@@ -139,6 +140,13 @@ public:
      * @description
      *******************************************************************************/
     ErrorT removeSource(unint1 taskid, unint2 sourceid);
+
+    /*****************************************************************************
+     * Method: renameSource(unint1 taskid, unint1 sourceid)
+     *
+     * @description
+     *******************************************************************************/
+    ErrorT renameSource(unint1 taskid, unint2 sourceid, const char* name);
 
     /*****************************************************************************
      * Method: trace_memAlloc(unint4 address, unint4 size)

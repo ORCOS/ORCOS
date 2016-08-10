@@ -41,6 +41,7 @@ typedef struct {
     taskTable*  tasktable;  /* pointer to task start == its task table*/
     long        size;       /* size of the memory area reserved for the task */
     char*       name;       /* name of this task */
+    char*       arguments;  /* arguments of this task */
 } InitTasks_t;
 
 /*****************************************************************************
@@ -159,7 +160,7 @@ ErrorT handleTaskHeader(taskTable* taskCB, void* &taskHead, unint4 &nextHeader) 
             return (cTaskCRCFailed );
         }
 
-        LOG(KERNEL, INFO, "CRC: 0x%x [OK]", crc);
+        LOG(KERNEL, DEBUG, "CRC: 0x%x [OK]", crc);
 
         nextHeader = crcHeader->next_header;
         taskHead = crcHeader++;
@@ -250,9 +251,10 @@ void TaskManager::initialize() {
     /* create the initial set of tasks */
     for (unint1 i = 1; i <= num_tasks; i++) {
         /* get the taskTable of task number i */
-        taskTable* task_info = initTask->tasktable;
-        unint4 size          = initTask->size;
-        char* taskname       = initTask->name;
+        taskTable* task_info       = initTask->tasktable;
+        unint4 size                = initTask->size;
+        const char* taskname       = initTask->name;
+        const char* arguments      = initTask->arguments;
 
         LOG(KERNEL, INFO, "TaskCB @0x%x", task_info);
 
@@ -328,9 +330,33 @@ void TaskManager::initialize() {
          * The task code itself remains at task_info->task_start_addr
          */
         Task* task = new Task(tt);
-        if (taskname != 0)
+        if (taskname != 0) {
             task->setName(taskname);
+        } else {
+            taskname = "init";
+        }
         task->platform_flags = tt->platform;
+
+        /* copy arguments */
+        if (arguments != 0) {
+            char* args =  reinterpret_cast<char*> (tt->task_heap_start);
+            args[0] = 0;
+            strncat(args, taskname, 255);
+            args[255] = 0;
+            int tasknameLen = strlen(args);
+            if (tasknameLen < 255) {
+                args[tasknameLen] = ' ';
+            }
+            int remainingLen = 255 - tasknameLen -1;
+            if (remainingLen > 0) {
+                strncpy(args + tasknameLen +1, arguments, remainingLen);
+            }
+            args[255] = 0;
+            // set argument of the initial thread
+            Kernel_ThreadCfdCl* thread = static_cast<Kernel_ThreadCfdCl*>(task->getThreadDB()->getHead()->getData());
+            thread->arguments = reinterpret_cast<void*> (tt->task_heap_start);
+        }
+
 #endif
 
         this->taskDatabase->addTail(task);
@@ -359,7 +385,7 @@ void TaskManager::initialize() {
  *---------------------------------------------------------------------------*/
 ErrorT TaskManager::removeTask(Task* task) {
     if (task == 0)
-        return (cError );
+        return (cError);
 
     LOG(KERNEL, INFO, "TaskManager::removeTask: removing task %u", task->getId());
 #ifdef HAS_Kernel_RamManagerCfd
@@ -371,7 +397,7 @@ ErrorT TaskManager::removeTask(Task* task) {
     this->taskDatabase->remove(task);
     delete task;
 
-    return (cOk );
+    return (cOk);
 }
 
 /*****************************************************************************
@@ -494,7 +520,7 @@ ErrorT TaskManager::loadTaskFromFile(File* file, TaskIdT& tid, char* arguments, 
 #endif
 
     /* create the memory manager for the task. The memory manager will be inside the kernel space */
-    LOG(KERNEL, INFO,  "TaskManager: new Task memory: [0x%x - 0x%x]", tt->task_heap_start, tt->task_end);
+    LOG(KERNEL, DEBUG,  "TaskManager: new Task memory: [0x%x - 0x%x]", tt->task_heap_start, tt->task_end);
     LOG(KERNEL, DEBUG, "TaskManager::loadTaskFromFile: creating Task object.");
 
     /*
@@ -506,8 +532,25 @@ ErrorT TaskManager::loadTaskFromFile(File* file, TaskIdT& tid, char* arguments, 
     /* copy arguments */
     if (arguments != 0) {
         char* args =  reinterpret_cast<char*> (task_start + (tt->task_heap_start - LOG_TASK_SPACE_START));
-        memcpy(args, arguments, arg_length);
-        args[arg_length] = 0;
+        args[0] = 0;
+        strncat(args, file->getName(), 255);
+        args[255] = 0;
+        int fileNameLen = strlen(args);
+        if (fileNameLen < 255) {
+            args[fileNameLen] = ' ';
+            args[fileNameLen+1] = 0;
+        }
+        int remainingLen = 255 - fileNameLen -1 - arg_length;
+        if (remainingLen > arg_length)
+        {
+            remainingLen = arg_length;
+        }
+        if (remainingLen > 0) {
+            strncpy(args + fileNameLen +1, arguments, remainingLen);
+        }
+        args[255] = 0;
+
+        LOG(KERNEL, INFO, "Arguments are '%s' was '%s'\n", args, arguments);
         // set argument of the initial thread
         Kernel_ThreadCfdCl* thread = static_cast<Kernel_ThreadCfdCl*>(task->getThreadDB()->getHead()->getData());
         thread->arguments = reinterpret_cast<void*> (tt->task_heap_start);
@@ -516,7 +559,7 @@ ErrorT TaskManager::loadTaskFromFile(File* file, TaskIdT& tid, char* arguments, 
     /* for future accesses set it to the correct VM address */
     task->tasktable      = reinterpret_cast<taskTable*>(LOG_TASK_SPACE_START);
     task->platform_flags = tt->platform;
-    LOG(KERNEL, INFO, "TaskManager::loadTaskFromFile: Platform Flags: 0x%x", task->platform_flags);
+    LOG(KERNEL, DEBUG, "TaskManager::loadTaskFromFile: Platform Flags: 0x%x", task->platform_flags);
 
     /* unmap the new task from the current task address space */
     theOS->getHatLayer()->unmap(reinterpret_cast<void*>(task_start));
@@ -561,6 +604,10 @@ ErrorT TaskManager::terminateThread(Kernel_ThreadCfdCl* pThread) {
     if (ownerTask->getThreadDB()->isEmpty()) {
         this->removeTask(ownerTask);
     }
+
+    /* Schedule deletion of thread object to allow freeing of stack pages!
+     * */
+    theOS->getMemoryManager()->scheduleDeletion(pThread);
 
     /* finally tell CPU-dispatcher that this thread is gone.. */
     theOS->getDispatcher()->terminate_thread(pThread);

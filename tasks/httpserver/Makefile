@@ -6,7 +6,7 @@ TARGET				= armv7
 endif
 
 ORCOS_LIB_DIR		= ../../library
-#KEEP_TEMP_FILES 	= 0
+KEEP_TEMP_FILES 	= 1
 
 INITIAL_PRIORITY 	= 1000
 PHASE				= 0

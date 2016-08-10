@@ -11,6 +11,11 @@
 #include "USBDeviceDriver.hh"
 #include "USBHostController.hh"
 
+
+#define USB_DEVICE_SPEED_FULL  0
+#define USB_DEVICE_SPEED_LOW   1
+#define USB_DEVICE_SPEED_HIGH  2
+
 class USBHub: public USBDeviceDriver {
 public:
     USBHub(USBDevice *dev, USB_Host_Controller *controller);
@@ -19,16 +24,16 @@ public:
 
 private:
     // The USB Device representing the hub
-    USBDevice* dev;
+    USBDevice*              dev;
 
     // The hub descriptor received during enumeration
-    HubDescriptor hub_descr;
+    HubDescriptor           hub_descr;
 
     // The Controller used to communicate with this hub
-    USB_Host_Controller* controller;
+    USB_Host_Controller*    controller;
 
     // The devices attached to the ports.. maximum 6 ports
-    USBDevice* portDevices[6];
+    USBDevice*              portDevices[6];
 
     /*****************************************************************************
      * Method: handleStatusChange()
@@ -49,6 +54,18 @@ public:
         return (cOk);
     }
 
+    /*****************************************************************************
+     * Method: resetPort(int port)
+     *
+     * @description
+     *  Resets the given port. As port speed detection
+     *  is part of the reset procedure the port speed
+     *  is returned on success.
+     *
+     * @return
+     *  ErrorCode < 0 if error occurred
+     *  Detected speed of attached Devices on success.
+     *******************************************************************************/
     ErrorT resetPort(int port);
 
     /*****************************************************************************

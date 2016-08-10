@@ -1169,7 +1169,7 @@
   <Skeleton>
     <Name>USBDriver</Name>
     <Superclasses>
-      <Superclass Name="usb/USBDeviceDriverLibrary">
+      <Superclass Name="usb/USBDriverLibrary">
         <MemberRef Name="SMSC95xx" />
         <MemberRef Name="MassStorage" />
       </Superclass>

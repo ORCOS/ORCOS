@@ -67,6 +67,10 @@ public:
 
     ~MassStorageSCSIUSBDeviceDriver();
 
+    static USBDeviceDriver* getInstance(USBDevice* dev) {
+          return new MassStorageSCSIUSBDeviceDriver(dev);
+     }
+
 private:
     // constructor for additional luns
     MassStorageSCSIUSBDeviceDriver(MassStorageSCSIUSBDeviceDriver* parent, int lun);

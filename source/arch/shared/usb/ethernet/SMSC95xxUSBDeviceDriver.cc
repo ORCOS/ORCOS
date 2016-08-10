@@ -39,6 +39,11 @@ extern "C" err_t ethernet_input(struct pbuf *p, struct netif *netif);
 #define TX_CMD_A_FIRST_SEG_          0x00002000
 #define TX_CMD_A_LAST_SEG_           0x00001000
 
+#define TX_CMD_B_CSUM_ENABLE         (0x00004000)
+#define TX_CMD_B_ADD_CRC_DISABLE_    (0x00002000)
+#define TX_CMD_B_DISABLE_PADDING_    (0x00001000)
+#define TX_CMD_B_PKT_BYTE_LENGTH_    (0x000007FF)
+
 /* Rx status word */
 #define RX_STS_FL_                   0x3FFF0000  /* Frame Length */
 #define RX_STS_ES_                   0x00008000  /* Error Summary */
@@ -180,7 +185,7 @@ static int4 tmpbuf[2];
 /* dummy frame to ensure frame completion */
 static unint4 dummyFrame[2] = { (TX_CMD_A_FIRST_SEG_ | TX_CMD_A_LAST_SEG_), 0x0 };
 
-extern void* comStackMutex;
+extern Mutex* comStackMutex;
 
 /***************************************
  *             IMPLEMENTATION
@@ -682,6 +687,22 @@ static void smsc95xx_start_rx_path(USBDevice *dev) {
  *  int         Error Code. cOk == 0 on success.
  *******************************************************************************/
 ErrorT SMSC95xxUSBDeviceDriver::init() {
+    return reset();
+}
+
+/*****************************************************************************
+ * Method: SMSC95xxUSBDeviceDriver::reset()
+ *
+ * @description
+ *  Resets the hardware. Initializes all PHY, MII etc. components
+ *  using USB control transfers to the SMSC95xx usb device.
+ *
+ * @params
+ *
+ * @returns
+ *  int         Error Code. cOk == 0 on success.
+ *******************************************************************************/
+ErrorT SMSC95xxUSBDeviceDriver::reset() {
     unint4 write_buf;
     unint4 read_buf;
     unint4 burst_cap;
@@ -872,6 +893,8 @@ ErrorT SMSC95xxUSBDeviceDriver::init() {
     return (0);
 }
 
+
+
 /*****************************************************************************
  * Method: SMSC95xxUSBDeviceDriver::recv(unint4 recv_len)
  *
@@ -890,7 +913,6 @@ ErrorT SMSC95xxUSBDeviceDriver::recv(char* rxbuffer, unint4 recv_len) {
     LOG(ARCH, DEBUG, "SMSC95xxUSBDeviceDriver: RX IRQ. len: %d", recv_len);
 
     unint4 recvd_bytes = 0;
-    //char* rxbuffer = reinterpret_cast<char*>(&dev->endpoints[4].recv_buffer[0]);
     if (recv_len <= 0)
         return (-1);
 
@@ -908,9 +930,9 @@ ErrorT SMSC95xxUSBDeviceDriver::recv(char* rxbuffer, unint4 recv_len) {
                 remaining_len = 0;
                 cur_len = 0;
 
-                acquireMutex(comStackMutex);
+                comStackMutex->acquire();
                 ethernet_input(last_pbuf, &st_netif);
-                releaseMutex(comStackMutex);
+                comStackMutex->release();
             } else {
                 LOG(ARCH, DEBUG, "SMSC95xxUSBDeviceDriver: rx split packet: %d", recv_len);
 
@@ -930,7 +952,7 @@ ErrorT SMSC95xxUSBDeviceDriver::recv(char* rxbuffer, unint4 recv_len) {
 
             if (packet_len & RX_STS_ES_) {
                 LOG(ARCH, ERROR, "SMSC95xxUSBDeviceDriver: RX packet header Error: %x", packet_len);
-                return (cError );
+                return (cError);
             }
             /* extract packet_len */
             packet_len = ((packet_len & RX_STS_FL_) >> 16);
@@ -938,11 +960,11 @@ ErrorT SMSC95xxUSBDeviceDriver::recv(char* rxbuffer, unint4 recv_len) {
 
             if ((packet_len > 1500) || (packet_len == 0)) {
                 LOG(ARCH, ERROR, "SMSC95xxUSBDeviceDriver: Length Validation failed: %d", packet_len);
-                return (cError );
+                return (cError);
             }
 
             /* deliver packet to upper layer */
-            acquireMutex(comStackMutex);
+            comStackMutex->acquire();
             struct pbuf* ptBuf = pbuf_alloc(PBUF_RAW, (unint2) (packet_len + 10), PBUF_RAM);
             if (ptBuf != 0) {
                 int r_len = (recv_len - (recvd_bytes + 4));
@@ -952,48 +974,44 @@ ErrorT SMSC95xxUSBDeviceDriver::recv(char* rxbuffer, unint4 recv_len) {
                     ethernet_input(ptBuf, &st_netif);
                 } else {
                     memcpy(ptBuf->payload, &rxbuffer[recvd_bytes + 4], r_len);
-                    last_pbuf = ptBuf;
-                    cur_len = r_len;
+                    last_pbuf     = ptBuf;
+                    cur_len       = r_len;
                     remaining_len = packet_len - cur_len;
 
                     //dev->endpoints[bulkin_ep].data_toggle = dev->endpoints[4].data_toggle;
-
-                     /*recv_len = dev->controller->USBBulkMsg(dev,bulkin_ep,USB_DIR_IN,512,tmp_data);
+                     /*
+                     recv_len = dev->controller->USBBulkMsg(dev, 4, USB_DIR_IN, 512*3, tmp_data);
                      if ((int) recv_len >= remaining_len) {
-                     dev->endpoints[4].data_toggle = dev->endpoints[bulkin_ep].data_toggle;
-
-                     char* p = (char*) last_pbuf->payload;
-                     memcpy(&p[cur_len],tmp_data, remaining_len );
-                     recvd_bytes = 0;
-                     packet_len = remaining_len - 4;
-                     remaining_len = 0;
-                     cur_len = 0;
-                     rxbuffer = (char*) tmp_data;
-                     ethernet_input(last_pbuf,&tEMAC0Netif);
-                     pbuf_free(last_pbuf);
+                         char* p = (char*) last_pbuf->payload;
+                         memcpy(&p[cur_len], tmp_data, remaining_len);
+                         recvd_bytes   = 0;
+                         packet_len    = remaining_len - 4;
+                         remaining_len = 0;
+                         cur_len       = 0;
+                         rxbuffer      = (char*) tmp_data;
+                         ethernet_input(last_pbuf, &tEMAC0Netif);
                      } else if (recv_len > 0) {
-                     dev->endpoints[4].data_toggle = dev->endpoints[bulkin_ep].data_toggle;
-                     // more packets
-                     char* p = (char*) last_pbuf->payload;
-                     memcpy(&p[cur_len],tmp_data,recv_len);
-                     remaining_len -= recv_len;
-                     cur_len += recv_len;
+                         // more packets
+                         char* p = (char*) last_pbuf->payload;
+                         memcpy(&p[cur_len], tmp_data, recv_len);
+                         remaining_len -= recv_len;
+                         cur_len       += recv_len;
 
-                     recvd_bytes += recv_len;
-                     recvd_bytes = (recvd_bytes + 3) & (~3);
+                         recvd_bytes += recv_len;
+                         recvd_bytes = (recvd_bytes + 3) & (~3);
                      }*/
                 }
             } else {
                 LOG(ARCH, ERROR, "SMSC95xxUSBDeviceDriver: no memory for pbuf!");
             }
-            releaseMutex(comStackMutex);
+            comStackMutex->release();
 
             recvd_bytes += packet_len + 4;
             recvd_bytes = (recvd_bytes + 3) & (~3);
         }
     }
 
-    return (cOk );
+    return (cOk);
 }
 
 SMSC95xxUSBDeviceDriver::SMSC95xxUSBDeviceDriver(USBDevice* p_dev) :
@@ -1044,8 +1062,8 @@ static err_t smsc95xx_low_level_output(struct netif *netif, struct pbuf *p) {
 
     LOG(ARCH, DEBUG, "SMSC95xxUSBDeviceDriver: sending packet of length: %d", p->tot_len);
 
-    if (p->tot_len > 1500) {
-        LOG(ARCH, WARN, "SMSC95xxUSBDeviceDriver: not sending packet. Len > 1500.");
+    if (p->tot_len > 1500 || p->tot_len == 0) {
+        LOG(ARCH, WARN, "SMSC95xxUSBDeviceDriver: not sending packet. Length %u invalid.", p->tot_len);
         return (ERR_MEM);
     }
 
@@ -1080,11 +1098,10 @@ static err_t smsc95xx_low_level_output(struct netif *netif, struct pbuf *p) {
 
     LOG(ARCH, DEBUG, "SMSC95xxUSBDeviceDriver: sending packet len %d", len);
 
-    /* Send dummy frame to ensure completion of previous frame ...
-     * maybe this is not needed at all. needs more testing:
-     * without this the smsc stalls with too much data send .. ? */
-    int error = driver->dev->controller->USBBulkMsg(driver->dev, driver->bulkout_ep, USB_DIR_OUT, 8, reinterpret_cast<char*>(dummyFrame));
-    error |= driver->dev->controller->USBBulkMsg(driver->dev, driver->bulkout_ep, USB_DIR_OUT, (unint2) (len + 8), data);
+    ErrorT error = driver->dev->controller->USBBulkMsg(driver->dev, driver->bulkout_ep, USB_DIR_OUT, (unint2) (len + 8), data);
+    if (error < 0) {
+        driver->reset();
+    }
 
     driver->mutex->release();
     return (ERR_OK);
@@ -1260,8 +1277,10 @@ ErrorT SMSC95xxUSBDeviceDriver::handleInterrupt() {
     if (dev->getEndpointTransferState(int_ep) == EP_TRANSFER_FINISHED) {
         LOG(ARCH, DEBUG, "SMSC95xxUSBDeviceDriver: PHY Interrupt");
 
+        //theOS->getBoard()->getCache()->invalidate_data((void*)&dev->endpoints[4].recv_buffer[0], dev->endpoints[4].interrupt_receive_size);
+
         if (dev->endpoints[this->int_ep].recv_buffer == 0)
-            return (cError );
+            return (cError);
 
         unint4 interrupt_sts = *(reinterpret_cast<unint4*>(dev->endpoints[this->int_ep].recv_buffer));
 
@@ -1271,10 +1290,12 @@ ErrorT SMSC95xxUSBDeviceDriver::handleInterrupt() {
 
         if ((interrupt_sts & INT_EP_CTL_PHY_INT_) != 0) {
             /* clear interrupt status */
-            LOG(ARCH, INFO, "SMSC95xxUSBDeviceDriver: Link Activated..");
-            link_up = true;
-            netif_set_default(&st_netif);
-            netif_set_up(&st_netif);
+            if (!link_up) {
+                LOG(ARCH, INFO, "SMSC95xxUSBDeviceDriver: Link Activated..");
+                link_up = true;
+                netif_set_default(&st_netif);
+                netif_set_up(&st_netif);
+            }
         }
 
         /* clear received data */
@@ -1289,7 +1310,7 @@ ErrorT SMSC95xxUSBDeviceDriver::handleInterrupt() {
         int len = dev->getEndpointTransferSize(4);
 
         if (len > 0) {
-            theOS->getBoard()->getCache()->invalidate_data((void*)&dev->endpoints[4].recv_buffer[0], dev->endpoints[4].interrupt_receive_size);
+            //theOS->getBoard()->getCache()->invalidate_data((void*)&dev->endpoints[4].recv_buffer[0], dev->endpoints[4].interrupt_receive_size);
 
             /* handle received data */
             recv(&dev->endpoints[4].recv_buffer[0], len);
@@ -1313,28 +1334,37 @@ SMSC95xxUSBDeviceDriver::~SMSC95xxUSBDeviceDriver() {
 }
 
 
-/*****************************************************************************
- * Method: SMSC95xxUSBDeviceDriverFactory::isDriverFor(USBDevice* dev)
- *
- * @description
- *  checks whether the given class,product device is supported by this driver
- *
- * @params
- *  dev         The usb device to be checked.
- *
- * @returns
- *  bool         true if this driver factory provides a driver for this device.
- *******************************************************************************/
-bool SMSC95xxUSBDeviceDriverFactory::isDriverFor(USBDevice* dev) {
-    if (dev->dev_descr.idVendor != 0x0424)
-        return (false);
-    if (dev->dev_descr.idProduct == 0xec00 || dev->dev_descr.idProduct == 0x9500)
-        return (true);
+/* List of supported products by this USB device driver */
+static const TUSB_Product_Id id_products[] = {
+        USB_VENDOR_PRODUCT(0x0424, 0xec00),
+        USB_VENDOR_PRODUCT(0x0424, 0x9500),
+        USB_VENDOR_PRODUCT(0x0424, 0x9505),
+        USB_VENDOR_PRODUCT(0x0424, 0x9e00),
+        USB_VENDOR_PRODUCT(0x0424, 0x9e01),
+        USB_VENDOR_PRODUCT(0x0424, 0x9900),
+        USB_VENDOR_PRODUCT(0x0424, 0x9901),
+        USB_VENDOR_PRODUCT(0x0424, 0x9902),
+        USB_VENDOR_PRODUCT(0x0424, 0x9903),
+        USB_VENDOR_PRODUCT(0x0424, 0x9904),
+        USB_VENDOR_PRODUCT(0x0424, 0x9905),
+        USB_VENDOR_PRODUCT(0x0424, 0x9906),
+        USB_VENDOR_PRODUCT(0x0424, 0x9907),
+        USB_VENDOR_PRODUCT(0x0424, 0x9908),
+        USB_VENDOR_PRODUCT(0x0424, 0x9909),
+        USB_VENDOR_PRODUCT(0x0424, 0x9530),
+        USB_VENDOR_PRODUCT(0x0424, 0x9730),
+        USB_VENDOR_PRODUCT(0x0424, 0x9e08),
+        {},
+};
 
-    return (false);
-}
-
-
-SMSC95xxUSBDeviceDriverFactory::SMSC95xxUSBDeviceDriverFactory(char* p_name) :
-        USBDeviceDriverFactory(p_name) {
-}
+/* USB Device Driver registration */
+USB_DRIVER(smsc95xx) {
+        next : 0,
+        NAME("smsc95x"),
+        AUTHOR("Daniel Baldin"),
+        VERSION("1.0"),
+        ID_TABLE(&id_products),
+        USB_CLASS_UNSPECIFIED,
+        USB_DRIVER_CLASS(SMSC95xxUSBDeviceDriver)
+};
+REGISTER_DRIVER(smsc95xx);

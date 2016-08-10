@@ -100,7 +100,8 @@ public:
      *             BitmapT protection,
      *             byte zsel,
      *             int pid,
-     *             bool cache_inhibit)
+     *             bool cache_inhibit,
+     *             int priviligeOnly = false)
      *
      * @description
      *
@@ -114,12 +115,13 @@ public:
      * \param zsel          The zone the mapping belongs to (unused for ARM)
      * \param pid           The PID the mapping is created for
      * \param cache_inhibit If true inhibits caching inside this memory region. Usefully for MMIO areas.
+     * \param privilegeOnly If true allow access to the area only in privileged mode
      *
      * @returns
      * void*                The physical addreess.
      *
      **********************************************/
-    void* map(void* logBaseAddr, void* physBaseAddr, size_t size, BitmapT protection, byte zsel, int pid, int cacheMode = hatCacheWriteBack);
+    void* map(void* logBaseAddr, void* physBaseAddr, size_t size, BitmapT protection, byte zsel, int pid, int cacheMode = hatCacheWriteBack, int privilegeOnly = false);
 
     /***********************************************
      * Method: map(void* physBaseAddr,
@@ -136,7 +138,6 @@ public:
      *
      * @params
      * \param logBaseAddr   The logical address of the mapping
-     * \param phyBaseAddr   The physical address of the mapping
      * \param size          The length in Bytes of the mapped area
      * \param protection    The access rights of the mapping (RWX)
      * \param zsel          The zone the mapping belongs to (unused for ARM)
@@ -147,7 +148,7 @@ public:
      * void*                The logical base address of the mapping.
      *
      **********************************************/
-    void* map(void* phyBaseAddr, size_t, BitmapT, byte, int pid, int cacheMode = hatCacheWriteBack);
+    void* map(void* phyBaseAddr, size_t size, BitmapT protection, byte zsel, int pid, int cacheMode = hatCacheWriteBack, int privilegeOnly = false);
 
     /*****************************************************************************
      * Method: unmap(void* logBaseAddr, unint1 tid)

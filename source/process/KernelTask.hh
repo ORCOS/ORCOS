@@ -76,7 +76,7 @@ public:
    // KernelThread* addJob(JOBType id, unint1 pid, void* param, unint priority_param);
 
 
-    KernelThread* getPeriodicThread(unint1 pid, CallableObject* obj, TimeT period, unint4 priority, void* param = 0);
+    KernelThread* getPeriodicThread(unint1 pid, CallableObject* obj, TimeT offset, TimeT period, unint4 priority, void* param = 0);
 
     KernelThread* getCallbackThread(unint1 pid, CallableObject* obj, TimeT delay, unint4 priority, void* param = 0);
 

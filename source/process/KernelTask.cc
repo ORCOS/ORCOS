@@ -55,7 +55,7 @@ void KernelTask::workFinished(KernelThread* pwthread) {
 }
 
 
-KernelThread* KernelTask::getPeriodicThread(unint1 pid, CallableObject* obj, TimeT period, unint4 priority, void* param) {
+KernelThread* KernelTask::getPeriodicThread(unint1 pid, CallableObject* obj, TimeT offset, TimeT period, unint4 priority, void* param) {
     /* find a available workerthread and assign the job */
      ListItem* litem = this->nonWorkingThreads.removeHead();
 
@@ -74,7 +74,7 @@ KernelThread* KernelTask::getPeriodicThread(unint1 pid, CallableObject* obj, Tim
          pWThread->param.periodicCall.functioncall.time         = now;
          pWThread->param.periodicCall.functioncall.parameterptr = param;
 
-         pWThread->arrivalTime = now;
+         pWThread->arrivalTime = now + offset;
          pWThread->instance    = 1;
 
 #ifdef HAS_PRIORITY
@@ -92,7 +92,7 @@ KernelThread* KernelTask::getPeriodicThread(unint1 pid, CallableObject* obj, Tim
  #endif
 #endif
 
-          pWThread->sleepTime = 0;
+          pWThread->sleepTime = now + offset;
          /* unblock the workerthread
           * this will cause the thread
           * either to be scheduled directly

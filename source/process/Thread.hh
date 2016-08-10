@@ -30,7 +30,7 @@
 #include "db/LinkedListItem.hh"
 #include "inc/stringtools.hh"
 #include "inc/memtools.hh"
-#include "scheduler/ScheduleableItem.hh"
+#include "filesystem/Resource.hh"
 #include "inc/signals.hh"
 #include Kernel_MemoryManager_hh
 
@@ -70,6 +70,8 @@ class Mutex;
 struct ThreadStack {
     void* startAddr;                //!< The logical start addr of this stack
     void* endAddr;                  //!< The logical end addr of this stack
+    void* physicalStartAddr;        //!< The phyiscal start address of this stack
+    void* physicalEndAddr;          //!< The phyiscal start address of this stack
     void* stackptrs[MAXSTACKPTRS];  //!< stack pointer stack. contains pushed stack pointer (context) addresses
     unint1 top;
 };
@@ -84,7 +86,7 @@ struct ThreadStack {
  *
  * Thread Control Block holding information about a thread.
  */
-class Thread: public ScheduleableItem {
+class Thread: public Resource {
     /* The task class needs to access all private data of a thread since its the owner. */
     friend class Task;
     friend class Mutex;
@@ -369,12 +371,7 @@ public:
      * @description
      *  Sets the name of this thread. Maximum 13 chars
      *******************************************************************************/
-   inline  void setName(char* newName) {
-        int len = strlen(newName);
-        if (len > 14) len = 14;
-        memcpy(this->name, newName, len);
-        this->name[len] = 0;
-    }
+     void setName(char* newName);
 
    /*****************************************************************************
     * Method: getName()

@@ -388,8 +388,9 @@ extern "C" void backtrace_addr(void* currentAddress, size_t stackPtr) {
         stackPtr = stackPtr + cf_entry->cfa_offset;
 
         if (cf_entry->stored_regs[cie.return_reg] != 0xffffffff) {
-            // TODO: check if address is accessible using HATLayer in order to avoid data aborts here
-            currentAddress = reinterpret_cast<void*>(*(reinterpret_cast<unint4*>((size_t) stackPtr + cf_entry->stored_regs[cie.return_reg])));
+            unint4 nextaddr = (size_t) stackPtr + cf_entry->stored_regs[cie.return_reg];
+            if (!theOS->getHatLayer()->getPhysicalAddress((void*) nextaddr)) return;
+            currentAddress = reinterpret_cast<void*>(*(reinterpret_cast<unint4*>(nextaddr)));
         } else {
             return;
         }
@@ -427,8 +428,9 @@ extern "C" void backtrace_current() {
         stackPtr = stackPtr + cf_entry->cfa_offset;
 
         if (cf_entry->stored_regs[cie.return_reg] != 0xffffffff) {
-            // TODO: check if address is accessible using HATLayer in order to avoid data aborts here
-            currentAddress =  reinterpret_cast<void*>(*(reinterpret_cast<unint4*>((size_t) stackPtr + cf_entry->stored_regs[cie.return_reg])));
+            unint4 nextaddr = (size_t) stackPtr + cf_entry->stored_regs[cie.return_reg];
+            if (!theOS->getHatLayer()->getPhysicalAddress((void*) nextaddr)) return;
+            currentAddress =  reinterpret_cast<void*>(*(reinterpret_cast<unint4*>(nextaddr)));
         } else {
             return;
         }
@@ -467,8 +469,9 @@ extern "C" void backtrace(void** buffer, int length) {
         stackPtr = stackPtr + cf_entry->cfa_offset;
 
         if (cf_entry->stored_regs[14] != 0xffffffff) {
-            // TODO: check if address is accessible using HATLayer in order to avoid data aborts here
-            currentAddress =  reinterpret_cast<void*>(*(reinterpret_cast<unint4*>((size_t) stackPtr + cf_entry->stored_regs[14])));
+            unint4 nextaddr = (size_t) stackPtr + cf_entry->stored_regs[cie.return_reg];
+            if (!theOS->getHatLayer()->getPhysicalAddress((void*) nextaddr)) return;
+            currentAddress =  reinterpret_cast<void*>(*(reinterpret_cast<unint4*>(nextaddr)));
         } else {
             return;
         }

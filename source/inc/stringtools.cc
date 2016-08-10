@@ -387,6 +387,24 @@ char* strcat(char *s1, const char *s2) {
     return (s);
 }
 
+char* strncat(char *dst, const char *src, register size_t n)
+{
+    if (n != 0) {
+        register char *d = dst;
+        register const char *s = src;
+
+        while (*d != 0)
+            d++;
+        do {
+            if ((*d = *s++) == 0)
+                break;
+            d++;
+        } while (--n != 0);
+        *d = 0;
+    }
+    return (dst);
+}
+
 
 /*****************************************************************************
  * Method: strcmp(const char *s1, const char *s2)
@@ -560,4 +578,28 @@ char* basename(const char *name) {
   }
 
   return (const_cast<char*>(base));
+}
+
+/*****************************************************************************
+ * Method: strchrs(const char* pstr, char* characters)
+ *
+ * @description
+ * Checks if any of the characters specifiec in 'characters' is
+ * contained inside pstr.
+ *
+ * @params
+ *   @param pstr        String to check
+ *   @param characters  Set of characters to check for
+ *
+ * @returns
+ *   0 : no character was found
+ *   1 : a character was found
+ *******************************************************************************/
+int strchrs(const char* pstr, char* characters) {
+    while (*characters) {
+        if (strpos(pstr, *characters)) return (1);
+        characters++;
+    }
+
+    return (0);
 }

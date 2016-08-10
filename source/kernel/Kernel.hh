@@ -140,6 +140,9 @@ private:
     // The error Handler for fatal task and system errors
     TaskErrorHandler* errorHandler;
 
+    // The idle thread
+    IdleThread* idleThread;
+
     //! The configured board class
     BoardCfdCl* board;
 
@@ -323,6 +326,19 @@ public:
     *---------------------------------------------------------------------------*/
     inline TaskErrorHandler* getErrorHandler() {
         return (this->errorHandler);
+    }
+
+    /*****************************************************************************
+    * Method: getIdleThread()
+    *
+    * @description
+    *  Returns the idle thread
+    *
+    * @returns
+    *  IdleThread* The idle thread
+    *---------------------------------------------------------------------------*/
+    inline IdleThread* getIdleThread() {
+        return (this->idleThread);
     }
 
     /*****************************************************************************

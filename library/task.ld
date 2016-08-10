@@ -38,11 +38,6 @@ SECTIONS
   .rodata : {
     *(.rodata*)
   }
-
-  .data :
-  {
-     *(.data*)         
-  }
   .init     ALIGN(4) :
   {
      PROVIDE(__init_start = .);
@@ -54,6 +49,10 @@ SECTIONS
      PROVIDE(__fini_start = .);
      *(.fini*)
      PROVIDE(__fini_end = .);
+  }
+  .data :
+  {
+     *(.data*)         
   }
   CRC_END = .;
   .bss      ALIGN(4) :

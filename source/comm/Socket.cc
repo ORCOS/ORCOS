@@ -169,7 +169,6 @@ void Socket::connected(int error) {
         /* we are not connected */
         this->state = SOCKET_DISCONNECTED;
     } else {
-        /* TODO propagate error code to user */
         state = SOCKET_CONNECTED;
     }
 
@@ -348,7 +347,7 @@ int Socket::listen(Kernel_ThreadCfdCl* thread, int backlog_size, int timout_ms) 
         }
 
         LOG(COMM, DEBUG, "Socket::listen(): Timed out");
-        /* probably socket destroyed? TODO: return error code on destruction? */
+        /* probably socket destroyed? */
         this->blockedThread = 0;
         return (cTimeout);
     } else {

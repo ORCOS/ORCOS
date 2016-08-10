@@ -128,7 +128,7 @@ int exec_ls(int argc, char** argv) {
 
         if (details) {
             // print details
-            printf("%-5u %08x %-5s %7s %s %s%s%s\r\n"
+            printf("%-5u %08x %-5s %7s %s %s%s%s" LINEFEED
                    , direntry->resId, direntry->flags , typestr, fileSizeStr, datestr, prefix,direntry->name,suffix);
         } else {
             // no details
@@ -136,7 +136,7 @@ int exec_ls(int argc, char** argv) {
             num++;
             if (num >= 3)  {
                 num = 0;
-                printf("\r\n");
+                printf(LINEFEED);
             }
         }
 
@@ -144,7 +144,7 @@ int exec_ls(int argc, char** argv) {
         direntry = readdir(handle);
     }
 
-    printf("\r\n");
+    printf(LINEFEED);
 
     close(handle);
     return (cOk);

@@ -180,9 +180,10 @@ int writeStdOut(char* msg, int len) {
             len = 0;
         } else {
             int remlen = 255 - stdout_index;
-            memcpy(&stdout_buf[stdout_index], msg, len);
-            stdout_buf[stdout_index+len] = '\0';
+            memcpy(&stdout_buf[stdout_index], msg, remlen);
+            stdout_buf[stdout_index+remlen+1] = '\0';
             printToStdOut(stdout_buf, 256);
+            msg += remlen;
             len -= remlen;
             stdout_index = 0;
         }

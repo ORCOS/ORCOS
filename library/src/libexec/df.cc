@@ -10,8 +10,6 @@
 #include <stdlib.h>
 #include <orcos.h>
 
-#define LINEFEED "\n"
-
 /*** Escape Sequenzen: **********/
 #define ESC_RED         "\033[31m"
 #define ESC_GREEN       "\033[32m"
@@ -75,7 +73,7 @@ int exec_df(int argc, char** argv) {
          }
     } // sys/tasks
 
-    printf("\nDisks                \t    Total\t     Used\t     Free\tUsage"LINEFEED);
+    printf(LINEFEED "Disks                \t    Total\t     Used\t     Free\tUsage"LINEFEED);
 
     handle = open("/sys/fs",0);
     if (handle) {

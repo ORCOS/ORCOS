@@ -24,7 +24,7 @@
 #include "stdlib.h"
 
 
-extern "C" int shm_map(const char* file,unint4* mapped_address, unint4* mapped_size, unint4 flags, unint4 offset) {
+extern "C" int shm_map(const char* file, unint4* mapped_address, unint4* mapped_size, unint4 flags, unint4 offset) {
     return (syscall(cShmMapId, file, mapped_address, mapped_size, flags, offset));
 }
 

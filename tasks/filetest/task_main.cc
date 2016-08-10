@@ -19,11 +19,11 @@ extern "C" int main(int argc, char** argv)
 {
     volatile int val = 0;
 
-    if (argc == 0) {
+    if (argc == 1) {
         puts("Usage: filetest <filepath>" LF);
         thread_exit(-1);
     }
-    int fd = open(argv[0]);
+    int fd = open(argv[1]);
 
     if (fd > 0) {
         puts("File aready exists.. aborting."LF);
@@ -72,7 +72,7 @@ extern "C" int main(int argc, char** argv)
 
    close(fd);
 
-   fd = open(argv[0]);
+   fd = open(argv[1]);
 
    start = getTime();
 
@@ -101,6 +101,5 @@ extern "C" int main(int argc, char** argv)
        int rem   = kbits - (mbits * 1024);
        printf("Read : %d.%d MB/s (%u us)" LF, mbits, rem, us);
    }
-   thread_exit(cOk);
 
 }

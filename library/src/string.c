@@ -684,7 +684,9 @@ errorstrtable_t errorstrings[] = {
   {cTimeout,                "Operation timed out (-1019)"},
   {cInvalidSocketType,      "Invalid socket type for operation (-407)"},
   {cErrorConnecting,        "Error connecting (-408)"},
-  {cInvalidConcurrentAccess,"Invalid concurrent access. Another thread already performs this operation (-1020)"}
+  {cInvalidConcurrentAccess,"Invalid concurrent access. Another thread already performs this operation (-1020)"},
+  {cErrorBindingPort,       "Could not bind to port (-409)"},
+  {cErrorAllocatingMemory,  "Error allocating memory (-105)"},
 };
 
 
@@ -749,7 +751,7 @@ char *strpbrk(const char *s1, const char *s2) {
 
 void __stack_chk_fail()
 {
-    puts("Stack check failed!\n");
+    puts("Stack check failed!" LINEFEED);
     while(1);
 }
 

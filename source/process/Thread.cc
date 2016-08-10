@@ -67,6 +67,7 @@ Thread::Thread(void* p_startRoutinePointer,
                Task* p_owner,
                unint4 stack_size,
                void* attr) :
+               Resource(cThread, false, 0),
                myListItem(this) {
     ASSERT(p_owner);
 
@@ -85,17 +86,27 @@ Thread::Thread(void* p_startRoutinePointer,
     this->status.setBits(cNewFlag);
     myListItem.setData(this);
 
-    /* inform owner task that this thread belongs to him */
-    if (owner != 0)
-        owner->addThread(static_cast< Kernel_ThreadCfdCl*>(this));
+    TaskIdT ownerId = 0;
 
-    if (owner != 0)
-        TRACE_ADD_SOURCE(owner->getId(), this->myThreadId, 0);
-    else
-        TRACE_ADD_SOURCE(0, this->myThreadId, 0);
+    /* inform owner task that this thread belongs to him */
+    if (owner != 0) {
+        owner->addThread(static_cast< Kernel_ThreadCfdCl*>(this));
+        ownerId = owner->getId();
+    }
+
+    TRACE_ADD_SOURCE(ownerId, this->myThreadId, 0);
 
     /* allocate and map thread stack */
-    this->threadStack.startAddr = (void*) theOS->getRamManager()->alloc_logical(stack_size, owner->getId(), 0);
+    this->threadStack.physicalStartAddr =  (void*) theOS->getRamManager()->alloc_physical(stack_size, owner->getId());
+    this->threadStack.physicalEndAddr   = reinterpret_cast<void*> ((unint4) threadStack.physicalStartAddr + stack_size - RESERVED_BYTES_FOR_STACKFRAME);
+    intptr_t mapped_address = (intptr_t) theOS->getHatLayer()->map(0, /* map at any logical address*/
+                                                                   reinterpret_cast<void*>(this->threadStack.physicalStartAddr), /* map this physical area */
+                                                                   stack_size, /* size is the pagesize */
+                                                                   hatProtectionRead | hatProtectionWrite, /* RW*/
+                                                                   0, /* domain 0 */
+                                                                   owner->getId(), /* task pid */
+                                                                   hatCacheWriteBack);
+    this->threadStack.startAddr = (void*) mapped_address;
     this->threadStack.endAddr   = reinterpret_cast<void*> ((unint4) threadStack.startAddr + stack_size - RESERVED_BYTES_FOR_STACKFRAME);
     this->threadStack.top       = 0;
 
@@ -132,7 +143,10 @@ Thread::Thread(void* p_startRoutinePointer,
 }
 
 Thread::~Thread() {
-    /* keep empty if possible */
+    // free mapped thread stack pages
+    // this destructor must be called using scheduleDeletion to ensure
+    // the cpu is not currently using this stack area
+    theOS->getRamManager()->free_physical((intptr_t) this->threadStack.physicalStartAddr, (intptr_t) this->threadStack.physicalEndAddr);
 }
 
 /*****************************************************************************
@@ -208,6 +222,22 @@ void Thread::sigwait(SignalType signaltype, void* sig) {
     theOS->getDispatcher()->sigwait(signaltype, this);
 }
 #endif
+
+/*****************************************************************************
+ * Method: setName(char* newName)
+ *
+ * @description
+ *  Sets the name of this thread. Maximum 13 chars
+ *******************************************************************************/
+void Thread::setName(char* newName) {
+    int len = strlen(newName);
+    if (len > 14) len = 14;
+    memcpy(this->name, newName, len);
+    this->name[len] = 0;
+    int ownerId = 0;
+    if (owner) ownerId = owner->getId();
+    TRACE_RENAME_SOURCE(ownerId, getId(), newName);
+}
 
 /*****************************************************************************
  * Method: Thread::block(unint4 timeout)
@@ -325,10 +355,15 @@ void Thread::stop() {
  *  Terminates the thread
  *******************************************************************************/
 void Thread::terminate() {
-    LOG(PROCESS, INFO, "thread %d terminated", this->myThreadId);
+    LOG(PROCESS, INFO, "Thread %d terminated", this->myThreadId);
 
     this->status.clear();
     this->status.setBits(cTermFlag);
+
+    // TODO: If SMP be sure the thread is really removed if running on another CPU!
+
+    /* remove myself from any scheduling queue */
+    this->getLinkedListItem()->remove();
 
 #ifdef ORCOS_SUPPORT_SIGNALS
     /* be sure only threads inside our tasks are signaled as signaling is global */
@@ -336,11 +371,12 @@ void Thread::terminate() {
     theOS->getDispatcher()->signal(reinterpret_cast<void*>(signalnum), cOk);
 #endif
 
-    // TODO: free mapped thread stack pages
+    TaskIdT ownerId = 0;
+    if (owner) {
+        ownerId = owner->getId();
+    }
 
-
-    /* remove myself from any scheduling queue */
-    this->getLinkedListItem()->remove();
+    TRACE_REMOVE_SOURCE(ownerId, this->myThreadId);
 
     /* cleanup exported kernel variable stuff */
     if (sysFsDir && owner) {

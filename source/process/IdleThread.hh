@@ -29,7 +29,7 @@
  * power management can take place. Therefore this thread calls the method enterIdleThread() of the Powermanager which then
  * cares about all possible power save mechanisms.
  */
-class IdleThread {
+class IdleThread : public CallableObject{
 public:
     IdleThread();
     ~IdleThread();
@@ -41,6 +41,14 @@ public:
      *  Runs the idle loop
      *---------------------------------------------------------------------------*/
     void run();
+
+    /*****************************************************************************
+     * Method: callbackFunc()
+     *
+     * @description
+     *  callback function of the kernel workerthread executing this idle thread
+     *---------------------------------------------------------------------------*/
+    void callbackFunc(void* param);
 };
 
 #endif /*IDLETHREAD_HH_*/

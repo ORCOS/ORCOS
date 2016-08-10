@@ -16,7 +16,7 @@
 extern "C" {
 #endif
 
-int      isspace(int c);
+//int      isspace(int c);
 char*    trim(const char * s);
 int      strpos(const char* s1, const char* s2);
 int      strmatch(const char *wildcard, const char *string);

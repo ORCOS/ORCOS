@@ -287,7 +287,7 @@ ErrorT OverlayDirectory::readBytes(char *bytes, unint4 &length) {
     }
 
     length = 0;
-    return (cError );
+    return (cError);
 }
 
 /*****************************************************************************

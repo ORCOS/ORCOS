@@ -56,7 +56,7 @@ private:
     union JobParameter param;
 
     // irq number this kernel thread is servicing
-    int   irq;
+    int    irq;
 
     // the jobid
     unint1 jobid;

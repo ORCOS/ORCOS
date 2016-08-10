@@ -14,7 +14,7 @@
 bool readKernelVar(int filehandle, void* result, int size);
 
 extern char _system_path[256];
-static char buffer[256];
+static char buffer[2048];
 
 
 static void makeTelnetCharCompatible(char* msg, int len) {
@@ -55,9 +55,9 @@ int exec_cat(int argc, char** argv) {
                SYSFS_UNSIGNED_INTEGER  = 1,
                SYSFS_STRING = 2 */
 
-                char* format = "%d (0x%x)\n";
+                char* format = "%d (0x%x)" LINEFEED;
                 if (filetype.st_flags == 1) {
-                    format = "%u (0x%x)\n";
+                    format = "%u (0x%x)" LINEFEED;
                 }
 
                 switch (filetype.st_size) {
@@ -80,8 +80,8 @@ int exec_cat(int argc, char** argv) {
         } else {
             int ret = cOk;
             /* normal file.. just print content */
-            int num = read(filehandle, buffer, 256);
-            if (num < 0 && num != cEOF) {
+            int num = read(filehandle, buffer, 512);
+            if (num < 0) {
                 ret = num;
                 num = 0;  // check error
             }
@@ -89,18 +89,18 @@ int exec_cat(int argc, char** argv) {
             while (num > 0) {
                 // be sure the msg only contains telnet ascii chars
                 makeTelnetCharCompatible(buffer, num);
+                if (num < 512) {
+                   buffer[num] = 0;
+                }
                 printf("%s", buffer);
-                /* in case we encounter a device which has no EOF (like gpios)
-                 * stop reading earlier */
-                if (num < 256) break;
 
-                num = read(filehandle, buffer, 256);
-                if (num < 0 && num != cEOF) {
+                num = read(filehandle, buffer, 512);
+                if (num < 0) {
                     ret = num;
                     num = 0;  // check error
                 }
             }
-            printf("\n");
+            printf(LINEFEED);
             close(filehandle);
             return (ret);
         }

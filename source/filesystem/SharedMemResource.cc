@@ -59,7 +59,7 @@ SharedMemResource::SharedMemResource(unint4 u_size, const char* p_name, Task* p_
 SharedMemResource::~SharedMemResource() {
     /* check if this resource was valid!*/
     if (this->physical_start_address != (unint4) -1) {
-        theOS->getRamManager()->free(this->physical_start_address, this->physical_start_address + size);
+        theOS->getRamManager()->free_physical(this->physical_start_address, this->physical_start_address + size);
         theOS->getFileManager()->unregisterResource(this);
 
 #ifdef HAS_Board_HatLayerCfd
@@ -158,7 +158,7 @@ ErrorT SharedMemResource::unmapFromTask(Task* t) {
             theOS->getHatLayer()->unmap(reinterpret_cast<void*>(map->virtual_address), t->getId());
             if (map->flags & cAllocate) {
                 /* mapping has been allocated by a superclass .. free it*/
-                theOS->getRamManager()->free(map->physical_address, map->physical_address + map->size);
+                theOS->getRamManager()->free_physical(map->physical_address, map->physical_address + map->size);
             }
             mapping.remove(reinterpret_cast<ListItem*>(map));
             /* delete the mapping */

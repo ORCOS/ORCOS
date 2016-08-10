@@ -26,7 +26,7 @@ ASFLAGS = -c -g -Iinc/ -fno-exceptions -fno-rtti -fno-stack-protector -mcpu=cort
 #---------------------------------------------------------------------------------------------------------------------------------------
 
 KOBJ += io.o mem.o signal.o net.o static.o threads.o Mutex.o pthread.o syscall.o testandset.o string.o time.o stdlib.o random.o strtod.o
-KOBJ += system.o exec.o mount.o ls.o ps.o df.o cat.o ifconfig.o cd.o mkdir.o rm.o touch.o kill.o hexdump.o
+KOBJ += system.o exec.o mount.o ls.o ps.o df.o cat.o ifconfig.o cd.o mkdir.o rm.o touch.o kill.o hexdump.o date.o
 OBJ = $(addprefix $(OUTPUT_DIR),$(KOBJ))
 
 VPATH = ../source/arch/ARM/ARMv4T ../source/arch/ARM/ARMv4T/ARMv7 src src/libexec

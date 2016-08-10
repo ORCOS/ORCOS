@@ -108,7 +108,7 @@ ErrorT FATFile::readBytes(char* bytes, unint4& length) {
                 length = pos;
                 FATAccess->release();
                 LOG(FILESYSTEM, WARN, "FATFile::readBytes EOF: %u, cluster: %u, filepos: %u, filesize %u", currentSector, currentCluster, position, filesize);
-                return (cEOF );
+                return (cEOF);
             }
             currentCluster = this->myFS->SectorToCluster(currentSector);
         }
@@ -122,7 +122,7 @@ ErrorT FATFile::readBytes(char* bytes, unint4& length) {
     LOG(FILESYSTEM, DEBUG, "FATFile::readBytes Bytes read: %d", length);
 
     length = pos;
-    return (cOk );
+    return (cOk);
 }
 
 /*****************************************************************************

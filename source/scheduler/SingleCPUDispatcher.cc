@@ -58,8 +58,6 @@ SingleCPUDispatcher::SingleCPUDispatcher() :
     pCurrentRunningThread   = 0;
     pCurrentRunningTask     = 0;
     scheduleCount           = 0;
-    /* Set idle thread */
-    idleThread              = new IdleThread();
 }
 
 SingleCPUDispatcher::~SingleCPUDispatcher() {
@@ -166,7 +164,7 @@ void SingleCPUDispatcher::dispatch() {
         }
 #endif
         /* non returning run() */
-        idleThread->run();
+        theOS->getIdleThread()->run();
     }
     __builtin_unreachable();
 }
@@ -428,9 +426,6 @@ void SingleCPUDispatcher::terminate_thread(Thread* thread) {
 
         pCurrentRunningThread = 0;
 
-        /* Delete thread object.
-         * Beware: It must have been removed from the task! */
-        delete thread;
         dispatch();
         __builtin_unreachable();
     }

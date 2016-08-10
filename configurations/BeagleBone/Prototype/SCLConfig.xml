@@ -182,7 +182,7 @@
       <Member Name="RamManager" Class="mem/PagedRamMemManager" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="Ramdisk" Class="filesystem/ram/Ramdisk" None="true" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="InterruptManager" Class="hal/InterruptManager" None="false" UserSpace="false" PhyLoadAddress="0x0" />
-      <Member Name="Tracer" Class="debug/Trace" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="Tracer" Class="debug/Trace" None="false" UserSpace="false" PhyLoadAddress="0x0" />
     </Skeleton>
     <Skeleton>
       <Name>FileSystems</Name>
@@ -197,9 +197,9 @@
     </Skeleton>
     <Skeleton>
       <Name>USBDriver</Name>
-      <Superclass>usb/USBDeviceDriverLibrary</Superclass>
-      <Member Name="SMSC95xx" Class="usb/SMSC95xxUSBDeviceDriver" None="false" UserSpace="false" PhyLoadAddress="0x0" />
-      <Member Name="MassStorage" Class="usb/MassStorageSCSIUSBDeviceDriver" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Superclass>usb/USBDriverLibrary</Superclass>
+      <Member Name="SMSC95xx" Class="usb/SMSC95xxUSBDeviceDriver" None="true" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="MassStorage" Class="usb/MassStorageSCSIUSBDeviceDriver" None="true" UserSpace="false" PhyLoadAddress="0x0" />
     </Skeleton>
     <!-- ************************************
                 Skeleton SyscallManager

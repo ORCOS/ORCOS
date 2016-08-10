@@ -26,10 +26,10 @@ int exec_kill(int argc, char** argv) {
        if (error < 0) {
            return (error);
        } else {
-           printf("[%d] Killed\n", id);
+           printf("[%d] Killed" LINEFEED, id);
        }
    } else {
-       printf("I dont want to kill myself.. mumble\n");
+       printf("I dont want to kill myself.. mumble" LINEFEED);
    }
 
    return (cOk);

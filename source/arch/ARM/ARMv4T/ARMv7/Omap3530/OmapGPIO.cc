@@ -120,15 +120,15 @@ OmapGPIO::~OmapGPIO() {
  *******************************************************************************/
 ErrorT OmapGPIO::readBytes(char* bytes, unint4& length) {
     if (length < 4)
-        return (cError );
+        return (cError);
     // check alignment
     if ((((unint4) bytes) & 0x3) != 0) {
-        return (cWrongAlignment );
+        return (cWrongAlignment);
     }
 
     OUTW(bytes, INW(this->baseAddress + 0x38));
     length = 4;
-    return (cOk );
+    return (cOk);
 }
 
 /*****************************************************************************
@@ -143,10 +143,10 @@ ErrorT OmapGPIO::readBytes(char* bytes, unint4& length) {
  *******************************************************************************/
 ErrorT OmapGPIO::writeBytes(const char* bytes, unint4 length) {
     if (length != 4)
-        return (cError );
+        return (cError);
     // check alignment
     if ((((unint4) bytes) & 0x3) != 0) {
-        return (cWrongAlignment );
+        return (cWrongAlignment);
     }
 
     unint4 val = *((const unint4*) bytes);
@@ -239,35 +239,36 @@ ErrorT OmapGPIO::ioctl(int request, void* args) {
     // handle the io control request
     if (request == IOCTL_GPIO_SET_DIR) {
         OUTW(this->baseAddress + GPIO_OE, (unint4) args);
-        return (cOk );
+        return (cOk);
     }
     if (request == IOCTL_GPIO_GET_DIR) {
         OUTW(args, INW(this->baseAddress + GPIO_OE));
-        return (cOk );
+        return (cOk);
     }
     if (request == IOCTL_GPIO_ENABLE_IRQ) {
         OUTW(this->baseAddress + GPIO_SETIRQENABLE1, (unint4) args);
 
-        if (args != 0)
+        if (args != 0) {
             enableIRQ(0);
-        else
+        } else {
             disableIRQ(0);
-        return (cOk );
+        }
+        return (cOk);
     }
     if (request == IOCTL_GPIO_GET_IRQ_STATUS) {
         VALIDATE_IN_PROCESS(args);
         OUTW(args, irqStatus);
         irqStatus = 0;
-        return (cOk );
+        return (cOk);
     }
     if (request == IOCTL_GPIO_IRQ_RISING_EDGE) {
         OUTW(this->baseAddress + GPIO_RISINGDETECT, (unint4) args);
-        return (cOk );
+        return (cOk);
     }
     if (request == IOCTL_GPIO_IRQ_FALLING_EDGE) {
         OUTW(this->baseAddress + GPIO_FALLINGDETECT, (unint4) args);
-        return (cOk );
+        return (cOk);
     }
 
-    return (cInvalidArgument );
+    return (cInvalidArgument);
 }

@@ -18,8 +18,6 @@ extern Kernel* theOS;
  *
  **********************************************************************/
 
-static char recv_buf[256] __attribute__((aligned(4))) ATTR_CACHE_INHIBIT;
-
 /*****************************************************************************
  * Method: USBHub::enumerate()
  *
@@ -35,19 +33,19 @@ ErrorT USBHub::enumerate() {
         return (cError );
 
     // first get the hub descriptor to see how many ports we need to activate and check for connected device
-    memset(&recv_buf, 0, 0x40);
-
+    char recv_buf[40];
     char msg[8] = USB_GETHUB_DESCRIPTOR();
-    int4 error = controller->sendUSBControlMsg(dev, 0, msg, USB_DIR_IN, 0x40, recv_buf);
+
+    int4 error = controller->sendUSBControlMsg(dev, 0, msg, USB_DIR_IN, 40, recv_buf);
     if (error < 0) {
-        return (cError );
+        return (cError);
     }
 
-    memcpy(&this->hub_descr, &recv_buf, sizeof(HubDescriptor));
+    memcpy(&this->hub_descr, recv_buf, sizeof(HubDescriptor));
 
-    LOG(ARCH, INFO, "USBHub: Hub Ports: %d, Characteristics: %x ", hub_descr.bnrPorts, hub_descr.wHubCharacteristics);
-
+    LOG(ARCH, INFO,  "USBHub: Hub Ports: %d, Characteristics: %x ", hub_descr.bnrPorts, hub_descr.wHubCharacteristics);
     LOG(ARCH, DEBUG, "USBHub: Powering Ports");
+
     unint1 port_power_control = (hub_descr.wHubCharacteristics & 0x3);
 
     // power on ports..
@@ -64,8 +62,6 @@ ErrorT USBHub::enumerate() {
                 break;
         }
     }
-
-    //OUTW(controller->operational_register_base + USBSTS_OFFSET, 0x3f);
 
     // activate interrupts
     dev->activateEndpoint(1);
@@ -86,53 +82,62 @@ ErrorT USBHub::enumerate() {
         dev->activateEndpoint(1);
     }
 
-    return (cOk );
+    return (cOk);
 }
 
-static char u_recv_buf[20] ATTR_CACHE_INHIBIT;
-char port_status[4] ATTR_CACHE_INHIBIT;
 
 ErrorT USBHub::resetPort(int port) {
-    int error;
+    int Error;
+    int PortSpeed = USB_DEVICE_SPEED_FULL;
+    char recv_buf[4];
+
     char msg4[8] = USB_GETPORT_STATUS();
-    LOG(ARCH, INFO, "USBHub: resetting port %u", port);
+    LOG(ARCH, DEBUG, "USBHub: resetting port %u", port);
 
     char msg3[8] = USB_SETPORT_FEATURE(PORT_RESET);
     msg3[4] = port;
 
     // wait until port is enabled
-    error = controller->sendUSBControlMsg(dev, 0, msg3);
-    if (error < 0) {
+    Error = controller->sendUSBControlMsg(dev, 0, msg3);
+    if (Error < 0) {
         LOG(ARCH, ERROR, "USBHub: Resetting hub port %d failed.. ", port);
-        return (cError );
+        return (cError);
     }
 
-    volatile unint1 enabled = 0;
+    volatile unint1 Enabled = 0;
     volatile int4 timeout = 1000;
 
-    while (enabled == 0) {
+    while (Enabled == 0) {
         /* give port some time to get out of reset .. */
         kwait_us(1000);
         msg4[4] = port;
-        memset(&u_recv_buf, 0, 20);
-        error = controller->sendUSBControlMsg(dev, 0, msg4, USB_DIR_IN, 20, u_recv_buf);
-        enabled = u_recv_buf[0] & (1 << 1);
+        Error = controller->sendUSBControlMsg(dev, 0, msg4, USB_DIR_IN, 4, recv_buf);
+        Enabled = recv_buf[0] & (1 << 1);
         timeout--;
+
+        // get port speed
+        if (recv_buf[1] & (1 << 1)) {
+           PortSpeed = USB_DEVICE_SPEED_LOW;
+        } else if (recv_buf[1] & (1 << 2)) {
+           PortSpeed = USB_DEVICE_SPEED_HIGH;
+        } else {
+           PortSpeed = USB_DEVICE_SPEED_FULL;
+        }
 
         if (timeout < 0) {
             LOG(ARCH, ERROR, "USBHub: Enabling port failed.. ");
-            return (cError );
+            return (cError);
         }
     }
 
     char msg5[8] = USB_CLEARPORT_FEATURE(C_PORT_RESET);
     msg5[4] = port;
-    error = controller->sendUSBControlMsg(dev, 0, msg5);
-    if (error < 0) {
+    Error = controller->sendUSBControlMsg(dev, 0, msg5);
+    if (Error < 0) {
         LOG(ARCH, ERROR, "USBHub: Clearing Port Feature failed.. ");
-        return (cError );
+        return (cError);
     }
-    return (cOk );
+    return (PortSpeed);
 }
 
 /*****************************************************************************
@@ -147,6 +152,7 @@ void USBHub::handleStatusChange() {
     for (unint1 i = 1; i <= hub_descr.bnrPorts; i++) {
         if ((dev->endpoints[1].recv_buffer[0] & (1 << i)) != 0) {
             // get status of port
+            char port_status[4];
             char msg4[8] = USB_GETPORT_STATUS();
             msg4[4] = i;
             port_status[0] = 0;
@@ -175,17 +181,15 @@ void USBHub::handleStatusChange() {
                     LOG(ARCH, INFO, "USBHub: Device attached on port %d..", i);
 
                     error = resetPort(i);
-                    if (!isOk(error))
+                    if (isError(error))
                         return;
 
                     LOG(ARCH, INFO, "USBHub: Port enabled.. Enumerating ");
 
-                    unint1 speed = 2;
-                    if (u_recv_buf[1] & (1 << 1)) {
-                        speed = 1;
+                    unint1 speed = error;
+                    if (speed == USB_DEVICE_SPEED_LOW) {
                         LOG(ARCH, INFO, "USBHub: Low-Speed Device attached.");
-                    } else if (u_recv_buf[1] & (1 << 2)) {
-                        speed = 2;
+                    } else if (speed == USB_DEVICE_SPEED_HIGH) {
                         LOG(ARCH, INFO, "USBHub: High-Speed Device attached.");
                     } else {
                         speed = 0;
@@ -294,11 +298,6 @@ USBHub::~USBHub() {
  *  Handles IRQs generated by the USB HUB
  *******************************************************************************/
 ErrorT USBHub::handleInterrupt() {
-    // TODO: this is host controller specific!
-
-    //QH* qh = dev->endpoints[1].queue_head;
-
-    //if ((QT_TOKEN_GET_STATUS(qh->qh_overlay.qt_token) != 0x80)) {
     if (dev->getEndpointTransferState(1) == EP_TRANSFER_FINISHED) {
         LOG(ARCH, DEBUG, "USB_Hub: Interrupt Request finished, status: %x", dev->endpoints[1].recv_buffer[0]);
 
@@ -309,8 +308,8 @@ ErrorT USBHub::handleInterrupt() {
         // reactivate the interrupt transfer so we get interrupted again
         dev->activateEndpoint(1);
 
-        return (cOk );
+        return (cOk);
     }
 
-    return (cError );
+    return (cError);
 }

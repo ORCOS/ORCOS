@@ -24,6 +24,11 @@
 
 extern Kernel* theOS;
 
+#ifndef ALIGN_VAL
+#define ALIGN_VAL 4
+#warning "Using default alignment 4 Bytes"
+#endif
+
 #if MEM_TRACE
 /* debug support for memory allocations
  * contains the backtrace for every memory allocation done
@@ -39,13 +44,13 @@ static ChunkTrace allocations[1024];
  *
  *******************************************************************************/
 void SequentialFitMemManager::split(Chunk_Header* chunk, size_t &size, MemResource* segment) {
-    /*              x* 32                         y * 32          endPtrAddr
+    /*              x* ALIGN_VAL       y * ALIGN_VAL          endPtrAddr
       | Chunk Head |  current payload | Chunk Head | next payload |
      */
-    /* chunk is 4 bytes aligned.. payload field always 32 bytes aligned */
+    /* chunk is 4 bytes aligned.. payload field always ALIGN_VAL bytes aligned */
     intptr_t currentPayloadAddr = ((intptr_t) chunk) + sizeof(Chunk_Header);
     intptr_t nextPayloadAddr    = currentPayloadAddr + size + sizeof(Chunk_Header);
-    nextPayloadAddr             = (intptr_t) alignCeil(reinterpret_cast<char*>(nextPayloadAddr), 32);
+    nextPayloadAddr             = (intptr_t) alignCeil(reinterpret_cast<char*>(nextPayloadAddr), ALIGN_VAL);
     intptr_t endPtrAddr         = currentPayloadAddr + chunk->size;
 
     /* check if we are allowed to split this chunk */
@@ -279,7 +284,7 @@ void* SequentialFitMemManager::alloc(size_t size, bool aligned, unint4 align_val
        be sure memory segment is never starting at 0!
        address 0 -> x shall be used to detect null pointers! */
 
-    if (align_val > 32 || (align_val & 1))
+    if (align_val > ALIGN_VAL || (align_val & 1))
         LOG(MEM, ERROR, " SequentialFitMemManager::alloc() align: %d not supported", align_val);
 
     if (segment == 0)
@@ -604,40 +609,40 @@ void SequentialFitMemManager::service() {
     debug(&Segment);
 #endif
 
-
     SMP_SPINLOCK_GET(m_lock);
     int startpos  = schedDeletionStartPos;
     int freeCount = schedDeletionSafeNum;
     SMP_SPINLOCK_FREE(m_lock);
 
-    for (int i = 0; i < freeCount; i++) {
+    for (int i = 0; i < freeCount; i++)
+    {
         int pos = MODULO(startpos + i, 40);
 
-        SMP_SPINLOCK_GET(m_lock);
-        if (scheduledDeletion[pos] != 0) {
-            Resource* res = scheduledDeletion[pos];
-            scheduledDeletion[pos] = 0;
-            SMP_SPINLOCK_FREE(m_lock);
-
-            if (res->isDeletionSafe()) {
+        if (scheduledDeletion[pos] != 0)
+        {
+            // should always be the case...
+            Resource* res = (Resource*) scheduledDeletion[pos];
+            if (res->isDeletionSafe())
+            {
                 LOG(MEM, DEBUG, "SequentialFitMemManager::service() scheduled deletion of %x",res);
+                SMP_SPINLOCK_GET(m_lock);
+                scheduledDeletion[pos] = 0;
+                SMP_SPINLOCK_FREE(m_lock);
                 delete res;
-            } else {
+            } else
+            {
                 /* insert at back of list again */
                 scheduleDeletion(res);
             }
-        } else {
-            SMP_SPINLOCK_FREE(m_lock);
         }
     }
+
     /* update new start position */
-    {
-        SMP_SPINLOCK_GET(m_lock);
-        schedDeletionStartPos = MODULO(schedDeletionStartPos + freeCount, 40);
-        schedDeletionCount   -= freeCount;
-        schedDeletionSafeNum = 0;
-        SMP_SPINLOCK_FREE(m_lock);
-    }
+    SMP_SPINLOCK_GET(m_lock);
+    schedDeletionStartPos = MODULO(schedDeletionStartPos + freeCount, 40);
+    schedDeletionCount   -= freeCount;
+    schedDeletionSafeNum = 0;
+    SMP_SPINLOCK_FREE(m_lock);
 }
 
 
@@ -663,6 +668,7 @@ void SequentialFitMemManager::scheduleDeletion(Resource* res) {
         int pos = MODULO(schedDeletionStartPos + schedDeletionCount, 40);
         scheduledDeletion[pos] = res;
         schedDeletionCount++;
+        SMP_SPINLOCK_FREE(m_lock);
         return;
     }
     SMP_SPINLOCK_FREE(m_lock);

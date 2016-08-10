@@ -78,7 +78,7 @@ ErrorT AM335xGPIO::readBytes(char* bytes, unint4& length) {
         return (cError);
     // check alignment
     if ((((unint4) bytes) & 0x3) != 0) {
-        return (cWrongAlignment );
+        return (cWrongAlignment);
     }
 
     OUTW(bytes, INW(this->baseAddress + AM335X_GPIO_DATA_IN));
@@ -98,10 +98,10 @@ ErrorT AM335xGPIO::readBytes(char* bytes, unint4& length) {
  *******************************************************************************/
 ErrorT AM335xGPIO::writeBytes(const char* bytes, unint4 length) {
     if (length != 4)
-        return (cError );
+        return (cError);
     // check alignment
     if ((((unint4) bytes) & 0x3) != 0) {
-        return (cWrongAlignment );
+        return (cWrongAlignment);
     }
 
     unint4 val = *((const unint4*) bytes);
@@ -109,7 +109,7 @@ ErrorT AM335xGPIO::writeBytes(const char* bytes, unint4 length) {
     // set data out for all bits
     OUTW(this->baseAddress + AM335X_GPIO_DATA_OUT, val);
 
-    return (cOk );
+    return (cOk);
 }
 
 
@@ -174,7 +174,7 @@ ErrorT AM335xGPIO::disableIRQ(int irq) {
 ErrorT AM335xGPIO::clearIRQ(int irq) {
     /* clear all bits */
     OUTW(this->baseAddress + AM335X_GPIO_IRQSTATUS0, 0xffffffff);
-    return (cNotImplemented );
+    return (cNotImplemented);
 }
 
 /*****************************************************************************
@@ -191,11 +191,12 @@ ErrorT AM335xGPIO::ioctl(int request, void* args) {
     // handle the io control request
     if (request == IOCTL_GPIO_SET_DIR) {
         OUTW(this->baseAddress + AM335X_GPIO_OE, (unint4) args);
-        return (cOk );
+        return (cOk);
     }
     if (request == IOCTL_GPIO_GET_DIR) {
+        VALIDATE_IN_PROCESS(args);
         OUTW(args, INW(this->baseAddress + AM335X_GPIO_OE));
-        return (cOk );
+        return (cOk);
     }
     if (request == IOCTL_GPIO_ENABLE_IRQ) {
         OUTW(this->baseAddress + AM335X_GPIO_IRQSTATUS_SET_0, (unint4) args);
@@ -205,22 +206,22 @@ ErrorT AM335xGPIO::ioctl(int request, void* args) {
         } else {
             disableIRQ(irqNum);
         }
-        return (cOk );
+        return (cOk);
     }
     if (request == IOCTL_GPIO_GET_IRQ_STATUS) {
         VALIDATE_IN_PROCESS(args);
         OUTW(args, irqStatus);
         irqStatus = 0;
-        return (cOk );
+        return (cOk);
     }
     if (request == IOCTL_GPIO_IRQ_RISING_EDGE) {
         OUTW(this->baseAddress + AM335X_GPIO_RISINGDETECT, (unint4) args);
-        return (cOk );
+        return (cOk);
     }
     if (request == IOCTL_GPIO_IRQ_FALLING_EDGE) {
         OUTW(this->baseAddress + AM335X_GPIO_FALLINGDETECT, (unint4) args);
-        return (cOk );
+        return (cOk);
     }
 
-    return (cInvalidArgument );
+    return (cInvalidArgument);
 }

@@ -65,7 +65,7 @@ int exec_hexdump(int argc, char** argv) {
                 memcpy(linechars, &buffer[(i + 1) - 16], 16);
                 linechars[17] = 0;
                 makeHexCharCompatible(linechars, 16);
-                printf("\t%s\n", linechars);
+                printf("\t%s" LINEFEED, linechars);
                 linebytes = 0;
                 chars = 0;
                 printf("%08x ", address);
@@ -90,7 +90,7 @@ int exec_hexdump(int argc, char** argv) {
             memcpy(linechars, &buffer[pos], linebytes + (num-pos) - 1);
             makeHexCharCompatible(linechars,  linebytes + (num-pos) - 1);
             linechars[ linebytes + (num-pos) - 1] = 0;
-            printf("\t%s\n", linechars);
+            printf("\t%s" LINEFEED, linechars);
         }
 
         return (cOk);

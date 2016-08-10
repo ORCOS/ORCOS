@@ -33,6 +33,9 @@ extern "C" {
 #define bool char
 #endif
 
+// Standard linefeed for UNIX like OS
+#define LINEFEED "\r\n"
+
  int      syscall (int syscallnumber, ...);
 
 /*!
@@ -378,6 +381,8 @@ extern "C" {
  int             remove(const char* filepath);
 
 
+ int             link(const char* oldpath, const char* newpath);
+
  int             frename(int fd, char* newname);
 
 /*!
@@ -425,9 +430,9 @@ extern "C" {
  * The directory needs to be acquired using fopen first.
  *
  * This method is not thread safe. Thus reading two different directories
- * at the same time will result undefined behaviour.
+ * at the same time will result undefined behavior.
  *
- * Repeatingly calling this method yiels the next directory entry until
+ * Repeatingly calling this method yields the next directory entry until
  * all entries are read (returns 0).
  */
  Directory_Entry_t* readdir(int fd);
@@ -524,9 +529,14 @@ extern "C" {
 /*!
  * @brief Returns the current DateTime in seconds since 1. Jan. 1970.
  *
- * Use the library method time2date to convert the datetime to a time_t struct.
  */
  unint4       getDateTime();
+
+ /*!
+  * @brief Set the current DateTime in seconds since 1. Jan. 1970.
+  *
+  */
+ int         setDateTime(SetDateTime_t* dateTime);
 
 /**************************************
  * Socket related system calls (IPC)

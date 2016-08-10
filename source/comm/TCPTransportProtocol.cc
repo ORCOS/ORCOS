@@ -321,7 +321,7 @@ ErrorT TCPTransportProtocol::connect(AddressProtocol* nextLayer, sockaddr *toadd
     }
 
     comStackMutex->release();
-    return (cError );
+    return (cInvalidArgument);
 }
 
 /*****************************************************************************
@@ -399,7 +399,7 @@ ErrorT TCPTransportProtocol::register_socket(unint2* port, Socket* socket) {
     if (pcb == 0) {
         comStackMutex->release();
         LOG(COMM, ERROR, "TCP::register_socket() tcp_new return 0");
-        return (cError );
+        return (cErrorAllocatingMemory);
     }
 
     LOG(COMM, TRACE, "TCP::register_socket() Socket %x got pcb %x", socket, pcb);
@@ -409,7 +409,7 @@ ErrorT TCPTransportProtocol::register_socket(unint2* port, Socket* socket) {
         comStackMutex->release();
         tcp_close(pcb);
         LOG(COMM, ERROR, "TCP::register_socket() tcp_bind return err: %d", err);
-        return (cError);
+        return (cErrorBindingPort);
     }
 
     // get assigned port
@@ -420,7 +420,7 @@ ErrorT TCPTransportProtocol::register_socket(unint2* port, Socket* socket) {
 
     comStackMutex->release();
 
-    return (cOk );
+    return (cOk);
 }
 
 /*****************************************************************************
@@ -457,7 +457,7 @@ ErrorT TCPTransportProtocol::unregister_socket(Socket* socket) {
 
         return (cOk);
     }
-    return (cError);
+    return (cInvalidArgument);
 }
 
 #endif

@@ -54,6 +54,11 @@ int write(int fd, const void *buf, size_t count)
     return syscall(cFWriteSysCallId, fd, buf, count);
 }
 
+int link(const char* oldpath, const char* newpath)
+{
+    return syscall(cLinkSysCallId, oldpath, newpath);
+}
+
 int ioctl(int fd, int request, void* args) {
 
     return syscall(cIOControl, fd, request, args);

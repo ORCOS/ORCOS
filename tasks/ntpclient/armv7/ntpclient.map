@@ -1,0 +1,2770 @@
+Archive member included because of file (symbol)
+
+../../library/bin/armv7\liborcos.a(io.o)
+                              armv7/task_main.o (close)
+../../library/bin/armv7\liborcos.a(signal.o)
+                              ../../library/bin/armv7\liborcos.a(io.o) (signal_wait)
+../../library/bin/armv7\liborcos.a(net.o)
+                              armv7/task_main.o (socket)
+../../library/bin/armv7\liborcos.a(threads.o)
+                              armv7/task_main.o (sleep)
+../../library/bin/armv7\liborcos.a(syscall.o)
+                              ../../library/bin/armv7\static.o (syscall)
+../../library/bin/armv7\liborcos.a(string.o)
+                              armv7/task_main.o (puts)
+../../library/bin/armv7\libc.a(printf.o)
+                              armv7/task_main.o (printf)
+../../library/bin/armv7\libc.a(sprintf.o)
+                              ../../library/bin/armv7\liborcos.a(net.o) (sprintf)
+../../library/bin/armv7\libc.a(sscanf.o)
+                              armv7/task_main.o (sscanf)
+../../library/bin/armv7\libc.a(stdio.o)
+                              ../../library/bin/armv7\libc.a(sscanf.o) (__seofread)
+../../library/bin/armv7\libc.a(vfprintf.o)
+                              ../../library/bin/armv7\libc.a(printf.o) (_vfprintf_r)
+../../library/bin/armv7\libc.a(wsetup.o)
+                              ../../library/bin/armv7\libc.a(vfprintf.o) (__swsetup_r)
+../../library/bin/armv7\libc.a(atoi.o)
+                              armv7/task_main.o (atoi)
+../../library/bin/armv7\libc.a(dtoa.o)
+                              ../../library/bin/armv7\libc.a(vfprintf.o) (_dtoa_r)
+../../library/bin/armv7\libc.a(malloc.o)
+                              ../../library/bin/armv7\static.o (malloc)
+../../library/bin/armv7\libc.a(mallocr.o)
+                              ../../library/bin/armv7\libc.a(wsetup.o) (_free_r)
+../../library/bin/armv7\libc.a(mlock.o)
+                              ../../library/bin/armv7\libc.a(mallocr.o) (__malloc_lock)
+../../library/bin/armv7\libc.a(mprec.o)
+                              ../../library/bin/armv7\libc.a(dtoa.o) (_Balloc)
+../../library/bin/armv7\libc.a(strtol.o)
+                              ../../library/bin/armv7\libc.a(atoi.o) (_strtol_r)
+../../library/bin/armv7\libc.a(memchr.o)
+                              ../../library/bin/armv7\libc.a(vfprintf.o) (memchr)
+../../library/bin/armv7\libc.a(memcmp.o)
+                              ../../library/bin/armv7\liborcos.a(string.o) (memcmp)
+../../library/bin/armv7\libc.a(memcpy.o)
+                              ../../library/bin/armv7\static.o (memcpy)
+../../library/bin/armv7\libc.a(memmove.o)
+                              ../../library/bin/armv7\libc.a(mallocr.o) (memmove)
+../../library/bin/armv7\libc.a(memset.o)
+                              armv7/task_main.o (memset)
+../../library/bin/armv7\libc.a(strcat.o)
+                              ../../library/bin/armv7\static.o (strcat)
+../../library/bin/armv7\libc.a(strcmp.o)
+                              ../../library/bin/armv7\static.o (strcmp)
+../../library/bin/armv7\libc.a(strcpy.o)
+                              ../../library/bin/armv7\liborcos.a(net.o) (strcpy)
+../../library/bin/armv7\libc.a(strdup.o)
+                              ../../library/bin/armv7\liborcos.a(string.o) (strdup)
+../../library/bin/armv7\libc.a(strdup_r.o)
+                              ../../library/bin/armv7\libc.a(strdup.o) (_strdup_r)
+../../library/bin/armv7\libc.a(strlen.o)
+                              ../../library/bin/armv7\static.o (strlen)
+../../library/bin/armv7\libc.a(strncpy.o)
+                              ../../library/bin/armv7\liborcos.a(net.o) (strncpy)
+../../library/bin/armv7\libc.a(strndup.o)
+                              ../../library/bin/armv7\liborcos.a(string.o) (strndup)
+../../library/bin/armv7\libc.a(strndup_r.o)
+                              ../../library/bin/armv7\libc.a(strndup.o) (_strndup_r)
+../../library/bin/armv7\libc.a(strstr.o)
+                              ../../library/bin/armv7\static.o (strstr)
+../../library/bin/armv7\libc.a(strtok.o)
+                              ../../library/bin/armv7\static.o (strtok)
+../../library/bin/armv7\libc.a(strtok_r.o)
+                              ../../library/bin/armv7\libc.a(strtok.o) (__strtok_r)
+../../library/bin/armv7\libc.a(svfscanf.o)
+                              ../../library/bin/armv7\libc.a(sscanf.o) (__ssvfscanf_r)
+../../library/bin/armv7\libc.a(vfprintfi.o)
+                              ../../library/bin/armv7\libc.a(vfprintf.o) (__sfputs_r)
+../../library/bin/armv7\libc.a(vfprintfs.o)
+                              ../../library/bin/armv7\libc.a(sprintf.o) (_svfprintf_r)
+../../library/bin/armv7\libc.a(vfprintfsi.o)
+                              ../../library/bin/armv7\libc.a(vfprintfs.o) (__ssputs_r)
+../../library/bin/armv7\libc.a(libgloss.o)
+                              ../../library/bin/armv7\liborcos.a(string.o) (writeStdOut)
+../../library/bin/armv7\libc.a(ctype_.o)
+                              ../../library/bin/armv7\libc.a(strtol.o) (__ctype_ptr__)
+../../library/bin/armv7\libc.a(iswspace.o)
+                              ../../library/bin/armv7\libc.a(svfscanf.o) (iswspace)
+../../library/bin/armv7\libc.a(errno.o)
+                              ../../library/bin/armv7\libc.a(libgloss.o) (__errno)
+../../library/bin/armv7\libc.a(locale.o)
+                              ../../library/bin/armv7\libc.a(svfscanf.o) (__locale_mb_cur_max)
+../../library/bin/armv7\libc.a(closer.o)
+                              ../../library/bin/armv7\libc.a(stdio.o) (_close_r)
+../../library/bin/armv7\libc.a(impure.o)
+                              ../../library/bin/armv7\libc.a(printf.o) (_impure_ptr)
+../../library/bin/armv7\libc.a(lseekr.o)
+                              ../../library/bin/armv7\libc.a(stdio.o) (_lseek_r)
+../../library/bin/armv7\libc.a(readr.o)
+                              ../../library/bin/armv7\libc.a(stdio.o) (_read_r)
+../../library/bin/armv7\libc.a(reent.o)
+                              ../../library/bin/armv7\libc.a(closer.o) (errno)
+../../library/bin/armv7\libc.a(sbrkr.o)
+                              ../../library/bin/armv7\libc.a(mallocr.o) (_sbrk_r)
+../../library/bin/armv7\libc.a(writer.o)
+                              ../../library/bin/armv7\libc.a(stdio.o) (_write_r)
+../../library/bin/armv7\libc.a(findfp.o)
+                              ../../library/bin/armv7\libc.a(vfprintf.o) (__sinit)
+../../library/bin/armv7\libc.a(fiprintf.o)
+                              ../../library/bin/armv7\libc.a(mallocr.o) (fiprintf)
+../../library/bin/armv7\libc.a(fputc.o)
+                              ../../library/bin/armv7\libc.a(vfprintfi.o) (_fputc_r)
+../../library/bin/armv7\libc.a(fvwrite.o)
+                              ../../library/bin/armv7\libc.a(vfprintfi.o) (__sfvwrite_r)
+../../library/bin/armv7\libc.a(fwalk.o)
+                              ../../library/bin/armv7\libc.a(findfp.o) (_fwalk)
+../../library/bin/armv7\libc.a(makebuf.o)
+                              ../../library/bin/armv7\libc.a(wsetup.o) (__smakebuf_r)
+../../library/bin/armv7\libc.a(putc.o)
+                              ../../library/bin/armv7\libc.a(fputc.o) (_putc_r)
+../../library/bin/armv7\libc.a(sccl.o)
+                              ../../library/bin/armv7\libc.a(svfscanf.o) (__sccl)
+../../library/bin/armv7\libc.a(wbuf.o)
+                              ../../library/bin/armv7\libc.a(putc.o) (__swbuf_r)
+../../library/bin/armv7\libc.a(mbrtowc.o)
+                              ../../library/bin/armv7\libc.a(svfscanf.o) (_mbrtowc_r)
+../../library/bin/armv7\libc.a(mbtowc_r.o)
+                              ../../library/bin/armv7\libc.a(mbrtowc.o) (__mbtowc)
+../../library/bin/armv7\libc.a(strtod.o)
+                              ../../library/bin/armv7\libc.a(svfscanf.o) (_strtod_r)
+../../library/bin/armv7\libc.a(strtoul.o)
+                              ../../library/bin/armv7\libc.a(svfscanf.o) (_strtoul_r)
+../../library/bin/armv7\libc.a(strchr.o)
+                              ../../library/bin/armv7\libc.a(strstr.o) (strchr)
+../../library/bin/armv7\libc.a(strncmp.o)
+                              ../../library/bin/armv7\libc.a(strtod.o) (strncmp)
+../../library/bin/armv7\libc.a(svfiscanf.o)
+                              ../../library/bin/armv7\libc.a(svfscanf.o) (_sungetc_r)
+../../library/bin/armv7\libc.a(fstatr.o)
+                              ../../library/bin/armv7\libc.a(makebuf.o) (_fstat_r)
+../../library/bin/armv7\libc.a(isattyr.o)
+                              ../../library/bin/armv7\libc.a(makebuf.o) (_isatty_r)
+../../library/bin/armv7\libc.a(fclose.o)
+                              ../../library/bin/armv7\libc.a(findfp.o) (_fclose_r)
+../../library/bin/armv7\libc.a(fflush.o)
+                              ../../library/bin/armv7\libc.a(fclose.o) (__sflush_r)
+../../library/bin/armv7\libc.a(ungetc.o)
+                              ../../library/bin/armv7\libc.a(svfiscanf.o) (__submore)
+../../library/bin/armv7\libc.a(gdtoa-gethex.o)
+                              ../../library/bin/armv7\libc.a(strtod.o) (__gethex)
+../../library/bin/armv7\libc.a(gdtoa-hexnan.o)
+                              ../../library/bin/armv7\libc.a(strtod.o) (__hexnan)
+d:/toolchains/armgcc-4-7-4/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib\libm.a(lib_a-s_fpclassify.o)
+                              ../../library/bin/armv7\libc.a(vfprintf.o) (__fpclassifyd)
+d:/toolchains/armgcc-4-7-4/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib\libm.a(lib_a-sf_nan.o)
+                              ../../library/bin/armv7\libc.a(svfscanf.o) (nanf)
+D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_udivsi3.o)
+                              ../../library/bin/armv7\libc.a(dtoa.o) (__aeabi_uidiv)
+D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_divsi3.o)
+                              ../../library/bin/armv7\libc.a(fvwrite.o) (__aeabi_idiv)
+D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_dvmd_tls.o)
+                              D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_udivsi3.o) (__aeabi_idiv0)
+D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_arm_addsubdf3.o)
+                              ../../library/bin/armv7\libc.a(dtoa.o) (__aeabi_dsub)
+D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_arm_muldivdf3.o)
+                              ../../library/bin/armv7\libc.a(dtoa.o) (__aeabi_dmul)
+D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_arm_cmpdf2.o)
+                              ../../library/bin/armv7\libc.a(vfprintf.o) (__aeabi_dcmpeq)
+D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_arm_fixdfsi.o)
+                              ../../library/bin/armv7\libc.a(dtoa.o) (__aeabi_d2iz)
+D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_arm_fixunsdfsi.o)
+                              ../../library/bin/armv7\libc.a(strtod.o) (__aeabi_d2uiz)
+D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_arm_truncdfsf2.o)
+                              ../../library/bin/armv7\libc.a(svfscanf.o) (__aeabi_d2f)
+../../library/bin/armv7\liborcos.a(mem.o)
+                              ../../library/bin/armv7\libc.a(libgloss.o) (shm_map)
+
+Allocating common symbols
+Common symbol       size              file
+
+errno               0x4               ../../library/bin/armv7\libc.a(reent.o)
+__gnu_lto_v1        0x1               ../../library/bin/armv7\static.o
+
+Discarded input sections
+
+ .gnu.lto_.jmpfuncs.6284fefe
+                0x00000000       0xde ../../library/bin/armv7\static.o
+ .gnu.lto_.inline.6284fefe
+                0x00000000       0xf8 ../../library/bin/armv7\static.o
+ .gnu.lto_.pureconst.6284fefe
+                0x00000000       0x28 ../../library/bin/armv7\static.o
+ .gnu.lto_thread_exit.6284fefe
+                0x00000000       0xd4 ../../library/bin/armv7\static.o
+ .gnu.lto_getCycles.6284fefe
+                0x00000000      0x120 ../../library/bin/armv7\static.o
+ .gnu.lto_getTime.6284fefe
+                0x00000000      0x11f ../../library/bin/armv7\static.o
+ .gnu.lto_getDateTime.6284fefe
+                0x00000000       0xe5 ../../library/bin/armv7\static.o
+ .gnu.lto_setDateTime.6284fefe
+                0x00000000       0xf0 ../../library/bin/armv7\static.o
+ .gnu.lto_signal.6284fefe
+                0x00000000       0xc5 ../../library/bin/armv7\static.o
+ .gnu.lto_extractNextArg.6284fefe
+                0x00000000      0x43d ../../library/bin/armv7\static.o
+ .gnu.lto_parseArgs.6284fefe
+                0x00000000      0x587 ../../library/bin/armv7\static.o
+ .gnu.lto_compactPath.6284fefe
+                0x00000000      0x4e5 ../../library/bin/armv7\static.o
+ .gnu.lto_task_main.6284fefe
+                0x00000000      0x481 ../../library/bin/armv7\static.o
+ .gnu.lto_.cgraph.6284fefe
+                0x00000000      0x109 ../../library/bin/armv7\static.o
+ .gnu.lto_.vars.6284fefe
+                0x00000000       0x2f ../../library/bin/armv7\static.o
+ .gnu.lto_.refs.6284fefe
+                0x00000000       0x24 ../../library/bin/armv7\static.o
+ .gnu.lto_.statics.6284fefe
+                0x00000000       0x14 ../../library/bin/armv7\static.o
+ .gnu.lto_.decls.6284fefe
+                0x00000000      0x967 ../../library/bin/armv7\static.o
+ .gnu.lto_.symtab.6284fefe
+                0x00000000      0x29d ../../library/bin/armv7\static.o
+ .gnu.lto_.opts
+                0x00000000       0xd1 ../../library/bin/armv7\static.o
+ .gnu.lto_.jmpfuncs.6284cf9a
+                0x00000000       0xdf ../../library/bin/armv7\liborcos.a(io.o)
+ .gnu.lto_.inline.6284cf9a
+                0x00000000       0xf8 ../../library/bin/armv7\liborcos.a(io.o)
+ .gnu.lto_.pureconst.6284cf9a
+                0x00000000       0x37 ../../library/bin/armv7\liborcos.a(io.o)
+ .gnu.lto_printToStdOut.part.0.6284cf9a
+                0x00000000      0x156 ../../library/bin/armv7\liborcos.a(io.o)
+ .gnu.lto_remove.part.1.6284cf9a
+                0x00000000      0x10d ../../library/bin/armv7\liborcos.a(io.o)
+ .gnu.lto_create.6284cf9a
+                0x00000000      0x10b ../../library/bin/armv7\liborcos.a(io.o)
+ .gnu.lto_open.6284cf9a
+                0x00000000      0x10a ../../library/bin/armv7\liborcos.a(io.o)
+ .gnu.lto_close.6284cf9a
+                0x00000000       0xe6 ../../library/bin/armv7\liborcos.a(io.o)
+ .gnu.lto_read.6284cf9a
+                0x00000000      0x117 ../../library/bin/armv7\liborcos.a(io.o)
+ .gnu.lto_write.6284cf9a
+                0x00000000      0x119 ../../library/bin/armv7\liborcos.a(io.o)
+ .gnu.lto_ioctl.6284cf9a
+                0x00000000      0x11b ../../library/bin/armv7\liborcos.a(io.o)
+ .gnu.lto_setstdout.6284cf9a
+                0x00000000       0xcd ../../library/bin/armv7\liborcos.a(io.o)
+ .gnu.lto_printToStdOut.6284cf9a
+                0x00000000      0x18e ../../library/bin/armv7\liborcos.a(io.o)
+ .gnu.lto_fstat.6284cf9a
+                0x00000000      0x105 ../../library/bin/armv7\liborcos.a(io.o)
+ .gnu.lto_frename.6284cf9a
+                0x00000000      0x109 ../../library/bin/armv7\liborcos.a(io.o)
+ .gnu.lto_remove.6284cf9a
+                0x00000000      0x147 ../../library/bin/armv7\liborcos.a(io.o)
+ .gnu.lto_unlink.6284cf9a
+                0x00000000       0xe7 ../../library/bin/armv7\liborcos.a(io.o)
+ .gnu.lto_mkdev.6284cf9a
+                0x00000000      0x112 ../../library/bin/armv7\liborcos.a(io.o)
+ .gnu.lto_mount.6284cf9a
+                0x00000000      0x11d ../../library/bin/armv7\liborcos.a(io.o)
+ .gnu.lto_lseek.6284cf9a
+                0x00000000      0x119 ../../library/bin/armv7\liborcos.a(io.o)
+ .gnu.lto_readdir.part.2.6284cf9a
+                0x00000000      0x217 ../../library/bin/armv7\liborcos.a(io.o)
+ .gnu.lto_getcwd.6284cf9a
+                0x00000000      0x16d ../../library/bin/armv7\liborcos.a(io.o)
+ .gnu.lto_chdir.6284cf9a
+                0x00000000       0xea ../../library/bin/armv7\liborcos.a(io.o)
+ .gnu.lto_readdir.6284cf9a
+                0x00000000      0x40e ../../library/bin/armv7\liborcos.a(io.o)
+ .gnu.lto_isatty.6284cf9a
+                0x00000000       0xa5 ../../library/bin/armv7\liborcos.a(io.o)
+ .gnu.lto_timer_wait.6284cf9a
+                0x00000000       0x99 ../../library/bin/armv7\liborcos.a(io.o)
+ .gnu.lto_timer_configure.6284cf9a
+                0x00000000      0x109 ../../library/bin/armv7\liborcos.a(io.o)
+ .gnu.lto_timer_reset.6284cf9a
+                0x00000000       0xeb ../../library/bin/armv7\liborcos.a(io.o)
+ .gnu.lto_.cgraph.6284cf9a
+                0x00000000       0xea ../../library/bin/armv7\liborcos.a(io.o)
+ .gnu.lto_.vars.6284cf9a
+                0x00000000       0x25 ../../library/bin/armv7\liborcos.a(io.o)
+ .gnu.lto_.refs.6284cf9a
+                0x00000000       0x31 ../../library/bin/armv7\liborcos.a(io.o)
+ .gnu.lto_.statics.6284cf9a
+                0x00000000       0x14 ../../library/bin/armv7\liborcos.a(io.o)
+ .gnu.lto_.decls.6284cf9a
+                0x00000000      0xd58 ../../library/bin/armv7\liborcos.a(io.o)
+ .gnu.lto_.symtab.6284cf9a
+                0x00000000      0x246 ../../library/bin/armv7\liborcos.a(io.o)
+ .gnu.lto_.opts
+                0x00000000       0xd1 ../../library/bin/armv7\liborcos.a(io.o)
+ .gnu.lto_.jmpfuncs.6284cc64
+                0x00000000       0x31 ../../library/bin/armv7\liborcos.a(signal.o)
+ .gnu.lto_.inline.6284cc64
+                0x00000000       0x38 ../../library/bin/armv7\liborcos.a(signal.o)
+ .gnu.lto_.pureconst.6284cc64
+                0x00000000       0x18 ../../library/bin/armv7\liborcos.a(signal.o)
+ .gnu.lto_signal_wait.6284cc64
+                0x00000000      0x133 ../../library/bin/armv7\liborcos.a(signal.o)
+ .gnu.lto_signal_signal.6284cc64
+                0x00000000      0x13f ../../library/bin/armv7\liborcos.a(signal.o)
+ .gnu.lto_.cgraph.6284cc64
+                0x00000000       0x3b ../../library/bin/armv7\liborcos.a(signal.o)
+ .gnu.lto_.vars.6284cc64
+                0x00000000       0x12 ../../library/bin/armv7\liborcos.a(signal.o)
+ .gnu.lto_.refs.6284cc64
+                0x00000000       0x13 ../../library/bin/armv7\liborcos.a(signal.o)
+ .gnu.lto_.statics.6284cc64
+                0x00000000       0x14 ../../library/bin/armv7\liborcos.a(signal.o)
+ .gnu.lto_.decls.6284cc64
+                0x00000000      0x205 ../../library/bin/armv7\liborcos.a(signal.o)
+ .gnu.lto_.symtab.6284cc64
+                0x00000000       0x4f ../../library/bin/armv7\liborcos.a(signal.o)
+ .gnu.lto_.opts
+                0x00000000       0xd1 ../../library/bin/armv7\liborcos.a(signal.o)
+ .gnu.lto_.jmpfuncs.6284c303
+                0x00000000       0xfe ../../library/bin/armv7\liborcos.a(net.o)
+ .gnu.lto_.inline.6284c303
+                0x00000000       0xed ../../library/bin/armv7\liborcos.a(net.o)
+ .gnu.lto_.pureconst.6284c303
+                0x00000000       0x2c ../../library/bin/armv7\liborcos.a(net.o)
+ .gnu.lto_inet_ntop4.6284c303
+                0x00000000      0x2c5 ../../library/bin/armv7\liborcos.a(net.o)
+ .gnu.lto_inet_ntop6.6284c303
+                0x00000000      0xbe2 ../../library/bin/armv7\liborcos.a(net.o)
+ .gnu.lto_gethostbyname.part.0.6284c303
+                0x00000000      0x15b ../../library/bin/armv7\liborcos.a(net.o)
+ .gnu.lto_socket.6284c303
+                0x00000000      0x11d ../../library/bin/armv7\liborcos.a(net.o)
+ .gnu.lto_connect.6284c303
+                0x00000000      0x122 ../../library/bin/armv7\liborcos.a(net.o)
+ .gnu.lto_listen.6284c303
+                0x00000000      0x126 ../../library/bin/armv7\liborcos.a(net.o)
+ .gnu.lto_bind.6284c303
+                0x00000000      0x10a ../../library/bin/armv7\liborcos.a(net.o)
+ .gnu.lto_sendto.6284c303
+                0x00000000      0x142 ../../library/bin/armv7\liborcos.a(net.o)
+ .gnu.lto_send.6284c303
+                0x00000000      0x128 ../../library/bin/armv7\liborcos.a(net.o)
+ .gnu.lto_recv.6284c303
+                0x00000000      0x151 ../../library/bin/armv7\liborcos.a(net.o)
+ .gnu.lto_recvfrom.6284c303
+                0x00000000      0x166 ../../library/bin/armv7\liborcos.a(net.o)
+ .gnu.lto_gethostbyname.6284c303
+                0x00000000      0x217 ../../library/bin/armv7\liborcos.a(net.o)
+ .gnu.lto_inet_ntop.6284c303
+                0x00000000      0x1b2 ../../library/bin/armv7\liborcos.a(net.o)
+ .gnu.lto_.cgraph.6284c303
+                0x00000000       0xe2 ../../library/bin/armv7\liborcos.a(net.o)
+ .gnu.lto_.vars.6284c303
+                0x00000000       0x2b ../../library/bin/armv7\liborcos.a(net.o)
+ .gnu.lto_.refs.6284c303
+                0x00000000       0x2d ../../library/bin/armv7\liborcos.a(net.o)
+ .gnu.lto_.statics.6284c303
+                0x00000000       0x14 ../../library/bin/armv7\liborcos.a(net.o)
+ .gnu.lto_.decls.6284c303
+                0x00000000      0xc3f ../../library/bin/armv7\liborcos.a(net.o)
+ .gnu.lto_.symtab.6284c303
+                0x00000000      0x16a ../../library/bin/armv7\liborcos.a(net.o)
+ .gnu.lto_.opts
+                0x00000000       0xd1 ../../library/bin/armv7\liborcos.a(net.o)
+ .gnu.lto_.jmpfuncs.6284e849
+                0x00000000       0x9e ../../library/bin/armv7\liborcos.a(threads.o)
+ .gnu.lto_.inline.6284e849
+                0x00000000       0x90 ../../library/bin/armv7\liborcos.a(threads.o)
+ .gnu.lto_.pureconst.6284e849
+                0x00000000       0x30 ../../library/bin/armv7\liborcos.a(threads.o)
+ .gnu.lto_sleep.6284e849
+                0x00000000      0x129 ../../library/bin/armv7\liborcos.a(threads.o)
+ .gnu.lto_usleep.6284e849
+                0x00000000       0xef ../../library/bin/armv7\liborcos.a(threads.o)
+ .gnu.lto_task_stop.6284e849
+                0x00000000       0xed ../../library/bin/armv7\liborcos.a(threads.o)
+ .gnu.lto_task_run.6284e849
+                0x00000000      0x13f ../../library/bin/armv7\liborcos.a(threads.o)
+ .gnu.lto_thread_name.6284e849
+                0x00000000      0x109 ../../library/bin/armv7\liborcos.a(threads.o)
+ .gnu.lto_task_kill.6284e849
+                0x00000000       0xed ../../library/bin/armv7\liborcos.a(threads.o)
+ .gnu.lto_task_resume.6284e849
+                0x00000000       0xeb ../../library/bin/armv7\liborcos.a(threads.o)
+ .gnu.lto_thread_create.6284e849
+                0x00000000      0x141 ../../library/bin/armv7\liborcos.a(threads.o)
+ .gnu.lto_thread_run.6284e849
+                0x00000000       0xe9 ../../library/bin/armv7\liborcos.a(threads.o)
+ .gnu.lto_thread_self.6284e849
+                0x00000000       0xc4 ../../library/bin/armv7\liborcos.a(threads.o)
+ .gnu.lto_thread_yield.6284e849
+                0x00000000       0x96 ../../library/bin/armv7\liborcos.a(threads.o)
+ .gnu.lto_thread_terminate.6284e849
+                0x00000000      0x108 ../../library/bin/armv7\liborcos.a(threads.o)
+ .gnu.lto_waitpid.6284e849
+                0x00000000       0xef ../../library/bin/armv7\liborcos.a(threads.o)
+ .gnu.lto_wait.6284e849
+                0x00000000       0xc6 ../../library/bin/armv7\liborcos.a(threads.o)
+ .gnu.lto_waittid.6284e849
+                0x00000000       0xed ../../library/bin/armv7\liborcos.a(threads.o)
+ .gnu.lto_waitirq.6284e849
+                0x00000000       0xee ../../library/bin/armv7\liborcos.a(threads.o)
+ .gnu.lto_getpid.6284e849
+                0x00000000       0xc7 ../../library/bin/armv7\liborcos.a(threads.o)
+ .gnu.lto_taskioctl.6284e849
+                0x00000000      0x124 ../../library/bin/armv7\liborcos.a(threads.o)
+ .gnu.lto_.cgraph.6284e849
+                0x00000000       0x8e ../../library/bin/armv7\liborcos.a(threads.o)
+ .gnu.lto_.vars.6284e849
+                0x00000000       0x12 ../../library/bin/armv7\liborcos.a(threads.o)
+ .gnu.lto_.refs.6284e849
+                0x00000000       0x13 ../../library/bin/armv7\liborcos.a(threads.o)
+ .gnu.lto_.statics.6284e849
+                0x00000000       0x14 ../../library/bin/armv7\liborcos.a(threads.o)
+ .gnu.lto_.decls.6284e849
+                0x00000000      0x79a ../../library/bin/armv7\liborcos.a(threads.o)
+ .gnu.lto_.symtab.6284e849
+                0x00000000      0x1d8 ../../library/bin/armv7\liborcos.a(threads.o)
+ .gnu.lto_.opts
+                0x00000000       0xd1 ../../library/bin/armv7\liborcos.a(threads.o)
+ .gnu.lto_.jmpfuncs.62856d06
+                0x00000000       0xa1 ../../library/bin/armv7\liborcos.a(string.o)
+ .gnu.lto_.inline.62856d06
+                0x00000000       0xc6 ../../library/bin/armv7\liborcos.a(string.o)
+ .gnu.lto_.pureconst.62856d06
+                0x00000000       0x2a ../../library/bin/armv7\liborcos.a(string.o)
+ .gnu.lto_strpos.62856d06
+                0x00000000      0x27c ../../library/bin/armv7\liborcos.a(string.o)
+ .gnu.lto_strnlower.62856d06
+                0x00000000      0x257 ../../library/bin/armv7\liborcos.a(string.o)
+ .gnu.lto_strmatch.62856d06
+                0x00000000      0x4cd ../../library/bin/armv7\liborcos.a(string.o)
+ .gnu.lto_puts.62856d06
+                0x00000000      0x125 ../../library/bin/armv7\liborcos.a(string.o)
+ .gnu.lto_isspace.62856d06
+                0x00000000      0x163 ../../library/bin/armv7\liborcos.a(string.o)
+ .gnu.lto_trim.62856d06
+                0x00000000      0x457 ../../library/bin/armv7\liborcos.a(string.o)
+ .gnu.lto_dirname.62856d06
+                0x00000000      0x2f4 ../../library/bin/armv7\liborcos.a(string.o)
+ .gnu.lto_basename.62856d06
+                0x00000000      0x1cd ../../library/bin/armv7\liborcos.a(string.o)
+ .gnu.lto_strerror.62856d06
+                0x00000000      0x234 ../../library/bin/armv7\liborcos.a(string.o)
+ .gnu.lto_bzero.62856d06
+                0x00000000      0x1a7 ../../library/bin/armv7\liborcos.a(string.o)
+ .gnu.lto___stack_chk_fail.62856d06
+                0x00000000       0xc9 ../../library/bin/armv7\liborcos.a(string.o)
+ .gnu.lto_.cgraph.62856d06
+                0x00000000       0x9b ../../library/bin/armv7\liborcos.a(string.o)
+ .gnu.lto_.vars.62856d06
+                0x00000000       0x1e ../../library/bin/armv7\liborcos.a(string.o)
+ .gnu.lto_.refs.62856d06
+                0x00000000       0x23 ../../library/bin/armv7\liborcos.a(string.o)
+ .gnu.lto_.statics.62856d06
+                0x00000000       0x14 ../../library/bin/armv7\liborcos.a(string.o)
+ .gnu.lto_.decls.62856d06
+                0x00000000      0xf38 ../../library/bin/armv7\liborcos.a(string.o)
+ .gnu.lto_.symtab.62856d06
+                0x00000000      0x1a9 ../../library/bin/armv7\liborcos.a(string.o)
+ .gnu.lto_.opts
+                0x00000000       0xd1 ../../library/bin/armv7\liborcos.a(string.o)
+ .gnu.lto_.jmpfuncs.6284f313
+                0x00000000       0x37 ../../library/bin/armv7\liborcos.a(mem.o)
+ .gnu.lto_.inline.6284f313
+                0x00000000       0x41 ../../library/bin/armv7\liborcos.a(mem.o)
+ .gnu.lto_.pureconst.6284f313
+                0x00000000       0x1a ../../library/bin/armv7\liborcos.a(mem.o)
+ .gnu.lto_shm_map.6284f313
+                0x00000000      0x157 ../../library/bin/armv7\liborcos.a(mem.o)
+ .gnu.lto__Znwj.6284f313
+                0x00000000       0xe3 ../../library/bin/armv7\liborcos.a(mem.o)
+ .gnu.lto__ZdlPv.6284f313
+                0x00000000       0xc6 ../../library/bin/armv7\liborcos.a(mem.o)
+ .gnu.lto_.cgraph.6284f313
+                0x00000000       0x4c ../../library/bin/armv7\liborcos.a(mem.o)
+ .gnu.lto_.vars.6284f313
+                0x00000000       0x12 ../../library/bin/armv7\liborcos.a(mem.o)
+ .gnu.lto_.refs.6284f313
+                0x00000000       0x13 ../../library/bin/armv7\liborcos.a(mem.o)
+ .gnu.lto_.statics.6284f313
+                0x00000000       0x14 ../../library/bin/armv7\liborcos.a(mem.o)
+ .gnu.lto_.decls.6284f313
+                0x00000000      0x443 ../../library/bin/armv7\liborcos.a(mem.o)
+ .gnu.lto_.symtab.6284f313
+                0x00000000       0x83 ../../library/bin/armv7\liborcos.a(mem.o)
+ .gnu.lto_.opts
+                0x00000000       0xd1 ../../library/bin/armv7\liborcos.a(mem.o)
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+*default*        0x00000000         0xffffffff
+
+Linker script and memory map
+
+                0x001fffff                PROVIDE (_taskHeapEnd, 0x1fffff)
+                0x00100000                . = 0x100000
+
+.CB             0x00100000       0x50
+                0x00100000        0x4 LONG 0x230f7ae9
+                0x00100004        0x4 LONG 0x1
+                0x00100008        0x4 LONG 0x1
+                0x0010000c        0x4 LONG 0x100000
+                0x00100010        0x4 LONG 0x100410 task_main
+                0x00100014        0x4 LONG 0x100080 thread_exit
+                0x00100018        0x4 LONG 0x10f200 TASK_HEAP
+                0x0010001c        0x4 LONG 0x1fffff
+                0x00100020        0x8 QUAD 0x0
+                0x00100028        0x4 LONG 0x3e8
+                0x0010002c        0x4 LONG 0x0
+                0x00100030        0x4 LONG 0x0
+                0x00100034        0x4 LONG 0x0
+                0x00100038        0x4 LONG 0x1000
+                0x0010003c        0x4 LONG 0x0
+                0x00100040        0x4 LONG 0x0
+                0x00100044        0x4 LONG 0x100050 CRC_START
+                0x00100048        0x4 LONG 0x10ebac CRC_END
+                0x0010004c        0x4 LONG 0xffffffff
+                0x00100050                CRC_START = .
+
+.text           0x00100080     0xd378
+ static.o(.text)
+ .text          0x00100080        0x0 ../../library/bin/armv7\static.o
+ *(.text*)
+ .text.thread_exit
+                0x00100080       0x10 ../../library/bin/armv7\static.o
+                0x00100080                thread_exit
+ .text.getCycles
+                0x00100090       0x20 ../../library/bin/armv7\static.o
+                0x00100090                getCycles
+ .text.getTime  0x001000b0       0x20 ../../library/bin/armv7\static.o
+                0x001000b0                getTime
+ .text.getDateTime
+                0x001000d0        0x8 ../../library/bin/armv7\static.o
+                0x001000d0                getDateTime
+ .text.setDateTime
+                0x001000d8        0xc ../../library/bin/armv7\static.o
+                0x001000d8                setDateTime
+ .text.signal   0x001000e4        0x8 ../../library/bin/armv7\static.o
+                0x001000e4                signal
+ .text.extractNextArg
+                0x001000ec       0xf8 ../../library/bin/armv7\static.o
+                0x001000ec                extractNextArg
+ .text.parseArgs
+                0x001001e4      0x108 ../../library/bin/armv7\static.o
+                0x001001e4                parseArgs
+ .text.compactPath
+                0x001002ec      0x124 ../../library/bin/armv7\static.o
+                0x001002ec                compactPath
+ .text.task_main
+                0x00100410      0x130 ../../library/bin/armv7\static.o
+                0x00100410                task_main
+ .text          0x00100540        0x0 armv7/task_main.o
+ .text._Z9cputobe32j
+                0x00100540        0x8 armv7/task_main.o
+                0x00100540                cputobe32(unsigned int)
+ .text._Z10ntp_updateRjj
+                0x00100548      0x1dc armv7/task_main.o
+                0x00100548                ntp_update(unsigned int&, unsigned int)
+ .text._Z6lookupPcRj
+                0x00100724       0xc0 armv7/task_main.o
+                0x00100724                lookup(char*, unsigned int&)
+ .text.startup.main
+                0x001007e4       0xc0 armv7/task_main.o
+                0x001007e4                main
+ .text          0x001008a4        0x0 ../../library/bin/armv7\liborcos.a(io.o)
+ .text.create   0x001008a4       0x14 ../../library/bin/armv7\liborcos.a(io.o)
+                0x001008a4                create
+ .text.open     0x001008b8       0x14 ../../library/bin/armv7\liborcos.a(io.o)
+                0x001008b8                open
+ .text.close    0x001008cc        0xc ../../library/bin/armv7\liborcos.a(io.o)
+                0x001008cc                close
+ .text.read     0x001008d8       0x24 ../../library/bin/armv7\liborcos.a(io.o)
+                0x001008d8                read
+ .text.write    0x001008fc       0x24 ../../library/bin/armv7\liborcos.a(io.o)
+                0x001008fc                write
+ .text.ioctl    0x00100920       0x24 ../../library/bin/armv7\liborcos.a(io.o)
+                0x00100920                ioctl
+ .text.setstdout
+                0x00100944       0x10 ../../library/bin/armv7\liborcos.a(io.o)
+                0x00100944                setstdout
+ .text.printToStdOut
+                0x00100954       0x38 ../../library/bin/armv7\liborcos.a(io.o)
+                0x00100954                printToStdOut
+ .text.fstat    0x0010098c       0x14 ../../library/bin/armv7\liborcos.a(io.o)
+                0x0010098c                fstat
+ .text.frename  0x001009a0       0x14 ../../library/bin/armv7\liborcos.a(io.o)
+                0x001009a0                frename
+ .text.remove   0x001009b4       0x28 ../../library/bin/armv7\liborcos.a(io.o)
+                0x001009b4                remove
+ .text.unlink   0x001009dc        0x4 ../../library/bin/armv7\liborcos.a(io.o)
+                0x001009dc                unlink
+ .text.mkdev    0x001009e0       0x14 ../../library/bin/armv7\liborcos.a(io.o)
+                0x001009e0                mkdev
+ .text.mount    0x001009f4       0x24 ../../library/bin/armv7\liborcos.a(io.o)
+                0x001009f4                mount
+ .text.lseek    0x00100a18       0x24 ../../library/bin/armv7\liborcos.a(io.o)
+                0x00100a18                lseek
+ .text.getcwd   0x00100a3c       0x2c ../../library/bin/armv7\liborcos.a(io.o)
+                0x00100a3c                getcwd
+ .text.chdir    0x00100a68        0xc ../../library/bin/armv7\liborcos.a(io.o)
+                0x00100a68                chdir
+ .text.readdir  0x00100a74       0xe0 ../../library/bin/armv7\liborcos.a(io.o)
+                0x00100a74                readdir
+ .text.isatty   0x00100b54        0x8 ../../library/bin/armv7\liborcos.a(io.o)
+                0x00100b54                isatty
+ .text.timer_wait
+                0x00100b5c        0xc ../../library/bin/armv7\liborcos.a(io.o)
+                0x00100b5c                timer_wait
+ .text.timer_configure
+                0x00100b68        0xc ../../library/bin/armv7\liborcos.a(io.o)
+                0x00100b68                timer_configure
+ .text.timer_reset
+                0x00100b74        0xc ../../library/bin/armv7\liborcos.a(io.o)
+                0x00100b74                timer_reset
+ .text          0x00100b80        0x0 ../../library/bin/armv7\liborcos.a(signal.o)
+ .text.signal_wait
+                0x00100b80       0x14 ../../library/bin/armv7\liborcos.a(signal.o)
+                0x00100b80                signal_wait
+ .text.signal_signal
+                0x00100b94       0x24 ../../library/bin/armv7\liborcos.a(signal.o)
+                0x00100b94                signal_signal
+ .text          0x00100bb8        0x0 ../../library/bin/armv7\liborcos.a(net.o)
+ .text.inet_ntop4
+                0x00100bb8       0x84 ../../library/bin/armv7\liborcos.a(net.o)
+ .text.socket   0x00100c3c       0x24 ../../library/bin/armv7\liborcos.a(net.o)
+                0x00100c3c                socket
+ .text.connect  0x00100c60       0x24 ../../library/bin/armv7\liborcos.a(net.o)
+                0x00100c60                connect
+ .text.listen   0x00100c84       0x24 ../../library/bin/armv7\liborcos.a(net.o)
+                0x00100c84                listen
+ .text.bind     0x00100ca8       0x14 ../../library/bin/armv7\liborcos.a(net.o)
+                0x00100ca8                bind
+ .text.sendto   0x00100cbc       0x34 ../../library/bin/armv7\liborcos.a(net.o)
+                0x00100cbc                sendto
+ .text.send     0x00100cf0       0x34 ../../library/bin/armv7\liborcos.a(net.o)
+                0x00100cf0                send
+ .text.recv     0x00100d24       0x44 ../../library/bin/armv7\liborcos.a(net.o)
+                0x00100d24                recv
+ .text.recvfrom
+                0x00100d68       0x44 ../../library/bin/armv7\liborcos.a(net.o)
+                0x00100d68                recvfrom
+ .text.gethostbyname
+                0x00100dac       0xa0 ../../library/bin/armv7\liborcos.a(net.o)
+                0x00100dac                gethostbyname
+ .text.inet_ntop
+                0x00100e4c      0x29c ../../library/bin/armv7\liborcos.a(net.o)
+                0x00100e4c                inet_ntop
+ .text          0x001010e8        0x0 ../../library/bin/armv7\liborcos.a(threads.o)
+ .text.sleep    0x001010e8       0x14 ../../library/bin/armv7\liborcos.a(threads.o)
+                0x001010e8                sleep
+ .text.usleep   0x001010fc        0xc ../../library/bin/armv7\liborcos.a(threads.o)
+                0x001010fc                usleep
+ .text.task_stop
+                0x00101108        0xc ../../library/bin/armv7\liborcos.a(threads.o)
+                0x00101108                task_stop
+ .text.task_run
+                0x00101114       0x34 ../../library/bin/armv7\liborcos.a(threads.o)
+                0x00101114                task_run
+ .text.thread_name
+                0x00101148       0x14 ../../library/bin/armv7\liborcos.a(threads.o)
+                0x00101148                thread_name
+ .text.task_kill
+                0x0010115c        0xc ../../library/bin/armv7\liborcos.a(threads.o)
+                0x0010115c                task_kill
+ .text.task_resume
+                0x00101168        0xc ../../library/bin/armv7\liborcos.a(threads.o)
+                0x00101168                task_resume
+ .text.thread_create
+                0x00101174       0x34 ../../library/bin/armv7\liborcos.a(threads.o)
+                0x00101174                thread_create
+ .text.thread_run
+                0x001011a8        0xc ../../library/bin/armv7\liborcos.a(threads.o)
+                0x001011a8                thread_run
+ .text.thread_self
+                0x001011b4        0x8 ../../library/bin/armv7\liborcos.a(threads.o)
+                0x001011b4                thread_self
+ .text.thread_yield
+                0x001011bc        0x8 ../../library/bin/armv7\liborcos.a(threads.o)
+                0x001011bc                thread_yield
+ .text.thread_terminate
+                0x001011c4       0x14 ../../library/bin/armv7\liborcos.a(threads.o)
+                0x001011c4                thread_terminate
+ .text.waitpid  0x001011d8       0x10 ../../library/bin/armv7\liborcos.a(threads.o)
+                0x001011d8                waitpid
+ .text.wait     0x001011e8        0x8 ../../library/bin/armv7\liborcos.a(threads.o)
+                0x001011e8                wait
+ .text.waittid  0x001011f0       0x10 ../../library/bin/armv7\liborcos.a(threads.o)
+                0x001011f0                waittid
+ .text.waitirq  0x00101200        0xc ../../library/bin/armv7\liborcos.a(threads.o)
+                0x00101200                waitirq
+ .text.getpid   0x0010120c        0x8 ../../library/bin/armv7\liborcos.a(threads.o)
+                0x0010120c                getpid
+ .text.taskioctl
+                0x00101214       0x24 ../../library/bin/armv7\liborcos.a(threads.o)
+                0x00101214                taskioctl
+ .text          0x00101238        0x0 ../../library/bin/armv7\liborcos.a(syscall.o)
+ .text.syscall  0x00101238       0x10 ../../library/bin/armv7\liborcos.a(syscall.o)
+                0x00101238                syscall
+ .text          0x00101248        0x0 ../../library/bin/armv7\liborcos.a(string.o)
+ .text.strpos   0x00101248       0x64 ../../library/bin/armv7\liborcos.a(string.o)
+                0x00101248                strpos
+ .text.strnlower
+                0x001012ac       0x44 ../../library/bin/armv7\liborcos.a(string.o)
+                0x001012ac                strnlower
+ .text.strmatch
+                0x001012f0      0x108 ../../library/bin/armv7\liborcos.a(string.o)
+                0x001012f0                strmatch
+ .text.puts     0x001013f8       0x1c ../../library/bin/armv7\liborcos.a(string.o)
+                0x001013f8                puts
+ .text.isspace  0x00101414       0x18 ../../library/bin/armv7\liborcos.a(string.o)
+                0x00101414                isspace
+ .text.trim     0x0010142c       0xa8 ../../library/bin/armv7\liborcos.a(string.o)
+                0x0010142c                trim
+ .text.dirname  0x001014d4       0x7c ../../library/bin/armv7\liborcos.a(string.o)
+                0x001014d4                dirname
+ .text.basename
+                0x00101550       0x20 ../../library/bin/armv7\liborcos.a(string.o)
+                0x00101550                basename
+ .text.strerror
+                0x00101570       0x40 ../../library/bin/armv7\liborcos.a(string.o)
+                0x00101570                strerror
+ .text.bzero    0x001015b0       0x20 ../../library/bin/armv7\liborcos.a(string.o)
+                0x001015b0                bzero
+ .text.__stack_chk_fail
+                0x001015d0       0x14 ../../library/bin/armv7\liborcos.a(string.o)
+                0x001015d0                __stack_chk_fail
+ .text          0x001015e4        0x0 ../../library/bin/armv7\libc.a(printf.o)
+ .text._printf_r
+                0x001015e4       0x20 ../../library/bin/armv7\libc.a(printf.o)
+                0x001015e4                _printf_r
+ .text.printf   0x00101604       0x2c ../../library/bin/armv7\libc.a(printf.o)
+                0x00101604                printf
+ .text          0x00101630        0x0 ../../library/bin/armv7\libc.a(sprintf.o)
+ .text._sprintf_r
+                0x00101630       0x44 ../../library/bin/armv7\libc.a(sprintf.o)
+                0x00101630                _sprintf_r
+ .text.sprintf  0x00101674       0x50 ../../library/bin/armv7\libc.a(sprintf.o)
+                0x00101674                sprintf
+ .text          0x001016c4        0x0 ../../library/bin/armv7\libc.a(sscanf.o)
+ .text.sscanf   0x001016c4       0x5c ../../library/bin/armv7\libc.a(sscanf.o)
+                0x001016c4                sscanf
+ .text._sscanf_r
+                0x00101720       0x58 ../../library/bin/armv7\libc.a(sscanf.o)
+                0x00101720                _sscanf_r
+ .text          0x00101778        0x0 ../../library/bin/armv7\libc.a(stdio.o)
+ .text.__sread  0x00101778       0x24 ../../library/bin/armv7\libc.a(stdio.o)
+                0x00101778                __sread
+ .text.__seofread
+                0x0010179c        0x4 ../../library/bin/armv7\libc.a(stdio.o)
+                0x0010179c                __seofread
+ .text.__swrite
+                0x001017a0       0x3c ../../library/bin/armv7\libc.a(stdio.o)
+                0x001017a0                __swrite
+ .text.__sseek  0x001017dc       0x24 ../../library/bin/armv7\libc.a(stdio.o)
+                0x001017dc                __sseek
+ .text.__sclose
+                0x00101800        0x8 ../../library/bin/armv7\libc.a(stdio.o)
+                0x00101800                __sclose
+ .text          0x00101808        0x0 ../../library/bin/armv7\libc.a(vfprintf.o)
+ .text._vfprintf_r
+                0x00101808      0xd44 ../../library/bin/armv7\libc.a(vfprintf.o)
+                0x00101808                _vfprintf_r
+ .text.vfprintf
+                0x0010254c       0x1c ../../library/bin/armv7\libc.a(vfprintf.o)
+                0x0010254c                vfprintf
+ .text          0x00102568        0x0 ../../library/bin/armv7\libc.a(wsetup.o)
+ .text.__swsetup_r
+                0x00102568       0xdc ../../library/bin/armv7\libc.a(wsetup.o)
+                0x00102568                __swsetup_r
+ .text          0x00102644        0x0 ../../library/bin/armv7\libc.a(atoi.o)
+ .text.atoi     0x00102644        0x8 ../../library/bin/armv7\libc.a(atoi.o)
+                0x00102644                atoi
+ .text._atoi_r  0x0010264c        0x8 ../../library/bin/armv7\libc.a(atoi.o)
+                0x0010264c                _atoi_r
+ .text          0x00102654        0x0 ../../library/bin/armv7\libc.a(dtoa.o)
+ .text.quorem   0x00102654      0x130 ../../library/bin/armv7\libc.a(dtoa.o)
+ *fill*         0x00102784        0x4 00
+ .text._dtoa_r  0x00102788      0xef8 ../../library/bin/armv7\libc.a(dtoa.o)
+                0x00102788                _dtoa_r
+ .text          0x00103680        0x0 ../../library/bin/armv7\libc.a(malloc.o)
+ .text.malloc   0x00103680       0x10 ../../library/bin/armv7\libc.a(malloc.o)
+                0x00103680                malloc
+ .text.free     0x00103690       0x10 ../../library/bin/armv7\libc.a(malloc.o)
+                0x00103690                free
+ .text          0x001036a0        0x0 ../../library/bin/armv7\libc.a(mallocr.o)
+ .text.__malloc_update_mallinfo
+                0x001036a0       0x54 ../../library/bin/armv7\libc.a(mallocr.o)
+ .text._malloc_trim_r
+                0x001036f4       0x98 ../../library/bin/armv7\libc.a(mallocr.o)
+                0x001036f4                _malloc_trim_r
+ .text._free_r  0x0010378c      0x190 ../../library/bin/armv7\libc.a(mallocr.o)
+                0x0010378c                _free_r
+ .text.cfree    0x0010391c       0x10 ../../library/bin/armv7\libc.a(mallocr.o)
+                0x0010391c                cfree
+ .text._malloc_r
+                0x0010392c      0x58c ../../library/bin/armv7\libc.a(mallocr.o)
+                0x0010392c                _malloc_r
+ .text._calloc_r
+                0x00103eb8       0x60 ../../library/bin/armv7\libc.a(mallocr.o)
+                0x00103eb8                _calloc_r
+ .text._memalign_r
+                0x00103f18      0x110 ../../library/bin/armv7\libc.a(mallocr.o)
+                0x00103f18                _memalign_r
+ .text._pvalloc_r
+                0x00104028       0x14 ../../library/bin/armv7\libc.a(mallocr.o)
+                0x00104028                _pvalloc_r
+ .text._valloc_r
+                0x0010403c        0xc ../../library/bin/armv7\libc.a(mallocr.o)
+                0x0010403c                _valloc_r
+ .text._realloc_r
+                0x00104048      0x3f0 ../../library/bin/armv7\libc.a(mallocr.o)
+                0x00104048                _realloc_r
+ .text._malloc_usable_size_r
+                0x00104438       0x30 ../../library/bin/armv7\libc.a(mallocr.o)
+                0x00104438                _malloc_usable_size_r
+ .text._malloc_stats_r
+                0x00104468       0x60 ../../library/bin/armv7\libc.a(mallocr.o)
+                0x00104468                _malloc_stats_r
+ .text._mallinfo_r
+                0x001044c8       0x34 ../../library/bin/armv7\libc.a(mallocr.o)
+                0x001044c8                _mallinfo_r
+ .text._mallopt_r
+                0x001044fc       0x5c ../../library/bin/armv7\libc.a(mallocr.o)
+                0x001044fc                _mallopt_r
+ .text          0x00104558        0x0 ../../library/bin/armv7\libc.a(mlock.o)
+ .text.__malloc_lock
+                0x00104558        0x4 ../../library/bin/armv7\libc.a(mlock.o)
+                0x00104558                __malloc_lock
+ .text.__malloc_unlock
+                0x0010455c        0x4 ../../library/bin/armv7\libc.a(mlock.o)
+                0x0010455c                __malloc_unlock
+ .text          0x00104560        0x0 ../../library/bin/armv7\libc.a(mprec.o)
+ .text._Balloc  0x00104560       0x50 ../../library/bin/armv7\libc.a(mprec.o)
+                0x00104560                _Balloc
+ .text._Bfree   0x001045b0       0x14 ../../library/bin/armv7\libc.a(mprec.o)
+                0x001045b0                _Bfree
+ .text.__multadd
+                0x001045c4       0x98 ../../library/bin/armv7\libc.a(mprec.o)
+                0x001045c4                __multadd
+ .text.__s2b    0x0010465c       0x9c ../../library/bin/armv7\libc.a(mprec.o)
+                0x0010465c                __s2b
+ .text.__hi0bits
+                0x001046f8       0x3c ../../library/bin/armv7\libc.a(mprec.o)
+                0x001046f8                __hi0bits
+ .text.__lo0bits
+                0x00104734       0x5c ../../library/bin/armv7\libc.a(mprec.o)
+                0x00104734                __lo0bits
+ .text.__i2b    0x00104790       0x14 ../../library/bin/armv7\libc.a(mprec.o)
+                0x00104790                __i2b
+ .text.__multiply
+                0x001047a4      0x13c ../../library/bin/armv7\libc.a(mprec.o)
+                0x001047a4                __multiply
+ .text.__pow5mult
+                0x001048e0       0x94 ../../library/bin/armv7\libc.a(mprec.o)
+                0x001048e0                __pow5mult
+ .text.__lshift
+                0x00104974       0xc0 ../../library/bin/armv7\libc.a(mprec.o)
+                0x00104974                __lshift
+ .text.__mcmp   0x00104a34       0x3c ../../library/bin/armv7\libc.a(mprec.o)
+                0x00104a34                __mcmp
+ .text.__mdiff  0x00104a70       0xe8 ../../library/bin/armv7\libc.a(mprec.o)
+                0x00104a70                __mdiff
+ .text.__ulp    0x00104b58       0x44 ../../library/bin/armv7\libc.a(mprec.o)
+                0x00104b58                __ulp
+ .text.__b2d    0x00104b9c       0xb4 ../../library/bin/armv7\libc.a(mprec.o)
+                0x00104b9c                __b2d
+ .text.__d2b    0x00104c50       0xbc ../../library/bin/armv7\libc.a(mprec.o)
+                0x00104c50                __d2b
+ .text.__ratio  0x00104d0c       0x5c ../../library/bin/armv7\libc.a(mprec.o)
+                0x00104d0c                __ratio
+ .text._mprec_log10
+                0x00104d68       0x34 ../../library/bin/armv7\libc.a(mprec.o)
+                0x00104d68                _mprec_log10
+ .text.__copybits
+                0x00104d9c       0x48 ../../library/bin/armv7\libc.a(mprec.o)
+                0x00104d9c                __copybits
+ .text.__any_on
+                0x00104de4       0x54 ../../library/bin/armv7\libc.a(mprec.o)
+                0x00104de4                __any_on
+ .text          0x00104e38        0x0 ../../library/bin/armv7\libc.a(strtol.o)
+ .text._strtol_r
+                0x00104e38      0x140 ../../library/bin/armv7\libc.a(strtol.o)
+                0x00104e38                _strtol_r
+ .text.strtol   0x00104f78       0x1c ../../library/bin/armv7\libc.a(strtol.o)
+                0x00104f78                strtol
+ *fill*         0x00104f94        0xc 00
+ .text          0x00104fa0       0xa0 ../../library/bin/armv7\libc.a(memchr.o)
+                0x00104fa0                memchr
+ .text          0x00105040        0x0 ../../library/bin/armv7\libc.a(memcmp.o)
+ .text.memcmp   0x00105040       0x64 ../../library/bin/armv7\libc.a(memcmp.o)
+                0x00105040                memcmp
+ *fill*         0x001050a4       0x1c 00
+ .text          0x001050c0      0x440 ../../library/bin/armv7\libc.a(memcpy.o)
+                0x001050c0                memcpy
+ .text          0x00105500        0x0 ../../library/bin/armv7\libc.a(memmove.o)
+ .text.memmove  0x00105500       0xbc ../../library/bin/armv7\libc.a(memmove.o)
+                0x00105500                memmove
+ .text          0x001055bc        0x0 ../../library/bin/armv7\libc.a(memset.o)
+ .text.memset   0x001055bc       0x98 ../../library/bin/armv7\libc.a(memset.o)
+                0x001055bc                memset
+ .text          0x00105654        0x0 ../../library/bin/armv7\libc.a(strcat.o)
+ .text.strcat   0x00105654       0x4c ../../library/bin/armv7\libc.a(strcat.o)
+                0x00105654                strcat
+ .text          0x001056a0      0x2e0 ../../library/bin/armv7\libc.a(strcmp.o)
+                0x001056a8                strcmp
+ .text          0x00105980        0x0 ../../library/bin/armv7\libc.a(strcpy.o)
+ .text.strcpy   0x00105980       0x4c ../../library/bin/armv7\libc.a(strcpy.o)
+                0x00105980                strcpy
+ .text          0x001059cc        0x0 ../../library/bin/armv7\libc.a(strdup.o)
+ .text.strdup   0x001059cc       0x10 ../../library/bin/armv7\libc.a(strdup.o)
+                0x001059cc                strdup
+ .text          0x001059dc        0x0 ../../library/bin/armv7\libc.a(strdup_r.o)
+ .text._strdup_r
+                0x001059dc       0x28 ../../library/bin/armv7\libc.a(strdup_r.o)
+                0x001059dc                _strdup_r
+ .text          0x00105a04        0x0 ../../library/bin/armv7\libc.a(strlen.o)
+ .text.strlen   0x00105a04       0x6c ../../library/bin/armv7\libc.a(strlen.o)
+                0x00105a04                strlen
+ .text          0x00105a70        0x0 ../../library/bin/armv7\libc.a(strncpy.o)
+ .text.strncpy  0x00105a70       0x64 ../../library/bin/armv7\libc.a(strncpy.o)
+                0x00105a70                strncpy
+ .text          0x00105ad4        0x0 ../../library/bin/armv7\libc.a(strndup.o)
+ .text.strndup  0x00105ad4       0x14 ../../library/bin/armv7\libc.a(strndup.o)
+                0x00105ad4                strndup
+ .text          0x00105ae8        0x0 ../../library/bin/armv7\libc.a(strndup_r.o)
+ .text._strndup_r
+                0x00105ae8       0x50 ../../library/bin/armv7\libc.a(strndup_r.o)
+                0x00105ae8                _strndup_r
+ .text          0x00105b38        0x0 ../../library/bin/armv7\libc.a(strstr.o)
+ .text.critical_factorization
+                0x00105b38       0xbc ../../library/bin/armv7\libc.a(strstr.o)
+ .text.two_way_long_needle
+                0x00105bf4      0x220 ../../library/bin/armv7\libc.a(strstr.o)
+ .text.strstr   0x00105e14      0x210 ../../library/bin/armv7\libc.a(strstr.o)
+                0x00105e14                strstr
+ .text          0x00106024        0x0 ../../library/bin/armv7\libc.a(strtok.o)
+ .text.strtok   0x00106024       0x14 ../../library/bin/armv7\libc.a(strtok.o)
+                0x00106024                strtok
+ .text          0x00106038        0x0 ../../library/bin/armv7\libc.a(strtok_r.o)
+ .text.__strtok_r
+                0x00106038       0x60 ../../library/bin/armv7\libc.a(strtok_r.o)
+                0x00106038                __strtok_r
+ .text.strtok_r
+                0x00106098        0x8 ../../library/bin/armv7\libc.a(strtok_r.o)
+                0x00106098                strtok_r
+ .text          0x001060a0        0x0 ../../library/bin/armv7\libc.a(svfscanf.o)
+ .text.__ssvfscanf_r
+                0x001060a0      0xec4 ../../library/bin/armv7\libc.a(svfscanf.o)
+                0x001060a0                __ssvfscanf_r
+ .text          0x00106f64        0x0 ../../library/bin/armv7\libc.a(vfprintfi.o)
+ .text.__sfputs_r
+                0x00106f64       0x38 ../../library/bin/armv7\libc.a(vfprintfi.o)
+                0x00106f64                __sfputs_r
+ .text.__sprint_r
+                0x00106f9c       0x1c ../../library/bin/armv7\libc.a(vfprintfi.o)
+                0x00106f9c                __sprint_r
+ .text._vfiprintf_r
+                0x00106fb8      0x6b4 ../../library/bin/armv7\libc.a(vfprintfi.o)
+                0x00106fb8                _vfiprintf_r
+ .text.vfiprintf
+                0x0010766c       0x1c ../../library/bin/armv7\libc.a(vfprintfi.o)
+                0x0010766c                vfiprintf
+ .text          0x00107688        0x0 ../../library/bin/armv7\libc.a(vfprintfs.o)
+ .text._svfprintf_r
+                0x00107688      0xd3c ../../library/bin/armv7\libc.a(vfprintfs.o)
+                0x00107688                _svfprintf_r
+ .text          0x001083c4        0x0 ../../library/bin/armv7\libc.a(vfprintfsi.o)
+ .text.__ssputs_r
+                0x001083c4       0xcc ../../library/bin/armv7\libc.a(vfprintfsi.o)
+                0x001083c4                __ssputs_r
+ .text.__ssprint_r
+                0x00108490      0x108 ../../library/bin/armv7\libc.a(vfprintfsi.o)
+                0x00108490                __ssprint_r
+ .text._svfiprintf_r
+                0x00108598      0x6b4 ../../library/bin/armv7\libc.a(vfprintfsi.o)
+                0x00108598                _svfiprintf_r
+ .text          0x00108c4c        0x0 ../../library/bin/armv7\libc.a(libgloss.o)
+ .text._close   0x00108c4c       0x1c ../../library/bin/armv7\libc.a(libgloss.o)
+                0x00108c4c                _close
+ .text._execve  0x00108c68       0x10 ../../library/bin/armv7\libc.a(libgloss.o)
+                0x00108c68                _execve
+ .text._fork    0x00108c78       0x10 ../../library/bin/armv7\libc.a(libgloss.o)
+                0x00108c78                _fork
+ .text._fstat   0x00108c88       0x14 ../../library/bin/armv7\libc.a(libgloss.o)
+                0x00108c88                _fstat
+ .text._getpid  0x00108c9c        0x4 ../../library/bin/armv7\libc.a(libgloss.o)
+                0x00108c9c                _getpid
+ .text._isatty  0x00108ca0        0x4 ../../library/bin/armv7\libc.a(libgloss.o)
+                0x00108ca0                _isatty
+ .text._kill    0x00108ca4       0x10 ../../library/bin/armv7\libc.a(libgloss.o)
+                0x00108ca4                _kill
+ .text._link    0x00108cb4       0x10 ../../library/bin/armv7\libc.a(libgloss.o)
+                0x00108cb4                _link
+ .text._times   0x00108cc4       0x14 ../../library/bin/armv7\libc.a(libgloss.o)
+                0x00108cc4                _times
+ .text._lseek   0x00108cd8       0x1c ../../library/bin/armv7\libc.a(libgloss.o)
+                0x00108cd8                _lseek
+ .text._open    0x00108cf4       0x1c ../../library/bin/armv7\libc.a(libgloss.o)
+                0x00108cf4                _open
+ .text._read    0x00108d10       0x38 ../../library/bin/armv7\libc.a(libgloss.o)
+                0x00108d10                _read
+ .text._stat    0x00108d48       0x38 ../../library/bin/armv7\libc.a(libgloss.o)
+                0x00108d48                _stat
+ .text._unlink  0x00108d80       0x1c ../../library/bin/armv7\libc.a(libgloss.o)
+                0x00108d80                _unlink
+ .text._wait    0x00108d9c       0x10 ../../library/bin/armv7\libc.a(libgloss.o)
+                0x00108d9c                _wait
+ .text.writeStdOut
+                0x00108dac       0x9c ../../library/bin/armv7\libc.a(libgloss.o)
+                0x00108dac                writeStdOut
+ .text._write   0x00108e48       0x4c ../../library/bin/armv7\libc.a(libgloss.o)
+                0x00108e48                _write
+ .text._exit    0x00108e94        0x8 ../../library/bin/armv7\libc.a(libgloss.o)
+                0x00108e94                _exit
+ .text._sbrk    0x00108e9c       0x88 ../../library/bin/armv7\libc.a(libgloss.o)
+                0x00108e9c                _sbrk
+ .text          0x00108f24        0x0 ../../library/bin/armv7\libc.a(ctype_.o)
+ .text          0x00108f24        0x0 ../../library/bin/armv7\libc.a(iswspace.o)
+ .text.iswspace
+                0x00108f24       0x1c ../../library/bin/armv7\libc.a(iswspace.o)
+                0x00108f24                iswspace
+ .text          0x00108f40        0x0 ../../library/bin/armv7\libc.a(errno.o)
+ .text.__errno  0x00108f40        0xc ../../library/bin/armv7\libc.a(errno.o)
+                0x00108f40                __errno
+ .text          0x00108f4c        0x0 ../../library/bin/armv7\libc.a(locale.o)
+ .text._setlocale_r
+                0x00108f4c       0x40 ../../library/bin/armv7\libc.a(locale.o)
+                0x00108f4c                _setlocale_r
+ .text.__locale_charset
+                0x00108f8c        0xc ../../library/bin/armv7\libc.a(locale.o)
+                0x00108f8c                __locale_charset
+ .text.__locale_mb_cur_max
+                0x00108f98        0xc ../../library/bin/armv7\libc.a(locale.o)
+                0x00108f98                __locale_mb_cur_max
+ .text.__locale_msgcharset
+                0x00108fa4        0xc ../../library/bin/armv7\libc.a(locale.o)
+                0x00108fa4                __locale_msgcharset
+ .text.__locale_cjk_lang
+                0x00108fb0        0x4 ../../library/bin/armv7\libc.a(locale.o)
+                0x00108fb0                __locale_cjk_lang
+ .text._localeconv_r
+                0x00108fb4        0xc ../../library/bin/armv7\libc.a(locale.o)
+                0x00108fb4                _localeconv_r
+ .text.setlocale
+                0x00108fc0       0x14 ../../library/bin/armv7\libc.a(locale.o)
+                0x00108fc0                setlocale
+ .text.localeconv
+                0x00108fd4        0xc ../../library/bin/armv7\libc.a(locale.o)
+                0x00108fd4                localeconv
+ .text          0x00108fe0        0x0 ../../library/bin/armv7\libc.a(closer.o)
+ .text._close_r
+                0x00108fe0       0x24 ../../library/bin/armv7\libc.a(closer.o)
+                0x00108fe0                _close_r
+ .text          0x00109004        0x0 ../../library/bin/armv7\libc.a(impure.o)
+ .text          0x00109004        0x0 ../../library/bin/armv7\libc.a(lseekr.o)
+ .text._lseek_r
+                0x00109004       0x28 ../../library/bin/armv7\libc.a(lseekr.o)
+                0x00109004                _lseek_r
+ .text          0x0010902c        0x0 ../../library/bin/armv7\libc.a(readr.o)
+ .text._read_r  0x0010902c       0x28 ../../library/bin/armv7\libc.a(readr.o)
+                0x0010902c                _read_r
+ .text          0x00109054        0x0 ../../library/bin/armv7\libc.a(reent.o)
+ .text.cleanup_glue
+                0x00109054       0x1c ../../library/bin/armv7\libc.a(reent.o)
+                0x00109054                cleanup_glue
+ .text._reclaim_reent
+                0x00109070       0x8c ../../library/bin/armv7\libc.a(reent.o)
+                0x00109070                _reclaim_reent
+ .text          0x001090fc        0x0 ../../library/bin/armv7\libc.a(sbrkr.o)
+ .text._sbrk_r  0x001090fc       0x24 ../../library/bin/armv7\libc.a(sbrkr.o)
+                0x001090fc                _sbrk_r
+ .text          0x00109120        0x0 ../../library/bin/armv7\libc.a(writer.o)
+ .text._write_r
+                0x00109120       0x28 ../../library/bin/armv7\libc.a(writer.o)
+                0x00109120                _write_r
+ .text          0x00109148        0x0 ../../library/bin/armv7\libc.a(findfp.o)
+ .text.__fp_lock
+                0x00109148        0x4 ../../library/bin/armv7\libc.a(findfp.o)
+ .text.__fp_unlock
+                0x0010914c        0x4 ../../library/bin/armv7\libc.a(findfp.o)
+ .text._cleanup_r
+                0x00109150        0xc ../../library/bin/armv7\libc.a(findfp.o)
+                0x00109150                _cleanup_r
+ .text.std.isra.0
+                0x0010915c       0x50 ../../library/bin/armv7\libc.a(findfp.o)
+ .text.__sfmoreglue
+                0x001091ac       0x30 ../../library/bin/armv7\libc.a(findfp.o)
+                0x001091ac                __sfmoreglue
+ .text._cleanup
+                0x001091dc       0x10 ../../library/bin/armv7\libc.a(findfp.o)
+                0x001091dc                _cleanup
+ .text.__sinit  0x001091ec       0x48 ../../library/bin/armv7\libc.a(findfp.o)
+                0x001091ec                __sinit
+ .text.__sfp    0x00109234       0x88 ../../library/bin/armv7\libc.a(findfp.o)
+                0x00109234                __sfp
+ .text.__sfp_lock_acquire
+                0x001092bc        0x4 ../../library/bin/armv7\libc.a(findfp.o)
+                0x001092bc                __sfp_lock_acquire
+ .text.__sfp_lock_release
+                0x001092c0        0x4 ../../library/bin/armv7\libc.a(findfp.o)
+                0x001092c0                __sfp_lock_release
+ .text.__sinit_lock_acquire
+                0x001092c4        0x4 ../../library/bin/armv7\libc.a(findfp.o)
+                0x001092c4                __sinit_lock_acquire
+ .text.__sinit_lock_release
+                0x001092c8        0x4 ../../library/bin/armv7\libc.a(findfp.o)
+                0x001092c8                __sinit_lock_release
+ .text.__fp_lock_all
+                0x001092cc       0x18 ../../library/bin/armv7\libc.a(findfp.o)
+                0x001092cc                __fp_lock_all
+ .text.__fp_unlock_all
+                0x001092e4       0x18 ../../library/bin/armv7\libc.a(findfp.o)
+                0x001092e4                __fp_unlock_all
+ .text          0x001092fc        0x0 ../../library/bin/armv7\libc.a(fiprintf.o)
+ .text._fiprintf_r
+                0x001092fc       0x20 ../../library/bin/armv7\libc.a(fiprintf.o)
+                0x001092fc                _fiprintf_r
+ .text.fiprintf
+                0x0010931c       0x2c ../../library/bin/armv7\libc.a(fiprintf.o)
+                0x0010931c                fiprintf
+ .text          0x00109348        0x0 ../../library/bin/armv7\libc.a(fputc.o)
+ .text._fputc_r
+                0x00109348       0x24 ../../library/bin/armv7\libc.a(fputc.o)
+                0x00109348                _fputc_r
+ .text.fputc    0x0010936c       0x28 ../../library/bin/armv7\libc.a(fputc.o)
+                0x0010936c                fputc
+ .text          0x00109394        0x0 ../../library/bin/armv7\libc.a(fvwrite.o)
+ .text.__sfvwrite_r
+                0x00109394      0x348 ../../library/bin/armv7\libc.a(fvwrite.o)
+                0x00109394                __sfvwrite_r
+ .text          0x001096dc        0x0 ../../library/bin/armv7\libc.a(fwalk.o)
+ .text._fwalk   0x001096dc       0x48 ../../library/bin/armv7\libc.a(fwalk.o)
+                0x001096dc                _fwalk
+ .text._fwalk_reent
+                0x00109724       0x54 ../../library/bin/armv7\libc.a(fwalk.o)
+                0x00109724                _fwalk_reent
+ .text          0x00109778        0x0 ../../library/bin/armv7\libc.a(makebuf.o)
+ .text.__smakebuf_r
+                0x00109778       0xbc ../../library/bin/armv7\libc.a(makebuf.o)
+                0x00109778                __smakebuf_r
+ .text          0x00109834        0x0 ../../library/bin/armv7\libc.a(putc.o)
+ .text._putc_r  0x00109834       0x60 ../../library/bin/armv7\libc.a(putc.o)
+                0x00109834                _putc_r
+ .text.putc     0x00109894       0x68 ../../library/bin/armv7\libc.a(putc.o)
+                0x00109894                putc
+ .text          0x001098fc        0x0 ../../library/bin/armv7\libc.a(sccl.o)
+ .text.__sccl   0x001098fc       0x7c ../../library/bin/armv7\libc.a(sccl.o)
+                0x001098fc                __sccl
+ .text          0x00109978        0x0 ../../library/bin/armv7\libc.a(wbuf.o)
+ .text.__swbuf_r
+                0x00109978       0x8c ../../library/bin/armv7\libc.a(wbuf.o)
+                0x00109978                __swbuf_r
+ .text.__swbuf  0x00109a04       0x14 ../../library/bin/armv7\libc.a(wbuf.o)
+                0x00109a04                __swbuf
+ .text          0x00109a18        0x0 ../../library/bin/armv7\libc.a(mbrtowc.o)
+ .text._mbrtowc_r
+                0x00109a18       0x5c ../../library/bin/armv7\libc.a(mbrtowc.o)
+                0x00109a18                _mbrtowc_r
+ .text.mbrtowc  0x00109a74       0x60 ../../library/bin/armv7\libc.a(mbrtowc.o)
+                0x00109a74                mbrtowc
+ .text          0x00109ad4        0x0 ../../library/bin/armv7\libc.a(mbtowc_r.o)
+ .text.__ascii_mbtowc
+                0x00109ad4       0x28 ../../library/bin/armv7\libc.a(mbtowc_r.o)
+                0x00109ad4                __ascii_mbtowc
+ .text._mbtowc_r
+                0x00109afc       0x34 ../../library/bin/armv7\libc.a(mbtowc_r.o)
+                0x00109afc                _mbtowc_r
+ .text          0x00109b30        0x0 ../../library/bin/armv7\libc.a(strtod.o)
+ .text.unlikely.sulp
+                0x00109b30       0x40 ../../library/bin/armv7\libc.a(strtod.o)
+ .text._strtod_r
+                0x00109b70      0xeb8 ../../library/bin/armv7\libc.a(strtod.o)
+                0x00109b70                _strtod_r
+ .text.strtod   0x0010aa28       0x14 ../../library/bin/armv7\libc.a(strtod.o)
+                0x0010aa28                strtod
+ .text.strtof   0x0010aa3c       0x30 ../../library/bin/armv7\libc.a(strtod.o)
+                0x0010aa3c                strtof
+ .text          0x0010aa6c        0x0 ../../library/bin/armv7\libc.a(strtoul.o)
+ .text._strtoul_r
+                0x0010aa6c      0x14c ../../library/bin/armv7\libc.a(strtoul.o)
+                0x0010aa6c                _strtoul_r
+ .text.strtoul  0x0010abb8       0x1c ../../library/bin/armv7\libc.a(strtoul.o)
+                0x0010abb8                strtoul
+ .text          0x0010abd4        0x0 ../../library/bin/armv7\libc.a(strchr.o)
+ .text.strchr   0x0010abd4      0x100 ../../library/bin/armv7\libc.a(strchr.o)
+                0x0010abd4                strchr
+ .text          0x0010acd4        0x0 ../../library/bin/armv7\libc.a(strncmp.o)
+ .text.strncmp  0x0010acd4       0xac ../../library/bin/armv7\libc.a(strncmp.o)
+                0x0010acd4                strncmp
+ .text          0x0010ad80        0x0 ../../library/bin/armv7\libc.a(svfiscanf.o)
+ .text._sungetc_r
+                0x0010ad80       0x80 ../../library/bin/armv7\libc.a(svfiscanf.o)
+                0x0010ad80                _sungetc_r
+ .text.__ssrefill_r
+                0x0010ae00       0x3c ../../library/bin/armv7\libc.a(svfiscanf.o)
+                0x0010ae00                __ssrefill_r
+ .text._sfread_r
+                0x0010ae3c       0x78 ../../library/bin/armv7\libc.a(svfiscanf.o)
+                0x0010ae3c                _sfread_r
+ .text.__ssvfiscanf_r
+                0x0010aeb4      0x9d4 ../../library/bin/armv7\libc.a(svfiscanf.o)
+                0x0010aeb4                __ssvfiscanf_r
+ .text          0x0010b888        0x0 ../../library/bin/armv7\libc.a(fstatr.o)
+ .text._fstat_r
+                0x0010b888       0x28 ../../library/bin/armv7\libc.a(fstatr.o)
+                0x0010b888                _fstat_r
+ .text          0x0010b8b0        0x0 ../../library/bin/armv7\libc.a(isattyr.o)
+ .text._isatty_r
+                0x0010b8b0       0x24 ../../library/bin/armv7\libc.a(isattyr.o)
+                0x0010b8b0                _isatty_r
+ .text          0x0010b8d4        0x0 ../../library/bin/armv7\libc.a(fclose.o)
+ .text._fclose_r
+                0x0010b8d4       0x88 ../../library/bin/armv7\libc.a(fclose.o)
+                0x0010b8d4                _fclose_r
+ .text.fclose   0x0010b95c       0x10 ../../library/bin/armv7\libc.a(fclose.o)
+                0x0010b95c                fclose
+ .text          0x0010b96c        0x0 ../../library/bin/armv7\libc.a(fflush.o)
+ .text.__sflush_r
+                0x0010b96c      0x148 ../../library/bin/armv7\libc.a(fflush.o)
+                0x0010b96c                __sflush_r
+ .text._fflush_r
+                0x0010bab4       0x2c ../../library/bin/armv7\libc.a(fflush.o)
+                0x0010bab4                _fflush_r
+ .text.fflush   0x0010bae0       0x24 ../../library/bin/armv7\libc.a(fflush.o)
+                0x0010bae0                fflush
+ .text          0x0010bb04        0x0 ../../library/bin/armv7\libc.a(ungetc.o)
+ .text.__submore
+                0x0010bb04       0x7c ../../library/bin/armv7\libc.a(ungetc.o)
+                0x0010bb04                __submore
+ .text._ungetc_r
+                0x0010bb80       0xd4 ../../library/bin/armv7\libc.a(ungetc.o)
+                0x0010bb80                _ungetc_r
+ .text.ungetc   0x0010bc54       0x14 ../../library/bin/armv7\libc.a(ungetc.o)
+                0x0010bc54                ungetc
+ .text          0x0010bc68        0x0 ../../library/bin/armv7\libc.a(gdtoa-gethex.o)
+ .text.rshift   0x0010bc68       0xac ../../library/bin/armv7\libc.a(gdtoa-gethex.o)
+ .text.__gethex
+                0x0010bd14      0x540 ../../library/bin/armv7\libc.a(gdtoa-gethex.o)
+                0x0010bd14                __gethex
+ .text          0x0010c254        0x0 ../../library/bin/armv7\libc.a(gdtoa-hexnan.o)
+ .text.__hexnan
+                0x0010c254      0x1ac ../../library/bin/armv7\libc.a(gdtoa-hexnan.o)
+                0x0010c254                __hexnan
+ .text          0x0010c400        0x0 d:/toolchains/armgcc-4-7-4/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib\libm.a(lib_a-s_fpclassify.o)
+ .text.__fpclassifyd
+                0x0010c400       0x6c d:/toolchains/armgcc-4-7-4/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib\libm.a(lib_a-s_fpclassify.o)
+                0x0010c400                __fpclassifyd
+ .text          0x0010c46c        0x0 d:/toolchains/armgcc-4-7-4/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib\libm.a(lib_a-sf_nan.o)
+ .text.nanf     0x0010c46c        0xc d:/toolchains/armgcc-4-7-4/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib\libm.a(lib_a-sf_nan.o)
+                0x0010c46c                nanf
+ .text          0x0010c478      0x278 D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_udivsi3.o)
+                0x0010c478                __aeabi_uidiv
+                0x0010c478                __udivsi3
+                0x0010c6d4                __aeabi_uidivmod
+ .text          0x0010c6f0      0x2b0 D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_divsi3.o)
+                0x0010c6f0                __divsi3
+                0x0010c6f0                __aeabi_idiv
+                0x0010c984                __aeabi_idivmod
+ .text          0x0010c9a0        0x4 D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_dvmd_tls.o)
+                0x0010c9a0                __aeabi_idiv0
+                0x0010c9a0                __aeabi_ldiv0
+ .text          0x0010c9a4      0x370 D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_arm_addsubdf3.o)
+                0x0010c9a4                __aeabi_drsub
+                0x0010c9ac                __aeabi_dsub
+                0x0010c9ac                __subdf3
+                0x0010c9b0                __aeabi_dadd
+                0x0010c9b0                __adddf3
+                0x0010cc28                __floatunsidf
+                0x0010cc28                __aeabi_ui2d
+                0x0010cc48                __floatsidf
+                0x0010cc48                __aeabi_i2d
+                0x0010cc6c                __aeabi_f2d
+                0x0010cc6c                __extendsfdf2
+                0x0010cca8                __floatundidf
+                0x0010cca8                __aeabi_ul2d
+                0x0010ccb8                __floatdidf
+                0x0010ccb8                __aeabi_l2d
+ .text          0x0010cd14      0x424 D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_arm_muldivdf3.o)
+                0x0010cd14                __aeabi_dmul
+                0x0010cd14                __muldf3
+                0x0010cf68                __divdf3
+                0x0010cf68                __aeabi_ddiv
+ .text          0x0010d138      0x110 D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_arm_cmpdf2.o)
+                0x0010d138                __gtdf2
+                0x0010d138                __gedf2
+                0x0010d140                __ltdf2
+                0x0010d140                __ledf2
+                0x0010d148                __nedf2
+                0x0010d148                __eqdf2
+                0x0010d148                __cmpdf2
+                0x0010d1c4                __aeabi_cdrcmple
+                0x0010d1d4                __aeabi_cdcmpeq
+                0x0010d1d4                __aeabi_cdcmple
+                0x0010d1e4                __aeabi_dcmpeq
+                0x0010d1f8                __aeabi_dcmplt
+                0x0010d20c                __aeabi_dcmple
+                0x0010d220                __aeabi_dcmpge
+                0x0010d234                __aeabi_dcmpgt
+ .text          0x0010d248       0x50 D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_arm_fixdfsi.o)
+                0x0010d248                __aeabi_d2iz
+                0x0010d248                __fixdfsi
+ .text          0x0010d298       0x40 D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_arm_fixunsdfsi.o)
+                0x0010d298                __aeabi_d2uiz
+                0x0010d298                __fixunsdfsi
+ .text          0x0010d2d8       0xa0 D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_arm_truncdfsf2.o)
+                0x0010d2d8                __truncdfsf2
+                0x0010d2d8                __aeabi_d2f
+ .text          0x0010d378        0x0 ../../library/bin/armv7\liborcos.a(mem.o)
+ .text.shm_map  0x0010d378       0x3c ../../library/bin/armv7\liborcos.a(mem.o)
+                0x0010d378                shm_map
+ .text._Znwj    0x0010d3b4        0x4 ../../library/bin/armv7\liborcos.a(mem.o)
+                0x0010d3b4                operator new(unsigned int)
+ .text._ZdlPv   0x0010d3b8        0x4 ../../library/bin/armv7\liborcos.a(mem.o)
+                0x0010d3b8                operator delete(void*)
+ *fill*         0x0010d3bc        0x4 00
+ .text._ZdlPv.stub
+                0x0010d3c0       0x38 linker stubs
+
+.glue_7         0x0010d3f8        0x0
+ .glue_7        0x00000000        0x0 linker stubs
+
+.glue_7t        0x0010d3f8        0x0
+ .glue_7t       0x00000000        0x0 linker stubs
+
+.vfp11_veneer   0x0010d3f8        0x0
+ .vfp11_veneer  0x00000000        0x0 linker stubs
+
+.v4_bx          0x0010d3f8        0x0
+ .v4_bx         0x00000000        0x0 linker stubs
+
+.iplt           0x0010d3f8        0x0
+ .iplt          0x00000000        0x0 ../../library/bin/armv7\static.o
+
+.rodata         0x0010d3f8      0xcec
+ *(.rodata*)
+ .rodata.str1.4
+                0x0010d3f8       0x12 ../../library/bin/armv7\static.o
+                                 0x14 (size before relaxing)
+ *fill*         0x0010d40a        0x2 00
+ .rodata.str1.4
+                0x0010d40c      0x152 armv7/task_main.o
+                                0x158 (size before relaxing)
+ *fill*         0x0010d55e        0x2 00
+ .rodata        0x0010d560        0x8 armv7/task_main.o
+ .rodata.str1.4
+                0x0010d568        0x3 ../../library/bin/armv7\liborcos.a(net.o)
+                                  0x4 (size before relaxing)
+ *fill*         0x0010d56b        0x1 00
+ .rodata.fmt.5021
+                0x0010d56c        0xc ../../library/bin/armv7\liborcos.a(net.o)
+ .rodata.str1.4
+                0x0010d578      0x64f ../../library/bin/armv7\liborcos.a(string.o)
+                                0x650 (size before relaxing)
+ *fill*         0x0010dbc7        0x1 00
+ .rodata.str1.4
+                0x0010dbc8       0x42 ../../library/bin/armv7\libc.a(vfprintf.o)
+                                 0x44 (size before relaxing)
+ *fill*         0x0010dc0a        0x2 00
+ .rodata.blanks.6752
+                0x0010dc0c       0x10 ../../library/bin/armv7\libc.a(vfprintf.o)
+ .rodata.zeroes.6753
+                0x0010dc1c       0x10 ../../library/bin/armv7\libc.a(vfprintf.o)
+ .rodata.str1.4
+                0x0010dc2c       0x10 ../../library/bin/armv7\libc.a(dtoa.o)
+                                 0x14 (size before relaxing)
+ .rodata.str1.4
+                0x0010dc3c       0x51 ../../library/bin/armv7\libc.a(mallocr.o)
+                                 0x54 (size before relaxing)
+ *fill*         0x0010dc8d        0x3 00
+ .rodata.__mprec_tinytens
+                0x0010dc90       0x28 ../../library/bin/armv7\libc.a(mprec.o)
+                0x0010dc90                __mprec_tinytens
+ .rodata.__mprec_bigtens
+                0x0010dcb8       0x28 ../../library/bin/armv7\libc.a(mprec.o)
+                0x0010dcb8                __mprec_bigtens
+ .rodata.__mprec_tens
+                0x0010dce0       0xc8 ../../library/bin/armv7\libc.a(mprec.o)
+                0x0010dce0                __mprec_tens
+ .rodata.p05.5128
+                0x0010dda8        0xc ../../library/bin/armv7\libc.a(mprec.o)
+ .rodata.str1.4
+                0x0010ddb4        0x5 ../../library/bin/armv7\libc.a(svfscanf.o)
+                                  0x8 (size before relaxing)
+ *fill*         0x0010ddb9        0x3 00
+ .rodata.basefix.6694
+                0x0010ddbc       0x24 ../../library/bin/armv7\libc.a(svfscanf.o)
+ .rodata.str1.4
+                0x00000000       0x30 ../../library/bin/armv7\libc.a(vfprintfi.o)
+ .rodata.blanks.6690
+                0x0010dde0       0x10 ../../library/bin/armv7\libc.a(vfprintfi.o)
+ .rodata.zeroes.6691
+                0x0010ddf0       0x10 ../../library/bin/armv7\libc.a(vfprintfi.o)
+ .rodata.str1.4
+                0x00000000       0x44 ../../library/bin/armv7\libc.a(vfprintfs.o)
+ .rodata.blanks.6746
+                0x0010de00       0x10 ../../library/bin/armv7\libc.a(vfprintfs.o)
+ .rodata.zeroes.6747
+                0x0010de10       0x10 ../../library/bin/armv7\libc.a(vfprintfs.o)
+ .rodata.str1.4
+                0x00000000       0x30 ../../library/bin/armv7\libc.a(vfprintfsi.o)
+ .rodata.blanks.6696
+                0x0010de20       0x10 ../../library/bin/armv7\libc.a(vfprintfsi.o)
+ .rodata.zeroes.6697
+                0x0010de30       0x10 ../../library/bin/armv7\libc.a(vfprintfsi.o)
+ .rodata.str1.4
+                0x0010de40        0x9 ../../library/bin/armv7\libc.a(libgloss.o)
+                                  0xc (size before relaxing)
+ *fill*         0x0010de49        0x3 00
+ .rodata._ctype_
+                0x0010de4c      0x104 ../../library/bin/armv7\libc.a(ctype_.o)
+                0x0010de4c                _ctype_
+ .rodata.str1.4
+                0x0010df50        0xa ../../library/bin/armv7\libc.a(locale.o)
+                                 0x14 (size before relaxing)
+ *fill*         0x0010df5a        0x2 00
+ .rodata._global_impure_ptr
+                0x0010df5c        0x4 ../../library/bin/armv7\libc.a(impure.o)
+                0x0010df5c                _global_impure_ptr
+ .rodata.str1.4
+                0x00000000        0x4 ../../library/bin/armv7\libc.a(impure.o)
+ .rodata.str1.4
+                0x00000000        0x4 ../../library/bin/armv7\libc.a(mbrtowc.o)
+ .rodata.str1.4
+                0x0010df60       0x10 ../../library/bin/armv7\libc.a(strtod.o)
+ .rodata.fpi.5097
+                0x0010df70       0x14 ../../library/bin/armv7\libc.a(strtod.o)
+ .rodata.fpinan.5133
+                0x0010df84       0x14 ../../library/bin/armv7\libc.a(strtod.o)
+ .rodata.tinytens
+                0x0010df98       0x28 ../../library/bin/armv7\libc.a(strtod.o)
+ .rodata.basefix.6288
+                0x0010dfc0       0x24 ../../library/bin/armv7\libc.a(svfiscanf.o)
+ .rodata.__hexdig
+                0x0010dfe4      0x100 ../../library/bin/armv7\libc.a(gdtoa-gethex.o)
+                0x0010dfe4                __hexdig
+
+.eh_frame       0x0010e0e4       0x70
+ .eh_frame      0x0010e0e4       0x70 ../../library/bin/armv7\libc.a(strcmp.o)
+
+.rel.dyn        0x0010e154        0x0
+ .rel.iplt      0x00000000        0x0 ../../library/bin/armv7\static.o
+
+.init           0x0010e154        0x0
+                0x0010e154                PROVIDE (__init_start, .)
+ *(.init*)
+                0x0010e154                PROVIDE (__init_end, .)
+
+.fini           0x0010e154        0x0
+                0x0010e154                PROVIDE (__fini_start, .)
+ *(.fini*)
+                0x0010e154                PROVIDE (__fini_end, .)
+
+.data           0x0010e158      0xa54
+ *(.data*)
+ .data          0x0010e158        0x0 ../../library/bin/armv7\static.o
+ .data          0x0010e158        0x0 armv7/task_main.o
+ .data          0x0010e158        0x0 ../../library/bin/armv7\liborcos.a(io.o)
+ .data          0x0010e158        0x0 ../../library/bin/armv7\liborcos.a(signal.o)
+ .data          0x0010e158        0x0 ../../library/bin/armv7\liborcos.a(net.o)
+ .data          0x0010e158        0x0 ../../library/bin/armv7\liborcos.a(threads.o)
+ .data          0x0010e158        0x0 ../../library/bin/armv7\liborcos.a(syscall.o)
+ .data          0x0010e158        0x0 ../../library/bin/armv7\liborcos.a(string.o)
+ .data.errorstrings
+                0x0010e158      0x188 ../../library/bin/armv7\liborcos.a(string.o)
+                0x0010e158                errorstrings
+ .data          0x0010e2e0        0x0 ../../library/bin/armv7\libc.a(printf.o)
+ .data          0x0010e2e0        0x0 ../../library/bin/armv7\libc.a(sprintf.o)
+ .data          0x0010e2e0        0x0 ../../library/bin/armv7\libc.a(sscanf.o)
+ .data          0x0010e2e0        0x0 ../../library/bin/armv7\libc.a(stdio.o)
+ .data          0x0010e2e0        0x0 ../../library/bin/armv7\libc.a(vfprintf.o)
+ .data          0x0010e2e0        0x0 ../../library/bin/armv7\libc.a(wsetup.o)
+ .data          0x0010e2e0        0x0 ../../library/bin/armv7\libc.a(atoi.o)
+ .data          0x0010e2e0        0x0 ../../library/bin/armv7\libc.a(dtoa.o)
+ .data          0x0010e2e0        0x0 ../../library/bin/armv7\libc.a(malloc.o)
+ .data          0x0010e2e0        0x0 ../../library/bin/armv7\libc.a(mallocr.o)
+ .data.av_      0x0010e2e0      0x408 ../../library/bin/armv7\libc.a(mallocr.o)
+ .data.sbrk_base
+                0x0010e6e8        0x4 ../../library/bin/armv7\libc.a(mallocr.o)
+ .data.trim_threshold
+                0x0010e6ec        0x4 ../../library/bin/armv7\libc.a(mallocr.o)
+ .data          0x0010e6f0        0x0 ../../library/bin/armv7\libc.a(mlock.o)
+ .data          0x0010e6f0        0x0 ../../library/bin/armv7\libc.a(mprec.o)
+ .data          0x0010e6f0        0x0 ../../library/bin/armv7\libc.a(strtol.o)
+ .data          0x0010e6f0        0x0 ../../library/bin/armv7\libc.a(memchr.o)
+ .data          0x0010e6f0        0x0 ../../library/bin/armv7\libc.a(memcmp.o)
+ .data          0x0010e6f0        0x0 ../../library/bin/armv7\libc.a(memcpy.o)
+ .data          0x0010e6f0        0x0 ../../library/bin/armv7\libc.a(memmove.o)
+ .data          0x0010e6f0        0x0 ../../library/bin/armv7\libc.a(memset.o)
+ .data          0x0010e6f0        0x0 ../../library/bin/armv7\libc.a(strcat.o)
+ .data          0x0010e6f0        0x0 ../../library/bin/armv7\libc.a(strcmp.o)
+ .data          0x0010e6f0        0x0 ../../library/bin/armv7\libc.a(strcpy.o)
+ .data          0x0010e6f0        0x0 ../../library/bin/armv7\libc.a(strdup.o)
+ .data          0x0010e6f0        0x0 ../../library/bin/armv7\libc.a(strdup_r.o)
+ .data          0x0010e6f0        0x0 ../../library/bin/armv7\libc.a(strlen.o)
+ .data          0x0010e6f0        0x0 ../../library/bin/armv7\libc.a(strncpy.o)
+ .data          0x0010e6f0        0x0 ../../library/bin/armv7\libc.a(strndup.o)
+ .data          0x0010e6f0        0x0 ../../library/bin/armv7\libc.a(strndup_r.o)
+ .data          0x0010e6f0        0x0 ../../library/bin/armv7\libc.a(strstr.o)
+ .data          0x0010e6f0        0x0 ../../library/bin/armv7\libc.a(strtok.o)
+ .data          0x0010e6f0        0x0 ../../library/bin/armv7\libc.a(strtok_r.o)
+ .data          0x0010e6f0        0x0 ../../library/bin/armv7\libc.a(svfscanf.o)
+ .data          0x0010e6f0        0x0 ../../library/bin/armv7\libc.a(vfprintfi.o)
+ .data          0x0010e6f0        0x0 ../../library/bin/armv7\libc.a(vfprintfs.o)
+ .data          0x0010e6f0        0x0 ../../library/bin/armv7\libc.a(vfprintfsi.o)
+ .data          0x0010e6f0        0x0 ../../library/bin/armv7\libc.a(libgloss.o)
+ .data.current_brk
+                0x0010e6f0        0x4 ../../library/bin/armv7\libc.a(libgloss.o)
+ .data.lastmapped_addr
+                0x0010e6f4        0x4 ../../library/bin/armv7\libc.a(libgloss.o)
+ .data          0x0010e6f8        0x0 ../../library/bin/armv7\libc.a(ctype_.o)
+ .data.__ctype_ptr__
+                0x0010e6f8        0x4 ../../library/bin/armv7\libc.a(ctype_.o)
+                0x0010e6f8                __ctype_ptr__
+ .data          0x0010e6fc        0x0 ../../library/bin/armv7\libc.a(iswspace.o)
+ .data          0x0010e6fc        0x0 ../../library/bin/armv7\libc.a(errno.o)
+ .data          0x0010e6fc        0x0 ../../library/bin/armv7\libc.a(locale.o)
+ .data.__mb_cur_max
+                0x0010e6fc        0x4 ../../library/bin/armv7\libc.a(locale.o)
+                0x0010e6fc                __mb_cur_max
+ .data.lc_ctype_charset
+                0x0010e700       0x20 ../../library/bin/armv7\libc.a(locale.o)
+ .data.lc_message_charset
+                0x0010e720       0x20 ../../library/bin/armv7\libc.a(locale.o)
+ .data.lconv    0x0010e740       0x38 ../../library/bin/armv7\libc.a(locale.o)
+ .data          0x0010e778        0x0 ../../library/bin/armv7\libc.a(closer.o)
+ .data          0x0010e778        0x0 ../../library/bin/armv7\libc.a(impure.o)
+ .data._impure_ptr
+                0x0010e778        0x4 ../../library/bin/armv7\libc.a(impure.o)
+                0x0010e778                _impure_ptr
+ *fill*         0x0010e77c        0x4 00
+ .data.impure_data
+                0x0010e780      0x428 ../../library/bin/armv7\libc.a(impure.o)
+ .data          0x0010eba8        0x0 ../../library/bin/armv7\libc.a(lseekr.o)
+ .data          0x0010eba8        0x0 ../../library/bin/armv7\libc.a(readr.o)
+ .data          0x0010eba8        0x0 ../../library/bin/armv7\libc.a(reent.o)
+ .data          0x0010eba8        0x0 ../../library/bin/armv7\libc.a(sbrkr.o)
+ .data          0x0010eba8        0x0 ../../library/bin/armv7\libc.a(writer.o)
+ .data          0x0010eba8        0x0 ../../library/bin/armv7\libc.a(findfp.o)
+ .data          0x0010eba8        0x0 ../../library/bin/armv7\libc.a(fiprintf.o)
+ .data          0x0010eba8        0x0 ../../library/bin/armv7\libc.a(fputc.o)
+ .data          0x0010eba8        0x0 ../../library/bin/armv7\libc.a(fvwrite.o)
+ .data          0x0010eba8        0x0 ../../library/bin/armv7\libc.a(fwalk.o)
+ .data          0x0010eba8        0x0 ../../library/bin/armv7\libc.a(makebuf.o)
+ .data          0x0010eba8        0x0 ../../library/bin/armv7\libc.a(putc.o)
+ .data          0x0010eba8        0x0 ../../library/bin/armv7\libc.a(sccl.o)
+ .data          0x0010eba8        0x0 ../../library/bin/armv7\libc.a(wbuf.o)
+ .data          0x0010eba8        0x0 ../../library/bin/armv7\libc.a(mbrtowc.o)
+ .data          0x0010eba8        0x0 ../../library/bin/armv7\libc.a(mbtowc_r.o)
+ .data.__mbtowc
+                0x0010eba8        0x4 ../../library/bin/armv7\libc.a(mbtowc_r.o)
+                0x0010eba8                __mbtowc
+ .data          0x0010ebac        0x0 ../../library/bin/armv7\libc.a(strtod.o)
+ .data          0x0010ebac        0x0 ../../library/bin/armv7\libc.a(strtoul.o)
+ .data          0x0010ebac        0x0 ../../library/bin/armv7\libc.a(strchr.o)
+ .data          0x0010ebac        0x0 ../../library/bin/armv7\libc.a(strncmp.o)
+ .data          0x0010ebac        0x0 ../../library/bin/armv7\libc.a(svfiscanf.o)
+ .data          0x0010ebac        0x0 ../../library/bin/armv7\libc.a(fstatr.o)
+ .data          0x0010ebac        0x0 ../../library/bin/armv7\libc.a(isattyr.o)
+ .data          0x0010ebac        0x0 ../../library/bin/armv7\libc.a(fclose.o)
+ .data          0x0010ebac        0x0 ../../library/bin/armv7\libc.a(fflush.o)
+ .data          0x0010ebac        0x0 ../../library/bin/armv7\libc.a(ungetc.o)
+ .data          0x0010ebac        0x0 ../../library/bin/armv7\libc.a(gdtoa-gethex.o)
+ .data          0x0010ebac        0x0 ../../library/bin/armv7\libc.a(gdtoa-hexnan.o)
+ .data          0x0010ebac        0x0 d:/toolchains/armgcc-4-7-4/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib\libm.a(lib_a-s_fpclassify.o)
+ .data          0x0010ebac        0x0 d:/toolchains/armgcc-4-7-4/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib\libm.a(lib_a-sf_nan.o)
+ .data          0x0010ebac        0x0 D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_udivsi3.o)
+ .data          0x0010ebac        0x0 D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_divsi3.o)
+ .data          0x0010ebac        0x0 D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_dvmd_tls.o)
+ .data          0x0010ebac        0x0 D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_arm_addsubdf3.o)
+ .data          0x0010ebac        0x0 D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_arm_muldivdf3.o)
+ .data          0x0010ebac        0x0 D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_arm_cmpdf2.o)
+ .data          0x0010ebac        0x0 D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_arm_fixdfsi.o)
+ .data          0x0010ebac        0x0 D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_arm_fixunsdfsi.o)
+ .data          0x0010ebac        0x0 D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_arm_truncdfsf2.o)
+ .data          0x0010ebac        0x0 ../../library/bin/armv7\liborcos.a(mem.o)
+                0x0010ebac                CRC_END = .
+
+.igot.plt       0x0010ebac        0x0
+ .igot.plt      0x00000000        0x0 ../../library/bin/armv7\static.o
+
+.bss            0x0010ebac      0x580
+                0x0010ebac                PROVIDE (__bss_start, .)
+ *(.bss*)
+ .bss           0x0010ebac        0x0 ../../library/bin/armv7\static.o
+ .bss           0x0010ebac        0x4 armv7/task_main.o
+ .bss           0x0010ebb0        0x0 ../../library/bin/armv7\liborcos.a(io.o)
+ .bss.current_stdout
+                0x0010ebb0        0x4 ../../library/bin/armv7\liborcos.a(io.o)
+                0x0010ebb0                current_stdout
+ .bss.remainingBytes.4412
+                0x0010ebb4        0x4 ../../library/bin/armv7\liborcos.a(io.o)
+ .bss.buffer.4410
+                0x0010ebb8      0x200 ../../library/bin/armv7\liborcos.a(io.o)
+ .bss.pos.4411  0x0010edb8        0x4 ../../library/bin/armv7\liborcos.a(io.o)
+ .bss           0x0010edbc        0x0 ../../library/bin/armv7\liborcos.a(signal.o)
+ .bss           0x0010edbc        0x0 ../../library/bin/armv7\liborcos.a(net.o)
+ .bss.host_name
+                0x0010edbc       0x28 ../../library/bin/armv7\liborcos.a(net.o)
+ .bss.lookup_host
+                0x0010ede4       0x14 ../../library/bin/armv7\liborcos.a(net.o)
+ .bss.host_addresses
+                0x0010edf8        0x8 ../../library/bin/armv7\liborcos.a(net.o)
+ .bss.host_address
+                0x0010ee00       0x14 ../../library/bin/armv7\liborcos.a(net.o)
+ .bss.host_ip4addr
+                0x0010ee14        0x4 ../../library/bin/armv7\liborcos.a(net.o)
+ .bss           0x0010ee18        0x0 ../../library/bin/armv7\liborcos.a(threads.o)
+ .bss           0x0010ee18        0x0 ../../library/bin/armv7\liborcos.a(syscall.o)
+ .bss           0x0010ee18        0x0 ../../library/bin/armv7\liborcos.a(string.o)
+ .bss.ret_dirname
+                0x0010ee18       0xc8 ../../library/bin/armv7\liborcos.a(string.o)
+ .bss           0x0010eee0        0x0 ../../library/bin/armv7\libc.a(printf.o)
+ .bss           0x0010eee0        0x0 ../../library/bin/armv7\libc.a(sprintf.o)
+ .bss           0x0010eee0        0x0 ../../library/bin/armv7\libc.a(sscanf.o)
+ .bss           0x0010eee0        0x0 ../../library/bin/armv7\libc.a(stdio.o)
+ .bss           0x0010eee0        0x0 ../../library/bin/armv7\libc.a(vfprintf.o)
+ .bss           0x0010eee0        0x0 ../../library/bin/armv7\libc.a(wsetup.o)
+ .bss           0x0010eee0        0x0 ../../library/bin/armv7\libc.a(atoi.o)
+ .bss           0x0010eee0        0x0 ../../library/bin/armv7\libc.a(dtoa.o)
+ .bss           0x0010eee0        0x0 ../../library/bin/armv7\libc.a(malloc.o)
+ .bss           0x0010eee0        0x0 ../../library/bin/armv7\libc.a(mallocr.o)
+ .bss.top_pad   0x0010eee0        0x4 ../../library/bin/armv7\libc.a(mallocr.o)
+ .bss.current_mallinfo
+                0x0010eee4       0x28 ../../library/bin/armv7\libc.a(mallocr.o)
+ .bss.max_sbrked_mem
+                0x0010ef0c        0x4 ../../library/bin/armv7\libc.a(mallocr.o)
+ .bss.max_total_mem
+                0x0010ef10        0x4 ../../library/bin/armv7\libc.a(mallocr.o)
+ .bss           0x0010ef14        0x0 ../../library/bin/armv7\libc.a(mlock.o)
+ .bss           0x0010ef14        0x0 ../../library/bin/armv7\libc.a(mprec.o)
+ .bss           0x0010ef14        0x0 ../../library/bin/armv7\libc.a(strtol.o)
+ .bss           0x0010ef14        0x0 ../../library/bin/armv7\libc.a(memchr.o)
+ .bss           0x0010ef14        0x0 ../../library/bin/armv7\libc.a(memcmp.o)
+ .bss           0x0010ef14        0x0 ../../library/bin/armv7\libc.a(memcpy.o)
+ .bss           0x0010ef14        0x0 ../../library/bin/armv7\libc.a(memmove.o)
+ .bss           0x0010ef14        0x0 ../../library/bin/armv7\libc.a(memset.o)
+ .bss           0x0010ef14        0x0 ../../library/bin/armv7\libc.a(strcat.o)
+ .bss           0x0010ef14        0x0 ../../library/bin/armv7\libc.a(strcmp.o)
+ .bss           0x0010ef14        0x0 ../../library/bin/armv7\libc.a(strcpy.o)
+ .bss           0x0010ef14        0x0 ../../library/bin/armv7\libc.a(strdup.o)
+ .bss           0x0010ef14        0x0 ../../library/bin/armv7\libc.a(strdup_r.o)
+ .bss           0x0010ef14        0x0 ../../library/bin/armv7\libc.a(strlen.o)
+ .bss           0x0010ef14        0x0 ../../library/bin/armv7\libc.a(strncpy.o)
+ .bss           0x0010ef14        0x0 ../../library/bin/armv7\libc.a(strndup.o)
+ .bss           0x0010ef14        0x0 ../../library/bin/armv7\libc.a(strndup_r.o)
+ .bss           0x0010ef14        0x0 ../../library/bin/armv7\libc.a(strstr.o)
+ .bss           0x0010ef14        0x0 ../../library/bin/armv7\libc.a(strtok.o)
+ .bss           0x0010ef14        0x0 ../../library/bin/armv7\libc.a(strtok_r.o)
+ .bss           0x0010ef14        0x0 ../../library/bin/armv7\libc.a(svfscanf.o)
+ .bss           0x0010ef14        0x0 ../../library/bin/armv7\libc.a(vfprintfi.o)
+ .bss           0x0010ef14        0x0 ../../library/bin/armv7\libc.a(vfprintfs.o)
+ .bss           0x0010ef14        0x0 ../../library/bin/armv7\libc.a(vfprintfsi.o)
+ .bss           0x0010ef14        0x0 ../../library/bin/armv7\libc.a(libgloss.o)
+ .bss.stdout_index
+                0x0010ef14        0x4 ../../library/bin/armv7\libc.a(libgloss.o)
+ .bss.stdout_buf
+                0x0010ef18      0x200 ../../library/bin/armv7\libc.a(libgloss.o)
+ .bss           0x0010f118        0x0 ../../library/bin/armv7\libc.a(ctype_.o)
+ .bss           0x0010f118        0x0 ../../library/bin/armv7\libc.a(iswspace.o)
+ .bss           0x0010f118        0x0 ../../library/bin/armv7\libc.a(errno.o)
+ .bss           0x0010f118        0x0 ../../library/bin/armv7\libc.a(locale.o)
+ .bss._PathLocale
+                0x0010f118        0x4 ../../library/bin/armv7\libc.a(locale.o)
+                0x0010f118                _PathLocale
+ .bss.__mlocale_changed
+                0x0010f11c        0x4 ../../library/bin/armv7\libc.a(locale.o)
+                0x0010f11c                __mlocale_changed
+ .bss.__nlocale_changed
+                0x0010f120        0x4 ../../library/bin/armv7\libc.a(locale.o)
+                0x0010f120                __nlocale_changed
+ .bss           0x0010f124        0x0 ../../library/bin/armv7\libc.a(closer.o)
+ .bss           0x0010f124        0x0 ../../library/bin/armv7\libc.a(impure.o)
+ .bss           0x0010f124        0x0 ../../library/bin/armv7\libc.a(lseekr.o)
+ .bss           0x0010f124        0x0 ../../library/bin/armv7\libc.a(readr.o)
+ .bss           0x0010f124        0x0 ../../library/bin/armv7\libc.a(reent.o)
+ .bss           0x0010f124        0x0 ../../library/bin/armv7\libc.a(sbrkr.o)
+ .bss           0x0010f124        0x0 ../../library/bin/armv7\libc.a(writer.o)
+ .bss           0x0010f124        0x0 ../../library/bin/armv7\libc.a(findfp.o)
+ .bss           0x0010f124        0x0 ../../library/bin/armv7\libc.a(fiprintf.o)
+ .bss           0x0010f124        0x0 ../../library/bin/armv7\libc.a(fputc.o)
+ .bss           0x0010f124        0x0 ../../library/bin/armv7\libc.a(fvwrite.o)
+ .bss           0x0010f124        0x0 ../../library/bin/armv7\libc.a(fwalk.o)
+ .bss           0x0010f124        0x0 ../../library/bin/armv7\libc.a(makebuf.o)
+ .bss           0x0010f124        0x0 ../../library/bin/armv7\libc.a(putc.o)
+ .bss           0x0010f124        0x0 ../../library/bin/armv7\libc.a(sccl.o)
+ .bss           0x0010f124        0x0 ../../library/bin/armv7\libc.a(wbuf.o)
+ .bss           0x0010f124        0x0 ../../library/bin/armv7\libc.a(mbrtowc.o)
+ .bss           0x0010f124        0x0 ../../library/bin/armv7\libc.a(mbtowc_r.o)
+ .bss           0x0010f124        0x0 ../../library/bin/armv7\libc.a(strtod.o)
+ .bss           0x0010f124        0x0 ../../library/bin/armv7\libc.a(strtoul.o)
+ .bss           0x0010f124        0x0 ../../library/bin/armv7\libc.a(strchr.o)
+ .bss           0x0010f124        0x0 ../../library/bin/armv7\libc.a(strncmp.o)
+ .bss           0x0010f124        0x0 ../../library/bin/armv7\libc.a(svfiscanf.o)
+ .bss           0x0010f124        0x0 ../../library/bin/armv7\libc.a(fstatr.o)
+ .bss           0x0010f124        0x0 ../../library/bin/armv7\libc.a(isattyr.o)
+ .bss           0x0010f124        0x0 ../../library/bin/armv7\libc.a(fclose.o)
+ .bss           0x0010f124        0x0 ../../library/bin/armv7\libc.a(fflush.o)
+ .bss           0x0010f124        0x0 ../../library/bin/armv7\libc.a(ungetc.o)
+ .bss           0x0010f124        0x0 ../../library/bin/armv7\libc.a(gdtoa-gethex.o)
+ .bss           0x0010f124        0x0 ../../library/bin/armv7\libc.a(gdtoa-hexnan.o)
+ .bss           0x0010f124        0x0 d:/toolchains/armgcc-4-7-4/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib\libm.a(lib_a-s_fpclassify.o)
+ .bss           0x0010f124        0x0 d:/toolchains/armgcc-4-7-4/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib\libm.a(lib_a-sf_nan.o)
+ .bss           0x0010f124        0x0 D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_udivsi3.o)
+ .bss           0x0010f124        0x0 D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_divsi3.o)
+ .bss           0x0010f124        0x0 D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_dvmd_tls.o)
+ .bss           0x0010f124        0x0 D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_arm_addsubdf3.o)
+ .bss           0x0010f124        0x0 D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_arm_muldivdf3.o)
+ .bss           0x0010f124        0x0 D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_arm_cmpdf2.o)
+ .bss           0x0010f124        0x0 D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_arm_fixdfsi.o)
+ .bss           0x0010f124        0x0 D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_arm_fixunsdfsi.o)
+ .bss           0x0010f124        0x0 D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_arm_truncdfsf2.o)
+ .bss           0x0010f124        0x0 ../../library/bin/armv7\liborcos.a(mem.o)
+                0x0010f124                PROVIDE (__bss_end, .)
+ COMMON         0x0010f124        0x1 ../../library/bin/armv7\static.o
+                0x0010f124                __gnu_lto_v1
+ *fill*         0x0010f125        0x3 00
+ COMMON         0x0010f128        0x4 ../../library/bin/armv7\libc.a(reent.o)
+                0x0010f128                errno
+
+.sbss           0x0010f12c        0x0
+                0x0010f12c                PROVIDE (__sbss_start, .)
+ *(.sbss*)
+                0x0010f12c                PROVIDE (__sbss_end, .)
+                0x0010f200                TASK_HEAP = ALIGN (0x100)
+                0x0010f200                PROVIDE (_taskHeapStart, TASK_HEAP)
+LOAD armv7/task_main.o
+START GROUP
+LOAD ../../library/bin/armv7\liborcos.a
+LOAD ../../library/bin/armv7\libc.a
+LOAD d:/toolchains/armgcc-4-7-4/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib\libm.a
+LOAD D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a
+END GROUP
+START GROUP
+LOAD D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a
+LOAD ../../library/bin/armv7\libc.a
+END GROUP
+OUTPUT(armv7/ntpclient.elf elf32-littlearm)
+
+.debug_info     0x00000000    0x2e775
+ .debug_info    0x00000000      0x83f ../../library/bin/armv7\static.o
+ .debug_info    0x0000083f      0xa37 armv7/task_main.o
+ .debug_info    0x00001276      0xb20 ../../library/bin/armv7\liborcos.a(io.o)
+ .debug_info    0x00001d96      0x146 ../../library/bin/armv7\liborcos.a(signal.o)
+ .debug_info    0x00001edc      0xa67 ../../library/bin/armv7\liborcos.a(net.o)
+ .debug_info    0x00002943      0x6a7 ../../library/bin/armv7\liborcos.a(threads.o)
+ .debug_info    0x00002fea       0x68 ../../library/bin/armv7\liborcos.a(syscall.o)
+ .debug_info    0x00003052      0x5e4 ../../library/bin/armv7\liborcos.a(string.o)
+ .debug_info    0x00003636      0xa9a ../../library/bin/armv7\libc.a(printf.o)
+ .debug_info    0x000040d0      0xadf ../../library/bin/armv7\libc.a(sprintf.o)
+ .debug_info    0x00004baf      0xb2b ../../library/bin/armv7\libc.a(sscanf.o)
+ .debug_info    0x000056da      0xc8a ../../library/bin/armv7\libc.a(stdio.o)
+ .debug_info    0x00006364     0x17d0 ../../library/bin/armv7\libc.a(vfprintf.o)
+ .debug_info    0x00007b34      0xa29 ../../library/bin/armv7\libc.a(wsetup.o)
+ .debug_info    0x0000855d      0xa2f ../../library/bin/armv7\libc.a(atoi.o)
+ .debug_info    0x00008f8c     0x142e ../../library/bin/armv7\libc.a(dtoa.o)
+ .debug_info    0x0000a3ba      0xa05 ../../library/bin/armv7\libc.a(malloc.o)
+ .debug_info    0x0000adbf     0x1a7f ../../library/bin/armv7\libc.a(mallocr.o)
+ .debug_info    0x0000c83e      0x998 ../../library/bin/armv7\libc.a(mlock.o)
+ .debug_info    0x0000d1d6     0x1764 ../../library/bin/armv7\libc.a(mprec.o)
+ .debug_info    0x0000e93a      0xa95 ../../library/bin/armv7\libc.a(strtol.o)
+ .debug_info    0x0000f3cf       0x5e ../../library/bin/armv7\libc.a(memchr.o)
+ .debug_info    0x0000f42d      0x11c ../../library/bin/armv7\libc.a(memcmp.o)
+ .debug_info    0x0000f549       0x65 ../../library/bin/armv7\libc.a(memcpy.o)
+ .debug_info    0x0000f5ae      0x13a ../../library/bin/armv7\libc.a(memmove.o)
+ .debug_info    0x0000f6e8      0x120 ../../library/bin/armv7\libc.a(memset.o)
+ .debug_info    0x0000f808      0x118 ../../library/bin/armv7\libc.a(strcat.o)
+ .debug_info    0x0000f920       0x64 ../../library/bin/armv7\libc.a(strcmp.o)
+ .debug_info    0x0000f984      0x117 ../../library/bin/armv7\libc.a(strcpy.o)
+ .debug_info    0x0000fa9b      0x9a6 ../../library/bin/armv7\libc.a(strdup.o)
+ .debug_info    0x00010441      0xa48 ../../library/bin/armv7\libc.a(strdup_r.o)
+ .debug_info    0x00010e89       0xe6 ../../library/bin/armv7\libc.a(strlen.o)
+ .debug_info    0x00010f6f      0x12f ../../library/bin/armv7\libc.a(strncpy.o)
+ .debug_info    0x0001109e      0x9ca ../../library/bin/armv7\libc.a(strndup.o)
+ .debug_info    0x00011a68      0xa29 ../../library/bin/armv7\libc.a(strndup_r.o)
+ .debug_info    0x00012491      0x50b ../../library/bin/armv7\libc.a(strstr.o)
+ .debug_info    0x0001299c      0x9de ../../library/bin/armv7\libc.a(strtok.o)
+ .debug_info    0x0001337a      0x192 ../../library/bin/armv7\libc.a(strtok_r.o)
+ .debug_info    0x0001350c     0x14e4 ../../library/bin/armv7\libc.a(svfscanf.o)
+ .debug_info    0x000149f0     0x10c4 ../../library/bin/armv7\libc.a(vfprintfi.o)
+ .debug_info    0x00015ab4     0x1712 ../../library/bin/armv7\libc.a(vfprintfs.o)
+ .debug_info    0x000171c6     0x1188 ../../library/bin/armv7\libc.a(vfprintfsi.o)
+ .debug_info    0x0001834e      0xabd ../../library/bin/armv7\libc.a(libgloss.o)
+ .debug_info    0x00018e0b       0x71 ../../library/bin/armv7\libc.a(ctype_.o)
+ .debug_info    0x00018e7c       0xcd ../../library/bin/armv7\libc.a(iswspace.o)
+ .debug_info    0x00018f49      0x96d ../../library/bin/armv7\libc.a(errno.o)
+ .debug_info    0x000198b6      0xd23 ../../library/bin/armv7\libc.a(locale.o)
+ .debug_info    0x0001a5d9      0x9c9 ../../library/bin/armv7\libc.a(closer.o)
+ .debug_info    0x0001afa2      0x96e ../../library/bin/armv7\libc.a(impure.o)
+ .debug_info    0x0001b910      0x9f5 ../../library/bin/armv7\libc.a(lseekr.o)
+ .debug_info    0x0001c305      0xa0b ../../library/bin/armv7\libc.a(readr.o)
+ .debug_info    0x0001cd10      0xaeb ../../library/bin/armv7\libc.a(reent.o)
+ .debug_info    0x0001d7fb      0x9df ../../library/bin/armv7\libc.a(sbrkr.o)
+ .debug_info    0x0001e1da      0xa12 ../../library/bin/armv7\libc.a(writer.o)
+ .debug_info    0x0001ebec      0xe3e ../../library/bin/armv7\libc.a(findfp.o)
+ .debug_info    0x0001fa2a      0xab1 ../../library/bin/armv7\libc.a(fiprintf.o)
+ .debug_info    0x000204db      0xabe ../../library/bin/armv7\libc.a(fputc.o)
+ .debug_info    0x00020f99      0xd64 ../../library/bin/armv7\libc.a(fvwrite.o)
+ .debug_info    0x00021cfd      0xa86 ../../library/bin/armv7\libc.a(fwalk.o)
+ .debug_info    0x00022783      0xbf4 ../../library/bin/armv7\libc.a(makebuf.o)
+ .debug_info    0x00023377      0xaf9 ../../library/bin/armv7\libc.a(putc.o)
+ .debug_info    0x00023e70      0x104 ../../library/bin/armv7\libc.a(sccl.o)
+ .debug_info    0x00023f74      0xabe ../../library/bin/armv7\libc.a(wbuf.o)
+ .debug_info    0x00024a32      0xb7b ../../library/bin/armv7\libc.a(mbrtowc.o)
+ .debug_info    0x000255ad      0xad9 ../../library/bin/armv7\libc.a(mbtowc_r.o)
+ .debug_info    0x00026086     0x197a ../../library/bin/armv7\libc.a(strtod.o)
+ .debug_info    0x00027a00      0xa95 ../../library/bin/armv7\libc.a(strtoul.o)
+ .debug_info    0x00028495      0x11f ../../library/bin/armv7\libc.a(strchr.o)
+ .debug_info    0x000285b4       0xfe ../../library/bin/armv7\libc.a(strncmp.o)
+ .debug_info    0x000286b2     0x122f ../../library/bin/armv7\libc.a(svfiscanf.o)
+ .debug_info    0x000298e1      0xb69 ../../library/bin/armv7\libc.a(fstatr.o)
+ .debug_info    0x0002a44a      0x9c9 ../../library/bin/armv7\libc.a(isattyr.o)
+ .debug_info    0x0002ae13      0xadc ../../library/bin/armv7\libc.a(fclose.o)
+ .debug_info    0x0002b8ef      0xbb9 ../../library/bin/armv7\libc.a(fflush.o)
+ .debug_info    0x0002c4a8      0xb8f ../../library/bin/armv7\libc.a(ungetc.o)
+ .debug_info    0x0002d037     0x1224 ../../library/bin/armv7\libc.a(gdtoa-gethex.o)
+ .debug_info    0x0002e25b      0x31b ../../library/bin/armv7\libc.a(gdtoa-hexnan.o)
+ .debug_info    0x0002e576      0x1ff ../../library/bin/armv7\liborcos.a(mem.o)
+
+.debug_abbrev   0x00000000     0x8ce0
+ .debug_abbrev  0x00000000      0x230 ../../library/bin/armv7\static.o
+ .debug_abbrev  0x00000230      0x224 armv7/task_main.o
+ .debug_abbrev  0x00000454      0x27f ../../library/bin/armv7\liborcos.a(io.o)
+ .debug_abbrev  0x000006d3       0xc0 ../../library/bin/armv7\liborcos.a(signal.o)
+ .debug_abbrev  0x00000793      0x27c ../../library/bin/armv7\liborcos.a(net.o)
+ .debug_abbrev  0x00000a0f      0x13c ../../library/bin/armv7\liborcos.a(threads.o)
+ .debug_abbrev  0x00000b4b       0x14 ../../library/bin/armv7\liborcos.a(syscall.o)
+ .debug_abbrev  0x00000b5f      0x25c ../../library/bin/armv7\liborcos.a(string.o)
+ .debug_abbrev  0x00000dbb      0x1ef ../../library/bin/armv7\libc.a(printf.o)
+ .debug_abbrev  0x00000faa      0x1e0 ../../library/bin/armv7\libc.a(sprintf.o)
+ .debug_abbrev  0x0000118a      0x1ed ../../library/bin/armv7\libc.a(sscanf.o)
+ .debug_abbrev  0x00001377      0x246 ../../library/bin/armv7\libc.a(stdio.o)
+ .debug_abbrev  0x000015bd      0x3ac ../../library/bin/armv7\libc.a(vfprintf.o)
+ .debug_abbrev  0x00001969      0x1ef ../../library/bin/armv7\libc.a(wsetup.o)
+ .debug_abbrev  0x00001b58      0x1b5 ../../library/bin/armv7\libc.a(atoi.o)
+ .debug_abbrev  0x00001d0d      0x2af ../../library/bin/armv7\libc.a(dtoa.o)
+ .debug_abbrev  0x00001fbc      0x1de ../../library/bin/armv7\libc.a(malloc.o)
+ .debug_abbrev  0x0000219a      0x3a4 ../../library/bin/armv7\libc.a(mallocr.o)
+ .debug_abbrev  0x0000253e      0x17e ../../library/bin/armv7\libc.a(mlock.o)
+ .debug_abbrev  0x000026bc      0x38d ../../library/bin/armv7\libc.a(mprec.o)
+ .debug_abbrev  0x00002a49      0x1f8 ../../library/bin/armv7\libc.a(strtol.o)
+ .debug_abbrev  0x00002c41       0x14 ../../library/bin/armv7\libc.a(memchr.o)
+ .debug_abbrev  0x00002c55       0x81 ../../library/bin/armv7\libc.a(memcmp.o)
+ .debug_abbrev  0x00002cd6       0x14 ../../library/bin/armv7\libc.a(memcpy.o)
+ .debug_abbrev  0x00002cea       0xad ../../library/bin/armv7\libc.a(memmove.o)
+ .debug_abbrev  0x00002d97       0xa1 ../../library/bin/armv7\libc.a(memset.o)
+ .debug_abbrev  0x00002e38       0xb3 ../../library/bin/armv7\libc.a(strcat.o)
+ .debug_abbrev  0x00002eeb       0x14 ../../library/bin/armv7\libc.a(strcmp.o)
+ .debug_abbrev  0x00002eff       0x94 ../../library/bin/armv7\libc.a(strcpy.o)
+ .debug_abbrev  0x00002f93      0x1b1 ../../library/bin/armv7\libc.a(strdup.o)
+ .debug_abbrev  0x00003144      0x1f1 ../../library/bin/armv7\libc.a(strdup_r.o)
+ .debug_abbrev  0x00003335       0x83 ../../library/bin/armv7\libc.a(strlen.o)
+ .debug_abbrev  0x000033b8       0xb0 ../../library/bin/armv7\libc.a(strncpy.o)
+ .debug_abbrev  0x00003468      0x1b1 ../../library/bin/armv7\libc.a(strndup.o)
+ .debug_abbrev  0x00003619      0x1ef ../../library/bin/armv7\libc.a(strndup_r.o)
+ .debug_abbrev  0x00003808      0x1f4 ../../library/bin/armv7\libc.a(strstr.o)
+ .debug_abbrev  0x000039fc      0x1cf ../../library/bin/armv7\libc.a(strtok.o)
+ .debug_abbrev  0x00003bcb       0xf1 ../../library/bin/armv7\libc.a(strtok_r.o)
+ .debug_abbrev  0x00003cbc      0x2b7 ../../library/bin/armv7\libc.a(svfscanf.o)
+ .debug_abbrev  0x00003f73      0x2ce ../../library/bin/armv7\libc.a(vfprintfi.o)
+ .debug_abbrev  0x00004241      0x35e ../../library/bin/armv7\libc.a(vfprintfs.o)
+ .debug_abbrev  0x0000459f      0x2d6 ../../library/bin/armv7\libc.a(vfprintfsi.o)
+ .debug_abbrev  0x00004875      0x27d ../../library/bin/armv7\libc.a(libgloss.o)
+ .debug_abbrev  0x00004af2       0x4e ../../library/bin/armv7\libc.a(ctype_.o)
+ .debug_abbrev  0x00004b40       0x85 ../../library/bin/armv7\libc.a(iswspace.o)
+ .debug_abbrev  0x00004bc5      0x173 ../../library/bin/armv7\libc.a(errno.o)
+ .debug_abbrev  0x00004d38      0x289 ../../library/bin/armv7\libc.a(locale.o)
+ .debug_abbrev  0x00004fc1      0x1d3 ../../library/bin/armv7\libc.a(closer.o)
+ .debug_abbrev  0x00005194      0x162 ../../library/bin/armv7\libc.a(impure.o)
+ .debug_abbrev  0x000052f6      0x1e2 ../../library/bin/armv7\libc.a(lseekr.o)
+ .debug_abbrev  0x000054d8      0x1d3 ../../library/bin/armv7\libc.a(readr.o)
+ .debug_abbrev  0x000056ab      0x219 ../../library/bin/armv7\libc.a(reent.o)
+ .debug_abbrev  0x000058c4      0x1e1 ../../library/bin/armv7\libc.a(sbrkr.o)
+ .debug_abbrev  0x00005aa5      0x1d8 ../../library/bin/armv7\libc.a(writer.o)
+ .debug_abbrev  0x00005c7d      0x30d ../../library/bin/armv7\libc.a(findfp.o)
+ .debug_abbrev  0x00005f8a      0x1de ../../library/bin/armv7\libc.a(fiprintf.o)
+ .debug_abbrev  0x00006168      0x21d ../../library/bin/armv7\libc.a(fputc.o)
+ .debug_abbrev  0x00006385      0x23a ../../library/bin/armv7\libc.a(fvwrite.o)
+ .debug_abbrev  0x000065bf      0x1b5 ../../library/bin/armv7\libc.a(fwalk.o)
+ .debug_abbrev  0x00006774      0x1ea ../../library/bin/armv7\libc.a(makebuf.o)
+ .debug_abbrev  0x0000695e      0x211 ../../library/bin/armv7\libc.a(putc.o)
+ .debug_abbrev  0x00006b6f       0x89 ../../library/bin/armv7\libc.a(sccl.o)
+ .debug_abbrev  0x00006bf8      0x23f ../../library/bin/armv7\libc.a(wbuf.o)
+ .debug_abbrev  0x00006e37      0x206 ../../library/bin/armv7\libc.a(mbrtowc.o)
+ .debug_abbrev  0x0000703d      0x1f6 ../../library/bin/armv7\libc.a(mbtowc_r.o)
+ .debug_abbrev  0x00007233      0x405 ../../library/bin/armv7\libc.a(strtod.o)
+ .debug_abbrev  0x00007638      0x1f8 ../../library/bin/armv7\libc.a(strtoul.o)
+ .debug_abbrev  0x00007830       0x85 ../../library/bin/armv7\libc.a(strchr.o)
+ .debug_abbrev  0x000078b5       0x83 ../../library/bin/armv7\libc.a(strncmp.o)
+ .debug_abbrev  0x00007938      0x340 ../../library/bin/armv7\libc.a(svfiscanf.o)
+ .debug_abbrev  0x00007c78      0x1e2 ../../library/bin/armv7\libc.a(fstatr.o)
+ .debug_abbrev  0x00007e5a      0x1d3 ../../library/bin/armv7\libc.a(isattyr.o)
+ .debug_abbrev  0x0000802d      0x257 ../../library/bin/armv7\libc.a(fclose.o)
+ .debug_abbrev  0x00008284      0x290 ../../library/bin/armv7\libc.a(fflush.o)
+ .debug_abbrev  0x00008514      0x253 ../../library/bin/armv7\libc.a(ungetc.o)
+ .debug_abbrev  0x00008767      0x2ff ../../library/bin/armv7\libc.a(gdtoa-gethex.o)
+ .debug_abbrev  0x00008a66      0x158 ../../library/bin/armv7\libc.a(gdtoa-hexnan.o)
+ .debug_abbrev  0x00008bbe      0x122 ../../library/bin/armv7\liborcos.a(mem.o)
+
+.debug_loc      0x00000000    0x1b076
+ .debug_loc     0x00000000      0x54d ../../library/bin/armv7\static.o
+ .debug_loc     0x0000054d      0x36c armv7/task_main.o
+ .debug_loc     0x000008b9      0x891 ../../library/bin/armv7\liborcos.a(io.o)
+ .debug_loc     0x0000114a       0xe3 ../../library/bin/armv7\liborcos.a(signal.o)
+ .debug_loc     0x0000122d      0x97f ../../library/bin/armv7\liborcos.a(net.o)
+ .debug_loc     0x00001bac      0x486 ../../library/bin/armv7\liborcos.a(threads.o)
+ .debug_loc     0x00002032      0x523 ../../library/bin/armv7\liborcos.a(string.o)
+ .debug_loc     0x00002555       0xa4 ../../library/bin/armv7\libc.a(printf.o)
+ .debug_loc     0x000025f9       0xcf ../../library/bin/armv7\libc.a(sprintf.o)
+ .debug_loc     0x000026c8       0xeb ../../library/bin/armv7\libc.a(sscanf.o)
+ .debug_loc     0x000027b3      0x297 ../../library/bin/armv7\libc.a(stdio.o)
+ .debug_loc     0x00002a4a     0x1e88 ../../library/bin/armv7\libc.a(vfprintf.o)
+ .debug_loc     0x000048d2       0x90 ../../library/bin/armv7\libc.a(wsetup.o)
+ .debug_loc     0x00004962       0x63 ../../library/bin/armv7\libc.a(atoi.o)
+ .debug_loc     0x000049c5     0x2372 ../../library/bin/armv7\libc.a(dtoa.o)
+ .debug_loc     0x00006d37       0x58 ../../library/bin/armv7\libc.a(malloc.o)
+ .debug_loc     0x00006d8f     0x2e23 ../../library/bin/armv7\libc.a(mallocr.o)
+ .debug_loc     0x00009bb2     0x1aae ../../library/bin/armv7\libc.a(mprec.o)
+ .debug_loc     0x0000b660      0x3fd ../../library/bin/armv7\libc.a(strtol.o)
+ .debug_loc     0x0000ba5d      0x19f ../../library/bin/armv7\libc.a(memcmp.o)
+ .debug_loc     0x0000bbfc      0x280 ../../library/bin/armv7\libc.a(memmove.o)
+ .debug_loc     0x0000be7c      0x212 ../../library/bin/armv7\libc.a(memset.o)
+ .debug_loc     0x0000c08e       0xbc ../../library/bin/armv7\libc.a(strcat.o)
+ .debug_loc     0x0000c14a       0xd2 ../../library/bin/armv7\libc.a(strcpy.o)
+ .debug_loc     0x0000c21c       0x2c ../../library/bin/armv7\libc.a(strdup.o)
+ .debug_loc     0x0000c248       0x88 ../../library/bin/armv7\libc.a(strdup_r.o)
+ .debug_loc     0x0000c2d0      0x107 ../../library/bin/armv7\libc.a(strlen.o)
+ .debug_loc     0x0000c3d7      0x10d ../../library/bin/armv7\libc.a(strncpy.o)
+ .debug_loc     0x0000c4e4       0x58 ../../library/bin/armv7\libc.a(strndup.o)
+ .debug_loc     0x0000c53c      0x17e ../../library/bin/armv7\libc.a(strndup_r.o)
+ .debug_loc     0x0000c6ba      0xb3f ../../library/bin/armv7\libc.a(strstr.o)
+ .debug_loc     0x0000d1f9       0x42 ../../library/bin/armv7\libc.a(strtok.o)
+ .debug_loc     0x0000d23b      0x1de ../../library/bin/armv7\libc.a(strtok_r.o)
+ .debug_loc     0x0000d419     0x1992 ../../library/bin/armv7\libc.a(svfscanf.o)
+ .debug_loc     0x0000edab     0x10b7 ../../library/bin/armv7\libc.a(vfprintfi.o)
+ .debug_loc     0x0000fe62     0x1d93 ../../library/bin/armv7\libc.a(vfprintfs.o)
+ .debug_loc     0x00011bf5     0x12cd ../../library/bin/armv7\libc.a(vfprintfsi.o)
+ .debug_loc     0x00012ec2      0xa48 ../../library/bin/armv7\libc.a(libgloss.o)
+ .debug_loc     0x0001390a       0x3a ../../library/bin/armv7\libc.a(iswspace.o)
+ .debug_loc     0x00013944       0xf9 ../../library/bin/armv7\libc.a(locale.o)
+ .debug_loc     0x00013a3d       0x5f ../../library/bin/armv7\libc.a(closer.o)
+ .debug_loc     0x00013a9c       0xc2 ../../library/bin/armv7\libc.a(lseekr.o)
+ .debug_loc     0x00013b5e       0xc2 ../../library/bin/armv7\libc.a(readr.o)
+ .debug_loc     0x00013c20      0x10f ../../library/bin/armv7\libc.a(reent.o)
+ .debug_loc     0x00013d2f       0x5f ../../library/bin/armv7\libc.a(sbrkr.o)
+ .debug_loc     0x00013d8e       0xc2 ../../library/bin/armv7\libc.a(writer.o)
+ .debug_loc     0x00013e50      0x29d ../../library/bin/armv7\libc.a(findfp.o)
+ .debug_loc     0x000140ed       0xde ../../library/bin/armv7\libc.a(fiprintf.o)
+ .debug_loc     0x000141cb       0xe8 ../../library/bin/armv7\libc.a(fputc.o)
+ .debug_loc     0x000142b3      0x51c ../../library/bin/armv7\libc.a(fvwrite.o)
+ .debug_loc     0x000147cf      0x223 ../../library/bin/armv7\libc.a(fwalk.o)
+ .debug_loc     0x000149f2      0x112 ../../library/bin/armv7\libc.a(makebuf.o)
+ .debug_loc     0x00014b04      0x16a ../../library/bin/armv7\libc.a(putc.o)
+ .debug_loc     0x00014c6e      0x1ba ../../library/bin/armv7\libc.a(sccl.o)
+ .debug_loc     0x00014e28      0x15e ../../library/bin/armv7\libc.a(wbuf.o)
+ .debug_loc     0x00014f86      0x270 ../../library/bin/armv7\libc.a(mbrtowc.o)
+ .debug_loc     0x000151f6      0x161 ../../library/bin/armv7\libc.a(mbtowc_r.o)
+ .debug_loc     0x00015357     0x25a8 ../../library/bin/armv7\libc.a(strtod.o)
+ .debug_loc     0x000178ff      0x3e4 ../../library/bin/armv7\libc.a(strtoul.o)
+ .debug_loc     0x00017ce3      0x139 ../../library/bin/armv7\libc.a(strchr.o)
+ .debug_loc     0x00017e1c      0x21f ../../library/bin/armv7\libc.a(strncmp.o)
+ .debug_loc     0x0001803b     0x1203 ../../library/bin/armv7\libc.a(svfiscanf.o)
+ .debug_loc     0x0001923e       0x8b ../../library/bin/armv7\libc.a(fstatr.o)
+ .debug_loc     0x000192c9       0x5f ../../library/bin/armv7\libc.a(isattyr.o)
+ .debug_loc     0x00019328      0x11c ../../library/bin/armv7\libc.a(fclose.o)
+ .debug_loc     0x00019444      0x277 ../../library/bin/armv7\libc.a(fflush.o)
+ .debug_loc     0x000196bb      0x26f ../../library/bin/armv7\libc.a(ungetc.o)
+ .debug_loc     0x0001992a     0x11ab ../../library/bin/armv7\libc.a(gdtoa-gethex.o)
+ .debug_loc     0x0001aad5      0x485 ../../library/bin/armv7\libc.a(gdtoa-hexnan.o)
+ .debug_loc     0x0001af5a      0x11c ../../library/bin/armv7\liborcos.a(mem.o)
+
+.debug_aranges  0x00000000      0xf70
+ .debug_aranges
+                0x00000000       0x68 ../../library/bin/armv7\static.o
+ .debug_aranges
+                0x00000068       0x38 armv7/task_main.o
+ .debug_aranges
+                0x000000a0       0xc8 ../../library/bin/armv7\liborcos.a(io.o)
+ .debug_aranges
+                0x00000168       0x28 ../../library/bin/armv7\liborcos.a(signal.o)
+ .debug_aranges
+                0x00000190       0x70 ../../library/bin/armv7\liborcos.a(net.o)
+ .debug_aranges
+                0x00000200       0xa8 ../../library/bin/armv7\liborcos.a(threads.o)
+ .debug_aranges
+                0x000002a8       0x20 ../../library/bin/armv7\liborcos.a(syscall.o)
+ .debug_aranges
+                0x000002c8       0x70 ../../library/bin/armv7\liborcos.a(string.o)
+ .debug_aranges
+                0x00000338       0x28 ../../library/bin/armv7\libc.a(printf.o)
+ .debug_aranges
+                0x00000360       0x28 ../../library/bin/armv7\libc.a(sprintf.o)
+ .debug_aranges
+                0x00000388       0x28 ../../library/bin/armv7\libc.a(sscanf.o)
+ .debug_aranges
+                0x000003b0       0x40 ../../library/bin/armv7\libc.a(stdio.o)
+ .debug_aranges
+                0x000003f0       0x28 ../../library/bin/armv7\libc.a(vfprintf.o)
+ .debug_aranges
+                0x00000418       0x20 ../../library/bin/armv7\libc.a(wsetup.o)
+ .debug_aranges
+                0x00000438       0x28 ../../library/bin/armv7\libc.a(atoi.o)
+ .debug_aranges
+                0x00000460       0x28 ../../library/bin/armv7\libc.a(dtoa.o)
+ .debug_aranges
+                0x00000488       0x28 ../../library/bin/armv7\libc.a(malloc.o)
+ .debug_aranges
+                0x000004b0       0x88 ../../library/bin/armv7\libc.a(mallocr.o)
+ .debug_aranges
+                0x00000538       0x28 ../../library/bin/armv7\libc.a(mlock.o)
+ .debug_aranges
+                0x00000560       0xb0 ../../library/bin/armv7\libc.a(mprec.o)
+ .debug_aranges
+                0x00000610       0x28 ../../library/bin/armv7\libc.a(strtol.o)
+ .debug_aranges
+                0x00000638       0x20 ../../library/bin/armv7\libc.a(memchr.o)
+ .debug_aranges
+                0x00000658       0x20 ../../library/bin/armv7\libc.a(memcmp.o)
+ .debug_aranges
+                0x00000678       0x20 ../../library/bin/armv7\libc.a(memcpy.o)
+ .debug_aranges
+                0x00000698       0x20 ../../library/bin/armv7\libc.a(memmove.o)
+ .debug_aranges
+                0x000006b8       0x20 ../../library/bin/armv7\libc.a(memset.o)
+ .debug_aranges
+                0x000006d8       0x20 ../../library/bin/armv7\libc.a(strcat.o)
+ .debug_aranges
+                0x000006f8       0x20 ../../library/bin/armv7\libc.a(strcmp.o)
+ .debug_aranges
+                0x00000718       0x20 ../../library/bin/armv7\libc.a(strcpy.o)
+ .debug_aranges
+                0x00000738       0x20 ../../library/bin/armv7\libc.a(strdup.o)
+ .debug_aranges
+                0x00000758       0x20 ../../library/bin/armv7\libc.a(strdup_r.o)
+ .debug_aranges
+                0x00000778       0x20 ../../library/bin/armv7\libc.a(strlen.o)
+ .debug_aranges
+                0x00000798       0x20 ../../library/bin/armv7\libc.a(strncpy.o)
+ .debug_aranges
+                0x000007b8       0x20 ../../library/bin/armv7\libc.a(strndup.o)
+ .debug_aranges
+                0x000007d8       0x20 ../../library/bin/armv7\libc.a(strndup_r.o)
+ .debug_aranges
+                0x000007f8       0x30 ../../library/bin/armv7\libc.a(strstr.o)
+ .debug_aranges
+                0x00000828       0x20 ../../library/bin/armv7\libc.a(strtok.o)
+ .debug_aranges
+                0x00000848       0x28 ../../library/bin/armv7\libc.a(strtok_r.o)
+ .debug_aranges
+                0x00000870       0x20 ../../library/bin/armv7\libc.a(svfscanf.o)
+ .debug_aranges
+                0x00000890       0x38 ../../library/bin/armv7\libc.a(vfprintfi.o)
+ .debug_aranges
+                0x000008c8       0x20 ../../library/bin/armv7\libc.a(vfprintfs.o)
+ .debug_aranges
+                0x000008e8       0x30 ../../library/bin/armv7\libc.a(vfprintfsi.o)
+ .debug_aranges
+                0x00000918       0xb0 ../../library/bin/armv7\libc.a(libgloss.o)
+ .debug_aranges
+                0x000009c8       0x18 ../../library/bin/armv7\libc.a(ctype_.o)
+ .debug_aranges
+                0x000009e0       0x20 ../../library/bin/armv7\libc.a(iswspace.o)
+ .debug_aranges
+                0x00000a00       0x20 ../../library/bin/armv7\libc.a(errno.o)
+ .debug_aranges
+                0x00000a20       0x58 ../../library/bin/armv7\libc.a(locale.o)
+ .debug_aranges
+                0x00000a78       0x20 ../../library/bin/armv7\libc.a(closer.o)
+ .debug_aranges
+                0x00000a98       0x18 ../../library/bin/armv7\libc.a(impure.o)
+ .debug_aranges
+                0x00000ab0       0x20 ../../library/bin/armv7\libc.a(lseekr.o)
+ .debug_aranges
+                0x00000ad0       0x20 ../../library/bin/armv7\libc.a(readr.o)
+ .debug_aranges
+                0x00000af0       0x28 ../../library/bin/armv7\libc.a(reent.o)
+ .debug_aranges
+                0x00000b18       0x20 ../../library/bin/armv7\libc.a(sbrkr.o)
+ .debug_aranges
+                0x00000b38       0x20 ../../library/bin/armv7\libc.a(writer.o)
+ .debug_aranges
+                0x00000b58       0x88 ../../library/bin/armv7\libc.a(findfp.o)
+ .debug_aranges
+                0x00000be0       0x28 ../../library/bin/armv7\libc.a(fiprintf.o)
+ .debug_aranges
+                0x00000c08       0x28 ../../library/bin/armv7\libc.a(fputc.o)
+ .debug_aranges
+                0x00000c30       0x20 ../../library/bin/armv7\libc.a(fvwrite.o)
+ .debug_aranges
+                0x00000c50       0x28 ../../library/bin/armv7\libc.a(fwalk.o)
+ .debug_aranges
+                0x00000c78       0x20 ../../library/bin/armv7\libc.a(makebuf.o)
+ .debug_aranges
+                0x00000c98       0x28 ../../library/bin/armv7\libc.a(putc.o)
+ .debug_aranges
+                0x00000cc0       0x20 ../../library/bin/armv7\libc.a(sccl.o)
+ .debug_aranges
+                0x00000ce0       0x28 ../../library/bin/armv7\libc.a(wbuf.o)
+ .debug_aranges
+                0x00000d08       0x28 ../../library/bin/armv7\libc.a(mbrtowc.o)
+ .debug_aranges
+                0x00000d30       0x28 ../../library/bin/armv7\libc.a(mbtowc_r.o)
+ .debug_aranges
+                0x00000d58       0x38 ../../library/bin/armv7\libc.a(strtod.o)
+ .debug_aranges
+                0x00000d90       0x28 ../../library/bin/armv7\libc.a(strtoul.o)
+ .debug_aranges
+                0x00000db8       0x20 ../../library/bin/armv7\libc.a(strchr.o)
+ .debug_aranges
+                0x00000dd8       0x20 ../../library/bin/armv7\libc.a(strncmp.o)
+ .debug_aranges
+                0x00000df8       0x38 ../../library/bin/armv7\libc.a(svfiscanf.o)
+ .debug_aranges
+                0x00000e30       0x20 ../../library/bin/armv7\libc.a(fstatr.o)
+ .debug_aranges
+                0x00000e50       0x20 ../../library/bin/armv7\libc.a(isattyr.o)
+ .debug_aranges
+                0x00000e70       0x28 ../../library/bin/armv7\libc.a(fclose.o)
+ .debug_aranges
+                0x00000e98       0x30 ../../library/bin/armv7\libc.a(fflush.o)
+ .debug_aranges
+                0x00000ec8       0x30 ../../library/bin/armv7\libc.a(ungetc.o)
+ .debug_aranges
+                0x00000ef8       0x28 ../../library/bin/armv7\libc.a(gdtoa-gethex.o)
+ .debug_aranges
+                0x00000f20       0x20 ../../library/bin/armv7\libc.a(gdtoa-hexnan.o)
+ .debug_aranges
+                0x00000f40       0x30 ../../library/bin/armv7\liborcos.a(mem.o)
+
+.debug_ranges   0x00000000     0x1758
+ .debug_ranges  0x00000000       0x90 ../../library/bin/armv7\static.o
+ .debug_ranges  0x00000090       0xf0 armv7/task_main.o
+ .debug_ranges  0x00000180      0x118 ../../library/bin/armv7\liborcos.a(io.o)
+ .debug_ranges  0x00000298       0x18 ../../library/bin/armv7\liborcos.a(signal.o)
+ .debug_ranges  0x000002b0       0x90 ../../library/bin/armv7\liborcos.a(net.o)
+ .debug_ranges  0x00000340       0x98 ../../library/bin/armv7\liborcos.a(threads.o)
+ .debug_ranges  0x000003d8       0xa8 ../../library/bin/armv7\liborcos.a(string.o)
+ .debug_ranges  0x00000480       0x18 ../../library/bin/armv7\libc.a(printf.o)
+ .debug_ranges  0x00000498       0x18 ../../library/bin/armv7\libc.a(sprintf.o)
+ .debug_ranges  0x000004b0       0x18 ../../library/bin/armv7\libc.a(sscanf.o)
+ .debug_ranges  0x000004c8       0x30 ../../library/bin/armv7\libc.a(stdio.o)
+ .debug_ranges  0x000004f8      0x198 ../../library/bin/armv7\libc.a(vfprintf.o)
+ .debug_ranges  0x00000690       0x30 ../../library/bin/armv7\libc.a(wsetup.o)
+ .debug_ranges  0x000006c0       0x18 ../../library/bin/armv7\libc.a(atoi.o)
+ .debug_ranges  0x000006d8       0x18 ../../library/bin/armv7\libc.a(dtoa.o)
+ .debug_ranges  0x000006f0       0x18 ../../library/bin/armv7\libc.a(malloc.o)
+ .debug_ranges  0x00000708      0x2a8 ../../library/bin/armv7\libc.a(mallocr.o)
+ .debug_ranges  0x000009b0       0x18 ../../library/bin/armv7\libc.a(mlock.o)
+ .debug_ranges  0x000009c8       0xe0 ../../library/bin/armv7\libc.a(mprec.o)
+ .debug_ranges  0x00000aa8       0x18 ../../library/bin/armv7\libc.a(strtol.o)
+ .debug_ranges  0x00000ac0       0x10 ../../library/bin/armv7\libc.a(memcmp.o)
+ .debug_ranges  0x00000ad0       0x10 ../../library/bin/armv7\libc.a(memmove.o)
+ .debug_ranges  0x00000ae0       0x10 ../../library/bin/armv7\libc.a(memset.o)
+ .debug_ranges  0x00000af0       0x30 ../../library/bin/armv7\libc.a(strcat.o)
+ .debug_ranges  0x00000b20       0x10 ../../library/bin/armv7\libc.a(strcpy.o)
+ .debug_ranges  0x00000b30       0x10 ../../library/bin/armv7\libc.a(strdup.o)
+ .debug_ranges  0x00000b40       0x10 ../../library/bin/armv7\libc.a(strdup_r.o)
+ .debug_ranges  0x00000b50       0x10 ../../library/bin/armv7\libc.a(strlen.o)
+ .debug_ranges  0x00000b60       0x10 ../../library/bin/armv7\libc.a(strncpy.o)
+ .debug_ranges  0x00000b70       0x10 ../../library/bin/armv7\libc.a(strndup.o)
+ .debug_ranges  0x00000b80       0x10 ../../library/bin/armv7\libc.a(strndup_r.o)
+ .debug_ranges  0x00000b90       0xb0 ../../library/bin/armv7\libc.a(strstr.o)
+ .debug_ranges  0x00000c40       0x10 ../../library/bin/armv7\libc.a(strtok.o)
+ .debug_ranges  0x00000c50       0x18 ../../library/bin/armv7\libc.a(strtok_r.o)
+ .debug_ranges  0x00000c68      0x188 ../../library/bin/armv7\libc.a(svfscanf.o)
+ .debug_ranges  0x00000df0       0x78 ../../library/bin/armv7\libc.a(vfprintfi.o)
+ .debug_ranges  0x00000e68      0x178 ../../library/bin/armv7\libc.a(vfprintfs.o)
+ .debug_ranges  0x00000fe0       0x88 ../../library/bin/armv7\libc.a(vfprintfsi.o)
+ .debug_ranges  0x00001068       0xc8 ../../library/bin/armv7\libc.a(libgloss.o)
+ .debug_ranges  0x00001130       0x10 ../../library/bin/armv7\libc.a(iswspace.o)
+ .debug_ranges  0x00001140       0x10 ../../library/bin/armv7\libc.a(errno.o)
+ .debug_ranges  0x00001150       0x48 ../../library/bin/armv7\libc.a(locale.o)
+ .debug_ranges  0x00001198       0x10 ../../library/bin/armv7\libc.a(closer.o)
+ .debug_ranges  0x000011a8       0x10 ../../library/bin/armv7\libc.a(lseekr.o)
+ .debug_ranges  0x000011b8       0x10 ../../library/bin/armv7\libc.a(readr.o)
+ .debug_ranges  0x000011c8       0x18 ../../library/bin/armv7\libc.a(reent.o)
+ .debug_ranges  0x000011e0       0x10 ../../library/bin/armv7\libc.a(sbrkr.o)
+ .debug_ranges  0x000011f0       0x10 ../../library/bin/armv7\libc.a(writer.o)
+ .debug_ranges  0x00001200       0x78 ../../library/bin/armv7\libc.a(findfp.o)
+ .debug_ranges  0x00001278       0x18 ../../library/bin/armv7\libc.a(fiprintf.o)
+ .debug_ranges  0x00001290       0x30 ../../library/bin/armv7\libc.a(fputc.o)
+ .debug_ranges  0x000012c0       0x30 ../../library/bin/armv7\libc.a(fvwrite.o)
+ .debug_ranges  0x000012f0       0x18 ../../library/bin/armv7\libc.a(fwalk.o)
+ .debug_ranges  0x00001308       0x10 ../../library/bin/armv7\libc.a(makebuf.o)
+ .debug_ranges  0x00001318       0x48 ../../library/bin/armv7\libc.a(putc.o)
+ .debug_ranges  0x00001360       0x10 ../../library/bin/armv7\libc.a(sccl.o)
+ .debug_ranges  0x00001370       0x30 ../../library/bin/armv7\libc.a(wbuf.o)
+ .debug_ranges  0x000013a0       0x18 ../../library/bin/armv7\libc.a(mbrtowc.o)
+ .debug_ranges  0x000013b8       0x18 ../../library/bin/armv7\libc.a(mbtowc_r.o)
+ .debug_ranges  0x000013d0       0xb0 ../../library/bin/armv7\libc.a(strtod.o)
+ .debug_ranges  0x00001480       0x18 ../../library/bin/armv7\libc.a(strtoul.o)
+ .debug_ranges  0x00001498       0x10 ../../library/bin/armv7\libc.a(strchr.o)
+ .debug_ranges  0x000014a8       0x10 ../../library/bin/armv7\libc.a(strncmp.o)
+ .debug_ranges  0x000014b8      0x128 ../../library/bin/armv7\libc.a(svfiscanf.o)
+ .debug_ranges  0x000015e0       0x10 ../../library/bin/armv7\libc.a(fstatr.o)
+ .debug_ranges  0x000015f0       0x10 ../../library/bin/armv7\libc.a(isattyr.o)
+ .debug_ranges  0x00001600       0x30 ../../library/bin/armv7\libc.a(fclose.o)
+ .debug_ranges  0x00001630       0x58 ../../library/bin/armv7\libc.a(fflush.o)
+ .debug_ranges  0x00001688       0x38 ../../library/bin/armv7\libc.a(ungetc.o)
+ .debug_ranges  0x000016c0       0x68 ../../library/bin/armv7\libc.a(gdtoa-gethex.o)
+ .debug_ranges  0x00001728       0x10 ../../library/bin/armv7\libc.a(gdtoa-hexnan.o)
+ .debug_ranges  0x00001738       0x20 ../../library/bin/armv7\liborcos.a(mem.o)
+
+.debug_line     0x00000000     0x8e5f
+ .debug_line    0x00000000      0x23b ../../library/bin/armv7\static.o
+ .debug_line    0x0000023b      0x18b armv7/task_main.o
+ .debug_line    0x000003c6      0x249 ../../library/bin/armv7\liborcos.a(io.o)
+ .debug_line    0x0000060f       0x62 ../../library/bin/armv7\liborcos.a(signal.o)
+ .debug_line    0x00000671      0x1f3 ../../library/bin/armv7\liborcos.a(net.o)
+ .debug_line    0x00000864      0x1bf ../../library/bin/armv7\liborcos.a(threads.o)
+ .debug_line    0x00000a23       0x56 ../../library/bin/armv7\liborcos.a(syscall.o)
+ .debug_line    0x00000a79      0x1ea ../../library/bin/armv7\liborcos.a(string.o)
+ .debug_line    0x00000c63      0x11b ../../library/bin/armv7\libc.a(printf.o)
+ .debug_line    0x00000d7e      0x156 ../../library/bin/armv7\libc.a(sprintf.o)
+ .debug_line    0x00000ed4      0x16b ../../library/bin/armv7\libc.a(sscanf.o)
+ .debug_line    0x0000103f      0x15e ../../library/bin/armv7\libc.a(stdio.o)
+ .debug_line    0x0000119d      0x70a ../../library/bin/armv7\libc.a(vfprintf.o)
+ .debug_line    0x000018a7      0x15b ../../library/bin/armv7\libc.a(wsetup.o)
+ .debug_line    0x00001a02       0xf6 ../../library/bin/armv7\libc.a(atoi.o)
+ .debug_line    0x00001af8      0x662 ../../library/bin/armv7\libc.a(dtoa.o)
+ .debug_line    0x0000215a       0xfc ../../library/bin/armv7\libc.a(malloc.o)
+ .debug_line    0x00002256      0x787 ../../library/bin/armv7\libc.a(mallocr.o)
+ .debug_line    0x000029dd       0xd6 ../../library/bin/armv7\libc.a(mlock.o)
+ .debug_line    0x00002ab3      0x66d ../../library/bin/armv7\libc.a(mprec.o)
+ .debug_line    0x00003120      0x16d ../../library/bin/armv7\libc.a(strtol.o)
+ .debug_line    0x0000328d       0x82 ../../library/bin/armv7\libc.a(memchr.o)
+ .debug_line    0x0000330f       0xc8 ../../library/bin/armv7\libc.a(memcmp.o)
+ .debug_line    0x000033d7      0x14f ../../library/bin/armv7\libc.a(memcpy.o)
+ .debug_line    0x00003526      0x10b ../../library/bin/armv7\libc.a(memmove.o)
+ .debug_line    0x00003631       0xe4 ../../library/bin/armv7\libc.a(memset.o)
+ .debug_line    0x00003715       0x88 ../../library/bin/armv7\libc.a(strcat.o)
+ .debug_line    0x0000379d      0x120 ../../library/bin/armv7\libc.a(strcmp.o)
+ .debug_line    0x000038bd       0x6b ../../library/bin/armv7\libc.a(strcpy.o)
+ .debug_line    0x00003928       0xe4 ../../library/bin/armv7\libc.a(strdup.o)
+ .debug_line    0x00003a0c       0xf5 ../../library/bin/armv7\libc.a(strdup_r.o)
+ .debug_line    0x00003b01       0xce ../../library/bin/armv7\libc.a(strlen.o)
+ .debug_line    0x00003bcf       0xc6 ../../library/bin/armv7\libc.a(strncpy.o)
+ .debug_line    0x00003c95       0xe7 ../../library/bin/armv7\libc.a(strndup.o)
+ .debug_line    0x00003d7c      0x109 ../../library/bin/armv7\libc.a(strndup_r.o)
+ .debug_line    0x00003e85      0x2f5 ../../library/bin/armv7\libc.a(strstr.o)
+ .debug_line    0x0000417a       0xcc ../../library/bin/armv7\libc.a(strtok.o)
+ .debug_line    0x00004246       0x83 ../../library/bin/armv7\libc.a(strtok_r.o)
+ .debug_line    0x000042c9      0x5ec ../../library/bin/armv7\libc.a(svfscanf.o)
+ .debug_line    0x000048b5      0x4e5 ../../library/bin/armv7\libc.a(vfprintfi.o)
+ .debug_line    0x00004d9a      0x6e1 ../../library/bin/armv7\libc.a(vfprintfs.o)
+ .debug_line    0x0000547b      0x545 ../../library/bin/armv7\libc.a(vfprintfsi.o)
+ .debug_line    0x000059c0      0x284 ../../library/bin/armv7\libc.a(libgloss.o)
+ .debug_line    0x00005c44       0x34 ../../library/bin/armv7\libc.a(ctype_.o)
+ .debug_line    0x00005c78       0xbc ../../library/bin/armv7\libc.a(iswspace.o)
+ .debug_line    0x00005d34       0xc8 ../../library/bin/armv7\libc.a(errno.o)
+ .debug_line    0x00005dfc      0x17e ../../library/bin/armv7\libc.a(locale.o)
+ .debug_line    0x00005f7a       0xd4 ../../library/bin/armv7\libc.a(closer.o)
+ .debug_line    0x0000604e       0xb8 ../../library/bin/armv7\libc.a(impure.o)
+ .debug_line    0x00006106       0xd4 ../../library/bin/armv7\libc.a(lseekr.o)
+ .debug_line    0x000061da       0xd3 ../../library/bin/armv7\libc.a(readr.o)
+ .debug_line    0x000062ad      0x121 ../../library/bin/armv7\libc.a(reent.o)
+ .debug_line    0x000063ce       0xd3 ../../library/bin/armv7\libc.a(sbrkr.o)
+ .debug_line    0x000064a1       0xd4 ../../library/bin/armv7\libc.a(writer.o)
+ .debug_line    0x00006575      0x263 ../../library/bin/armv7\libc.a(findfp.o)
+ .debug_line    0x000067d8      0x118 ../../library/bin/armv7\libc.a(fiprintf.o)
+ .debug_line    0x000068f0      0x123 ../../library/bin/armv7\libc.a(fputc.o)
+ .debug_line    0x00006a13      0x244 ../../library/bin/armv7\libc.a(fvwrite.o)
+ .debug_line    0x00006c57      0x13d ../../library/bin/armv7\libc.a(fwalk.o)
+ .debug_line    0x00006d94      0x15d ../../library/bin/armv7\libc.a(makebuf.o)
+ .debug_line    0x00006ef1      0x19b ../../library/bin/armv7\libc.a(putc.o)
+ .debug_line    0x0000708c       0x9c ../../library/bin/armv7\libc.a(sccl.o)
+ .debug_line    0x00007128      0x14c ../../library/bin/armv7\libc.a(wbuf.o)
+ .debug_line    0x00007274      0x126 ../../library/bin/armv7\libc.a(mbrtowc.o)
+ .debug_line    0x0000739a      0x10f ../../library/bin/armv7\libc.a(mbtowc_r.o)
+ .debug_line    0x000074a9      0x5be ../../library/bin/armv7\libc.a(strtod.o)
+ .debug_line    0x00007a67      0x166 ../../library/bin/armv7\libc.a(strtoul.o)
+ .debug_line    0x00007bcd       0xb9 ../../library/bin/armv7\libc.a(strchr.o)
+ .debug_line    0x00007c86       0xf8 ../../library/bin/armv7\libc.a(strncmp.o)
+ .debug_line    0x00007d7e      0x565 ../../library/bin/armv7\libc.a(svfiscanf.o)
+ .debug_line    0x000082e3       0xe9 ../../library/bin/armv7\libc.a(fstatr.o)
+ .debug_line    0x000083cc       0xd5 ../../library/bin/armv7\libc.a(isattyr.o)
+ .debug_line    0x000084a1      0x151 ../../library/bin/armv7\libc.a(fclose.o)
+ .debug_line    0x000085f2      0x1de ../../library/bin/armv7\libc.a(fflush.o)
+ .debug_line    0x000087d0      0x1a0 ../../library/bin/armv7\libc.a(ungetc.o)
+ .debug_line    0x00008970      0x340 ../../library/bin/armv7\libc.a(gdtoa-gethex.o)
+ .debug_line    0x00008cb0       0xfc ../../library/bin/armv7\libc.a(gdtoa-hexnan.o)
+ .debug_line    0x00008dac       0xb3 ../../library/bin/armv7\liborcos.a(mem.o)
+
+.debug_str      0x00000000     0x25e4
+ .debug_str     0x00000000      0x27b ../../library/bin/armv7\static.o
+                                0x34a (size before relaxing)
+ .debug_str     0x0000027b      0x318 armv7/task_main.o
+                                0x468 (size before relaxing)
+ .debug_str     0x00000593      0x1c2 ../../library/bin/armv7\liborcos.a(io.o)
+                                0x35f (size before relaxing)
+ .debug_str     0x00000755       0x28 ../../library/bin/armv7\liborcos.a(signal.o)
+                                0x130 (size before relaxing)
+ .debug_str     0x0000077d      0x10d ../../library/bin/armv7\liborcos.a(net.o)
+                                0x2f1 (size before relaxing)
+ .debug_str     0x0000088a      0x143 ../../library/bin/armv7\liborcos.a(threads.o)
+                                0x291 (size before relaxing)
+ .debug_str     0x000009cd       0xd9 ../../library/bin/armv7\liborcos.a(string.o)
+                                0x21d (size before relaxing)
+ .debug_str     0x00000aa6      0x3a8 ../../library/bin/armv7\libc.a(printf.o)
+                                0x515 (size before relaxing)
+ .debug_str     0x00000e4e       0x2d ../../library/bin/armv7\libc.a(sprintf.o)
+                                0x519 (size before relaxing)
+ .debug_str     0x00000e7b       0x2c ../../library/bin/armv7\libc.a(sscanf.o)
+                                0x525 (size before relaxing)
+ .debug_str     0x00000ea7       0x6c ../../library/bin/armv7\libc.a(stdio.o)
+                                0x547 (size before relaxing)
+ .debug_str     0x00000f13      0x26a ../../library/bin/armv7\libc.a(vfprintf.o)
+                                0x84f (size before relaxing)
+ .debug_str     0x0000117d       0x29 ../../library/bin/armv7\libc.a(wsetup.o)
+                                0x50b (size before relaxing)
+ .debug_str     0x000011a6       0x2c ../../library/bin/armv7\libc.a(atoi.o)
+                                0x4de (size before relaxing)
+ .debug_str     0x000011d2      0x12b ../../library/bin/armv7\libc.a(dtoa.o)
+                                0x631 (size before relaxing)
+ .debug_str     0x000012fd       0x2b ../../library/bin/armv7\libc.a(malloc.o)
+                                0x4ff (size before relaxing)
+ .debug_str     0x00001328      0x34e ../../library/bin/armv7\libc.a(mallocr.o)
+                                0x880 (size before relaxing)
+ .debug_str     0x00001676       0x29 ../../library/bin/armv7\libc.a(mlock.o)
+                                0x4f4 (size before relaxing)
+ .debug_str     0x0000169f       0x75 ../../library/bin/armv7\libc.a(mprec.o)
+                                0x5eb (size before relaxing)
+ .debug_str     0x00001714       0x3d ../../library/bin/armv7\libc.a(strtol.o)
+                                0x511 (size before relaxing)
+ .debug_str     0x00001751       0x15 ../../library/bin/armv7\libc.a(memcmp.o)
+                                0x11a (size before relaxing)
+ .debug_str     0x00001766       0x40 ../../library/bin/armv7\libc.a(memmove.o)
+                                0x14d (size before relaxing)
+ .debug_str     0x000017a6       0x22 ../../library/bin/armv7\libc.a(memset.o)
+                                0x12e (size before relaxing)
+ .debug_str     0x000017c8       0x20 ../../library/bin/armv7\libc.a(strcat.o)
+                                0x125 (size before relaxing)
+ .debug_str     0x000017e8       0x1f ../../library/bin/armv7\libc.a(strcpy.o)
+                                0x135 (size before relaxing)
+ .debug_str     0x00001807       0x1f ../../library/bin/armv7\libc.a(strdup.o)
+                                0x4df (size before relaxing)
+ .debug_str     0x00001826       0x1c ../../library/bin/armv7\libc.a(strdup_r.o)
+                                0x4fc (size before relaxing)
+ .debug_str     0x00001842       0x15 ../../library/bin/armv7\libc.a(strlen.o)
+                                0x12d (size before relaxing)
+ .debug_str     0x00001857       0x16 ../../library/bin/armv7\libc.a(strncpy.o)
+                                0x144 (size before relaxing)
+ .debug_str     0x0000186d       0x21 ../../library/bin/armv7\libc.a(strndup.o)
+                                0x4e9 (size before relaxing)
+ .debug_str     0x0000188e       0x18 ../../library/bin/armv7\libc.a(strndup_r.o)
+                                0x4f7 (size before relaxing)
+ .debug_str     0x000018a6       0xbb ../../library/bin/armv7\libc.a(strstr.o)
+                                0x1e9 (size before relaxing)
+ .debug_str     0x00001961       0x20 ../../library/bin/armv7\libc.a(strtok.o)
+                                0x4ec (size before relaxing)
+ .debug_str     0x00001981       0x3b ../../library/bin/armv7\libc.a(strtok_r.o)
+                                0x14c (size before relaxing)
+ .debug_str     0x000019bc      0x148 ../../library/bin/armv7\libc.a(svfscanf.o)
+                                0x84a (size before relaxing)
+ .debug_str     0x00001b04       0x74 ../../library/bin/armv7\libc.a(vfprintfi.o)
+                                0x684 (size before relaxing)
+ .debug_str     0x00001b78        0xb ../../library/bin/armv7\libc.a(vfprintfs.o)
+                                0x81a (size before relaxing)
+ .debug_str     0x00001b83       0x21 ../../library/bin/armv7\libc.a(vfprintfsi.o)
+                                0x665 (size before relaxing)
+ .debug_str     0x00001ba4      0x115 ../../library/bin/armv7\libc.a(libgloss.o)
+                                0x304 (size before relaxing)
+ .debug_str     0x00001cb9       0x1c ../../library/bin/armv7\libc.a(ctype_.o)
+                                 0x9d (size before relaxing)
+ .debug_str     0x00001cd5       0x16 ../../library/bin/armv7\libc.a(iswspace.o)
+                                0x12b (size before relaxing)
+ .debug_str     0x00001ceb       0x13 ../../library/bin/armv7\libc.a(errno.o)
+                                0x4d4 (size before relaxing)
+ .debug_str     0x00001cfe       0xe1 ../../library/bin/armv7\libc.a(locale.o)
+                                0x748 (size before relaxing)
+ .debug_str     0x00001ddf       0x14 ../../library/bin/armv7\libc.a(closer.o)
+                                0x4d0 (size before relaxing)
+ .debug_str     0x00001df3       0x33 ../../library/bin/armv7\libc.a(impure.o)
+                                0x4ec (size before relaxing)
+ .debug_str     0x00001e26       0x14 ../../library/bin/armv7\libc.a(lseekr.o)
+                                0x4de (size before relaxing)
+ .debug_str     0x00001e3a       0x13 ../../library/bin/armv7\libc.a(readr.o)
+                                0x4de (size before relaxing)
+ .debug_str     0x00001e4d       0x3f ../../library/bin/armv7\libc.a(reent.o)
+                                0x50b (size before relaxing)
+ .debug_str     0x00001e8c       0x13 ../../library/bin/armv7\libc.a(sbrkr.o)
+                                0x4e3 (size before relaxing)
+ .debug_str     0x00001e9f       0x14 ../../library/bin/armv7\libc.a(writer.o)
+                                0x4e0 (size before relaxing)
+ .debug_str     0x00001eb3      0x104 ../../library/bin/armv7\libc.a(findfp.o)
+                                0x613 (size before relaxing)
+ .debug_str     0x00001fb7       0x22 ../../library/bin/armv7\libc.a(fiprintf.o)
+                                0x51c (size before relaxing)
+ .debug_str     0x00001fd9       0x21 ../../library/bin/armv7\libc.a(fputc.o)
+                                0x512 (size before relaxing)
+ .debug_str     0x00001ffa       0x2e ../../library/bin/armv7\libc.a(fvwrite.o)
+                                0x57e (size before relaxing)
+ .debug_str     0x00002028       0x22 ../../library/bin/armv7\libc.a(fwalk.o)
+                                0x4f1 (size before relaxing)
+ .debug_str     0x0000204a       0xf4 ../../library/bin/armv7\libc.a(makebuf.o)
+                                0x5ee (size before relaxing)
+ .debug_str     0x0000213e       0x1c ../../library/bin/armv7\libc.a(putc.o)
+                                0x50c (size before relaxing)
+ .debug_str     0x0000215a       0x1b ../../library/bin/armv7\libc.a(sccl.o)
+                                0x120 (size before relaxing)
+ .debug_str     0x00002175       0x1a ../../library/bin/armv7\libc.a(wbuf.o)
+                                0x510 (size before relaxing)
+ .debug_str     0x0000218f       0x2e ../../library/bin/armv7\libc.a(mbrtowc.o)
+                                0x522 (size before relaxing)
+ .debug_str     0x000021bd       0x36 ../../library/bin/armv7\libc.a(mbtowc_r.o)
+                                0x524 (size before relaxing)
+ .debug_str     0x000021f3      0x1b1 ../../library/bin/armv7\libc.a(strtod.o)
+                                0x8ed (size before relaxing)
+ .debug_str     0x000023a4       0x29 ../../library/bin/armv7\libc.a(strtoul.o)
+                                0x514 (size before relaxing)
+ .debug_str     0x000023cd       0x15 ../../library/bin/armv7\libc.a(strchr.o)
+                                0x125 (size before relaxing)
+ .debug_str     0x000023e2       0x16 ../../library/bin/armv7\libc.a(strncmp.o)
+                                0x11c (size before relaxing)
+ .debug_str     0x000023f8       0x1f ../../library/bin/armv7\libc.a(svfiscanf.o)
+                                0x669 (size before relaxing)
+ .debug_str     0x00002417       0x1a ../../library/bin/armv7\libc.a(fstatr.o)
+                                0x5c3 (size before relaxing)
+ .debug_str     0x00002431       0x15 ../../library/bin/armv7\libc.a(isattyr.o)
+                                0x4da (size before relaxing)
+ .debug_str     0x00002446       0x30 ../../library/bin/armv7\libc.a(fclose.o)
+                                0x539 (size before relaxing)
+ .debug_str     0x00002476       0x2c ../../library/bin/armv7\libc.a(fflush.o)
+                                0x54c (size before relaxing)
+ .debug_str     0x000024a2       0x25 ../../library/bin/armv7\libc.a(ungetc.o)
+                                0x537 (size before relaxing)
+ .debug_str     0x000024c7       0xaa ../../library/bin/armv7\libc.a(gdtoa-gethex.o)
+                                0x855 (size before relaxing)
+ .debug_str     0x00002571       0x23 ../../library/bin/armv7\libc.a(gdtoa-hexnan.o)
+                                0x23d (size before relaxing)
+ .debug_str     0x00002594       0x50 ../../library/bin/armv7\liborcos.a(mem.o)
+                                0x185 (size before relaxing)
+
+.comment        0x00000000       0x70
+ .comment       0x00000000       0x70 ../../library/bin/armv7\static.o
+                                 0x71 (size before relaxing)
+ .comment       0x00000000       0x71 armv7/task_main.o
+ .comment       0x00000000       0x71 ../../library/bin/armv7\liborcos.a(io.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\liborcos.a(signal.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\liborcos.a(net.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\liborcos.a(threads.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\liborcos.a(string.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(printf.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(sprintf.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(sscanf.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(stdio.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(vfprintf.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(wsetup.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(atoi.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(dtoa.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(malloc.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(mallocr.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(mlock.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(mprec.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(strtol.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(memcmp.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(memmove.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(memset.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(strcat.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(strcpy.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(strdup.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(strdup_r.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(strlen.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(strncpy.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(strndup.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(strndup_r.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(strstr.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(strtok.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(strtok_r.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(svfscanf.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(vfprintfi.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(vfprintfs.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(vfprintfsi.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(libgloss.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(ctype_.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(iswspace.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(errno.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(locale.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(closer.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(impure.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(lseekr.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(readr.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(reent.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(sbrkr.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(writer.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(findfp.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(fiprintf.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(fputc.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(fvwrite.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(fwalk.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(makebuf.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(putc.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(sccl.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(wbuf.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(mbrtowc.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(mbtowc_r.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(strtod.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(strtoul.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(strchr.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(strncmp.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(svfiscanf.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(fstatr.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(isattyr.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(fclose.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(fflush.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(ungetc.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(gdtoa-gethex.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\libc.a(gdtoa-hexnan.o)
+ .comment       0x00000000       0x71 ../../library/bin/armv7\liborcos.a(mem.o)
+
+.ARM.attributes
+                0x00000000       0x37
+ .ARM.attributes
+                0x00000000       0x35 ../../library/bin/armv7\static.o
+ .ARM.attributes
+                0x00000035       0x35 armv7/task_main.o
+ .ARM.attributes
+                0x0000006a       0x35 ../../library/bin/armv7\liborcos.a(io.o)
+ .ARM.attributes
+                0x0000009f       0x35 ../../library/bin/armv7\liborcos.a(signal.o)
+ .ARM.attributes
+                0x000000d4       0x35 ../../library/bin/armv7\liborcos.a(net.o)
+ .ARM.attributes
+                0x00000109       0x35 ../../library/bin/armv7\liborcos.a(threads.o)
+ .ARM.attributes
+                0x0000013e       0x29 ../../library/bin/armv7\liborcos.a(syscall.o)
+ .ARM.attributes
+                0x00000167       0x35 ../../library/bin/armv7\liborcos.a(string.o)
+ .ARM.attributes
+                0x0000019c       0x35 ../../library/bin/armv7\libc.a(printf.o)
+ .ARM.attributes
+                0x000001d1       0x35 ../../library/bin/armv7\libc.a(sprintf.o)
+ .ARM.attributes
+                0x00000206       0x35 ../../library/bin/armv7\libc.a(sscanf.o)
+ .ARM.attributes
+                0x0000023b       0x35 ../../library/bin/armv7\libc.a(stdio.o)
+ .ARM.attributes
+                0x00000270       0x35 ../../library/bin/armv7\libc.a(vfprintf.o)
+ .ARM.attributes
+                0x000002a5       0x35 ../../library/bin/armv7\libc.a(wsetup.o)
+ .ARM.attributes
+                0x000002da       0x35 ../../library/bin/armv7\libc.a(atoi.o)
+ .ARM.attributes
+                0x0000030f       0x35 ../../library/bin/armv7\libc.a(dtoa.o)
+ .ARM.attributes
+                0x00000344       0x35 ../../library/bin/armv7\libc.a(malloc.o)
+ .ARM.attributes
+                0x00000379       0x35 ../../library/bin/armv7\libc.a(mallocr.o)
+ .ARM.attributes
+                0x000003ae       0x35 ../../library/bin/armv7\libc.a(mlock.o)
+ .ARM.attributes
+                0x000003e3       0x35 ../../library/bin/armv7\libc.a(mprec.o)
+ .ARM.attributes
+                0x00000418       0x35 ../../library/bin/armv7\libc.a(strtol.o)
+ .ARM.attributes
+                0x0000044d       0x1b ../../library/bin/armv7\libc.a(memchr.o)
+ .ARM.attributes
+                0x00000468       0x35 ../../library/bin/armv7\libc.a(memcmp.o)
+ .ARM.attributes
+                0x0000049d       0x19 ../../library/bin/armv7\libc.a(memcpy.o)
+ .ARM.attributes
+                0x000004b6       0x35 ../../library/bin/armv7\libc.a(memmove.o)
+ .ARM.attributes
+                0x000004eb       0x35 ../../library/bin/armv7\libc.a(memset.o)
+ .ARM.attributes
+                0x00000520       0x35 ../../library/bin/armv7\libc.a(strcat.o)
+ .ARM.attributes
+                0x00000555       0x25 ../../library/bin/armv7\libc.a(strcmp.o)
+ .ARM.attributes
+                0x0000057a       0x35 ../../library/bin/armv7\libc.a(strcpy.o)
+ .ARM.attributes
+                0x000005af       0x35 ../../library/bin/armv7\libc.a(strdup.o)
+ .ARM.attributes
+                0x000005e4       0x35 ../../library/bin/armv7\libc.a(strdup_r.o)
+ .ARM.attributes
+                0x00000619       0x35 ../../library/bin/armv7\libc.a(strlen.o)
+ .ARM.attributes
+                0x0000064e       0x35 ../../library/bin/armv7\libc.a(strncpy.o)
+ .ARM.attributes
+                0x00000683       0x35 ../../library/bin/armv7\libc.a(strndup.o)
+ .ARM.attributes
+                0x000006b8       0x35 ../../library/bin/armv7\libc.a(strndup_r.o)
+ .ARM.attributes
+                0x000006ed       0x35 ../../library/bin/armv7\libc.a(strstr.o)
+ .ARM.attributes
+                0x00000722       0x35 ../../library/bin/armv7\libc.a(strtok.o)
+ .ARM.attributes
+                0x00000757       0x35 ../../library/bin/armv7\libc.a(strtok_r.o)
+ .ARM.attributes
+                0x0000078c       0x35 ../../library/bin/armv7\libc.a(svfscanf.o)
+ .ARM.attributes
+                0x000007c1       0x35 ../../library/bin/armv7\libc.a(vfprintfi.o)
+ .ARM.attributes
+                0x000007f6       0x35 ../../library/bin/armv7\libc.a(vfprintfs.o)
+ .ARM.attributes
+                0x0000082b       0x35 ../../library/bin/armv7\libc.a(vfprintfsi.o)
+ .ARM.attributes
+                0x00000860       0x35 ../../library/bin/armv7\libc.a(libgloss.o)
+ .ARM.attributes
+                0x00000895       0x35 ../../library/bin/armv7\libc.a(ctype_.o)
+ .ARM.attributes
+                0x000008ca       0x35 ../../library/bin/armv7\libc.a(iswspace.o)
+ .ARM.attributes
+                0x000008ff       0x35 ../../library/bin/armv7\libc.a(errno.o)
+ .ARM.attributes
+                0x00000934       0x35 ../../library/bin/armv7\libc.a(locale.o)
+ .ARM.attributes
+                0x00000969       0x35 ../../library/bin/armv7\libc.a(closer.o)
+ .ARM.attributes
+                0x0000099e       0x35 ../../library/bin/armv7\libc.a(impure.o)
+ .ARM.attributes
+                0x000009d3       0x35 ../../library/bin/armv7\libc.a(lseekr.o)
+ .ARM.attributes
+                0x00000a08       0x35 ../../library/bin/armv7\libc.a(readr.o)
+ .ARM.attributes
+                0x00000a3d       0x35 ../../library/bin/armv7\libc.a(reent.o)
+ .ARM.attributes
+                0x00000a72       0x35 ../../library/bin/armv7\libc.a(sbrkr.o)
+ .ARM.attributes
+                0x00000aa7       0x35 ../../library/bin/armv7\libc.a(writer.o)
+ .ARM.attributes
+                0x00000adc       0x35 ../../library/bin/armv7\libc.a(findfp.o)
+ .ARM.attributes
+                0x00000b11       0x35 ../../library/bin/armv7\libc.a(fiprintf.o)
+ .ARM.attributes
+                0x00000b46       0x35 ../../library/bin/armv7\libc.a(fputc.o)
+ .ARM.attributes
+                0x00000b7b       0x35 ../../library/bin/armv7\libc.a(fvwrite.o)
+ .ARM.attributes
+                0x00000bb0       0x35 ../../library/bin/armv7\libc.a(fwalk.o)
+ .ARM.attributes
+                0x00000be5       0x35 ../../library/bin/armv7\libc.a(makebuf.o)
+ .ARM.attributes
+                0x00000c1a       0x35 ../../library/bin/armv7\libc.a(putc.o)
+ .ARM.attributes
+                0x00000c4f       0x35 ../../library/bin/armv7\libc.a(sccl.o)
+ .ARM.attributes
+                0x00000c84       0x35 ../../library/bin/armv7\libc.a(wbuf.o)
+ .ARM.attributes
+                0x00000cb9       0x35 ../../library/bin/armv7\libc.a(mbrtowc.o)
+ .ARM.attributes
+                0x00000cee       0x35 ../../library/bin/armv7\libc.a(mbtowc_r.o)
+ .ARM.attributes
+                0x00000d23       0x35 ../../library/bin/armv7\libc.a(strtod.o)
+ .ARM.attributes
+                0x00000d58       0x35 ../../library/bin/armv7\libc.a(strtoul.o)
+ .ARM.attributes
+                0x00000d8d       0x35 ../../library/bin/armv7\libc.a(strchr.o)
+ .ARM.attributes
+                0x00000dc2       0x35 ../../library/bin/armv7\libc.a(strncmp.o)
+ .ARM.attributes
+                0x00000df7       0x35 ../../library/bin/armv7\libc.a(svfiscanf.o)
+ .ARM.attributes
+                0x00000e2c       0x35 ../../library/bin/armv7\libc.a(fstatr.o)
+ .ARM.attributes
+                0x00000e61       0x35 ../../library/bin/armv7\libc.a(isattyr.o)
+ .ARM.attributes
+                0x00000e96       0x35 ../../library/bin/armv7\libc.a(fclose.o)
+ .ARM.attributes
+                0x00000ecb       0x35 ../../library/bin/armv7\libc.a(fflush.o)
+ .ARM.attributes
+                0x00000f00       0x35 ../../library/bin/armv7\libc.a(ungetc.o)
+ .ARM.attributes
+                0x00000f35       0x35 ../../library/bin/armv7\libc.a(gdtoa-gethex.o)
+ .ARM.attributes
+                0x00000f6a       0x35 ../../library/bin/armv7\libc.a(gdtoa-hexnan.o)
+ .ARM.attributes
+                0x00000f9f       0x30 d:/toolchains/armgcc-4-7-4/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib\libm.a(lib_a-s_fpclassify.o)
+ .ARM.attributes
+                0x00000fcf       0x30 d:/toolchains/armgcc-4-7-4/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib\libm.a(lib_a-sf_nan.o)
+ .ARM.attributes
+                0x00000fff       0x19 D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_udivsi3.o)
+ .ARM.attributes
+                0x00001018       0x19 D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_divsi3.o)
+ .ARM.attributes
+                0x00001031       0x19 D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_dvmd_tls.o)
+ .ARM.attributes
+                0x0000104a       0x19 D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_arm_addsubdf3.o)
+ .ARM.attributes
+                0x00001063       0x19 D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_arm_muldivdf3.o)
+ .ARM.attributes
+                0x0000107c       0x19 D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_arm_cmpdf2.o)
+ .ARM.attributes
+                0x00001095       0x19 D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_arm_fixdfsi.o)
+ .ARM.attributes
+                0x000010ae       0x19 D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_arm_fixunsdfsi.o)
+ .ARM.attributes
+                0x000010c7       0x19 D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_arm_truncdfsf2.o)
+ .ARM.attributes
+                0x000010e0       0x35 ../../library/bin/armv7\liborcos.a(mem.o)
+
+.debug_frame    0x00000000     0x1e78
+ .debug_frame   0x00000000      0x108 ../../library/bin/armv7\static.o
+ .debug_frame   0x00000108       0x80 armv7/task_main.o
+ .debug_frame   0x00000188      0x1b4 ../../library/bin/armv7\liborcos.a(io.o)
+ .debug_frame   0x0000033c       0x38 ../../library/bin/armv7\liborcos.a(signal.o)
+ .debug_frame   0x00000374      0x140 ../../library/bin/armv7\liborcos.a(net.o)
+ .debug_frame   0x000004b4      0x150 ../../library/bin/armv7\liborcos.a(threads.o)
+ .debug_frame   0x00000604       0xf8 ../../library/bin/armv7\liborcos.a(string.o)
+ .debug_frame   0x000006fc       0x58 ../../library/bin/armv7\libc.a(printf.o)
+ .debug_frame   0x00000754       0x64 ../../library/bin/armv7\libc.a(sprintf.o)
+ .debug_frame   0x000007b8       0x64 ../../library/bin/armv7\libc.a(sscanf.o)
+ .debug_frame   0x0000081c       0x80 ../../library/bin/armv7\libc.a(stdio.o)
+ .debug_frame   0x0000089c       0x54 ../../library/bin/armv7\libc.a(vfprintf.o)
+ .debug_frame   0x000008f0       0x2c ../../library/bin/armv7\libc.a(wsetup.o)
+ .debug_frame   0x0000091c       0x30 ../../library/bin/armv7\libc.a(atoi.o)
+ .debug_frame   0x0000094c       0x64 ../../library/bin/armv7\libc.a(dtoa.o)
+ .debug_frame   0x000009b0       0x30 ../../library/bin/armv7\libc.a(malloc.o)
+ .debug_frame   0x000009e0      0x190 ../../library/bin/armv7\libc.a(mallocr.o)
+ .debug_frame   0x00000b70       0x30 ../../library/bin/armv7\libc.a(mlock.o)
+ .debug_frame   0x00000ba0      0x238 ../../library/bin/armv7\libc.a(mprec.o)
+ .debug_frame   0x00000dd8       0x50 ../../library/bin/armv7\libc.a(strtol.o)
+ .debug_frame   0x00000e28       0x2c ../../library/bin/armv7\libc.a(memcmp.o)
+ .debug_frame   0x00000e54       0x2c ../../library/bin/armv7\libc.a(memmove.o)
+ .debug_frame   0x00000e80       0x2c ../../library/bin/armv7\libc.a(memset.o)
+ .debug_frame   0x00000eac       0x2c ../../library/bin/armv7\libc.a(strcat.o)
+ .debug_frame   0x00000ed8       0x28 ../../library/bin/armv7\libc.a(strcpy.o)
+ .debug_frame   0x00000f00       0x20 ../../library/bin/armv7\libc.a(strdup.o)
+ .debug_frame   0x00000f20       0x2c ../../library/bin/armv7\libc.a(strdup_r.o)
+ .debug_frame   0x00000f4c       0x28 ../../library/bin/armv7\libc.a(strlen.o)
+ .debug_frame   0x00000f74       0x2c ../../library/bin/armv7\libc.a(strncpy.o)
+ .debug_frame   0x00000fa0       0x20 ../../library/bin/armv7\libc.a(strndup.o)
+ .debug_frame   0x00000fc0       0x30 ../../library/bin/armv7\libc.a(strndup_r.o)
+ .debug_frame   0x00000ff0       0x88 ../../library/bin/armv7\libc.a(strstr.o)
+ .debug_frame   0x00001078       0x20 ../../library/bin/armv7\libc.a(strtok.o)
+ .debug_frame   0x00001098       0x3c ../../library/bin/armv7\libc.a(strtok_r.o)
+ .debug_frame   0x000010d4       0x3c ../../library/bin/armv7\libc.a(svfscanf.o)
+ .debug_frame   0x00001110       0x90 ../../library/bin/armv7\libc.a(vfprintfi.o)
+ .debug_frame   0x000011a0       0x3c ../../library/bin/armv7\libc.a(vfprintfs.o)
+ .debug_frame   0x000011dc       0x88 ../../library/bin/armv7\libc.a(vfprintfsi.o)
+ .debug_frame   0x00001264      0x1e0 ../../library/bin/armv7\libc.a(libgloss.o)
+ .debug_frame   0x00001444       0x20 ../../library/bin/armv7\libc.a(iswspace.o)
+ .debug_frame   0x00001464       0x20 ../../library/bin/armv7\libc.a(errno.o)
+ .debug_frame   0x00001484       0x98 ../../library/bin/armv7\libc.a(locale.o)
+ .debug_frame   0x0000151c       0x2c ../../library/bin/armv7\libc.a(closer.o)
+ .debug_frame   0x00001548       0x2c ../../library/bin/armv7\libc.a(lseekr.o)
+ .debug_frame   0x00001574       0x2c ../../library/bin/armv7\libc.a(readr.o)
+ .debug_frame   0x000015a0       0x48 ../../library/bin/armv7\libc.a(reent.o)
+ .debug_frame   0x000015e8       0x2c ../../library/bin/armv7\libc.a(sbrkr.o)
+ .debug_frame   0x00001614       0x2c ../../library/bin/armv7\libc.a(writer.o)
+ .debug_frame   0x00001640      0x11c ../../library/bin/armv7\libc.a(findfp.o)
+ .debug_frame   0x0000175c       0x58 ../../library/bin/armv7\libc.a(fiprintf.o)
+ .debug_frame   0x000017b4       0x48 ../../library/bin/armv7\libc.a(fputc.o)
+ .debug_frame   0x000017fc       0x38 ../../library/bin/armv7\libc.a(fvwrite.o)
+ .debug_frame   0x00001834       0x54 ../../library/bin/armv7\libc.a(fwalk.o)
+ .debug_frame   0x00001888       0x30 ../../library/bin/armv7\libc.a(makebuf.o)
+ .debug_frame   0x000018b8       0x48 ../../library/bin/armv7\libc.a(putc.o)
+ .debug_frame   0x00001900       0x2c ../../library/bin/armv7\libc.a(sccl.o)
+ .debug_frame   0x0000192c       0x3c ../../library/bin/armv7\libc.a(wbuf.o)
+ .debug_frame   0x00001968       0x58 ../../library/bin/armv7\libc.a(mbrtowc.o)
+ .debug_frame   0x000019c0       0x48 ../../library/bin/armv7\libc.a(mbtowc_r.o)
+ .debug_frame   0x00001a08       0x88 ../../library/bin/armv7\libc.a(strtod.o)
+ .debug_frame   0x00001a90       0x50 ../../library/bin/armv7\libc.a(strtoul.o)
+ .debug_frame   0x00001ae0       0x2c ../../library/bin/armv7\libc.a(strchr.o)
+ .debug_frame   0x00001b0c       0x2c ../../library/bin/armv7\libc.a(strncmp.o)
+ .debug_frame   0x00001b38       0x98 ../../library/bin/armv7\libc.a(svfiscanf.o)
+ .debug_frame   0x00001bd0       0x2c ../../library/bin/armv7\libc.a(fstatr.o)
+ .debug_frame   0x00001bfc       0x2c ../../library/bin/armv7\libc.a(isattyr.o)
+ .debug_frame   0x00001c28       0x3c ../../library/bin/armv7\libc.a(fclose.o)
+ .debug_frame   0x00001c64       0x5c ../../library/bin/armv7\libc.a(fflush.o)
+ .debug_frame   0x00001cc0       0x5c ../../library/bin/armv7\libc.a(ungetc.o)
+ .debug_frame   0x00001d1c       0x58 ../../library/bin/armv7\libc.a(gdtoa-gethex.o)
+ .debug_frame   0x00001d74       0x38 ../../library/bin/armv7\libc.a(gdtoa-hexnan.o)
+ .debug_frame   0x00001dac       0x20 d:/toolchains/armgcc-4-7-4/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib\libm.a(lib_a-s_fpclassify.o)
+ .debug_frame   0x00001dcc       0x20 d:/toolchains/armgcc-4-7-4/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib\libm.a(lib_a-sf_nan.o)
+ .debug_frame   0x00001dec       0x20 D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_udivsi3.o)
+ .debug_frame   0x00001e0c       0x20 D:/toolchains/armgcc-4-7-4/lib/gcc/arm-none-eabi/4.7.4/armv7-ar/thumb/\libgcc.a(_divsi3.o)
+ .debug_frame   0x00001e2c       0x4c ../../library/bin/armv7\liborcos.a(mem.o)

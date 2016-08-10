@@ -153,7 +153,7 @@ typedef struct {
     /* pad struct for 32 byte alignment */
      volatile unint4 unused[3];
 #endif
-} qTD __attribute__((aligned(4)));
+} qTD;
 
 /* Queue Head (QH). */
 typedef struct {
@@ -260,6 +260,8 @@ private:
     unint4 async_qh_reg;
 
     ErrorT resetPort(unint1 port);
+
+    void dumpAsyncList();
 public:
     /*****************************************************************************
      * Method: USB_EHCI_Host_Controller(unint4 ehci_dev_base)

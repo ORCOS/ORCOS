@@ -104,7 +104,7 @@ endif
 #inc
 KOBJ += stringtools.o memtools.o sprintf.o putc.o libgccmath.o endian.o crc32.o random.o
 #kernel
-KOBJ += kwait.o kernelmain.o Kernel.o KernelServiceThread.o
+KOBJ += kwait.o kernelmain.o Kernel.o KernelServiceThread.o 
 #mem
 KOBJ += new.o timers.o
 # scheduler
@@ -349,14 +349,17 @@ dwarf_test:
 	@echo $(ADDR)
 	
 
+#$(OUTPUT_DIR)liborcoskernel.a 
 # final linking rule		
-$(OUTPUT_DIR)kernel.elf: output/tasktable.o $(OUTPUT_DIR)liborcoskernel.a 
+$(OUTPUT_DIR)kernel.elf: output/tasktable.o $(BUILD_OBJ)
 	@echo
 	@echo kernel.mk[LD] : Linking $@
 	$(RM) $(OUTPUT_DIR)kernel.elf
-	$(RM) $(OUTPUT_DIR)kernel_unpatched.elf
-	$(CC) -L$(OUTPUT_DIR) output/tasktable.o $(OUTPUT_DIR)liborcoskernel.a  $(LDFLAGS) -g -o $(OUTPUT_DIR)kernel.elf
+	$(RM) $(OUTPUT_DIR)kernel_unpatched.elf	
+	$(CC) -L$(OUTPUT_DIR) output/tasktable.o $(BUILD_OBJ) $(LDFLAGS) -g -o $(OUTPUT_DIR)kernel.elf
 	$(CP) $(OUTPUT_DIR)kernel.elf $(OUTPUT_DIR)kernel_unpatched.elf
+	
+	#$(OUTPUT_DIR)liborcoskernel.a
 	
 # Rule to patch in the Method signature table for dwarf debugging 
 # must be a seperate rule called seperatly as the mak processes does otherwise not see the correct files...

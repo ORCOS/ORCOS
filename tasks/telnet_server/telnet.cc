@@ -73,7 +73,7 @@ static char current_dir[256];
 static char recvMsg[1024];
 
 
-static const char* help_msg =   "OCROS Telnet Terminal\r\nSupported commands:"LINEFEED
+static const char* help_msg =   "OCROS Telnet Terminal" LINEFEED "Supported commands:"LINEFEED
                                 "help      - Shows this message"LINEFEED
                                 "cd        - Change Directory"LINEFEED
                                 "ls        - List Directory"LINEFEED
@@ -186,7 +186,7 @@ size_t sendStr(char* str) {
 void handleCommand(int socket, int command_length) {
     if (command_length == 0)
     {
-        sendStr("\n");
+        sendStr(LINEFEED);
     }
     else
     {
@@ -417,7 +417,7 @@ extern "C" int main(int argc, char** argv) {
     while (1) {
         newsock = listen(mysock, 1);
         if (newsock < 0) {
-            printf("Listen error %d: %s\n", newsock, strerror(newsock));
+            printf("Listen error %d: %s" LINEFEED, newsock, strerror(newsock));
             continue;
         }
 

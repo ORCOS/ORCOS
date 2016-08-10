@@ -73,7 +73,10 @@ typedef struct {
     char    name[0]; /* variable length name entry */
 } Directory_Entry_t;
 
-
+typedef struct {
+    unint4  datetime;   /* since 1970-01-01 00:00.00 UTC */
+    int4    gmtoffset;  /* offset in hours [-12, 12] */
+} SetDateTime_t;
 
 typedef struct {
     char    hwaddr[8];

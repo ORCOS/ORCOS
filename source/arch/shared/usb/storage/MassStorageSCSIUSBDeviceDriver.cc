@@ -472,6 +472,22 @@ MassStorageSCSIUSBDeviceDriver::~MassStorageSCSIUSBDeviceDriver() {
     BlockDeviceDriver::freeBlockDeviceIDs.freeID(this->deviceNumber);
 }
 
+
+
+/* USB Device Driver registration */
+USB_DRIVER(scsi_ms) {
+        next : 0,
+        NAME("scsi_ms"),
+        AUTHOR("Daniel Baldin"),
+        VERSION("1.0"),
+        ID_TABLE(0),
+        USB_CLASS(0x8, 0x6, 0x50),
+        USB_DRIVER_CLASS(MassStorageSCSIUSBDeviceDriver)
+};
+
+REGISTER_DRIVER(scsi_ms);
+
+#if 0
 /*****************************************************************************
  * Method: MassStorageSCSIUSBDeviceDriverFactory::isDriverFor(USBDevice* dev)
  *
@@ -492,3 +508,4 @@ bool MassStorageSCSIUSBDeviceDriverFactory::isDriverFor(USBDevice* dev) {
 MassStorageSCSIUSBDeviceDriverFactory::MassStorageSCSIUSBDeviceDriverFactory(char* p_name) :
         USBDeviceDriverFactory(p_name) {
 }
+#endif

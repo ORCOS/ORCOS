@@ -11,6 +11,7 @@
 #include "USBHostController.hh"
 #include "filesystem/Resource.hh"
 #include "USBDriverLibrary.hh"
+#include "inc/Bitmap.hh"
 
 class USB_Host_Controller;
 class USBHub;

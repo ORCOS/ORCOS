@@ -4,7 +4,7 @@
 -include armv7.mk
 
 C_FILES = $(shell find libc/argz libc/ctype libc/errno libc/misc libc/locale libc/reent libc/search libc/stdio libc/stdlib libc/string libc/time -type f -name '*.[c|S]')
-LIBC_FILES = $(filter-out engine.c, $(notdir $(C_FILES) access.o aeabi_memcpy-armv7a.o memchr.o memcpy.o setjmp.o strcmp.o strcpy.o strlen.o basename.o dirname.o vfprintfi.o vfprintfs.o vfprintfsi.o libgloss.o))
+LIBC_FILES = $(filter-out engine.c, $(notdir $(C_FILES) access.o aeabi_memcpy-armv7a.o memchr.o memcpy.o setjmp.o strcmp.o strcpy.o strlen.o basename.o dirname.o svfiwscanf.o svfwscanf.o vfiwscanf.o vfwscanf.o svfiscanf.o svfscanf.o vfiscanf.o vfscanf.o vfprintfi.o vfprintfs.o vfprintfsi.o libgloss.o))
 LIBC_DIRS  = $(dir $(C_FILES) libc/machine/arm/ libc/unix/ libc/)
 #---------------------------------------------------------------------------------------------------------------------------------------
 #                                                      Compile/Link Settings
@@ -82,6 +82,39 @@ $(OUTPUT_DIR)vfprintfsi.o : vfprintf.c
 $(OUTPUT_DIR)vfprintfs.o : vfprintf.c
 	@echo makelib.mk[C++]: Compiling  $@
 	@$(CC) $(CFLAGS) $(OPT_FLAGS) -DSTRING_ONLY libc/stdio/vfprintf.c --output $@
+	
+	
+$(OUTPUT_DIR)vfscanf.o: vfscanf.c
+	@echo makelib.mk[C++]: Compiling  $@
+	@$(CC) $(CFLAGS) $(OPT_FLAGS) -c $(srcdir)/vfscanf.c -o $@
+
+$(OUTPUT_DIR)vfiscanf.o: vfscanf.c
+	@echo makelib.mk[C++]: Compiling  $@
+	@$(CC) $(CFLAGS) $(OPT_FLAGS) -DINTEGER_ONLY -c libc/stdio/vfscanf.c -o $@
+
+$(OUTPUT_DIR)svfscanf.o: vfscanf.c
+	@echo makelib.mk[C++]: Compiling  $@
+	@$(CC) $(CFLAGS) $(OPT_FLAGS) -DSTRING_ONLY -c libc/stdio/vfscanf.c -o $@
+
+$(OUTPUT_DIR)svfiscanf.o: vfscanf.c
+	@echo makelib.mk[C++]: Compiling  $@
+	@$(CC) $(CFLAGS) $(OPT_FLAGS) -DINTEGER_ONLY -DSTRING_ONLY -c libc/stdio/vfscanf.c -o $@
+
+$(OUTPUT_DIR)vfwscanf.o: vfwscanf.c
+	@echo makelib.mk[C++]: Compiling  $@
+	@$(CC) $(CFLAGS) $(OPT_FLAGS) -c libc/stdio/vfwscanf.c -o $@
+
+$(OUTPUT_DIR)vfiwscanf.o: vfwscanf.c
+	@echo makelib.mk[C++]: Compiling  $@
+	@$(CC) $(CFLAGS) $(OPT_FLAGS) -DINTEGER_ONLY -c libc/stdio/vfwscanf.c -o $@
+
+$(OUTPUT_DIR)svfwscanf.o: vfwscanf.c
+	@echo makelib.mk[C++]: Compiling  $@
+	@$(CC) $(CFLAGS) $(OPT_FLAGS) -DSTRING_ONLY -c libc/stdio/vfwscanf.c -o $@
+
+$(OUTPUT_DIR)svfiwscanf.o: vfwscanf.c
+	@echo makelib.mk[C++]: Compiling  $@
+	@$(CC) $(CFLAGS) $(OPT_FLAGS) -DINTEGER_ONLY -DSTRING_ONLY -c libc/stdio/vfwscanf.c -o $@	
 	
 #rule for compiling c files with header	
 $(OUTPUT_DIR)%.o : %.c %.h 

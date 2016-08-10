@@ -46,6 +46,10 @@ unint4 getDateTime() {
     return (syscall(cGetDateTimeSyscallId));
 }
 
+int setDateTime(SetDateTime_t* dateTime) {
+    return (syscall(cSetDateTimeSyscallId, dateTime));
+}
+
 
 sighandler_t signal(int signum, sighandler_t handler) {
     // install signal handler

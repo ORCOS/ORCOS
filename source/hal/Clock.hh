@@ -33,12 +33,16 @@
 class Clock: public CallableObject {
 private:
     /* The Date Time (since 1970) at synchronization point */
-    unint4 synchDateTime;
+    unint4  synchDateTime;
 
     /* The local time at synchronization point*/
-    TimeT synchLocalCycles;
+    TimeT   synchLocalCycles;
 
-    unint4 frequency;
+    /* Clock frequency. RO exported to userspace by sysfs*/
+    unint4  frequency;
+
+    /* GMT offset as set by userspace */
+    int     gmtOffset;
 
 public:
     explicit Clock(unint4 frequency);
@@ -76,6 +80,18 @@ public:
      *  perform NTP time synchronization if enabled.
      *******************************************************************************/
     void callbackFunc(void* param);
+
+    /*****************************************************************************
+     * Method: setDateTime(void* param)
+     *
+     * @description
+     *  Sets the current datetime and GMT offset.
+     *  Called by setDateTime system call.
+     *
+     * @param
+     *  gmtOffset Offset in hours
+     *******************************************************************************/
+    ErrorT setDateTime(unint4 dateTime, int4 gmtOffset);
 
     /*****************************************************************************
      * Method: reset()

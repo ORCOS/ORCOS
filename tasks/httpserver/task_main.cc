@@ -35,6 +35,23 @@
 char* ErrorMsg = "HTTP/1.1 500 Server Error\r\nContent-Length: 23\r\n\r\nNot supported by Server";
 char* NotFoundMsg = "HTTP/1.1 404 Not Found\r\nContent-Length: 14\r\n\r\nFile not found";
 
+
+unint4 parseModifiedHeader(char* request)
+{
+    int pos = strpos("If-Modified-Since: ", request);
+    if (pos < 0) return 0;
+
+    char* datestr = request + pos + 19;
+    pos = strpos("\r\n", request);
+    if (pos < 0) return 0;
+    datestr[pos] = 0;
+
+    unint4 datetime;
+    datetime = strtol(datestr, 0, 10);
+    return datetime;
+}
+
+
 /*
  char* fileRetMsg = "HTTP/1.0 200 OK\r\n\
 Date: Fri, 13 Jan 2006 15:12:48 GMT\r\n\
@@ -42,13 +59,15 @@ Last-Modified: Tue, 10 Jan 2006 11:18:20 GMT\r\n\
 Content-Language: de\r\n\
 Content-Type: text/html; charset=utf-8\r\n\r\n";*/
 
-char* fileRetMsg = "HTTP/1.1 200 OK\r\nContent-Length: ";
+char* fileRetMsg = "HTTP/1.1 200 OK\r\nContent-Length: %u\r\nLast-Modified: %u\r\n\r\n";
+char* notModifiedRetMsg = "HTTP/1.1 304 (not modified)\r\n\r\n Unmodified";
 
 void* thread_entry(void* arg) {
     int connected;
     connected = 1;
 
     int newsock = (int) arg;
+    int modified_date = -1;
 
     /* using the stack to receive ... */
     char rcvbuf[1024];
@@ -79,6 +98,7 @@ void* thread_entry(void* arg) {
 
         timeout = 0;
         msgptr[msglen] = 0;
+        //puts(msgptr);
 
         if (strpos("GET ", msgptr) == 0) {
             /***********************************************
@@ -89,6 +109,8 @@ void* thread_entry(void* arg) {
 
             if (pos >= 0 && pos < 256) {
                 msgptr[pos] = 0;
+                modified_date = parseModifiedHeader(msgptr + pos + 1);
+                //printf("Modified Date=%u\n", modified_date);
                 if (pos == 0) {
                     msgptr = "index.html";
                 }
@@ -99,16 +121,23 @@ void* thread_entry(void* arg) {
                 int file = open(filename, false);
                 if (file < 0) {
                     // not found
-                    printf("[HTTPD] Error. File %s not found.\n", filename);
+                    char cwd[128];
+                    getcwd(cwd, 127);
+                    printf("[HTTPD] Error. File %s not found (CWD: %s).\n", filename, cwd);
                     sendto(newsock, NotFoundMsg, strlen(NotFoundMsg), 0);
                 } else {
                     struct stat stat;
                     fstat(file, &stat);
 
-                    DEBUG("[HTTPD] File Size: %u\n",stat.st_size);
+                    DEBUG("[HTTPD] File Size: %u\n", stat.st_size);
+                    if (stat.st_date <= modified_date) {
+                        //printf("Unmodified %s\n", filename);
+                        sendto(newsock, notModifiedRetMsg, strlen(notModifiedRetMsg), 0);
+                        continue;
+                    }
 
                     // send file
-                    sprintf(return_msg, "%s%u\r\n\r\n", fileRetMsg, stat.st_size);
+                    sprintf(return_msg, fileRetMsg, stat.st_size, stat.st_date);
                     sendto(newsock, return_msg, strlen(return_msg), 0);
                     bool abort = false;
 

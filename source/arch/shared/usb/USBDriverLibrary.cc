@@ -8,31 +8,20 @@
 #include "USBDriverLibrary.hh"
 #include "kernel/Kernel.hh"
 
-#if HAS_USBDriver_SMSC95xxCfd
-#include "arch/shared/usb/ethernet/SMSC95xxUSBDeviceDriver.hh"
-#endif
-
-#if HAS_USBDriver_MassStorageCfd
-#include "arch/shared/usb/storage/MassStorageSCSIUSBDeviceDriver.hh"
-#endif
-
 extern Kernel *theOS;
+TUSBDriver* USBDriverList __attribute__((externally_visible));
 
 USBDriverLibrary::USBDriverLibrary() :
         Directory("usb") {
     theOS->getFileManager()->registerResource(this);
 
-
-    /* TODO: auto generate the usb factory construction using SCL  */
-  #if HAS_USBDriver_SMSC95xxCfd
-      /* Add support for smsc95xx ethernet over USB devices */
-      new SMSC95xxUSBDeviceDriverFactory("smsc95xx");
-  #endif
-
-  #if HAS_USBDriver_MassStorageCfd
-      /* Add support for USB SCSI Bulk only Mass Storage Devices */
-      new MassStorageSCSIUSBDeviceDriverFactory("msd_scsi_bot");
-  #endif
+    TUSBDriver* usbDriver = USBDriverList;
+    while (usbDriver != 0)
+    {
+        LOG(ARCH, INFO, "USB Driver '%s', Version %s", usbDriver->name, usbDriver->version);
+        new USBDeviceDriverFactory(usbDriver);
+        usbDriver = usbDriver->next;
+    }
 }
 
 /*****************************************************************************

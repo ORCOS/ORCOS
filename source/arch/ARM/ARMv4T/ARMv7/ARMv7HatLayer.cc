@@ -45,18 +45,17 @@ extern void* __LOADADDRESS;
 extern void* __KERNELEND;
 
 /* Architecture specific additional mappings */
-extern t_archmappings arch_kernelmappings;
+extern t_archmappings   arch_kernelmappings;
+extern Task*            pCurrentRunningTask;
+extern Kernel*          theOS;
 
-extern Task* pCurrentRunningTask;
-extern Kernel* theOS;
-
-/* 1 MB of area useable for page tables to map pages of size < 1 MB*/
+/* 1 MB of area usable for page tables to map pages of size < 1 MB*/
 typedef struct {
     unint1 usage[1024];
-}subsectionPageTable;
+} SubsectionPageTable;
 
-subsectionPageTable* pageTables;
-
+static SubsectionPageTable* pageTables;
+static IDMap<1023>          freeSubPages;
 
 #define GETBITS(a, UP, LOW) ((a & (( (1 << (UP - LOW + 1)) -1) << LOW)) >> LOW)
 
@@ -68,7 +67,9 @@ ARMv7HatLayer::ARMv7HatLayer() : myMutex("ARMv7HatLayer") {
     LOG(HAL, INFO, "ARMv7HatLayer: ARMv7 Page Table Base: 0x%08x", ((unint4)(&__PageTableSec_start)));
     LOG(HAL, INFO, "ARMv7HatLayer: %d Page Tables (%d Kb)", ((unint4) &__MaxNumPts), ((unint4) &__MaxNumPts) * 16);
 
-    pageTables = (subsectionPageTable*) theOS->getRamManager()->alloc_physical(0x100000, 0);
+    // allocate one 1 MB area for the subsection pagetables
+    // the first KB of the area is used as a mapping table (see SubsectionPageTable)
+    pageTables = (SubsectionPageTable*) theOS->getRamManager()->alloc_physical(0x100000, 0);
     if (pageTables == 0) {
         LOG(HAL, ERROR, "ARMv7HatLayer: Could not allocate memory for sub section size page tables");
     } else {
@@ -96,7 +97,8 @@ ARMv7HatLayer::~ARMv7HatLayer() {
  *                            BitmapT protection,
  *                            byte zsel,
  *                            int pid,
- *                            bool cache_inhibit)
+ *                            bool cache_inhibit,
+ *                            int priviligeOnly = false)
  *
  * @description
  *
@@ -115,13 +117,12 @@ ARMv7HatLayer::~ARMv7HatLayer() {
  * void*                The logical address.
  *
  **********************************************/
-void* ARMv7HatLayer::map(void* logBaseAddr, void* physBaseAddr, size_t size, BitmapT protection, byte zsel, int pid, int cacheMode) {
+void* ARMv7HatLayer::map(void* logBaseAddr, void* physBaseAddr, size_t size, BitmapT protection, byte zsel, int pid, int cacheMode, int privilegeOnly) {
     if (logBaseAddr != 0) {
-        return (createPT(logBaseAddr, physBaseAddr, size, protection, zsel, pid, cacheMode, true));
+        return (createPT(logBaseAddr, physBaseAddr, size, protection, zsel, pid, cacheMode, !privilegeOnly));
     } else {
-        return (map(physBaseAddr, size, protection, zsel, pid, cacheMode));
+        return (map(physBaseAddr, size, protection, zsel, pid, cacheMode, privilegeOnly));
     }
-
 }
 
 /***********************************************
@@ -150,7 +151,7 @@ void* ARMv7HatLayer::map(void* logBaseAddr, void* physBaseAddr, size_t size, Bit
  * void*                The logical base address of the mapping.
  *
  **********************************************/
-void* ARMv7HatLayer::map(void* phyBaseAddr, size_t size, BitmapT protection, byte zsel, int pid, int cacheMode) {
+void* ARMv7HatLayer::map(void* phyBaseAddr, size_t size, BitmapT protection, byte zsel, int pid, int cacheMode, int privilegeOnly) {
     myMutex.acquire();
 
     /* get a free virtual address area of length size */
@@ -159,7 +160,7 @@ void* ARMv7HatLayer::map(void* phyBaseAddr, size_t size, BitmapT protection, byt
 
     ptStartAddr = ((unint4) (&__PageTableSec_start)) + pid * 0x4000;
     /* do search */
-    int area_start = -1;  // current consecutive free virtual memory area
+    int area_start   = -1;  // current consecutive free virtual memory area
     unint4 area_size = 0;
 
     if (size >= 0x100000) {
@@ -243,7 +244,7 @@ void* ARMv7HatLayer::map(void* phyBaseAddr, size_t size, BitmapT protection, byt
         return (0);
     }
 
-    return (createPT(reinterpret_cast<void*>(area_start), phyBaseAddr, size, protection, zsel, pid, cacheMode, true));
+    return (createPT(reinterpret_cast<void*>(area_start), phyBaseAddr, size, protection, zsel, pid, cacheMode, !privilegeOnly));
 }
 
 /***********************************************
@@ -307,8 +308,10 @@ void ARMv7HatLayer::mapKernel(int pid) {
                        false);
     }
 
+    /* MAP complete RAM 1:1 into kernel for fast access and to
+     * allow drivers to work on physical addresses for HW accesses */
     if (theOS->getRamManager() != 0)
-        theOS->getRamManager()->mapKernelPages(pid);
+        theOS->getRamManager()->mapRAM(pid);
 
 
     /* remap pagetables .. to be sure cache inhibit is set! */
@@ -340,7 +343,7 @@ void ARMv7HatLayer::mapKernel(int pid) {
  *  Example: map size 68 Kb => creates an 1 MB mapping as this is the
  *  smallest size enclosing the area.
  *  A better mapping must be enforced by the algorithm calling this method.
- *  In this example the map method should be calling using a 64 Kb siez and an
+ *  In this example the map method should be calling using a 64 Kb size and an
  *  additional 4 Kb size directly following the area.
  *
  * @params
@@ -383,7 +386,12 @@ void* ARMv7HatLayer::createPT(void*     logBaseAddr,
         unint4 pageTable = (l1entry & 0xFFFFFC00);
         if (pageTable == 0) {
            /* no page assigned yet */
-            for (int i = 0; i < 1023; i++) {
+            int FreePageIndex = freeSubPages.getNextID();
+            if (FreePageIndex == -1) {
+                LOG(HAL, ERROR, "ARMv7HatLayer::createPT(): No free page table available!");
+                return (0);
+            }
+            /*for (int i = 0; i < 1023; i++) {
                 if (pageTables->usage[i] == (unint1) -1) {
                     pageTables->usage[i] = pid;
                     pageTable = ((unint4) pageTables) + 1024 * (i+1);
@@ -393,7 +401,8 @@ void* ARMv7HatLayer::createPT(void*     logBaseAddr,
             if (pageTable == 0) {
                 LOG(HAL, ERROR, "ARMv7HatLayer::createPT(): No free page table available!");
                 return (0);
-            }
+            }*/
+            pageTable    = ((unint4) pageTables) + 1024 * (FreePageIndex+1);
             unint4 entry = (pageTable & 0xFFFFFC00) | 0x1;
             LOG(HAL, TRACE, "ARMv7HatLayer::createPT(): Using pagetable %x, entry %x", pageTable, entry);
             OUTW(ptStartAddr + (((unint)logBaseAddr >> 20) << 2), entry);
@@ -708,10 +717,6 @@ ErrorT ARMv7HatLayer::unmap(void* logBaseAddr, unint1 tid) {
         logpageaddr = (logpageaddr << 20) | pid;
         OUTW(ptStartAddr + (((unint)logBaseAddr >> 20) << 2), 0);
     } else {
-
-        // TODO: ensure the page table gets freed as well if no mapping exists
-        // inside it any more!
-
         /* page table entry! */
         unint4 pageTable = (pte.raw_bytes & 0xFFFFFC00);
         if (pageTable == 0) {
@@ -735,6 +740,17 @@ ErrorT ARMv7HatLayer::unmap(void* logBaseAddr, unint1 tid) {
             logpageaddr = (logpageaddr << 12) | pid;
             OUTW(pageTable + ((((unint)logBaseAddr >> 12) & 0xFF) << 2), 0);
         }
+
+        // check if area is free again
+        // we might do this to allow more 1MB pages to be mapped...
+        // however we keep it as it is.. this area can then
+        // only be used for small pages in the future again
+       /* for (int i = 0; i < 256; i++) {
+            if (INW(pageTable + (i<<2))) break;
+        }*/
+        // if we get here the whole 1 MB page is free again ... lets make it available
+        // again
+
     }
 
 
@@ -779,6 +795,7 @@ ErrorT ARMv7HatLayer::unmapAll(int pid) {
                 /* clear page table */
                 memset((void*) (((intptr_t)pageTables) + 1024 * (i+1)), 0, 1024);
                 pageTables->usage[i] = -1;
+                freeSubPages.freeID(i);
             }
         }
     }
@@ -792,13 +809,13 @@ ErrorT ARMv7HatLayer::unmapAll(int pid) {
      * invalidate tlb entry */
     asm volatile(
             "MCR p15, 0, %0, c8, c5, 2;"  // Invalidate Inst-TLB by ASID
-            "MCR p15, 0, %0, c8, c6, 2;"// Invalidate Data-TLB by ASID
+            "MCR p15, 0, %0, c8, c6, 2;"  // Invalidate Data-TLB by ASID
             :
             : "r" (asid)
             : "r0"
     );
 
-    return (cOk );
+    return (cOk);
 }
 
 /*****************************************************************************
@@ -928,7 +945,7 @@ void* ARMv7HatLayer::getLogicalAddress(void* physAddr) {
  * Method: ARMv7HatLayer::getPhysicalAddress(void* log_addr)
  *
  * @description
- *  Translates a given logical address to its phyiscal address
+ *  Translates a given logical address to its physical address
  *  inside the current address space.
  * @params
  *
@@ -940,25 +957,24 @@ void* ARMv7HatLayer::getPhysicalAddress(void* log_addr) {
 
     asm volatile(
 
-            "MCR p15,0,%1,c7,c8,2;"  // Write CP15 VA to User Read VA to PA Translation Register
-            "MOV r0, #0x0;"
-            "MCR p15,0,r0,c7,c5,4;"// Ensure completion of the CP15 write (ISB not working)
-            "MRC p15,0,r1,c7,c4,0;"// Read CP15 PA from Physical Address Register
+            "MCR  p15,0,%1,c7,c8,0;"  // Write CP15 VA to Priviliged Read VA to PA Translation Register
+            "MOV  r0, #0x0;"
+            "MCR  p15,0,r0,c7,c5,4;"  // Ensure completion of the CP15 write (ISB not working)
+            "MRC  p15,0,r1,c7,c4,0;"  // Read CP15 PA from Physical Address Register
             "MOVW r0, #:lower16:0x00000FFF;"
             "MOVT r0, #:upper16:0x00000FFF;"
-            //"LDR r0, =0x00000FFF;"
-            "BIC r1, r1, r0;"
-            //"LDR r0, =0xFFFFF000;"
+            "BIC  r1, r1, r0;"
             "MOVW r0, #:lower16:0xFFFFF000;"
             "MOVT r0, #:upper16:0xFFFFF000;"
-            "BIC %1, %1, r0;"
-            "ORR %0, r1, %1;"
+            "BIC  %1, %1, r0;"
+            "ORR  %0, r1, %1;"
 
             : "=r" (ret)
             : "r" ((unint)log_addr)
             : "r0", "r1"
     );
 
+    /*
     if (ret == 0) {
         LOG(ARCH, ERROR, "ARMv7HatLayer::getPhysicalAddress() Address could not be translated: %x", log_addr);
         unint4 pid;
@@ -967,7 +983,7 @@ void* ARMv7HatLayer::getPhysicalAddress(void* log_addr) {
         else
             pid = pCurrentRunningTask->getId();
         this->dumpPageTable(pid);
-    }
+    }*/
 
     return (reinterpret_cast<void*>(ret));
 }

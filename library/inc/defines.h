@@ -125,14 +125,11 @@
 #define cFCloseSysCallId                    1
 #define cFReadSysCallId                     2
 #define cFWriteSysCallId                    3
-#define cFPutcSysCallId                     4
-#define cFGetcSysCallId                     5
+#define cLinkSysCallId                      4
 #define cFCreateSysCallId                   6
 
 // Memory related Syscalls
 
-#define cNewSysCallId                       7
-#define cDeleteSysCallId                    8
 
 // Task related Syscalls
 
@@ -165,11 +162,9 @@
 #define cIOControl                          25
 
 #define cPrintToStdOut                      26
-#define cNewProtSysCallId                   27
 
 #define cGetTimeSyscallId                   28
 #define cMapMemorySyscallId                 29
-#define cModuleReturnId                     30
 
 #define cRunTaskId                          31
 #define cTask_KillSysCallId                 32
@@ -179,7 +174,7 @@
 #define cFStatId                            35
 #define cFRemoveID                          36
 #define cGetPID                             37
-#define cShmUnmapId                         38
+#define cSetDateTimeSyscallId               38
 #define cGetDateTimeSyscallId               39
 #define cMkDevSyscallId                     40
 #define cTaskioctlscallId                   41

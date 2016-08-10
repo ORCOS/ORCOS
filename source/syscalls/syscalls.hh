@@ -121,11 +121,19 @@ int sc_getCycles(intptr_t sp_int);
  *******************************************************************************/
 int sc_getDateTime(intptr_t sp_int);
 
+/*****************************************************************************
+ * Method: sc_getDateTime(intptr_t sp_int)
+ *
+ * @description
+ *  Syscall handler to return the current date time of the system
+ *******************************************************************************/
+int sc_setDateTime(intptr_t sp_int);
 
 // TODO SCL
 int sc_rename(intptr_t sp_int);
 int sc_getcwd(intptr_t int_sp);
 int sc_chdir(intptr_t int_sp);
+int sc_link(intptr_t int_sp);
 
 /*******************************************************************
  *              Syscall Dispatching

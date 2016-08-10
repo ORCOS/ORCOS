@@ -438,11 +438,25 @@ static void inline ATOMIC_ADD(void* addr, int value) {
            : "r" (&spinlock) \
            : "r1", "r2");
 
-#else
+// be sure different cpus se correct order
+#define SMP_MEM_BARRIER()       asm volatile ("dmb ish" : : : "memory")
+#define SMP_MEM_BARRIER_FULL()  asm volatile ("dmb"     : : : "memory")
 
-#define SMP_SPINLOCK_GET(spinlock) DISABLE_IRQS(spinlock)
+#else  // CPUS == 1
+
+// memory barrier not needed only avoid compiler reordering
+#define SMP_MEM_BARRIER()       asm volatile ("" : : : "memory")
+#define SMP_MEM_BARRIER_FULL()  asm volatile ("" : : : "memory")
+
+
+#define SMP_SPINLOCK_GET(spinlock)  DISABLE_IRQS(spinlock)
 #define SMP_SPINLOCK_FREE(spinlock) RESTORE_IRQS(spinlock)
 #endif
+
+#define MEM_BARRIER()           asm volatile ("dmb ish" : : : "memory")
+#define MEM_BARRIER_FULL()      asm volatile ("dmb"     : : : "memory")
+#define INSTR_BARRIER()         asm volatile ("dsb ish" : : : "memory")
+#define INSTR_BARRIER_FULL()    asm volatile ("dsb"     : : : "memory")
 
 #ifdef __cplusplus
 

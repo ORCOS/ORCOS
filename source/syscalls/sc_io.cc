@@ -688,6 +688,7 @@ int sc_mount(intptr_t int_sp) {
  * Method: sc_rename(intptr_t sp_int)
  *
  * @description
+ *  Tries to rename the acquired resource.
  *
  * @params
  *  sp_int:     The stack pointer at time of system call instruction execution
@@ -711,10 +712,12 @@ int sc_rename(intptr_t int_sp) {
         return (cInvalidArgument);
     }
 
+    // TODO also check for invalid characters
     if (basename(filenewname) != filenewname) {
         LOG(SYSCALLS, ERROR, "Syscall: rename(%d, %s): Invalid name", fd, filenewname);
         return (cInvalidArgument);
     }
+
 
     /* allocate memory for new name so this name is visible
      * in all address spaces */
@@ -731,16 +734,28 @@ int sc_rename(intptr_t int_sp) {
               File* pFile = static_cast<File*>(res);
               return (pFile->rename(namepcpy));
           } else {
-              delete namepcpy; //< avoid memory leak
+              delete[] namepcpy; //< avoid memory leak
               return (cInvalidResource);
           }
     }
 
-    delete namepcpy; //< avoid memory leak
+    delete[] namepcpy; //< avoid memory leak
     return (cInvalidResource);
 }
 #endif
 
+/*****************************************************************************
+ * Method: sc_getcwd(intptr_t sp_int)
+ *
+ * @description
+ *   Returns the current working directory of the running process.
+ *
+ * @params
+ *  sp_int:     The stack pointer at time of system call instruction execution
+ *
+ * @returns
+ *  int         Error Code
+ *---------------------------------------------------------------------------*/
 int sc_getcwd(intptr_t int_sp) {
     char*     buf;
     int       buflen;
@@ -754,6 +769,18 @@ int sc_getcwd(intptr_t int_sp) {
     return (cOk);
 }
 
+/*****************************************************************************
+ * Method: sc_chdir(intptr_t sp_int)
+ *
+ * @description
+ *   Sets the current working directory of the running process
+ *
+ * @params
+ *  sp_int:     The stack pointer at time of system call instruction execution
+ *
+ * @returns
+ *  int         Error Code
+ *---------------------------------------------------------------------------*/
 int sc_chdir(intptr_t int_sp) {
     const char*     path;
     SYSCALLGETPARAMS1(int_sp, path);
@@ -765,6 +792,33 @@ int sc_chdir(intptr_t int_sp) {
         pCurrentRunningTask->setWorkingDirectory(path);
         return (cOk);
     }
+
+    return (cError);
+}
+
+/*****************************************************************************
+ * Method: sc_link(intptr_t sp_int)
+ *
+ * @description
+ *   Create a new link pointing to oldpath from newpath.
+ *
+ * @params
+ *  sp_int:     The stack pointer at time of system call instruction execution
+ *
+ * @returns
+ *  int         Error Code
+ *---------------------------------------------------------------------------*/
+int sc_link(intptr_t int_sp)
+{
+    const char* oldpath;
+    const char* newpath;
+    SYSCALLGETPARAMS2(int_sp, oldpath, newpath);
+    VALIDATE_IN_PROCESS(oldpath);
+    VALIDATE_IN_PROCESS(newpath);
+
+    /* To to find resource oldpath */
+    // TODO
+
 
     return (cError);
 }

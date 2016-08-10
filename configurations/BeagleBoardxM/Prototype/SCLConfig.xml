@@ -23,6 +23,7 @@
       <Start>0x81200000</Start>
       <Size>0x00100000</Size>
       <Path>../../../tasks/telnet_server</Path>
+      <Arguments />
       <PriorityOptions>
         <InitialPriority>5001</InitialPriority>
         <Phase>0</Phase>
@@ -37,6 +38,7 @@
       <Start>0x81300000</Start>
       <Size>0x00100000</Size>
       <Path>../../../tasks/ftp_server/</Path>
+      <Arguments />
       <PriorityOptions>
         <InitialPriority>5000</InitialPriority>
         <Phase>0</Phase>
@@ -202,7 +204,7 @@
     </Skeleton>
     <Skeleton>
       <Name>USBDriver</Name>
-      <Superclass>usb/USBDeviceDriverLibrary</Superclass>
+      <Superclass>usb/USBDriverLibrary</Superclass>
       <Member Name="SMSC95xx" Class="usb/SMSC95xxUSBDeviceDriver" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="MassStorage" Class="usb/MassStorageSCSIUSBDeviceDriver" None="false" UserSpace="false" PhyLoadAddress="0x0" />
     </Skeleton>

@@ -18,7 +18,7 @@
 
 #include <Omap3530UART.hh>
 #include "inc/memio.h"
-//#include "kernel/Kernel.hh"
+#include "assemblerFunctions.hh"
 #include "OMAP3530.h"
 
 // Initialize the module.. only has an effect if the device is used in userspace

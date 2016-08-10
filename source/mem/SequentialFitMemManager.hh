@@ -52,7 +52,7 @@ typedef struct ChunkTrace {
 
 /*
  * Defines the number of bytes placed between two consecutive chunks
- * in order to cope with erroneous data bounds accesses.
+ * in order to cope with buffer overflows
  */
 #define SAFETY_BUFFER 16
 
@@ -60,7 +60,7 @@ typedef struct ChunkTrace {
  * Additional check whether an allocated chunk is accessed out of bounds in positive direction.
  * Allocates extra bytes and checks them on modification regularly.
  */
-#define CHUNK_ACCESS_CHECK 0
+#define CHUNK_ACCESS_CHECK 1
 
 
 #define SAFETY_CHAR 0x2ffe9ab1
@@ -79,7 +79,6 @@ typedef struct ChunkTrace {
 #ifndef MEM_LAST_FIT
 #define MEM_LAST_FIT 0
 #endif
-
 
 /*!
  * \ingroup memmanager
@@ -124,14 +123,15 @@ class SequentialFitMemManager: public MemManager {
     Resource*  scheduledDeletion[40];
 
     /* current start entry */
-    int  schedDeletionStartPos;
+    volatile int  schedDeletionStartPos;
 
     /* number of elements inside the scheduledDeletion array*/
-    int  schedDeletionCount;
+    volatile int  schedDeletionCount;
 
     /* number of elements safe to delete starting at schedDeletionNum */
-    int  schedDeletionSafeNum;
+    volatile int  schedDeletionSafeNum;
 
+    /* spinlock for access to the scheduledDeletion variables */
     int  m_lock;
 
 private:
@@ -294,10 +294,11 @@ public:
     void debug(MemResource* segment);
 
     /*****************************************************************************
-     * Method: scheduleDelete(Resource* addr)
+     * Method: scheduleDeletion(Resource* addr)
      *
      * @description
-     *  Schedule the deletion of thos resource.
+     *  Schedule the deletion of a resource.
+     *
      * @params
      *
      * @returns

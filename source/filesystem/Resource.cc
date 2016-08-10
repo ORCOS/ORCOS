@@ -70,8 +70,6 @@ int Resource::acquire(Thread* pThread, bool blocking) {
 
     int retval = myResourceId;
 
-    ATOMIC_ADD(&refCounter, 1);
-
     if (this->accessControl != 0) {
         /* blocking call */
         if (accessControl->acquire(this, blocking) != cOk) {
@@ -79,23 +77,30 @@ int Resource::acquire(Thread* pThread, bool blocking) {
         }
     }
 
+    ATOMIC_ADD(&refCounter, 1);
+
     /* myResourceId may be 0 if it has been deleted
      * during acquisition */
     if (myResourceId != 0) {
         if (pThread != 0 ) {
-            pThread->getOwner()->aquiredResources.lock();
             /* Add resource to the set of acquired resources */
+            pThread->getOwner()->aquiredResources.lock();
             int result = pThread->getOwner()->aquiredResources.addTail(this);
+            pThread->getOwner()->aquiredResources.unlock();
             /* forward status back to user */
-            if (result < 0)
+            if (result < 0) {
+                /* error adding resource to task.. */
                 retval = result;
+                ATOMIC_ADD(&refCounter, -1);
+                return (retval);
+            }
 
+            /* success adding resource to task */
             /* for files we also reset the position */
             if (this->getType() & (cFile | cDirectory | cStreamDevice)) {
                 CharacterDevice* cdev = static_cast<CharacterDevice*>(this);
                 cdev->resetPosition();
             }
-            pThread->getOwner()->aquiredResources.unlock();
         }
     } else {
         ATOMIC_ADD(&refCounter, -1);
@@ -152,7 +157,7 @@ ErrorT Resource::release(Thread* pThread) {
     }
 
     if (this->accessControl != 0) {
-        accessControl->release(pThread);
+        accessControl->release((Kernel_ThreadCfdCl*)pThread);
     }
 
     if (pThread != 0) {

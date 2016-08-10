@@ -32,6 +32,7 @@ Clock::Clock(unint4 frequency) {
     synchDateTime    = 0;
     synchLocalCycles = 0;
     this->frequency  = frequency;
+    gmtOffset        = 0;
 
 #if SYSFS_SUPPORT
     Directory* sysFsDir = theOS->getFileManager()->getDirectory("/sys");
@@ -54,9 +55,28 @@ Clock::~Clock() {
  *  int         The time in seconds since January 1. 1970
  *******************************************************************************/
 unint4 Clock::getDateTime() {
-    return (synchDateTime + ((getClockCycles() - synchLocalCycles) / CLOCK_RATE) );
+    return (synchDateTime + ((getClockCycles() - synchLocalCycles) / CLOCK_RATE) + gmtOffset);
 }
 
+/*****************************************************************************
+ * Method: setDateTime(void* param)
+ *
+ * @description
+ *  Sets the current datetime and GMT offset.
+ *  Called by setDateTime system call.
+ *
+ * @param
+ *  gmtOffset Offset in hours
+ *******************************************************************************/
+ErrorT Clock::setDateTime(unint4 dateTime, int4 gmtOffset) {
+    if (gmtOffset > 12 || gmtOffset < -12) {
+        return (cInvalidArgument);
+    }
+    synchLocalCycles = this->getClockCycles();
+    synchDateTime    = dateTime;
+    this->gmtOffset  = gmtOffset * 60 * 60;
+    return (cOk);
+}
 
 extern "C" unint4 sys_now() {
     return (theOS->getClock()->getDateTime());
@@ -85,7 +105,7 @@ ntppacket_t ntpquery;
  ***********************************/
 #if ENABLE_NETWORKING
 unint4 ntpserver[3] = {
-        IP4ADDR(85, 25, 197, 197),   /* pool.ntp.org */
+        IP4ADDR(176, 9, 72, 17),   /* pool.ntp.org */
         IP4ADDR(96 , 226, 242, 9),  /* nist.time.nosc.us  96.226.242.9    Carrollton, Texas  */
         IP4ADDR(206, 246, 122, 250) /* time.nist.gov   global address for all servers  Multiple locations  */
 };

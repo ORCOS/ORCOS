@@ -39,7 +39,7 @@ IDMap<MAX_NUM_TASKS> Task::freeTaskIDs;
  ** Task::Task
  *---------------------------------------------------------------------------*/
 Task::Task(taskTable* tasktbl) :
-        aquiredResources(20),
+        aquiredResources(40),
         exitValue(0),
         stopped(false),
         sysFsDir(0),
@@ -172,7 +172,7 @@ ErrorT Task::acquireResource(Resource* res, Thread* t, bool blocking) {
     // REMARK: check whether t is a thread belonging to this task
     if (res == 0) {
         LOG(PROCESS, ERROR, "Task::acquireResource res==null");
-        return (cError );
+        return (cError);
     }
     // check whether the task already owns this resource
     if (getOwnedResourceById(res->getId()) != 0) {  // task already owns this resource
@@ -182,7 +182,7 @@ ErrorT Task::acquireResource(Resource* res, Thread* t, bool blocking) {
         return (res->getId());
     } else {
         LOG(PROCESS, TRACE, "Task: acquiring resource %d", res->getId());
-        int error = res->acquire(t, blocking);
+        ErrorT error = res->acquire(t, blocking);
         if (isError(error)) {
             LOG(PROCESS, ERROR, "Task::aquireResource() acquire failed: %d", error);
         }
@@ -209,7 +209,7 @@ ErrorT Task::releaseResource(Resource* res, Thread* t) {
         } else if (res->getType() == cSharedMem) {
             SharedMemResource* shmres = static_cast<SharedMemResource*>(res);
             shmres->unmapFromTask(t->getOwner());
-            int retval = shmres->release(t);
+            ErrorT retval = shmres->release(t);
             /* Cleanup unused areas */
             if (shmres->getMappedCount() == 0 && shmres->getOwner() != 0)
                 delete shmres;
@@ -220,7 +220,7 @@ ErrorT Task::releaseResource(Resource* res, Thread* t) {
             pFile->onClose();
         }
 
-        int error = res->release(t);
+        ErrorT error = res->release(t);
         if (isError(error)) {
             LOG(PROCESS, ERROR, "Task::releaseResource() release failed: %d", error);
         }
