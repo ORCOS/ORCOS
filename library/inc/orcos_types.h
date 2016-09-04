@@ -67,8 +67,8 @@ typedef struct {
     unint4  filesize;
     unint4  datetime; /* since 1970-01-01 00:00.00 UTC */
     unint4  resId;
+    unint4  resType;
     unint2  reserved;
-    unint1  resType;
     unint1  namelen;
     char    name[0]; /* variable length name entry */
 } Directory_Entry_t;

@@ -21,27 +21,50 @@
 #define ESC_GRAY        "\033[37m"
 #define ESC_WHITE       "\033[0m"
 
+/*
+ *  cDirectory          = 1 << 0,
+    cStreamDevice       = 1 << 1,
+    cCommDevice         = 1 << 2,
+    cGenericDevice      = 1 << 3,
+    cFile               = 1 << 4,
+    cSocket             = 1 << 5,
+    cUSBDriver          = 1 << 6,
+    cBlockDevice        = 1 << 7,
+    cPartition          = 1 << 8,
+    cSharedMem          = 1 << 9,
+    cKernelVariable     = 1 << 10,
+    cOverlay            = 1 << 11,
+    cTimerDevice        = 1 << 12,
+    cThread             = 1 << 13,
+    cTask               = 1 << 14,
+    cFifo               = 1 << 15,
+ */
 
-const char* types[11] = {
+const char* types[16] = {
         "d ", // directory
         "s ", // streamdevice
         "c ", // commdevice
         "g ", // genericdevice
-        "f ", // file
+        "F ", // file
         "S ", //socket
         "u ", // usb
         "b ", // blockdevice
         "p ", // partition
         "sm ", // shared mem
-        "kv " //kernel variable
+        "kv ", //kernel variable
+        "ov",
+        "td",
+        "t",
+        "T",
+        "f"
 };
 
-char typestr[12];
+static char typestr[24];
 
 static const char* getTypeStr(int resourceType) {
     char* ret = typestr;
     ret[0] = 0;
-    for (int i = 0; i < 11; i++) {
+    for (int i = 0; i < 16; i++) {
         if (resourceType & (1 << i))
             strcat(ret, types[i]);
     }
