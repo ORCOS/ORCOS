@@ -251,12 +251,12 @@
       <Member Name="shm_unmap" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="thread_terminate" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="fseek" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
-      <Member Name="task_ioctl" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
-      <Member Name="mkdev" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="task_ioctl" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />      
       <Member Name="thread_name" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="mount" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="waitirq" Class="" None="true" UserSpace="false" PhyLoadAddress="0x0" />
       <Member Name="gethostbyname" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
+      <Member Name="mkfifo" Class="" None="false" UserSpace="false" PhyLoadAddress="0x0" />
     </Skeleton>
     <!--  DEFINES -->
     <Define>

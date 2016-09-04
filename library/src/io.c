@@ -92,15 +92,15 @@ int remove(const char* filepath) {
     int error = open(filepath, 1);
     if (error < 0) return (error);
 
-    return (syscall(cFRemoveID,filepath));
+    return (syscall(cFRemoveID, filepath));
 }
 
 int unlink(const char* name) {
     return (remove(name));
 }
 
-int  mkdev(char* devname, int bufferSize) {
-    return (syscall(cMkDevSyscallId,devname,bufferSize));
+int  mkfifo(char* filepath, int bufferSize) {
+    return (syscall(cMkFifoSyscallId, filepath, bufferSize));
 }
 
 int  mount(char* src_path, char* dst_path, int type) {

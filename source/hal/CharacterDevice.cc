@@ -30,6 +30,7 @@ CharacterDevice::CharacterDevice(bool sync_res, const char* p_name) :
     // be sure we have a filesystem. if not we can not continue since every driver needs to register!!
     ASSERT(fm);
 
+    // unconditional registration at filesystem manager for stream devices
     if (fm != 0)
         fm->registerResource(this);
 }
@@ -38,9 +39,9 @@ CharacterDevice::CharacterDevice(ResourceType rt, bool sync_res, const char* p_n
         GenericDeviceDriver(rt, sync_res, p_name) {
     this->position = 0;
 
-    // we are not registering for Directories ..
-    // directories need to register themself at the apropriate directory
-    if (rt != cDirectory && rt != cFile) {
+    // Ee are not registering for Directories, Files of Fifos
+    // They need to register themself at the appropriate directory
+    if (!(rt & (cDirectory | cFile | cFifo))) {
         // register myself at the filesystem manager
         SimpleFileManager* fm = theOS->getFileManager();
 

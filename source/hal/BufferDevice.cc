@@ -1,5 +1,5 @@
 /*
- * VirtualCharacterDevice.cc
+ * BufferDevice.cc
  *
  *  Created on: 15.08.2014
  *     Copyright & Author: Daniel
@@ -10,28 +10,35 @@
 
 extern Kernel* theOS;
 
-#define MAX_BUFFER_SIZE 1024
 
 BufferDevice::BufferDevice(char* name, int bufferSize) :
-        CharacterDevice(false, name) {
+        CharacterDevice((ResourceType) (cFifo | cStreamDevice), false, name) {
 
     buffersize = bufferSize;
 
-    if (buffersize > MAX_BUFFER_SIZE) {
-        buffersize = MAX_BUFFER_SIZE;
+    if (buffersize > BUFFERDEVICE_MAX_BUFFER_SIZE) {
+        buffersize = BUFFERDEVICE_MAX_BUFFER_SIZE;
     }
 
-    // allocate in kernel space so every process can read this buffer
+    // For now: allocate in kernel space so every process can read this buffer
     // without mapping the space
-    buffer      = new char[buffersize];
-    usedBytes   = 0;
-    readPointer = 0;
+    // TODO: change this to use the MemoryManager and map pages into the
+    // the process acquiring this device on demand (just like the shared memory device)
+    buffer        = new char[buffersize];
+    usedBytes     = 0;
+    readPointer   = 0;
+    blockedThread = 0;
 }
 
 BufferDevice::~BufferDevice() {
     if (buffer) {
         delete (buffer);
+        buffer = 0;
     }
+    usedBytes     = 0;
+    readPointer   = 0;
+    blockedThread = 0;
+    buffersize    = 0;
 }
 
 /*****************************************************************************
@@ -44,6 +51,16 @@ ErrorT BufferDevice::readBytes(char *bytes, unint4 &length) {
         return (cError);
     }
 
+    if (usedBytes == 0) {
+        /* block until new data is available */
+        blockedThread = pCurrentRunningThread;
+        pCurrentRunningThread->block();
+    }
+
+    /* check again after unblocking ... if usedBytes is 0 again some
+     * other thread must have retrieved the data first ... signal to thread
+     * that this happened.. also a writeBytes of length 0 might have caused this
+     * which is can be used as some form of synchronization*/
     if (usedBytes == 0) {
         length = 0;
         return (cOk);
@@ -77,7 +94,7 @@ ErrorT BufferDevice::readBytes(char *bytes, unint4 &length) {
  *******************************************************************************/
 ErrorT BufferDevice::writeBytes(const char *bytes, unint4 length) {
     if (!isValid())
-        return (cError );
+        return (cError);
 
     int writeBytes = length;
     if (writeBytes + usedBytes > buffersize)
@@ -99,5 +116,14 @@ ErrorT BufferDevice::writeBytes(const char *bytes, unint4 length) {
     }
 
     usedBytes += writeBytes;
+
+    /* unblock waiting thread */
+    if (blockedThread) {
+        Thread* pThread = blockedThread;
+        blockedThread = 0;
+        /* unblock .. we may directly be preempted */
+        pThread->unblock();
+
+    }
     return (cOk );
 }

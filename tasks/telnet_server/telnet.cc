@@ -392,7 +392,7 @@ extern "C" int main(int argc, char** argv) {
     bind(mysock, addr);
 
     /* create the virtual tty device */
-    int devid = mkdev("tty0", 2048);
+    int devid = mkfifo("/dev/tty0", 2048);
     if (devid < 0) {
         printf("Error creating tty0: %d", devid);
         return (1);

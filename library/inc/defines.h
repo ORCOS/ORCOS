@@ -176,7 +176,7 @@
 #define cGetPID                             37
 #define cSetDateTimeSyscallId               38
 #define cGetDateTimeSyscallId               39
-#define cMkDevSyscallId                     40
+#define cMkFifoSyscallId                    40
 #define cTaskioctlscallId                   41
 #define cFSeekSyscallId                     42
 #define cThreadTerminateSyscallId           43

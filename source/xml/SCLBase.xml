@@ -373,7 +373,7 @@
         <MemberRef Name="task_ioctl"/>
         <MemberRef Name="shm_map"/>
         <MemberRef Name="mapMemory"/>
-        <MemberRef Name="mkdev"/>
+        <MemberRef Name="mkfifo"/>
         <MemberRef Name="mount"/>
         <MemberRef Name="waitirq"/>
         <MemberRef Name="gethostbyname"/>
@@ -416,7 +416,7 @@
     <Member><Name>ioctl</Name> </Member>
     <Member><Name>mapMemory</Name> </Member>
     <Member><Name>shm_map</Name> </Member>
-    <Member><Name>mkdev</Name> </Member>
+    <Member><Name>mkfifo</Name> </Member>
     <Member><Name>mount</Name> </Member>
     <Member><Name>waitirq</Name> </Member>
     <Member><Name>gethostbyname</Name></Member>

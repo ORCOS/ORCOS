@@ -10,6 +10,8 @@
 
 #include "hal/CharacterDevice.hh"
 
+#define BUFFERDEVICE_MAX_BUFFER_SIZE 4096
+
 /*
  * The virtual character device is a class that offers a user space task
  * to create a character device inside the device subsystem to e.g.
@@ -32,6 +34,8 @@ private:
     size_t      usedBytes;
 
     int         readPointer;
+
+    Thread*     blockedThread;
 
 public:
     BufferDevice(char* name, int bufferSize);
