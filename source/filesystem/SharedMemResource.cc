@@ -47,7 +47,7 @@ SharedMemResource::SharedMemResource(unint4 u_size, const char* p_name, Task* p_
         theOS->getFileManager()->registerResource(this);
 
         if (p_owner != 0) {
-            p_owner->aquiredResources.addTail(this);
+            p_owner->addResource(this);
         }
     } else {
         this->physical_start_address = -1;

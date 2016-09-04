@@ -37,6 +37,8 @@ class Resource;
 #define MAX_NUM_TASKS 16
 #endif
 
+#define MAX_TASK_RESOURCES 64
+
 /*!
  * \brief Task CB Class which holds information about a task and its threads.
  * \ingroup process
@@ -49,11 +51,35 @@ class Task: public ScheduleableItem {
     friend class MigrationManager;
     friend class TaskManager;
 
+private:
+    /*!
+     * \brief The database storing the actually acquired resources.
+     */
+    Resource*          acquiredResources[MAX_TASK_RESOURCES];
+
+    /*!
+     * \brief Current number of acquired resources
+     */
+    int                numResources;
+
+    /*!
+     * \brief Bitmap of free resource IDs used for resource acquisition
+     */
+    IDMap<MAX_TASK_RESOURCES>  freeResourceIds;
+
+
 public:
     /*!
-     * \brief The database storing the actually aquired resources.
+     *  \brief Unconditionally adds the Resource to the Task. Only to be used by resources adding themself
+     *         to the task after successful acquisition! Threads and other components should definitely use
+     *         acquireResource() instead!
      */
-    ArrayList           aquiredResources;
+    ErrorT              addResource(Resource* res);
+
+    /*!
+     *  \brief Removes the sources from the Task. Only to be used by resources!
+     */
+    ErrorT              removeResource(Resource* res);
 
     /*!
      *  \brief The database storing the Threads belonging to this task
@@ -279,9 +305,18 @@ public:
      *
      * @description
      *   Get the resource with id 'id' owned by this resource.
-     *   May return null if not owned or not existend.
+     *   May return null if not owned or not existent.
      *******************************************************************************/
-    Resource* getOwnedResourceById(ResourceIdT id);
+    Resource* getOwnedResourceByFileDescriptor(ResourceIdT id);
+
+    /*****************************************************************************
+     * Method: getOwnedResource(ResourceIdT id)
+     *
+     * @description
+     *   Returns the File Descriptor if this task owns the resource. -1 otherwise
+     *******************************************************************************/
+    int getOwnedResourceFileDescriptor(Resource* res);
+
 
     /*****************************************************************************
      * Method: getTaskTable()

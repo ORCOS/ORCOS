@@ -51,13 +51,13 @@ int sc_socket(intptr_t int_sp) {
     /* create new Socket */
     Socket* s = new Socket(domain, type, protocol);
     if (s->isValid()) {
-        pCurrentRunningTask->aquiredResources.addTail(s);
-        LOG(SYSCALLS, TRACE, "Syscall: Socket created with id %d", s->getId());
+        int ret = pCurrentRunningTask->addResource(s);
+        LOG(SYSCALLS, TRACE, "Syscall: Socket created with fd %d", ret);
         /* return the id of this new resource (socket) */
-        return (s->getId());
+        return (ret);
     } else {
         delete (s);
-        return (cError );
+        return (cError);
     }
 }
 #endif
@@ -92,7 +92,7 @@ int sc_connect(intptr_t int_sp) {
     }
 
     Resource* res;
-    res = pCurrentRunningTask->getOwnedResourceById(socketid);
+    res = pCurrentRunningTask->getOwnedResourceByFileDescriptor(socketid);
     if (res != 0) {
         LOG(SYSCALLS, TRACE, "Syscall: connect valid");
 
@@ -139,7 +139,7 @@ int sc_listen(intptr_t int_sp) {
     }
 
     Resource* res;
-    res = pCurrentRunningTask->getOwnedResourceById(socketid);
+    res = pCurrentRunningTask->getOwnedResourceByFileDescriptor(socketid);
     if (res != 0) {
         LOG(SYSCALLS, TRACE, "Syscall: listen ");
 
@@ -184,7 +184,7 @@ int sc_bind(intptr_t int_sp) {
     VALIDATE_IN_PROCESS(addr);
 
     Resource* res;
-    res = pCurrentRunningTask->getOwnedResourceById(socketid);
+    res = pCurrentRunningTask->getOwnedResourceByFileDescriptor(socketid);
     if (res != 0) {
         LOG(SYSCALLS, TRACE, "Syscall: bind valid");
 
@@ -238,7 +238,7 @@ int sc_sendto(intptr_t int_sp) {
     }
 
     Resource* res;
-    res = pCurrentRunningTask->getOwnedResourceById(socket);
+    res = pCurrentRunningTask->getOwnedResourceByFileDescriptor(socket);
     if (res != 0) {
         LOG(SYSCALLS, TRACE, "Syscall: sendto valid");
 
@@ -293,7 +293,7 @@ int sc_recv(intptr_t int_sp) {
     LOG(SYSCALLS, DEBUG, "Syscall: recv: socketid %d, msg_addr: 0x%x, flags: %x, sockaddr_ptr: 0x%x", socketid, data_addr, flags, sender);
 
     Resource* res;
-    res = pCurrentRunningTask->getOwnedResourceById(socketid);
+    res = pCurrentRunningTask->getOwnedResourceByFileDescriptor(socketid);
     if (res != 0) {
         LOG(SYSCALLS, TRACE, "Syscall: recv valid");
 

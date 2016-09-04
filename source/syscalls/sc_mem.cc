@@ -127,8 +127,8 @@ int sc_shm_map(intptr_t sp_int) {
         *mapped_address = virtual_address;
         *mapped_size    = mapping_size;
 
-        pCurrentRunningTask->acquireResource(shm_res, pCurrentRunningThread, false);
-        return (shm_res->getId());
+        int ret = pCurrentRunningTask->acquireResource(shm_res, pCurrentRunningThread, false);
+        return (ret);
     }
 
     return (retval);

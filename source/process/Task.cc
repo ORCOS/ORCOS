@@ -39,7 +39,7 @@ IDMap<MAX_NUM_TASKS> Task::freeTaskIDs;
  ** Task::Task
  *---------------------------------------------------------------------------*/
 Task::Task(taskTable* tasktbl) :
-        aquiredResources(40),
+        numResources(0),
         exitValue(0),
         stopped(false),
         sysFsDir(0),
@@ -65,7 +65,7 @@ Task::Task(taskTable* tasktbl) :
         SYSFS_ADD_RO_UINT(sysFsDir, platform_flags);
         SYSFS_ADD_RO_UINT(sysFsDir, myTaskId);
         SYSFS_ADD_RO_UINT(sysFsDir, stopped);
-        SYSFS_ADD_RO_UINT_NAMED(sysFsDir, "num_resources", aquiredResources.numEntries);
+        SYSFS_ADD_RO_UINT_NAMED(sysFsDir, "num_resources", numResources);
         SYSFS_ADD_RO_UINT_NAMED(sysFsDir, "num_threads"  , threadDb.size);
         // TODO: update this using the information of mapped heap pages!
        // SYSFS_ADD_RO_UINT_NAMED(sysFsDir, "usedmem"      , 0);
@@ -82,7 +82,7 @@ Task::Task(taskTable* tasktbl) :
 }
 
 Task::Task() :
-        aquiredResources(10),
+        numResources(0),
         exitValue(0),
         stopped(false),
         sysFsDir(0),
@@ -107,7 +107,7 @@ Task::Task() :
         SYSFS_ADD_RO_UINT(sysFsDir, platform_flags);
         SYSFS_ADD_RO_UINT(sysFsDir, myTaskId);
         SYSFS_ADD_RO_UINT(sysFsDir, stopped);
-        SYSFS_ADD_RO_UINT_NAMED(sysFsDir, "num_resources", aquiredResources.numEntries);
+        SYSFS_ADD_RO_UINT_NAMED(sysFsDir, "num_resources", numResources);
         SYSFS_ADD_RO_UINT_NAMED(sysFsDir, "num_threads"  , threadDb.size);
     }
 #endif
@@ -133,33 +133,61 @@ Task::~Task() {
  *   Get the resource with id 'id' owned by this resource.
  *   May return null if not owned or not existent.
  *******************************************************************************/
-Resource* Task::getOwnedResourceById(ResourceIdT id) {
+Resource* Task::getOwnedResourceByFileDescriptor(ResourceIdT id) {
     /* parse database for a resource with id 'id' */
-    Resource* ret = 0;
-    /* resource list of task may be modified by some other thread
-     * AND processor.. protect against this using the resource spinlock*/
-    aquiredResources.lock();
+    if (id >= MAX_TASK_RESOURCES)
+        return (0);
+    return (acquiredResources[id]);
+}
 
-    /* ID 0 is invalid */
-    if (id == 0) {
-        goto out;
-    }
 
-    for (int i = 0; i < this->aquiredResources.size(); i++) {
-        Resource* res = static_cast<Resource*>(aquiredResources.getItemAt(i));
-        if (res == 0) {
-            LOG(PROCESS, ERROR, "Task::getOwnedResourceById res==null");
-            goto out;
+
+/*****************************************************************************
+ * Method: Task::addResource(Resource* res)
+ *
+ * @description
+ *  Unconditionally adds the Resource to the Task. Only to be used by resources adding themself
+ *  to the task after successful acquisition! Threads and other components should definitely use
+ *  acquireResource() instead!
+ *******************************************************************************/
+ErrorT Task::addResource(Resource* res)
+{
+    int FileDescriptor = freeResourceIds.getNextID();
+    if (FileDescriptor == -1) return (cDatabaseOverflow);
+
+    numResources++;
+    LOG(PROCESS, DEBUG, "Task: adding Resource resource %d, name: '%s' => fd %d", res->getId(), res->getName(), FileDescriptor);
+    acquiredResources[FileDescriptor] = res;
+    return (FileDescriptor);
+}
+
+/*****************************************************************************
+ * Method: Task::removeResource(Resource* res)
+ *
+ * @description
+ *  Removes the sources from the Task. Only to be used by resources!
+ *******************************************************************************/
+ErrorT  Task::removeResource(Resource* res)
+{
+    for (int i = 0; i < MAX_TASK_RESOURCES; i++)
+    {
+        if (acquiredResources[i] == res) {
+            acquiredResources[i] = 0;
+            freeResourceIds.freeID(i);
+            numResources--;
+            return (cOk);
         }
-        if (res->getId() == id) {
-            ret = res;
-            goto out;
-        }
     }
+    return (cResourceNotOwned);
+}
 
-out:
-    aquiredResources.unlock();
-    return (ret);
+int Task::getOwnedResourceFileDescriptor(Resource* res)
+{
+    for (int i = 0; i < MAX_TASK_RESOURCES; i++)
+    {
+        if (acquiredResources[i] == res) return (i);
+    }
+    return (-1);
 }
 
 /*****************************************************************************
@@ -174,14 +202,14 @@ ErrorT Task::acquireResource(Resource* res, Thread* t, bool blocking) {
         LOG(PROCESS, ERROR, "Task::acquireResource res==null");
         return (cError);
     }
+    int Fd = getOwnedResourceFileDescriptor(res);
     // check whether the task already owns this resource
-    if (getOwnedResourceById(res->getId()) != 0) {  // task already owns this resource
+    if (Fd >= 0) {  // task already owns this resource
         LOG(PROCESS, TRACE, "Task: Resource already owned");
         // increase the reference count of the res in this task
         // return the id of the resource so thread can continue working
-        return (res->getId());
+        return (Fd);
     } else {
-        LOG(PROCESS, TRACE, "Task: acquiring resource %d", res->getId());
         ErrorT error = res->acquire(t, blocking);
         if (isError(error)) {
             LOG(PROCESS, ERROR, "Task::aquireResource() acquire failed: %d", error);
@@ -197,7 +225,7 @@ ErrorT Task::acquireResource(Resource* res, Thread* t, bool blocking) {
  *  Ask this task to try to acquire the resource res
  *******************************************************************************/
 ErrorT Task::releaseResource(Resource* res, Thread* t) {
-    /* REMARK: we might alos check whether t is a thread belonging to this task
+    /* REMARK: we might also check whether t is a thread belonging to this task
      get the resource to close by id from the tasks owned resource database */
     if (res != 0) {
         if (res->getType() == cSocket) {
@@ -294,13 +322,18 @@ void Task::removeThread(Thread* t) {
         /* check if all threads are terminated */
         if (this->threadDb.isEmpty()) {
             /* no more threads. this task can be destroyed.
-             * free all acquired resources if applicable */
+             * free all acquired resources if applicable
+             * no need for synchronization here as no thread inside the process exists
+             * any more that can cause a race condition */
 
-            LOG(KERNEL, WARN, "Task::removeThread(): being destroyed! aq_size = %d", this->aquiredResources.size());
-            Resource* res = static_cast<Resource*>(this->aquiredResources.getHead());
-            while (res != 0) {
-                this->releaseResource(res, t);
-                res = static_cast<Resource*>(this->aquiredResources.getHead());
+            LOG(KERNEL, WARN, "Task::removeThread(): being destroyed! aq_size = %d", numResources);
+            for (int i = 0; i < MAX_TASK_RESOURCES; i++)
+            {
+                Resource* res = acquiredResources[i];
+                if (res) {
+                    this->releaseResource(res, t);
+                    acquiredResources[i] = 0;
+                }
             }
         }
 

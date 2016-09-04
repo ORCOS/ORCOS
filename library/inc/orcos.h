@@ -400,17 +400,19 @@ extern "C" {
 /*!
  * @brief Creates a virtual device inside the /dev subsystem
  *
- * Creates a virtual buffer device inside the /dev subsystem
- * with the given name. The device can be used to pipe
+ * Creates a fifo file at the give file path. The fifo can be used to pipe
  * e.g. stdout of a task to this device, create virtual devices
  * for user space drivers etc.
  *
- * @param devname          Name of the device
- * @param bufferSize       Internal buffer size of the device
+ * The maximum bufferSize depends on the OS configuration.
+ * May fail if the requested bufferSize exceeds the allowed maximum.
+ *
+ * @param filepath         Path to the fifo including filename
+ * @param bufferSize       Internal buffer size of the fifo
  *
  * @return                 cOk on success. Error code otherwise.
  */
- int             mkdev(char* devname, int bufferSize);
+ int             mkfifo(char* filepath, int bufferSize);
 
 /*!
  * @brief Tries to mount a device/directory etc to the location given by dst_path.

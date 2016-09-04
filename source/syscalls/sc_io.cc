@@ -55,7 +55,7 @@ int sc_ioctl(intptr_t int_sp) {
 
     LOG(SYSCALLS, DEBUG, "Syscall: ioctl(%d,%d,%x)", file_id, request, args);
 
-    res = pCurrentRunningTask->getOwnedResourceById(file_id);
+    res = pCurrentRunningTask->getOwnedResourceByFileDescriptor(file_id);
     if (res != 0) {
         /* check for correct type */
         if (res->getType() & (cStreamDevice | cCommDevice | cGenericDevice | cBlockDevice | cDirectory)) {
@@ -75,6 +75,71 @@ int sc_ioctl(intptr_t int_sp) {
 /*******************************************************************
  *                FCREATE Syscall
  *******************************************************************/
+
+/*****************************************************************************
+ * Method: getParentDirectory(char* filepath)
+ *
+ * @description
+ *
+ *   Returns the parent directory of given file path.
+ *   If no filename is given this method returns 0.
+ *   If a part of the file path is not found this method returns 0.
+ *
+ *  Example:
+ *  /path/blub/file  => returns Directory Object of /path/blub
+ *  /file  => returns Directory Object of /
+ *  blub/file  => returns Directory Object of $CWD/blub
+ *
+ *   Example:
+ *
+ * @params
+ *  filepath:     Path to the file the parent Directory shall be returned for
+ *
+ * @returns
+ *  int         Error Code
+ *---------------------------------------------------------------------------*/
+static Directory* getParentDirectory(char* filepath)
+{
+    Directory* parentDir = 0;
+    char* filename  = basename(filepath);
+    if (filepath[0] == '/') {
+        /* handle absolute path */
+        if (strlen(filename) == 0) {
+            return (0);
+        }
+
+        char* lpos;
+        if (filename != filepath) {
+            lpos    = filename -1;
+            lpos[0] = 0;
+        }
+
+        parentDir = theOS->getFileManager()->getDirectory(filepath);
+
+        if (filename != filepath) {
+            lpos[0] = '/';
+        }
+    } else {
+        /* get current working directory */
+        Directory* rootDir = pCurrentRunningTask->getWorkingDirectory();
+        if (rootDir == 0) {
+            LOG(SYSCALLS, ERROR, "getParentDirectory(%s) BUG. CWD not found: %s", filepath, pCurrentRunningTask->getWorkingDirectory());
+            return (0);
+        }
+        /* starting from current working directory find basename directory */
+        if (filename != filepath) {
+            Directory* tempParent;
+            char* lpos  = filename -1;
+            lpos[0]     = 0;
+            parentDir   = (Directory*) theOS->getFileManager()->getResourceByNameandType(filepath, cDirectory, tempParent, rootDir);
+            lpos[0]     = '/';
+        } else {
+            /* filepath e.g. "file.txt */
+            parentDir = rootDir;
+        }
+    }
+    return (parentDir);
+}
 
 #ifdef HAS_SyscallManager_fcreateCfd
 /*****************************************************************************
@@ -99,6 +164,8 @@ int sc_fcreate(intptr_t int_sp) {
     char* filename  = basename(filepath);
 
     LOG(SYSCALLS, DEBUG, "Syscall: fcreate(%s,%s)", filepath, filename);
+    parentDir = getParentDirectory(filepath);
+#if 0
     if (filepath[0] == '/') {
         /* handle absolute path */
         if (strlen(filename) == 0) {
@@ -130,6 +197,7 @@ int sc_fcreate(intptr_t int_sp) {
             parentDir = rootDir;
         }
     }
+#endif
 
 
     if (parentDir != 0) {
@@ -160,11 +228,7 @@ int sc_fcreate(intptr_t int_sp) {
         if (res != 0) {
             /* acquire this resource as we have created it */
             ErrorT ret = res->acquire(pCurrentRunningThread, false);
-            if (isOk(ret)) {
-                return (res->getId());
-            } else {
-                return (ret);
-            }
+            return (ret);
         } else {
             delete[] namepcpy;
             LOG(SYSCALLS, ERROR, "Syscall: fcreate(%s) FAILED. Resource could not be created.", filename);
@@ -259,7 +323,7 @@ int sc_fclose(intptr_t int_sp) {
     SYSCALLGETPARAMS1(int_sp, file_id);
     LOG(SYSCALLS, DEBUG, "Syscall: fclose(%d)", file_id);
 
-    res = pCurrentRunningTask->getOwnedResourceById(file_id);
+    res = pCurrentRunningTask->getOwnedResourceByFileDescriptor(file_id);
     if (res != 0) {
         int retval = pCurrentRunningTask->releaseResource(res, pCurrentRunningThread);
 
@@ -312,7 +376,7 @@ int sc_fwrite(intptr_t int_sp) {
     LOG(SYSCALLS, DEBUG, "Syscall: fwrite(...,%d,%x,%d)", fd, buf, count);
 
     Resource* res;
-    res = pCurrentRunningTask->getOwnedResourceById(fd);
+    res = pCurrentRunningTask->getOwnedResourceByFileDescriptor(fd);
     if (res != 0) {
         LOG(SYSCALLS, TRACE, "Syscall: fwrite valid");
 
@@ -363,7 +427,7 @@ int sc_fread(intptr_t int_sp) {
     LOG(SYSCALLS, TRACE, "Syscall: fread(...,%d,%x,%d)", fd, buf, count);
 
     Resource* res;
-    res = pCurrentRunningTask->getOwnedResourceById(fd);
+    res = pCurrentRunningTask->getOwnedResourceByFileDescriptor(fd);
     if (res != 0) {
         LOG(SYSCALLS, DEBUG, "Syscall: fread valid. Resource: %s", res->getName());
 
@@ -382,11 +446,11 @@ int sc_fread(intptr_t int_sp) {
             return (count);
         } else {
             retval = cResourceNotReadable;
-            LOG(SYSCALLS, ERROR, "Syscall: fread failed. Not a readable device.");
+            LOG(SYSCALLS, ERROR, "Syscall: fread failed on %s (res id: %d) with fd %d: Not a readable device.",  res->getName(), res->getId(), fd);
         }
     } else {
         retval = cResourceNotOwned;
-        LOG(SYSCALLS, ERROR, "Syscall: fread on device with id %d failed", fd);
+        LOG(SYSCALLS, ERROR, "Syscall: fread on resource %s with fd %d failed: Not owned!", res->getName(), fd);
     }
     return (retval);
 }
@@ -414,7 +478,7 @@ int sc_fstat(intptr_t int_sp) {
 
     LOG(SYSCALLS, DEBUG, "Syscall: fstat(%d)", file_id);
 
-    res = pCurrentRunningTask->getOwnedResourceById(file_id);
+    res = pCurrentRunningTask->getOwnedResourceByFileDescriptor(file_id);
     if (res != 0) {
         stat->st_size = 0;
         stat->st_type = res->getType();
@@ -514,8 +578,7 @@ int sc_fremove(intptr_t int_sp) {
 
     /* if this resource is owned by the current task remove it from the task */
     /* only acquired resources may be removed to avoid references to already deleted resources! */
-    res = pCurrentRunningTask->getOwnedResourceById(res->getId());
-    if (res != 0) {
+    if (pCurrentRunningTask->getOwnedResourceFileDescriptor(res) >= 0) {
         ErrorT ret = pCurrentRunningTask->releaseResource(res, pCurrentRunningThread);
         if (isOk(ret)) {
             /* remove also will / must delete/schedule deletion res_file */
@@ -552,7 +615,7 @@ int sc_fseek(intptr_t int_sp) {
     Resource* res;
 
     SYSCALLGETPARAMS3(int_sp, fd, offset, whence);
-    res = pCurrentRunningTask->getOwnedResourceById(fd);
+    res = pCurrentRunningTask->getOwnedResourceByFileDescriptor(fd);
 
     if (whence < SEEK_SET || whence > SEEK_END) {
         return (cInvalidArgument);
@@ -610,41 +673,60 @@ int sc_fseek(intptr_t int_sp) {
  * @returns
  *  int         Error Code
  *---------------------------------------------------------------------------*/
-int sc_mkdev(intptr_t int_sp) {
-    char*         devname;
+int sc_mkfifo(intptr_t int_sp) {
+    char*         filepath;
+    char*         filename;
     size_t        bufferSize;
-    BufferDevice* res;
     int           retval;
 
-    SYSCALLGETPARAMS2(int_sp, devname, bufferSize);
-    VALIDATE_IN_PROCESS(devname);
+    SYSCALLGETPARAMS2(int_sp, filepath, bufferSize);
+    VALIDATE_IN_PROCESS(filepath);
 
-    if (basename(devname) != devname) {
+    if (bufferSize > BUFFERDEVICE_MAX_BUFFER_SIZE) {
         return (cInvalidArgument);
     }
 
-    int devnamelen = strlen(devname);
+    int pathlen = strlen(filepath);
 
-    if (devnamelen == 0 || devnamelen > 255) {
+    if (pathlen == 0 || pathlen > 255) {
         return (cInvalidArgument);
     }
+    filename = basename(filepath);
+    int filenamelen = strlen(filename);
 
-    Directory* dir = theOS->getFileManager()->getDirectory("/dev/");
-    if (dir->get(devname, devnamelen) != 0)
+    Resource*  res = theOS->getFileManager()->getResource(filepath);
+    if (res) {
         return (cResourceAlreadyExists);
-
-    char* pdevname = new char[devnamelen + 1];
-    memcpy(pdevname, devname, devnamelen + 1);
-
-    LOG(SYSCALLS, DEBUG, "Syscall: mkdev(%s, %u)", pdevname, bufferSize);
-    res = new BufferDevice(pdevname, bufferSize);
-
-    if (!res->isValid()) {
-        delete res;
-        return (cError);
+    }
+    Directory* parentDir = getParentDirectory(filepath);
+    if (!parentDir) {
+        return (cInvalidPath);
     }
 
-    retval = pCurrentRunningTask->acquireResource(res, pCurrentRunningThread, false);
+    char* pdevname = new char[filenamelen + 1];
+    memcpy(pdevname, filename, filenamelen + 1);
+
+    LOG(SYSCALLS, DEBUG, "Syscall: mkfifo(%s, %u)", pdevname, bufferSize);
+    BufferDevice* pBufDev = new BufferDevice(pdevname, bufferSize);
+
+    if (!pBufDev->isValid()) {
+        retval = cError;
+        goto fail;
+    }
+
+    /* add BufferDevice to directory.. will not add it to the underlying filesystem as this
+     * can only be done using createFile() */
+    retval = parentDir->add(pBufDev);
+    if (isError(retval)) {
+        goto fail;
+    }
+    retval = pCurrentRunningTask->acquireResource(pBufDev, pCurrentRunningThread, false);
+    if (isError(retval)) {
+        goto fail;
+    }
+    return (retval);
+fail:
+    delete pBufDev;
     return (retval);
 }
 
@@ -724,7 +806,7 @@ int sc_rename(intptr_t int_sp) {
     char* namepcpy = new char[namelen +1];
     memcpy(namepcpy, filenewname, namelen + 1);
 
-    res = pCurrentRunningTask->getOwnedResourceById(fd);
+    res = pCurrentRunningTask->getOwnedResourceByFileDescriptor(fd);
     if (res != 0) {
           /* check for correct type */
           if (res->getType() & (cDirectory)) {

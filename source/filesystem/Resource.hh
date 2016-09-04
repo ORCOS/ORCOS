@@ -41,23 +41,23 @@ class Resource: public ListItem {
 protected:
     // making the name protected allows classes to change their name
     //! name identifying this resource
-    const char* name;
+    const char*         name;
 
     //! The access controlling mechanism
-    Mutex* accessControl;
+    Mutex*              accessControl;
 
 private:
     //!  A global Resource counter.
-    static ResourceIdT globalResourceIdCounter;
+    static ResourceIdT  globalResourceIdCounter;
 
     //! The type of resource
-    ResourceType restype;
+    ResourceType        restype;
 
     //! My Id
-    ResourceIdT myResourceId;
+    ResourceIdT         myResourceId;
 
     //! Number of tasks holding a reference to this resource
-    int2      refCounter;
+    int2                refCounter;
 
 public:
     //! Constructor which takes the type of this resource and its name

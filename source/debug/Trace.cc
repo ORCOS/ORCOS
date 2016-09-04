@@ -141,7 +141,7 @@ void Trace::callbackFunc(void* param) {
         while (true) {
             int newSock = commandSocket->listen(pCurrentRunningThread);
 
-            Socket* sessionSock = static_cast<Socket*>(pCurrentRunningThread->getOwner()->getOwnedResourceById(newSock));
+            Socket* sessionSock = static_cast<Socket*>(pCurrentRunningThread->getOwner()->getOwnedResourceByFileDescriptor(newSock));
             printf("Incoming Trace control connection.\n");
             int len = sessionSock->recvfrom(pCurrentRunningThread, rcvbuf, 100, MSG_WAIT, 0);
 

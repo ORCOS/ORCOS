@@ -27,7 +27,7 @@ extern Kernel* theOS;
 extern Kernel_ThreadCfdCl* pCurrentRunningThread;
 
 Socket::Socket(unint2 domain, SOCK_TYPE e_type, unint2 protocol) :
-        Resource(cSocket, false) {
+        Resource(cSocket, false, "Socket") {
 
     LOG(COMM, DEBUG, "Socket::Socket() created %x", this);
     /* create the message buffer. hold up to 20 messages till overflow */
@@ -337,13 +337,13 @@ int Socket::listen(Kernel_ThreadCfdCl* thread, int backlog_size, int timout_ms) 
 
         if (newConn != 0) {
             /* add new socket to task to allow access to it */
-            pCurrentRunningThread->getOwner()->aquiredResources.addTail(newConn);
+            int ret = pCurrentRunningThread->getOwner()->addResource(newConn);
 
             LOG(COMM, DEBUG, "Socket::listen(): new Connection %d", newConn->getId());
             /* if we get here we got a new connection.
              * A new socket has been created. Return the resource id of it.*/
             this->blockedThread = 0;
-            return (newConn->getId());
+            return (ret);
         }
 
         LOG(COMM, DEBUG, "Socket::listen(): Timed out");

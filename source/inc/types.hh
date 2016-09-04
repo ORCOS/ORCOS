@@ -252,9 +252,10 @@ typedef enum {
     cTimerDevice        = 1 << 12,
     cThread             = 1 << 13,
     cTask               = 1 << 14,
+    cFifo               = 1 << 15,
     cNonRemovableResource = cStreamDevice | cOverlay | cKernelVariable| cPartition | cBlockDevice | cCommDevice | cGenericDevice | cSocket | cUSBDriver | cTimerDevice | cThread | cTask,
-    cAnyNoDirectory       = cStreamDevice | cCommDevice | cGenericDevice | cFile | cSocket | cUSBDriver | cBlockDevice | cSharedMem | cTimerDevice,
-    cAnyResource          = cStreamDevice | cCommDevice | cGenericDevice | cFile | cSocket | cUSBDriver | cDirectory | cBlockDevice | cSharedMem | cOverlay | cTimerDevice
+    cAnyNoDirectory       = cStreamDevice | cCommDevice | cGenericDevice | cFile | cSocket | cUSBDriver | cBlockDevice | cSharedMem | cTimerDevice | cFifo,
+    cAnyResource          = cStreamDevice | cCommDevice | cGenericDevice | cFile | cSocket | cUSBDriver | cDirectory | cBlockDevice | cSharedMem | cOverlay | cTimerDevice | cFifo
 } ResourceType;
 
 #endif /* _TYPES_HH */

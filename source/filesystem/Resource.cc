@@ -68,7 +68,7 @@ int Resource::acquire(Thread* pThread, bool blocking) {
        pThread = pCurrentRunningThread;
    }
 
-    int retval = myResourceId;
+    int retval = cError;
 
     if (this->accessControl != 0) {
         /* blocking call */
@@ -84,13 +84,10 @@ int Resource::acquire(Thread* pThread, bool blocking) {
     if (myResourceId != 0) {
         if (pThread != 0 ) {
             /* Add resource to the set of acquired resources */
-            pThread->getOwner()->aquiredResources.lock();
-            int result = pThread->getOwner()->aquiredResources.addTail(this);
-            pThread->getOwner()->aquiredResources.unlock();
+            retval = pThread->getOwner()->addResource(this);
             /* forward status back to user */
-            if (result < 0) {
+            if (isError(retval)) {
                 /* error adding resource to task.. */
-                retval = result;
                 ATOMIC_ADD(&refCounter, -1);
                 return (retval);
             }
@@ -122,9 +119,7 @@ Resource::~Resource() {
         LinkedList* tasks = theOS->getTaskManager()->getTaskDatabase();
         for (LinkedListItem* litem = tasks->getHead(); litem != 0; litem = litem->getSucc()) {
             Task* t = (Task*) (litem->getData());
-            t->aquiredResources.lock();
-            t->aquiredResources.removeItem(this);
-            t->aquiredResources.unlock();
+            t->removeResource(this);
         }
     }
 
@@ -156,21 +151,20 @@ ErrorT Resource::release(Thread* pThread) {
           pThread = pCurrentRunningThread;
     }
 
+    if (pThread != 0) {
+        /* remove resource from the database */
+        ret = pThread->getOwner()->removeResource(this);
+        if (isError(ret)) {
+            return (ret);
+        } else {
+            ATOMIC_ADD(&refCounter, -1);
+        }
+    }
+
     if (this->accessControl != 0) {
         accessControl->release((Kernel_ThreadCfdCl*)pThread);
     }
 
-    if (pThread != 0) {
-        /* remove resource from the database */
-        pThread->getOwner()->aquiredResources.lock();
-        ListItem* removedItem = pThread->getOwner()->aquiredResources.removeItem(this);
-        if (removedItem == 0) {
-            ret = cElementNotInDatabase;
-        } else {
-            ATOMIC_ADD(&refCounter, -1);
-        }
-        pThread->getOwner()->aquiredResources.unlock();
-    }
     return (ret);
 }
 
