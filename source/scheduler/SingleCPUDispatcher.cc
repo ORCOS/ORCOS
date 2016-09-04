@@ -116,6 +116,7 @@ void SingleCPUDispatcher::dispatch() {
 
     /* Any ready thread?  */
     if (likely(nextThreadDbItem != 0)) {
+        Kernel_ThreadCfdCl* pPreviousThread = pCurrentRunningThread;
         pCurrentRunningThread   = static_cast<Kernel_ThreadCfdCl*>(nextThreadDbItem->getData());
         pCurrentRunningTask     = pCurrentRunningThread->getOwner();
 
@@ -134,7 +135,7 @@ void SingleCPUDispatcher::dispatch() {
             pCurrentRunningThread->callMain();
         } else {
             LOG(SCHEDULER, DEBUG, "SingleCPUDispatcher: resume Thread %d at %x", tid, pCurrentRunningThread);
-            assembler::restoreContext(pCurrentRunningThread);
+            assembler::restoreContext(pCurrentRunningThread, pPreviousThread);
         }
     } else {
         pCurrentRunningThread   = 0;

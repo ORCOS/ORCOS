@@ -24,7 +24,7 @@
 #include "inc/memio.h"
 
 extern Kernel* theOS;
-extern "C" void restoreContext(Thread* t) __attribute__((noreturn));
+extern "C" void restoreContext(Thread* t, Thread* previousThread) __attribute__((noreturn));
 extern "C" void dumpContext(void* sp_context);
 
 /*!
@@ -35,7 +35,7 @@ extern "C" void dumpContext(void* sp_context);
  * and Resource to finish a syscall earlier.
  *
  */
-extern "C" void restoreContext(Thread* t)  {
+extern "C" void restoreContext(Thread* t, Thread* previousThread)  {
     void* sp            = 0; /* pointer to the context of the thread */
     unint ptStartAddr   = 0; /* page table start address */
     void* mode          = 0; /* thread mode */
@@ -51,11 +51,14 @@ extern "C" void restoreContext(Thread* t)  {
 
     ASSERT(sp != 0);
     ASSERT(t->getOwner() != 0);
-    TaskIdT pid = t->getOwner()->getId();
+    unint1 pid = 0xff; /* -1 == no pid change */
+    if ((previousThread == 0) || (previousThread->getOwner() != t->getOwner()))
+    {
+        pid = t->getOwner()->getId() & 0xff; /* new pid to change to */
+    }
 
 #if HAS_Board_HatLayerCfd
     ptStartAddr =  (((unint) &__PageTableSec_start) + pid * 0x4000);
-
 
     /*
      * On context restore we must invalidate the branch prediction array as
@@ -64,6 +67,8 @@ extern "C" void restoreContext(Thread* t)  {
      * "In some implementations, to ensure correct operation it might be necessary to invalidate branch prediction
      *  entries on a change of instruction or instruction address mapping"
      */
+
+// #define INVALIDATE_BRANCH_PREDICTION_ON_CONTEXT_SWITCH
 
 #endif
 
@@ -84,31 +89,31 @@ extern "C" void restoreContext(Thread* t)  {
             ".code  32;"
             /* arm mode code */
 
-            //"MOV    r0, %0;" /* set saved context address */
-            "MOV    r1, %2;" /* set PID */
-
 #if HAS_Board_HatLayerCfd
-            //"MOV    r2, #0x0;"
+            "CMP    %2, 0xff;"
+            "BEQ    1f;"
+            "MOV    r1, %2;" /* set PID */
             "ORR    r1, r1, %2, lsl #8;"
             "MOV    r0, #0;"
-            "MCR    p15, 0, r0, c13, c0, 1;"    /* set ASID and PROCID field of 0 for asid and ttbr change */
+            "MCR    p15, 0, r0, c13, c0, 1;"    /* set ASID and PROCID field of 0 for ASID and TTBR change */
             "ISB;"
-            //"MCR    p15, 0, r2, c7 , c5, 4;"  /* Ensure completion of the CP15 write (ISB not working) */
+            //"MCR    p15, 0, r0, c7 , c5, 4;"  /* Ensure completion of the CP15 write (if ISB not working) */
             "MCR    p15, 0, %1, c2 , c0, 0;"    /* set TTBR0 */
-            "ISB;"
             "MCR    p15, 0, r1, c13, c0, 1;"    /* set ASID and PROCID field of CONTEXTIDR register */
-            //"MCR    p15, 0, r2, c7 , c5, 4;"  /* Ensure completion of the CP15 write (ISB not working) */
+            "ISB;"
+            //"MCR    p15, 0, r0, c7 , c5, 4;"  /* Ensure completion of the CP15 write (if ISB not working) */
+#if  INVALIDATE_BRANCH_PREDICTION_ON_CONTEXT_SWITCH
+            "MCR p15, 0, r0, c7 , c5, 6;"       /* invalidate whole branch predictor array */
 #endif
-#if  ENABLE_BRANCH_PREDICTION
-            //"MCR p15, 0, r0, c7 , c5, 6;"       /* invalidate whole branch predictor array */
 #endif
-            //"LDR    sp, =__stack - 0x20;"     /* temporary accessible stack position for context restore */
-            "MOV    r0, %0;"                    /* load context address*/
-            "MOV    r1, %3;"                    /* set restore context mode */
+            "1:"
             "CMP    %4, #1;"                    /* check if we need to return the signal value */
             "STREQ  %5, [%0, #4];"              /* if so put into return register r0*/
+            "MOV    r0, %0;"                    /* load context address*/
+            "MOV    r1, %3;"                    /* set restore context mode */
 
-            /*"push {r0-r3};"
+            /*LDR    sp, =__stack - 0x20;"     // temporary accessible stack position for dumpContext
+             "push {r0-r3};"
              "bl  dumpContext;"
              "pop  {r0-r3};"*/
 

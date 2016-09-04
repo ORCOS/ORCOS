@@ -74,9 +74,10 @@ ErrorT TimerDevice::handleIRQ(int irq) {
             theOS->getCPUScheduler()->enter(lItem);
         }
 
+        Kernel_ThreadCfdCl* pPreviousThread = pCurrentRunningThread;
         pCurrentRunningThread   = static_cast<Kernel_ThreadCfdCl*>(llThread);
         pCurrentRunningTask     = pCurrentRunningThread->getOwner();
-        assembler::restoreContext(llThread);
+        assembler::restoreContext(llThread, pPreviousThread);
         __builtin_unreachable();
     } else {
         llThreadOverrunCount++;

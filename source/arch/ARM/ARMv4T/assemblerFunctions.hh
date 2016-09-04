@@ -471,7 +471,7 @@ namespace assembler {
  * and Resource to finish a syscall earlier.
  *
  */
-extern "C" void restoreContext(Thread* t);
+extern "C" void restoreContext(Thread* t, Thread* previousThread);
 } // namespace assembler
 
 #endif

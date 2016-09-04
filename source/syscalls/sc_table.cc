@@ -116,7 +116,7 @@ extern "C" void handleSyscall(intptr_t sp_int) {
     /* return from syscall */
     _disableInterrupts();
     SET_RETURN_VALUE(sp_int, retval);
-    assembler::restoreContext(pCurrentRunningThread);
+    assembler::restoreContext(pCurrentRunningThread, pCurrentRunningThread);
     __builtin_unreachable();
 }
 

@@ -72,16 +72,13 @@ void startThread(register Thread* thread) {
             "MOV    r1, %0;"
             "ORR    r1, r1, %0, lsl #8;"        /* construct CONTEXTIDR register value */
             "ISB;"
-
-            "MCR    p15, 0, r1, c13, c0, 1;"    /* set ASID and PROCID field of CONTEXTIDR register */
-            "ISB;"
-
             "MCR    p15, 0, %5, c2, c0, 0;"     /* set TBBR0 */
+            "ISB;"
+            "MCR    p15, 0, r1, c13, c0, 1;"    /* set ASID and PROCID field of CONTEXTIDR register */
             "ISB;"
 #endif
 
             /* switch to system mode to load the right registers */
-
             "MSR    CPSR_c, #0x1F | 0xC0;"
 
             /* set stack pointer and link register for user mode */

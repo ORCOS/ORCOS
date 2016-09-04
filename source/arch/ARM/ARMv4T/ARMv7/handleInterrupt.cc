@@ -226,7 +226,7 @@ extern "C" __attribute__((used)) void dispatchIRQ(void* sp_int, int mode) {
      * will already be pending and ensure dispatch after context
      * return*/
     if (pCurrentRunningThread != 0 && !needReschedule) {
-        assembler::restoreContext(pCurrentRunningThread);
+        assembler::restoreContext(pCurrentRunningThread, pCurrentRunningThread);
     } else {
         theOS->getDispatcher()->dispatch();
     }
